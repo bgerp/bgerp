@@ -533,12 +533,13 @@ class cams_Records extends core_Master
             $driver->captureVideo($fp->videoFile, $conf->CAMS_CLIP_DURATION + 1);
             
             if ($imageStr = $driver->getPicture()) {
-                imagejpeg($imageStr, $fp->imageFile);
-                
-                // Отложено ресайзване
-                $toThumb[$fp->imageFile] = $fp->thumbFile;
-                
-                $shots++;
+                if (@imagejpeg($imageStr, $fp->imageFile)) {
+                    // Отложено ресайзване само на успешно записани кадри
+                    $toThumb[$fp->imageFile] = $fp->thumbFile;
+                    $shots++;
+                } else {
+                    $this->logErr("Неуспешен запис на кадър от камера {$camRec->id}: {$fp->imageFile}");
+                }
             }
             
             // Подготвяме и записваме записа;
