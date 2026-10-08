@@ -817,7 +817,7 @@ class marketing_Bulletins extends core_Master
         }
         
         $cookieName = self::getCookieName($id);
-        if ($_COOKIE[$cookieName] == 'no') {
+        if (($_COOKIE[$cookieName] ?? null) == 'no') {
             vislog_History::add('Не показана форма за бюлетина (nlst=no)');
             
             echo ' ';

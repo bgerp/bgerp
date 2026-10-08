@@ -1410,6 +1410,7 @@ class doc_Threads extends core_Manager
             $exp->message = tr($message);
             
             // Ако преместваме само една нишка
+            $haveRightForSingle = false;
             if (countR($selArr) == 1) {
                 
                 // Ако имаме права за нишката, в преместената папка
