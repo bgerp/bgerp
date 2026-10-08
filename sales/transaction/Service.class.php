@@ -134,9 +134,9 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
                 );
             }
             
-            if ($this->class->_total->vat) {
-                $vat = $this->class->_total->vat;
-                $vatAmount = $this->class->_total->vat * $rec->currencyRate;
+            $vat = $this->class->_total->vat ?? 0;
+            if ($vat) {
+                $vatAmount = $vat * $rec->currencyRate;
 
                 if($originCurrencyCode != $rec->currencyId){
                     $vat = round(currency_Currencyrates::convertAmount($vat, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);

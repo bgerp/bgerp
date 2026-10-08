@@ -66,7 +66,7 @@ class sales_interface_SaleLabelImpl extends label_ProtoSequencerImpl
             $labelData = $this->getLabelData($objId, 1, true, null, $series);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
-                    if(is_object($placeholders[$key])){
+                    if(is_object($placeholders[$key] ?? null)){
                         $placeholders[$key]->example = $val;
                     }
                 }
