@@ -547,7 +547,7 @@ class marketing_Bulletins extends core_Master
     {
         $resArr = array();
         
-        list($resArr['domain'], $resArr['lang']) = explode(self::$domainLgGlue, $domain);
+        list($resArr['domain'], $resArr['lang']) = explode(self::$domainLgGlue, $domain ?? '') + array('', null);
         
         return $resArr;
     }

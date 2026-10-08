@@ -409,7 +409,7 @@ class type_Users extends type_Keylist
      *
      * @param string $key - Ключа от опциите
      *
-     * @return string - Стринг, с възможните стойности
+     * @return string|null - Стринг с възможните стойности или null при липса на опции
      */
     public function fitInDomain($key)
     {
@@ -424,7 +424,7 @@ class type_Users extends type_Keylist
         }
         
         // Връщаме ключа
-        return $typeObj->keylist;
+        return $typeObj->keylist ?? null;
     }
     
     
