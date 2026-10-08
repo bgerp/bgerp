@@ -203,6 +203,9 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select:not(.combo):not(.select2-hidden-accessible),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea { width: 100% !important; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inlineTo > .select2-container { width: calc(50% - 12px) !important; }
+/* Radio and checkbox options wrap instead of overflowing on narrow screens. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) table.keylist > tbody > tr { display: flex; flex-wrap: wrap; gap: 0.25em 1em; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) table.keylist > tbody > tr > td { display: block; padding: 0; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formInfo {
     margin: 0 0 16px;
     padding: 0;

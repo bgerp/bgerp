@@ -301,7 +301,12 @@ body.commerce-blog {
 .commerce-blog .blogm-browse-period { color: var(--c-accent); }
 .commerce-blog .blogm-status { background: #dcebf1; color: var(--c-accent); }
 .commerce-blog .blogm-comments { margin-top: 28px; }
+/* The placeholders name the fields; on narrow screens the fields take the full width. */
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div :is(input[type=text], input[type=email], textarea) { width: 100% !important; min-width: 0; }
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div .richEdit { width: 100% !important; max-width: 100%; box-sizing: border-box; }
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div .richEdit > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .commerce-blog .blogm-comment-form input[type=text],
+.commerce-blog .blogm-comment-form input[type=email],
 .commerce-blog .blogm-comment-form textarea {
     max-width: 100%;
     box-sizing: border-box;

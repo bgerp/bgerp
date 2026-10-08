@@ -25,6 +25,19 @@ function initCommerceLogin(showLabel, hideLabel) {
     holder.appendChild(toggle);
 }
 
+/** An empty search does not reload the page; the field gets focus instead. */
+function initCommerceSearch() {
+    if (document.body.dataset.commerceSearch) return;
+    document.body.dataset.commerceSearch = 'true';
+    document.addEventListener('submit', function (event) {
+        var input = event.target.querySelector('#simpleSearch input[name="q"]');
+        if (input && !input.value.trim()) {
+            event.preventDefault();
+            input.focus();
+        }
+    }, true);
+}
+
 /** Close the language picker without changing the selected language. */
 function initCommerceLanguages() {
     var picker = document.querySelector('body.commerce-theme .commerce-languages');
