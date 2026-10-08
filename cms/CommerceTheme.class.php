@@ -114,6 +114,7 @@ class cms_CommerceTheme extends cms_FancyTheme
 
         return array(
             'commerceLanguages' => 'initCommerceLanguages();',
+            'commerceSearch' => 'initCommerceSearch();',
             'commerceNavigation' => 'initCommerceNavigation(' . json_encode(tr('Меню')) . ', ' . json_encode(tr('Категории и филтри')) . ', ' . json_encode(tr('Категории')) . ');',
             'commerceLogin' => 'initCommerceLogin(' . json_encode(tr('Покажи паролата')) . ', ' . json_encode(tr('Скрий паролата')) . ');',
         );

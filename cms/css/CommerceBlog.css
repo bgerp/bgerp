@@ -301,7 +301,12 @@ body.commerce-blog {
 .commerce-blog .blogm-browse-period { color: var(--c-accent); }
 .commerce-blog .blogm-status { background: #dcebf1; color: var(--c-accent); }
 .commerce-blog .blogm-comments { margin-top: 28px; }
+/* The placeholders name the fields; on narrow screens the fields take the full width. */
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div :is(input[type=text], input[type=email], textarea) { width: 100% !important; min-width: 0; }
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div .richEdit { width: 100% !important; max-width: 100%; box-sizing: border-box; }
+body.commerce-theme:is(.narrow, .commerce-compact) .blogm-comment-form .formFields > div .richEdit > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .commerce-blog .blogm-comment-form input[type=text],
+.commerce-blog .blogm-comment-form input[type=email],
 .commerce-blog .blogm-comment-form textarea {
     max-width: 100%;
     box-sizing: border-box;
@@ -336,6 +341,12 @@ body.commerce-blog {
 
 .commerce-blog #cmsNavigation .blogm-archive { margin-top: 1em; padding-top: 0.75em; border-top: 1px solid var(--c-line-5); }
 .commerce-blog #cmsNavigation .blogm-archive .level1 { color: var(--c-muted); font-size: 0.9em; font-weight: 600; margin-bottom: 0.5em; }
-.commerce-blog #cmsNavigation .blogm-archive .nav_item.level2 a { display: block; padding: 0.5em 0.7em; border-radius: 0.4em; color: #405b6a; font-size: 0.9em; }
+.commerce-blog #cmsNavigation .blogm-archive .nav_item:is(.level2, .level3) a { display: block; padding: 0.5em 0.7em; border-radius: 0.4em; color: #405b6a; font-size: 0.9em; }
+.commerce-blog #cmsNavigation .blogm-archive .blogm-archive-year a { font-weight: 600; }
+.commerce-blog #cmsNavigation .blogm-archive .nav_item.level3 a { padding-block: 0.35em; font-size: 0.85em; }
 .commerce-blog #cmsNavigation .blogm-archive .nav_item.sel_page a { background: var(--c-accent-soft-2); color: var(--c-accent); font-weight: 600; }
 .commerce-blog #cmsNavigation .blogm-archive .nav_item a:hover { background: #f0f6f8; }
+.commerce-blog #cmsNavigation .blogm-archive-older > summary { display: flex; align-items: center; gap: 0.4em; padding: 0.5em 0.7em; cursor: pointer; list-style: none; color: var(--c-muted); font-size: 0.75rem; font-weight: 600; }
+.commerce-blog #cmsNavigation .blogm-archive-older > summary::-webkit-details-marker { display: none; }
+.commerce-blog #cmsNavigation .blogm-archive-older > summary::after { content: ""; width: 0.4em; height: 0.4em; margin-top: -0.2em; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.commerce-blog #cmsNavigation .blogm-archive-older[open] > summary::after { margin-top: 0.2em; transform: rotate(225deg); }

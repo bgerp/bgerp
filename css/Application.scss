@@ -5407,6 +5407,26 @@ table .eshop-btn {
 	margin-left: 60px;
 }
 
+#cmsNavigation .blogm-archive-older > summary {
+	cursor: pointer;
+	list-style: none;
+	color: #555;
+	font-size: 0.9em;
+}
+
+#cmsNavigation .blogm-archive-older > summary::-webkit-details-marker {
+	display: none;
+}
+
+#cmsNavigation .blogm-archive-older > summary::after {
+	content: "\25BE";
+	margin-left: 0.3em;
+}
+
+#cmsNavigation .blogm-archive-older[open] > summary::after {
+	content: "\25B4";
+}
+
 #cmsNavigation div.nav_item {
     font-size:1em;
 }
