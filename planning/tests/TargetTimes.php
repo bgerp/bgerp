@@ -41,12 +41,16 @@ class planning_ProductionTaskProducts {
 class planning_type_ProductionRate { public static function getInSecsByQuantity($rate, $quantity) { return $rate * $quantity; } }
 class planning_Tasks {
     public static $records = array();
+    public static $saved = array();
     public static $reorderAllowed = true;
     public static function fetch($id) { return isset(self::$records[$id]) ? clone self::$records[$id] : null; }
     public static function getQuery() { return new FixtureQuery(self::$records); }
     public static function haveRightFor($action, $rec, $userId = 7) { return $action == 'savereordertasks' ? self::$reorderAllowed : $userId > 0; }
     public static function getTargetTimesPreviewReport($tasks, $scheduled, $now, $assetId, $baseline) { return array(); }
-    public function save_($rec, $fields) { self::$records[$rec->id]->targetStartConflict = $rec->targetStartConflict; }
+    public function save_(&$rec, $fields = null, $mode = null) {
+        self::$saved[] = array(clone $rec, $fields);
+        self::$records[$rec->id ?? null]->targetStartConflict = $rec->targetStartConflict ?? null;
+    }
 }
 class Request { public static function get($name) { return null; } }
 class cls { public static function get($name) { return new $name(); } }
@@ -298,7 +302,11 @@ check($tasks[2]->_targetReadyAfter == '2026-10-08 13:00:00', 'Closed predecessor
 $conflict = array('requested' => '2026-10-08 09:00:00', 'reason' => 'test', 'earliest' => '2026-10-08 10:00:00');
 planning_Tasks::$records[2] = (object)array('id' => 2, 'state' => 'pending', 'targetStartConflict' => $conflict, 'targetStartBy' => 7);
 planning_TargetTimes::updateNotification(2);
+check(planning_Tasks::$records[2]->targetStartConflict === $conflict + array('notified' => true), 'Notification marker is saved without changing conflict details');
+check(count(planning_Tasks::$saved) == 1 && planning_Tasks::$saved[0][1] === 'targetStartConflict'
+    && get_object_vars(planning_Tasks::$saved[0][0]) === array('id' => 2, 'targetStartConflict' => $conflict + array('notified' => true)), 'Notification save updates only the conflict field of the correct operation');
 planning_TargetTimes::updateNotification(2);
+check(count(planning_Tasks::$saved) == 1, 'Repeated notification check does not rewrite the saved marker');
 check(count(bgerp_Notifications::$added) == 1, 'Repeated recalculation does not duplicate a conflict notification');
 check(bgerp_Notifications::$added[0][0] === 'Opr2 - желаното начало 08.10.2026 09:00 не може да бъде спазено.', 'Notification uses agreed text and requested time');
 check(core_Users::$systemDepth === 0, 'System user is restored after notification');
