@@ -489,7 +489,7 @@ class frame2_Reports extends embed_Manager
     public static function sendNotification($rec)
     {
         // Ако няма избрани потребители за нотифициране, не се прави нищо
-        $userArr = keylist::toArray($rec->sharedUsers);
+        $userArr = self::getSharedUsersArr($rec);
         if (!countR($userArr)) {
             
             return;
@@ -513,11 +513,26 @@ class frame2_Reports extends embed_Manager
         
         // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
         foreach ($userArr as $userId) {
-            bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
+            bgerp_Notifications::add($msg, $url, $userId, $rec->priority ?? null);
         }
     }
     
     
+    /**
+     * Потребителите за известяване; записът от формата може да е без полето
+     *
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    protected static function getSharedUsersArr($rec)
+    {
+        $sharedUsers = property_exists($rec, 'sharedUsers') ? $rec->sharedUsers : self::fetchField($rec->id, 'sharedUsers');
+
+        return keylist::toArray($sharedUsers);
+    }
+
+
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -852,7 +867,7 @@ class frame2_Reports extends embed_Manager
                     unset($me->setNewUpdateTimes[$rec->id]);
 
                     // Нотифициране на споделените потребители, че справката вече няма да се обновява
-                    $userArr = keylist::toArray($rec->sharedUsers);
+                    $userArr = self::getSharedUsersArr($rec);
                     if(countR($userArr)){
                         $currentUserNick = core_Users::getCurrent('nick');
                         $handle = $me->getHandle($rec->id);

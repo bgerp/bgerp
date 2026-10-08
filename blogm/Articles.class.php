@@ -1007,9 +1007,12 @@ class blogm_Articles extends core_Master
         $data->archive = Request::get('archive', 'varchar');
 
         if (!empty($data->archive)) {
+            // Без месец е архивът за цялата година
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive) + array('', '');
-            expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
-            $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
+            expect(is_numeric($data->archiveY) && ($data->archiveM === '' || is_numeric($data->archiveM)));
+            if ($data->archiveM !== '') {
+                $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
+            }
         }
 
         // Подготвяме данните необходими за списъка със стаии
@@ -1063,7 +1066,8 @@ class blogm_Articles extends core_Master
         
         // Архивът се групира по дата на публикуване, затова и филтърът е по нея
         if (!empty($data->archive)) {
-            $data->query->where("#pubTime LIKE '{$data->archiveY}-{$data->archiveM}-%'");
+            $period = ($data->archiveM === '') ? $data->archiveY : "{$data->archiveY}-{$data->archiveM}";
+            $data->query->where("#pubTime LIKE '{$period}-%'");
         }
         
         // Показваме само публикуваните статии
@@ -1125,10 +1129,18 @@ class blogm_Articles extends core_Master
             $data->title = null;
             $data->rows = array();
         } elseif (!empty($data->archive)) {
-            $period = dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY;
-            $data->title = "<span class='blogm-browse-label'>" . tr('Архив за месец') . "</span> <span class='blogm-browse-period'>{$period}</span>";
+            if ($data->archiveM === '') {
+                $period = $data->archiveY;
+                $label = 'Архив за година';
+                $emptyMessage = $blogType ? 'Няма статии за тази година' : 'Няма новини за тази година';
+            } else {
+                $period = dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY;
+                $label = 'Архив за месец';
+                $emptyMessage = $blogType ? 'Няма статии за този месец' : 'Няма новини за този месец';
+            }
+            $data->title = "<span class='blogm-browse-label'>" . tr($label) . "</span> <span class='blogm-browse-period'>{$period}</span>";
             if (!countR($data->rows)) {
-                $data->emptyMessage = tr($blogType ? 'Няма статии за този месец' : 'Няма новини за този месец');
+                $data->emptyMessage = tr($emptyMessage);
             }
         } elseif (isset($data->category)) {
             $catRec = blogm_Categories::fetch($data->category);
@@ -1311,18 +1323,18 @@ class blogm_Articles extends core_Master
         }
         
         $total = 0;
-        $years = array();
+        $data->archiveYears = array();
         while ($rec = $query->fetch()) {
             $data->archiveArr[] = $rec->month;
             $total += $rec->cnt;
             list($y, ) = explode('|', $rec->month);
-            $years[$y] = $y;
+            $data->archiveYears[$y] = ($data->archiveYears[$y] ?? 0) + $rec->cnt;
         }
-        
+
         // Автоматично - само ако статиите не се събират на една страница и са от поне 2 години
         if ($show == 'auto') {
             $perPage = blogm_Setup::get('ARTICLES_PER_PAGE');
-            if ($total <= $perPage || countR($years) < 2) {
+            if ($total <= $perPage || countR($data->archiveYears) < 2) {
                 $data->archiveArr = array();
             }
         }
@@ -1330,33 +1342,63 @@ class blogm_Articles extends core_Master
     
     
     /**
+     * Колко от последните години в архива се виждат, без да се разгъват по-старите
+     */
+    public $archiveRecentYears = 2;
+
+
+    /**
      * Рендираме архива
      */
     public function renderArchive_(&$data)
     {
         if (countR($data->archiveArr)) {
             
-            // Шаблон, който ще представлява списъка от хиперлинкове към месеците от архива
-            $tpl = new ET("");
+            // При няколко години по месеци е само избраната или последната, другите са по един ред
+            $years = $data->archiveYears ?? array();
+            $openYear = !empty($data->archiveY) ? $data->archiveY : key($years);
+            $byYears = countR($years) > 1;
+
+            $parts = array();
             foreach ($data->archiveArr as $month) {
                 list($y, $m) = explode('|', $month);
-                
-                if (($data->archive ?? null) == $month) {
-                    $attr = array('class' => 'nav_item sel_page level2');
-                } else {
-                    $attr = array('class' => 'nav_item level2');
+
+                if ($byYears && !isset($parts[$y])) {
+                    $parts[$y] = new ET('');
+                    $title = ht::createLink($y . ' (' . $years[$y] . ')', array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $y));
+                    $class = 'nav_item level2 blogm-archive-year' . ((($data->archive ?? null) === (string) $y) ? ' sel_page' : '');
+                    $parts[$y]->append(ht::createElement('div', array('class' => $class), $title));
                 }
-                
-                // Създаваме линк, който ще покаже само статиите от избраната категория
+                if ($byYears && $y != $openYear) {
+                    continue;
+                }
+
                 $monthTitle = cms_ProtoTheme::getCurrent()->getArchiveMonthTitle($m, $y);
                 $title = ht::createLink($monthTitle, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
-                
-                // Див-обвивка
-                $title = ht::createElement('div', $attr, $title);
-                
-                $tpl->append($title);
+                $class = 'nav_item ' . ($byYears ? 'level3' : 'level2') . ((($data->archive ?? null) == $month) ? ' sel_page' : '');
+                $parts[$y] = $parts[$y] ?? new ET('');
+                $parts[$y]->append(ht::createElement('div', array('class' => $class), $title));
             }
-            
+
+            // Само последните години са видими, по-старите се разгъват при нужда
+            $tpl = new ET('');
+            $recent = array_slice($parts, 0, $this->archiveRecentYears, true);
+            foreach ($recent as $part) {
+                $tpl->append($part);
+            }
+            $older = array_diff_key($parts, $recent);
+            if (countR($older)) {
+                $olderTpl = new ET("<details class='blogm-archive-older'[#open#]><summary class='nav_item level2'>[#title#]</summary>[#items#]</details>");
+                $olderTpl->replace(tr('По-стари години'), 'title');
+                if (isset($older[$openYear]) && !empty($data->archiveY)) {
+                    $olderTpl->replace(' open', 'open');
+                }
+                foreach ($older as $part) {
+                    $olderTpl->append($part, 'items');
+                }
+                $tpl->append($olderTpl);
+            }
+
             return $tpl;
         }
     }
