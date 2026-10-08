@@ -884,7 +884,7 @@ class core_Cron extends core_Manager
         
         $rec = self::fetch($id);
         
-        return $rec->systemId;
+        return $rec->systemId ?? null;
     }
     
     
