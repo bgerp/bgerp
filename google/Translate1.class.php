@@ -20,6 +20,8 @@ class google_Translate1
      */
     protected static $initJs = '
         function googleSectionalElementInit() {
+            /* Google вече не зарежда секционния превод - без него не се прави нищо, вместо JS грешка */
+            if (typeof google === "undefined" || !google.translate || typeof google.translate.SectionalElement !== "function") return;
             new google.translate.SectionalElement({
                 sectionalNodeClassName: "goog-trans-section",
                 controlNodeClassName: "goog-trans-control",

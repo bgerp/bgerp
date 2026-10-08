@@ -48,8 +48,9 @@ class rtac_yuku_Textcomplete extends core_Manager
      */
     public static function runAutocompleteUsers(&$tpl, $rtId, $maxCount)
     {
+        // Стратегиите са масив - 1.8.5 обхожда обекта по ключове и гърми; cache не е включен, защото 0.2.4 не го прилагаше при обект
         jquery_Jquery::run($tpl, "
-        	$('#{$rtId}').textcomplete(
+        	$('#{$rtId}').textcomplete([
                 {
                     match: /\B@((\w|\.|[А-Яа-я])*)$/i,
                     index: 1,
@@ -62,11 +63,10 @@ class rtac_yuku_Textcomplete extends core_Manager
                         return '@' + userObj.nick + ' ';
                     },
                     maxCount: {$maxCount},
-                    cache: true,
                     template: function(userObj) {
                     	return userObj.nick + ' ' + '<span class=\'autocomplete-name\'>' + userObj.names + '</span>';
     				}
-                }
+                }]
             );
         ", true);
     }
@@ -84,7 +84,7 @@ class rtac_yuku_Textcomplete extends core_Manager
     public static function runAutocompleteText(&$tpl, $textId, $maxCount)
     {
         jquery_Jquery::run($tpl, "
-        	$('#{$textId}').textcomplete(
+        	$('#{$textId}').textcomplete([
                 {
                     match: /([^\s]*)$/,
                     index: 1,
@@ -133,7 +133,6 @@ class rtac_yuku_Textcomplete extends core_Manager
                         return text + rtacObj.textCompleteStrEnd.{$textId};
                     },
                     maxCount: {$maxCount},
-                    cache: true,
                     template: function(textComplete) {
                         if (typeof textComplete == 'string') {
                             var text = textComplete;
@@ -143,7 +142,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                         
                     	return text;
     				}
-                }
+                }]
             );
         ", true);
     }
