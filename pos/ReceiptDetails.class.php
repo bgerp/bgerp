@@ -575,13 +575,14 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         $refreshHeader = false;
+
+        // Запис на продукта
+        $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');
         try{
             pos_TerminalException::expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             $increment = false;
             $isWeightBarcode = false;
 
-            // Запис на продукта
-            $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');
             $quantity = Request::get('quantity');
             if ($quantity = cls::get('type_Double')->fromVerbal($quantity)) {
                 $rec->quantity = $quantity;
