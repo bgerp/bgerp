@@ -44,7 +44,8 @@ class email_Returned extends email_ServiceEmails
     
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
-     * ако е така - съхраняваго за определено време в този модел
+     * ако е така - съхранява го за определено време в този модел.
+     * Извлечените причини допълват историята на съответното изпращане в doclog.
      * 
      * @param email_Mime  $mime
      * @param integer $accId
@@ -94,7 +95,16 @@ class email_Returned extends email_ServiceEmails
         
         $ip = $mime->getSenderIp();
         
-        $isReturnedMail = doclog_Documents::returned($mid, $date, $ip);
+        try {
+            $details = email_ReturnedDetails::extract($mime, $date);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            // Неразчетена диагностика не бива да спира отчитането и запазването на връщането.
+            reportException($e);
+            $details = array();
+        }
+        $isReturnedMail = doclog_Documents::returned($mid, $date, $ip, $details);
         
         if ($isReturnedMail) {
             $rec = new stdClass();
