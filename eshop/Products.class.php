@@ -752,10 +752,13 @@ class eshop_Products extends core_Master
             $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
 
             $pQuery->where("#state = 'active' AND #saleState != 'closed'");
-            if (countR($groupIds) && strlen($data->q ?? '')) {
+            // Без търсене са всички - каталогът с филтри, когато няма навигация
+            if (countR($groupIds) && (strlen($data->q ?? '') || !eshop_Groups::mustShowSideNavigation())) {
                 $pQuery->in('groupId', $groupIds);
                 $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
-                plg_Search::applySearch($data->q, $pQuery, null, 3);
+                if (strlen($data->q ?? '')) {
+                    plg_Search::applySearch($data->q, $pQuery, null, 3);
+                }
             } else {
                 $pQuery->where("1=2");
             }
@@ -778,7 +781,7 @@ class eshop_Products extends core_Master
         $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, is_object($displayedGroupRec) ? $groupRecs : array());
 
         // Намерените се подреждат по рейтинг, както в бързото търсене
-        if($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID && countR($data->recs)){
+        if($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID && countR($data->recs) && empty($data->onlyParamFilter)){
             $rQuery = sales_ProductRatings::getQuery();
             $rQuery->where(array("#classId = '[#1#]'", self::getClassId()));
             $rQuery->in('objectId', array_keys($data->recs));
@@ -797,6 +800,7 @@ class eshop_Products extends core_Master
 
         if (!empty($data->withParamFilter)) {
             eshop_ParamFilter::prepare($data);
+            if (!empty($data->onlyParamFilter)) return;
         }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
@@ -954,7 +958,7 @@ class eshop_Products extends core_Master
                     $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
                 }
 
-                $layout->append('<h2>' . $groupName . '</h2>');
+                $layout->append("<h2 class='eshop-catalog-group'>" . $groupName . '</h2>');
 
                 if (!empty($gData->groupRec->image)) {
                     $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
@@ -1115,10 +1119,7 @@ class eshop_Products extends core_Master
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
-        $tpl->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
-        $tpl->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
-        $tpl->append(eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'), 'NAVIGATION_FILTERS');
-        $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
+        eshop_Groups::renderSideNavigation($tpl, $data->groups, eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'));
         
         // Поставяме SEO данните
         cms_Content::renderSeo($tpl, $rec);

@@ -356,13 +356,17 @@ function eshopParamFilter() {
 	var pendingUrl = null;
 	var initial = null;
 
-	// Зарежда 2 s след последното действие във филтъра
+	// В лентата над артикулите менютата тръгват затворени, за да не закриват артикулите
+	$('#eshopParamFilterTop details.eshop-param-filter-param[open]').prop('open', false);
+
+	// Зарежда след последното действие във филтъра - в колоната 2 s, а в лентата 1 s, защото там затварянето на менюто зарежда веднага
+	var delay = document.getElementById('eshopParamFilterTop') ? 1000 : 2000;
 	var schedule = function() {
 		clearTimeout(timer);
 		if (!pendingUrl) return;
 		timer = setTimeout(function() {
 			document.location = pendingUrl;
-		}, 2000);
+		}, delay);
 	};
 
 	// Бройките и сивите стойности за натрупания избор - от същата страница, без да се презарежда
@@ -394,6 +398,29 @@ function eshopParamFilter() {
 		var link = event.target.closest('.eshop-param-filter [data-filter-val]');
 		if (!link) {
 
+			// В лентата над артикулите е отворено само едно меню, а клик извън него го затваря
+			var top = document.getElementById('eshopParamFilterTop');
+			if (top) {
+				var current = event.target.closest('#eshopParamFilterTop details.eshop-param-filter-param');
+				var closed = false;
+				top.querySelectorAll('details.eshop-param-filter-param[open]').forEach(function(item) {
+					if (item !== current) {
+						item.open = false;
+						closed = true;
+					}
+				});
+
+				// Затварянето на менюто (клик извън него или върху заглавието му) значи, че изборът е готов
+				var summary = event.target.closest('summary');
+				var closing = current && current.open && summary && summary.parentNode === current;
+				if (pendingUrl && (closing || (closed && !current))) {
+					clearTimeout(timer);
+					document.location = pendingUrl;
+
+					return;
+				}
+			}
+
 			// Отварянето на параметър или „още“ удължава чакането, за да се стигне до следващия избор
 			if (event.target.closest('.eshop-param-filter')) schedule();
 
@@ -424,7 +451,7 @@ function eshopParamFilter() {
 		if (pc.length) url.searchParams.set('pc', pc);
 
 		var changed = (pf + '&' + pc != initial);
-		$('#cmsNavigation').parent().toggleClass('eshop-param-filter-pending', changed);
+		$(box).closest('#cmsNavigation, #eshopParamFilterTop').parent().toggleClass('eshop-param-filter-pending', changed);
 		pendingUrl = changed ? url.toString() : null;
 		schedule();
 		refresh(url.toString());
