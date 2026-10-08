@@ -300,9 +300,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             }
         }
         
-        if ($this->class->_total->vat) {
-            $vat = $this->class->_total->vat;
-            $vatAmount = $this->class->_total->vat * $currencyRate;
+        $vat = $this->class->_total->vat ?? 0;
+        if ($vat) {
+            $vatAmount = $vat * $currencyRate;
 
             if($originCurrencyCode != $rec->currencyId){
                 $vat = round(currency_Currencyrates::convertAmount($vat, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
