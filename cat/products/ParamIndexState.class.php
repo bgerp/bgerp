@@ -122,6 +122,66 @@ class cat_products_ParamIndexState extends core_Manager
 
 
     /**
+     * Колоните и стойностите за датата и автора на създаване при масов INSERT, който минава покрай plg_Created
+     *
+     * @return array - [колони, стойности] за SQL
+     */
+    protected static function getCreatedSql()
+    {
+        $me = cls::get(get_called_class());
+        $createdBy = core_Users::getCurrent();
+        if (!$createdBy) {
+            $createdBy = core_Users::ANONYMOUS_USER;
+        }
+
+        $cols = '`' . str::phpToMysqlName('createdOn') . '`, `' . str::phpToMysqlName('createdBy') . '`';
+        $vals = "'" . $me->db->escape(dt::now()) . "', " . (int) $createdBy;
+
+        return array($cols, $vals);
+    }
+
+
+    /**
+     * Записва състоянията накуп като saveArray, но датата и авторът на създаване са само при новите
+     *
+     * @param array  $recs
+     * @param string $fields - полетата за запис, сред тях и productId
+     *
+     * @return void
+     */
+    protected static function saveStates($recs, $fields)
+    {
+        $me = cls::get(get_called_class());
+        $fields = arr::make($fields);
+        list($createdCols, $createdVals) = self::getCreatedSql();
+
+        $cols = $update = array();
+        foreach ($fields as $name) {
+            $col = str::phpToMysqlName($name);
+            $cols[] = "`{$col}`";
+            if ($name != 'productId') {
+                $update[] = "`{$col}` = VALUES(`{$col}`)";
+            }
+        }
+
+        foreach (array_chunk($recs, 1000) as $chunk) {
+            $rows = array();
+            foreach ($chunk as $rec) {
+                $vals = array();
+                foreach ($fields as $name) {
+                    $field = $me->getField($name);
+                    $vals[] = $field->type->toMysql($rec->{$name} ?? null, $me->db, $field->notNull ?? null, $field->value ?? null);
+                }
+                $rows[] = '(' . implode(', ', $vals) . ", {$createdVals})";
+            }
+
+            $me->db->query("INSERT INTO `{$me->dbTableName}` (" . implode(', ', $cols) . ", {$createdCols}) VALUES " . implode(', ', $rows) . ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update), false, $me->doReplication);
+        }
+        $me->dbTableUpdated();
+    }
+
+
+    /**
      * Маркира артикулите за обновяване
      *
      * @param array $productIds
@@ -138,7 +198,7 @@ class cat_products_ParamIndexState extends core_Manager
         }
 
         if (countR($recs)) {
-            cls::get(get_called_class())->saveArray($recs, 'productId,status');
+            self::saveStates($recs, 'productId,status');
         }
     }
 
@@ -160,7 +220,7 @@ class cat_products_ParamIndexState extends core_Manager
         }
 
         if (countR($recs)) {
-            cls::get(get_called_class())->saveArray($recs, 'productId,status,hash');
+            self::saveStates($recs, 'productId,status,hash');
         }
     }
 
@@ -232,7 +292,7 @@ class cat_products_ParamIndexState extends core_Manager
         }
 
         if (countR($recs)) {
-            cls::get(get_called_class())->saveArray($recs, 'productId,status,forced');
+            self::saveStates($recs, 'productId,status,forced');
         }
     }
 
@@ -311,8 +371,9 @@ class cat_products_ParamIndexState extends core_Manager
         $inEshop = str::phpToMysqlName('inEshop');
 
         // Липсващите се добавят като неиндексирани - ще се индексират и за е-магазина
-        $me->db->query("INSERT IGNORE INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`)
-                        SELECT DISTINCT `{$productIdCol}`, 'dirty' FROM `{$Details->dbTableName}`
+        list($createdCols, $createdVals) = self::getCreatedSql();
+        $me->db->query("INSERT IGNORE INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`, {$createdCols})
+                        SELECT DISTINCT `{$productIdCol}`, 'dirty', {$createdVals} FROM `{$Details->dbTableName}`
                         WHERE `{$productIdCol}` > 0");
         $res = $me->db->affectedRows();
 
@@ -356,8 +417,9 @@ class cat_products_ParamIndexState extends core_Manager
             $stateCond = "({$stateCond} OR (p.`{$productState}` = 'closed' AND p.`id` IN (SELECT `{$productIdCol}` FROM `{$Details->dbTableName}`)))";
         }
 
-        $sql = ($update ? 'INSERT' : 'INSERT IGNORE') . " INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`)
-                SELECT p.`id`, 'dirty' FROM `{$Products->dbTableName}` p
+        list($createdCols, $createdVals) = self::getCreatedSql();
+        $sql = ($update ? 'INSERT' : 'INSERT IGNORE') . " INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`, {$createdCols})
+                SELECT p.`id`, 'dirty', {$createdVals} FROM `{$Products->dbTableName}` p
                 LEFT JOIN `{$me->dbTableName}` s ON s.`{$productIdCol}` = p.`id`
                 WHERE {$stateCond} AND {$where}";
         if ($update) {

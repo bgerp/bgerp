@@ -143,7 +143,11 @@ class location_Type extends type_Varchar
         
         $res->push('location/' .  $conf->LOCATION_GMAP3_VERSION . '/gmap3.js', 'JS');
         
-        jquery_Jquery::run($res, "\$('#{$id}').gmap3(
+        // 7.2 е с друг API и гърми, ако елементът го няма
+        if (version_compare($conf->LOCATION_GMAP3_VERSION, '7', '>=')) {
+            $js = "\$('#{$id}').gmap3({center: [{$value}], zoom: 14}).marker({position: [{$value}]});";
+        } else {
+            $js = "\$('#{$id}').gmap3(
                           {
 						    marker:{
 						      latLng: [{$value}]
@@ -154,7 +158,9 @@ class location_Type extends type_Varchar
 						         center: [{$value}]
 						      }
 						    }
-						  });");
+						  });";
+        }
+        jquery_Jquery::run($res, "if (\$('#{$id}').length) { {$js} }");
         
         return $res;
     }
