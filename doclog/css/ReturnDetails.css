@@ -1,0 +1,8 @@
+.doclog-return-summary { margin-top: .3em; font-size: .9em; }
+.doclog-return-dialog { padding: 2.5em 0 0; width: 680px; max-width: 94vw; border: 0; border-radius: 6px; box-shadow: 0 8px 32px #0005; }
+.doclog-return-dialog::backdrop { background: #0005; }
+.doclog-return-dialog > button { position: absolute; top: 3px; right: 8px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: 0; padding: 0 !important; line-height: 1; border: 0; background: transparent; font-size: 1.7em; cursor: pointer; }
+.doclog-return-dialog > iframe { display: block; width: 100%; height: 65vh; border: 0; }
+.doclog-return-report { padding: 8px 18px 18px; background: #fff; min-height: 100vh; box-sizing: border-box; }
+.doclog-return-report section { padding: 0 0 12px; margin-bottom: 16px; border-bottom: 1px solid #ddd; }
+.doclog-return-report pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.5 monospace; background: #f6f6f6; padding: 12px; }

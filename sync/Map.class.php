@@ -1072,7 +1072,7 @@ class sync_Map extends core_Manager
 
     /**
      * Сваля файл от payload-а. При legacy product push URL-ът задължително
-     * трябва да е от настроения HTTPS origin; при нормален pull import
+     * трябва да е от настроения HTTP/HTTPS origin; при нормален pull import
      * запазваме досегашното поведение, защото master-ът е довереният източник.
      *
      * @param string $url
