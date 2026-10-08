@@ -280,7 +280,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = isset($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
-        $batch = is_array($row->batches) ? $row->batches : $row->batch;
+        $batch = is_array($row->batches ?? null) ? $row->batches : ($row->batch ?? null);
 
         $isSubProduct = $row->_type == 'subProduct';
 

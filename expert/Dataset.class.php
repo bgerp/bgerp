@@ -147,13 +147,14 @@ class expert_Dataset extends core_BaseClass
         } else {
             expect(substr($var, -2) == '[]');
             $array = substr($var, 0, strlen($var) - 2);
-            if (is_string($this->vars[$array])) {
+            if (is_string($this->vars[$array] ?? null)) {
                 $this->vars[$array] = array($this->vars[$array]);
             }
             $this->vars[$array][] = $value;
         }
         
-        $this->log[] = "<li style='color:green;'>{$var} = {$value}; " . round($trust * 100) . "% {$log}</li>";
+        $logValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
+        $this->log[] = "<li style='color:green;'>{$var} = {$logValue}; " . round($trust * 100) . "% {$log}</li>";
     }
     
     
@@ -180,7 +181,7 @@ class expert_Dataset extends core_BaseClass
             return;
         }
         
-        if ($this->trusts[$rule->name]) {
+        if (!empty($this->trusts[$rule->name])) {
             $rule->state = 'block';
             $rule->reason = 'Използвано е друго правило';
             
@@ -198,7 +199,7 @@ class expert_Dataset extends core_BaseClass
         foreach ($vars as $n) {
             
             // Ако нямаме достоверност за стойността и нямаме правило за нея - правилото е блокирано
-            if (!($this->trusts[$n] > 0)) {
+            if (!(($this->trusts[$n] ?? 0) > 0)) {
                 if (!isset($this->rules[$n])) {
                     $rule->state = 'block';
                     $rule->reason = "Липсват правила за {$n}";
@@ -207,7 +208,7 @@ class expert_Dataset extends core_BaseClass
                 }
                 $havePending = false;
                 foreach ($this->rules[$n] as $id => $rN) {
-                    if ($rN->state == 'pending' || ($rN->trust && isset($rN->value))) {
+                    if ($rN->state == 'pending' || (!empty($rN->trust) && isset($rN->value))) {
                         $havePending = true;
                         break;
                     }
@@ -220,8 +221,8 @@ class expert_Dataset extends core_BaseClass
                 }
             }
             
-            $trust += (1 + $this->trusts[$n]) / 2;
-            if (!$this->trusts[$n]) {
+            $trust += (1 + ($this->trusts[$n] ?? 0)) / 2;
+            if (empty($this->trusts[$n])) {
                 $trust = 0;
                 $rule->trustReason = "Няма достоверност за {$n}";
                 break;
@@ -325,7 +326,7 @@ class expert_Dataset extends core_BaseClass
             foreach ($this->rules as $name => &$rArr) {
                 
                 // Прескачаме променливите, които имат стойност
-                if ($this->trusts[$name]) {
+                if (!empty($this->trusts[$name])) {
                     continue;
                 }
                 
@@ -339,7 +340,7 @@ class expert_Dataset extends core_BaseClass
                     // Колко са правилата, които са чакащи и имат по-голям maxTrust от текущия
                     $l = 0;
                     foreach ($rArr as $rI) {
-                        if ($rI->maxTrust > $r->trust && $rI->state == 'pending' && !($rI->trust > 0)) {
+                        if (($rI->maxTrust ?? 0) > $r->trust && $rI->state == 'pending' && !($rI->trust > 0)) {
                             $l++;
                         }
                     }
