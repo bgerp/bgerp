@@ -541,18 +541,25 @@ class price_ListRules extends core_Detail
             $me->forceReplica();
             static::preloadGroups($productIds);
 
-            // Всички групи на артикулите - по тях се търсят груповите правила
-            $allGroups = array();
-            foreach ($productIds as $productId) {
-                $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
-                foreach ($groups as $groupId) {
-                    $allGroups[$groupId] = $groupId;
-                }
-            }
+            // Обхождането се решава по целия набор - по-малкото артикули надолу не бива да
+            // го сменят с филтър, който при дълга история (себестойността) е по-бавен
+            $fullScan = (countR($productIds) >= self::PRELOAD_FULL_SCAN_FROM);
 
-            // Ценообразуването рекурсира към бащите, затова се зарежда цялата верига
+            // Към бащата се слиза само с артикулите, за които и getPrice() би слязло
             foreach (static::getListChain($listId, $datetime) as $chainListId) {
-                static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
+                if (!countR($productIds)) break;
+
+                // Групите на артикулите от това ниво - по тях се търсят груповите правила
+                $allGroups = array();
+                foreach ($productIds as $productId) {
+                    $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
+                    foreach ($groups as $groupId) {
+                        $allGroups[$groupId] = $groupId;
+                    }
+                }
+
+                static::preloadListRules($chainListId, $productIds, $allGroups, $datetime, $fullScan);
+                $productIds = static::getProductsNeedingParent($chainListId, $productIds, $datetime);
             }
         } finally {
             $me->unforceReplica();
@@ -603,16 +610,51 @@ class price_ListRules extends core_Detail
 
 
     /**
+     * Кои от заредените артикули търсят цената си и в бащата - същото условие като в getPrice()
+     *
+     * @param int      $listId
+     * @param array    $productIds
+     * @param datetime $datetime
+     *
+     * @return array $res
+     */
+    protected static function getProductsNeedingParent($listId, $productIds, $datetime)
+    {
+        $listRec = static::$listRecCache[$listId] ?? null;
+        if (!is_object($listRec) || empty($listRec->parent)) return array();
+
+        $mapKey = "{$listId}|{$datetime}";
+        $res = array();
+        foreach ($productIds as $productId) {
+
+            // Без заредено правило (напр. след изключение) слиза - по-добре излишно, отколкото пропуснато
+            if (!isset(static::$preloadedRules[$mapKey][$productId])) {
+                $res[$productId] = $productId;
+                continue;
+            }
+
+            $rec = static::$rulesMap[$mapKey][$productId] ?? null;
+            if (is_object($rec) ? (($rec->type ?? null) != 'value') : isset($listRec->defaultSurcharge)) {
+                $res[$productId] = $productId;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Зарежда печелившите правила на едно ниво от веригата ЦП
      *
      * @param int      $listId
      * @param array    $productIds
      * @param array    $allGroups
      * @param datetime $datetime
+     * @param bool     $fullScan - да се обходят всички правила в ЦП, без филтър по артикул
      *
      * @return void
      */
-    protected static function preloadListRules($listId, $productIds, $allGroups, $datetime)
+    protected static function preloadListRules($listId, $productIds, $allGroups, $datetime, $fullScan = false)
     {
         $mapKey = "{$listId}|{$datetime}";
 
@@ -636,7 +678,7 @@ class price_ListRules extends core_Detail
         $query->where($where);
         $query->where('#productId IS NOT NULL');
 
-        if (countR($newIds) < self::PRELOAD_FULL_SCAN_FROM) {
+        if (!$fullScan && countR($newIds) < self::PRELOAD_FULL_SCAN_FROM) {
             $query->in('productId', $newIds);
         }
 
