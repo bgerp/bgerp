@@ -749,6 +749,13 @@ class eshop_Groups extends core_Master
         $tpl = new ET();
         cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
 
+        // Без навигация търсачката е над съдържанието, иначе я няма никъде
+        $menuId = Mode::get('cMenuId');
+        if (!self::mustShowSideNavigation() && $menuId > 0) {
+            $searchTpl = cms_Articles::renderSearchForm($menuId, 'eshop_Groups', 'ShowAll', Request::get('q', 'varchar'), 'cMenuId');
+            $tpl->append(ht::createElement('div', array('class' => 'eshop-top-search'), $searchTpl), 'PAGE_CONTENT');
+        }
+
         return $tpl;
     }
     

@@ -570,13 +570,7 @@ class cms_Articles extends core_Master
             if (empty($data->q)) {
                 $data->q = Request::get('q', 'varchar');
             }
-            $searchForm = cls::get('core_Form', array('method' => 'GET'));
-            $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
-            $searchForm->layout->replace(toUrl(array($data->searchCtr, $data->searchAct)), 'ACTION');
-            $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
-            $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
-            $searchForm->setHidden('menuId', $data->menuId);
-            $navTpl->replace($searchForm->renderHtml(), 'SEARCH_BOX');
+            $navTpl->replace(self::renderSearchForm($data->menuId, $data->searchCtr, $data->searchAct, $data->q), 'SEARCH_BOX');
             $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
             $navTpl->replace($toggleLink, 'TOGGLE_BTN');
             $navTpl->replace($currentPage, 'CURRENT_PAGE');
@@ -587,6 +581,30 @@ class cms_Articles extends core_Master
         }
         
         return $navTpl;
+    }
+
+    
+    /**
+     * Рендира формата за търсене в навигацията
+     *
+     * @param int         $menuId
+     * @param string      $searchCtr
+     * @param string      $searchAct
+     * @param string|null $q
+     * @param string      $menuVar - параметърът, от който контролерът чете менюто
+     *
+     * @return core_ET
+     */
+    public static function renderSearchForm($menuId, $searchCtr, $searchAct, $q, $menuVar = 'menuId')
+    {
+        $searchForm = cls::get('core_Form', array('method' => 'GET'));
+        $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
+        $searchForm->layout->replace(toUrl(array($searchCtr, $searchAct)), 'ACTION');
+        $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+        $searchForm->layout->replace(ht::escapeAttr($q), 'VALUE');
+        $searchForm->setHidden($menuVar, $menuId);
+
+        return $searchForm->renderHtml();
     }
     
     
