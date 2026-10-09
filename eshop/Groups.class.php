@@ -685,6 +685,8 @@ class eshop_Groups extends core_Master
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         if (in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
             $groupTpl->replace('eshop-personal-group', 'groupClass');
+        } elseif ($data->groupId == self::SEARCH_SYSTEM_ID) {
+            $groupTpl->replace('eshop-search-group', 'groupClass');
         }
         $groupTpl->placeArray($data->row);
         
