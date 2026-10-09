@@ -4823,7 +4823,16 @@ table .eshop-btn {
   border-bottom: 1px solid #d8dce1; }
 
 #eshopParamFilterTop .eshop-param-filter .eshop-param-filter-title {
-  margin: 0 0.3em 0 0; }
+  flex: 0 0 100%;
+  margin: 0 0 0.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid #333366;
+  font-size: 1.4em;
+  letter-spacing: 0.02em;
+  color: #222222; }
+
+#eshopParamFilterTop .eshop-param-filter a.eshop-param-filter-clear {
+  font-size: 0.6em; }
 
 #eshopParamFilterTop .eshop-param-filter details.eshop-param-filter-param {
   position: relative;

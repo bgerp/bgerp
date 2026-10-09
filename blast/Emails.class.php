@@ -1710,6 +1710,18 @@ class blast_Emails extends core_Master
         // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
+            // "От" идва от заявката - нова стойност само от кутиите, които се предлагат на потребителя в папката
+            if (!empty($rec->from) && (empty($rec->id) || $rec->from != $mvc->fetchField($rec->id, 'from', false))) {
+                try {
+                    $fromOptions = email_Inboxes::getFromEmailOptions($rec->folderId ?? null);
+                } catch (core_exception_Expect $e) {
+                    $fromOptions = array();
+                }
+                if (!isset($fromOptions[$rec->from])) {
+                    $form->setError('from', 'Нямате право да изпращате от този имейл');
+                }
+            }
+            
             // Ако ще се прикачат документи или файлове
             // Проверяваме разширенията им
             if (!empty($rec->attachments)) {

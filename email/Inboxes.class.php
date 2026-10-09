@@ -1029,8 +1029,9 @@ class email_Inboxes extends core_Master
     /**
      *  Един документ го изпращаме от:
      *
-     *  0. Имейла, от който последно е изпращал имейл съответния потребитле
-     *  1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+     *  0. Имейла, от който последно е изпращал имейл съответния потребитле, ако още е позволен
+     *  1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията,
+     *     ако потребителят има достъп до самата папка
      *  2. Корпоративния общ имейл, ако корпоративната сметка може да изпраща писма
      *  3. Корпоративния имейл на потребителя, ако корпоративната сметка може да изпраща писма
      *  4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
@@ -1105,22 +1106,22 @@ class email_Inboxes extends core_Master
             $userId = core_Users::getCurrent();
         }
         
+        $defEmailId = 0;
+        
         // Ако е подадена папка и не е зададено да се показват само персоналните
         if ($folderId && !$personalOnly) {
             
-            // 1.0 Първи да е имейла от който се е изпращал имейл последно от съответната папка от потребителя
+            // 1.0 Имейлът, от който потребителят е изпращал последно от папката - добавя се най-накрая, ако е позволен
             $key = doc_Folders::getSettingsKey($folderId);
             if ($userId > 0) {
                 $settings = core_Settings::fetchKey($key, $userId);
                 $defEmailId = (int) ($settings['defaultEmail'] ?? 0);
-                if ($defEmailId > 0) {
-                    $options[$defEmailId] = self::fetchField("#id = '{$defEmailId}' AND #state = 'active'", 'email');
-                }
             }
             
             // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+            // Само при достъп до самата папка - споделена нишка от чужда кутия не дава право да се изпраща от нея
             $rec = self::fetch("#folderId = {$folderId} AND #state = 'active'");
-            if ($rec && email_Accounts::canSendEmail($rec->accountId)) {
+            if ($rec && email_Accounts::canSendEmail($rec->accountId) && doc_Folders::haveRightToFolder($folderId, $userId)) {
                 $options[$rec->id] = $rec->email;
             }
         }
@@ -1188,6 +1189,20 @@ class email_Inboxes extends core_Master
         
         // Добавяме в резултатния масив
         $options = $options + $inChargeEmailArr + $sharedEmailArr;
+        
+        // 1.0 Запомненият имейл е първи, ако е сред горните или потребителят има достъп до папката на кутията му
+        if ($defEmailId > 0) {
+            $defEmail = $options[$defEmailId] ?? null;
+            if (!isset($defEmail)) {
+                $defRec = self::fetch("#id = '{$defEmailId}' AND #state = 'active'");
+                if ($defRec && !empty($defRec->accountId) && email_Accounts::canSendEmail($defRec->accountId) && doc_Folders::haveRightToFolder($defRec->folderId ?? null, $userId)) {
+                    $defEmail = $defRec->email ?? null;
+                }
+            }
+            if (isset($defEmail)) {
+                $options = array($defEmailId => $defEmail) + $options;
+            }
+        }
         
         // Вече трябва да има открита поне една кутия
         
