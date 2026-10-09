@@ -1471,11 +1471,17 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     padding: 10px 12px;
     overflow: visible;
 }
+/* The title is the card header above the buttons, as in the side column. */
 .eshop-public #eshopParamFilterTop .eshop-param-filter-title {
-    gap: 12px;
-    padding: 0 4px 0 0;
-    border: 0;
-    background: transparent;
+    flex: 0 0 auto;
+    width: calc(100% + 24px);
+    box-sizing: border-box;
+    margin: -10px -12px 4px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--shop-line);
+    border-radius: 10px 10px 0 0;
+    background: var(--shop-surface);
+    font-size: 1rem;
 }
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param:last-child {
