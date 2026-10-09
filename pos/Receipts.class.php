@@ -1521,7 +1521,19 @@ class pos_Receipts extends core_Master
         }
 
         $now = dt::now();
-        while($dRec = $dQuery->fetch()){
+        $dRecs = $dQuery->fetchAll();
+
+        // Правилата наведнъж за всички редове - при точен момент price_Cache не се ползва и иначе е по заявка на артикул
+        if(countR($dRecs)){
+            $listDatetime = $now;
+            $preloadListIds = array($listId ?? price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId, $listDatetime), $discountPolicyId);
+            if($force && $pointPolicyId != $listId){
+                $preloadListIds[] = $pointPolicyId;
+            }
+            price_ListRules::preloadRulesWithCompared($preloadListIds, arr::extractValuesFromArray($dRecs, 'productId'), $now);
+        }
+
+        foreach ($dRecs as $dRec){
 
             // Обновява им се цената по текущата политика, ако може
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);

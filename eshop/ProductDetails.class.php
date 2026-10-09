@@ -312,16 +312,7 @@ class eshop_ProductDetails extends core_Detail
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
         if (!isset($listId)) return;
 
-        $listIds = array($listId => $listId);
-        $discountListId = price_Lists::fetchField($listId, 'discountCompared');
-        if (!empty($discountListId)) {
-            $listIds[$discountListId] = $discountListId;
-        }
-
-        $now = self::getPriceMoment();
-        foreach ($listIds as $id) {
-            price_ListRules::preloadRules($id, $productIds, $now);
-        }
+        price_ListRules::preloadRulesWithCompared(array($listId), $productIds, self::getPriceMoment());
 
         if (($settings->chargeVat ?? 'no') == 'yes') {
             cat_products_VatGroups::getVats($productIds, dt::today(), $settings->vatExceptionId ?? null);
