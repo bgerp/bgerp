@@ -525,10 +525,10 @@ class eshop_ParamFilter
      *
      * @return core_ET
      */
-    public static function renderNavigation($data)
+    public static function renderNavigation($data, $asFieldset = false)
     {
         $start = self::startTimer('render');
-        $tpl = self::doRenderNavigation($data);
+        $tpl = self::doRenderNavigation($data, $asFieldset);
         self::stopTimer('render', $start);
         self::logStats($data->groupId ?? null);
 
@@ -557,7 +557,7 @@ class eshop_ParamFilter
             $caption = tr('Филтри') . ($cnt ? " ({$cnt})" : '');
             $tpl = new core_ET("<details id='eshopParamFilterTop' class='eshop-param-filter-top'><summary class='eshop-param-filter-toggle'>{$caption}</summary>[#FILTER#]</details>");
         }
-        $tpl->append(self::renderNavigation($data), 'FILTER');
+        $tpl->append(self::renderNavigation($data, true), 'FILTER');
 
         return $tpl;
     }
@@ -570,7 +570,7 @@ class eshop_ParamFilter
      *
      * @return core_ET
      */
-    protected static function doRenderNavigation($data)
+    protected static function doRenderNavigation($data, $asFieldset = false)
     {
         $filter = $data->paramFilter ?? null;
         if (!is_object($filter)) {
@@ -619,13 +619,14 @@ class eshop_ParamFilter
             'data-url' => toUrl($clearUrl),
             'data-pf' => cat_products_ParamFilter::buildUrlValue($filter->selected, $filter->params),
             'data-pc' => is_object($filter->groups ?? null) ? self::getGroupsUrlValue($filter->groups, $groupsSelected) : '');
-        $tpl = new core_ET("<div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]");
+        $titleTag = $asFieldset ? 'legend' : 'div';
+        $tpl = new core_ET("<{$titleTag} class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</{$titleTag}>[#PARAMS#]");
         $tpl->replace(tr('Филтри'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
         if (countR($filter->selected) || countR($groupsSelected)) {
             $tpl->replace(ht::createLink(tr('Изчисти всички'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
-        $tpl = ht::createElement('div', $attr, $tpl);
+        $tpl = ht::createElement($asFieldset ? 'fieldset' : 'div', $attr, $tpl);
 
         return $tpl;
     }

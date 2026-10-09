@@ -450,7 +450,18 @@ function eshopParamFilter() {
 		if (pf.length) url.searchParams.set('pf', pf);
 		if (pc.length) url.searchParams.set('pc', pc);
 
-		var changed = (pf + '&' + pc != initial);
+		// Търсенето е каквото е в полето в момента - изтритият текст не стеснява повече избора
+		var search = document.querySelector('.eshop-top-search #searchInput');
+		if (search) {
+			var q = search.value.trim();
+			if (q.length) {
+				url.searchParams.set('q', q);
+			} else {
+				url.searchParams.delete('q');
+			}
+		}
+
+		var changed = (pf + '&' + pc != initial) || (url.searchParams.get('q') || '') != (new URL(document.location.href).searchParams.get('q') || '');
 		$(box).closest('#cmsNavigation, #eshopParamFilterTop').parent().toggleClass('eshop-param-filter-pending', changed);
 		pendingUrl = changed ? url.toString() : null;
 		schedule();

@@ -209,7 +209,7 @@ abstract class deals_ServiceMaster extends core_Master
                 }
 
                 $shipProduct->discount = $discount;
-                $shipProduct->notes = $product->notes;
+                $shipProduct->notes = $product->notes ?? null;
                 $shipProduct->quantityInPack = $product->quantityInPack;
                 
                 if (isset($product->expenseItemId)) {
