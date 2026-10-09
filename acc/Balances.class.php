@@ -311,8 +311,10 @@ class acc_Balances extends core_Master
             if (isset($fingerprint['calcDuration'])) {
                 $Double = core_Type::getByName('double(decimals=1)');
                 $row->calcDuration = $Double->toVerbal($fingerprint['calcDuration']) . ' ' . tr('сек.');
-                if (($fingerprint['calcPasses'] ?? 1) > 1) {
-                    $row->calcDuration .= ' ×' . $fingerprint['calcPasses'];
+                $passes = $fingerprint['calcPasses'] ?? 1;
+                if ($passes > 1) {
+                    $avg = tr('Средно на смятане') . ': ' . $Double->toVerbal($fingerprint['calcDuration'] / $passes) . ' ' . tr('сек.');
+                    $row->calcDuration .= " <span title='" . ht::escapeAttr($avg) . "'>" . tr('за') . " {$passes} " . tr('смятания') . '</span>';
                 }
 
                 // Стрелка спрямо предишното пълно изчисление - само при разлика от поне 10%

@@ -28,6 +28,19 @@ class store_plg_CourierApiShipment extends core_Plugin
 
 
     /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $res['courierApiPrice'] = 'courierApiPrice';
+    }
+
+
+    /**
      * След подготовка на тулбара на единичен изглед
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)

@@ -991,10 +991,10 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .favouriteNavigationLink > 
     width: 20px;
     height: 20px;
     flex: 0 0 20px;
-    background: url('../img/heart-outline.svg') center / contain no-repeat;
+    background: url('../../../img/heart-outline.svg') center / contain no-repeat;
 }
 body.eshop-public #cmsNavigation .commerce-shortcuts .favouriteNavigationLink.sel_page > a::before {
-    background-image: url('../img/heart-filled.svg');
+    background-image: url('../../../img/heart-filled.svg');
 }
 body.eshop-public .favouritesBtn.linkWithIcon {
     display: inline-block;
