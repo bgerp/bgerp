@@ -313,7 +313,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
             if (isset($obj->pack)) {
                 $obj->exPack = $obj->pack;
-                $packId = is_numeric($obj->pack) ? $obj->pack : cat_UoM::fetchBySinonim($obj->pack)->id;
+                $packId = is_numeric($obj->pack) ? $obj->pack : (cat_UoM::fetchBySinonim($obj->pack)->id ?? null);
 
                 if (!$packId) {
                     foreach ($packs as $pId => $pName) {
