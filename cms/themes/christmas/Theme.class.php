@@ -15,8 +15,11 @@
  *
  * @since     v 0.1
  */
-class cms_themes_christmas_Theme extends cms_CommerceTheme
+class cms_themes_christmas_Theme extends cms_themes_commerce_Theme
 {
+    public $oldClassName = null;
+
+
     /**
      * Коледната палитра и украсата се добавят върху стиловете на търговската тема
      */

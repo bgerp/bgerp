@@ -177,7 +177,7 @@ body.commerce-theme #cmsMenu a.commerce-cart-link::before {
     content: "";
     width: 20px;
     height: 20px;
-    background: url('../img/cart.svg') center / contain no-repeat;
+    background: url('../../../img/cart.svg') center / contain no-repeat;
 }
 body.commerce-theme #cmsMenu a.commerce-cart-link:hover { background-color: #3b5763 !important; }
 body.commerce-theme #cmsMenu .commerce-cart-link .count {
