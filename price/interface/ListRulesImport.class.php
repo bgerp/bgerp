@@ -79,15 +79,17 @@ class price_interface_ListRulesImport extends core_Manager
     public function checkRows(&$rows, $fields, &$errArr)
     {
         $errArr = $recs = array();
+        $oFields = $this->getFields();
 
         $i = 1;
         foreach ($rows as $row) {
             $rec = new stdClass();
             foreach ($fields as $name => $position) {
                 if ($position != -1) {
-                    $value = $row[$position];
                     if (isset($oFields[$name]['notColumn'])) {
                         $value = $position;
+                    } else {
+                        $value = $row[$position] ?? null;
                     }
 
                     $rec->{$name} = $value;
@@ -149,9 +151,10 @@ class price_interface_ListRulesImport extends core_Manager
 
             foreach ($fields as $name => $position) {
                 if ($position != -1) {
-                    $value = $row[$position];
                     if (isset($oFields[$name]['notColumn'])) {
                         $value = $position;
+                    } else {
+                        $value = $row[$position] ?? null;
                     }
 
                     $rec->{$name} = $value;
