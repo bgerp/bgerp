@@ -729,25 +729,23 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $row = new stdClass();
         $row->deadlineDelivery = dt::mysql2verbal($priceObj->deliveryDeadline, 'd.m.Y H:i:s');
 
-        $priceFields = array(
-            'net' => $priceObj->price->details->netAmount->amount,
-            'addrPickupSurcharge' => $priceObj->price->details->addressPickupSurcharge->amount,
-            'addrDeliverySurcharge' => $priceObj->price->details->addressDeliverySurcharge->amount,
-            'discPcntFixed' => $priceObj->price->details->fixedDiscount->amount,
-            'discPcntAdditional' => $priceObj->price->details->additionalDiscount->amount,
-            'pcntFuelSurcharge' => $priceObj->price->details->fuelSurcharge->amount,
-            'nonStdDeliveryDateSurcharge' => $priceObj->price->details->nonStandardDeliveryDateSurcharge->amount,
-            'tro' => $priceObj->price->details->loadUnload->amount,
-            'islandSurcharge' => $priceObj->price->details->islandSurcharge->amount,
-            'testBeforePayment' => $priceObj->price->details->optionsBeforePaymentSurcharge->amount,
-            'tollSurcharge' => $priceObj->price->details->tollSurcharge->amount,
-            'heavyPackageFee' => $priceObj->price->details->heavyParcelSurcharge->amount,
-            'codPremium' => $priceObj->price->details->codPremium->amount,
-            'insurancePremium' => $priceObj->price->details->insurancePremium->amount,
-            'totalNoVat' => $priceObj->price->amount,
-            'vat' => $priceObj->price->vat,
-            'total' => $priceObj->price->total,
-        );
+        // Някои услуги не връщат всички редове от разбивката (напр. loadUnload)
+        $detailFields = array('net' => 'netAmount', 'addrPickupSurcharge' => 'addressPickupSurcharge',
+            'addrDeliverySurcharge' => 'addressDeliverySurcharge', 'discPcntFixed' => 'fixedDiscount',
+            'discPcntAdditional' => 'additionalDiscount', 'pcntFuelSurcharge' => 'fuelSurcharge',
+            'nonStdDeliveryDateSurcharge' => 'nonStandardDeliveryDateSurcharge', 'tro' => 'loadUnload',
+            'islandSurcharge' => 'islandSurcharge', 'testBeforePayment' => 'optionsBeforePaymentSurcharge',
+            'tollSurcharge' => 'tollSurcharge', 'heavyPackageFee' => 'heavyParcelSurcharge',
+            'codPremium' => 'codPremium', 'insurancePremium' => 'insurancePremium');
+        $details = $priceObj->price->details ?? null;
+        $priceFields = array();
+        foreach ($detailFields as $fld => $theirFld){
+            $detail = is_object($details) ? ($details->{$theirFld} ?? null) : null;
+            $priceFields[$fld] = is_object($detail) ? ($detail->amount ?? null) : null;
+        }
+        $priceFields['totalNoVat'] = $priceObj->price->amount ?? null;
+        $priceFields['vat'] = $priceObj->price->vat ?? null;
+        $priceFields['total'] = $priceObj->price->total ?? null;
 
         foreach ($priceFields as $fld => $fldVal){
             $valueVerbal = $Double->toVerbal($fldVal);
