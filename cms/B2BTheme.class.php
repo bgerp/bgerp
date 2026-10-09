@@ -1,23 +1,11 @@
 <?php
 
 /**
- * Тема за фирмен сайт, продуктов каталог и обслужване на бизнес клиенти.
- *
+ * Съвместимост със запазени настройки и стари разширения.
  * @title B2B CMS тема
- * @package cms
+ * @deprecated cms_themes_b2b_Theme
  */
-class cms_B2BTheme extends cms_CommerceTheme
+class cms_B2BTheme extends cms_themes_b2b_Theme
 {
-    public $tplDir = 'cms/tpl/b2b';
-
-
-    public $defaultBanner = 'cms/img/b2b-banner.svg';
-
-
-    /** Общите компоненти и поведението остават в търговската тема. */
-    public $assets = array(
-        'page' => array('css' => array('cms/css/B2B.css'), 'body' => 'b2b-theme'),
-        'shop' => array('css' => array('cms/css/B2BShop.css')),
-        'checkout' => array('css' => array('cms/css/B2BShop.css')),
-    );
+    public $oldClassName = null;
 }
