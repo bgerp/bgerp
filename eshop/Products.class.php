@@ -997,6 +997,26 @@ class eshop_Products extends core_Master
             unset($url['groupId']);
         }
 
+        // Само шаблоните с втора снимка използват първите две налични илюстрации.
+        if ($pTpl->isPlaceholderExists('hoverImage')) {
+            $images = array();
+            foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $field) {
+                $fh = $rec->{$field} ?? null;
+                if (!empty($fh) && !isset($images[$fh]) && is_file(fileman::fetchByFh($fh, 'path') ?? '')) {
+                    $images[$fh] = $fh;
+                    if (count($images) == 2) break;
+                }
+            }
+            if (count($images) == 2) {
+                $theme = cms_ProtoTheme::getCurrent();
+                list($width, $height) = $theme->productThumbSize ?? array(240, 240);
+                foreach (array_combine(array('image', 'hoverImage'), array_values($images)) as $field => $fh) {
+                    $thumb = new thumb_Img($fh, $width, $height);
+                    $row->{$field} = $thumb->createImg(array('class' => 'eshop-product-image', 'alt' => '', 'loading' => 'lazy'));
+                }
+            }
+        }
+
         $row->image = ht::createLink($row->image, $url, false, array('class' => 'eshopLink', 'title' => $rec->seoTitle ? $rec->seoTitle : null)); 
 
         $pTpl->placeObject($row);

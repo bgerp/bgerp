@@ -13,13 +13,12 @@ body.b2b-theme.eshop-public .eshop-product-list {
     border: 1px solid transparent;
     border-radius: 0;
     overflow: hidden;
-    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 body.b2b-theme.eshop-public .eshop-product-list:hover,
 body.b2b-theme.eshop-public .eshop-product-list:focus-within {
     border-color: var(--c-accent-line-strong);
     box-shadow: 0 8px 24px #18233218;
-    transform: translateY(-3px);
 }
 /* Stretch the title link, leaving the other controls above its hit area. */
 body.b2b-theme.eshop-public .b2b-card-title a::after {
@@ -41,14 +40,33 @@ body.b2b-theme.eshop-public .eshop-product-list:has(.b2b-card-title a:focus-visi
     outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-    body.b2b-theme.eshop-public .eshop-product-list { transition: none; transform: none; }
+    body.b2b-theme.eshop-public .eshop-product-list { transition: none; }
 }
 body.b2b-theme.eshop-public .eshop-card-media {
+    position: relative;
     height: 240px;
     margin: 0;
     padding: 20px 20px 0;
     background: #fff;
     border-radius: 0;
+}
+body.b2b-theme.eshop-public .b2b-card-hover-image {
+    position: absolute;
+    inset: 20px 20px 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+body.b2b-theme.eshop-public .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink {
+    transition: opacity 180ms ease;
+}
+@media (hover: hover) {
+    body.b2b-theme.eshop-public .eshop-product-list:hover .b2b-card-hover-image { opacity: 1; }
+    body.b2b-theme.eshop-public .eshop-product-list:hover .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.b2b-theme.eshop-public .b2b-card-hover-image,
+    body.b2b-theme.eshop-public .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink { transition: none; }
 }
 body.b2b-theme.eshop-public .eshop-card-content {
     display: flex;
@@ -121,13 +139,17 @@ body.b2b-theme.eshop-public .b2b-card-features .paramsTable td {
     overflow-wrap: anywhere;
     padding: 3px 4px 3px 0;
 }
-body.b2b-theme.eshop-public .eshop-card-actions .productBtn + .productBtn {
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard) {
     background: var(--c-ink) !important;
     border-color: var(--c-ink) !important;
 }
-body.b2b-theme.eshop-public .eshop-card-actions .productBtn:hover {
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn.addToCard:hover {
     background: var(--c-accent-dark) !important;
     border-color: var(--c-accent-dark) !important;
+}
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard):hover {
+    background: #28384b !important;
+    border-color: #28384b !important;
 }
 body.commerce-theme.b2b-theme.eshop-public .productHolder {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));

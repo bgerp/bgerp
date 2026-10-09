@@ -1,6 +1,7 @@
 <div class='eshop-product-list [#CLASS#]'>
     <div class="eshop-card-media">
         [#image#]
+        <!--ET_BEGIN hoverImage--><div class="b2b-card-hover-image" aria-hidden="true">[#hoverImage#]</div><!--ET_END hoverImage-->
     </div>
     <div class="eshop-card-content">
         <h2 class='eshop-product-list-name'><span class="b2b-card-title">[#name#]</span> [#singleLink#][#editLink#]</h2>
