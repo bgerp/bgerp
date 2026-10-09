@@ -698,7 +698,7 @@ abstract class deals_DealDetail extends doc_Detail
                         }
                         
                         $packPrice = $price * $quantityInPack;
-                        $discount = $policyInfo->discount;
+                        $discount = $policyInfo->discount ?? null;
                     }
                 }
                 
