@@ -25,13 +25,38 @@ function initCommerceLogin(showLabel, hideLabel) {
     holder.appendChild(toggle);
 }
 
-/** An empty search does not reload the page; the field gets focus instead. */
-function initCommerceSearch() {
+/** An empty search does not reload the page; the field gets focus instead. On a results page it clears the search. */
+function initCommerceSearch(clearLabel) {
     if (document.body.dataset.commerceSearch) return;
     document.body.dataset.commerceSearch = 'true';
+
+    // The × button empties the field; on a results page it also drops the search
+    document.querySelectorAll('#cmsNavigation #searchInput, .eshop-top-search #searchInput').forEach(function (input) {
+        var clear = document.createElement('button');
+        clear.type = 'button';
+        clear.className = 'commerce-search-clear';
+        clear.title = clearLabel || '';
+        clear.setAttribute('aria-label', clearLabel || '');
+        clear.textContent = '\u00d7';
+        clear.hidden = !input.value.length;
+        input.parentNode.insertBefore(clear, input.nextSibling);
+        input.addEventListener('input', function () {
+            clear.hidden = !input.value.length;
+        });
+        clear.addEventListener('click', function () {
+            input.value = '';
+            clear.hidden = true;
+            input.focus();
+            if (input.form && (new URLSearchParams(window.location.search).get('q') || '').trim()) {
+                input.form.requestSubmit ? input.form.requestSubmit() : input.form.submit();
+            }
+        });
+    });
+
     document.addEventListener('submit', function (event) {
         var input = event.target.querySelector('#simpleSearch input[name="q"]');
-        if (input && !input.value.trim()) {
+        var searched = window.URLSearchParams && (new URLSearchParams(window.location.search).get('q') || '').trim();
+        if (input && !input.value.trim() && !searched) {
             event.preventDefault();
             input.focus();
         }

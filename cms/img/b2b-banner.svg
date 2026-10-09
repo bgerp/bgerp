@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="220" viewBox="0 0 1400 220" fill="none">
+  <rect width="1400" height="220" fill="#182332"/>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" stroke="#354457" stroke-width=".6"/>
+    </pattern>
+  </defs>
+  <path fill="url(#grid)" d="M700 0h700v220H700z"/>
+  <g stroke="#526b89" stroke-width="1.5" stroke-linejoin="round">
+    <path d="m1010 30 100 50-100 50-100-50 100-50Z" fill="#243954"/>
+    <path d="M910 80v90l100 50v-90L910 80Z" fill="#1b2b40"/>
+    <path d="M1010 130v90l100-50V80l-100 50Z" fill="#2d4b70"/>
+    <path d="m1200-50 100 50-100 50-100-50 100-50Z" fill="#243954"/>
+    <path d="M1100 0v90l100 50V50L1100 0Z" fill="#1b2b40"/>
+    <path d="M1200 50v90l100-50V0l-100 50Z" fill="#2d4b70"/>
+    <path d="m1300 140 100 50-100 50-100-50 100-50Z" fill="#243954"/>
+    <path d="M1200 190v90l100 50v-90l-100-50Z" fill="#1b2b40"/>
+    <path d="M1300 240v90l100-50v-90l-100 50Z" fill="#2d4b70"/>
+  </g>
+  <path d="m1010 30 100 50M1200 50l100-50" stroke="#689cff" stroke-width="3"/>
+  <path d="M836 172h44m-22-22v44M1344 112h24m-12-12v24" stroke="#d9a64b" stroke-width="2"/>
+  <path d="M0 218h1400" stroke="#354457" stroke-width="4"/>
+</svg>

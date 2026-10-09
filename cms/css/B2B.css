@@ -1,0 +1,206 @@
+/* B2B overrides are scoped so other domains keep their selected theme. */
+body.commerce-theme.b2b-theme {
+    --c-accent: #2459c4;
+    --c-accent-dark: #194394;
+    --c-accent-deep: #263e65;
+    --c-accent-muted: #415b83;
+    --c-accent-soft: #edf2fc;
+    --c-accent-soft-2: #e8effc;
+    --c-accent-soft-3: #f1f5fc;
+    --c-accent-line: #d2def3;
+    --c-accent-line-strong: #97b1de;
+    --c-focus: #2459c4;
+    --c-highlight: #edbd67;
+    --c-ink: #202c3c;
+    --c-text: #48586b;
+    --c-text-2: #566579;
+    --c-muted: #617084;
+    --c-dark: #182332;
+    --c-line: #dce1e8;
+    --c-line-2: #dce1e8;
+    --c-line-3: #d6dde7;
+    --c-line-4: #e9edf2;
+    --c-line-5: #e3e8ef;
+    --c-line-6: #dce3ed;
+    --c-line-strong: #b7c3d4;
+    --c-line-strong-2: #c4cddb;
+    --c-bg: #f3f5f8;
+    --c-surface: #f3f5f8;
+    --c-surface-2: #eaf0f7;
+    --c-surface-3: #f8fafc;
+    --c-accent-rgb: 36, 89, 196;
+    --c-ink-rgb: 32, 44, 60;
+    background: var(--c-surface);
+    color: var(--c-ink);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body.commerce-theme.b2b-theme .externalPage > header {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    background: var(--c-dark) !important;
+}
+body.commerce-theme.b2b-theme .externalPage > header .narrowCenter {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
+    min-height: 180px;
+    justify-content: center;
+    padding: 28px 32px;
+    gap: 12px;
+}
+body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner)::before { display: none; }
+body.commerce-theme.b2b-theme header .narrowCenter .commerce-default-banner { opacity: 1; }
+body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner) .app-name {
+    font-size: clamp(1.75rem, 3vw, 2.75rem) !important;
+    letter-spacing: -0.025em;
+    max-width: 65%;
+}
+body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner) .app-subtitle {
+    margin-top: 0 !important;
+    max-width: 65%;
+    color: #becbde !important;
+    font-size: 1.0625rem !important;
+}
+
+body.commerce-theme.b2b-theme #cmsMenu.menuRow {
+    background: #fff;
+    border-bottom: 1px solid var(--c-line) !important;
+    box-shadow: 0 3px 8px #18233206;
+}
+body.commerce-theme.b2b-theme #cmsMenu.menuRow .centerContent { min-height: 68px; }
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a {
+    color: var(--c-ink) !important;
+    border-radius: 3px;
+    font-size: 0.875rem;
+}
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a:hover,
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a:focus-visible {
+    color: var(--c-accent) !important;
+    background: var(--c-accent-soft);
+}
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a.selected {
+    color: var(--c-accent) !important;
+    background: var(--c-accent-soft);
+    box-shadow: inset 0 -3px var(--c-accent);
+}
+body.commerce-theme.b2b-theme #cmsMenu.menuRow .cms-menu-tools { border-left-color: var(--c-line); }
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a.loginIcon {
+    background: var(--c-accent);
+    color: #fff !important;
+}
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a.loginIcon:hover { background: var(--c-accent-dark); }
+body.commerce-theme.b2b-theme #cmsMenu.menuRow a.loginIcon img { filter: brightness(0) invert(1); }
+body.commerce-theme.b2b-theme #cmsMenu a.commerce-cart-link {
+    background: var(--c-surface) !important;
+    border-color: var(--c-line);
+    color: var(--c-ink) !important;
+}
+body.commerce-theme.b2b-theme #cmsMenu a.commerce-cart-link:hover { background: var(--c-accent-soft) !important; }
+body.commerce-theme.b2b-theme #cmsMenu a.commerce-cart-link::before { filter: brightness(0.25); }
+body.commerce-theme.b2b-theme #cmsMenu .commerce-cart-link .count {
+    background: var(--c-accent);
+    color: #fff;
+    border-radius: 3px;
+}
+body.commerce-theme.b2b-theme #cmsMenu .commerce-languages summary,
+body.commerce-theme.b2b-theme .commerce-primary-menu > summary {
+    color: var(--c-ink);
+    border-color: var(--c-line-strong);
+    border-radius: 3px;
+}
+body.commerce-theme.b2b-theme #cmsMenu .commerce-languages summary:hover { background: var(--c-accent-soft); }
+body.commerce-theme.b2b-theme #cmsMenu .commerce-language-options { background: #fff; }
+body.commerce-theme.b2b-theme .commerce-primary-menu[open] .commerce-primary-links { background: #fff; }
+body.commerce-theme.b2b-theme :focus-visible { outline-color: var(--c-accent); }
+
+body.commerce-theme.b2b-theme .externalPage #maincontent { background: var(--c-surface); }
+body.commerce-theme.b2b-theme #statuses { margin: 0 auto; }
+body.commerce-theme.b2b-theme :is(.eshop-layout, .commerce-blog-layout) { gap: 24px; }
+body.commerce-theme.b2b-theme :is(#cmsNavigation, .eshop-product, .eshop-group, .cart-holder-external, .commerce-article-content, .eshop-catalog-title, .blogm-browse > h1) {
+    border-radius: 4px;
+    box-shadow: none;
+}
+body.commerce-theme.b2b-theme :is(.eshop-catalog-title, .blogm-browse > h1) {
+    border: 0;
+    border-left: 4px solid var(--c-accent);
+}
+body.commerce-theme.b2b-theme #cmsNavigation .nav_item { border-radius: 2px; }
+body.commerce-theme.b2b-theme .b2b-blog-articles {
+    background: #fff;
+    border: 1px solid var(--c-line);
+    border-radius: 4px;
+    padding: 0 24px;
+}
+body.commerce-theme.b2b-theme .b2b-blog-articles:not(:has(> .blogm-browse-article)) { display: none; }
+body.commerce-theme.b2b-theme .b2b-blog-articles > .blogm-browse-article {
+    margin: 0;
+    padding: 28px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+body.commerce-theme.b2b-theme .b2b-blog-articles > .blogm-browse-article + .blogm-browse-article {
+    border-top: 1px solid var(--c-line);
+}
+@media (max-width: 900px) {
+    body.commerce-theme.b2b-theme .b2b-blog-articles { padding: 0 16px; }
+    body.commerce-theme.b2b-theme .b2b-blog-articles > .blogm-browse-article { padding: 20px 0; }
+}
+body.commerce-theme.b2b-theme #cmsNavigation .sel_page { border-left: 3px solid var(--c-accent); }
+body.commerce-theme.b2b-theme :is(#cmsNavigation #simpleSearch, form .formTable, #login-form, .productBtn, .commerce-category-menu > summary) {
+    border-radius: 4px;
+}
+body.commerce-theme.b2b-theme .b2b-skip-link {
+    position: fixed;
+    top: -100px;
+    left: 16px;
+    z-index: 10000;
+    padding: 12px 20px;
+    background: #fff;
+    color: var(--c-accent);
+    border: 2px solid var(--c-accent);
+}
+body.commerce-theme.b2b-theme .b2b-skip-link:focus { top: 12px; }
+
+body.commerce-theme.b2b-theme .externalPage #cmsBottom {
+    padding-top: 24px;
+    background: var(--c-dark);
+    border-top: 3px solid var(--c-accent);
+}
+body.commerce-theme.b2b-theme #cmsBottom :is(p, a, a:hover) { color: #e0e7f0 !important; text-shadow: none; }
+body.commerce-theme.b2b-theme .footer-menus {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 32px;
+    padding: 16px 0 32px;
+    text-align: left;
+}
+body.commerce-theme.b2b-theme .footer-menu-column { min-width: 0; }
+body.commerce-theme.b2b-theme .footer-menu-title-spacer { visibility: hidden; }
+body.commerce-theme.b2b-theme .footer-menus p { margin: 0 0 8px; font-size: 0.9375rem; font-weight: 700; }
+body.commerce-theme.b2b-theme .footer-menus ul { list-style: none; margin: 0; padding: 0; }
+body.commerce-theme.b2b-theme .footer-menus li { margin-bottom: 3px; line-height: 1.4; overflow-wrap: anywhere; }
+body.commerce-theme.b2b-theme .footer-menus a { font-size: 0.875rem; text-decoration: none; }
+body.commerce-theme.b2b-theme .footer-menus a:hover { text-decoration: underline; }
+body.commerce-theme.b2b-theme #cmsBottom a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@media (max-width: 900px) {
+    body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
+        min-height: 144px;
+        padding: 24px 16px;
+    }
+    body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) {
+        max-width: 100%;
+    }
+    body.commerce-theme.b2b-theme header .narrowCenter:has(.app-name, .app-subtitle) .commerce-default-banner { opacity: 0.3; }
+    body.commerce-theme.b2b-theme .footer-menus { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+    body.commerce-theme.b2b-theme .footer-menus a { display: inline-block; padding-block: 2px; }
+}
+@media print {
+    body.commerce-theme.b2b-theme .b2b-skip-link { display: none; }
+}

@@ -1039,11 +1039,11 @@ body.eshop-public .favouritesBtn:focus-visible {
 }
 
 /* Quiet date separators for the customer's previous orders. */
-body.eshop-public .eshop-personal-group > .eshop-group {
+body.eshop-public :is(.eshop-personal-group, .eshop-search-group) > .eshop-group {
     margin-bottom: 12px;
     padding: 16px 24px;
 }
-body.eshop-public .eshop-personal-group > .eshop-group .eshop-name {
+body.eshop-public :is(.eshop-personal-group, .eshop-search-group) > .eshop-group .eshop-name {
     margin-bottom: 0;
 }
 body.eshop-public .eshop-group + h2.lastOrderProductsDate {
@@ -1471,16 +1471,17 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     padding: 10px 12px;
     overflow: visible;
 }
-/* The title is the card header above the buttons, as in the side column. */
-.eshop-public #eshopParamFilterTop .eshop-param-filter-title {
-    flex: 0 0 auto;
-    width: calc(100% + 24px);
+/* The legend sits in the frame above the filter buttons. */
+.eshop-public #eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
     box-sizing: border-box;
-    margin: -10px -12px 4px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--shop-line);
-    border-radius: 10px 10px 0 0;
-    background: var(--shop-surface);
+    margin: 0;
+    padding: 0 0.5em;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     font-size: 1rem;
 }
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
