@@ -657,7 +657,7 @@ class eshop_Groups extends core_Master
         
         if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
-                $tpl = new ET(getFileContent(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml')));
+                $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml'));
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');

@@ -1,0 +1,202 @@
+/* Product cards keep imagery prominent and purchasing details easy to scan. */
+body.commerce-theme.b2b-theme.eshop-public .eshop-content .eshop-product-list-holder {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+    gap: 24px;
+}
+body.b2b-theme.eshop-public .eshop-product-list {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 0;
+    overflow: hidden;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+body.b2b-theme.eshop-public .eshop-product-list:hover,
+body.b2b-theme.eshop-public .eshop-product-list:focus-within {
+    border-color: var(--c-accent-line-strong);
+    box-shadow: 0 8px 24px #18233218;
+    transform: translateY(-3px);
+}
+/* Stretch the title link, leaving the other controls above its hit area. */
+body.b2b-theme.eshop-public .b2b-card-title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+body.b2b-theme.eshop-public .eshop-product-list :is(.eshop-card-actions, .b2b-card-features, .eshop-card-sale-info) :is(a, button, input, select),
+body.b2b-theme.eshop-public .eshop-product-list-name > a {
+    position: relative;
+    z-index: 2;
+}
+body.b2b-theme.eshop-public .eshop-product-list:is(:hover, :focus-within) .b2b-card-title a {
+    color: var(--c-accent);
+}
+body.b2b-theme.eshop-public .eshop-product-list:has(.b2b-card-title a:focus-visible) {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+    body.b2b-theme.eshop-public .eshop-product-list { transition: none; transform: none; }
+}
+body.b2b-theme.eshop-public .eshop-card-media {
+    height: 240px;
+    margin: 0;
+    padding: 20px 20px 0;
+    background: #fff;
+    border-radius: 0;
+}
+body.b2b-theme.eshop-public .eshop-card-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 12px 20px 20px;
+}
+body.b2b-theme.eshop-public .eshop-product-list .eshop-product-list-name {
+    margin: 0;
+    padding-bottom: 0;
+    min-height: 3.9em;
+    font-size: 1.125rem;
+    line-height: 1.4;
+}
+body.b2b-theme.eshop-public .eshop-card-meta {
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    margin: 14px 0;
+    border: 0;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+}
+body.b2b-theme.eshop-public .eshop-card-meta:empty { display: none; }
+body.b2b-theme.eshop-public .eshop-card-meta b { color: var(--c-ink); }
+body.b2b-theme.eshop-public .b2b-card-purchase > .eshop-card-price {
+    margin: 0 0 18px;
+    color: var(--c-ink);
+    font-weight: 700;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+}
+body.b2b-theme.eshop-public .eshop-card-content > .small {
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+body.b2b-theme.eshop-public .eshop-card-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    padding-top: 0;
+    gap: 12px;
+    border: 0;
+}
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn,
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn:only-child {
+    flex: 0 0 calc(50% - 6px);
+    width: calc(50% - 6px);
+    min-height: 42px;
+    border-radius: 0;
+    background: var(--c-accent) !important;
+    border-color: var(--c-accent) !important;
+    color: #fff !important;
+}
+body.b2b-theme.eshop-public .b2b-card-purchase {
+    margin-top: auto;
+    padding-top: 24px;
+}
+body.b2b-theme.eshop-public .eshop-card-meta > span + span::before {
+    content: "✓";
+    color: var(--c-accent);
+    font-weight: 700;
+    margin-right: 8px;
+}
+body.b2b-theme.eshop-public .b2b-card-features .paramsTable {
+    width: 100%;
+    color: var(--shop-muted);
+}
+body.b2b-theme.eshop-public .b2b-card-features .paramsTable td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 3px 4px 3px 0;
+}
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn + .productBtn {
+    background: var(--c-ink) !important;
+    border-color: var(--c-ink) !important;
+}
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn:hover {
+    background: var(--c-accent-dark) !important;
+    border-color: var(--c-accent-dark) !important;
+}
+body.commerce-theme.b2b-theme.eshop-public .productHolder {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+}
+body.b2b-theme.eshop-public .eshop-group-button {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    min-height: 0;
+    gap: 20px 16px;
+    padding: 24px;
+    border: 1px solid var(--c-line);
+    border-top: 3px solid var(--c-accent);
+    border-radius: 0;
+    background: #fff;
+    overflow: hidden;
+    isolation: isolate;
+}
+body.b2b-theme.eshop-public .eshop-group-button:hover,
+body.b2b-theme.eshop-public .eshop-group-button:focus-within {
+    background: #fff;
+    border-color: var(--c-accent-line-strong);
+    border-top-color: var(--c-accent);
+}
+body.b2b-theme.eshop-public .eshop-group-button .eshop-group-button-img {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: auto;
+    height: 250px;
+    min-width: 0;
+    margin: -24px -24px 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 0;
+    background: var(--c-surface-2);
+}
+body.b2b-theme.eshop-public .b2b-group .eshop-group-button-img a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+body.b2b-theme.eshop-public .b2b-group .eshop-group-button-img :is(img, svg) {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+body.b2b-theme.eshop-public .eshop-group-button .eshop-group-button-title {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    font-size: 1.125rem;
+    line-height: 1.35;
+}
+body.b2b-theme.eshop-public .b2b-group .eshop-group-button-title a::after { border-radius: 0; }
+body.b2b-theme.eshop-public .b2b-group:focus-within { outline: 2px solid var(--c-accent); outline-offset: 3px; }
+body.b2b-theme.eshop-public .b2b-group:hover .eshop-group-button-title a { color: var(--c-accent); }
+
+@media (max-width: 600px) {
+    body.b2b-theme.eshop-public .eshop-card-media { height: 220px; }
+    body.b2b-theme.eshop-public .eshop-card-content { padding: 16px; }
+    body.b2b-theme.eshop-public .eshop-card-actions .productBtn { min-height: 44px; }
+    body.b2b-theme.eshop-public .eshop-group-button { padding: 20px; gap: 16px 12px; }
+    body.b2b-theme.eshop-public .eshop-group-button .eshop-group-button-img { height: 220px; margin: -20px -20px 0; }
+}

@@ -70,7 +70,7 @@ class cms_page_External extends core_page_Active
         // Обличаме кожата
         $skin = cms_Domains::getCmsSkin();
         
-        $pageTpl = getFileContent(($skin && $skin->layout) ? $skin->layout : 'cms/tpl/Page.shtml');
+        $pageTpl = tr('|*' . getFileContent(($skin->layout ?? null) ? $skin->layout : 'cms/tpl/Page.shtml'));
         
         if (isDebug() && !log_Debug::haveRightFor('list') && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';

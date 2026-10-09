@@ -1,0 +1,4 @@
+<div class="eshop-group-button b2b-group">
+    <h2 class="eshop-group-button-title">[#name#]</h2>
+    <div class="eshop-group-button-img">[#img#]</div>
+</div>
