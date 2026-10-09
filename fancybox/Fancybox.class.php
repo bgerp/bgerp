@@ -104,7 +104,7 @@ class fancybox_Fancybox extends core_Manager
             $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
             $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
             
-            jquery_Jquery::run($tpl, "$('a.fancybox').fancybox({animationEffect: 'fade'});", true);
+            jquery_Jquery::run($tpl, "if (typeof $.fn.fancybox == 'function') $('a.fancybox').fancybox({animationEffect: 'fade'});", true);
         }
         
         return $tpl;
