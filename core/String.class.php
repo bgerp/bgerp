@@ -2125,7 +2125,7 @@ class core_String
             'apartment' => '/(?:^|[\s,])(?:апартамент|ап|apt|apartment|appt|unit|suite|flat)\.?\s*#?\s*№?\s*' . $strictNum . '(?=$|[\s,])/iu',
             'floor'     => '/(?:^|[\s,])(?:етаж|ет|floor|fl)\.?\s*#?\s*№?\s*(\d+)(?=$|[\s,])/iu',
             'entrance'  => '/(?:^|[\s,])(?:вход|вх|vh|entrance|entr)\.?\s*#?\s*№?\s*' . $entVal . '(?=$|[\s,])/iu',
-            'block'     => '/(?:^|[\s,])(?:блок|бл|bl|block|building|bldg)\.?\s*#?\s*№?\s*(\d+[\p{L}]?)(?=$|[\s,])/iu',
+            'block'     => '/(?:^|[\s,])(?:блок|бл|bl|block|building|bldg)\.?\s*#?\s*№?\s*(\d+(?:\s?[\p{L}](?=$|[\s,]))?)(?=$|[\s,])/iu',
         ];
 
         foreach ($patterns as $key => $re) {
@@ -2311,6 +2311,26 @@ class core_String
                     $rest = preg_replace($streetWithoutNumberRe, ' ', $rest, 1);
                     $rest = $normalize($rest);
                 }
+            }
+        }
+
+        /*
+         * 6.1) Блок без маркер за улица: името отпред е комплекс ("Младост 4 блок 496"),
+         * а не улица "Младост" № 4. Номер над 2 цифри е по-скоро на улица.
+         */
+        $hasStreetMarker = preg_match('/(?:^|[\s,])(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)(?:\.|\s)/iu', $address);
+        if ($result['block'] !== null && $result['complexName'] === null && !$hasStreetMarker) {
+            if ($result['street'] !== null && mb_strlen($result['number'] ?? '') <= 2) {
+                $result['complexName'] = trim($result['street'] . ' ' . ($result['number'] ?? ''));
+                $result['street'] = $result['number'] = null;
+            } elseif ($result['street'] === null && $rest !== '' && preg_match('/^[\p{L}][\p{L}\s\-]*(?:\s\d{1,2})?$/u', $rest)) {
+                $result['complexName'] = $rest;
+                $rest = '';
+            }
+
+            if ($result['complexName'] !== null) {
+                $result['complexType'] = 'жк';
+                $result['complexTypeEn'] = 'zhk';
             }
         }
 
