@@ -74,7 +74,8 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             'entries' => array(),
         );
         
-        if ($amount == 0) {
+        // Без приключване с друга сделка се гледат салдата по валутни пера, общото може да е 0 при лева и евро
+        if ($amount == 0 && !empty($rec->closeWith)) {
             
             return $result;
         }
@@ -98,7 +99,23 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
             
             $sysId = acc_Accounts::fetchField($docRec->accountId, 'systemId');
+            // Брои се само страната по перото на сделката, иначе прехвърлянията между сделки по същата сметка се нулират
+            $dealItemId = acc_Items::fetchItem($firstDoc->className, $firstDoc->that)->id;
+            foreach ($jRecs as $jId => $jRec) {
+                $jRec = clone $jRec;
+                if ($jRec->debitItem2 != $dealItemId) {
+                    $jRec->debitAccId = null;
+                }
+                if ($jRec->creditItem2 != $dealItemId) {
+                    $jRec->creditAccId = null;
+                }
+                $jRecs[$jId] = $jRec;
+            }
             $quantities = acc_Balances::getBlQuantities($jRecs, $sysId, null, null, array(), $this->valior);
+
+            if (is_array($quantities) && $this->valior >= acc_Setup::getEurozoneDate()) {
+                $this->mergeBgnIntoEuro($quantities);
+            }
             
             if (is_array($quantities)) {
                 foreach ($quantities as $index => $obj) {
@@ -113,17 +130,44 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
                 bp($jRecs, $quantities);
             }
         }
-        
+
         return $result;
     }
     
     
+    /**
+     * След еврозоната левовото салдо се смята заедно с това в евро, без да се прехвърля реално
+     */
+    private function mergeBgnIntoEuro(&$quantities)
+    {
+        $bgnItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode('BGN'));
+        $euroItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode('EUR'));
+        if (empty($bgnItem) || empty($euroItem) || !array_key_exists($bgnItem->id, $quantities)) {
+
+            return;
+        }
+
+        if (!array_key_exists($euroItem->id, $quantities)) {
+            $quantities[$euroItem->id] = (object) array('quantity' => 0, 'amount' => 0);
+        }
+        $quantities[$euroItem->id]->quantity += currency_CurrencyRates::convertAmount($quantities[$bgnItem->id]->quantity, null, 'BGN', 'EUR');
+        $quantities[$euroItem->id]->amount += $quantities[$bgnItem->id]->amount;
+        unset($quantities[$bgnItem->id]);
+    }
+
+
     /**
      * Отчитане на извънредните приходи/разходи от сделката
      *
      */
     private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
+        $amount = round($amount, 2);
+        if (empty($amount)) {
+
+            return array();
+        }
+
         $dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
             array($docRec->contragentClassId, $docRec->contragentId),
             array($firstDoc->className, $docRec->id),
