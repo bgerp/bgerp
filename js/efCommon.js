@@ -4195,6 +4195,9 @@ function efae() {
     // The first polling tab claims each status; let only the focused tab do so.
     var pollStatusesOnFocus = function () {
         if (!efaeInst.isStatusTabActive()) return;
+
+        // Табът, към който потребителят се връща, не е бездействащ - иначе статусът не се брои за видян
+        if (typeof getEO().getIdleTime() != 'undefined') getEO().resetIdleTimer();
         efaeInst.resetTimeout();
         efaeInst.ajaxLastTime = new Date(0);
         efaeInst.lastTimeArr['status'] = new Date(0);
