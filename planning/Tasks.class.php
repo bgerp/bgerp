@@ -3456,7 +3456,7 @@ class planning_Tasks extends core_Master
                 . (in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? ' openModal' : '')
                 . (in_array($fld, array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart')) ? ' shortTime' : '')
                 . ($fld === 'title' ? ' leftCol titleTags' : '')
-                . ($fld === 'jobQuantity' ? ' quiet' : '');
+                . (in_array($fld, array('prevExpectedTimeEnd', 'nextExpectedTimeStart', 'jobQuantity')) ? ' quiet' : '');
 
             $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
         }

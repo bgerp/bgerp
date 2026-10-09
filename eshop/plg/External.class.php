@@ -30,7 +30,7 @@ class eshop_plg_External extends core_Plugin
         }
         
         $res->push(('eshop/js/Scripts.js'), 'JS');
-        jquery_Jquery::run($res, 'eshopActions();');
+        jquery_Jquery::run($res, "if (typeof eshopActions == 'function') eshopActions();");
         jqueryui_Ui::enable($res);
     }
 }
