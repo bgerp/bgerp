@@ -2663,21 +2663,7 @@ class pos_Terminal extends peripheral_Terminal
         price_ListRules::preloadGroups($products);
 
         // Правилата наведнъж за всяка ЦП - при точен момент price_Cache не се ползва и иначе е по заявка на артикул
-        $preloadListIds = array();
-        foreach (array($rec->_policy1, $rec->_policy2) as $policyId) {
-            if (empty($policyId)) continue;
-
-            $preloadListIds[$policyId] = $policyId;
-            $discountListId = price_Lists::fetchField($policyId, 'discountCompared');
-            if (!empty($discountListId)) {
-                $preloadListIds[$discountListId] = $discountListId;
-            }
-        }
-
-        $productIds = array_keys($products);
-        foreach ($preloadListIds as $listId) {
-            price_ListRules::preloadRules($listId, $productIds, $now);
-        }
+        price_ListRules::preloadRulesWithCompared(array($rec->_policy1, $rec->_policy2), array_keys($products), $now);
 
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){

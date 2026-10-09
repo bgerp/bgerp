@@ -514,6 +514,32 @@ class price_ListRules extends core_Detail
 
 
     /**
+     * Групово зареждане за няколко ЦП заедно с ЦП, с които те сравняват отстъпката (discountCompared)
+     *
+     * @param array         $listIds
+     * @param array         $productIds
+     * @param datetime|null $datetime
+     *
+     * @return void
+     */
+    public static function preloadRulesWithCompared(array $listIds, array $productIds, $datetime = null)
+    {
+        $preload = array();
+        foreach (array_filter($listIds) as $listId) {
+            $preload[$listId] = $listId;
+            $discountListId = price_Lists::fetchField($listId, 'discountCompared');
+            if (!empty($discountListId)) {
+                $preload[$discountListId] = $discountListId;
+            }
+        }
+
+        foreach ($preload as $listId) {
+            static::preloadRules($listId, $productIds, $datetime);
+        }
+    }
+
+
+    /**
      * Групово зареждане на правилата за посочените артикули - по едно обхождане на таблицата
      * за всяко ниво от веригата ЦП, вместо по една заявка на артикул.
      *
@@ -541,13 +567,18 @@ class price_ListRules extends core_Detail
             $me->forceReplica();
             static::preloadGroups($productIds);
 
-            // Обхождането се решава по целия набор - по-малкото артикули надолу не бива да
-            // го сменят с филтър, който при дълга история (себестойността) е по-бавен
-            $fullScan = (countR($productIds) >= self::PRELOAD_FULL_SCAN_FROM);
+            // Обхождането се решава веднъж, по незаредените на първото ниво - по-малкото артикули
+            // надолу не бива да го сменят с филтър, който при дълга история (себестойността) е по-бавен
+            $fullScan = null;
 
             // Към бащата се слиза само с артикулите, за които и getPrice() би слязло
             foreach (static::getListChain($listId, $datetime) as $chainListId) {
                 if (!countR($productIds)) break;
+
+                if (!isset($fullScan)) {
+                    $loaded = static::$preloadedRules["{$chainListId}|{$datetime}"] ?? array();
+                    $fullScan = (countR(array_diff_key(array_flip($productIds), $loaded)) >= self::PRELOAD_FULL_SCAN_FROM);
+                }
 
                 // Групите на артикулите от това ниво - по тях се търсят груповите правила
                 $allGroups = array();
