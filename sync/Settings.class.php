@@ -105,13 +105,14 @@ class sync_Settings extends core_Manager
      */
     public function description()
     {
-        $this->FLD('offlineSysId', 'varchar(32)', 'caption=Офлайн система->ID, mandatory');
-        $this->FLD('authType', 'enum(credentials=ID и парола,legacyIp=Само IP (преходен режим))', 'caption=Офлайн система->Идентификация,notNull,value=credentials,silent,removeAndRefreshForm=pass');
-        $this->FLD('pass', 'password(255,autocomplete=off)', 'caption=Офлайн система->Парола,crypt');
+        $this->FLD('offlineSysId', 'varchar(32)', 'caption=Импортираща система->ID, mandatory');
+        // Старите стойности се запазват до редактиране, но не разрешават достъп.
+        $this->FLD('authType', 'enum(credentials=ID и парола,legacyIp=Изисква обновяване на идентификацията)', 'input=none,column=none,notNull,value=credentials');
+        $this->FLD('pass', 'password(255,autocomplete=off)', 'caption=Импортираща система->Парола,crypt');
         $this->FLD(
             'allowedIps',
             'varchar',
-            'caption=Офлайн система->IP,placeholder=203.0.113.10 или 203.0.113.0/24,hint=Точни IPv4/IPv6 адреси и IPv4 CIDR мрежи, разделени със запетая; private е само за преходен legacy режим'
+            'caption=Импортираща система->IP,placeholder=203.0.113.10 или 203.0.113.0/24,hint=IPv4/IPv6 адреси и IPv4 CIDR мрежи на импортиращата система. Разделят се със запетая. Прокситата се задават в настройките на пакета sync'
         );
         $this->FLD('stores', 'keylist(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
         $this->FLD('cases', 'keylist(mvc=cash_Cases, select=name, allowEmpty)', 'caption=Каса');
@@ -141,16 +142,11 @@ class sync_Settings extends core_Manager
         $form = $data->form ?? null;
         // При Save core_Manager зарежда DB стойностите след първия silent input.
         $form->input(
-            'authType,allowProductPush,productsExportMode,companiesExportMode,personsExportMode,eshopExportMode',
+            'allowProductPush,productsExportMode,companiesExportMode,personsExportMode,eshopExportMode',
             'silent'
         );
         $rec = $form->rec;
 
-        if (($rec->authType ?? 'credentials') == 'legacyIp') {
-            $form->setField('pass', 'input=none');
-        } else {
-            $form->setField('pass', 'input');
-        }
         if (($rec->allowProductPush ?? 'no') == 'yes') {
             $form->setField('productPushSourceUrl', 'input');
         }
@@ -183,31 +179,24 @@ class sync_Settings extends core_Manager
         }
 
         $rec = $form->rec;
-        if (($rec->authType ?? 'credentials') == 'credentials') {
-            $oldRec = !empty($rec->id) ? $mvc->fetch($rec->id) : null;
-            $oldPass = $oldRec->pass ?? null;
-            $requiresNewPass = $oldRec && ($oldRec->authType ?? 'credentials') == 'legacyIp';
+        $oldRec = !empty($rec->id) ? $mvc->fetch($rec->id) : null;
+        $oldPass = $oldRec->pass ?? null;
+        $requiresNewPass = $oldRec && ($oldRec->authType ?? 'credentials') == 'legacyIp';
+        $rec->authType = 'credentials';
 
-            if (($rec->pass ?? null) === '' ||
-                (!$oldPass && empty($rec->pass)) ||
-                ($requiresNewPass && (empty($rec->pass) || hash_equals((string) $oldPass, (string) $rec->pass)))) {
-                $form->setError('pass', 'Паролата е задължителна при идентификация с credentials');
-            }
-
-            if (isset($rec->pass) && strlen($rec->pass) > self::MAX_PASS_LENGTH) {
-                $form->setError(
-                    'pass',
-                    'Паролата може да бъде най-много ' . self::MAX_PASS_LENGTH . ' знака'
-                );
-            }
+        if (($rec->pass ?? null) === '' ||
+            (!$oldPass && empty($rec->pass)) ||
+            ($requiresNewPass && (empty($rec->pass) || hash_equals((string) $oldPass, (string) $rec->pass)))) {
+            $form->setError('pass', $requiresNewPass
+                ? 'Задайте нова парола за преминаване от идентификация само по IP'
+                : 'Паролата е задължителна');
+        }
+        if (isset($rec->pass) && strlen($rec->pass) > self::MAX_PASS_LENGTH) {
+            $form->setError('pass', 'Паролата може да бъде най-много ' . self::MAX_PASS_LENGTH . ' знака');
         }
 
-        if (($rec->authType ?? null) == 'legacyIp' && empty($rec->allowedIps)) {
-            $form->setError('allowedIps', 'Преходният режим изисква IP адрес, мрежа или стойност private');
-        }
         if (!empty($rec->allowedIps)) {
             foreach (preg_split('/[\s,;]+/', trim($rec->allowedIps)) as $allowedIp) {
-                $isPrivateKeyword = strtolower($allowedIp) == 'private';
                 $isExactIp = (bool) filter_var($allowedIp, FILTER_VALIDATE_IP);
                 $isIpv4Cidr = false;
                 if (strpos($allowedIp, '/') !== false) {
@@ -216,8 +205,7 @@ class sync_Settings extends core_Manager
                         ctype_digit((string) $prefix) && (int) $prefix >= 0 && (int) $prefix <= 32;
                 }
 
-                if ((!$isPrivateKeyword && !$isExactIp && !$isIpv4Cidr) ||
-                    ($isPrivateKeyword && ($rec->authType ?? null) != 'legacyIp')) {
+                if (!$isExactIp && !$isIpv4Cidr) {
                     $form->setError('allowedIps', "Невалиден IP адрес или CIDR мрежа: {$allowedIp}");
                 }
             }
@@ -253,12 +241,6 @@ class sync_Settings extends core_Manager
                     'Legacy product push може да е разрешен само за една source система'
                 );
             }
-            if (($rec->authType ?? 'credentials') != 'credentials') {
-                $form->setError(
-                    'allowProductPush,authType',
-                    'Legacy product push е разрешен само за client с credentials'
-                );
-            }
             if (($rec->productsExportMode ?? 'none') != 'all') {
                 $form->setError(
                     'allowProductPush,productsExportMode',
@@ -266,13 +248,13 @@ class sync_Settings extends core_Manager
                 );
             }
             if (!is_array($sourceParts) ||
-                strtolower($sourceParts['scheme'] ?? '') != 'https' ||
+                !in_array(strtolower($sourceParts['scheme'] ?? ''), array('http', 'https'), true) ||
                 empty($sourceParts['host']) ||
                 isset($sourceParts['user']) ||
                 isset($sourceParts['pass'])) {
                 $form->setError(
                     'productPushSourceUrl',
-                    'Посочете HTTPS source URL без userinfo'
+                    'Посочете HTTP или HTTPS адрес на източника без потребител и парола в адреса'
                 );
             }
         }
@@ -417,6 +399,22 @@ class sync_Settings extends core_Manager
         }
 
         return true;
+    }
+
+
+    /**
+     * Лека проверка на идентификацията, без събиране или експорт на записи
+     */
+    public function act_CheckConnection()
+    {
+        $authenticated = core_Packs::isInstalled('sync') &&
+            (bool) sync_Helper::getRequestSettings(false);
+        http_response_code($authenticated ? 200 : 403);
+
+        return core_App::outputJson(array(
+            'protocol' => 'sync-connection-v1',
+            'authenticated' => $authenticated,
+        ));
     }
 
 
@@ -577,16 +575,13 @@ class sync_Settings extends core_Manager
 
             $sysId = trim((string) sync_Setup::get('SYS_ID'));
             $pass = sync_Setup::getSyncPass();
-            if (($sysId === '') xor ($pass === '')) {
-                self::logErr('Трябва да са попълнени едновременно SYNC_SYS_ID и SYNC_PASS');
+            if ($sysId === '' || $pass === '') {
+                self::logErr('Импортирането изисква попълнени SYNC_SYS_ID и SYNC_PASS');
 
                 return false;
             }
 
-            // Без credentials работим в преходен режим със стария Companies
-            // endpoint. Така нов client може да се обнови преди master-а.
-            $exportController = ($sysId !== '') ? 'sync_Settings' : 'sync_Companies';
-            $resArr = sync_Helper::getDataFromUrl($exportController);
+            $resArr = sync_Helper::getDataFromUrl('sync_Settings');
 
             if (!is_array($resArr)) {
 
@@ -691,11 +686,7 @@ class sync_Settings extends core_Manager
     {
         ini_set('memory_limit', '2048M');
 
-        // Всички стари clients споделят един __legacy__ запис. Lock по
-        // него би блокирал различни системи взаимно по време на rollout-а.
-        if (!$settingsRec ||
-            empty($settingsRec->id) ||
-            ($settingsRec->authType ?? 'credentials') == 'legacyIp') {
+        if (!$settingsRec || empty($settingsRec->id)) {
 
             return;
         }

@@ -145,7 +145,7 @@ class log_Ips extends core_Manager
             }
         }
         
-        return self::$ipsArr[$ip];
+        return self::$ipsArr[$ip] ?? null;
     }
     
     

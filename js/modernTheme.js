@@ -184,6 +184,9 @@ function setMenuCookie(){
  * Записваме информацията за състоянието на букмарките в бисквитка
  */
 function setBookmarkCookie(){
+	// На тесен екран остава досегашното състояние
+	var bookmarkState = currentBookmarkInfo || '';
+
 	// ако е над 700пх, записваме кои подменюта са били отворени
 	if($(window).width() > 700) {
 		var openGroups = '';

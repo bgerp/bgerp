@@ -835,7 +835,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $allowedCases = null;
         if(core_Packs::isInstalled('holding')){
             if(isset($this->ownCompanyFieldName)){
-                $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});
+                $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName} ?? null);
             }
         }
 

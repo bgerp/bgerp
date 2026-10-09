@@ -876,8 +876,6 @@ class doc_Linked extends core_Manager
             } else {
                 $this->save($nRec);
 
-                $this->logAct($nRec, 'Добавена');
-                
                 return new Redirect($retUrl);
             }
         }
@@ -902,7 +900,7 @@ class doc_Linked extends core_Manager
                     $strType = 'файл';
                 }
                 $outDoc = doc_Containers::getDocument($rec->outVal ?? null);
-                $outDoc->instance->logRead("{$actType} връзка към {$strType}", $outDoc->that);
+                $outDoc->instance->logWrite("{$actType} връзка към {$strType}", $outDoc->that);
             }
 
             $strType = 'документ';
@@ -911,7 +909,7 @@ class doc_Linked extends core_Manager
                     $strType = 'файл';
                 }
                 $inDoc = doc_Containers::getDocument($rec->inVal ?? null);
-                $inDoc->instance->logRead("{$actType} връзка от {$strType}", $inDoc->that);
+                $inDoc->instance->logWrite("{$actType} връзка от {$strType}", $inDoc->that);
             }
         } catch (core_exception_Expect $e) {
         }
@@ -919,7 +917,18 @@ class doc_Linked extends core_Manager
 
 
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     * Записва създаването независимо откъде е добавена връзката
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+        if (!empty($rec->id)) {
+            $mvc->logAct($rec, 'Добавена');
+        }
+    }
+
+
+    /**
+     * Записва оттеглянето в историята на свързаните документи
      *
      * @param core_Mvc   $mvc
      * @param mixed      $res
@@ -927,12 +936,14 @@ class doc_Linked extends core_Manager
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        $mvc->logAct($id, 'Оттеглена');
+        if ($res) {
+            $mvc->logAct($id, 'Оттеглена');
+        }
     }
 
 
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     * Записва възстановяването в историята на свързаните документи
      *
      * @param core_Mvc   $mvc
      * @param mixed      $res
@@ -940,7 +951,9 @@ class doc_Linked extends core_Manager
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        $mvc->logAct($id, 'Възстановена');
+        if ($res) {
+            $mvc->logAct($id, 'Възстановена');
+        }
     }
 
 
@@ -1798,17 +1811,28 @@ class doc_Linked extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if (($rec->outType ?? null) == 'doc') {
-            $doc = doc_Containers::getDocument($rec->outVal ?? null);
-            $doc->touchRec();
-            $dRec = $doc->fetch();
-            if ($dRec) {
-                plg_Search::forceUpdateKeywords($doc, $dRec);
-            }
+        if (!$id) {
+            return;
         }
-        
+
+        // При частичен запис полетата на двата края може да липсват.
+        $rec = $mvc->fetch($id, '*', false);
+        $containerIds = array();
+        if (($rec->outType ?? null) == 'doc') {
+            $containerIds[$rec->outVal ?? null] = $rec->outVal ?? null;
+        }
         if (($rec->inType ?? null) == 'doc') {
-            $doc = doc_Containers::getDocument($rec->inVal ?? null);
+            $containerIds[$rec->inVal ?? null] = $rec->inVal ?? null;
+        }
+
+        foreach ($containerIds as $containerId) {
+            if (!$containerId) {
+                continue;
+            }
+
+            // touchRec() е отложен и не сменя ключа при промени в една секунда.
+            doc_DocumentCache::cacheInvalidation($containerId);
+            $doc = doc_Containers::getDocument($containerId);
             $doc->touchRec();
             $dRec = $doc->fetch();
             if ($dRec) {

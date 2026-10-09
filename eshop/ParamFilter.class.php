@@ -55,9 +55,7 @@ class eshop_ParamFilter
      */
     public static function isEnabled()
     {
-        $settings = cms_Domains::getSettings();
-
-        return countR($settings->paramFilterParams ?? null) && (($settings->showNavigation ?? 'no') == 'yes');
+        return countR(cms_Domains::getSettings()->paramFilterParams ?? null) > 0;
     }
 
 
@@ -219,17 +217,18 @@ class eshop_ParamFilter
         $allRecs = $data->recs;
         if (!countR($allRecs) || !self::isEnabled()) return;
 
-        $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);
+        // Категориите са списък на групите - без навигация не се показват
+        $withGroups = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID) && eshop_Groups::mustShowSideNavigation();
         $start = self::startTimer('params');
         $params = self::getParams();
         self::stopTimer('params', $start);
-        if (!countR($params) && !$isSearch) return;
+        if (!countR($params) && !$withGroups) return;
 
         $selected = cat_products_ParamFilter::parseSelection(Request::get(self::URL_VAR, 'varchar'), $params);
         $lg = cat_products_ParamFilter::getLang();
 
         // При търсенето изборът на категория стеснява е-артикулите, по които се броят параметрите
-        $selectedGroups = $isSearch ? self::parseGroups(Request::get(self::GROUP_URL_VAR, 'varchar')) : array();
+        $selectedGroups = $withGroups ? self::parseGroups(Request::get(self::GROUP_URL_VAR, 'varchar')) : array();
         $recs = $allRecs;
         if (countR($selectedGroups)) {
             $recs = array_filter($allRecs, function ($rec) use ($selectedGroups) {
@@ -257,7 +256,7 @@ class eshop_ParamFilter
 
         $start = self::startTimer('match');
         $eshopCnt = countR($allRecs);
-        if ($isSearch) {
+        if ($withGroups) {
             $filter->groups = self::countGroups($allRecs, $selectedGroups, countR($selected) ? self::getMatchingEshopIds($allBase, $filter->values, $selected) : null);
         }
         if (countR($selected)) {
@@ -532,6 +531,33 @@ class eshop_ParamFilter
         $tpl = self::doRenderNavigation($data);
         self::stopTimer('render', $start);
         self::logStats($data->groupId ?? null);
+
+        return $tpl;
+    }
+
+
+    /**
+     * Филтрите като лента над артикулите, когато няма странична навигация
+     *
+     * @param stdClass $data - данните от eshop_Products::prepareGroupList()
+     *
+     * @return core_ET|string - празно, ако няма подготвен филтър
+     */
+    public static function renderTop($data)
+    {
+        // Без стойности лентата не се показва, вместо да подсказва като колоната
+        $filter = $data->paramFilter ?? null;
+        if (!is_object($filter) || !countR(cat_products_ParamFilter::getDisplayParams($filter))) return '';
+
+        $tpl = new core_ET("<div id='eshopParamFilterTop' class='eshop-param-filter-top'>[#FILTER#]</div>");
+
+        // На телефон лентата е свита под един бутон, за да не избутва артикулите надолу
+        if (Mode::is('screenMode', 'narrow')) {
+            $cnt = array_sum(array_map('countR', $filter->selected ?? array()));
+            $caption = tr('Филтри') . ($cnt ? " ({$cnt})" : '');
+            $tpl = new core_ET("<details id='eshopParamFilterTop' class='eshop-param-filter-top'><summary class='eshop-param-filter-toggle'>{$caption}</summary>[#FILTER#]</details>");
+        }
+        $tpl->append(self::renderNavigation($data), 'FILTER');
 
         return $tpl;
     }

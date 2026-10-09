@@ -1273,6 +1273,7 @@ class email_Incomings extends core_Master
                                 'webdrvFieldset' => 'webdrvFieldsetSingle',
                                 'webdrvIframe' => 'webdrvIframeSingle webdrvIframe autoHeight'));
                         $htmlPart = "<script>function sendHeight() { 
+                                      if (!document.body) return;
                                       const height = document.body.scrollHeight;
                                       window.parent.postMessage(height, '*');
                                     }

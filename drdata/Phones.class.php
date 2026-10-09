@@ -346,7 +346,7 @@ class drdata_Phones extends core_Manager
                         if (!$obj->countryCode) {
                             $obj->countryCode = $defaultCountryCode;
                             $rec = $this->DialCodes->fetch(" #countryCode = '{$obj->countryCode}'  AND !#areaCode ");
-                            $obj->country = $rec->country;
+                            $obj->country = $rec->country ?? null;
                         }
                         
                         // само за италия

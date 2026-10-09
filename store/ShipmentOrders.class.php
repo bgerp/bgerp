@@ -651,7 +651,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $cmrRow = 2;
                 if ($firstDoc->isInstanceOf('deals_DealMaster')) {
                     $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes' || $countryId != $bgId) {
+                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties') ?? '', 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes' || $countryId != $bgId) {
                         $cmrRow = 1;
                     }
                 }

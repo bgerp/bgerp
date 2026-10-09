@@ -323,10 +323,13 @@ class eshop_Groups extends core_Master
         // При филтри по параметри търсенето е списък на намерените е-артикули, като група.
         // Менюто се задава първо, иначе настройките са на друг домейн
         $q = trim((string) Request::get('q', 'varchar'));
-        if (strlen($q)) {
+        $hasFilter = strlen((string) Request::get(eshop_ParamFilter::URL_VAR, 'varchar'));
+        if (strlen($q) || $hasFilter) {
             $menuId = Request::get('cMenuId', 'int');
             cms_Content::setCurrent($menuId ? $menuId : cms_Content::getDefaultMenuId($this));
-            if (eshop_ParamFilter::isEnabled()) {
+
+            // Без навигация избор във филтъра на каталога също показва намерените
+            if (eshop_ParamFilter::isEnabled() && (strlen($q) || !self::mustShowSideNavigation())) {
                 Request::push(array('id' => self::SEARCH_SYSTEM_ID));
 
                 return $this->act_Show();
@@ -366,10 +369,7 @@ class eshop_Groups extends core_Master
                 redirect($data->links[0]->url);
             }
 
-            $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
-            $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
-            $layout->append(eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'), 'NAVIGATION_FILTERS');
-            $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+            self::renderSideNavigation($layout, $data, eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'));
 
             $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
@@ -380,6 +380,13 @@ class eshop_Groups extends core_Master
             cms_Content::renderSeo($layout, $seoRec);
         } else {
             eshop_Products::prepareAllProducts($data);
+
+            // Без навигация филтрите по всички е-артикули от менюто са над тях
+            if (eshop_ParamFilter::isEnabled()) {
+                $filterData = (object) array('groupId' => self::SEARCH_SYSTEM_ID, 'menuId' => $data->menuId, 'withParamFilter' => true, 'onlyParamFilter' => true);
+                eshop_Products::prepareGroupList($filterData);
+                $layout->append(eshop_ParamFilter::renderTop($filterData), 'PAGE_CONTENT');
+            }
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
         
@@ -411,7 +418,7 @@ class eshop_Groups extends core_Master
     /**
      * Връща дали е необходимо да се показва навигация на групите
      */
-    private static function mustShowSideNavigation()
+    public static function mustShowSideNavigation()
     {
         $menuId = Mode::get('cMenuId');
         
@@ -464,11 +471,9 @@ class eshop_Groups extends core_Master
         plg_AlignDecimals2::alignDecimals(cls::get('eshop_Products'), $data->products->recs, $data->products->rows);
         
         $layout = $this->getLayout();
-        $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
-        $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
-
-        $layout->append(eshop_ParamFilter::renderNavigation($data->products), 'NAVIGATION_FILTERS');
-        $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+        if (self::mustShowSideNavigation()) {
+            self::renderSideNavigation($layout, $data, eshop_ParamFilter::renderNavigation($data->products));
+        }
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
@@ -583,7 +588,11 @@ class eshop_Groups extends core_Master
             $row->name = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
         } elseif($data->groupId == self::SEARCH_SYSTEM_ID){
             $data->q = trim((string) Request::get('q', 'varchar'));
-            $row->name = tr('Търсене на') . ' „' . type_Varchar::escape($data->q) . '“';
+            if (strlen($data->q)) {
+                $row->name = tr('Търсене на') . ' „' . type_Varchar::escape($data->q) . '“';
+            } else {
+                $row->name = type_Varchar::escape(cms_Content::fetchField($data->menuId, 'title'));
+            }
         } else {
             $row->name = $this->getVerbal($rec, 'name');
             if ($rec->image) {
@@ -679,6 +688,11 @@ class eshop_Groups extends core_Master
         }
         $groupTpl->placeArray($data->row);
         
+        // Без навигация филтрите са над подгрупите и артикулите
+        if (!self::mustShowSideNavigation()) {
+            $groupTpl->append(eshop_ParamFilter::renderTop($data->products), 'PRODUCTS');
+        }
+
         // Добавяне на подгрупите
         if (isset($data->recs) && countR($data->recs)) {
             $groupTpl->append("<div class='subgroups clearfix21'>", 'PRODUCTS');
@@ -739,6 +753,22 @@ class eshop_Groups extends core_Master
     }
     
     
+    /**
+     * Рендира страничния панел с навигацията
+     *
+     * @param core_ET  $layout
+     * @param stdClass $navData    - данните от prepareNavigation()
+     * @param core_ET  $filtersTpl - филтрите по параметри или подсказката на мястото им
+     */
+    public static function renderSideNavigation($layout, $navData, $filtersTpl)
+    {
+        $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
+        $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+        $layout->append($filtersTpl, 'NAVIGATION_FILTERS');
+        $layout->append(cms_Articles::renderNavigation($navData), 'NAVIGATION');
+    }
+
+
     /**
      * Подготвя данните за навигацията
      */

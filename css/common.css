@@ -3269,6 +3269,9 @@ div.statuses-message h2 {
   border-top-width: 0;
   border-bottom: none; }
 
+.listTable td.shortTime.quiet {
+  color: #777777; }
+
 .red {
   color: #cc0000; }
 

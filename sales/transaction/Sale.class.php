@@ -255,9 +255,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             );
         }
         
-        if ($this->class->_total->vat) {
-            $vat = $this->class->_total->vat;
-            $vatAmount = $this->class->_total->vat * $rec->currencyRate;
+        // При продажба без детайли fillRecs не задава _total
+        $vat = $this->class->_total->vat ?? 0;
+        if ($vat) {
+            $vatAmount = $vat * $rec->currencyRate;
             $entries[] = array(
                 'amount' => $vatAmount, // В основна валута
                 
@@ -312,7 +313,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         if ($rec->chargeVat == 'separate' || $rec->chargeVat == 'yes') {
-            $amountBase += $this->class->_total->vat;
+            $amountBase += $this->class->_total->vat ?? 0;
         }
         
         $quantityAmount += $amountBase;

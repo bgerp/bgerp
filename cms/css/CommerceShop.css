@@ -19,13 +19,13 @@
 
 .eshop-public .externalPage .centerContent {
     width: calc(100% - 64px) !important;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     margin: 0 auto;
 }
 
 .eshop-public .externalPage .narrowCenter {
     width: 100%;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
 }
 
 .eshop-public #cmsMenu a {
@@ -1078,6 +1078,32 @@ body.eshop-public h2.lastOrderProductsDate::after {
     background: var(--c-line-2);
 }
 
+/* Group headings in the catalog: no theme colour band, a divider line like the dates above. */
+body.eshop-public h2.eshop-catalog-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 32px 0 16px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--shop-ink) !important;
+    font-size: 1.375rem !important;
+    font-weight: 800;
+    line-height: 1.3;
+    text-shadow: none;
+}
+body.eshop-public h2.eshop-catalog-group:first-child,
+body.eshop-public #eshopParamFilterTop + h2.eshop-catalog-group {
+    margin-top: 8px !important;
+}
+body.eshop-public h2.eshop-catalog-group::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--c-line-2);
+}
+
 /* Cart: items on the left, order details and total on the right. */
 body.eshop-public .cart-holder-external {
     display: grid;
@@ -1236,7 +1262,7 @@ body.eshop-public .cart-view-buttons-right .eshop-btn:not([disabled]):hover {
 body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: var(--c-ink); }
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
-.eshop-public #cmsNavigation .eshop-param-filter {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter {
     margin: 20px 0;
     padding: 0;
     border: 1px solid var(--shop-line);
@@ -1245,7 +1271,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
     font-family: inherit;
     overflow: hidden;
 }
-.eshop-public #cmsNavigation .eshop-param-filter-title {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1258,13 +1284,13 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
     font-size: 0.9375rem;
     font-weight: 700;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-clear {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear {
     display: inline-flex;
     align-items: center;
     min-height: 2.75em;
 }
 /* Match the understated clear action in the cart. */
-.eshop-public #cmsNavigation a.eshop-param-filter-clear,
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear,
 body.commerce-theme a.commerce-filter-reset {
     gap: 0.35em;
     padding: 0.25rem 0;
@@ -1278,36 +1304,36 @@ body.commerce-theme a.commerce-filter-reset {
     line-height: 1.4;
     text-decoration: none;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-clear::before,
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear::before,
 body.commerce-theme a.commerce-filter-reset::before {
     content: "×";
     font-size: 1.2em;
     line-height: 1.1667;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-clear:hover,
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:hover,
 body.commerce-theme a.commerce-filter-reset:hover {
     color: #a33e49;
     text-decoration: underline;
     text-underline-offset: 0.25rem;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-clear:focus-visible,
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:focus-visible,
 body.commerce-theme a.commerce-filter-reset:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 4px;
 }
-.eshop-public #cmsNavigation .eshop-param-filter-hint {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-hint {
     padding: 10px 12px;
     color: var(--shop-muted, #667085);
     font-size: 0.8125rem;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param {
     margin: 0;
     border-bottom: 1px solid #edf1f3;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param:last-child {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param:last-child {
     border-bottom: 0;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param > summary {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param > summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1320,13 +1346,13 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     list-style: none;
     cursor: pointer;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param > summary:hover {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param > summary:hover {
     background: #f7fafb;
 }
-.eshop-public #cmsNavigation .eshop-param-filter summary::-webkit-details-marker {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter summary::-webkit-details-marker {
     display: none;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param > summary::after {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param > summary::after {
     content: "";
     flex: 0 0 auto;
     width: 7px;
@@ -1337,17 +1363,17 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     transform: rotate(45deg);
     transition: transform .15s ease;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-param[open] > summary::after {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-param[open] > summary::after {
     margin-top: 3px;
     transform: rotate(-135deg);
 }
-.eshop-public #cmsNavigation .eshop-param-filter-values {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-values {
     max-height: 280px;
     margin: 0;
     padding: 0 12px 10px;
     overflow-y: auto;
 }
-.eshop-public #cmsNavigation .eshop-param-filter-value {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-value {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1363,17 +1389,17 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     text-decoration: none;
     overflow-wrap: anywhere;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-value:hover {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-value:hover {
     color: var(--shop-accent);
 }
-.eshop-public #cmsNavigation .eshop-param-filter-value.checked {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-value.checked {
     font-weight: 600;
 }
-.eshop-public #cmsNavigation .eshop-param-filter-value.disabled {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-filter-value.disabled {
     color: #a3adb5;
     cursor: default;
 }
-.eshop-public #cmsNavigation .eshop-param-check {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-check {
     position: relative;
     /* Нулира отместването от Application.css, където тикчето е absolute */
     top: auto;
@@ -1388,15 +1414,15 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     background: #fff;
     box-shadow: none;
 }
-.eshop-public #cmsNavigation a.eshop-param-filter-value:hover .eshop-param-check {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-value:hover .eshop-param-check {
     border-color: var(--shop-accent);
 }
-.eshop-public #cmsNavigation .checked .eshop-param-check {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .checked .eshop-param-check {
     border-color: var(--shop-accent);
     background: var(--shop-accent);
     box-shadow: none;
 }
-.eshop-public #cmsNavigation .checked .eshop-param-check::after {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .checked .eshop-param-check::after {
     content: "";
     position: absolute;
     left: 4px;
@@ -1407,11 +1433,11 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
-.eshop-public #cmsNavigation .disabled .eshop-param-check {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .disabled .eshop-param-check {
     border-color: #d5dde2;
     background: #f5f7f8;
 }
-.eshop-public #cmsNavigation .eshop-param-count {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .eshop-param-count {
     flex: 0 0 auto;
     margin-left: auto;
     padding-left: 6px;
@@ -1420,10 +1446,10 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     font-size: 0.75rem;
     font-weight: 400;
 }
-.eshop-public #cmsNavigation .disabled .eshop-param-count {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) .disabled .eshop-param-count {
     color: #b6bfc6;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-more > summary {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-more > summary {
     padding: 6px 0 0;
     color: var(--shop-accent);
     font-size: 0.75rem;
@@ -1431,8 +1457,83 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     list-style: none;
     cursor: pointer;
 }
-.eshop-public #cmsNavigation details.eshop-param-filter-more[open] > summary {
+.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) details.eshop-param-filter-more[open] > summary {
     display: none;
+}
+
+/* Without the side navigation the filters are a bar above the products, values open as dropdowns. */
+.eshop-public #eshopParamFilterTop .eshop-param-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 10px 12px;
+    overflow: visible;
+}
+.eshop-public #eshopParamFilterTop .eshop-param-filter-title {
+    gap: 12px;
+    padding: 0 4px 0 0;
+    border: 0;
+    background: transparent;
+}
+.eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
+.eshop-public #eshopParamFilterTop details.eshop-param-filter-param:last-child {
+    position: relative;
+    border: 1px solid var(--shop-line);
+    border-radius: 8px;
+}
+.eshop-public #eshopParamFilterTop details.eshop-param-filter-param:has(.checked) {
+    border-color: var(--shop-accent);
+}
+.eshop-public #eshopParamFilterTop details.eshop-param-filter-param > summary {
+    padding: 7px 30px 7px 12px;
+    border-radius: 8px;
+}
+.eshop-public #eshopParamFilterTop .eshop-param-filter-values {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 4px);
+    left: -1px;
+    box-sizing: border-box;
+    min-width: 220px;
+    max-width: calc(100vw - 32px);
+    padding: 8px 12px;
+    border: 1px solid var(--shop-line);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, .12);
+}
+
+/* On phones the bar is folded under one button so the products stay near the top. */
+.eshop-public #eshopParamFilterTop > summary.eshop-param-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 0 12px;
+    padding: 9px 16px;
+    border: 1px solid var(--shop-line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--shop-ink);
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* On phones the dropdown spans the bar, so a value list never leaves the screen. */
+body.narrow.eshop-public #eshopParamFilterTop .eshop-param-filter {
+    position: relative;
+}
+body.narrow.eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
+body.narrow.eshop-public #eshopParamFilterTop details.eshop-param-filter-param:last-child {
+    position: static;
+}
+body.narrow.eshop-public #eshopParamFilterTop .eshop-param-filter-values {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    min-width: 0;
+    max-width: none;
 }
 
 /* Availability labels share the button shape; each keeps its own background colour. */
