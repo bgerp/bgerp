@@ -30,7 +30,7 @@ class bgerp_C extends core_Mvc
     {
         $defActArr = arr::make($mvc->defActArr, true);
 
-        if ($defActArr[$action]) {
+        if (!empty($defActArr[$action])) {
 
             return ;
         }

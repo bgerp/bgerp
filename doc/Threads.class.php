@@ -2799,7 +2799,7 @@ class doc_Threads extends core_Manager
                 $bFieldVal = '';
 
                 foreach ($fArr as $f) {
-                    if ($bestContragentData->{$f}) {
+                    if (!empty($bestContragentData->{$f})) {
                         $bFieldVal .= $bestContragentData->{$f} . ', ';
                     }
                 }
@@ -2810,7 +2810,7 @@ class doc_Threads extends core_Manager
                 return $bFieldVal;
             }
 
-            return $bestContragentData->{$field};
+            return $bestContragentData->{$field} ?? null;
         }
         $bestContragentData = $bestContragentData ?? new stdClass();
 
