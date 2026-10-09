@@ -429,7 +429,7 @@ class deals_InvoicesToDocuments extends core_Manager
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
 
         if($Document->isInstanceOf('deals_InvoiceMaster')){
-            $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+            $dRate = !empty($iRec->displayRate) ? $iRec->displayRate : $iRec->rate;
             $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
         } else {
             $vAmount = abs($iRec->amountDelivered / $iRec->currencyRate);
@@ -473,7 +473,7 @@ class deals_InvoicesToDocuments extends core_Manager
             $toPay = 0;
         }
 
-        $arr = (object)array('amount' => $toPay, 'currencyCode' => $iRec->currencyId, 'rate' => $iRec->displayRate);
+        $arr = (object)array('amount' => $toPay, 'currencyCode' => $iRec->currencyId, 'rate' => $iRec->displayRate ?? null);
 
         return $arr;
     }
