@@ -108,6 +108,10 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
                     }
                 }
             }
+
+            if(haveRole('debug') && !Mode::is('saveTransaction')){
+                bp($jRecs, $quantities);
+            }
         }
         
         return $result;
