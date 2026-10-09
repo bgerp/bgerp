@@ -4812,6 +4812,13 @@ table .eshop-btn {
   outline: 2px solid #56738d;
   outline-offset: 2px; }
 
+.eshop-top-search #simpleSearch #searchInput {
+  width: calc(100% - 2.5em); }
+
+.eshop-top-search #simpleSearch #searchButton {
+  width: 2em;
+  padding-left: 0; }
+
 #eshopParamFilterTop .eshop-param-filter {
   display: flex;
   flex-wrap: wrap;

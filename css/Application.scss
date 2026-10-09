@@ -5569,6 +5569,15 @@ table .eshop-btn {
   outline-offset: 2px;
 }
 
+// Търсачката над артикулите е широка - лупата е в края, а не на 10% от ширината
+.eshop-top-search #simpleSearch #searchInput {
+  width: unquote("calc(100% - 2.5em)");
+}
+.eshop-top-search #simpleSearch #searchButton {
+  width: 2em;
+  padding-left: 0;
+}
+
 // Без навигация филтрите са лента над артикулите, а стойностите - падащи менюта
 #eshopParamFilterTop .eshop-param-filter {
   display: flex;
