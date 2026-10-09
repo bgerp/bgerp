@@ -1062,6 +1062,16 @@ class email_Outgoings extends core_Master
             // Вземаме записа
             $eRec = static::fetch($form->rec->id);
             
+            // "От" идва от заявката: типът key проверява само дали кутията съществува, не дали е позволена
+            try {
+                $fromOptions = email_Inboxes::getFromEmailOptions($eRec->folderId ?? null);
+            } catch (core_exception_Expect $e) {
+                $fromOptions = array();
+            }
+            if (!isset($fromOptions[$rec->boxFrom ?? 0])) {
+                $form->setError('boxFrom', 'Нямате право да изпращате от този имейл');
+            }
+            
             // Ако има originId
             if ($eRec->originId) {
                 

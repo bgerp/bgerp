@@ -613,6 +613,12 @@ class colab_FolderToPartners extends core_Manager
             if (strpos($form->rec->body ?? '', $placeHolder) === false) {
                 $form->setError('body', 'Липсва плейсхолдера на линка за регистриране|* - ' . $placeHolder);
             }
+            
+            // "От" идва от заявката - само от имейлите, които се предлагат на потребителя
+            $fromOptions = email_Inboxes::getAllowedFromEmailOptions(null);
+            if (!isset($fromOptions[$form->rec->from ?? 0])) {
+                $form->setError('from', 'Нямате право да изпращате от този имейл');
+            }
         }
         
         if ($form->isSubmitted()) {

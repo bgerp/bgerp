@@ -986,7 +986,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             $dTpl->placeObject($summary, 'SUMMARY');
-            $dTpl->replace($summary->sayWords, 'sayWords');
+            $dTpl->replace($summary->sayWords ?? null, 'sayWords');
 
             // Ако всички артикули имат валидна отстъпка показваме я в обобщената информация
             if (isset($summary) && countR($data->discounts) == 1) {

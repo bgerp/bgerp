@@ -172,10 +172,11 @@ class status_Retrieving extends core_Manager
         // Които не са теглени от съответния таб или са теглени от таб с по прясно време на бездействие
         $query->where(array("#hitTime = '[#1#]'", $hitTime), $or);
         
-        // Ако времето от браузра е по - голямо от максимално допустимото време
-        if ($idleTime > $maxIdleTime) {
-            $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
-        } else {
+        // Изтеглено от активен таб - видяно е и не се показва в другите табове
+        $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
+
+        // Активен таб не показва и изтегленото от по-нов таб
+        if ($idleTime <= $maxIdleTime) {
             $query->orWhere(array("#hitTime > '[#1#]'", $hitTime));
         }
         
