@@ -5584,20 +5584,21 @@ table .eshop-btn {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5em;
+  min-width: 0;
   margin: 0 0 1.2em;
-  padding: 0.6em 0;
-  border-top: 0;
-  border-bottom: 1px solid #d8dce1;
+  padding: 0.6em 0.75em 0.75em;
+  border: 1px solid #d8dce1;
+  border-radius: 0.4em;
 }
-// Заглавието е на отделен ред над бутоните, а не като един от тях
-#eshopParamFilterTop .eshop-param-filter .eshop-param-filter-title {
-  flex: 0 0 100%;
-  margin: 0 0 0.4em;
-  padding-bottom: 0.3em;
-  border-bottom: 2px solid #336;
-  font-size: 1.4em;
-  letter-spacing: 0.02em;
-  color: #222;
+#eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0.5em;
+  border: 0;
+  background: transparent;
+  font-size: 1em;
 }
 #eshopParamFilterTop .eshop-param-filter a.eshop-param-filter-clear {
   font-size: 0.6em;
