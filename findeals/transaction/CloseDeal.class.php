@@ -114,8 +114,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             $quantities = acc_Balances::getBlQuantities($jRecs, $sysId, null, null, array(), $this->valior);
 
             if (is_array($quantities) && $this->valior >= acc_Setup::getEurozoneDate()) {
-                $bgnEntries = $this->transferBgnToEuro($quantities, $result->totalAmount, $docRec, $firstDoc);
-                $result->entries = array_merge($result->entries, $bgnEntries);
+                $this->mergeBgnIntoEuro($quantities);
             }
             
             if (is_array($quantities)) {
@@ -133,51 +132,24 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
     
     
     /**
-     * След еврозоната левовото салдо се прехвърля към перото в евро и остатъкът се смята заедно с него
+     * След еврозоната левовото салдо се смята заедно с това в евро, без отделен ред за превалутиране:
+     * той би влязъл в оборотите на сделката, а ред се прави само за реалния остатък
      */
-    private function transferBgnToEuro(&$quantities, &$totalAmount, $docRec, $firstDoc)
+    private function mergeBgnIntoEuro(&$quantities)
     {
         $bgnItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode('BGN'));
         $euroItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode('EUR'));
         if (empty($bgnItem) || empty($euroItem) || !array_key_exists($bgnItem->id, $quantities)) {
 
-            return array();
+            return;
         }
-
-        $bgnQuantity = round($quantities[$bgnItem->id]->quantity, 2);
-        $euroQuantity = round(currency_CurrencyRates::convertAmount($bgnQuantity, null, 'BGN', 'EUR'), 2);
 
         if (!array_key_exists($euroItem->id, $quantities)) {
             $quantities[$euroItem->id] = (object) array('quantity' => 0, 'amount' => 0);
         }
-        $quantities[$euroItem->id]->quantity += $euroQuantity;
+        $quantities[$euroItem->id]->quantity += currency_CurrencyRates::convertAmount($quantities[$bgnItem->id]->quantity, null, 'BGN', 'EUR');
         $quantities[$euroItem->id]->amount += $quantities[$bgnItem->id]->amount;
         unset($quantities[$bgnItem->id]);
-
-        if (empty($bgnQuantity) || empty($euroQuantity)) {
-
-            return array();
-        }
-
-        $sysId = acc_Accounts::fetchField($docRec->accountId, 'systemId');
-        $bgnArr = array($sysId,
-            array($docRec->contragentClassId, $docRec->contragentId),
-            array($firstDoc->className, $docRec->id),
-            $bgnItem->id,
-            'quantity' => abs($bgnQuantity));
-        $euroArr = array($sysId,
-            array($docRec->contragentClassId, $docRec->contragentId),
-            array($firstDoc->className, $docRec->id),
-            $euroItem->id,
-            'quantity' => abs($euroQuantity));
-
-        // Дебитното салдо в лева става дебитно в евро и обратно
-        $totalAmount += abs($euroQuantity);
-
-        return array(array('amount' => abs($euroQuantity),
-            'debit' => ($bgnQuantity > 0) ? $euroArr : $bgnArr,
-            'credit' => ($bgnQuantity > 0) ? $bgnArr : $euroArr,
-            'reason' => 'Превалутиране на салдото от лева в евро'));
     }
 
 

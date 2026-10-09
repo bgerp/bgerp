@@ -98,7 +98,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Получател->Телефон,mandatory');
 
         $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес за доставка->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress|complexName,complexType,silent');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress|complexName|complexType,silent');
         $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
         $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
         $form->FLD('complexType', 'varchar(10)', 'caption=Адрес за доставка->Комплекс,silent');
@@ -272,7 +272,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $complexTypes = array();
             }
 
-            $form->setOptions('complexType', $complexTypes);
+            // Държава без комплекси при Спиди: полето няма валидна стойност и не се показва
+            if (countR($complexTypes)) {
+                $form->setOptions('complexType', $complexTypes);
+            } else {
+                $form->setField('complexType', 'input=none');
+                $form->setField('complexName', 'input=none');
+            }
             foreach (array('receiverCountryId', 'receiverPlace', 'receiverPCode') as $addressField){
                 $form->setField($addressField, 'mandatory');
             }
@@ -723,25 +729,23 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $row = new stdClass();
         $row->deadlineDelivery = dt::mysql2verbal($priceObj->deliveryDeadline, 'd.m.Y H:i:s');
 
-        $priceFields = array(
-            'net' => $priceObj->price->details->netAmount->amount,
-            'addrPickupSurcharge' => $priceObj->price->details->addressPickupSurcharge->amount,
-            'addrDeliverySurcharge' => $priceObj->price->details->addressDeliverySurcharge->amount,
-            'discPcntFixed' => $priceObj->price->details->fixedDiscount->amount,
-            'discPcntAdditional' => $priceObj->price->details->additionalDiscount->amount,
-            'pcntFuelSurcharge' => $priceObj->price->details->fuelSurcharge->amount,
-            'nonStdDeliveryDateSurcharge' => $priceObj->price->details->nonStandardDeliveryDateSurcharge->amount,
-            'tro' => $priceObj->price->details->loadUnload->amount,
-            'islandSurcharge' => $priceObj->price->details->islandSurcharge->amount,
-            'testBeforePayment' => $priceObj->price->details->optionsBeforePaymentSurcharge->amount,
-            'tollSurcharge' => $priceObj->price->details->tollSurcharge->amount,
-            'heavyPackageFee' => $priceObj->price->details->heavyParcelSurcharge->amount,
-            'codPremium' => $priceObj->price->details->codPremium->amount,
-            'insurancePremium' => $priceObj->price->details->insurancePremium->amount,
-            'totalNoVat' => $priceObj->price->amount,
-            'vat' => $priceObj->price->vat,
-            'total' => $priceObj->price->total,
-        );
+        // Някои услуги не връщат всички редове от разбивката (напр. loadUnload)
+        $detailFields = array('net' => 'netAmount', 'addrPickupSurcharge' => 'addressPickupSurcharge',
+            'addrDeliverySurcharge' => 'addressDeliverySurcharge', 'discPcntFixed' => 'fixedDiscount',
+            'discPcntAdditional' => 'additionalDiscount', 'pcntFuelSurcharge' => 'fuelSurcharge',
+            'nonStdDeliveryDateSurcharge' => 'nonStandardDeliveryDateSurcharge', 'tro' => 'loadUnload',
+            'islandSurcharge' => 'islandSurcharge', 'testBeforePayment' => 'optionsBeforePaymentSurcharge',
+            'tollSurcharge' => 'tollSurcharge', 'heavyPackageFee' => 'heavyParcelSurcharge',
+            'codPremium' => 'codPremium', 'insurancePremium' => 'insurancePremium');
+        $details = $priceObj->price->details ?? null;
+        $priceFields = array();
+        foreach ($detailFields as $fld => $theirFld){
+            $detail = is_object($details) ? ($details->{$theirFld} ?? null) : null;
+            $priceFields[$fld] = is_object($detail) ? ($detail->amount ?? null) : null;
+        }
+        $priceFields['totalNoVat'] = $priceObj->price->amount ?? null;
+        $priceFields['vat'] = $priceObj->price->vat ?? null;
+        $priceFields['total'] = $priceObj->price->total ?? null;
 
         foreach ($priceFields as $fld => $fldVal){
             $valueVerbal = $Double->toVerbal($fldVal);
