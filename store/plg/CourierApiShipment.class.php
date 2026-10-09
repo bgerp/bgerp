@@ -156,10 +156,11 @@ class store_plg_CourierApiShipment extends core_Plugin
      * @param core_Form $form       - въведената форма за товарителница
      * @param bool|null $allowExisting - null от UI-то; false само ако няма издадени; true и при издадени.
      *                                   Неизяснен опит спира изпращането, освен в UI с потвърдено предупреждение
+     * @param bool $saveCalcPrice   - дали изчислената цена да се запише в документа (проверка на цена от ИИ - не)
      * @return stdClass $res        - fh, number, status (cond_CourierApiIntf::BOL_* или noRights/exists/pendingCheck/unsupported/busy),
      *                                tpl на изчислението и price от драйвера
      */
-    public static function submitBillOfLading($mvc, $rec, $Driver, $form, $allowExisting = null)
+    public static function submitBillOfLading($mvc, $rec, $Driver, $form, $allowExisting = null, $saveCalcPrice = true)
     {
         $res = (object)array('fh' => null, 'tpl' => null, 'price' => null, 'number' => null, 'status' => null);
         if(!in_array($form->cmd, array('save', 'calc'))) return $res;
@@ -181,7 +182,9 @@ class store_plg_CourierApiShipment extends core_Plugin
             if(is_object($calculatedShipmentRes->tpl ?? null)){
                 $res->tpl = $calculatedShipmentRes->tpl;
                 $res->price = $calculatedShipmentRes->price ?? null;
-                self::saveCourierApiPrice($mvc, $rec, $res->price);
+                if ($saveCalcPrice) {
+                    self::saveCourierApiPrice($mvc, $rec, $res->price);
+                }
             }
 
             return $res;
