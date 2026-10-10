@@ -141,6 +141,14 @@ class pos_SellableProductsCache extends core_Master
         $count = $pQuery->count();
         core_App::setTimeLimit($count * 0.5, false, 100);
 
+        // Правилата наведнъж за всяка ЦП - при точен момент price_Cache не се ползва и иначе е по заявка на артикул
+        $idQuery = clone $pQuery;
+        $idQuery->show('id');
+        $productIds = arr::extractValuesFromArray($idQuery->fetchAll(), 'id');
+        foreach ($priceLists as $listId){
+            price_ListRules::preloadRules($listId, $productIds, $datetime);
+        }
+
         // Ако имат цена ще се извлекат данните им за търсене
         while($pRec = $pQuery->fetch()){
             foreach ($priceLists as $listId){

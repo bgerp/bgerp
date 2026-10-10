@@ -657,7 +657,7 @@ class eshop_Groups extends core_Master
         
         if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
-                $tpl = new ET(getFileContent(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml')));
+                $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml'));
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
@@ -685,6 +685,8 @@ class eshop_Groups extends core_Master
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         if (in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
             $groupTpl->replace('eshop-personal-group', 'groupClass');
+        } elseif ($data->groupId == self::SEARCH_SYSTEM_ID) {
+            $groupTpl->replace('eshop-search-group', 'groupClass');
         }
         $groupTpl->placeArray($data->row);
         
@@ -748,6 +750,13 @@ class eshop_Groups extends core_Master
         
         $tpl = new ET();
         cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
+
+        // Без навигация търсачката е над съдържанието, иначе я няма никъде
+        $menuId = Mode::get('cMenuId');
+        if (!self::mustShowSideNavigation() && $menuId > 0) {
+            $searchTpl = cms_Articles::renderSearchForm($menuId, 'eshop_Groups', 'ShowAll', Request::get('q', 'varchar'), 'cMenuId');
+            $tpl->append(ht::createElement('div', array('class' => 'eshop-top-search'), $searchTpl), 'PAGE_CONTENT');
+        }
 
         return $tpl;
     }

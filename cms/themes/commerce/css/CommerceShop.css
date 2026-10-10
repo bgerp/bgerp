@@ -991,10 +991,10 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .favouriteNavigationLink > 
     width: 20px;
     height: 20px;
     flex: 0 0 20px;
-    background: url('../img/heart-outline.svg') center / contain no-repeat;
+    background: url('../../../img/heart-outline.svg') center / contain no-repeat;
 }
 body.eshop-public #cmsNavigation .commerce-shortcuts .favouriteNavigationLink.sel_page > a::before {
-    background-image: url('../img/heart-filled.svg');
+    background-image: url('../../../img/heart-filled.svg');
 }
 body.eshop-public .favouritesBtn.linkWithIcon {
     display: inline-block;
@@ -1039,11 +1039,11 @@ body.eshop-public .favouritesBtn:focus-visible {
 }
 
 /* Quiet date separators for the customer's previous orders. */
-body.eshop-public .eshop-personal-group > .eshop-group {
+body.eshop-public :is(.eshop-personal-group, .eshop-search-group) > .eshop-group {
     margin-bottom: 12px;
     padding: 16px 24px;
 }
-body.eshop-public .eshop-personal-group > .eshop-group .eshop-name {
+body.eshop-public :is(.eshop-personal-group, .eshop-search-group) > .eshop-group .eshop-name {
     margin-bottom: 0;
 }
 body.eshop-public .eshop-group + h2.lastOrderProductsDate {
@@ -1471,11 +1471,18 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     padding: 10px 12px;
     overflow: visible;
 }
-.eshop-public #eshopParamFilterTop .eshop-param-filter-title {
-    gap: 12px;
-    padding: 0 4px 0 0;
+/* The legend sits in the frame above the filter buttons. */
+.eshop-public #eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 0.5em;
     border: 0;
+    border-radius: 0;
     background: transparent;
+    font-size: 1rem;
 }
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param:last-child {

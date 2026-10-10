@@ -4812,18 +4812,38 @@ table .eshop-btn {
   outline: 2px solid #56738d;
   outline-offset: 2px; }
 
+.eshop-top-search #simpleSearch #searchInput {
+  width: calc(100% - 2.5em); }
+
+.eshop-top-search #simpleSearch #searchButton {
+  width: 2em;
+  padding-left: 0; }
+
 #eshopParamFilterTop .eshop-param-filter {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5em;
+  min-width: 0;
   margin: 0 0 1.2em;
-  padding: 0.6em 0;
-  border-top: 0;
-  border-bottom: 1px solid #d8dce1; }
+  padding: 0.6em 0.75em 0.75em;
+  border: 1px solid #d8dce1;
+  border-radius: 0.4em;
+}
 
-#eshopParamFilterTop .eshop-param-filter .eshop-param-filter-title {
-  margin: 0 0.3em 0 0; }
+#eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0.5em;
+  border: 0;
+  background: transparent;
+  font-size: 1em;
+}
+
+#eshopParamFilterTop .eshop-param-filter a.eshop-param-filter-clear {
+  font-size: 0.6em; }
 
 #eshopParamFilterTop .eshop-param-filter details.eshop-param-filter-param {
   position: relative;

@@ -1,4 +1,5 @@
 <?php
+use Minishlink\WebPush\Encryption;
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 
@@ -297,7 +298,7 @@ class pwa_PushSubscriptions extends core_Manager
                     $data->url = toUrl($url);
                 }
 
-                $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
+                $statusObj = $webPush->sendOneNotification($subscription, self::getPayload($data), array('TTL' => $otherParamsArr['ttl']));
                 $reason = $statusObj->getReason();
 
                 $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
@@ -305,7 +306,7 @@ class pwa_PushSubscriptions extends core_Manager
                 $resArr[$rec->id] = $statusData;
 
                 if (!$statusData->isSuccess) {
-                    self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+                    self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}': '" . mb_substr((string) $text, 0, 100) . "'", $rec->id, 7);
 
                     if (method_exists($statusObj, 'isSubscriptionExpired') && $statusObj->isSubscriptionExpired()) {
                         $Subscriptions->markSubscriptionStoppedIfCurrent($rec);
@@ -320,11 +321,50 @@ class pwa_PushSubscriptions extends core_Manager
 
                 $reason = $t->getMessage();
                 $resArr[$rec->id] = (object) array('isSuccess' => false, 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
-                self::logErr("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+                self::logErr("Грешка при изпращане на PUSH известие - '{$reason}': '" . mb_substr((string) $text, 0, 100) . "'", $rec->id, 7);
             }
         }
 
         return $resArr;
+    }
+
+
+    /**
+     * JSON на известието, съкратен до размера, до който WebPush го допълва
+     *
+     * Над него Firefox за Android и кодирането aesgcm може да не приемат известието.
+     *
+     * @param stdClass $data
+     *
+     * @return string
+     */
+    protected static function getPayload($data)
+    {
+        // Без \uXXXX: иначе всяка кирилска буква е 6 байта и груповото известие лесно минава лимита
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        $maxLen = Encryption::MAX_COMPATIBILITY_PAYLOAD_LENGTH;
+        $payload = json_encode($data, $flags);
+        if (strlen((string) $payload) <= $maxLen) {
+
+            return $payload;
+        }
+
+        // Съкращава се само текстът - до най-дългото начало, с което известието се побира
+        $text = (string) ($data->text ?? '');
+        $min = 0;
+        $max = mb_strlen($text);
+        while ($min < $max) {
+            $len = (int) ceil(($min + $max) / 2);
+            $data->text = mb_substr($text, 0, $len) . '...';
+            if (strlen((string) json_encode($data, $flags)) <= $maxLen) {
+                $min = $len;
+            } else {
+                $max = $len - 1;
+            }
+        }
+        $data->text = mb_substr($text, 0, $min) . '...';
+
+        return json_encode($data, $flags);
     }
 
 

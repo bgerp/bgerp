@@ -63,22 +63,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
     {
         $fieldset->FLD('periodStart', 'time(suggestions=|1 ден|3 дена|1 седмица|1 месец)', 'caption=Период->Старт, after=title,mandatory,single=none,removeAndRefreshForm');
         $fieldset->FLD('periodEnd', 'time(suggestions=1 седмица|2 седмици|3 седмици|1 месец|3 месеца)', 'caption=Период->Край, after=periodStart,mandatory,single=none,removeAndRefreshForm');
-
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholderType=all,single=none,mandatory,after=periodEnd');
-    }
-
-
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
-     * @param stdClass $data
-     */
-    protected static function on_AfterInputEditFpassiveStartorm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {
-
     }
 
 
@@ -91,15 +76,9 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $suggestions = array();
         $form = $data->form;
-        $rec = $form->rec;
-
         $form->setDefault('periodStart', '3 дена');
-
         $form->setDefault('periodEnd', '3 седмици');
-
-
     }
 
 
@@ -108,14 +87,14 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
      *
      * @param stdClass $rec
      * @param stdClass $data
-     *
+
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
     {
 
         $recs = $foldersArr = $incomingMailsArr = $outgoingMailsArr = array();
-        $foldersforChek = array();
+        $foldersForChek = array();
         $rec->periodStart = $rec->periodStart ?? 3 * 24 * 60 * 60;
         $rec->periodEnd = $rec->periodEnd ?? 3 * 7 * 24 * 60 * 60;
         $rec->dealers = $rec->dealers ?? null;
@@ -135,20 +114,16 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         while ($fRec = $fQuery->fetch()){
             if(!isset($foldersArr[$fRec->inCharge])){
                 $foldersArr[$fRec->inCharge] = array($fRec->id);
-                $foldersforChek[$fRec->id] = $fRec->id;
+                $foldersForChek[$fRec->id] = $fRec->id;
             }else{
-
-                array_push($foldersArr[$fRec->inCharge],$fRec->id);
-                $foldersforChek[$fRec->id] = $fRec->id;
+                $foldersArr[$fRec->inCharge][] = $fRec->id;
+                $foldersForChek[$fRec->id] = $fRec->id;
             }
-
         }
 
         if (empty($foldersforChek)) {
             return $recs;
         }
-
-       // $foldersforChek = arr::extractValuesFromArray($fQuery->fetchAll(),'id');
 
         //Определяме последния изходящ имейл в тези папки
         //Изходящи имейли през пасивния период
@@ -185,11 +160,8 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
                     $key = $dil.'|'.$email->folderId;
                     $lastOutEmails[$key] = $email;
-
                 }
-
             }
-
         }
 
         //Определяме последния входящ имейл в папките на избраните дилъри
@@ -198,32 +170,25 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $mInQuery->where(array(
             "#createdOn >= '[#1#]'", $periodEnd . ' 00:00:00'));
 
+        // Само датата на последния входящ имейл в папка - без тежките колони на имейлите
+        $mInQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $mInQuery->groupBy('folderId');
+        $mInQuery->show('folderId, maxCreatedOn');
+
         while ($mInRec = $mInQuery->fetch()) {
-
-            //$incomingMailsArr последния входящ имейл във всяка папка
-            if(!isset($incomingMailsArr[$mInRec->folderId])){
-                $incomingMailsArr[$mInRec->folderId] = $mInRec;
-            }else{
-
-                if($mInRec->createdOn > $incomingMailsArr[$mInRec->folderId]->createdOn){
-                    $incomingMailsArr[$mInRec->folderId] = $mInRec;
-                }
-            }
-
+            $incomingMailsArr[$mInRec->folderId] = $mInRec->maxCreatedOn;
         }
 
-        //От филтрираните изходящи имейли съдържащи оферта, отделяме тези,
+        // От филтрираните изходящи имейли съдържащи оферта, отделяме тези,
         // които са с по голяма дата от последния входящ имей в същата папка
-
         foreach ($lastOutEmails as $outMailKey => $outMail){
             list($deal, $outFolder) = explode('|', $outMailKey);
-
             $shouldAdd = false;
 
             if (!array_key_exists($outFolder, $incomingMailsArr)) {
                 // Няма входящ имейл — включваме офертата
                 $shouldAdd = true;
-            } elseif ($outMail->createdOn > $incomingMailsArr[$outFolder]->createdOn) {
+            } elseif ($outMail->createdOn > $incomingMailsArr[$outFolder]) {
                 // Има входящ имейл, но офертата е по-късна — също я включваме
                 $shouldAdd = true;
             }
@@ -262,14 +227,14 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
             $fld->FLD('folderId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
-            $fld->FLD('outEmailDatate', 'varchar', 'caption=Изх. имейл ->Дата');
+            $fld->FLD('outEmailDate', 'varchar', 'caption=Изх. имейл ->Дата');
 
         } else {
 
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
             $fld->FLD('folderId', 'varchar', 'caption=Контрагент');
             $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
-            $fld->FLD('outEmailDatate', 'date', 'caption=Изх. имейл ->Дата');
+            $fld->FLD('outEmailDate', 'date', 'caption=Изх. имейл ->Дата');
 
         }
 
@@ -301,29 +266,11 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         }
 
         $row->folderId = doc_Folders::getHyperlink($dRec->folderId);
-
         $row->dealer = crm_Profiles::createLink($dRec->dealer);
-
         $row->outEmail = email_Outgoings::getHyperlink($dRec->outMail);
-
-        $row->outEmailDatate = $Date->toVerbal(($dRec->outMail)->createdOn);
-
+        $row->outEmailDate = $Date->toVerbal(($dRec->outMail)->createdOn);
 
         return $row;
-    }
-
-
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
-    protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
-    {
-
     }
 
 
@@ -388,14 +335,9 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-
         $folderRec = doc_Folders::fetch($dRec->folderId ?? null);
         $res->folderId = $folderRec->title ?? null;
-
         $res->outEmail = $dRec->outMail->subject ?? null;
-
-        $res->outEmailDatate = $dRec->outMail->createdOn ?? null;
-
+        $res->outEmailDate = $dRec->outMail->createdOn ?? null;
     }
-
 }

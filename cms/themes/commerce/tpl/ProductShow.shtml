@@ -42,6 +42,6 @@
 			[#RELATION_TABS#]
 		</div>
 		<!--ET_END RELATION_TABS-->
-		[#cms/tpl/commerce/NearProducts.shtml#]
+		[#cms/themes/commerce/tpl/NearProducts.shtml#]
 	</div>
 </div>

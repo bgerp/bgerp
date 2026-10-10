@@ -177,7 +177,7 @@ body.commerce-theme #cmsMenu a.commerce-cart-link::before {
     content: "";
     width: 20px;
     height: 20px;
-    background: url('../img/cart.svg') center / contain no-repeat;
+    background: url('../../../img/cart.svg') center / contain no-repeat;
 }
 body.commerce-theme #cmsMenu a.commerce-cart-link:hover { background-color: #3b5763 !important; }
 body.commerce-theme #cmsMenu .commerce-cart-link .count {
@@ -245,15 +245,15 @@ body.commerce-theme .soc-sharing-holder .commerce-sharing-count {
     font-variant-numeric: tabular-nums;
 }
 
-/* One search control for shop, blog and CMS article navigation. */
-body.commerce-theme #cmsNavigation form:has(#simpleSearch) {
+/* One search control for shop, blog and CMS article navigation (and above the shop without navigation). */
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) form:has(#simpleSearch) {
     display: block;
     float: none;
     margin: 0 !important;
     padding: 0;
     width: 100%;
 }
-body.commerce-theme #cmsNavigation #simpleSearch {
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch {
     position: relative;
     width: 100%;
     height: 2.75rem;
@@ -265,7 +265,7 @@ body.commerce-theme #cmsNavigation #simpleSearch {
     background: #fff;
     margin: 0 0 12px !important;
 }
-body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch #searchInput {
     position: static;
     width: 100%;
     height: 2.625rem;
@@ -279,7 +279,7 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
     font: 1rem/1.25 Arial, Helvetica, sans-serif;
     box-shadow: none;
 }
-body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch #searchButton {
     position: absolute;
     top: 0;
     right: 0;
@@ -294,8 +294,25 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
     align-items: center;
     justify-content: center;
 }
-body.commerce-theme #cmsNavigation #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
-body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid var(--c-focus); outline-offset: 1px; border-color: var(--c-accent); }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commerce-search-clear {
+    position: absolute;
+    top: 0;
+    right: 40px;
+    width: 32px;
+    height: 2.625rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--c-muted, #6b7785);
+    font: 1.375rem/1 Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commerce-search-clear:hover { color: var(--c-ink); }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commerce-search-clear[hidden] { display: none; }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch:has(.commerce-search-clear:not([hidden])) #searchInput { padding-right: 74px; }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch:focus-within { outline: 2px solid var(--c-focus); outline-offset: 1px; border-color: var(--c-accent); }
 
 /* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
 body.commerce-theme .bulletin-link { padding-top: 12px; }
