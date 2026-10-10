@@ -355,7 +355,7 @@ class marketing_Inquiries2 extends embed_Manager
         if ($quantityCount > 3) {
             $quantityCount = 3;
         } elseif (isset($quantityCount) && $quantityCount == 0) {
-            if ($form->rec->moq) {
+            if (!empty($form->rec->moq)) {
                 $form->setDefault('quantity1', $form->rec->moq);
                 $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество");
             } else {
