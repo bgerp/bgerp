@@ -2168,7 +2168,7 @@ class fileman_Files extends core_Master
             }
         }
         
-        if ($rec->dataId) {
+        if (!empty($rec->dataId)) {
             $dRec = fileman_Data::fetch($rec->dataId);
             $fileLen = $dRec->fileLen ?? null;
             $rec->fileLen = $fileLen;

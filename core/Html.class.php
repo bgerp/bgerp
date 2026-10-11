@@ -1643,7 +1643,12 @@ class core_Html
     public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
         $result = '';
-        
+
+        // Дъмпът на изключение може да е скалар (напр. стринг)
+        if (!is_array($arr) && !is_object($arr)) {
+            $arr = array($arr);
+        }
+
         foreach ($arr as $id => $item) {
             if ($result) {
                 $result .= "<div style='margin-top:5px;padding-top:5px;border-top:dotted 1px #999;'>";
