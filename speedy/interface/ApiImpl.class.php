@@ -322,32 +322,35 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
                 // Ако има адрес за доставка - парсира се и се попълва
                 if(!empty($logisticData['toAddress'])){
-                    $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
+                    // Само при отваряне: при refresh изтритото от потребителя поле не се подава и default-ът го връща
+                    if(Request::get('receiverAddress') === null){
+                        $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
 
-                    // AI парсерът понякога връща комплекса и като улица
-                    if(self::isStreetSameAsComplex($parsedAddress['street'] ?? null, $parsedAddress['number'] ?? null, $parsedAddress['complexName'] ?? null)){
-                        $parsedAddress['street'] = $parsedAddress['number'] = null;
-                    }
-                    foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
-                        if(!empty($addressField)){
-                            $form->setDefault($fld, $addressField);
+                        // AI парсерът понякога връща комплекса и като улица
+                        if(self::isStreetSameAsComplex($parsedAddress['street'] ?? null, $parsedAddress['number'] ?? null, $parsedAddress['complexName'] ?? null)){
+                            $parsedAddress['street'] = $parsedAddress['number'] = null;
                         }
-                    }
-
-                    if(!empty($parsedAddress['complexType'])){
-                        $complexTypeKey = null;
-
-                        // "ж.к." от AI парсера отговаря на "жк" в номенклатурата
-                        $stripType = function ($str) {return mb_strtolower(preg_replace('/[\s\.]+/u', '', (string) $str));};
-                        $parsedType = $stripType($parsedAddress['complexType']);
-                        foreach ($allComplexTypes as $k => $complexTypeRec) {
-                            if ($stripType($complexTypeRec->name ?? '') === $parsedType || $stripType($complexTypeRec->nameEn ?? '') === $parsedType) {
-                                $complexTypeKey = $k;
-                                break;
+                        foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
+                            if(!empty($addressField)){
+                                $form->setDefault($fld, $addressField);
                             }
                         }
-                        if(isset($complexTypeKey)){
-                            $form->setDefault('complexType', $complexTypeKey);
+
+                        if(!empty($parsedAddress['complexType'])){
+                            $complexTypeKey = null;
+
+                            // "ж.к." от AI парсера отговаря на "жк" в номенклатурата
+                            $stripType = function ($str) {return mb_strtolower(preg_replace('/[\s\.]+/u', '', (string) $str));};
+                            $parsedType = $stripType($parsedAddress['complexType']);
+                            foreach ($allComplexTypes as $k => $complexTypeRec) {
+                                if ($stripType($complexTypeRec->name ?? '') === $parsedType || $stripType($complexTypeRec->nameEn ?? '') === $parsedType) {
+                                    $complexTypeKey = $k;
+                                    break;
+                                }
+                            }
+                            if(isset($complexTypeKey)){
+                                $form->setDefault('complexType', $complexTypeKey);
+                            }
                         }
                     }
                     $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
