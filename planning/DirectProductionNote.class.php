@@ -711,6 +711,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $quantityInPack = $rec->quantityInPack;
             if(!empty($rec->additionalMeasureId)){
 
+                $row->additionalMeasureId = $row->additionalMeasureId ?? $mvc->getVerbal($rec, 'additionalMeasureId');
+
                 // Ако има втора мярка, показване на информацията за нея
                 $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
                 if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
@@ -721,7 +723,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
-                    $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
+                    $additionalMeasureQuantity = $row->additionalMeasureQuantity ?? $mvc->getVerbal($rec, 'additionalMeasureQuantity');
+                    $row->additionalMeasureQuantity = ht::createHint($additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
                 }
             }
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
