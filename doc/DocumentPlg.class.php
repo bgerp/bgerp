@@ -2541,7 +2541,9 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($fieldsForReduce) {
                 foreach ($fieldsForReduce as $name => $type) {
-                    $form->rec->{$name} = self::reduceString($form->rec->{$name});
+                    if (isset($rec->{$name})) {
+                        $rec->{$name} = self::reduceString($rec->{$name});
+                    }
                 }
             }
         }
