@@ -121,14 +121,14 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
             }
         }
 
-        if (empty($foldersforChek)) {
+        if (empty($foldersForChek)) {
             return $recs;
         }
 
         //Определяме последния изходящ имейл в тези папки
         //Изходящи имейли през пасивния период
         $mOutQuery = email_Outgoings::getQuery();
-        $mOutQuery->in('folderId',$foldersforChek);
+        $mOutQuery->in('folderId',$foldersForChek);
         $mOutQuery->where(array(
             "#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",
             $periodEnd . ' 00:00:00', $periodStart . ' 23:59:59'));
@@ -166,7 +166,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
         //Определяме последния входящ имейл в папките на избраните дилъри
         $mInQuery = email_Incomings::getQuery();
-        $mInQuery->in('folderId',$foldersforChek);
+        $mInQuery->in('folderId',$foldersForChek);
         $mInQuery->where(array(
             "#createdOn >= '[#1#]'", $periodEnd . ' 00:00:00'));
 

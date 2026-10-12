@@ -81,6 +81,23 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
     /**
+     * Имената на показателите от диагностиката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'jobs' => 'Задания за периода',
+        'tasks' => 'Операции',
+        'scrap' => 'Записи за брак',
+        'originJobs' => 'Задания извън периода',
+        'waste' => 'Записи за отпадък',
+        'jobWaste' => 'Задания с изчислен отпадък',
+        'convertKg' => 'Артикули с изчислено тегло',
+        'rows' => 'Редове',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -288,6 +305,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             return $recs;
         }
 
+        $startedOn = microtime(true);
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
         if (($rec->groupBy ?? 'no') == 'article') {
@@ -298,6 +316,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $stateArr = array('active', 'wakeup', 'closed');
 
         // Изваждаме всички задания за периода без оттеглените и черновите
+        $timer = microtime(true);
         $jobQuery = planning_Jobs::getQuery();
         $jobQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
@@ -322,6 +341,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $jobsArr[$jobRec->containerId] = $jobRec;
 
         }
+        self::addReportStat($data, 'jobs', microtime(true) - $timer, countR($jobsArr));
+        $timer = microtime(true);
 
         //Изваждаме всички задачи
         $taskQuery = planning_Tasks::getQuery();
@@ -365,7 +386,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $taskRecords = $taskQuery->fetchAll();
         $tasksArr = arr::extractValuesFromArray($taskRecords, 'id');
+        self::addReportStat($data, 'tasks', microtime(true) - $timer, countR($taskRecords));
 
+        // Бракът се групира по операция, за да не се обхождат всички детайли за всяка операция
+        $timer = microtime(true);
         $taskDetRecArr = $taskRec = array();
         $taskDetQuery = planning_ProductionTaskDetails::getQuery();
         $taskDetQuery->in('taskId', $tasksArr);
@@ -374,51 +398,111 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         while ($taskDetRec = $taskDetQuery->fetch()) {
 
-            $taskDetRecArr[] = $taskDetRec;
+            $taskDetRecArr[$taskDetRec->taskId][] = $taskDetRec;
         }
+        self::addReportStat($data, 'scrap', microtime(true) - $timer, array_sum(array_map('countR', $taskDetRecArr)));
+
+        // Заданията извън периода се зареждат с една заявка
+        $timer = microtime(true);
+        $missingJobContainers = array();
+        foreach ($taskRecords as $taskRec) {
+            if (!empty($taskRec->originId) && !array_key_exists($taskRec->originId, $jobsArr)) {
+                $missingJobContainers[$taskRec->originId] = $taskRec->originId;
+            }
+        }
+        $otherJobsArr = array();
+        if (countR($missingJobContainers)) {
+            $otherJobQuery = planning_Jobs::getQuery();
+            $otherJobQuery->in('containerId', $missingJobContainers);
+            while ($otherJobRec = $otherJobQuery->fetch()) {
+                $otherJobsArr[$otherJobRec->containerId] = $otherJobRec;
+            }
+        }
+        self::addReportStat($data, 'originJobs', microtime(true) - $timer, countR($otherJobsArr));
+
+        // При справка по операции отпадъците се зареждат наведнъж, групирани като в getTotalWasteArr()
+        $timer = microtime(true);
+        $wasteByTasks = array();
+        $wasteCount = 0;
+        if (($rec->type ?? 'task') != 'job' && countR($tasksArr)) {
+            $wasteQuery = planning_ProductionTaskProducts::getQuery();
+            $wasteQuery->in('taskId', $tasksArr);
+            $wasteQuery->where("#type = 'waste' AND #totalQuantity != 0");
+            $wasteQuery->show('taskId,productId,packagingId,quantityInPack,totalQuantity');
+            while ($wasteRec = $wasteQuery->fetch()) {
+                $wasteCount++;
+                $key = "{$wasteRec->productId}|{$wasteRec->packagingId}";
+                if (!isset($wasteByTasks[$wasteRec->taskId][$key])) {
+                    $wasteByTasks[$wasteRec->taskId][$key] = (object)array('packagingId' => $wasteRec->packagingId, 'quantityInPack' => $wasteRec->quantityInPack, 'productId' => $wasteRec->productId, 'quantity' => 0);
+                }
+                $wasteByTasks[$wasteRec->taskId][$key]->quantity += $wasteRec->totalQuantity;
+            }
+        }
+        if (($rec->type ?? 'task') != 'job') {
+            self::addReportStat($data, 'waste', microtime(true) - $timer, $wasteCount);
+        }
+
+        $kgMeasures = array();
+        if ($kgMeasure = cat_UoM::fetchBySysId('kg')) {
+            $kgMeasures = cat_UoM::getSameTypeMeasures($kgMeasure->id);
+        }
+        $weightCache = $jobWasteCache = array();
+
+        // Времената в цикъла се трупат и се записват след него
+        $convertSeconds = $jobWasteSeconds = 0;
 
         foreach ($taskRecords as $taskRec) {
 
             $tasksArr[$taskRec->id] = $taskRec->id;
 
-            if (!is_null($jobsArr[$taskRec->originId] ?? null)) {
-                $originJobRec = $jobsArr[$taskRec->originId];
-            } else {
-                $JOB = doc_Containers::getDocument($taskRec->originId);
-                $originJobRec = $JOB ? planning_Jobs::fetch($JOB->that) : null;
-            }
+            $originJobRec = $jobsArr[$taskRec->originId] ?? $otherJobsArr[$taskRec->originId] ?? null;
             if (!$originJobRec) {
                 continue;
             }
 
-            $prodWeigth = cat_Products::convertToUoM($originJobRec->productId, 'kg');
+            if (!array_key_exists($originJobRec->productId, $weightCache)) {
+                $convertTimer = microtime(true);
+                $weightCache[$originJobRec->productId] = cat_Products::convertToUoM($originJobRec->productId, 'kg');
+                $convertSeconds += microtime(true) - $convertTimer;
+            }
+            $prodWeigth = $weightCache[$originJobRec->productId];
 
             // Намиране на отпадъка
             $totalWastePercent = null;
             if ($rec->type == 'job') {
-                $waste = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
+                if (!array_key_exists($originJobRec->threadId, $jobWasteCache)) {
+                    $jobWasteTimer = microtime(true);
+                    $jobWasteCache[$originJobRec->threadId] = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
+                    $jobWasteSeconds += microtime(true) - $jobWasteTimer;
+                }
+                $waste = $jobWasteCache[$originJobRec->threadId];
             } else {
-                $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
+                $waste = $wasteByTasks[$taskRec->id] ?? array();
             }
 
             $waste = is_array($waste) ? $waste : array();
             $wasteWeight = 0;
-            $wasteProdWeigth = null;
+            $wasteProdWeight = null;
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
 
             foreach ($waste as $v) {
 
                 if (!empty($v->quantity)) {
 
-                    if (self::isWeightMeasure($v->packagingId) === false) {
+                    if (!array_key_exists($v->productId, $weightCache)) {
+                        $convertTimer = microtime(true);
+                        $weightCache[$v->productId] = cat_Products::convertToUoM($v->productId, 'kg');
+                        $convertSeconds += microtime(true) - $convertTimer;
+                    }
+                    $wasteProdWeight = $weightCache[$v->productId];
 
-                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+                    if (!array_key_exists($v->packagingId, $kgMeasures)) {
 
-                        if (!is_null($wasteProdWeigth)) {
+                        if (!is_null($wasteProdWeight)) {
                             if (($rec->type ?? 'task') == 'job') {
-                                $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeigth;
+                                $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeight;
                             } else {
-                                $wasteWeight += $v->quantity * $wasteProdWeigth;
+                                $wasteWeight += $v->quantity * $wasteProdWeight;
                             }
 
                         } else {
@@ -427,11 +511,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                         }
 
                     } else {
-                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
                         if (($rec->type ?? 'task') == 'job') {
-                            $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeigth;
+                            $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeight;
                         } else {
-                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+                            $wasteWeight += $v->quantity * $wasteProdWeight;
                         }
                     }
                 }
@@ -440,9 +523,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // Намиране на брака
 
             $scrappedWeight = 0;
-            foreach ($taskDetRecArr as $key => $val) {
-                if ($taskRec->id != $val->taskId) continue;
-
+            foreach ($taskDetRecArr[$taskRec->id] ?? array() as $val) {
                 if ($val->netWeight > 0) {
                     $scrappedWeight += $val->netWeight;
                 } else {
@@ -465,8 +546,6 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 // Ако има съвпадения — обратно в keylist формат
                 if (!empty($intersection)) {
                     $productGroups = keylist::fromArray($intersection);
-                } else {
-                    $productGroups = null;
                 }
             }
 
@@ -491,7 +570,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                     'scrappedWeight' => $scrappedWeight,                                                     // количество брак
                     'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
-                    'wasteProdWeigth' => $wasteProdWeigth,
+                    'wasteProdWeigth' => $wasteProdWeight,
                     'assetResources' => $taskRec->assetId ?? null,
                     'employees' => $taskRec->employees ?? null,
                     'wasteWeightNullMark' => $wasteWeightNullMark,
@@ -505,6 +584,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 }
             }
         }
+
+        if ($rec->type == 'job') {
+            self::addReportStat($data, 'jobWaste', $jobWasteSeconds, countR($jobWasteCache));
+        }
+        self::addReportStat($data, 'convertKg', $convertSeconds, countR($weightCache));
 
         // Създаваме празен масив, в който ще събираме агрегираните резултати по групи
         $tempArr = array();
@@ -571,6 +655,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         if (!empty($recs) && $rec->groupBy != 'articleGroup') {
             arr::sortObjects($recs, $rec->orderBy, $rec->order);
+        }
+
+        self::addReportStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
         }
 
         return $recs;

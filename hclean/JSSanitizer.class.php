@@ -123,11 +123,16 @@ class hclean_JSSanitizer extends core_Manager
         $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", true);
         
         // Скрипта за санитаризирана на HTML
-        $script = " <script src={$jsSanitize}></script>
-                				
-    				<script>
-    					
-    					init();
+        $script = " <script>
+                        (function () {
+                        if (typeof html_sanitize === 'function') {
+                            init();
+                        } else {
+                            var script = document.createElement('script');
+                            script.src = {$jsSanitize};
+                            script.onload = init;
+                            document.head.appendChild(script);
+                        }
     				
     					function urlX(url) { return url; }
     					
@@ -139,6 +144,7 @@ class hclean_JSSanitizer extends core_Manager
                     		sanitized = sanitized.replace(/(<a\s)((.|\s)+?)(<\/a>)/ig, '$1 target=\"_blank\" $2$4');
                     		
                     		var emb = document.getElementById('[#SANITIZEID#]');
+                            if (!emb) return;
                     		
                     		var emb = emb.contentDocument ? emb.contentDocument : (emb.contentWindow.document || emb.document);
                     		
@@ -146,6 +152,7 @@ class hclean_JSSanitizer extends core_Manager
                     		emb.write(sanitized);
                     		emb.close();
                     	}
+                        })();
     				</script>";
         
         return $script;

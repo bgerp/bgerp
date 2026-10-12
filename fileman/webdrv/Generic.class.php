@@ -1208,10 +1208,10 @@ class fileman_webdrv_Generic extends core_Manager
         $fileSizesArr = self::getFileSizesInArchive($zipContentArr);
         
         // Подговаме стринга с папките
-        $dirsStr = self::prepareDirsInArchive((array) $filesArr['dirs'], $path);
+        $dirsStr = self::prepareDirsInArchive((array) ($filesArr['dirs'] ?? array()), $path);
         
         // Подготвяме стринга с файловете
-        $filesStr = self::prepareFilesInArchive((array) $filesArr['files'], $fRec->fileHnd, $fileSizesArr);
+        $filesStr = self::prepareFilesInArchive((array) ($filesArr['files'] ?? array()), $fRec->fileHnd, $fileSizesArr);
         
         // Ако има папки
         if ($dirsStr) {
