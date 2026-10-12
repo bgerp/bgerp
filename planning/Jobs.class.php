@@ -374,6 +374,9 @@ class planning_Jobs extends core_Master
             $form->setReadOnly('productId');
         }
 
+        // Видът е скрит и задължителен - при URL без него (Връзка, стари адреси) се приема производство
+        $form->setDefault('type', 'manifacture');
+
         $data->singleTitle = (($rec->type ?? null) == 'disassembly') ? tr('Задание за разпад') : tr('Задание за производство');
 
         if (($rec->type ?? null) == 'disassembly') {
