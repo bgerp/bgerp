@@ -1829,7 +1829,7 @@ class pos_Terminal extends peripheral_Terminal
                             $attr['data-deviceName'] = 'НЕСВЪРЗАН със системата';
                             $attr['data-modal-subTitle'] = tr('Моля, потвърдете ръчно плащането'). "!";
                             $attr['data-oncancel'] = tr("Отказвано плащане|*!");
-                            $attr['data-sendfunction'] = 'sendAmountDummy';
+                            $attr['data-manualpayment'] = 'yes';
                             $paymentArr["payment{$paymentId}|"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
                         } else {
                             $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $originalAttr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');

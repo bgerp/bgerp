@@ -517,7 +517,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             if (countR($entriesProduction)) {
                 foreach ($entriesProduction as $pRec){
-                    $this->totalAmount += $pRec['amount'];
+                    $this->totalAmount += $pRec['amount'] ?? 0;
                 }
                 $entries = array_merge($entries, $entriesProduction);
             }

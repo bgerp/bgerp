@@ -322,23 +322,35 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
                 // Ако има адрес за доставка - парсира се и се попълва
                 if(!empty($logisticData['toAddress'])){
-                    $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
-                    foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
-                        if(!empty($addressField)){
-                            $form->setDefault($fld, $addressField);
-                        }
-                    }
+                    // Само при отваряне: при refresh изтритото от потребителя поле не се подава и default-ът го връща
+                    if(Request::get('receiverAddress') === null){
+                        $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
 
-                    if(!empty($parsedAddress['complexType'])){
-                        $complexTypeKey = null;
-                        foreach ($allComplexTypes as $k => $complexTypeRec) {
-                            if (trim($complexTypeRec->name ?? '') === $parsedAddress['complexType'] || trim($complexTypeRec->nameEn ?? '') === $parsedAddress['complexType']) {
-                                $complexTypeKey = $k;
-                                break;
+                        // AI парсерът понякога връща комплекса и като улица
+                        if(self::isStreetSameAsComplex($parsedAddress['street'] ?? null, $parsedAddress['number'] ?? null, $parsedAddress['complexName'] ?? null)){
+                            $parsedAddress['street'] = $parsedAddress['number'] = null;
+                        }
+                        foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
+                            if(!empty($addressField)){
+                                $form->setDefault($fld, $addressField);
                             }
                         }
-                        if(isset($complexTypeKey)){
-                            $form->setDefault('complexType', $complexTypeKey);
+
+                        if(!empty($parsedAddress['complexType'])){
+                            $complexTypeKey = null;
+
+                            // "ж.к." от AI парсера отговаря на "жк" в номенклатурата
+                            $stripType = function ($str) {return mb_strtolower(preg_replace('/[\s\.]+/u', '', (string) $str));};
+                            $parsedType = $stripType($parsedAddress['complexType']);
+                            foreach ($allComplexTypes as $k => $complexTypeRec) {
+                                if ($stripType($complexTypeRec->name ?? '') === $parsedType || $stripType($complexTypeRec->nameEn ?? '') === $parsedType) {
+                                    $complexTypeKey = $k;
+                                    break;
+                                }
+                            }
+                            if(isset($complexTypeKey)){
+                                $form->setDefault('complexType', $complexTypeKey);
+                            }
                         }
                     }
                     $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
@@ -416,6 +428,31 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         return drdata_PhoneType::getNumStrFromObj($phone);
+    }
+
+
+    /**
+     * Дали улицата е всъщност комплексът ("Младост" № 1 и жк "Младост 1")
+     *
+     * @param string|null $street
+     * @param string|null $number
+     * @param string|null $complexName
+     * @return bool
+     */
+    private static function isStreetSameAsComplex($street, $number, $complexName)
+    {
+        $normalize = function ($str) {
+            $str = mb_strtolower(trim((string) $str));
+            $str = preg_replace('/^(?:ж\.?\s*к\.?|кв\.?|zh\.?\s*k\.?)\s*/u', '', $str);
+
+            return preg_replace('/[\s\-\.,"„“]+/u', '', $str);
+        };
+
+        $street = $normalize($street);
+        $complexName = $normalize($complexName);
+        if ($street === '' || $complexName === '') return false;
+
+        return $complexName === $street . $normalize($number);
     }
 
 
@@ -518,6 +555,11 @@ class speedy_interface_ApiImpl extends core_BaseClass
                     if(is_object($complexTypeRec) && !empty($complexTypeRec->name)){
                         $recipientAddressArray['complexType'] = $complexTypeRec->name;
                         $recipientAddressArray['complexName'] = $formRec->complexName;
+
+                        // Комплекс, повторен като улица, прави адреса двусмислен за куриера
+                        if(self::isStreetSameAsComplex($formRec->receiverAddress ?? null, $formRec->receiverAddressNo ?? null, $formRec->complexName)){
+                            unset($recipientAddressArray['streetName'], $recipientAddressArray['streetNo']);
+                        }
                     }
                 }
 
