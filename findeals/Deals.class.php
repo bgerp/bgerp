@@ -865,15 +865,15 @@ class findeals_Deals extends deals_DealBase
         // Обновяваме крайното салдо на сметката на сделката
         $entries = acc_Journal::getEntries(array($this->className, $rec->id));
         
-        $itemId = acc_Items::fetchItem($this, $rec->id)->id;
+        $itemId = acc_Items::fetchItem($this, $rec->id)->id ?? null;
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-        $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
-        $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+        $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id ?? null;
+        $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id ?? null;
 
         $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
         $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
         if(isset($rec->oldCurrencyId)){
-            $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
+            $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id ?? null;
             $blAmount += acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $oItemId), array(), $rec->valior)->amount;
         }
         $paid = acc_Balances::getBlAmounts($entries, '501,503', null, null, array(), array(), $rec->valior)->amount;

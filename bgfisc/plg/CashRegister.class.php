@@ -57,7 +57,8 @@ class bgfisc_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (isset($rec->cashRegNum)) {
+        // Без избрано ФУ в сингъла се показва това по подразбиране с хинт
+        if (isset($rec->cashRegNum) || isset($fields['-single'])) {
             $row->cashRegNum = bgfisc_Register::getFuLinkBySerial($rec->cashRegNum, false);
         }
     }

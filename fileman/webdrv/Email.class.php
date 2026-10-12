@@ -72,7 +72,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Подготвяме табовете
         
         // Вземаме съдържанието на таба за HTML
-        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
+        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'] ?? null, $htmlPartArr['path'] ?? null);
 
         // Подготвяме стрелките
         $resArray = self::getArrows($fRec);

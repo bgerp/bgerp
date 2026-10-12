@@ -57,6 +57,12 @@ class type_Int extends core_Type
      */
     public function fromVerbal_($val)
     {
+        if ($val !== null && !is_scalar($val)) {
+            $this->error = 'Очаква се число';
+
+            return false;
+        }
+
         $originalVal = $val;
         
         $from = array(',', ' ', "'", '`');

@@ -1052,7 +1052,14 @@ function pressNavigable(element)
 			$('.select-input-pos').prop("disabled", true);
 			$("#modalTitleSpan").text(" " + deviceName);
             $("#modalTitleSubSpan").text(" " + subTitle);
+			if (element.attr("data-manualpayment") === 'yes') {
+				return;
+			}
 			let fncName = element.attr("data-sendfunction");
+			if (typeof window[fncName] !== 'function') {
+				getAmountError('Missing payment function: ' + fncName);
+				return;
+			}
 			window[fncName](amount, deviceUrl, comPort);
 			return;
 		} else {
@@ -1864,4 +1871,3 @@ function openNext()
 		location.href = nextReceiptUrl;
 	}
 }
-
