@@ -503,22 +503,47 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true]
 body.commerce-theme .newsbar {
     font-family: Arial, Helvetica, sans-serif;
     position: static;
-    display: block !important;
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    min-height: 44px;
     box-sizing: border-box;
     margin: 0;
+    padding: 10px 20px !important;
     overflow: hidden;
-    font-size: 0.875rem;
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     line-height: 1.5;
     text-align: left;
 }
-body.commerce-theme .newsbar .richtext { font: inherit; line-height: inherit; white-space: normal; }
-body.commerce-theme .newsbar marquee { display: block; width: 100%; min-height: 1.5em; line-height: 1.5; }
+body.commerce-theme .newsbar::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.16) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z'/%3E%3Cpath d='M16 9a3 3 0 0 1 0 6'/%3E%3Cpath d='M19 6a7 7 0 0 1 0 12'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+body.commerce-theme .newsbar .richtext { flex: 1 1 auto; min-width: 0; font: inherit; line-height: inherit; white-space: normal; }
+body.commerce-theme .newsbar .richtext a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+body.commerce-theme .newsbar marquee {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 1.5em;
+    line-height: 1.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+}
 body.commerce-theme .newsbar marquee .richtext { white-space: nowrap; overflow: visible !important; max-width: none; }
-body.commerce-theme .newsbar:is(.topContentNewsbar, .topNavNewsbar) { margin: 0 0 1rem; border-radius: 6px; }
-body.commerce-theme .newsbar:is(.bottomContentNewsbar, .bottomNavNewsbar) { margin: 1rem 0 0; border-radius: 6px; }
+body.commerce-theme .newsbar.topMenuNewsbar { border-top: 1px solid rgba(255,255,255,.14) !important; }
+body.commerce-theme .newsbar:is(.topContentNewsbar, .topNavNewsbar) { margin: 0 0 1rem; border-radius: 10px; }
+body.commerce-theme .newsbar:is(.bottomContentNewsbar, .bottomNavNewsbar) { margin: 1rem 0 0; border-radius: 10px; }
 body.commerce-theme .newsbar.beforeFooterNewsbar { margin-top: 1.5rem; }
 body.commerce-theme .newsbar.afterFooterNewsbar { margin: 0; }
 body.commerce-theme .eventHub > .topContentNewsbar {
