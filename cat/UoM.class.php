@@ -315,7 +315,8 @@ class cat_UoM extends core_Manager
      */
     public static function getSameTypeMeasures($measureId, $short = false, $skipClosed = true)
     {
-        if(!array_key_exists("{$measureId}|{$short}", static::$cacheSimilarArr)){
+        $key = "{$measureId}|{$short}|{$skipClosed}";
+        if(!array_key_exists($key, static::$cacheSimilarArr)){
             expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
 
             $query = static::getQuery();
@@ -336,10 +337,10 @@ class cat_UoM extends core_Manager
                 $options = array('' => '') + $options;
             }
 
-            static::$cacheSimilarArr["{$measureId}|{$short}|{$skipClosed}"] = $options;
+            static::$cacheSimilarArr[$key] = $options;
         }
 
-        return static::$cacheSimilarArr["{$measureId}|{$short}|{$skipClosed}"];
+        return static::$cacheSimilarArr[$key];
     }
     
     
