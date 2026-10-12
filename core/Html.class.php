@@ -1642,6 +1642,10 @@ class core_Html
      */
     public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
+        if (!is_array($arr) && !is_object($arr)) {
+            $arr = array($arr);
+        }
+
         $result = '';
 
         // Дъмпът на изключение може да е скалар (напр. стринг)
