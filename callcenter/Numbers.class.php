@@ -704,7 +704,7 @@ class callcenter_Numbers extends core_Manager
         if ($rec && ($action == 'add' || $action == 'edit' || $action == 'delete')) {
             
             // Ако типа не е вътрешен
-            if ($rec->type && $rec->type != 'internal') {
+            if (!empty($rec->type) && $rec->type != 'internal') {
                 
                 // Не може да се променя
                 $requiredRoles = 'no_one';
