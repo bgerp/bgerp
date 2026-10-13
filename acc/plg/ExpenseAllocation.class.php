@@ -154,8 +154,9 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $rec->productsData = array_intersect_key($allProducts, type_Set::toArray($rec->chosenProducts));
                 }
 
+                // Редът е нов, затова документът се проверява по мастъра
                 $expenseItemError = null;
-                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $mvc, $rec->id ?? null, $expenseItemError)){
+                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $mvc->Master, $rec->{$mvc->masterKey} ?? null, $expenseItemError)){
                     $form->setError('expenseItemId', $expenseItemError);
                 }
 
