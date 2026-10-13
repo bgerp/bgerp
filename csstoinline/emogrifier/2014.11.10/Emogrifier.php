@@ -543,7 +543,8 @@ class Emogrifier {
             $bodyWithoutUnprocessableTags = $this->html;
         }
 
-        return mb_convert_encoding($bodyWithoutUnprocessableTags, 'HTML-ENTITIES', self::ENCODING);
+        // Не-ASCII символите стават числови ентитета, без deprecated `HTML-ENTITIES`
+        return mb_encode_numericentity($bodyWithoutUnprocessableTags, array(0x80, 0x10FFFF, 0, 0x1FFFFF), self::ENCODING);
     }
 
     /**
