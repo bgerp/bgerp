@@ -654,6 +654,26 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Параметрите за ново задание от документ-източник, като бутоните в "Задания" на сделката
+     *
+     * @param int $containerId - контейнер на източника
+     *
+     * @return array|null - null, ако източникът не е сделка със задания
+     */
+    public static function getAddParamsFromSource($containerId)
+    {
+        $Source = doc_Containers::getDocument($containerId);
+        $jobField = $Source->getInstance()->jobSourceField ?? null;
+        if (empty($jobField) || !$Source->isInstanceOf('deals_DealMaster')) {
+
+            return null;
+        }
+
+        return array($jobField => $Source->that);
+    }
+
+
+    /**
      * Дефолтна дата на падеж
      *
      * @param int         $productId   - ид на артикул
