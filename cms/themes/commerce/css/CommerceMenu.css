@@ -129,9 +129,14 @@ body.commerce-theme .externalPage > header .headerImg {
     display: block;
     width: 100% !important;
     height: auto !important;
-    max-height: 180px;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: none;
+    object-fit: contain;
     position: relative;
+}
+body.commerce-theme .externalPage > header .headerImg:not(.commerce-default-banner) {
+    width: auto !important;
+    margin-inline: auto;
 }
 body.commerce-theme .externalPage > header .headerImg[style*="display:none"],
 body.commerce-theme .externalPage > header .headerImg[style*="display: none"] { display: none; }

@@ -11,6 +11,14 @@ class cms_themes_b2b_Theme extends cms_themes_commerce_Theme
     public $oldClassName = 'cms_B2BTheme';
 
 
+    protected $defaultColors = array(
+        'titleColor' => '#ffffff',
+        'headerColor' => '#182332',
+        'baseColor' => '#182332',
+        'activeColor' => '#2459c4',
+    );
+
+
     public $tplDir = 'cms/themes/b2b/tpl';
 
 
