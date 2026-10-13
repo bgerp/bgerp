@@ -797,7 +797,7 @@ class email_Incomings extends core_Master
                             if (!email_Inboxes::fetch(array("LOWER(#email) = '[#1#]' AND #state != 'rejected'", $email))) {
                                 $this->logInfo('Липсваща имейл кутия в EMAIL_DUPLICATE_INCOMING_HEADERS: ' . $email, $rec->id);
 
-//                                continue;
+                                continue;
                             }
 
                             $this->processedDuplicate[$hHash][$email] = $email;

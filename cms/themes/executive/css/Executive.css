@@ -1,0 +1,107 @@
+/* Executive builds on B2B behavior with its own palette and masthead. */
+body.commerce-theme.b2b-theme.executive-theme {
+    --c-accent: #92502e;
+    --c-accent-dark: #713a20;
+    --c-accent-deep: #573c2e;
+    --c-accent-muted: #7e6251;
+    --c-accent-soft: #f5eade;
+    --c-accent-soft-2: #efdfce;
+    --c-accent-soft-3: #faf4ec;
+    --c-accent-line: #dfc5af;
+    --c-accent-line-strong: #bc8d6b;
+    --c-focus: #92502e;
+    --c-highlight: #d5ad77;
+    --c-ink: #292c2b;
+    --c-text: #50534f;
+    --c-text-2: #62635e;
+    --c-muted: #6e706a;
+    --c-dark: #232927;
+    --c-line: #dedbd4;
+    --c-line-2: #dedbd4;
+    --c-line-3: #d7d3ca;
+    --c-line-4: #eae6de;
+    --c-line-5: #e4dfd6;
+    --c-line-6: #ded9d0;
+    --c-line-strong: #bfb7aa;
+    --c-line-strong-2: #cec5b8;
+    --c-bg: #fff;
+    --c-surface: #fff;
+    --c-surface-2: #eeeae2;
+    --c-surface-3: #faf8f4;
+    --c-accent-rgb: 146, 80, 46;
+    --c-ink-rgb: 41, 44, 43;
+}
+body.commerce-theme.b2b-theme.executive-theme #cmsMenu.menuRow {
+    border-top: 0;
+    box-shadow: none;
+}
+body.commerce-theme.b2b-theme.executive-theme #cmsMenu.menuRow .centerContent { min-height: 76px; }
+body.commerce-theme.b2b-theme.executive-theme #cmsMenu.menuRow a { border-radius: 0; }
+body.commerce-theme.b2b-theme.executive-theme #cmsMenu.menuRow a.selected {
+    background: transparent;
+    box-shadow: inset 0 -2px var(--c-accent);
+}
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
+    min-height: 220px;
+    align-items: center;
+    text-align: center;
+    padding: 48px 40px;
+    gap: 18px;
+}
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) .app-name {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3.5rem) !important;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) .app-subtitle {
+    color: var(--c-text) !important;
+    line-height: 1.6;
+}
+body.commerce-theme.b2b-theme.executive-theme :is(.eshop-catalog-title, .blogm-browse > h1) {
+    background: transparent;
+    border: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    padding-left: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 600;
+}
+body.commerce-theme.b2b-theme.executive-theme :is(#cmsNavigation, .eshop-product, .eshop-group, .cart-holder-external, .commerce-article-content, .b2b-blog-articles) { border-radius: 0; }
+body.commerce-theme.b2b-theme.executive-theme .b2b-blog-articles { border: 0; padding-inline: 32px; }
+body.commerce-theme.b2b-theme.executive-theme .blogm-browse-article h2 { font-family: Arial, Helvetica, sans-serif; }
+body.commerce-theme.b2b-theme.executive-theme .externalPage #cmsBottom { border-top: 1px solid var(--c-line); padding-top: 32px; background: #f6f2ec; }
+body.commerce-theme.b2b-theme.executive-theme #cmsBottom :is(p, a, a:hover) { color: var(--c-text) !important; }
+body.commerce-theme.b2b-theme.executive-theme .footer-menus p { color: var(--c-ink) !important; }
+@media (max-width: 900px) {
+    body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) { min-height: 190px; padding: 28px 20px; }
+    body.commerce-theme.b2b-theme.executive-theme #cmsMenu.menuRow .centerContent { min-height: 60px; }
+    body.commerce-theme.b2b-theme.executive-theme .b2b-blog-articles { padding-inline: 16px; }
+}
+
+body.commerce-theme.b2b-theme.executive-theme .externalPage > header { background: #f6f2ec !important; }
+/* Anchor the semicircles to the full banner, without image letterboxing. */
+body.commerce-theme.b2b-theme.executive-theme .externalPage > header:has(.commerce-default-banner) {
+    background-color: #f6f2ec !important;
+    background-image:
+        radial-gradient(circle at 50% 100%, transparent 56%, #cfb59b99 56.5%, transparent 57%),
+        radial-gradient(circle at 50% 100%, #eee5d8 70%, transparent 70.5%),
+        radial-gradient(circle at 50% 0, #eee5d8 56%, transparent 56.5%),
+        radial-gradient(circle at 50% 0, transparent 70%, #cfb59b99 70.5%, transparent 71%) !important;
+    background-size: clamp(200px, 22vw, 320px) clamp(100px, 11vw, 160px) !important;
+    background-position: left 2px bottom, left 2px bottom, right 2px top, right 2px top !important;
+    background-repeat: no-repeat !important;
+}
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter .commerce-default-banner { visibility: hidden; }
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) .app-name { color: var(--c-ink) !important; max-width: 85%; }
+body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) .app-subtitle { max-width: 85%; }
+body.commerce-theme.b2b-theme.executive-theme :is(#cmsNavigation, .eshop-group, .commerce-article-content) { border: 0; box-shadow: none; background: transparent; }
+body.commerce-theme.b2b-theme.executive-theme #cmsNavigation { border-right: 1px solid var(--c-line-4); padding-right: 24px; }
+body.commerce-theme.b2b-theme.executive-theme #cmsNavigation .nav_item { border-radius: 20px; }
+body.commerce-theme.b2b-theme.executive-theme #cmsNavigation .sel_page { border-left: 0; }
+body.commerce-theme.b2b-theme.executive-theme #cmsBottom a:focus-visible { outline-color: var(--c-accent); }
+@media (max-width: 900px) {
+    body.commerce-theme.b2b-theme.executive-theme #cmsNavigation { border-right: 0; padding-right: 0; }
+    body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) { max-width: 100%; }
+}

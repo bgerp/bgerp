@@ -112,7 +112,7 @@ abstract class deals_ManifactureMaster extends core_Master
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
-                    $row->storeId = ht::createHint($row->storeId, crm_Locations::getAddress($storeLocation));
+                    $row->storeId = ht::createHint($row->storeId, '|*' . crm_Locations::getAddress($storeLocation), 'notice', true, array('isHtml' => true));
                 }
             }
 
