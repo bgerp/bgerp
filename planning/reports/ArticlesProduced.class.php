@@ -630,7 +630,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if (($rec->seeWeight ?? 'no') == 'yes') {
             $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло->[кг]");
         }
-        $monthArr = $rec->montsArr;
+        $monthArr = arr::make($rec->montsArr ?? array());
         sort($monthArr);
         if ($rec->groupBy == 'month') {
             foreach ($monthArr as $val) {
