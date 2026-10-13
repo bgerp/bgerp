@@ -752,7 +752,8 @@ class email_Incomings extends core_Master
         }
 
         // Ако са зададени хедъри, по които да сваля имейла
-        if (defined('EMAIL_DUPLICATE_INCOMING_HEADERS')) {
+        $duplicateHeaders = trim((string) email_Setup::get('DUPLICATE_INCOMING_HEADERS'));
+        if (strlen($duplicateHeaders)) {
             $isFirstDoc = true;
             if ($rec->threadId) {
                 $fCid = doc_Threads::getFirstContainerId($rec->threadId);
@@ -771,8 +772,11 @@ class email_Incomings extends core_Master
                     $this->processedDuplicate[$hHash][strtolower($rec->toEml)] = strtolower($rec->toEml);
                 }
 
-                foreach (explode(',', EMAIL_DUPLICATE_INCOMING_HEADERS) as $header) {
+                foreach (explode(',', $duplicateHeaders) as $header) {
                     $header = trim($header);
+                    if (!strlen($header)) {
+                        continue;
+                    }
                     $hEmailStr = email_Mime::getHeadersFromArr($rec->headers, $header);
                     if (!is_array($hEmailStr)) {
                         $hEmailStr = array($hEmailStr);

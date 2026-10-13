@@ -610,7 +610,9 @@ class eshop_Groups extends core_Master
         $data->products->menuId = $data->menuId;
         $data->products->q = $data->q ?? null;
         $data->products->withParamFilter = ($data->groupId > 0 || $data->groupId == self::SEARCH_SYSTEM_ID);
-        $data->products->withSubgroups = ($data->groupId > 0);
+        // Групата показва и е-артикулите от подгрупите си, освен ако не е изключено в настройките
+        $settings = cms_Domains::getSettings();
+        $data->products->withSubgroups = ($data->groupId > 0 && ($settings->showSubgroupProducts ?? 'yes') != 'no');
 
         if($data->groupId > 0){
             $this->prepareAllGroups($data, $data->groupId);
