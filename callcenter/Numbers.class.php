@@ -129,13 +129,13 @@ class callcenter_Numbers extends core_Manager
         $card = '';
         
         // Ако има клас
-        if ($rec->classId) {
+        if (!empty($rec->classId)) {
             
             // Инстанция на класа
             $class = cls::get($rec->classId);
             
             // Вземаме записите
-            $cardRec = $class->fetch($rec->contragentId);
+            $cardRec = $class->fetch($rec->contragentId ?? null);
             
             // Ако класа е инстанция на профилите
             if (($class instanceof crm_Profiles)) {
@@ -147,7 +147,7 @@ class callcenter_Numbers extends core_Manager
                     // Вземам линк към профила на отговорника
                     $card = crm_Profiles::createLink($userId);
                 }
-            } else {
+            } elseif ($cardRec) {
                 
                 // Ако имаме права за сингъла на записа
                 if ($class->haveRightFor('single', $cardRec)) {
@@ -177,7 +177,7 @@ class callcenter_Numbers extends core_Manager
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if ($rec->classId && $rec->contragentId) {
+        if (!empty($rec->classId) && !empty($rec->contragentId)) {
             $res .= cls::get($rec->classId)->getSearchKeywords($rec->contragentId);
         }
     }
@@ -636,7 +636,7 @@ class callcenter_Numbers extends core_Manager
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         // Добавяме титлата на формата
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $data->form->title = 'Добавяне на вътрешен номер';
         }
     }
@@ -657,7 +657,7 @@ class callcenter_Numbers extends core_Manager
 
             // Ако има избран потреибител
             $profileId = null;
-            if ($form->rec->userId) {
+            if (!empty($form->rec->userId)) {
 
                 // Вземаме id' то на профила
                 $profileId = crm_Profiles::fetchField("#userId = '{$form->rec->userId}'");
