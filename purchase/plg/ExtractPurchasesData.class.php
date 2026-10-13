@@ -346,7 +346,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
 
                 // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
-                $costsArr[$costProd->productId] = ($costsArr[$costProd->productId] ?? 0) + $costProdAmount * $costProd->allocated;
+                $costsArr[$costProd->productId] = ($costsArr[$costProd->productId] ?? 0) + $costProdAmount * ($costProd->allocated ?? 0);
             }
         }
 
