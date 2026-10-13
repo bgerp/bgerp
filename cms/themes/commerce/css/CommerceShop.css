@@ -70,10 +70,10 @@
 
 .eshop-public .eshop-content,
 .eshop-public .eshop-layout #cmsNavigation {
-    width: auto;
+    width: auto !important;
     min-width: 0;
     float: none;
-    margin: 0;
+    margin: 0 !important;
     box-sizing: border-box;
 }
 
@@ -1218,7 +1218,25 @@ body.eshop-public #cart-view-table input {
     box-sizing: border-box;
     box-shadow: none;
 }
-body.eshop-public .cart-holder-external .textInfo { font-size: 0.8125rem; line-height: 1.6; color: #566675; }
+body.eshop-public .cart-holder-external .textInfo { font-size: 0.8125rem; line-height: 1.6; color: #566675; display: flex; flex-direction: column; gap: 0.75rem; }
+body.eshop-public .cart-holder-external .textInfo > div { margin: 0; }
+body.eshop-public .cart-holder-external .cart-vat-status { order: 2; color: var(--c-muted); font-size: 0.8125rem; }
+/* Free delivery: a callout before the VAT note, not another line of fine print. */
+body.eshop-public .cart-holder-external .cart-free-delivery {
+    order: 1; position: relative; padding: 0.75rem 1rem 0.75rem 3.25rem;
+    border: 1px solid var(--c-accent-line); border-left: 4px solid var(--c-accent); border-radius: 0.5rem;
+    background: var(--c-accent-soft); color: var(--c-ink); font-size: 0.9375rem; line-height: 1.45;
+}
+body.eshop-public .cart-holder-external .cart-free-delivery::before {
+    content: ""; position: absolute; left: 1rem; top: 50%; width: 1.5rem; height: 1.5rem; transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23145b73' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6h11v10H2zM13 9h4l4 4v3h-8z'/%3E%3Ccircle cx='6' cy='17.5' r='1.8' fill='%23fff'/%3E%3Ccircle cx='17' cy='17.5' r='1.8' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.eshop-public .cart-holder-external .cart-free-delivery b { font-size: 1em !important; color: var(--c-accent) !important; white-space: nowrap; }
+body.eshop-public .cart-holder-external .cart-free-delivery-won { border-color: #bfdcc9; border-left-color: #2f7d4f; background: #eef7f1; }
+body.eshop-public .cart-holder-external .cart-free-delivery-won::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%232f7d4f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m8 12 3 3 5-6'/%3E%3C/svg%3E");
+}
+body.eshop-public .cart-holder-external .cart-free-delivery-won b { color: #2f7d4f !important; }
 body.eshop-public .cartInfoBlock .order-info { margin: 0; padding: 0; }
 body.eshop-public .cartInfoBlock h4 { background: none; color: var(--c-ink); font-size: 1.0625rem; }
 body.eshop-public .cartInfoBlock table { width: 100%; margin-left: 0 !important; }

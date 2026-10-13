@@ -145,6 +145,11 @@ class fileman_Log extends core_Manager
             $fRec = fileman_Files::fetchByFh($fileHnd);
         }
         
+        if (empty($fRec->dataId)) {
+
+            return false;
+        }
+
         // Обновяваме времето на последно използване на данните
         fileman_Data::updateLastUse($fRec->dataId);
         

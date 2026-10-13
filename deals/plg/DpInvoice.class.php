@@ -182,7 +182,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
         if(countR($dpByVats)){
             $dpVatGroupId =  isset($form->rec->dpVatGroupId) ? $form->rec->dpVatGroupId : key($dpByVats);
-            $invoicedDp = deals_Helper::getSmartBaseCurrency($dpByVats[$dpVatGroupId], $form->dealInfo->get('agreedValior'), $rec->valior ?? null);
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($dpByVats[$dpVatGroupId] ?? null, $form->dealInfo->get('agreedValior'), $rec->valior ?? null);
 
             $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats') ?? array();
             $deductedDp = $dpDeductedByVats[$dpVatGroupId] ?? null;

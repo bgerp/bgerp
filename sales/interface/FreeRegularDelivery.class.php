@@ -103,7 +103,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     {
         $Document = cls::get($document);
         $inDays = ($Document instanceof eshop_Carts) ? eshop_Setup::get('SHOW_ROUTES_IN_NEXT_DAYS') : null;
-        $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
+        $locationId = ($Document instanceof eshop_Carts) ? ($form->rec->locationId ?? null) : ($form->rec->deliveryLocationId ?? null);
       
         if(isset($locationId)){
             $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays, 'delivery');

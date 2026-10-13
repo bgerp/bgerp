@@ -43,6 +43,7 @@ body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > a:focus-v
 body.commerce-theme .contractorExtHolder > .foldertabs > .tab-page { padding: 1.25em; border: 1px solid var(--c-line-5) !important; border-radius: 0.75em !important; box-shadow: none; min-width: 0; }
 body.commerce-theme .contractorExtHolder .listTitle { margin: 0 0 1em; font-size: 1.2em; line-height: 1.4; color: var(--c-ink); }
 body.commerce-theme .contractorExtHolder .colab_Folders .listTitle > span { color: var(--c-accent) !important; }
+body.commerce-theme:is(.narrow, .commerce-compact) .contractorExtHolder .listTopContainer { min-width: 0; }
 body.commerce-theme .contractorExtHolder .listFilter { float: none; margin: 0 0 1em; }
 body.commerce-theme .contractorExtHolder .listFilter .horizontal,
 body.commerce-theme .contractorExtHolder .listFilter .formFields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6em; }
@@ -50,16 +51,22 @@ body.commerce-theme .contractorExtHolder .listFilter .horizontal { margin: 0 !im
 body.commerce-theme .contractorExtHolder .listFilter .formFields { margin: 0; }
 body.commerce-theme .contractorExtHolder .listFilter :is(.hFormField, .formToolbar, .toolbar) { float: none; margin: 0 !important; padding: 0; }
 body.commerce-theme .contractorExtHolder .listFilter .hFormField { max-width: 100%; }
-body.commerce-theme .contractorExtHolder .listFilter input:not([type=hidden]):not([type=submit]),
+body.commerce-theme .contractorExtHolder .listFilter input:not([type=hidden]):not([type=submit]):not(.select2-search__field),
 body.commerce-theme .contractorExtHolder .listFilter select:not(.select2-hidden-accessible),
-body.commerce-theme .contractorExtHolder .listFilter .select2-selection--single {
+body.commerce-theme .contractorExtHolder .listFilter :is(.select2-selection--single, .select2-selection--multiple) {
     box-sizing: border-box; height: 2.75rem; min-height: 2.75rem; border: 1px solid #c8d7df;
     border-radius: 0.5em !important; background: #fff; color: #263e4d; font: inherit; box-shadow: none;
 }
-body.commerce-theme .contractorExtHolder .listFilter input:not([type=submit]):not([type=hidden]) { padding: 0.5em 0.75em; max-width: 100%; }
+body.commerce-theme .contractorExtHolder .listFilter input:not([type=submit]):not([type=hidden]):not(.select2-search__field) { padding: 0.5em 0.75em; max-width: 100%; }
 body.commerce-theme .contractorExtHolder .listFilter .select2-selection__rendered { height: calc(2.75rem - 2px); max-height: none; line-height: calc(2.75rem - 2px); padding: 0 2em 0 0.75em; }
+body.commerce-theme .contractorExtHolder .listFilter .select2-selection--multiple { height: auto; }
+body.commerce-theme .contractorExtHolder .listFilter .select2-selection--multiple .select2-selection__rendered {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em; height: auto; min-height: calc(2.75rem - 2px); line-height: 1.4; padding: 0.25em 2em 0.25em 0.5em;
+}
+body.commerce-theme .contractorExtHolder .listFilter .select2-selection--multiple :is(.select2-selection__choice, .select2-search--inline) { margin: 0; }
+body.commerce-theme .contractorExtHolder .listFilter .select2-search__field { height: auto; min-height: 0; margin: 0; padding: 0 0.25em; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.commerce-theme .contractorExtHolder .listFilter .select2-selection__arrow { height: calc(2.75rem - 2px); }
-body.commerce-theme .contractorExtHolder .listFilter input:focus,
+body.commerce-theme .contractorExtHolder .listFilter input:not(.select2-search__field):focus,
 body.commerce-theme .contractorExtHolder .listFilter .select2-container--focus .select2-selection,
 body.commerce-theme .contractorExtHolder .listFilter .select2-container--open .select2-selection { outline: none; border-color: var(--c-accent); box-shadow: 0 0 0 3px rgba(var(--c-accent-rgb), 0.12); }
 body.commerce-theme .contractorExtHolder .listFilter input[type=submit] {
@@ -73,12 +80,13 @@ body.commerce-theme .contractorExtHolder .listFilter .formTitle { min-width: 0; 
 body.commerce-theme .contractorExtHolder .listFilter .formSection { padding: 0 0 0.75em; background: none; }
 body.commerce-theme .contractorExtHolder .listFilter .formCell { padding: 0.4em 0 !important; }
 body.commerce-theme .contractorExtHolder .listFilter .formCell small { display: inline-block; margin-bottom: 0.35em; color: #536b79; font-size: 0.9em; }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listRows { overflow-x: auto; max-width: 100%; }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listTable { width: 100%; border-collapse: collapse; font-size: 0.95em; }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listTable th { background: var(--c-surface-2); color: var(--c-accent-deep); font-weight: 600; }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listTable :is(th, td) { padding: 0.8em 0.7em; border: 0; border-bottom: 1px solid var(--c-line-5); }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listTable tr:is(.state-active, .state-opened) { background: #fff; }
-body.commerce-theme .contractorExtHolder :is(.colab_Folders, .colab_Threads, .colab_Search) .listTable tr:hover td { background: #f3f8fa; }
+body.commerce-theme .contractorExtHolder .tab-page > .listBlock { width: 100%; }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) { overflow-x: auto; max-width: 100%; }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) > .listTable { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) > .listTable th { background: var(--c-surface-2); color: var(--c-accent-deep); font-weight: 600; }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) > .listTable :is(th, td) { padding: 0.8em 0.7em; border: 0; border-bottom: 1px solid var(--c-line-5); }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) > .listTable tr:is(.state-active, .state-opened) { background: #fff; }
+body.commerce-theme .contractorExtHolder :is(.listBlock > .listRows, .listBlock > .rowsContainerClass > .listRows) > .listTable tr:hover td { background: #f3f8fa; }
 body.commerce-theme .contractorExtHolder .colab_Folders .listTable .state-opened .folderListTitle { border-left: 3px solid #71a88e; }
 body.commerce-theme .contractorExtHolder .folderListTitle a { color: var(--c-accent); font-weight: 600; }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button) {
@@ -93,18 +101,32 @@ body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=butto
 }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button):hover { background-color: var(--c-accent-soft-2); border-color: var(--c-accent); }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button):focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+/* Document tabs (Statistic, DealReport...): a compact variant of the top tabs. */
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row { margin: 0.5em 0 0.75em; border: 0; background: none; }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .row-holder > div { display: flex; flex-wrap: wrap; gap: 0.35em; }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab { float: none; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none; }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title {
+    display: inline-flex; align-items: center; float: none; box-sizing: border-box; min-height: 2.25rem;
+    padding: 0.35rem 0.85rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
+    background: #fff; color: var(--c-accent-deep); font-size: 0.875rem; font-weight: 600; text-decoration: none; box-shadow: none; text-shadow: none;
+}
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title::after { display: none; }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab.selected > .tab-title { background: var(--c-accent) !important; border-color: var(--c-accent); color: #fff; }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab:not(.selected) > a:hover { background: var(--c-accent-soft-2); }
+body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > a:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 /* Keep the calendar trigger next to the date without stretching its bitmap. */
-body.commerce-theme .contractorExtHolder .listFilter input:has(+ a > img[id$="_img"]) {
+body.commerce-theme .contractorExtHolder input:has(+ a > img[id$="_img"]) {
     width: calc(100% - 3.25rem) !important; max-width: min(15em, calc(100% - 3.25rem)) !important; vertical-align: middle;
 }
-body.commerce-theme .contractorExtHolder .listFilter a:has(> img[id$="_img"]) {
+body.commerce-theme .contractorExtHolder a:has(> img[id$="_img"]) {
     display: inline-flex; vertical-align: middle; visibility: visible !important;
-    width: 2.75rem; height: 2.75rem; box-sizing: border-box;
+    width: 2.25rem; height: 2.25rem; box-sizing: border-box;
     border: 1px solid #c8d7df; border-radius: 0.5em; margin-left: 0.35rem !important;
     background: #f3f8fa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23145b73' stroke-width='1.7' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M7 3v4m10-4v4M3 11h18M7 15h2m3 0h2m3 0h1M7 18h2m3 0h2'/%3E%3C/svg%3E") center / 1.3em no-repeat;
 }
-body.commerce-theme .contractorExtHolder .listFilter a > img[id$="_img"] { opacity: 0; width: 100%; height: 100% !important; min-height: 0 !important; }
-body.commerce-theme .contractorExtHolder .listFilter a:has(> img[id$="_img"]):focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+body.commerce-theme .contractorExtHolder .listFilter a:has(> img[id$="_img"]) { width: 2.75rem; height: 2.75rem; }
+body.commerce-theme .contractorExtHolder a > img[id$="_img"] { opacity: 0; width: 100%; height: 100% !important; min-height: 0 !important; }
+body.commerce-theme .contractorExtHolder a:has(> img[id$="_img"]):focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 /* Only the thread's outer table: document tables keep their own structure. */
 body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable {
     width: 100%; border: 1px solid var(--c-line-3); border-radius: 0;
@@ -163,6 +185,6 @@ body.commerce-theme #barcodeForm #scanBtn { padding-left: 2.25em !important; bac
     body.commerce-theme .contractorExtHolder > .foldertabs > .tab-page { padding: 0.75em; }
     body.commerce-theme .contractorExtHolder .listFilter :is(.formFields, .hFormField) { width: 100%; min-width: 0; }
     body.commerce-theme .contractorExtHolder .listFilter .select2-container,
-    body.commerce-theme .contractorExtHolder .listFilter input:not([type=hidden]):not([type=submit]) { width: 100% !important; }
+    body.commerce-theme .contractorExtHolder .listFilter input:not([type=hidden]):not([type=submit]):not(.select2-search__field) { width: 100% !important; }
     body.commerce-theme .contractorExtHolder .listFilter input { font-size: 1rem; }
 }

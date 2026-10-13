@@ -429,7 +429,7 @@ class core_DateTime
             $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, false, false);
             
             if ($origVerbDate) {
-                if (!$color) {
+                if (empty($color)) {
                     $color = '444';
                 }
                 $verbDate .= "<span class='timeSpan' style='color: #{$color};' title='{$origVerbDate}'>®</span>";

@@ -296,6 +296,12 @@ defIfNot('EMAIL_SHOW_HTML_IN_SINGLE', 'no');
 
 
 /**
+ * Хедъри, от които се вземат другите получатели, до които да се дублира входящия имейл
+ */
+defIfNot('EMAIL_DUPLICATE_INCOMING_HEADERS', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -482,6 +488,11 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS' => array('text(rows=4)', 'canView=debug, caption=Домейни на получателите във входящите имейли|*&comma;| които ще се записват като изходящи->Домейни'),
 
         'EMAIL_SHOW_HTML_IN_SINGLE' => array('enum(no=Не,yes=Да)', 'caption=Показване на HTML изгледа в сингъла на входящите имейли->Избор, customizeBy=user'),
+
+        'EMAIL_DUPLICATE_INCOMING_HEADERS' => array('varchar', 'caption=Дублиране на входящите имейли до другите наши кутии сред получателите->Хедъри', array(
+            'suggestions' => array('' => '', 'Envelope-To' => 'Envelope-To', 'Envelope-To,received' => 'Envelope-To,received'),
+            'hint' => "Хедъри, разделени със запетая, от които се вземат получателите на писмото. Ако сред тях има наша кутия, писмото се записва и в нея.\nEnvelope-To - по адресите, до които сървърът реално е доставил писмото\nEnvelope-To,received - и по получателя от най-новия Received хедър\nПразно - без дублиране",
+        )),
     );
     
     

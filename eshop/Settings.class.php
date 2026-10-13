@@ -282,6 +282,7 @@ class eshop_Settings extends core_Master
         
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
         $this->FLD('showProductsWithoutPrices', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени,notNull,value=yes');
+        $this->FLD('showSubgroupProducts', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->От подгрупите,notNull,value=yes');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
         $this->FLD('imageDisplayType', 'enum(standart=Дефолтен,carousel=Карусел)', 'caption=Показване на е-артикулите във външната част->Изображения (преглед),notNull,value=standart');

@@ -11,7 +11,7 @@
             [#CART_TABLE#]
          </div>
          <div class="textInfo">
-            <div>[#VAT_STATUS#]</div>
+            <div class='cart-vat-status'>[#VAT_STATUS#]</div>
 
             [#CART_FOOTER#]
 
