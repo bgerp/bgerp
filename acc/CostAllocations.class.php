@@ -183,7 +183,7 @@ class acc_CostAllocations extends core_Manager
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $origin = doc_Containers::getDocument($rec->containerId);
-            if ($origin->fetchField('state') == 'active') {
+            if (in_array($origin->fetchField('state'), array('active', 'closed'))) {
                 acc_Journal::reconto($rec->containerId);
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
                 
@@ -290,24 +290,36 @@ class acc_CostAllocations extends core_Manager
             $form->setField('quantity', "unit=|Разпределено|*: <b>{$allocatedQuantity}</b> {$shortUom}");
         }
         
-        // Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
-        if (isset($rec->expenseItemId)) {
+        // При запис редакцията се презарежда от базата - избраното перо е в заявката, не в записа
+        $expenseItemId = Request::get('expenseItemId', 'int') ?: ($rec->expenseItemId ?? null);
 
-            $itemClassId = acc_Items::fetchField($rec->expenseItemId, "classId");
+        // Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
+        if (isset($expenseItemId)) {
+
+            $itemClassId = acc_Items::fetchField($expenseItemId, "classId");
 
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 $form->setField('allocationBy', 'input');
-                
+
+                // Разпределянето от базата е за предишното перо
+                if ($expenseItemId != ($rec->expenseItemId ?? null)) {
+                    $rec->allocationBy = null;
+                }
+
                 if(in_array($itemClassId, array(sales_Sales::getClassId(), purchase_Purchases::getClassId()))){
                     $form->setDefault('allocationBy', 'auto');
                 } else {
                     $form->setDefault('allocationBy', 'no');
                 }
 
-                if(($rec->allocationBy ?? null) == 'auto'){
+                $allocationBy = Request::get('allocationBy', 'enum(auto,no,value,quantity,weight,volume)') ?: ($rec->allocationBy ?? null);
+                if($allocationBy == 'auto'){
                     $form->setField('allocationFilter', 'input');
                     $form->setDefault('allocationFilter', 'all');
                 }
+            } else {
+                $rec->allocationBy = 'no';
+                $rec->allocationFilter = $rec->productsData = null;
             }
         }
     }
@@ -383,6 +395,16 @@ class acc_CostAllocations extends core_Manager
         $allProducts = $form->allProducts ?? array();
         
         if ($form->isSubmitted()) {
+
+            // Перо без разпределяне по артикули не пази артикулите на предишното
+            if (empty($rec->allocationBy) || $rec->allocationBy == 'no') {
+                $rec->allocationBy = 'no';
+                $rec->productsData = null;
+            }
+            if ($rec->allocationBy != 'auto') {
+                $rec->allocationFilter = $allocationFilter = null;
+            }
+
             $expenseItemError = null;
             if(!static::checkSelectedExpenseItem($rec->expenseItemId, $allocationFilter, $rec->detailClassId, $rec->detailRecId, $expenseItemError)){
                 $form->setError('expenseItemId', $expenseItemError);
@@ -762,7 +784,8 @@ class acc_CostAllocations extends core_Manager
                     $allocatedAmount += $r->amount;
                 }
                 
-                if ($dRec->allocationBy != 'no') {
+                // Без начин на разпределяне не се коригират артикули (стари записи след смяна на перото)
+                if (!empty($dRec->allocationBy) && $dRec->allocationBy != 'no') {
                     $r->correctProducts = $dRec->productsData;
                 }
                 

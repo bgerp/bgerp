@@ -136,7 +136,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function getField($field)
     {
-       return $this->rec->{$field};
+       return $this->rec->{$field} ?? null;
     }
 
 
