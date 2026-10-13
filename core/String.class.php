@@ -1660,9 +1660,9 @@ class core_String
      */
     public static function checkExist($val, $str, $matchStr = null, $delimArr = array(',', ';'))
     {
-        $str = str_replace($delimArr, ' ', $str);
+        $str = str_replace($delimArr, ' ', $str ?? '');
 
-        $val = trim($val);
+        $val = trim($val ?? '');
         $str = trim($str);
         $exist = false;
         if ($val) {
