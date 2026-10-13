@@ -565,6 +565,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             foreach ($recs as $val) {
 
+                // Разпределените разходи нямат артикул
+                if (empty($val->productId)) {
+                    continue;
+                }
+
                 $prodRec = cat_Products::fetch($val->productId);
 
                 $prodWeight = sales_reports_SoldProductsRep::getProductWeight($prodRec);
