@@ -868,7 +868,7 @@ class eshop_ProductDetails extends core_Detail
         }
 
         if(($rec->_listView ?? false) !== true){
-            $row->catalogPrice = "<div class='eshop-product-price-holder'>{$row->catalogPrice}</div>";
+            $row->catalogPrice = "<div class='eshop-product-price-holder'>" . ($row->catalogPrice ?? '') . '</div>';
             if(!empty($row->btn)){
                 $row->catalogPrice .= "<div class='eshop-product-buy-button'>{$row->btn}</div>";
             }

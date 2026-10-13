@@ -140,7 +140,10 @@ window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
     // Безобидно предупреждение на браузъра за ResizeObserver (нищо не се чупи) - иначе заема мястото на реална грешка
     if (/^(Uncaught )?ResizeObserver loop/.test(String(errorMsg))) return false;
 
-    reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
+    // Без стека се вижда само последната рамка - напр. jQuery.each при безкрайна рекурсия
+    var stack = (errorObj && errorObj.stack) ? errorObj.stack : null;
+
+    reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum, stack: stack});
 }
 
 function runOnLoad(functionName) {
