@@ -775,6 +775,7 @@ class email_Incomings extends core_Master
                 foreach (explode(',', $duplicateHeaders) as $header) {
                     $header = trim($header);
                     if (!strlen($header)) {
+
                         continue;
                     }
                     $hEmailStr = email_Mime::getHeadersFromArr($rec->headers, $header);
@@ -792,14 +793,15 @@ class email_Incomings extends core_Master
                                 continue;
                             }
 
-                            // Ако кутията не съществува в нашата система, не се дублира
-                            if (!email_Inboxes::fetch(array("LOWER(#email) = '[#1#]'", $email))) {
+                            // Ако кутията не съществува в нашата система или е оттеглена, не се дублира
+                            if (!email_Inboxes::fetch(array("LOWER(#email) = '[#1#]' AND #state != 'rejected'", $email))) {
+                                $this->logInfo('Липсваща имейл кутия в EMAIL_DUPLICATE_INCOMING_HEADERS: ' . $email, $rec->id);
 
-                                continue;
+//                                continue;
                             }
 
                             $this->processedDuplicate[$hHash][$email] = $email;
-                            $this->logInfo('Повторно сваляне с друг имейл: ' . $email, $rec->id);
+                            $this->logInfo('Повторно сваляне с друг имейл EMAIL_DUPLICATE_INCOMING_HEADERS: ' . $email, $rec->id);
                             $this->logInAct('Дублиране до другите получатели', $rec->id);
                             $sId = $this->process($mime, $accId, $uid, $prerouteRecArr, $spamDataArr, $email);
                             $this->logInAct('Дублиране до другите получатели', $sId);
