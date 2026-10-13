@@ -43,6 +43,7 @@ body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > a:focus-v
 body.commerce-theme .contractorExtHolder > .foldertabs > .tab-page { padding: 1.25em; border: 1px solid var(--c-line-5) !important; border-radius: 0.75em !important; box-shadow: none; min-width: 0; }
 body.commerce-theme .contractorExtHolder .listTitle { margin: 0 0 1em; font-size: 1.2em; line-height: 1.4; color: var(--c-ink); }
 body.commerce-theme .contractorExtHolder .colab_Folders .listTitle > span { color: var(--c-accent) !important; }
+body.commerce-theme:is(.narrow, .commerce-compact) .contractorExtHolder .listTopContainer { min-width: 0; }
 body.commerce-theme .contractorExtHolder .listFilter { float: none; margin: 0 0 1em; }
 body.commerce-theme .contractorExtHolder .listFilter .horizontal,
 body.commerce-theme .contractorExtHolder .listFilter .formFields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6em; }
