@@ -132,6 +132,9 @@ class bgerp_drivers_Notifications extends core_BaseClass
             
             // Подготвяме заглавието на таблицата
             $data->title = tr('Известия');
+            if ($Notifications->haveRightFor('list', null, $userId)) {
+                $data->title = ht::createLink($data->title ?? '', array('bgerp_Notifications', 'list'));
+            }
             
             // Подготвяме лентата с инструменти
             $Notifications->prepareListToolbar($data);
@@ -270,6 +273,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         }
 
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = (int) bgerp_Notifications::haveRightFor('list', null, $userId);
         
         $pageVar = $this->getPageVar($dRec->originIdCalc);
         $pageVarVal = Request::get($pageVar);
