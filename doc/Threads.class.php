@@ -1599,8 +1599,8 @@ class doc_Threads extends core_Manager
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
-        // Ако е зададено да не се може да се мести документа
-        if ($firstDoc->moveDocToFolder === false) {
+        // Без първи документ или при изрична забрана нишката не може да се мести
+        if (!$firstDoc || ($firstDoc->moveDocToFolder ?? null) === false) {
             
             return false;
         }
@@ -2550,10 +2550,10 @@ class doc_Threads extends core_Manager
             $res = $mvc->getRequiredRoles('single', $rec, $userId);
             
             $firstDoc = doc_Threads::getFirstDocument($rec->id);
-            
-            // Ако е зададено да не се може да се мести документа
-            if ($firstDoc->moveDocToFolder === false) {
-                
+
+            // Без първи документ или при изрична забрана нишката не може да се мести
+            if (!$firstDoc || ($firstDoc->moveDocToFolder ?? null) === false) {
+
                 $res = 'no_one';
             }
         }

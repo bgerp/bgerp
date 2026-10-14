@@ -2067,7 +2067,7 @@ class callcenter_Talks extends core_Master
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) {
+        if (empty($data->listSummary->query)) {
             
             return ;
         }

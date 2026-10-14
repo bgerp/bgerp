@@ -2684,7 +2684,7 @@ class fileman_Files extends core_Master
         $data->listFilter->input('usersSearch, search', 'silent');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
+        if (empty($data->listFilter->rec->usersSearch)) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -2702,7 +2702,7 @@ class fileman_Files extends core_Master
         $data->query->orderBy('modifiedOn', 'DESC');
         
         // Тримваме името
-        $search = trim($filter->search);
+        $search = trim($filter->search ?? '');
         
         // Ако има съдържание
         if (strlen($search)) {
@@ -2768,7 +2768,7 @@ class fileman_Files extends core_Master
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) {
+        if (empty($data->listSummary->query)) {
             
             return ;
         }
@@ -2836,7 +2836,7 @@ class fileman_Files extends core_Master
     public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
     {
         // Ако няма данни, няма да се показва нищо
-        if (!$data->listSummary->statVerb) {
+        if (empty($data->listSummary->statVerb)) {
             
             return ;
         }

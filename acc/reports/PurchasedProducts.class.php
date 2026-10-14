@@ -222,7 +222,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $form = $mvc->innerForm;
         $newFields = array();
         
-        if (!$data->contragent) {
+        if (empty($data->contragent)) {
             $data->listFields['item2'] = 'Контрагенти';
             $data->listFields['item3'] = 'Артикул';
             $data->listFields['blQuantity'] = 'Количество';
@@ -245,7 +245,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
             
-            if (!$data->contragent) {
+            if (empty($data->contragent)) {
                 $fields = arr::make("id=№,item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             } else {
                 $fields = arr::make("id=№,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);

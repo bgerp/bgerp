@@ -184,7 +184,7 @@ class fileman_Repositories extends core_Master
         $data->form->appendSuggestions('basePath', $basePathsArr);
         
         // Ако създаваме нов запис
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             
             // Избираме първия, по подразбиране
             $data->form->setDefault('basePath', key($basePathsArr));
@@ -1772,7 +1772,7 @@ class fileman_Repositories extends core_Master
     public function prepareSingleFilter_($data)
     {
         // Ако не е подговено преди
-        if (!$data->singleFilter) {
+        if (empty($data->singleFilter)) {
             $formParams = array(
                 'method' => 'GET',
             );
@@ -1892,7 +1892,7 @@ class fileman_Repositories extends core_Master
     public static function orderFoldersAndFiles($data)
     {
         // Ако няма масив с файлове, връщаме
-        if (!$data->fileTreeArr) {
+        if (empty($data->fileTreeArr)) {
             
             return ;
         }

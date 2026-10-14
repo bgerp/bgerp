@@ -139,7 +139,7 @@ class fileman_Indexes extends core_Manager
 
         // Записи за текущия файл
         $data->fRec = fileman_Files::fetchByFh($fh);
-        if (!$data->fRec) {
+        if (empty($data->fRec)) {
             $data->tabs = array();
 
             return;

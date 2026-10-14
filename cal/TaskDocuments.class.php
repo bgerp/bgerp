@@ -259,7 +259,7 @@ class cal_TaskDocuments extends core_Detail
         
         $data->form->setDefault('state', 'active');
         
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             if (!empty($docIdsArr)) {
                 $data->form->setOptions('documentCid', $docIdsArr);
             } else {
