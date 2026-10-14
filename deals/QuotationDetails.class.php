@@ -838,7 +838,7 @@ class deals_QuotationDetails extends doc_Detail
 
             // Ако има само 1 артикул и той е в 1 бройка и няма опционални и цената му е динамично изчислена
             if (is_object($onlyNotOptionalRec)) {
-                if ($onlyNotOptionalRec->livePrice === true) {
+                if (($onlyNotOptionalRec->livePrice ?? null) === true) {
 
                     $data->summary->value = "<span class='blueText'>{$data->summary->value}</span>";
                     $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, array('iconAttr' => 'width=14px,height=14px'));
