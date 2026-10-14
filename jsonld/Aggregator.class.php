@@ -51,8 +51,8 @@ class jsonld_Aggregator
     /**
      * Добавя възлите от доставчик, без грешка в него да чупи страницата
      *
-     * @param string $class
-     * @param mixed  $data
+     * @param string|object $class клас с jsonld_ProviderIntf
+     * @param mixed         $data
      *
      * @return void
      */

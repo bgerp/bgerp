@@ -111,6 +111,9 @@ class bgerp_drivers_Recently extends core_BaseClass
             if (!Mode::is('screenMode', 'narrow')) {
                 // Подготвяме заглавието на таблицата
                 $data->title = tr('Последно||Recently');
+                if ($Recently->haveRightFor('list', null, $userId)) {
+                    $data->title = ht::createLink($data->title ?? '', array('bgerp_Recently', 'list'));
+                }
             }
             
             // Подготвяме лентата с инструменти
@@ -252,6 +255,7 @@ class bgerp_drivers_Recently extends core_BaseClass
         $Recently = cls::get('bgerp_Recently');
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = (int) $Recently->haveRightFor('list', null, $userId);
         
         // Намираме времето на последния запис
         $query = $Recently->getQuery();

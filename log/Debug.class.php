@@ -45,6 +45,12 @@ class log_Debug extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
+
+
+    /**
+     * Кой може да разглежда статистиката?
+     */
+    public $canStatistics = 'debug';
     
     
     /**
@@ -162,88 +168,22 @@ class log_Debug extends core_Manager
             $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span>[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
         }
         
-        $defUser = PHP_INT_MAX;
         $debugFileName = null;
         if ($debugFile = Request::get('debugFile')) {
             core_Debug::$stopLoggingDebug = true;
             $debugFileName = $debugFile . '.debug';
-            $defUser = core_Users::getCurrent();
         } else {
             core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
         }
         
-        // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
-        $data->query = $this->getQuery();
-        $this->prepareListFilter($data);
-        $data->listFilter->layout = new ET("<form [#FORM_ATTR#]><div class='search-fields'>[#FORM_SEARCH_FIELD#]</div><div class='other-fileds'>[#FORM_FIELDS#]</div>[#FORM_HIDDEN#]</form>\n");
-        
-        $data->listFilter->view = 'horizontal';
-        
-        // Рендираме бутона за търсене и полета, за да са заедно в отделен див
-        $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
-        $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
-        
-        if ($debugFile) {
-            $data->listFilter->input('search', true);
-            $data->listFilter->layout->append($data->listFilter->renderFields(), 'FORM_SEARCH_FIELD');
-            $data->listFilter->layout->append($data->listFilter->renderToolbar(), 'FORM_SEARCH_FIELD');
-        } else {
-            $data->listFilter->layout->prepend($data->listFilter->renderToolbar(), 'FORM_FIELDS');
+        $this->prepareDebugFilter($data, $debugFile);
+        $form = $data->listFilter ?? null;
+        expect($form);
+        if ($form->gotErrors()) {
+            return $this->renderWrapping($this->renderListFilter($data));
         }
-        
-        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
-        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение,placeholderType=all, input, silent,class=debugField');
-        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер,placeholderType=all, input, silent,class=debugField');
-        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
-        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
-        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
-        $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
-        
-        $data->listFilter->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
-        
-        if (!$debugFile) {
-            // Добавяме полето за търсене
-            $data->listFilter->showFields = 'search, ' . $data->listFilter->showFields;
-        }
-        
-        // Опциите за потребители
-        $uArr = core_Cache::get('log_Debug', 'userFilterOptions', 1000, 'core_Users');
-        if (!$uArr) {
-            $sysNick = core_Users::fetchField(-1, 'nick');
-            $uArr = array();
-            $uQuery = core_Users::getQuery();
-            $uQuery->show('id, nick, names');
-            $uQuery->orderBy('nick', 'ASC');
-            $uArr[PHP_INT_MAX] = tr('Всички');
-            $uArr['withoutSystemAndAnonymous'] = tr('Всички без @system и @anonym||All except @system and @anonym');
-            $uArr[-1] = $sysNick;
-            $uArr[0] = core_Users::fetchField(0, 'nick');
-            $uArr[-2] = '@Aida';
-            $allUArr = array();
-            while ($uRec = $uQuery->fetch()) {
-                $allUArr[$uRec->id] = $uRec->nick . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
-            }
-            
-            $cUserId = core_Users::getCurrent();
-            $cUserNames = $allUArr[$cUserId];
-            unset($allUArr[$cUserId]);
-            $uArr[$cUserId] = $cUserNames;
-            
-            if (!empty($allUArr)) {
-                $uArr += $allUArr;
-            }
-            
-            core_Cache::set('log_Debug', 'userFilterOptions', $uArr, 1000, 'core_Users');
-        }
-        $data->listFilter->setOptions('user', $uArr);
-        
-        $data->listFilter->title = 'Дебъг';
-        
-        $data->listFilter->setDefault('user', $defUser);
-        
-        $data->listFilter->input(null, true);
-        
+
         $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         $tplList->append($this->renderListFilter($data), 'ListFilter');
         
@@ -263,17 +203,13 @@ class log_Debug extends core_Manager
         
         $fPathStr = $this->getDebugFilePath($debugFileName, false);
         
-        if (!file_exists($fPathStr) && strpos($debugFile, 'x') === false) {
+        if ($debugFile && !file_exists($fPathStr) && strpos($debugFile, 'x') === false) {
             $dFileNameArr = explode('_', $debugFile, 2);
             $debugFileName = 'x_' . $dFileNameArr[1] . '_x.debug';
         }
         
-        $sArr = array();
-        $searchArr = $data->listFilter->showFields;
-        foreach ($searchArr as $fName) {
-            $sArr[$fName] = $data->listFilter->rec->{$fName} ?? null;
-        }
-        
+        $sArr = $data->debugSearch ?? array();
+
         // Вземаме файловете, които да се показват
         $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $sArr);
         
@@ -422,6 +358,266 @@ class log_Debug extends core_Manager
     }
     
     
+    /**
+     * Статистика върху всички имена, които отговарят на текущия филтър.
+     */
+    public function act_Statistics()
+    {
+        $this->requireRightFor('statistics');
+        core_Debug::$stopLoggingDebug = true;
+
+        $data = new stdClass();
+        $this->prepareDebugFilter($data, null, true);
+        $form = $data->listFilter ?? null;
+        expect($form);
+        $tpl = getTplFromFile('log/tpl/DebugStatistics.shtml');
+        $tpl->append($this->renderListFilter($data), 'FILTER');
+        $tpl->push('log/css/debugStatistics.css', 'CSS');
+        $tpl->append(tr('Статистика на дебъг записите'), 'PAGE_TITLE');
+
+        if (!$form->gotErrors()) {
+            $filter = log_DebugStatistics::prepareFilter($data->debugSearch ?? array());
+            $cacheKey = md5(serialize(array(3, DEBUG_FATAL_ERRORS_PATH, $filter)));
+            $stats = core_Cache::get('log_DebugStatistics', $cacheKey);
+            if ($stats === false) {
+                $excludeName = defined('DEBUG_FATAL_ERRORS_FILE') ? basename(DEBUG_FATAL_ERRORS_FILE) : '';
+                $stats = log_DebugStatistics::scan(DEBUG_FATAL_ERRORS_PATH, $filter, $excludeName);
+                if ($stats !== false) {
+                    core_Cache::set('log_DebugStatistics', $cacheKey, $stats, 1);
+                }
+            }
+            if ($stats === false) {
+                $tpl->append(tr('Директорията с дебъг файлове не е достъпна'), 'MESSAGE');
+            } else {
+                if ($form->cmd === 'exportLlm') {
+                    header('Content-Type: text/plain; charset=UTF-8');
+                    header('Content-Disposition: attachment; filename="debug_statistics_LLM_' . date('Ymd_His', $stats['generatedAt']) . '.txt"');
+                    header('Cache-Control: private, no-store');
+                    echo log_DebugStatistics::exportText($stats, $filter, $data->debugSearch ?? array());
+                    core_App::shutdown();
+                }
+                $this->renderDebugStatistics($tpl, $stats);
+            }
+        }
+
+        return $this->renderWrapping($tpl);
+    }
+
+
+    /**
+     * Обобщение, графики и точни стойности за интервалите от филтъра.
+     */
+    protected function renderDebugStatistics($tpl, $stats)
+    {
+        $int = core_Type::getByName('int');
+        $double = core_Type::getByName('double(decimals=2)');
+        $groups = array('success' => 'Успешни', 'errors' => 'Грешки', 'pending' => 'Неприключени', 'observations' => 'Наблюдения', 'other' => 'Други');
+        $durations = array('00' => 'Бързи (0 - 1 сек.)', '05' => '2 - 5 сек.', '20' => '6 - 20 сек.', '50' => 'Над 20 сек.', 'unknown' => 'Без данни за време');
+        $total = $stats['totals']['total'];
+        $summary = array('total' => 'Общо записи') + $groups;
+        foreach ($summary as $key => $caption) {
+            $card = ht::createElement('div', array('class' => 'debug-stat-card debug-stat-' . $key),
+                ht::createElement('span', array(), tr($caption)) . ht::createElement('strong', array(), $int->toVerbal($stats['totals'][$key])));
+            $tpl->append($card, 'SUMMARY');
+        }
+        $tpl->replace($double->toVerbal($stats['average']), 'AVERAGE');
+        $tpl->replace($int->toVerbal(count($stats['intervals'])), 'INTERVAL_COUNT');
+        $tpl->replace($int->toVerbal($stats['interval']), 'INTERVAL');
+        $tpl->replace($double->toVerbal($total ? 100 * $stats['totals']['errors'] / $total : 0), 'ERROR_PERCENT');
+        $tpl->replace($int->toVerbal($stats['ajax']), 'AJAX');
+        $known = $total - $stats['durations']['unknown'];
+        $tpl->replace($int->toVerbal($total), 'TOTAL');
+        $tpl->replace($int->toVerbal($stats['totals']['errors']), 'TOTAL_ERRORS');
+        $tpl->replace($int->toVerbal($known), 'KNOWN_DURATION');
+        $tpl->replace($known ? $double->toVerbal(100 * $stats['durations']['00'] / $known) . '%' : '-', 'FAST_PERCENT');
+        if (!$known) {
+            $tpl->append(tr('В избрания филтър няма записи с данни за продължителност. Съотношение не може да се изчисли.'), 'RATIO_MESSAGE');
+        }
+        $tpl->replace(dt::mysql2verbal(dt::timestamp2Mysql($stats['generatedAt']), 'd.m.Y H:i:s'), 'GENERATED');
+
+        $chart = array('labels' => array(), 'series' => array(), 'average' => $stats['average'], 'averageLabel' => tr('Средно записи на интервал'));
+        $durationChart = array('labels' => array(), 'series' => array());
+        $ratioChart = array('labels' => array(), 'percent' => true, 'fixedMax' => 100, 'average' => $known ? 100 * $stats['durations']['00'] / $known : null, 'averageLabel' => tr('Общ дял на бързите'), 'series' => array(
+            'fast' => array('label' => tr('Бързи'), 'color' => '#4a9665', 'values' => array()),
+            'slow' => array('label' => tr('Бавни'), 'color' => '#dc8135', 'values' => array()),
+        ));
+        $errorChart = array('labels' => array(), 'percent' => true, 'average' => $total ? 100 * $stats['totals']['errors'] / $total : null, 'averageLabel' => tr('Общ дял на грешките'), 'series' => array(
+            'errors' => array('label' => tr('Грешки от всички записи'), 'color' => '#d35454', 'values' => array()),
+        ));
+        $sizeChart = array('labels' => array(), 'type' => 'line', 'unit' => 'KiB', 'series' => array(
+            'average' => array('label' => tr('Среден размер'), 'color' => '#8a75b5', 'values' => array()),
+            'max' => array('label' => tr('Максимален размер'), 'color' => '#dc8135', 'values' => array()),
+        ));
+        $colors = array('success' => '#4a9665', 'errors' => '#d35454', 'pending' => '#a5aab0', 'observations' => '#dda337', 'other' => '#8a75b5');
+        $durationColors = array('00' => '#4a9665', '05' => '#dda337', '20' => '#dc8135', '50' => '#d35454', 'unknown' => '#a5aab0');
+        foreach ($groups as $key => $caption) {
+            $chart['series'][$key] = array('label' => tr($caption), 'color' => $colors[$key], 'values' => array());
+        }
+        foreach ($durations as $key => $caption) {
+            $durationChart['series']['duration' . $key] = array('label' => tr($caption), 'color' => $durationColors[$key], 'values' => array());
+        }
+        foreach ($stats['intervals'] as $bucket => $values) {
+            $minute = $bucket * $stats['interval'];
+            $label = sprintf('%02d:%02d', (int) floor($minute / 60), $minute % 60);
+            $chart['labels'][] = $label;
+            $durationChart['labels'][] = $label;
+            $ratioChart['labels'][] = $label;
+            $errorChart['labels'][] = $label;
+            $sizeChart['labels'][] = $label;
+            $cells = ht::createElement('td', array(), $label);
+            foreach (array('total' => 'Общо') + $groups as $key => $caption) {
+                $cells->append(ht::createElement('td', array('class' => 'aright'), $int->toVerbal($values[$key])));
+                if ($key !== 'total') {
+                    $chart['series'][$key]['values'][] = $values[$key];
+                }
+            }
+            foreach ($durations as $key => $caption) {
+                $cells->append(ht::createElement('td', array('class' => 'aright'), $int->toVerbal($values['durations'][$key])));
+                $durationChart['series']['duration' . $key]['values'][] = $values['durations'][$key];
+            }
+            $metrics = log_DebugStatistics::getIntervalMetrics($values);
+            $fastPercent = $metrics['fastPercent'];
+            $ratioChart['series']['fast']['values'][] = $fastPercent;
+            $ratioChart['series']['slow']['values'][] = $fastPercent !== null ? 100 - $fastPercent : null;
+            $cells->append(ht::createElement('td', array('class' => 'aright'), $fastPercent !== null ? $double->toVerbal($fastPercent) . '%' : '-'));
+            $errorPercent = $metrics['errorPercent'];
+            $errorChart['series']['errors']['values'][] = $errorPercent;
+            $cells->append(ht::createElement('td', array('class' => 'aright'), $errorPercent !== null ? $double->toVerbal($errorPercent) . '%' : '-'));
+            $sizes = $values['size'];
+            $sizeValues = array('average' => $metrics['sizeAverage'] !== null ? $metrics['sizeAverage'] / 1024 : null, 'max' => $sizes['count'] ? $sizes['max'] / 1024 : null);
+            foreach ($sizeValues as $key => $value) {
+                $sizeChart['series'][$key]['values'][] = $value;
+                $cells->append(ht::createElement('td', array('class' => 'aright'), $value !== null ? $double->toVerbal($value) : '-'));
+            }
+            $tpl->append(ht::createElement('tr', array(), $cells), 'ROWS');
+        }
+        $chartCaptions = array('CHART' => 'Дебъг записи по интервали; точните стойности са в таблицата', 'DURATION_CHART' => 'Бързина по интервали; точните стойности са в таблицата', 'RATIO_CHART' => 'Съотношение на бързи и бавни записи по интервали', 'ERROR_CHART' => 'Процент грешки по интервали', 'SIZE_CHART' => 'Среден и максимален размер на дебъг записите по интервали');
+        foreach (array('CHART' => $chart, 'DURATION_CHART' => $durationChart, 'RATIO_CHART' => $ratioChart, 'ERROR_CHART' => $errorChart, 'SIZE_CHART' => $sizeChart) as $place => $chartData) {
+            $caption = $chartCaptions[$place];
+            $canvas = ht::createElement('canvas', array('class' => 'debug-stat-chart', 'data-stats' => json_encode($chartData), 'role' => 'img', 'aria-label' => tr($caption)), '', true);
+            $tpl->replace($canvas, $place);
+        }
+        $tpl->push('chartjs/' . chartjs_Setup::get('VERSION') . '/Chart.min.js', 'JS');
+        $tpl->push('log/js/debugStatistics.js', 'JS');
+        jquery_Jquery::run($tpl, 'render_debugStatistics();');
+
+        foreach ($durations as $key => $caption) {
+            $tpl->append(ht::createElement('tr', array(), ht::createElement('td', array(), tr($caption)) . ht::createElement('td', array('class' => 'aright'), $int->toVerbal($stats['durations'][$key]))), 'DURATION_ROWS');
+        }
+        if (!$total) {
+            $tpl->append(tr('Няма дебъг записи, отговарящи на филтъра'), 'MESSAGE');
+        }
+        if ($stats['ignored']) {
+            $tpl->append(tr('Пропуснати неразпознати имена в директорията') . ': ' . $int->toVerbal($stats['ignored']), 'IGNORED');
+        }
+    }
+
+
+    /**
+     * Общ филтър за списъка и статистиката.
+     */
+    protected function prepareDebugFilter($data, $debugFile = null, $statistics = false)
+    {
+        $this->prepareListFilter($data);
+        $form = $data->listFilter ?? null;
+        expect($form);
+        $form->layout = new ET("<form [#FORM_ATTR#]>[#FORM_ERROR#]<div class='search-fields'>[#FORM_SEARCH_FIELD#]</div><div class='other-fileds'>[#FORM_FIELDS#]</div>[#FORM_HIDDEN#]</form>\n");
+
+        $form->action = toUrl(array($this, $statistics ? 'Statistics' : 'default'));
+        $form->view = 'horizontal';
+
+        // Рендираме бутона за търсене и полета, за да са заедно в отделен див
+        $form->FNC('search', 'varchar', 'caption=Файл, input, silent');
+        $form->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
+        if (!$statistics && $this->haveRightFor('statistics')) {
+            $form->toolbar->addSbBtn('Статистика', 'statistics', array('ef_icon' => 'img/16/chart_bar.png', 'formaction' => toUrl(array($this, 'Statistics'))));
+        }
+        if ($statistics && $this->haveRightFor('list')) {
+            $form->toolbar->addSbBtn('Дебъг', 'default', array('ef_icon' => 'img/16/debug_bug.png', 'formaction' => toUrl(array($this, 'default'))));
+        }
+        if ($statistics) {
+            $form->toolbar->addSbBtn('LLM TXT', 'exportLlm', 'ef_icon=fileman/icons/16/txt.png,title=Сваляне на статистиката като текстов файл за LLM');
+        }
+
+        if ($debugFile) {
+            $form->input('search', true);
+            $form->layout->append($form->renderFields(), 'FORM_SEARCH_FIELD');
+            $form->layout->append($form->renderToolbar(), 'FORM_SEARCH_FIELD');
+        } else {
+            $form->layout->prepend($form->renderToolbar(), 'FORM_FIELDS');
+        }
+
+        $form->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
+        $form->FNC('execTime', 'enum(,fast=0 - 1 сек.,slow=2 - 5 сек.,verySlow=6 - 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение,placeholderType=all, input, silent,class=debugField');
+        $form->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер,placeholderType=all, input, silent,class=debugField');
+        $form->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
+        $form->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
+        $form->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Изключение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
+        $form->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
+        $form->FNC('statInterval', 'enum(1=1 мин.,5=5 мин.,30=30 мин.,60=60 мин.)', 'caption=Интервал, silent, input=' . ($statistics ? 'input' : 'hidden') . ',class=debugField');
+        $form->setDefault('statInterval', 60);
+        if ($statistics) {
+            $form->setField('status', 'autoFilter');
+            $form->setField('statInterval', 'autoFilter');
+        }
+
+        $form->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status, statInterval';
+
+        if (!$debugFile) {
+            // Добавяме полето за търсене
+            $form->showFields = 'search, ' . $form->showFields;
+        }
+
+        // Опциите за потребители
+        $uArr = core_Cache::get('log_Debug', 'userFilterOptions', 1000, 'core_Users');
+        if (!$uArr) {
+            $sysNick = core_Users::fetchField(-1, 'nick');
+            $uArr = array();
+            $uQuery = core_Users::getQuery();
+            $uQuery->show('id, nick, names');
+            $uQuery->orderBy('nick', 'ASC');
+            $uArr[PHP_INT_MAX] = tr('Всички');
+            $uArr['withoutSystemAndAnonymous'] = tr('Всички без @system и @anonym||All except @system and @anonym');
+            $uArr[-1] = $sysNick;
+            $uArr[0] = core_Users::fetchField(0, 'nick');
+            $uArr[-2] = '@Aida';
+            $allUArr = array();
+            while ($uRec = $uQuery->fetch()) {
+                $allUArr[$uRec->id ?? 0] = ($uRec->nick ?? '') . ' (' . core_Users::prepareUserNames($uRec->names ?? '') . ')';
+            }
+
+            $cUserId = core_Users::getCurrent();
+            $cUserNames = $allUArr[$cUserId] ?? '';
+            unset($allUArr[$cUserId]);
+            $uArr[$cUserId] = $cUserNames;
+
+            if (!empty($allUArr)) {
+                $uArr += $allUArr;
+            }
+
+            core_Cache::set('log_Debug', 'userFilterOptions', $uArr, 1000, 'core_Users');
+        }
+        $form->setOptions('user', $uArr);
+
+        $form->title = 'Дебъг';
+
+        $form->setDefault('user', $debugFile ? core_Users::getCurrent() : PHP_INT_MAX);
+
+        $form->input(null, true);
+
+        foreach (array('execTimeFrom', 'execTimeTo') as $field) {
+            if (log_DebugStatistics::parseTime($form->rec->{$field} ?? '') === false) {
+                $form->setError($field, 'Въведете валиден час във формат ЧЧ:ММ или ЧЧ:ММ:СС');
+            }
+        }
+
+        $data->debugSearch = array();
+        foreach (array('search', 'user', 'execTime', 'execSize', 'execTimeFrom', 'execTimeTo', 'status', 'statInterval') as $field) {
+            $data->debugSearch[$field] = $form->rec->{$field} ?? null;
+        }
+    }
+
+
     /**
      * Показва дебъг страницата
      */
@@ -1034,90 +1230,8 @@ class log_Debug extends core_Manager
         
         $sameFileArr = array();
         
-        // Стойността на търсенето
-        $search = trim($searchArr['search'] ?? '');
-        
-        // Ако се филтрира по потребител
-        $searchUser = isset($searchArr['user']) ? (string) $searchArr['user'] : null;
-        if ($searchUser === (string) PHP_INT_MAX) {
-            $searchUser = null;
-        } elseif ($searchUser === (string) (PHP_INT_MAX - 1)) {
-            $searchUser = 'withoutSystem';
-        }
-        
-        // Ако се филтрира по бързина на изпълнение
-        $searchTimeArr = array();
-        if (isset($searchArr['execTime'])) {
-            $eTimeArr = array();
-            if ($searchArr['execTime'] == 'fast') {
-                $eTimeArr[] = 0;
-            } elseif ($searchArr['execTime'] == 'slow') {
-                $eTimeArr[] = 5;
-            } elseif ($searchArr['execTime'] == 'verySlow') {
-                $eTimeArr[] = 20;
-            } elseif ($searchArr['execTime'] == 'overTime') {
-                $eTimeArr[] = 50;
-            }
-            
-            foreach (array(2,8) as $eCode) {
-                foreach ($eTimeArr as $eTime) {
-                    $eTime = str_pad($eTime, 2, '0', STR_PAD_LEFT);
-                    $searchTimeArr[] = $eCode . $eTime . '_';
-                }
-            }
-        }
-        
-        // Ако се филтрира по размер
-        $execSizeFrom = 0;
-        $execSizeTo = 0;
-        if (isset($searchArr['execSize'])) {
-            if ($searchArr['execSize'] == 'small') {
-                $execSizeTo = 100000;
-            } elseif ($searchArr['execSize'] == 'big') {
-                $execSizeFrom = 100000;
-                $execSizeTo = 300000;
-            } elseif ($searchArr['execSize'] == 'veryBig') {
-                $execSizeFrom = 300000;
-            } elseif ($searchArr['execSize'] == 'veryBig5') {
-                $execSizeFrom = 500000;
-            }
-        }
-        
-        // Ако се филтрира по време
-        if (isset($searchArr['execTimeFrom']) || isset($searchArr['execTimeTo'])) {
-            $eTimePeriodArr = array();
-            foreach (array('execTimeFrom' => $searchArr['execTimeFrom'], 'execTimeTo' => $searchArr['execTimeTo']) as $execFiledName => $fVal) {
-                if (!$fVal) {
-                    continue ;
-                }
-                
-                $eArr = explode(':', $fVal);
-                
-                setIfNot($eArr[1], '00');
-                setIfNot($eArr[2], '00');
-                $fVal = implode('', $eArr);
-                $eTimePeriodArr[$execFiledName] = $fVal;
-            }
-            
-            if (countR($eTimePeriodArr) == 2) {
-                if ($eTimePeriodArr['execTimeFrom'] > $eTimePeriodArr['execTimeTo']) {
-                    $eTimePeriodArr['tmp'] = $eTimePeriodArr['execTimeFrom'];
-                    $eTimePeriodArr['execTimeFrom'] = $eTimePeriodArr['execTimeTo'];
-                    $eTimePeriodArr['execTimeTo'] = $eTimePeriodArr['tmp'];
-                    unset($eTimePeriodArr['tmp']);
-                }
-            }
-        }
-        
-        // Ако се филтрира по статус
-        $statusPattern = '';
-        if (isset($searchArr['status'])) {
-            $statusPattern = $searchArr['status'];
-            
-            $statusPattern = str_replace('x', '[0-9]', $statusPattern);
-            $statusPattern = "/^({$statusPattern})\_/";
-        }
-        
+        $filter = log_DebugStatistics::prepareFilter($searchArr);
+
         // Намираме всички файлове и им вземаме времето на създаване
         while ($iterator->valid()) {
             try {
@@ -1127,94 +1241,9 @@ class log_Debug extends core_Manager
                 @$currentDepth = $iterator->getDepth();
                 
                 if (($currentDepth < 1) && !$iterator->isDir()) {
-                    $canShow = true;
-                    
-                    // Филтрираме по търсене
-                    if ($search) {
-                        if (strpos($fileName, $search) === false) {
-                            $canShow = false;
-                        }
-                    }
-                    
-                    // Филтрираме по потребител
-                    if ($canShow && isset($searchUser)) {
-                        $fileUser = null;
-                        // Отрицателните ID са допълнени с нули преди знака: 000-2.
-                        if (preg_match('/^[^_]+_0*(-?[0-9]+)_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]+_[0-9]+\.debug$/', $fileName, $userMatches)) {
-                            $fileUser = (int) $userMatches[1];
-                        }
+                    $fileInfo = log_DebugStatistics::parseName($fileName);
+                    $canShow = log_DebugStatistics::matches($fileName, $fileInfo, $filter);
 
-                        switch ($searchUser) {
-                            case 'registered':
-                                $canShow = isset($fileUser) && $fileUser > 0;
-                                break;
-                            case 'service':
-                                $canShow = isset($fileUser) && $fileUser < 0;
-                                break;
-                            case 'withoutSystem':
-                                $canShow = $fileUser !== core_Users::SYSTEM_USER;
-                                break;
-                            case 'withoutSystemAndAnonymous':
-                                $canShow = isset($fileUser) && $fileUser !== core_Users::SYSTEM_USER && $fileUser !== core_Users::ANONYMOUS_USER;
-                                break;
-                            default:
-                                $canShow = isset($fileUser) && (string) $fileUser === $searchUser;
-                                break;
-                        }
-                    }
-                    
-                    // Филтрираме по време на изпълненени
-                    if ($canShow && !empty($searchTimeArr)) {
-                        $exist = false;
-                        foreach ($searchTimeArr as $searchTime) {
-                            if (strpos($fileName, $searchTime) === 0) {
-                                $exist = true;
-                                break;
-                            }
-                        }
-                        
-                        if (!$exist) {
-                            $canShow = false;
-                        }
-                    }
-                    
-                    // Филтрираме по размер
-                    if ($canShow && ($execSizeFrom || $execSizeTo)) {
-                        if (preg_match("/_(?'execSize'[0-9]+)\.debug$/i", $fileName, $matches)) {
-                            if ($matches['execSize']) {
-                                if ($execSizeFrom && ($matches['execSize'] < $execSizeFrom)) {
-                                    $canShow = false;
-                                }
-                                
-                                if ($canShow && $execSizeTo && ($matches['execSize'] > $execSizeTo)) {
-                                    $canShow = false;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Филтрираме по време на създаване
-                    if ($canShow && !empty($eTimePeriodArr)) {
-                        if (preg_match("/_(?'h'[0-9]{2})_(?'m'[0-9]{2})_(?'s'[0-9]{2})_/", $fileName, $matches)) {
-                            $t = $matches['h'] . $matches['m'] . $matches['s'];
-                            
-                            if ($eTimePeriodArr['execTimeFrom'] && ($t < $eTimePeriodArr['execTimeFrom'])) {
-                                $canShow = false;
-                            }
-                            
-                            if ($canShow && $eTimePeriodArr['execTimeTo'] && ($t > $eTimePeriodArr['execTimeTo'])) {
-                                $canShow = false;
-                            }
-                        }
-                    }
-                    
-                    // Филтрираме по статус
-                    if ($canShow && $statusPattern) {
-                        if (!preg_match($statusPattern, $fileName)) {
-                            $canShow = false;
-                        }
-                    }
-                    
                     // Ако се търси определен файл и отговаря на изискванията - го показваме
                     if ($canShow) {
                         try {
@@ -1351,7 +1380,7 @@ class log_Debug extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'list' && $requiredRoles != 'no_one') {
+        if (($action == 'list' || $action == 'statistics') && $requiredRoles != 'no_one') {
             if (!isDebug()) {
                 $requiredRoles = 'no_one';
             }

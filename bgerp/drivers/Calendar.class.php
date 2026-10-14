@@ -343,7 +343,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             if (!Mode::is('screenMode', 'narrow')) {
-                $data->tpl->replace(tr('Календар'), 'CAL_TITLE');
+                $title = tr('Календар');
+                if (cal_Calendar::haveRightFor('list')) {
+                    $title = ht::createLink($title, array('cal_Calendar', 'list'));
+                }
+                $data->tpl->replace($title, 'CAL_TITLE');
             } else {
                 $data->tpl->replace('&nbsp;', 'CAL_TITLE');
             }
@@ -860,6 +864,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = (int) cal_Calendar::haveRightFor('list', null, $userId);
         
         $Calendar = cls::get('cal_Calendar');
         
