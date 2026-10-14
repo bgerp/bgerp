@@ -938,7 +938,7 @@ class eshop_Products extends core_Master
     /**
      * Рендира всички артикули
      */
-    public static function renderAllProducts($data)
+    public static function renderAllProducts_($data)
     {
         $layout = new ET();
 

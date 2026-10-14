@@ -33,6 +33,12 @@ class jsonld_Setup extends core_ProtoSetup
             'private'
         );
         $html .= $Plugins->installPlugin(
+            'JSON-LD за каталога и групите в онлайн магазина',
+            'jsonld_plg_EshopGroups',
+            'eshop_Groups',
+            'private'
+        );
+        $html .= $Plugins->installPlugin(
             'JSON-LD във външни страници',
             'jsonld_plg_External',
             'cms_page_External',
