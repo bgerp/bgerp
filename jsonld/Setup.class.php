@@ -49,6 +49,12 @@ class jsonld_Setup extends core_ProtoSetup
             'cms_Articles',
             'private'
         );
+        $html .= $Plugins->installPlugin(
+            'JSON-LD за статиите от блога',
+            'jsonld_plg_BlogmArticles',
+            'blogm_Articles',
+            'private'
+        );
 
         return $html;
     }
