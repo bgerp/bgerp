@@ -139,16 +139,50 @@ class trans_plg_LinesPlugin extends core_Plugin
         $mvc->requireRightFor('changeline', $rec);
 
         $exLineId = $rec->{$mvc->lineFieldName} ?? null;
-        $form = cls::get('core_Form');
+        $form = self::prepareChangeLineForm($mvc, $rec);
         $form->setAction(getCurrentUrl());
-        $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
+
+        if ($form->isSubmitted()) {
+            self::checkChangeLineForm($mvc, $rec, $form);
+            if (!$form->gotErrors()) {
+                self::saveChangeLineForm($mvc, $rec, $form, $exLineId);
+
+                // Редирект след успешния запис
+                followRetUrl(null, '|Промените са записани успешно|*!');
+            }
+        }
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        // Рендиране на формата
+        $res = $form->renderHtml();
+        $res = $mvc->renderWrapping($res);
+        core_Form::preventDoubleSubmission($res, $form);
+
+        // ВАЖНО: спираме изпълнението на евентуални други плъгини
+        return false;
+    }
+
+
+    /**
+     * Подготвя формата за транспорта на документа и въвежда стойностите от заявката
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return core_Form
+     */
+    public static function prepareChangeLineForm($mvc, $rec)
+    {
+        $form = cls::get('core_Form');
+        $form->title = core_Detail::getEditTitle($mvc, $rec->id, 'транспорт', $rec->id);
         $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
         $form->FLD('lineFolderId', 'int', 'caption=Избор на транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title,minimumResultsForSearch=0)', 'caption=Избор на транспортна линия->Транспорт,class=w100');
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
 
         // Показване на полетата за датите
-        $lineDateFields = null;
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $lineDateFields = $mvc->getShipmentDateFields($rec);
             foreach ($lineDateFields as $dateField => $dateObj){
@@ -228,106 +262,115 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         $form->input();
 
-        if ($form->isSubmitted()) {
-            $formRec = $form->rec;
-            if (isset($formRec->lineId)) {
-                $lineRec = trans_Lines::fetch("#id = {$formRec->lineId}");
-                
-                // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
-                $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
-                if ($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')) {
-                    if ($methodId = $firstDocument->fetchField('paymentMethodId')) {
-                        if (cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")) {
-                            $form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
-                        }
-                    }
-                }
+        return $form;
+    }
 
-                if(cls::haveInterface('store_iface_DocumentIntf', $mvc)) {
-                    $clone = clone $rec;
-                    foreach ($form->rec as $f => $v) {
-                        $clone->{$f} = $v;
-                    }
-                    $lineDateFields = $mvc->getShipmentDateFields($clone);
-                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : ($lineDateFields['deliveryTime']['placeholder'] ?? null);
 
-                    if(isset($deliveryOn) && $lineRec->start < $deliveryOn) {
-                        $deliveryOn = dt::mysql2verbal($deliveryOn);
-                        $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
+    /**
+     * Проверява изпратената форма за транспорта: МОЛ при наложен платеж, начало на линията и теглата
+     *
+     * @param core_Mvc  $mvc
+     * @param stdClass  $rec
+     * @param core_Form $form
+     *
+     * @return void
+     */
+    public static function checkChangeLineForm($mvc, $rec, $form)
+    {
+        $formRec = $form->rec;
+        if (isset($formRec->lineId)) {
+            $lineRec = trans_Lines::fetch("#id = {$formRec->lineId}");
+
+            // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
+            $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+            if ($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')) {
+                if ($methodId = $firstDocument->fetchField('paymentMethodId')) {
+                    if (cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")) {
+                        $form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
                     }
                 }
             }
 
-            // Проверка на логистичната информация
-            $checkTransData = deals_Helper::checkTransData($formRec->weight, $formRec->netWeight, $formRec->tareWeight, 'weight', 'netWeight', 'tareWeight');
-            if(countR($checkTransData['errors'])){
-                foreach ($checkTransData['errors'] as $errArr){
-                    $form->setError($errArr['fields'], $errArr['text']);
+            if(cls::haveInterface('store_iface_DocumentIntf', $mvc)) {
+                $clone = clone $rec;
+                foreach ($form->rec as $f => $v) {
+                    $clone->{$f} = $v;
                 }
-            }
+                $lineDateFields = $mvc->getShipmentDateFields($clone);
+                $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : ($lineDateFields['deliveryTime']['placeholder'] ?? null);
 
-            if (!$form->gotErrors()) {
-                $rec->lineNotes = $formRec->lineNotes;
-                $rec->{$mvc->lineFieldName} = $formRec->lineId ?? null;
-                if(is_array($lineDateFields)){
-                    foreach ($lineDateFields as $dateFld => $dateObj){
-                        if(!in_array($rec->state, array('draft', 'pending'))) {
-                            if (!empty($dateObj['readOnlyIfActive'])) continue;
-                        }
-                        $rec->{$dateFld} = $formRec->{$dateFld} ?? null;
-                    }
+                if(isset($deliveryOn) && $lineRec->start < $deliveryOn) {
+                    $deliveryOn = dt::mysql2verbal($deliveryOn);
+                    $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
                 }
-
-                if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-
-                    // Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
-                    $rec->weightInput = $formRec->weight;
-                    $rec->volumeInput = $formRec->volume;
-                    $rec->netWeightInput = $formRec->netWeight;
-                    $rec->tareWeightInput = $formRec->tareWeight;
-                    $rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
-                } elseif($mvc instanceof cash_Document){
-                    if(isset($rec->{$mvc->lineFieldName}) && empty($rec->peroCase)){
-                        if($lineCaseId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'defaultCaseId')){
-                            $rec->peroCase = $lineCaseId;
-                        }
-                    }
-                }
-
-                core_Cache::remove($mvc->className, "earliestDateAllAvailable{$rec->containerId}");
-                core_Cache::remove($mvc->className, "loadingDate{$rec->containerId}");
-
-                $rec->_changeLine = true;
-                $mvc->save($rec);
-                $mvc->updateMaster($rec);
-                $mvc->logWrite(static::EDIT_LOG_ACTION, $rec->id);
-
-                // Нотифициране на всички други потребители, редактирали транспорта преди
-                self::notifyTransportEditors($mvc, $rec);
-
-                if (empty($rec->{$mvc->lineFieldName})) {
-                    trans_LineDetails::delete("#containerId = {$rec->containerId}");
-                }
-
-                if ($exLineId && $exLineId != ($rec->{$mvc->lineFieldName} ?? null)) {
-                    $mvc->updateLines[$exLineId] = $exLineId;
-                }
-
-                // Редирект след успешния запис
-                followRetUrl(null, '|Промените са записани успешно|*!');
             }
         }
 
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        // Проверка на логистичната информация
+        $checkTransData = deals_Helper::checkTransData($formRec->weight, $formRec->netWeight, $formRec->tareWeight, 'weight', 'netWeight', 'tareWeight');
+        if(countR($checkTransData['errors'])){
+            foreach ($checkTransData['errors'] as $errArr){
+                $form->setError($errArr['fields'], $errArr['text']);
+            }
+        }
+    }
 
-        // Рендиране на формата
-        $res = $form->renderHtml();
-        $res = $mvc->renderWrapping($res);
-        core_Form::preventDoubleSubmission($res, $form);
 
-        // ВАЖНО: спираме изпълнението на евентуални други плъгини
-        return false;
+    /**
+     * Записва транспорта от проверената форма в документа и обновява линиите му
+     *
+     * @param core_Mvc   $mvc
+     * @param stdClass   $rec
+     * @param core_Form  $form
+     * @param int|null   $exLineId - линията на документа преди промяната
+     *
+     * @return void
+     */
+    public static function saveChangeLineForm($mvc, $rec, $form, $exLineId)
+    {
+        $formRec = $form->rec;
+        $rec->lineNotes = $formRec->lineNotes;
+        $rec->{$mvc->lineFieldName} = $formRec->lineId ?? null;
+        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            foreach ($mvc->getShipmentDateFields() as $dateFld => $dateObj){
+                if(!in_array($rec->state, array('draft', 'pending'))) {
+                    if (!empty($dateObj['readOnlyIfActive'])) continue;
+                }
+                $rec->{$dateFld} = $formRec->{$dateFld} ?? null;
+            }
+
+            // Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
+            $rec->weightInput = $formRec->weight;
+            $rec->volumeInput = $formRec->volume;
+            $rec->netWeightInput = $formRec->netWeight;
+            $rec->tareWeightInput = $formRec->tareWeight;
+            $rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
+        } elseif($mvc instanceof cash_Document){
+            if(isset($rec->{$mvc->lineFieldName}) && empty($rec->peroCase)){
+                if($lineCaseId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'defaultCaseId')){
+                    $rec->peroCase = $lineCaseId;
+                }
+            }
+        }
+
+        core_Cache::remove($mvc->className, "earliestDateAllAvailable{$rec->containerId}");
+        core_Cache::remove($mvc->className, "loadingDate{$rec->containerId}");
+
+        $rec->_changeLine = true;
+        $mvc->save($rec);
+        $mvc->updateMaster($rec);
+        $mvc->logWrite(static::EDIT_LOG_ACTION, $rec->id);
+
+        // Нотифициране на всички други потребители, редактирали транспорта преди
+        self::notifyTransportEditors($mvc, $rec);
+
+        if (empty($rec->{$mvc->lineFieldName})) {
+            trans_LineDetails::delete("#containerId = {$rec->containerId}");
+        }
+
+        if ($exLineId && $exLineId != ($rec->{$mvc->lineFieldName} ?? null)) {
+            $mvc->updateLines[$exLineId] = $exLineId;
+        }
     }
 
 

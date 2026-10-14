@@ -716,7 +716,7 @@ class core_App
         static $status;
         
         if (!isset($status)) {
-            $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : ($_SERVER['HTTP_HOST'] ?? '');
             
             $status = core_Url::isPrivate($sHost);
         }
@@ -1162,7 +1162,7 @@ class core_App
         $slashPos = strpos($serverProtocol, '/');
         $protocol = substr(strtolower($serverProtocol), 0, $slashPos) . $s;
         
-        return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        return $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '');
     }
     
     
