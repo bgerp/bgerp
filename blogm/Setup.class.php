@@ -134,6 +134,7 @@ class blogm_Setup extends core_ProtoSetup
         'migrate::fillCommentedOn2640',
         'migrate::scheduledToWaiting2640',
         'migrate::articlesToDocuments2640',
+        'migrate::restorePublishedOn2640',
         'migrate::repairSearchKeywords2640',
     );
     
@@ -262,6 +263,12 @@ class blogm_Setup extends core_ProtoSetup
             
             $rec->folderId = $folders[$menuId];
             $rec->_notModified = true;
+
+            // Без това записът слага днешна дата на старите статии, показвани с датата на създаване
+            if (empty($rec->publishedOn) && in_array($rec->state, array('active', 'waiting'))) {
+                $rec->publishedOn = $rec->createdOn;
+            }
+
             $Articles->route($rec);
             $Articles->save($rec);
             
@@ -272,6 +279,49 @@ class blogm_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Връща датата на създаване като дата на публикуване на старите статии
+     *
+     * articlesToDocuments2640 им е сложил момента на миграцията. Моментът се разпознава
+     * по непроменените след това статии - публикувани след последната си промяна.
+     */
+    public function restorePublishedOn2640()
+    {
+        $Articles = cls::get('blogm_Articles');
+        $now = dt::now();
+
+        $stamps = array();
+        $query = $Articles->getQuery();
+        $query->where(array("#state = 'active' AND #publishedOn > #modifiedOn AND #publishedOn <= '[#1#]'", $now));
+        $query->show('id,createdOn,publishedOn');
+        while ($rec = $query->fetch()) {
+            if (dt::secsBetween($rec->publishedOn, $rec->createdOn) > 86400) {
+                $stamps[$rec->publishedOn] = dt::mysql2timestamp($rec->publishedOn);
+            }
+        }
+
+        if (!countR($stamps)) {
+
+            return;
+        }
+
+        $query = $Articles->getQuery();
+        $query->where('#publishedOn IS NOT NULL');
+        $query->show('id,createdOn,publishedOn');
+        while ($rec = $query->fetch()) {
+            $published = dt::mysql2timestamp($rec->publishedOn);
+            $created = dt::mysql2timestamp($rec->createdOn);
+            foreach ($stamps as $stamp) {
+                if (abs($published - $stamp) <= 60 && $created < $stamp - 86400) {
+                    $rec->publishedOn = $rec->createdOn;
+                    $Articles->save_($rec, 'publishedOn');
+                    break;
+                }
+            }
+        }
+    }
+
+
     /**
      * Пакетът не се де-инсталира, докато има статии
      */

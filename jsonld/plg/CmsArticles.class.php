@@ -4,7 +4,7 @@
 /**
  * JSON-LD за публичната CMS статия
  *
- * Добавя jsonld_ProviderIntf към cms_Articles със стандартна реализация - Article възел.
+ * Добавя jsonld_ProviderIntf към cms_Articles със стандартна реализация - WebPage възел с пътечка.
  */
 class jsonld_plg_CmsArticles extends core_Plugin
 {
@@ -81,14 +81,69 @@ class jsonld_plg_CmsArticles extends core_Plugin
             $properties['author'] = $properties['publisher'];
         }
 
+        // CMS статиите са страници на сайта ("За нас", "Контакти"), а не публикации
+        $properties = array('name' => $properties['headline']) + $properties;
+        $properties['text'] = $properties['articleBody'];
+        unset($properties['articleBody'], $properties['mainEntityOfPage']);
+
+        $breadcrumbs = self::getBreadcrumbs($rec);
+
+        if (isset($breadcrumbs)) {
+            $properties['breadcrumb'] = $breadcrumbs;
+        }
+
         return array(
             new jsonld_Node(
-                'Article',
+                'WebPage',
                 $properties,
                 null,
                 'cms-article-' . $rec->id
             ),
         );
+    }
+
+
+    /**
+     * Връща пътя до статията по менюто - меню, родителските статии по нивото и самата статия
+     *
+     * @param stdClass $rec
+     *
+     * @return jsonld_Node|null
+     */
+    protected static function getBreadcrumbs($rec)
+    {
+        $items = array(array(
+            'name' => cms_Content::getVerbal($rec->menuId, 'menu'),
+            'url' => cms_Content::getContentUrl($rec->menuId),
+        ));
+
+        // Нивото е XXXYYYZZZ - родителите са XXX000000 и XXXYYY000
+        $level = (string) ($rec->level ?? '');
+        $parentLevels = array();
+        if (strlen($level) == 9) {
+            if (substr($level, 3, 3) != '000') {
+                $parentLevels[] = substr($level, 0, 3) . '000000';
+            }
+            if (substr($level, 6, 3) != '000') {
+                $parentLevels[] = substr($level, 0, 6) . '000';
+            }
+        }
+
+        foreach ($parentLevels as $parentLevel) {
+            $parentRec = cms_Articles::fetch(array("#menuId = '[#1#]' AND #level = '[#2#]' AND #state = 'active'", $rec->menuId, $parentLevel));
+
+            // Родител без текст е само заглавие в навигацията, без страница
+            if ($parentRec && trim((string) $parentRec->body) !== '') {
+                $items[] = array(
+                    'name' => cms_Articles::getVerbal($parentRec, 'title'),
+                    'url' => cms_Articles::getUrl($parentRec, true),
+                );
+            }
+        }
+
+        $items[] = array('name' => cms_Articles::getVerbal($rec, 'title'));
+
+        return jsonld_Helper::getBreadcrumbList($items, 'cms-breadcrumb-' . $rec->id);
     }
 
 

@@ -2261,14 +2261,14 @@ class doc_Containers extends core_Manager
      */
     public static function repairAll($from = null, $to = null, $delay = 10)
     {
-        $resArr = array('state' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateContainers' => 0);
+        $resArr = array('state' => 0, 'folderId' => 0, 'threadId' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateContainers' => 0);
         $query = self::getQuery();
-        
+
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
-        
+
         while ($rec = $query->fetch()) {
             try {
-                
+
                 // Ако нишката е грешна (няма такъв запис)
                 
                 $tRec = false;

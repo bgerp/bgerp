@@ -4,7 +4,8 @@
 /**
  * JSON-LD за публичната статия от блога
  *
- * Добавя jsonld_ProviderIntf към blogm_Articles със стандартна реализация - BlogPosting възел.
+ * Добавя jsonld_ProviderIntf към blogm_Articles със стандартна реализация - BlogPosting
+ * (NewsArticle в режим "Новини") и пътечките до статията.
  */
 class jsonld_plg_BlogmArticles extends core_Plugin
 {
@@ -91,7 +92,11 @@ class jsonld_plg_BlogmArticles extends core_Plugin
         }
 
         if ($author !== null) {
-            $properties['author'] = new jsonld_Node('Person', array('name' => $author));
+            $authorUrl = blogm_Articles::getAuthorUrl($rec->author, cls::get('blogm_Articles')->getDefaultMenuId($rec));
+            $properties['author'] = new jsonld_Node('Person', array(
+                'name' => $author,
+                'url' => toUrl($authorUrl, 'absolute'),
+            ));
         } elseif (isset($properties['publisher'])) {
             $properties['author'] = $properties['publisher'];
         }
@@ -102,14 +107,91 @@ class jsonld_plg_BlogmArticles extends core_Plugin
             $properties['articleSection'] = $sections;
         }
 
-        return array(
+        // Броят коментари се вижда, освен ако коментарите са забранени
+        if (($rec->commentsMode ?? null) != 'disabled') {
+            $properties['commentCount'] = (int) ($rec->commentsCnt ?? 0);
+        }
+
+        $type = (blogm_Setup::get('TYPE') == 'news') ? 'NewsArticle' : 'BlogPosting';
+        $nodes = array(
             new jsonld_Node(
-                'BlogPosting',
+                $type,
                 $properties,
                 null,
                 'blogm-article-' . $rec->id
             ),
         );
+
+        return array_merge($nodes, self::getBreadcrumbs($rec, $data->menuId ?? null));
+    }
+
+
+    /**
+     * Връща пътечките до статията, както ги показва блогът - по една за всяка категория
+     *
+     * @param stdClass $rec
+     * @param int|null $menuId
+     *
+     * @return jsonld_Node[]
+     */
+    protected static function getBreadcrumbs($rec, $menuId)
+    {
+        $maxPath = (int) blogm_Setup::get('ARTICLE_NAVIGATION_MAX_PATH');
+
+        if ($maxPath <= 0) {
+            return array();
+        }
+
+        if (empty($menuId)) {
+            $menuId = cls::get('blogm_Articles')->getDefaultMenuId($rec);
+        }
+
+        $tree = cls::get('blogm_Categories')->getNestedTree(keylist::toArray($rec->categories ?? ''));
+        $paths = array_slice(self::flattenTree($tree), 0, $maxPath);
+
+        $res = array();
+        foreach ($paths as $i => $categoryIds) {
+            $items = array();
+            foreach ($categoryIds as $categoryId) {
+                $items[] = array(
+                    'name' => blogm_Categories::getTitleById($categoryId),
+                    'url' => array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $categoryId),
+                );
+            }
+            $items[] = array('name' => blogm_Articles::getVerbal($rec, 'title'));
+
+            $breadcrumbs = jsonld_Helper::getBreadcrumbList($items, "blogm-breadcrumb-{$rec->id}-{$i}");
+            if (isset($breadcrumbs)) {
+                $res[] = $breadcrumbs;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща пътищата от корена до всяко листо на дървото с категории
+     *
+     * @param array $tree  [id => деца]
+     * @param array $prefix
+     *
+     * @return array масив от масиви с id-та
+     */
+    protected static function flattenTree($tree, $prefix = array())
+    {
+        $res = array();
+
+        foreach ((array) $tree as $id => $children) {
+            $path = array_merge($prefix, array($id));
+            if (empty($children)) {
+                $res[] = $path;
+            } else {
+                $res = array_merge($res, self::flattenTree($children, $path));
+            }
+        }
+
+        return $res;
     }
 
 

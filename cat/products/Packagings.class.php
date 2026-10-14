@@ -198,6 +198,18 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
+            // Производната на основната мярка (напр. бр. при хил. бр.) има точно количество по коефициента.
+            // Мерки с коефициент 1 или без него (напр. "МЕ" - метро единица) са с различно съдържание за всеки артикул
+            $packUomRec = cat_UoM::fetch($rec->packagingId, 'baseUnitId,baseUnitRatio');
+            $packIsAlias = !empty($packUomRec->baseUnitId) && (empty($packUomRec->baseUnitRatio) || $packUomRec->baseUnitRatio == 1);
+            if ($baseMeasureId != $rec->packagingId && !$packIsAlias && array_key_exists($rec->packagingId, cat_UoM::getSameTypeMeasures($baseMeasureId))) {
+                $expectedQuantity = cat_UoM::convertValue(1, $rec->packagingId, $baseMeasureId);
+                if (round($rec->quantity, 9) != round($expectedQuantity, 9)) {
+                    $expectedVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedQuantity);
+                    $form->setError('quantity', "Количеството за тази мярка трябва да е|* {$expectedVerbal} " . cat_UoM::getShortName($baseMeasureId) . '!');
+                }
+            }
+
             if (isset($rec->id)) {
                 $packType = cat_UoM::fetchField($rec->packagingId, 'type');
                 if ($packType == 'uom') {
