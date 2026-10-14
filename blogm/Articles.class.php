@@ -293,6 +293,11 @@ class blogm_Articles extends core_Master
             unset($row->author);
         }
 
+        // Авторът води към всичките му статии
+        if ((isset($fields['-article']) || isset($fields['-browse'])) && !empty($row->author) && !Mode::isReadOnly()) {
+            $row->author = ht::createLink($row->author, self::getAuthorUrl($rec->author, $mvc->getDefaultMenuId($rec)));
+        }
+
         // Ако се рендира статия във външната част
         if (isset($fields['-article'])) {
             $categories = keylist::toArray($rec->categories);
@@ -1003,6 +1008,11 @@ class blogm_Articles extends core_Master
         $data->query->likeKeylist('categories', keylist::fromArray($data->contentCategories));
         $data->q = Request::get('q', 'varchar');
 
+        // Новините скриват автора, затова не се филтрират по него
+        if (blogm_Setup::get('TYPE') != 'news') {
+            $data->author = Request::get('author', 'varchar');
+        }
+
         // Архив
         $data->archive = Request::get('archive', 'varchar');
 
@@ -1070,6 +1080,10 @@ class blogm_Articles extends core_Master
             $data->query->where("#pubTime LIKE '{$period}-%'");
         }
         
+        if (!empty($data->author)) {
+            $data->query->where(array("#author = '[#1#]'", $data->author));
+        }
+
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
         
@@ -1141,6 +1155,12 @@ class blogm_Articles extends core_Master
             $data->title = "<span class='blogm-browse-label'>" . tr($label) . "</span> <span class='blogm-browse-period'>{$period}</span>";
             if (!countR($data->rows)) {
                 $data->emptyMessage = tr($emptyMessage);
+            }
+        } elseif (!empty($data->author)) {
+            $author = core_Type::getByName('varchar')->toVerbal($data->author);
+            $data->title = "<span class='blogm-browse-label'>" . tr('Статии от') . "</span> <span class='blogm-browse-author'>{$author}</span>";
+            if (!countR($data->rows)) {
+                $data->emptyMessage = tr('Няма статии от този автор');
             }
         } elseif (isset($data->category)) {
             $catRec = blogm_Categories::fetch($data->category);
@@ -1592,6 +1612,20 @@ class blogm_Articles extends core_Master
     }
     
     
+    /**
+     * Връща URL към статиите на посочения автор във външната част
+     *
+     * @param string   $author
+     * @param int|null $menuId
+     *
+     * @return array
+     */
+    public static function getAuthorUrl($author, $menuId = null)
+    {
+        return array('blogm_Articles', 'browse', 'author' => $author, 'cMenuId' => $menuId);
+    }
+
+
     /**
      * Връща кратко URL към статия от блога
      */
