@@ -1092,11 +1092,16 @@ class cms_Content extends core_Master
         $kArr = self::getAllKeywords($domainId);  
         $q = str::utf2ascii($q);
         $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $q);
-        if (isset($iConvStr)) {
+        if ($iConvStr !== false) {
             $q = $iConvStr;
         }
         
+        // Празна или невалидна заявка (напр. счупен UTF-8 в адреса) няма какво да се подобрява
         $qArr = plg_Search::parseQuery($q);
+        if (!is_array($qArr)) {
+            
+            return null;
+        }
         
         $resArr = array();
         $flag = false;
