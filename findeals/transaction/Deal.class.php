@@ -51,7 +51,7 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
             $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
             
             $thisDealArr = array($accountSysId, array($rec->contragentClassId, $rec->contragentId),
-                                                array($this->class->className, ($rec->id) ? $rec->id : 0),
+                                                array($this->class->className, $rec->id ?? 0),
                                                 array('currency_Currencies', $currencyId),
                                                'quantity' => $rec->baseAmount,);
             
