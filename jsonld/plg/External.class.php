@@ -17,8 +17,14 @@ class jsonld_plg_External extends core_Plugin
             return;
         }
 
-        $nodes = jsonld_Aggregator::getAll();
-        $script = jsonld_Renderer::render($nodes);
+        // Структурираните данни са второстепенни и не бива да чупят страницата
+        try {
+            $script = jsonld_Renderer::render(jsonld_Aggregator::getAll());
+        } catch (Throwable $e) {
+            reportException($e);
+
+            return;
+        }
 
         if ($script !== '') {
             $invoker->appendOnce($script, 'HEAD');
