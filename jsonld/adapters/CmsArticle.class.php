@@ -28,7 +28,7 @@ class jsonld_adapters_CmsArticle
         }
 
         $rec = $data->rec;
-        $headline = $this->getCleanText($rec->title);
+        $headline = jsonld_Helper::getCleanText($rec->title);
         $articleBody = $this->getArticleBody($rec);
         $url = $this->getCanonicalUrl($rec);
 
@@ -60,7 +60,7 @@ class jsonld_adapters_CmsArticle
             $properties['inLanguage'] = $language;
         }
 
-        $keywords = $this->getCleanText($rec->seoKeywords ?? null);
+        $keywords = jsonld_Helper::getCleanText($rec->seoKeywords ?? null);
 
         if ($keywords !== null) {
             $properties['keywords'] = $keywords;
@@ -98,7 +98,7 @@ class jsonld_adapters_CmsArticle
             Mode::pop('text');
         }
 
-        return $this->getCleanText($body);
+        return jsonld_Helper::getCleanText($body);
     }
 
 
@@ -111,7 +111,7 @@ class jsonld_adapters_CmsArticle
      */
     protected function getDescription($rec)
     {
-        $description = $this->getCleanText(
+        $description = jsonld_Helper::getCleanText(
             $rec->seoDescription ?? null
         );
 
@@ -119,7 +119,7 @@ class jsonld_adapters_CmsArticle
             return $description;
         }
 
-        return $this->getCleanText(
+        return jsonld_Helper::getCleanText(
             cms_Content::getSeoDescription($rec->body)
         );
     }
@@ -159,26 +159,7 @@ class jsonld_adapters_CmsArticle
             $fh = cms_Content::getSeoThumb($rec->body);
         }
 
-        if (empty($fh) || !fileman_Files::isImage($fh)) {
-            return null;
-        }
-
-        $path = fileman::fetchByFh($fh, 'path');
-
-        if (!$path || !file_exists($path)) {
-            return null;
-        }
-
-        $image = new thumb_Img(array(
-            $fh,
-            1600,
-            1200,
-            'fileman',
-            'isAbsolute' => true,
-            'mode' => 'small-no-change',
-        ));
-
-        return $image->getUrl('forced');
+        return jsonld_Helper::getImageUrl($fh);
     }
 
 
@@ -197,34 +178,8 @@ class jsonld_adapters_CmsArticle
             return null;
         }
 
-        return $this->getCleanText(
+        return jsonld_Helper::getCleanText(
             cms_Domains::fetchField($domainId, 'lang')
         );
-    }
-
-
-    /**
-     * Преобразува публична скаларна стойност в чист текст
-     *
-     * @param mixed $value
-     *
-     * @return string|null
-     */
-    protected function getCleanText($value)
-    {
-        if (!is_scalar($value)) {
-            return null;
-        }
-
-        $value = html_entity_decode(
-            strip_tags((string) $value),
-            ENT_QUOTES | ENT_HTML5,
-            'UTF-8'
-        );
-        $value = str_replace("\xc2\xa0", ' ', $value);
-        $value = preg_replace('/\s+/u', ' ', $value);
-        $value = trim($value);
-
-        return $value !== '' ? $value : null;
     }
 }

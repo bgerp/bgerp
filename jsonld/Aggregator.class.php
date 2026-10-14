@@ -49,6 +49,25 @@ class jsonld_Aggregator
 
 
     /**
+     * Добавя възлите от доставчик, без грешка в него да чупи страницата
+     *
+     * @param string $class
+     * @param mixed  $data
+     *
+     * @return void
+     */
+    public static function addFromProvider($class, $data)
+    {
+        try {
+            $provider = cls::getInterface('jsonld_ProviderIntf', $class);
+            self::addArray($provider->getJsonLdNodes($data));
+        } catch (Throwable $e) {
+            reportException($e);
+        }
+    }
+
+
+    /**
      * Връща всички регистрирани JSON-LD възли
      *
      * @return jsonld_Node[]
@@ -89,7 +108,7 @@ class jsonld_Aggregator
 
         $data = self::normalize($node->toArray());
 
-        return 'hash|' . hash('sha256', json_encode($data));
+        return 'hash|' . hash('sha256', json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
 
