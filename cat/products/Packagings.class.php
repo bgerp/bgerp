@@ -198,6 +198,16 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
+            // При производна на основната мярка (напр. бр. при хил. бр.) количеството следва от коефициента
+            $quantityChanged = empty($rec->id) || round($mvc->fetchField($rec->id, 'quantity'), 9) != round($rec->quantity, 9);
+            if ($quantityChanged && $baseMeasureId != $rec->packagingId && array_key_exists($rec->packagingId, cat_UoM::getSameTypeMeasures($baseMeasureId))) {
+                $derivedQuantity = round(cat_UoM::convertValue(1, $rec->packagingId, $baseMeasureId), 9);
+                if (round($rec->quantity, 9) != $derivedQuantity) {
+                    $derivedVerbal = core_Type::getByName('double(smartRound)')->toVerbal($derivedQuantity);
+                    $form->setError('quantity', "Количеството за тази мярка трябва да е|* {$derivedVerbal} " . cat_UoM::getShortName($baseMeasureId) . '!');
+                }
+            }
+
             if (isset($rec->id)) {
                 $packType = cat_UoM::fetchField($rec->packagingId, 'type');
                 if ($packType == 'uom') {
@@ -588,6 +598,11 @@ class cat_products_Packagings extends core_Detail
         }
 
         $form->setDefault('isBase', 'no');
+
+        if (isset($rec->packagingId) && $rec->packagingId != $productRec->measureId && array_key_exists($rec->packagingId, cat_UoM::getSameTypeMeasures($productRec->measureId))) {
+            $form->setDefault('quantity', round(cat_UoM::convertValue(1, $rec->packagingId, $productRec->measureId), 9));
+        }
+
         $unit = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
         $form->setField('quantity', "unit={$unit}");
 
@@ -1619,6 +1634,94 @@ class cat_products_Packagings extends core_Detail
                 $usages[$key]->usages += $dRec->count;
             }
         }
+    }
+
+
+    /**
+     * Дебъг: артикулите с производна мярка, чието количество не отговаря на коефициента
+     *
+     * Например "бр." при основна мярка "хил. бр." трябва да е 0,001, а не 1. Само показва.
+     */
+    public function act_WrongDerivedMeasures()
+    {
+        requireRole('debug');
+
+        $query = self::getQuery();
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $query->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $query->where("#type = 'uom' AND #packagingId != #measureId");
+        $query->orderBy('productId');
+
+        $Double = core_Type::getByName('double(smartRound)');
+        $rows = array();
+        while ($rec = $query->fetch()) {
+            if (!array_key_exists($rec->packagingId, cat_UoM::getSameTypeMeasures($rec->measureId))) {
+                continue;
+            }
+
+            $expected = round(cat_UoM::convertValue(1, $rec->packagingId, $rec->measureId), 9);
+            if (round($rec->quantity, 9) == $expected) {
+                continue;
+            }
+
+            $used = self::isUsed($rec->productId, $rec->packagingId);
+            $measure = cat_UoM::getShortName($rec->measureId);
+            if ($used) {
+                $action = "<span class='red'>Ползвана в документи - ръчно</span>";
+            } elseif ($rec->quantity == 1) {
+                $action = 'Ще се поправи';
+            } else {
+                $action = 'Не се поправя (количеството не е 1)';
+            }
+
+            $rows[] = (object) array(
+                'num' => countR($rows) + 1,
+                'productId' => cat_Products::getHyperlink($rec->productId, true),
+                'packagingId' => cat_UoM::getShortName($rec->packagingId),
+                'quantity' => $Double->toVerbal($rec->quantity) . ' ' . $measure,
+                'expected' => $Double->toVerbal($expected) . ' ' . $measure,
+                'action' => $action,
+            );
+        }
+
+        $listFields = arr::make('num=№,productId=Артикул,packagingId=Мярка,quantity=Количество,expected=Трябва да е,action=Миграция', true);
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $tpl = new ET("<h2>Производни мерки с грешно количество: [#COUNT#]</h2>[#TABLE#]");
+        $tpl->replace(countR($rows), 'COUNT');
+        $tpl->replace($table->get($rows, $listFields), 'TABLE');
+
+        return $this->renderWrapping($tpl);
+    }
+
+
+    /**
+     * Дали артикулът с опаковката се среща в някой документ, независимо кога
+     *
+     * За разлика от брояча usages обхваща и данните отпреди въвеждането му.
+     *
+     * @param int $productId
+     * @param int $packagingId
+     *
+     * @return bool
+     */
+    public static function isUsed($productId, $packagingId)
+    {
+        foreach (self::$detailsArr as $Detail) {
+            $dInst = cls::get($Detail);
+            $productFld = $dInst->productFld ?? 'productId';
+            foreach ($dInst->getPackagingFields() as $packagingFld) {
+                $dQuery = $dInst->getQuery();
+                $dQuery->where(array("#{$productFld} = '[#1#]' AND #{$packagingFld} = '[#2#]'", $productId, $packagingId));
+                $dQuery->limit(1);
+                $dQuery->show('id');
+                if ($dQuery->fetch()) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 

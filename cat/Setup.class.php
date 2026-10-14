@@ -202,6 +202,14 @@ class cat_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Каталог на стандартните артикули';
+
+
+    /**
+     * Описание на системните действия
+     */
+    public $systemActions = array(
+        array('title' => 'Производни мерки', 'url' => array('cat_products_Packagings', 'WrongDerivedMeasures', 'ret_url' => true), 'params' => array('title' => 'Артикули с производна мярка с грешно количество (напр. бр. = 1 хил. бр.)'), 'roles' => 'debug'),
+    );
     
     
     /**
@@ -248,6 +256,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::setDefaultFilterableParams2640v2',
         'migrate::markEshopProductsForParamIndex2640',
         'migrate::deleteParamIndexStateWithoutProduct2640',
+        //'migrate::fixDerivedMeasureQuantity2640',
     );
     
     
@@ -622,6 +631,47 @@ class cat_Setup extends core_ProtoSetup
         }
 
         cat_products_ParamIndexState::delete('#productId IS NULL OR #productId <= 0');
+    }
+
+
+    /**
+     * Поправя производните мерки, записани с количество 1 (напр. бр. = 1 хил. бр.)
+     *
+     * Така в е-магазина и количката "бр." се смяташе като 1000 бр. Опаковки, които се срещат
+     * в документи, не се пипат - при редакция на стар ред количеството му би се сменило.
+     */
+    public function fixDerivedMeasureQuantity2640()
+    {
+        $Packagings = cls::get('cat_products_Packagings');
+
+        $query = $Packagings->getQuery();
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $query->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $query->where("#type = 'uom' AND #packagingId != #measureId AND #quantity = 1");
+        $skipped = array();
+        while ($rec = $query->fetch()) {
+            if (!array_key_exists($rec->packagingId, cat_UoM::getSameTypeMeasures($rec->measureId))) {
+                continue;
+            }
+
+            $quantity = round(cat_UoM::convertValue(1, $rec->packagingId, $rec->measureId), 9);
+            if ($quantity == 1) {
+                continue;
+            }
+
+            if (cat_products_Packagings::isUsed($rec->productId, $rec->packagingId)) {
+                $skipped[] = cat_Products::getTitleById($rec->productId) . ' (' . cat_UoM::getShortName($rec->packagingId) . ')';
+                continue;
+            }
+
+            $rec->quantity = $quantity;
+            $Packagings->save_($rec, 'quantity');
+        }
+
+        if (countR($skipped)) {
+
+            return "<li class='debug-notice'>Производни мерки с грешно количество, ползвани в документи - за ръчна проверка: " . implode(', ', $skipped) . '</li>';
+        }
     }
 
 
