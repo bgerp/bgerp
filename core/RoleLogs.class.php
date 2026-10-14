@@ -246,7 +246,7 @@ class core_RoleLogs extends core_Manager
         // Инпутваме заявката
         $data->listFilter->input('users, state', 'silent');
 
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $usersId = Request::get('users');
 
             if ($usersId && is_numeric($usersId)) {

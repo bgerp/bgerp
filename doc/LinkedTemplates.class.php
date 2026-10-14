@@ -109,7 +109,7 @@ class doc_LinkedTemplates extends core_Master
         $suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         $data->form->setSuggestions('docType', $suggestions);
         
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $data->form->setDefault('users', 'all_users');
         }
     }

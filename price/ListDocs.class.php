@@ -260,7 +260,7 @@ class price_ListDocs extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$data)
     {
         // Обработваме детайлите ако ги няма записани
-        if (!$data->rec->products) {
+        if (empty($data->rec->products)) {
             $mvc->prepareDetails($data);
             
             if ($data->rec->productGroups) {

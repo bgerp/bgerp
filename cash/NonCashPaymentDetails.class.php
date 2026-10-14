@@ -216,6 +216,13 @@ class cash_NonCashPaymentDetails extends core_Manager
     public static function getCardPaymentBtnName($deviceId)
     {
         $deviceRec = peripheral_Devices::fetchRec($deviceId);
+
+        // Устройството може да е изтрито, след като е било ползвано за плащането
+        if (!is_object($deviceRec)) {
+
+            return tr('Карта');
+        }
+
         try{
             $Int = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
 

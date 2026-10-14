@@ -455,7 +455,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $data->rows[] = $row;
             
             // ако нямаме обобщен ред
-            if (!$data->summary) {
+            if (empty($data->summary)) {
                 // си правим един, които да съдържа нефактурираното
                 // и валуюитата на сделката
                 $data->summary = (object) array('amountInv' => $Double->toVerbal($data->notInv),

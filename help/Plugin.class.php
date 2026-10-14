@@ -42,7 +42,7 @@ class help_Plugin extends core_Plugin
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
         
-        
+        $rec = null;
         if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
             $mustSeeClass = '';
             if (!$rec) {
@@ -88,7 +88,7 @@ class help_Plugin extends core_Plugin
             $hintText .=
             
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
-            $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
+            $url = toUrl(array('help_Log', 'CloseInfo', $rec->id ?? null));
             
             $tabsTpl->push('css/tooltip.css', 'CSS');
             $tabsTpl->push('js/tooltipCustom.js', 'JS');

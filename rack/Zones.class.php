@@ -455,7 +455,7 @@ class rack_Zones extends core_Master
             return $tpl;
         }
 
-        if(!$data->canRepair){
+        if(empty($data->canRepair)){
             $tpl->append("<div class='state-closed' style='padding:6px;margin:6px 0;'>Ремонтни действия са позволени само за неконтирани документи.</div>");
 
             return $tpl;

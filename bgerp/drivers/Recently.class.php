@@ -132,7 +132,7 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
             
             // Рендираме изгледа
             $data->tpl = $this->renderPortal($data->data);

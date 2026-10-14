@@ -701,7 +701,7 @@ class findeals_Deals extends deals_DealBase
                         $data->rec->curDebitAmount += $rec->debitA;
                         $data->rec->curCreditAmount += $rec->creditA;
                         $dRow = $this->getHistoryRow($rec);
-                        if(!$data->canSeePrices) {
+                        if(empty($data->canSeePrices)) {
                             $dRow->debitA = $dRow->creditA =doc_plg_HidePrices::getBuriedElement();
                         }
                         $data->history[] = $dRow;
@@ -724,7 +724,7 @@ class findeals_Deals extends deals_DealBase
             }
         }
 
-        if(!$data->canSeePrices){
+        if(empty($data->canSeePrices)){
             $data->row->baseAmount = doc_plg_HidePrices::getBuriedElement();
         }
 

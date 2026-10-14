@@ -328,7 +328,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (!$data->row) {
+        if (empty($data->row)) {
             $data->row = new stdClass();
         }
         

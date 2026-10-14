@@ -332,7 +332,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
 
             $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">' . $data->blockTitle . '</div><div class="portalNews"> [#LATEST#]</div></div>'));
             
