@@ -213,7 +213,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
             $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#taskTitle#]&nbsp;[#profile#]<!--ET_BEGIN SWITCH_BTN-->&nbsp;[#SWITCH_BTN#]<!--ET_END SWITCH_BTN-->&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
@@ -241,12 +241,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
             // Задачи
             if ($this->isFromMe($data->dRecForm)) {
                 $taskTitle = tr('Задачи от');
-                if (!$data->dRecForm) {
+                if (empty($data->dRecForm)) {
                     $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
                 }
             } else {
                 $taskTitle = tr('Задачи към');
-                if (!$data->dRecForm) {
+                if (empty($data->dRecForm)) {
                     $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
                 }
             }

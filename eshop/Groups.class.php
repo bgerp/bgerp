@@ -343,7 +343,7 @@ class eshop_Groups extends core_Master
         $data = new stdClass();
         $data->menuId = Request::get('cMenuId', 'int');
         
-        if (!$data->menuId) {
+        if (empty($data->menuId)) {
             $data->menuId = cms_Content::getDefaultMenuId($this);
         }
         
@@ -446,7 +446,7 @@ class eshop_Groups extends core_Master
         
         $data->groupId = Request::get('id', 'int');
 
-        if (!$data->groupId) {
+        if (empty($data->groupId)) {
             return $this->act_ShowAll();
         }
 

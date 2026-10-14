@@ -659,7 +659,7 @@ class support_Issues extends core_Master
             }
         }
         
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             Request::setProtected('srcId, srcClass');
             
             $data->form->FNC('SrcId', 'int', 'input=hidden');

@@ -449,7 +449,7 @@ class doc_Containers extends core_Manager
         
         // Изчаква до 2 секунди, ако firstContainerId не е обновен
         for ($i = 0; $i < 10; $i++) {
-            if (!$data->threadRec->firstContainerId) {
+            if (empty($data->threadRec->firstContainerId)) {
                 usleep(200000);
                 $data->threadRec = doc_Threads::fetch($data->threadId, '*', false);
             } else {

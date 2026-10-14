@@ -116,7 +116,7 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
 

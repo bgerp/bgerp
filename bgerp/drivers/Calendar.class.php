@@ -210,7 +210,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
             $Calendar = cls::get('cal_Calendar');
             $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => 'javascript:location.href = this.value;', 'class' => 'portal-select'));
             

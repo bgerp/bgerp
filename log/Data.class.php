@@ -692,7 +692,7 @@ class log_Data extends core_Manager
         
         $data->listFilter->input($data->listFilter->showFields, 'silent');
 
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $usersId = Request::get('users');
 
             if ($usersId && is_numeric($usersId)) {

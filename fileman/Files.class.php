@@ -2768,7 +2768,7 @@ class fileman_Files extends core_Master
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) {
+        if (empty($data->listSummary->query)) {
             
             return ;
         }
@@ -2836,7 +2836,7 @@ class fileman_Files extends core_Master
     public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
     {
         // Ако няма данни, няма да се показва нищо
-        if (!$data->listSummary->statVerb) {
+        if (empty($data->listSummary->statVerb)) {
             
             return ;
         }

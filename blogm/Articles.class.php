@@ -667,7 +667,7 @@ class blogm_Articles extends core_Master
         $data->menuRec = $data->menuId ? cms_Content::fetch($data->menuId) : null;
 
         // При невалидно меню от URL-а се ползва това на статията
-        if (!$data->menuRec) {
+        if (empty($data->menuRec)) {
             $data->menuId = $cMenuId = static::getDefaultMenuId($rec);
             $data->menuRec = $data->menuId ? cms_Content::fetch($data->menuId) : null;
             expect404($data->menuRec);

@@ -39,7 +39,7 @@ class doc_plg_Tabs extends core_Plugin
         $mvc->prepareDocumentTabs($data);
 
         $data->selectedTab = $data->tabs->getSelected();
-        if (!$data->selectedTab) {
+        if (empty($data->selectedTab)) {
             $data->selectedTab = $data->tabs->getFirstTab();
         }
 

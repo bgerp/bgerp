@@ -299,7 +299,7 @@ class bank_Accounts extends core_Master
         $data->TabCaption = 'Банка';
         $data->recs = $data->rows = array();
 
-        if (!$data->isCurrent) {
+        if (empty($data->isCurrent)) {
 
             return;
         }

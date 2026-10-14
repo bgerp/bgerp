@@ -152,7 +152,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
             $Notifications = cls::get('bgerp_Notifications');
             
             // Рендираме изгледа
