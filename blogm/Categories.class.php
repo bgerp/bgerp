@@ -228,7 +228,7 @@ class blogm_Categories extends core_Manager
         // Шаблон, който ще представлява списъка от хиперлинкове към категориите
         $tpl = new ET("");
         
-        if (!$data->categories) {
+        if (empty($data->categories)) {
             $data->categories = array();
         }
 

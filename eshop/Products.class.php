@@ -1092,7 +1092,7 @@ class eshop_Products extends core_Master
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
 
-        if (!$data->productId) {
+        if (empty($data->productId)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $opt = cms_Content::getMenuOpt('eshop_Groups', $domainId);
             if (countR($opt)) {

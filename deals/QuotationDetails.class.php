@@ -397,7 +397,7 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         // Ако няма записи не правим нищо
-        if (!$data->rows) {
+        if (empty($data->rows)) {
 
             return;
         }

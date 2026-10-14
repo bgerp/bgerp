@@ -142,7 +142,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl) {
+        if (empty($data->tpl)) {
             $scaleArr = array('title' => "" , 'colorPlate' => 'transparent');
             
             if ($data->gaugeType == 'linear') {

@@ -58,8 +58,32 @@ class cms_themes_commerce_Theme extends cms_FancyTheme
     public $oldClassName = 'cms_CommerceTheme';
 
 
+    /** Фиксирани цветове за наследеното генериране на стилове. */
+    protected $defaultColors = array(
+        'titleColor' => '#ffffff',
+        'headerColor' => '#142d38',
+        'baseColor' => '#142d38',
+        'activeColor' => '#145b73',
+    );
+
+
+    /** Препоръчителен размер на банера за десктоп. */
+    protected $desktopBannerSize = '1400×180';
+
+
+    public function addEmbeddedFields(core_FieldSet &$form)
+    {
+        parent::addEmbeddedFields($form);
+        $form->setField('titleColor,headerColor,baseColor,activeColor,innerColor', 'input=none,column=none,single=none');
+        for ($i = 1; $i <= 8; $i++) {
+            $form->setField('wImg' . $i, 'caption=Банери за десктоп (' . $this->desktopBannerSize . ' px)->Изображение ' . $i . ',hint=Препоръчителен размер ' . $this->desktopBannerSize . ' px. Допускат се и други пропорции — изображението се побира до 100% от ширината с автоматична височина. Ротиращите се банери трябва да имат еднакви пропорции. Без качена снимка се използва банерът на темата.');
+        }
+        $form->setField('nImg', 'caption=Банер за мобилен екран (600×120 px)->Изображение,hint=Препоръчителен размер 600×120 px. Ширината е до 100% от екрана с автоматична височина без изрязване. Използвайте кратък текст и достатъчно големи елементи.');
+    }
+
+
     /**
-     * Настройките за изображения и цветове остават съвместими с широката тема.
+     * Настройките за изображения остават съвместими с широката тема.
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
@@ -96,6 +120,9 @@ class cms_themes_commerce_Theme extends cms_FancyTheme
         // Ignore inherited positions saved before switching to this theme.
         if (!is_object($this->innerForm ?? null)) {
             $this->innerForm = new stdClass();
+        }
+        foreach (array('titleColor', 'headerColor', 'baseColor', 'activeColor') as $field) {
+            $this->innerForm->{$field} = $this->defaultColors[$field] ?? null;
         }
         $this->innerForm->menuPosition = 'above';
         parent::prepareWrapper($tpl);

@@ -374,11 +374,11 @@ class cond_plg_DefaultValues extends core_Plugin
             }
             
             $ownCountryId = crm_Companies::fetchOurCompany()->country;
-            if (!$data->country) {
+            if (empty($data->country)) {
                 $data->country = $ownCountryId;
             }
             
-            if (!$data->countryId) {
+            if (empty($data->countryId)) {
                 $data->countryId = $ownCountryId;
             }
             

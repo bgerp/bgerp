@@ -92,7 +92,7 @@ class crm_Personalization extends core_Detail
     public static function renderPersonalization($data)
     {
         // Ако нямаме права да не се показва
-        if (!$data->canChange) {
+        if (empty($data->canChange)) {
             
             return;
         }

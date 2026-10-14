@@ -481,7 +481,7 @@ class crm_Companies extends core_Master
         }
         
         // Филтриране по потребител/и
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
         
