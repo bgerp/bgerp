@@ -91,7 +91,11 @@ class jsonld_plg_BlogmArticles extends core_Plugin
         }
 
         if ($author !== null) {
-            $properties['author'] = new jsonld_Node('Person', array('name' => $author));
+            $authorUrl = blogm_Articles::getAuthorUrl($rec->author, cls::get('blogm_Articles')->getDefaultMenuId($rec));
+            $properties['author'] = new jsonld_Node('Person', array(
+                'name' => $author,
+                'url' => toUrl($authorUrl, 'absolute'),
+            ));
         } elseif (isset($properties['publisher'])) {
             $properties['author'] = $properties['publisher'];
         }
