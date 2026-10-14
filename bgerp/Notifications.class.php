@@ -503,6 +503,9 @@ class bgerp_Notifications extends core_Manager
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
             bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn,modifiedBy');
+
+            // Прочитане в същата секунда може да остави ключа на портала непроменен.
+            bgerp_Portal::invalidateCache($rec->userId ?? null, 'bgerp_drivers_Notifications');
         }
     }
     

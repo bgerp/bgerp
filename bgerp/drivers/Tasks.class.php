@@ -252,6 +252,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
             }
             
             $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
+            if (cal_Tasks::haveRightFor('list')) {
+                $taskTitle = ht::createLink($taskTitle, array('cal_Tasks', 'list'));
+            }
             
             $data->tpl->replace($taskTitle, 'taskTitle');
             $data->tpl->replace(crm_Profiles::createLink(), 'profile');
@@ -355,6 +358,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $isFromMe = $this->isFromMe($dRec->from ?? null);
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = (int) cal_Tasks::haveRightFor('list', null, $userId);
         $cArr[] = $dRec->showCal ?? null;
         $cArr[] = $isFromMe;
 

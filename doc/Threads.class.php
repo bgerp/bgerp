@@ -820,7 +820,7 @@ class doc_Threads extends core_Manager
         $data->listFilter->input(null, 'silent');
         
         // id на папката
-        $folderId = $data->listFilter->rec->folderId;
+        $folderId = $data->listFilter->rec->folderId ?? null;
         
         $rejected = Request::get('Rejected');
         
@@ -843,7 +843,7 @@ class doc_Threads extends core_Manager
             $data->listFilter->setDefault('order', $vals['ordering']);
         }
         
-        expect($folderId = $data->listFilter->rec->folderId);
+        expect($folderId = $data->listFilter->rec->folderId ?? null);
         
         doc_Folders::requireRightFor('single');
         

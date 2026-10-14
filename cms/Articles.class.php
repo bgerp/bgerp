@@ -374,6 +374,9 @@ class cms_Articles extends core_Master
             $url = self::getUrl($rec, true);
             $url = toUrl($url, 'absolute');
             cms_Content::addCanonicalUrl($url, $content);
+
+            // Подава действително показаната статия, вкл. избраната по менюто
+            $this->invoke('AfterPrepareArticle', array($rec));
         }
         
         // Страницата да се кешира в браузъра за 1 час

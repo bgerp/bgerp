@@ -606,7 +606,7 @@ class eshop_ProductDetails extends core_Detail
             $res->saleState = 'ended';
         }
 
-        if (countR($settings->inStockStores)
+        if (countR($settings->inStockStores ?? null)
             && $productRec->canStore == 'yes'
             && !$res->saleStopped) {
             $res->stockChecked = true;
@@ -676,6 +676,10 @@ class eshop_ProductDetails extends core_Detail
         $rec->name = $rec->name ?? null;
         $rec->recId = $rec->recId ?? null;
 
+        // Една обща наличност за HTML и структурираните данни
+        $availability = self::getPublicAvailability($rec);
+        $rec->_availability = $availability;
+
         $row = new stdClass();
         $row->catalogPrice = '';
         $row->saleInfo = '';
@@ -684,14 +688,14 @@ class eshop_ProductDetails extends core_Detail
         $row->code = mb_substr($fullCode, 0, 10);
         $row->code = "<span title='{$fullCode}'>{$row->code}</span>";
 
-        $now = dt::now();
-        $startSale = cat_Products::getParams($rec->productId, 'startSales');
+        $now = $availability->checkedOn;
+        $startSale = $availability->startSale;
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId ?? null);
 
-        $showPrice = !($productRec->state == 'template' || $rec->action == 'stopped');
-        $showCartBtn = in_array($rec->action, array('buy', 'both'));
+        $showPrice = $availability->showPrice;
+        $showCartBtn = $availability->actionAllowsBuy;
         
         if($productRec->state != 'template' && $rec->action != 'inquiry'){
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
@@ -699,11 +703,8 @@ class eshop_ProductDetails extends core_Detail
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
         }
 
-        $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
+        $catalogPriceInfo = $availability->priceInfo;
         if($showPrice){
-            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId ?? null, $rec->quantityInPack ?? null)
-                ?? (object) array('price' => null, 'discount' => null);
-
             if(isset($catalogPriceInfo->price)){
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
                 if($catalogPriceInfo->price == 0){
@@ -738,7 +739,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = (($rec->_listView ?? false) === true) ? 'group-row' : '';
 
-        $stopSale = (!empty($startSale) && $now < $startSale) || static::hasSaleEnded($rec->productId);
+        $stopSale = $availability->saleStopped;
 
         if($showCartBtn && !$stopSale){
             if (!empty($catalogPriceInfo->discount)) {
@@ -797,7 +798,7 @@ class eshop_ProductDetails extends core_Detail
 
         // Проверка дали артикула е спрян от продажба
         if($stopSale){
-            if(!empty($startSale) && $now < $startSale){
+            if($availability->saleState == 'pending'){
                 $row->quantity = "<span class='quiet'>1</span>";
                 $pendingTpl = new core_ET($settings->salePendingText);
 
@@ -818,47 +819,25 @@ class eshop_ProductDetails extends core_Detail
                 $pendingTpl->replace($afterTimeVerbal, "DAYS");
 
                 $row->saleInfo .= "<span class='{$class} option-not-in-stock saleSoon'>{$pendingTpl->getContent()}</span>";
-            } elseif(static::hasSaleEnded($rec->productId)){
+            } elseif($availability->saleState == 'ended'){
                 $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$settings->saleEndedText}</span>";
             }
         }
 
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if ($availability->stockState == 'expected') {
+            $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
+        } elseif ($availability->stockState == 'outOfStock') {
+            $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+            $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
 
-        $inStockStores = $settings->inStockStores ?? array();
-        if (countR($inStockStores) && $canStore == 'yes' && !$stopSale) {
-            $quantity = store_Products::getQuantities($rec->productId, $inStockStores)->free;
-            $quantityInRemote = 0;
-            if(!empty($settings->remoteStores)) {
-                $quantityInRemote = sync_StoreStocks::getQuantityInRemoteStores($rec->productId, $settings->remoteStores);
+            if($rec->action != 'stopped'){
+                $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
             }
-            $totalQuantity = $quantity + $quantityInRemote;
-
-            $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
-
-            if ($totalQuantity < $rec->quantityInPack) {
-
-                // Ако няма наличност, но се очаква доставка към подададената дата
-                $horizon = dt::addSecs($deliveryTime, null,false);
-                $quantityExpected = store_Products::getQuantities($rec->productId, $inStockStores, $horizon)->free;
-                if($quantityExpected >= $rec->quantityInPack){
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
-                } else {
-                    $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                    $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
-
-                    if($rec->action != 'stopped'){
-                        $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
-                    }
-                    $row->quantity = 1;
-                    unset($row->btn);
-                }
-            } elseif($quantity < $rec->quantityInPack && $quantityInRemote >= $rec->quantityInPack) {
-                if(!empty($settings->remoteInStockText)){
-                    $remoteInStockTextVerbal = core_Type::getByName('varchar')->toVerbal(tr($settings->remoteInStockText));
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock inStockInRemoteStore'>{$remoteInStockTextVerbal}</span>";
-                }
-            }
+            $row->quantity = 1;
+            unset($row->btn);
+        } elseif ($availability->stockState == 'remote' && !empty($settings->remoteInStockText)) {
+            $remoteInStockTextVerbal = core_Type::getByName('varchar')->toVerbal(tr($settings->remoteInStockText));
+            $row->saleInfo = "<span class='{$class} option-not-in-stock inStockInRemoteStore'>{$remoteInStockTextVerbal}</span>";
         }
 
         $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
