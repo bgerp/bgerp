@@ -366,6 +366,7 @@ class cms_Content extends core_Master
     
     /**
      * Връща или първото id от menuId + $sharedMenusIds, което е от текущия домейн, или $menuId
+     * Активните менюта са с предимство, а основното - пред споделените
      */
     public static function getMainMenuId($menuId, $sharedMenuIds)
     {
@@ -373,14 +374,17 @@ class cms_Content extends core_Master
             $res = $menuId;
         } else {
             $domainId = cms_Domains::getPublicDomain('id');
-            $ids = str_replace('|', ',', trim($sharedMenuIds, '|'));
-            if (self::fetch("#id = {$menuId} && #domainId = {$domainId}")) {
-                $res = $menuId;
-            } elseif ($rec = self::fetch("#id IN ({$ids}) && #domainId = {$domainId}")) {
-                $res = $rec->id;
-            } else {
-                $res = $menuId;
-            }
+            $mainId = (int) $menuId;
+
+            $query = self::getQuery();
+            $query->in('id', array($mainId => $mainId) + keylist::toArray($sharedMenuIds));
+            $query->where(array("#domainId = '[#1#]'", $domainId));
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+            $query->XPR('orderByMain', 'int', "(CASE #id WHEN {$mainId} THEN 1 ELSE 2 END)");
+            $query->orderBy('#orderByState=ASC');
+            $query->orderBy('#orderByMain=ASC');
+            $rec = $query->fetch();
+            $res = $rec ? $rec->id : $menuId;
         }
         
         return $res;
@@ -654,8 +658,13 @@ class cms_Content extends core_Master
         
         $classId = core_Classes::getId($class);
         $query = self::getQuery();
+        $query->where(array("#source = '[#1#]' AND #domainId = '[#2#]'", $classId, $domainId));
+
+        // Неактивно меню се връща само при липса на активно - тогава setCurrent() дава 404 на посетителите
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderByState=ASC');
         $query->orderBy('#order', 'ASC');
-        $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
+        $rec = $query->fetch();
         if ($rec) {
             
             return $rec->id;
@@ -980,6 +989,7 @@ class cms_Content extends core_Master
         }
         
         $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId} AND #source IS NOT NULL");
+        $query->where("#state = 'active'");
         $query->orderBy('id', 'ASC');
         $html = '';
 
@@ -1011,21 +1021,25 @@ class cms_Content extends core_Master
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape(!empty($rec->title) ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $itemsInTable = $itemsInUl = '';
 
+                    // Плъгините (напр. JSON-LD) виждат показаните резултати, с адресите на домейна им
+                    $cls->invoke('AfterGetSearchResults', array(&$res, $rec->id, $q));
+
                     foreach ($res as $o) {
+                        $info = !empty($o->info) ? "<div class='searchInfo'>{$o->info}</div>" : '';
                         if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
                             $titleLink = ht::createLink($o->title, $o->url, false, array('class' => "searchName"));
                             if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
-                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td></tr>';
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . $info . '</td></tr>';
                         } else {
                             $titleLink = ht::createLink($o->title, $o->url);
                             if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
 
-                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . '</li>';
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . $info . '</li>';
                         }
                     }
 
@@ -1078,11 +1092,16 @@ class cms_Content extends core_Master
         $kArr = self::getAllKeywords($domainId);  
         $q = str::utf2ascii($q);
         $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $q);
-        if (isset($iConvStr)) {
+        if ($iConvStr !== false) {
             $q = $iConvStr;
         }
         
+        // Празна или невалидна заявка (напр. счупен UTF-8 в адреса) няма какво да се подобрява
         $qArr = plg_Search::parseQuery($q);
+        if (!is_array($qArr)) {
+            
+            return null;
+        }
         
         $resArr = array();
         $flag = false;
@@ -1207,6 +1226,7 @@ class cms_Content extends core_Master
         if (!($kArr = core_Cache::get('AllCmsKeywords', $domainId))) {
             $query = self::getQuery();
             $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%')");
+            $query->where("#state = 'active'");
             $kArr = array();
             while ($rec = $query->fetch()) {
                 if (!$rec->source || !cls::load($rec->source, true)) {

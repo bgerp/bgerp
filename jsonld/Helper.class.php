@@ -143,6 +143,89 @@ class jsonld_Helper
 
 
     /**
+     * Връща текущия домейн като WebSite възел с адреса на търсенето в него
+     *
+     * Еднаквият @id на всички страници на домейна казва, че са един сайт
+     *
+     * @return jsonld_Node|null
+     */
+    public static function getWebSite()
+    {
+        $domainRec = cms_Domains::getPublicDomain();
+
+        if (!is_object($domainRec) || empty($domainRec->id)) {
+            return null;
+        }
+
+        $url = rtrim(getBoot(true, false, true), '/') . '/';
+        $organization = self::getOrganization();
+        $name = self::getCleanText($domainRec->seoTitle ?? null);
+
+        if ($name === null && isset($organization)) {
+            $name = $organization->toArray()['name'] ?? null;
+        }
+
+        $properties = array('url' => $url);
+
+        if ($name !== null) {
+            $properties['name'] = $name;
+        }
+
+        $language = self::getCleanText($domainRec->lang ?? null);
+
+        if ($language !== null) {
+            $properties['inLanguage'] = $language;
+        }
+
+        if (isset($organization)) {
+            $properties['publisher'] = $organization;
+        }
+
+        $searchUrl = self::getSearchUrlTemplate($domainRec->id);
+
+        if (isset($searchUrl)) {
+            $properties['potentialAction'] = new jsonld_Node('SearchAction', array(
+                'target' => $searchUrl,
+                'query-input' => 'required name=search_term_string',
+            ));
+        }
+
+        return new jsonld_Node('WebSite', $properties, $url . '#website', 'website-' . $domainRec->id);
+    }
+
+
+    /**
+     * Шаблонът на адреса за търсене в домейна - на магазина, който търси във всички външни страници, или на статиите
+     *
+     * @param int $domainId
+     *
+     * @return string|null
+     */
+    protected static function getSearchUrlTemplate($domainId)
+    {
+        $placeholder = 'SEARCHTERMSTRING';
+        $sources = array(
+            'eshop_Groups' => array('eshop_Groups', 'ShowAll', 'cMenuId'),
+            'cms_Articles' => array('cms_Articles', 'Article', 'menuId'),
+        );
+
+        foreach ($sources as $class => list($ctr, $act, $menuVar)) {
+            $menuId = cms_Content::getDefaultMenuId($class, $domainId);
+
+            if (empty($menuId) || cms_Content::fetchField($menuId, 'state') != 'active') {
+                continue;
+            }
+
+            $url = toUrl(array($ctr, $act, 'q' => $placeholder, $menuVar => $menuId), 'absolute');
+
+            return str_replace($placeholder, '{search_term_string}', $url);
+        }
+
+        return null;
+    }
+
+
+    /**
      * Връща общите свойства на публична статия - CMS или блог
      *
      * Записът трябва да има title, body и по желание SEO полетата и modifiedOn.

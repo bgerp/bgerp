@@ -33,8 +33,19 @@ class jsonld_plg_EshopGroups extends core_Plugin
      */
     public static function on_AfterRenderGroup($mvc, &$res, $data)
     {
-        // Търсенето, любимите и последно поръчаните не са истински групи
-        if (!Mode::is('wrapper', 'cms_page_External') || ($data->groupId ?? 0) <= 0 || empty($data->rec)) {
+        if (!Mode::is('wrapper', 'cms_page_External')) {
+            return;
+        }
+
+        // Търсенето с филтри по параметри показва намерените като група
+        if (($data->groupId ?? 0) == eshop_Groups::SEARCH_SYSTEM_ID) {
+            self::addSearchResults(self::getVisibleProducts(array($data->products ?? null)), $data->menuId ?? null);
+
+            return;
+        }
+
+        // Любимите и последно поръчаните не са истински групи
+        if (($data->groupId ?? 0) <= 0 || empty($data->rec)) {
             return;
         }
 
@@ -64,6 +75,55 @@ class jsonld_plg_EshopGroups extends core_Plugin
             'menuId' => $data->menuId,
             'groups' => self::getVisibleGroups($data->recs ?? array()),
         ));
+    }
+
+
+    /**
+     * След намиране на резултатите от бързото търсене, преди да се покажат
+     */
+    public static function on_AfterGetSearchResults($mvc, &$res, $menuId, $q)
+    {
+        if (!Mode::is('wrapper', 'cms_page_External')) {
+            return;
+        }
+
+        $items = array();
+        foreach ((array) $res as $o) {
+            $items[] = array('name' => $o->title ?? null, 'url' => $o->url ?? null);
+        }
+
+        self::addSearchResults($items, $menuId);
+    }
+
+
+    /**
+     * Добавя показаните резултати от търсенето като ItemList
+     *
+     * Страницата на търсенето не е канонична, затова е само списък с адресите на намереното
+     *
+     * @param array    $items масив от array('name' => ..., 'url' => ...)
+     * @param int|null $menuId
+     *
+     * @return void
+     */
+    protected static function addSearchResults($items, $menuId)
+    {
+        // Без търсения израз и служебната група на търсенето - адресите да са каноничните
+        foreach ($items as &$item) {
+            if (is_array($item['url'] ?? null)) {
+                unset($item['url']['q'], $item['url']['groupId']);
+            }
+        }
+        unset($item);
+
+        try {
+            $itemList = self::getItemList($items, 'eshop-search-' . $menuId);
+            if (isset($itemList)) {
+                jsonld_Aggregator::add($itemList);
+            }
+        } catch (Throwable $e) {
+            reportException($e);
+        }
     }
 
 
@@ -261,11 +321,12 @@ class jsonld_plg_EshopGroups extends core_Plugin
     /**
      * Връща ItemList от видимите на страницата връзки
      *
-     * @param array $items масив от array('name' => ..., 'url' => ..., 'image' => ...)
+     * @param array       $items масив от array('name' => ..., 'url' => ..., 'image' => ...)
+     * @param string|null $key   ключ, когато списъкът е самостоятелен възел
      *
      * @return jsonld_Node|null
      */
-    protected static function getItemList($items)
+    protected static function getItemList($items, $key = null)
     {
         $elements = array();
 
@@ -300,7 +361,7 @@ class jsonld_plg_EshopGroups extends core_Plugin
         return new jsonld_Node('ItemList', array(
             'numberOfItems' => countR($elements),
             'itemListElement' => $elements,
-        ));
+        ), null, $key);
     }
 
 

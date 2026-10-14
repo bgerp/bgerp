@@ -246,20 +246,23 @@ class cms_Articles extends core_Master
     
     
     /**
-     * Връща записа на предходната или на следващата статия от даденото меню спрямо тази
+     * Връща записа на предходната или на следващата активна статия от даденото меню спрямо тази
      */
     public static function getPrevOrNext($rec, $dir = 1)
     {
+        $level = (int) ($rec->level ?? 0);
         $query = self::getQuery();
         $query->limit(1);
         if ($dir > 0) {
             $query->orderBy('level');
-            $query->where("#level > {$rec->level}");
+            $query->where("#level > {$level}");
         } else {
             $query->orderBy('level', 'DESC');
-            $query->where("#level < {$rec->level}");
+            $query->where("#level < {$level}");
         }
-        $query->where("#menuId = {$rec->menuId}");
+        
+        // Затворените се прескачат, иначе празната статия води посетителя към 404
+        $query->where(array("#menuId = '[#1#]' AND #state = 'active'", $rec->menuId ?? null));
         
         $nextOrPrevRec = $query->fetch();
         
@@ -298,6 +301,11 @@ class cms_Articles extends core_Master
         } else {
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);
+
+            // Без запис навигацията би показала първата статия от всички менюта
+            if (!$rec) {
+                error('404 Липсваща страница');
+            }
         }
         
         if (is_object($rec) && ($rec->state ?? null) != 'active' && !$this->haveRightFor('show', $rec)) {
@@ -1029,10 +1037,11 @@ class cms_Articles extends core_Master
     {
         $domainId = $domainId ?? cms_Domains::getPublicDomain()->id;
         
-        // Всички активни статии към домейна с информация за добавяне във футъра
+        // Всички активни статии от активните менюта на домейна с информация за добавяне във футъра
         $query = self::getQuery();
         $query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
-        $query->where("#domainId = '{$domainId}' AND #state = 'active'");
+        $query->EXT('menuState', 'cms_Content', 'externalName=state,externalKey=menuId');
+        $query->where(array("#domainId = '[#1#]' AND #state = 'active' AND #menuState = 'active'", $domainId));
         $query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
         $query->orderBy('level', 'ASC');
 
