@@ -25,11 +25,6 @@ class jsonld_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
-        $html .= core_Composer::install(
-            'spatie/schema-org',
-            '3.9.0'
-        );
-
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin(
             'JSON-LD за продукти в онлайн магазина',
@@ -47,6 +42,12 @@ class jsonld_Setup extends core_ProtoSetup
             'JSON-LD за публични CMS статии',
             'jsonld_plg_CmsArticles',
             'cms_Articles',
+            'private'
+        );
+        $html .= $Plugins->installPlugin(
+            'JSON-LD за статиите от блога',
+            'jsonld_plg_BlogmArticles',
+            'blogm_Articles',
             'private'
         );
 
