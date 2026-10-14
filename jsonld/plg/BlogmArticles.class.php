@@ -72,12 +72,16 @@ class jsonld_plg_BlogmArticles extends core_Plugin
         }
 
         // Като в навигацията на блога - датата на публикуване, иначе на създаване
-        $datePublished = jsonld_Helper::getIsoDate(
-            !empty($rec->publishedOn) ? $rec->publishedOn : ($rec->createdOn ?? null)
-        );
+        $publishedOn = !empty($rec->publishedOn) ? $rec->publishedOn : ($rec->createdOn ?? null);
+        $datePublished = jsonld_Helper::getIsoDate($publishedOn);
 
         if ($datePublished !== null) {
             $properties['datePublished'] = $datePublished;
+
+            // Стара статия, публикувана наново - промяната е преди публикуването
+            if (!empty($rec->modifiedOn) && $rec->modifiedOn < $publishedOn) {
+                unset($properties['dateModified']);
+            }
         }
 
         // Авторът е лице, както се показва; новините го крият във външната част - тогава е фирмата
