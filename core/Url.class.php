@@ -249,7 +249,7 @@ class core_Url
             $parts = parse_url($url);
         }
         
-        if ($parts['query']) {
+        if (!empty($parts['query'])) {
             $parts['query_params'] = array();
             $aPairs = explode('&', $parts['query']);
             
@@ -257,7 +257,7 @@ class core_Url
                 if (trim($sPair) == '') {
                     continue;
                 }
-                list($sKey, $sValue) = explode('=', $sPair);
+                list($sKey, $sValue) = explode('=', $sPair) + array('', '');
                 $parts['query_params'][$sKey] = decodeUrl($sValue);
             }
         }
