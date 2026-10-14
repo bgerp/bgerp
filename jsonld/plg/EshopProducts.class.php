@@ -14,12 +14,13 @@ class jsonld_plg_EshopProducts extends core_Plugin
         &$res,
         $data
     ) {
-        $provider = cls::getInterface(
-            'jsonld_ProviderIntf',
-            'jsonld_adapters_EshopProduct'
-        );
-        $nodes = $provider->getJsonLdNodes($data);
+        if (!Mode::is('wrapper', 'cms_page_External')) {
+            return;
+        }
 
-        jsonld_Aggregator::addArray($nodes);
+        jsonld_Aggregator::addFromProvider(
+            'jsonld_adapters_EshopProduct',
+            $data
+        );
     }
 }
