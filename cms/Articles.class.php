@@ -300,8 +300,13 @@ class cms_Articles extends core_Master
             $rec = self::fetch($id);
         }
         
-        if (is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) {
+        if (is_object($rec) && ($rec->state ?? null) != 'active' && !$this->haveRightFor('show', $rec)) {
             error('404 Липсваща страница');
+        }
+
+        $menuId = $rec->menuId ?? $menuId;
+        if ($menuId) {
+            cms_Content::setCurrent($menuId);
         }
 
         if ($rec && !trim((string)$rec->body)) {
@@ -316,16 +321,10 @@ class cms_Articles extends core_Master
         
         if ($rec) {
             $rec->body = trim((string) $rec->body);
-            $menuId = $rec->menuId;
             $lArr = explode('.', self::getVerbal($rec, 'level'));
             $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
         }
 
-        // Задава текущото меню, съответстващо на страницата
-        if ($menuId) {
-            cms_Content::setCurrent($menuId);
-        }
-        
         if (!$content) {
             $content = new ET("");
         }
@@ -421,7 +420,7 @@ class cms_Articles extends core_Master
         
         Mode::set('cmsNav', true);
         
-        if (haveRole('admin,ceo,cms') && isset($rec->id)) {
+        if (isset($rec->id) && $this->haveRightFor('changerec', $rec)) {
             $query->where("#state = 'active' OR #id = {$rec->id}");
         } else {
             $query->where("#state = 'active'");
@@ -624,8 +623,8 @@ class cms_Articles extends core_Master
             }
         }
         
-        if ($action == 'show' && is_object($rec) && $rec->state != 'active') {
-            $roles = 'admin,cms,ceo';
+        if ($action == 'show' && is_object($rec) && ($rec->state ?? null) != 'active') {
+            $roles = $mvc->getRequiredRoles('changerec', $rec, $userId);
         }
     }
     

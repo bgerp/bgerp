@@ -98,6 +98,12 @@ class cms_Content extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,cms';
+
+
+    /**
+     * Кой може да разглежда публичното съдържание
+     */
+    public $canShow = 'every_one';
     
     
     /**
@@ -612,6 +618,10 @@ class cms_Content extends core_Master
     public static function setCurrent($menuId = null, $externalPage = true)
     {
         if ($menuId && ($rec = cms_Content::fetch($menuId))) {
+            if ($externalPage && !self::haveRightFor('show', $rec)) {
+                error('404 Липсваща страница');
+            }
+
             Mode::set('cMenuId', $menuId);
             cms_Domains::setPublicDomain($rec->domainId);
             if (haveRole('powerUser')) {
@@ -685,6 +695,10 @@ class cms_Content extends core_Master
         } else {
             $rec = $this->fetch($menuId);
         }
+
+        if ($rec && !$this->haveRightFor('show', $rec)) {
+            error('404 Липсваща страница');
+        }
         
         Mode::set('cMenuId', $menuId);
         
@@ -757,6 +771,10 @@ class cms_Content extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if ($action == 'show' && is_object($rec) && ($rec->state ?? null) != 'active') {
+            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
+        }
+
         //  Кой може да обобщава резултатите
         if ($action == 'delete' && isset($rec->id, $rec->source)) {
             if (isset($rec->source) && cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
