@@ -1021,21 +1021,25 @@ class cms_Content extends core_Master
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape(!empty($rec->title) ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $itemsInTable = $itemsInUl = '';
 
+                    // Плъгините (напр. JSON-LD) виждат показаните резултати, с адресите на домейна им
+                    $cls->invoke('AfterGetSearchResults', array(&$res, $rec->id, $q));
+
                     foreach ($res as $o) {
+                        $info = !empty($o->info) ? "<div class='searchInfo'>{$o->info}</div>" : '';
                         if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
                             $titleLink = ht::createLink($o->title, $o->url, false, array('class' => "searchName"));
                             if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
-                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td></tr>';
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . $info . '</td></tr>';
                         } else {
                             $titleLink = ht::createLink($o->title, $o->url);
                             if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
 
-                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . '</li>';
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . $info . '</li>';
                         }
                     }
 

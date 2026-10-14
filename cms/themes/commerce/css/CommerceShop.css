@@ -200,6 +200,16 @@
 .eshop-public .eshop-content .results table.searchResult { border-collapse: collapse; }
 .eshop-public .eshop-content .results table.searchResult tr { border-bottom: 1px solid var(--shop-line); }
 .eshop-public .eshop-content .results table.searchResult tr:last-child { border-bottom: 0; }
+/* Секциите идват с различна разметка - таблица при магазина и списък с вграден размер при статиите и блога */
+.eshop-public .eshop-content .results ul { margin: 0; padding: 0; list-style: none; }
+.eshop-public .eshop-content .results li {
+    margin: 0 !important;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--shop-line);
+}
+.eshop-public .eshop-content .results li:last-child { border-bottom: 0; }
+.eshop-public .eshop-content .results li,
+.eshop-public .eshop-content .results td.searchName { font-size: 1.125rem !important; }
 .eshop-public .eshop-content .results td.searchImg img { display: block; width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
 .eshop-public .eshop-content .results a { color: var(--shop-ink); text-decoration: none; }
 .eshop-public .eshop-content .results a:hover { color: var(--shop-accent); text-decoration: underline; }
