@@ -288,9 +288,14 @@ class doc_View extends core_Master
         $form = $data->form;
         $id = $form->rec->id ?? null;
 
+        // Непълният контекст се отказва от проверката за права след подготовката на формата.
+        if (empty($rec->clsId) || empty($rec->dataId)) {
+            return;
+        }
+
         $tplArr = doc_TplManager::getTemplates($rec->clsId);
         
-        expect($tplArr || cls::get($rec->clsId)->createView);
+        expect($tplArr || !empty(cls::get($rec->clsId)->createView));
 
         if (empty($tplArr)) {
             $data->form->setField('tplId', 'input=none');
