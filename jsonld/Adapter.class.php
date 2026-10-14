@@ -2,10 +2,9 @@
 
 
 /**
- * Единствената production граница към spatie/schema-org
+ * Сериализира jsonld_Node възлите в една обща JSON-LD графа
  *
- * Преобразува рекурсивно произволни поддържани jsonld_Node типове в една
- * обща JSON-LD графа.
+ * Без външни библиотеки - възлите сами дават масива си (jsonld_Node::toArray()).
  */
 class jsonld_Adapter
 {
@@ -22,27 +21,23 @@ class jsonld_Adapter
             return '';
         }
 
-        if (!core_Composer::isInUse()) {
-            throw new RuntimeException(
-                'Composer autoloader is not available for JSON-LD'
-            );
-        }
+        $graph = array();
 
-        $graph = new \Spatie\SchemaOrg\Graph();
-
-        foreach ($nodes as $index => $node) {
+        foreach ($nodes as $node) {
             if (!$node instanceof jsonld_Node) {
                 throw new InvalidArgumentException(
                     'jsonld_Adapter accepts only jsonld_Node objects'
                 );
             }
 
-            $schema = static::convertNode($node);
-            $graph->add($schema, 'node-' . $index);
+            $graph[] = $node->toArray();
         }
 
         $json = json_encode(
-            $graph->toArray(),
+            array(
+                '@context' => 'https://schema.org',
+                '@graph' => $graph,
+            ),
             JSON_UNESCAPED_UNICODE |
             JSON_UNESCAPED_SLASHES |
             JSON_HEX_TAG |
@@ -59,67 +54,5 @@ class jsonld_Adapter
         }
 
         return $json;
-    }
-
-
-    /**
-     * Converts one neutral node to a temporary Schema.org type
-     *
-     * @param jsonld_Node $node
-     *
-     * @return \Spatie\SchemaOrg\Type
-     */
-    protected static function convertNode(jsonld_Node $node)
-    {
-        $class = 'Spatie\\SchemaOrg\\' . $node->getType();
-
-        if (!class_exists($class)
-            || !is_subclass_of($class, \Spatie\SchemaOrg\Type::class)) {
-            throw new InvalidArgumentException(
-                'Unsupported Schema.org type: ' . $node->getType()
-            );
-        }
-
-        $schema = new $class();
-
-        if ($node->getId() !== null && $node->getId() !== '') {
-            $schema->setProperty('@id', $node->getId());
-        }
-
-        foreach ($node->getProperties() as $property => $value) {
-            $schema->setProperty(
-                $property,
-                static::convertValue($value)
-            );
-        }
-
-        return $schema;
-    }
-
-
-    /**
-     * Recursively converts nested neutral nodes
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    protected static function convertValue($value)
-    {
-        if ($value instanceof jsonld_Node) {
-            return static::convertNode($value);
-        }
-
-        if (is_array($value)) {
-            $result = array();
-
-            foreach ($value as $key => $item) {
-                $result[$key] = static::convertValue($item);
-            }
-
-            return $result;
-        }
-
-        return $value;
     }
 }
