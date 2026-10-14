@@ -219,9 +219,20 @@ class jsonld_plg_EshopProducts extends core_Plugin
             );
         }
 
+        // Google изисква снимка за всеки продукт - на страницата се виждат тези на е-артикула
+        $imageUrl = self::getImageUrl($data);
+        $description = self::getDescription($data);
         $variants = array();
 
         foreach ($products as $productId => $properties) {
+            if (isset($description)) {
+                $properties['description'] = $description;
+            }
+
+            if (isset($imageUrl)) {
+                $properties['image'] = $imageUrl;
+            }
+
             $variants[] = new jsonld_Node(
                 'Product',
                 $properties,
