@@ -59,7 +59,7 @@ abstract class email_drivers_OutgoingEmails extends core_BaseClass
         $uRec = array();
         $fNameArr = arr::make($Driver->updateField);
         foreach ($fNameArr as $fName => $addrFName) {
-            $uRec[$addrFName] = $rec->{$fName};
+            $uRec[$addrFName] = (($rec->state ?? null) == 'active') ? ($rec->{$fName} ?? null) : null;
         }
 
         email_AddressesInfo::updateRecFor($rec->email, $uRec);
