@@ -600,6 +600,7 @@ class email_Setup extends core_ProtoSetup
 
         $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
         $res .= $this->callMigrate('repairServiceRules2127', 'email');
+        $res .= $this->callMigrate('clearClosedRedirects2642', 'email');
 
         return $res;
     }
@@ -743,6 +744,38 @@ class email_Setup extends core_ProtoSetup
 
                 continue;
             }
+        }
+    }
+
+
+    /**
+     * Премахва останалите пренасочвания от затворени правила.
+     */
+    public function clearClosedRedirects2642()
+    {
+        $driverClassId = email_drivers_RouteOutgoingEmails::getClassId();
+        $query = email_ServiceRules::getQuery();
+        $query->where(array("#state = 'closed' AND #driverClass = '[#1#]'", $driverClassId));
+
+        while ($rec = $query->fetch()) {
+            $email = trim($rec->email ?? '');
+            $redirection = trim($rec->redirection ?? '');
+            if ($email === '' || $redirection === '') {
+                continue;
+            }
+
+            $addressRec = email_AddressesInfo::getRecFor($email);
+            if (!$addressRec || strcasecmp(trim($addressRec->redirection ?? ''), $redirection) !== 0) {
+                continue;
+            }
+
+            // Запазваме пренасочванията, поддържани от активно правило за същия адрес.
+            if (email_ServiceRules::fetch(array("#state = 'active' AND #driverClass = '[#1#]' AND #email = '[#2#]'", $driverClassId, $email), 'id')) {
+                continue;
+            }
+
+            $addressRec->redirection = null;
+            email_AddressesInfo::save($addressRec, 'redirection');
         }
     }
 
