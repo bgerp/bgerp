@@ -33,6 +33,22 @@ class jsonld_plg_EshopProducts extends core_Plugin
 
 
     /**
+     * След рендиране на каталога без навигация - е-артикулите по групи
+     */
+    public static function on_AfterRenderAllProducts($mvc, &$res, $data)
+    {
+        if (!Mode::is('wrapper', 'cms_page_External') || empty($data->menuId)) {
+            return;
+        }
+
+        jsonld_Aggregator::addFromProvider('eshop_Groups', (object) array(
+            'menuId' => $data->menuId,
+            'products' => jsonld_plg_EshopGroups::getVisibleProducts((array) ($data->groups ?? array())),
+        ));
+    }
+
+
+    /**
      * Стандартна реализация на jsonld_ProviderIntf::getJsonLdNodes()
      *
      * Класът или друг плъгин може да подаде свой резултат преди нея.
@@ -82,29 +98,8 @@ class jsonld_plg_EshopProducts extends core_Plugin
             return null;
         }
 
-        $groups = array();
-        $used = array();
-
-        for ($gRec = $groupRec; $gRec && empty($used[$gRec->id]); $gRec = eshop_Groups::fetch($gRec->saoParentId ?? null)) {
-            $used[$gRec->id] = true;
-            array_unshift($groups, array(
-                'name' => eshop_Groups::getVerbal($gRec, 'name'),
-                'url' => eshop_Groups::getUrl($gRec, true),
-            ));
-
-            if (empty($gRec->saoParentId)) {
-                break;
-            }
-        }
-
-        $items = array_merge(
-            array(array(
-                'name' => cms_Content::getVerbal($groupRec->menuId, 'menu'),
-                'url' => cms_Content::getContentUrl($groupRec->menuId),
-            )),
-            $groups,
-            array(array('name' => tr(eshop_Products::getDisplayTitle($data->rec))))
-        );
+        $items = jsonld_plg_EshopGroups::getBreadcrumbItems($groupRec);
+        $items[] = array('name' => tr(eshop_Products::getDisplayTitle($data->rec)));
 
         return jsonld_Helper::getBreadcrumbList($items, 'eshop-breadcrumb-' . $data->rec->id);
     }
