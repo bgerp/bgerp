@@ -199,8 +199,17 @@ try {
             if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
                 // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
-                $db = new core_Db();
-                if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
+                $isEmptyDB = false;
+                if (!$e->isNotExistsDB()) {
+                    try {
+                        $db = new core_Db();
+                        $isEmptyDB = ($db->getDBInfo('ROWS') == 0);
+                    } catch (Throwable $dbInfoErr) {
+                        // Връзката може да е негодна - не допускаме тази грешка да скрие оригиналната
+                        $isEmptyDB = false;
+                    }
+                }
+                if ($e->isNotExistsDB() || $isEmptyDB) {
                     redirect(array('Index', 'SetupKey' => setupKey()));
                 }
             

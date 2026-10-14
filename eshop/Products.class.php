@@ -573,6 +573,7 @@ class eshop_Products extends core_Master
         if(countR($products)){
             $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID] = new stdClass();
             $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]->groupId = eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID;
+            $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]->menuId = $data->menuId;
             self::prepareGroupList($data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]);
         }
 
@@ -583,6 +584,7 @@ class eshop_Products extends core_Master
         while ($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
+            $data->groups[$gRec->id]->menuId = $data->menuId;
             $data->groups[$gRec->id]->groupRec = $gRec;
             self::prepareGroupList($data->groups[$gRec->id]);
         }
@@ -592,7 +594,16 @@ class eshop_Products extends core_Master
             if(countR($products)){
                 $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID] = new stdClass();
                 $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID]->groupId = eshop_Carts::LAST_SALES_SYSTEM_ID;
+                $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID]->menuId = $data->menuId;
                 self::prepareGroupList($data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID]);
+            }
+        }
+
+        // Страниците сочат към адреса на каталога (Bg/Products), а не към вътрешния ShowAll
+        $pagerUrl = toUrl(cls::get('eshop_Groups')->getUrlByMenuId($data->menuId));
+        foreach ($data->groups as $gData) {
+            if (isset($gData->Pager)) {
+                $gData->Pager->url = $pagerUrl;
             }
         }
     }
@@ -806,6 +817,11 @@ class eshop_Products extends core_Master
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
 
+        // При пренасочване от Bg/Products менюто не е в URL-то и страниците отиват в друго меню
+        if (!empty($data->menuId)) {
+            $data->Pager->addToUrl = array('cMenuId' => $data->menuId);
+        }
+
         // Цените на опциите са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
         if(countR($data->recs)){
             $optQuery = eshop_ProductDetails::getQuery();
@@ -938,7 +954,7 @@ class eshop_Products extends core_Master
     /**
      * Рендира всички артикули
      */
-    public static function renderAllProducts($data)
+    public static function renderAllProducts_($data)
     {
         $layout = new ET();
 
