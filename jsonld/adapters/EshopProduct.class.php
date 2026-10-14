@@ -4,8 +4,7 @@
 /**
  * Преобразува подготвени e-shop данни в Product и Offer JSON-LD възли
  *
- * Бъдещи Article и BreadcrumbList доставчици следва да са отделни
- * source-specific реализации, използващи същия общ pipeline.
+ * Други типове (напр. BreadcrumbList) се добавят като отделни доставчици.
  */
 class jsonld_adapters_EshopProduct
 {
@@ -29,7 +28,7 @@ class jsonld_adapters_EshopProduct
         $url = $this->getCanonicalUrl($data);
         $currency = $this->getCurrency($data);
 
-        foreach ($data->detailData->recs as $detailRec) {
+        foreach ((array) ($data->detailData->recs ?? array()) as $detailRec) {
             $productId = $detailRec->productId;
 
             if (!isset($products[$productId])) {
@@ -178,10 +177,10 @@ class jsonld_adapters_EshopProduct
                 continue;
             }
 
-            $name = $this->getCleanScalarText(
+            $name = jsonld_Helper::getCleanText(
                 tr(cat_Params::getVerbal($paramRec, 'name'))
             );
-            $value = $this->getCleanScalarText(
+            $value = jsonld_Helper::getCleanText(
                 $productParams[$paramId]
             );
 
@@ -190,7 +189,7 @@ class jsonld_adapters_EshopProduct
             }
 
             if (!empty($paramRec->suffix)) {
-                $suffix = $this->getCleanScalarText(tr($paramRec->suffix));
+                $suffix = jsonld_Helper::getCleanText(tr($paramRec->suffix));
 
                 if ($suffix !== null) {
                     $value .= ' ' . $suffix;
@@ -230,32 +229,6 @@ class jsonld_adapters_EshopProduct
 
 
     /**
-     * Преобразува скаларна публична стойност в чист текст
-     *
-     * @param mixed $value
-     *
-     * @return string|null
-     */
-    protected function getCleanScalarText($value)
-    {
-        if (!is_scalar($value)) {
-            return null;
-        }
-
-        $value = html_entity_decode(
-            strip_tags((string) $value),
-            ENT_QUOTES | ENT_HTML5,
-            'UTF-8'
-        );
-        $value = str_replace("\xc2\xa0", ' ', $value);
-        $value = preg_replace('/\s+/u', ' ', $value);
-        $value = trim($value);
-
-        return $value !== '' ? $value : null;
-    }
-
-
-    /**
      * Връща чистото описание на страницата
      */
     protected function getDescription($data)
@@ -273,9 +246,7 @@ class jsonld_adapters_EshopProduct
             Mode::pop('text');
         }
 
-        $description = trim($description);
-
-        return $description !== '' ? $description : null;
+        return jsonld_Helper::getCleanText($description);
     }
 
 
@@ -287,28 +258,11 @@ class jsonld_adapters_EshopProduct
         $fields = array('image', 'image2', 'image3', 'image4', 'image5');
 
         foreach ($fields as $field) {
-            $fh = $data->rec->{$field} ?? null;
+            $url = jsonld_Helper::getImageUrl($data->rec->{$field} ?? null);
 
-            if (empty($fh) || !fileman_Files::isImage($fh)) {
-                continue;
+            if ($url !== null) {
+                return $url;
             }
-
-            $path = fileman::fetchByFh($fh, 'path');
-
-            if (!$path || !file_exists($path)) {
-                continue;
-            }
-
-            $image = new thumb_Img(array(
-                $fh,
-                1600,
-                1200,
-                'fileman',
-                'isAbsolute' => true,
-                'mode' => 'small-no-change',
-            ));
-
-            return $image->getUrl('forced');
         }
 
         return null;
@@ -364,7 +318,9 @@ class jsonld_adapters_EshopProduct
      */
     protected function getAvailability($detailRec)
     {
-        return eshop_ProductDetails::getPublicAvailability($detailRec);
+        // Подготвена при рендирането на опциите, за да не се смята повторно
+        return $detailRec->_availability
+            ?? eshop_ProductDetails::getPublicAvailability($detailRec);
     }
 
 
