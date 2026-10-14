@@ -13,6 +13,17 @@ class jsonld_plg_External extends core_Plugin
      */
     public static function on_Output(&$invoker)
     {
+        // Сайтът с търсенето му е на всяка страница - не всяка има начална
+        try {
+            $webSite = jsonld_Helper::getWebSite();
+
+            if (isset($webSite)) {
+                jsonld_Aggregator::add($webSite);
+            }
+        } catch (Throwable $e) {
+            reportException($e);
+        }
+
         if (jsonld_Aggregator::isEmpty()) {
             return;
         }

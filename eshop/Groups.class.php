@@ -320,16 +320,16 @@ class eshop_Groups extends core_Master
      */
     public function act_ShowAll()
     {
-        // При филтри по параметри търсенето е списък на намерените е-артикули, като група.
+        // Търсенето е по всички външни страници; само избор във филтъра показва намерените е-артикули като група.
         // Менюто се задава първо, иначе настройките са на друг домейн
         $q = trim((string) Request::get('q', 'varchar'));
-        $hasFilter = strlen((string) Request::get(eshop_ParamFilter::URL_VAR, 'varchar'));
+        $hasFilter = strlen((string) Request::get(eshop_ParamFilter::URL_VAR, 'varchar')) || strlen((string) Request::get(eshop_ParamFilter::GROUP_URL_VAR, 'varchar'));
         if (strlen($q) || $hasFilter) {
             $menuId = Request::get('cMenuId', 'int');
             cms_Content::setCurrent($menuId ? $menuId : cms_Content::getDefaultMenuId($this));
 
             // Без навигация избор във филтъра на каталога също показва намерените
-            if (eshop_ParamFilter::isEnabled() && (strlen($q) || !self::mustShowSideNavigation())) {
+            if (eshop_ParamFilter::isEnabled() && $hasFilter && (strlen($q) || !self::mustShowSideNavigation())) {
                 Request::push(array('id' => self::SEARCH_SYSTEM_ID));
 
                 return $this->act_Show();
@@ -353,9 +353,22 @@ class eshop_Groups extends core_Master
 
         $layout = $this->getLayout();
  
+        // Филтрите са по намерените е-артикули - изборът в тях води към списъка им като група
+        $searchFilterData = null;
         if (($q = Request::get('q', 'varchar')) && $menuId > 0) {
+            $resultsTpl = cms_Content::renderSearchResults($menuId, $q);
+
+            if (eshop_ParamFilter::isEnabled()) {
+                $searchFilterData = (object) array('groupId' => self::SEARCH_SYSTEM_ID, 'menuId' => $menuId, 'q' => $q, 'withParamFilter' => true, 'onlyParamFilter' => true);
+                eshop_Products::prepareGroupList($searchFilterData);
+
+                // Без навигация филтрите са лента над резултатите - след replace() мястото не приема добавяне
+                if (!self::mustShowSideNavigation()) {
+                    $resultsTpl = new ET('[#1#][#2#]', eshop_ParamFilter::renderTop($searchFilterData), $resultsTpl);
+                }
+            }
  
-            $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
+            $layout->replace($resultsTpl, 'PAGE_CONTENT');
             
             vislog_History::add("Търсене в продуктите: {$q}");
         }
@@ -369,7 +382,8 @@ class eshop_Groups extends core_Master
                 redirect($data->links[0]->url);
             }
 
-            self::renderSideNavigation($layout, $data, eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'));
+            $filtersTpl = isset($searchFilterData) ? eshop_ParamFilter::renderNavigation($searchFilterData) : eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите');
+            self::renderSideNavigation($layout, $data, $filtersTpl);
 
             $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
@@ -382,7 +396,7 @@ class eshop_Groups extends core_Master
             eshop_Products::prepareAllProducts($data);
 
             // Без навигация филтрите по всички е-артикули от менюто са над тях
-            if (eshop_ParamFilter::isEnabled()) {
+            if (eshop_ParamFilter::isEnabled() && !isset($searchFilterData)) {
                 $filterData = (object) array('groupId' => self::SEARCH_SYSTEM_ID, 'menuId' => $data->menuId, 'withParamFilter' => true, 'onlyParamFilter' => true);
                 eshop_Products::prepareGroupList($filterData);
                 $layout->append(eshop_ParamFilter::renderTop($filterData), 'PAGE_CONTENT');
@@ -1059,12 +1073,18 @@ class eshop_Groups extends core_Master
                 $recs += $query->fetchAll();
             }
             
+            // Цената и наличността са по настройките на текущия домейн - на чужд може да са други
+            $infos = array();
+            if (countR($recs) && cms_Content::fetchField($menuId, 'domainId') == cms_Domains::getPublicDomain('id')) {
+                $infos = self::getSearchResultsInfo($recs);
+            }
+
             foreach ($recs as $r) {
                 $title = eshop_Products::getDisplayTitle($r);
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
-                
-                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
+
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60), 'info' => $infos[$r->id] ?? null);
             }
         }
         
@@ -1072,6 +1092,83 @@ class eshop_Groups extends core_Master
     }
     
     
+    /**
+     * Код, най-ниска цена и наличност на намерените е-артикули - видими без отваряне на артикула
+     *
+     * @param array $recs записи на е-артикули
+     *
+     * @return array ид на е-артикул => HTML
+     */
+    protected static function getSearchResultsInfo($recs)
+    {
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->in('eshopProductId', array_keys($recs));
+        $dQuery->where("#state = 'active'");
+        $dRecs = $dQuery->fetchAll();
+        if (!countR($dRecs)) return array();
+
+        eshop_ProductDetails::preloadPublicPrices(arr::extractValuesFromArray($dRecs, 'productId'));
+
+        $byProduct = array();
+        foreach ($dRecs as $dRec) {
+            $byProduct[$dRec->eshopProductId][] = $dRec;
+        }
+
+        $settings = cms_Domains::getSettings();
+        $res = array();
+        foreach ($byProduct as $eProductId => $options) {
+            $best = null;
+            $inStock = $stockChecked = false;
+            foreach ($options as $dRec) {
+                $minData = eshop_ProductDetails::getMinPackagingAndQuantity($dRec);
+                if (!isset($minData['packagingId'])) continue;
+
+                $pRec = clone $dRec;
+                $pRec->packagingId = $minData['packagingId'];
+                $pRec->quantityInPack = $minData['quantity'];
+                $availability = eshop_ProductDetails::getPublicAvailability($pRec);
+
+                if ($availability->stockChecked) {
+                    $stockChecked = true;
+                    $inStock = $inStock || in_array($availability->stockState, array('local', 'remote', 'mixed'));
+                }
+
+                if (!$availability->showPrice || !$availability->hasPublicPrice || $availability->saleStopped) continue;
+                if (!isset($best) || $availability->priceInfo->price < $best->price) {
+                    $best = (object) array('price' => $availability->priceInfo->price, 'rec' => $pRec);
+                }
+            }
+
+            $parts = array();
+
+            // Кодът е само при една опция - иначе е различен за всяка
+            if (countR($options) == 1) {
+                $parts[] = tr('код') . ': ' . cat_Products::getVerbal($options[0]->productId, 'code');
+            }
+
+            if (isset($best)) {
+                $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($best->price);
+                $price = currency_Currencies::decorate($price, $settings->currencyId ?? null, true);
+                $pack = cat_UoM::getShortName($best->rec->packagingId);
+                deals_Helper::getPackInfo($pack, $best->rec->productId, $best->rec->packagingId, $best->rec->quantityInPack);
+                $vat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                $parts[] = (countR($options) > 1 ? tr('от||from') . ' ' : '') . "{$price} / {$pack}, {$vat}";
+            }
+
+            // Липсата не се пише - може да се очаква доставка
+            if ($stockChecked && $inStock) {
+                $parts[] = tr('в наличност');
+            }
+
+            if (countR($parts)) {
+                $res[$eProductId] = implode(' · ', $parts);
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Добавя ключовите думи от обектите в менюто към масива
      */

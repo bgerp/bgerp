@@ -4828,8 +4828,7 @@ table .eshop-btn {
   margin: 0 0 1.2em;
   padding: 0.6em 0.75em 0.75em;
   border: 1px solid #d8dce1;
-  border-radius: 0.4em;
-}
+  border-radius: 0.4em; }
 
 #eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
   display: inline-flex;
@@ -4838,9 +4837,8 @@ table .eshop-btn {
   margin: 0;
   padding: 0 0.5em;
   border: 0;
-  background: transparent;
-  font-size: 1em;
-}
+  background: rgba(0, 0, 0, 0);
+  font-size: 1em; }
 
 #eshopParamFilterTop .eshop-param-filter a.eshop-param-filter-clear {
   font-size: 0.6em; }
@@ -4981,6 +4979,10 @@ table .eshop-btn {
   .searchResult .searchImg {
     width: 70px;
     text-align: center; }
+  .searchResult .searchInfo {
+    font-size: 0.85em;
+    color: #666666;
+    margin-top: 2px; }
 
 .narrow .searchResult td {
   padding: 0 2px 2px; }

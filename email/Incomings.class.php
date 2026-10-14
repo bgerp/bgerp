@@ -526,7 +526,7 @@ class email_Incomings extends core_Master
             // Извличаме хедърите и проверяваме за дублиране
             $headers = $imapConn->getHeaders($msgNo);
             
-            if (email_Fingerprints::fetchByHeaders($headers)) {
+            if ($fRec = email_Fingerprints::fetchByHeaders($headers)) {
 
                 // Кой е UID на писмото?
                 $uid = $imapConn->getUid($msgNo);
@@ -534,6 +534,7 @@ class email_Incomings extends core_Master
                 // Записа на имейл сметката, от където се тегли
                 $accId = $imapConn->accRec->id;
 
+                $this->logDuplicateEmail($imapConn, $msgNo, $uid, $fRec);
                 email_Fingerprints::saveMaxUID($accId, $uid);
 
                 return 'duplicated';
@@ -564,6 +565,7 @@ class email_Incomings extends core_Master
                 if ($fRec = email_Fingerprints::fetchByHeaders($headersMime)) {
                     
                     // Записваме статуса на сваленото писмо (service, misformatted, normal);
+                    $this->logDuplicateEmail($imapConn, $msgNo, $uid, $fRec);
                     email_Fingerprints::setStatus($headers, $fRec->status, $accId, $uid);
                     
                     return 'duplicated';
@@ -598,6 +600,29 @@ class email_Incomings extends core_Master
         }
 
         return $status;
+    }
+
+
+    /**
+     * Записва причината и източника на пропуснатото дублирано писмо.
+     */
+    protected function logDuplicateEmail($imapConn, $msgNo, $uid, $fRec)
+    {
+        $accRec = $imapConn->accRec ?? null;
+        $accId = $accRec->id ?? null;
+        if (($accRec->protocol ?? null) == 'imap' && (!$uid || $uid <= $this->getLastProcessedUid($accId))) {
+
+            return;
+        }
+
+        $message = "Дублиран имейл: писмо №{$msgNo}, UID " . ($uid ?: '-')
+            . '; съвпада с отпечатък #' . ($fRec->id ?? '')
+            . ', акаунт #' . ($fRec->accountId ?? '')
+            . ', UID ' . ($fRec->uid ?? '')
+            . ', статус ' . ($fRec->status ?? '')
+            . ', свален на ' . ($fRec->downloadedOn ?? '');
+
+        email_Accounts::logInfo($message, $accId);
     }
 
 
@@ -816,6 +841,26 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Последният обработен UID за конкретния акаунт, включително дубликатите.
+     */
+    protected function getLastProcessedUid($accId)
+    {
+        $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $accId);
+        if (!$maxUid) {
+            $query = email_Fingerprints::getQuery();
+            $query->show('uid');
+            $query->where(array("#accountId = '[#1#]'", $accId));
+            $query->orderBy('#uid', 'DESC');
+            $query->limit(1);
+            $maxRec = $query->fetch();
+            $maxUid = $maxRec->uid ?? 0;
+        }
+
+        return $maxUid;
+    }
+
+
+    /**
      * Връща поредния номер на първото не-четено писмо
      *
      * @param email_Imap $imapConn Обект с отворена IMAP/POP3 връзка
@@ -831,18 +876,9 @@ class email_Incomings extends core_Master
 
         $maxReadMsgNo = $maxUid = 0;
 
-        if ($imapConn->accRec->protocol == 'imap') {
-            $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $imapConn->accRec->id);
-            if (!$maxUid) {
-                $query = email_Fingerprints::getQuery();
-                $query->show('uid');
-                $query->where(array("#accountId = '[#1#]'", $imapConn->accRec->id));
-                $query->orderBy('#uid', 'DESC');
-                $query->limit(1);
-                $maxRec = $query->fetch();
-
-                $maxUid = !empty($maxRec) ? $maxRec->uid : 0;
-            }
+        $isImap = ($imapConn->accRec->protocol ?? null) == 'imap';
+        if ($isImap) {
+            $maxUid = $this->getLastProcessedUid($imapConn->accRec->id ?? null);
         }
 
         if ($maxUid) {
@@ -850,6 +886,8 @@ class email_Incomings extends core_Master
         }
         
         if ($maxReadMsgNo === 0) {
+            $checkedUid = $isImap ? $maxUid : null;
+
             // Горен указател
             $t = $maxMsgNo;
 
@@ -858,7 +896,7 @@ class email_Incomings extends core_Master
             // Долен указател
             $b = max(1, $maxMsgNo - $i);
             
-            $isDownT = $this->isDownloaded($imapConn, $t);
+            $isDownT = $this->isDownloaded($imapConn, $t, $checkedUid);
 
             // Дали всички съобщения са прочетени?
             if ($isDownT) {
@@ -866,7 +904,7 @@ class email_Incomings extends core_Master
                 return;
             }
             
-            $isDownB = $this->isDownloaded($imapConn, $b);
+            $isDownB = $this->isDownloaded($imapConn, $b, $checkedUid);
             
             $tLast = $bLast = null;
             do {
@@ -879,7 +917,7 @@ class email_Incomings extends core_Master
                     $t = $b;
                     $i = $i * 2;
                     $b = max(1, $maxMsgNo - $i);
-                    $isDownB = $this->isDownloaded($imapConn, $b);
+                    $isDownB = $this->isDownloaded($imapConn, $b, $checkedUid);
                 } elseif ($isDownB && !$isDownT) {
                     // Условие, при което $t е първото не-свалено писмо
                     if ($t - $b == 1) {
@@ -887,7 +925,7 @@ class email_Incomings extends core_Master
                         return $t;
                     }
                     $m = round(($t + $b) / 2);
-                    $isDownM = $this->isDownloaded($imapConn, $m);
+                    $isDownM = $this->isDownloaded($imapConn, $m, $checkedUid);
                     if ($isDownM) {
                         $b = $m;
                     } else {
@@ -916,7 +954,7 @@ class email_Incomings extends core_Master
     /**
      * Дали посоченото писмо е сваляно до сега?
      */
-    protected function isDownloaded($imapConn, $msgNum)
+    protected function isDownloaded($imapConn, $msgNum, $checkedUid = null)
     {
         static $isDown = array();
         $accId = $imapConn->accRec->id;
@@ -930,6 +968,16 @@ class email_Incomings extends core_Master
             return true;
         }
         
+        // Новият UID трябва да мине през fetchEmail(), дори отпечатъкът да е от друг акаунт.
+        if (isset($checkedUid)) {
+            $uid = $imapConn->getUid($msgNum);
+            if ($uid > $checkedUid) {
+                email_Accounts::logInfo("Нов IMAP UID {$uid} за писмо №{$msgNum}; последно обработен UID {$checkedUid}", $accId);
+
+                return false;
+            }
+        }
+
         if (!isset($isDown[$accId][$msgNum])) {
             $headers = $imapConn->getHeaders($msgNum);
 
