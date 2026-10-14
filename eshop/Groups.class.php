@@ -346,9 +346,12 @@ class eshop_Groups extends core_Master
         if (empty($data->menuId)) {
             $data->menuId = cms_Content::getDefaultMenuId($this);
         }
-        
+
+        // Изтрито меню (стар линк) или домейн без меню на е-магазина
+        expect404($data->menuId && cms_Content::fetch($data->menuId));
+
         $menuId = $data->menuId;
-        
+
         cms_Content::setCurrent($data->menuId);
 
         $layout = $this->getLayout();
