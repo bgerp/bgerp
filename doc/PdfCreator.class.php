@@ -102,7 +102,7 @@ class doc_PdfCreator extends core_Manager
         $fileHnd = self::fetchField("#md5='{$md5}'", 'fileHnd');
         if ($fileHnd && isDebug()) {
             doc_PdfCreator::delete("#fileHnd = '{$fileHnd}'");
-            unset($fileHnd);
+            $fileHnd = null;
         }
         
         //Ако не съществува
