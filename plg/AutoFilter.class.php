@@ -58,8 +58,8 @@ class plg_AutoFilter extends core_Plugin
         $autoFields = $form->selectFields('#autoFilter');
         foreach ($autoFields as $name => &$field) {
             $attr = &$field->attr;
-            if (!$attr['onchange']) {
-                $attr['onchange'] = 'this.form.submit();';
+            if (empty($attr['onchange'])) {
+                $attr['onchange'] = "$(this).closest('form').get(0).submit();";
             }
             
             $modeName = 'lastAutoFielter_' . $name;
