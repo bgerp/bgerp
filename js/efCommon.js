@@ -3534,6 +3534,9 @@ function editCopiedTextBeforePaste() {
         var body_element = document.getElementsByTagName('body')[0];
         var selection = window.getSelection();
 
+        // Копиране от поле за въвеждане (напр. във Firefox) не дава обхват в страницата
+        if (!selection || !selection.rangeCount) return;
+
         var htmlDiv = document.createElement('div');
 
         htmlDiv.style.position = 'absolute';
