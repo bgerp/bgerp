@@ -55,6 +55,21 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
 
     /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'params' => 'Филтър',
+        'folders' => 'Папки на търговците',
+        'outMails' => 'Изходящи имейли с оферта в периода',
+        'lastOutMails' => 'Папки с изходящ имейл с оферта',
+        'noOfferInBody' => 'Пропуснати: последният имейл без #Q в текста',
+        'inMails' => 'Папки с входящи имейли',
+        'replied' => 'Пропуснати: с отговор след офертата',
+        'rows' => 'Оферти без отговор',
+    );
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -92,8 +107,11 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Диагностика: броят и времената по етапи
+        $startedOn = microtime(true);
+        $skipped = array('noOfferInBody' => 0, 'replied' => 0);
 
-        $recs = $foldersArr = $incomingMailsArr = $outgoingMailsArr = array();
+        $recs = $folderDealers = $dealerEmails = $incomingMailsArr = $outgoingMailsArr = array();
         $foldersForChek = array();
         $rec->periodStart = $rec->periodStart ?? 3 * 24 * 60 * 60;
         $rec->periodEnd = $rec->periodEnd ?? 3 * 7 * 24 * 60 * 60;
@@ -102,26 +120,34 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $periodStart = dt::addSecs(-$rec->periodStart, dt::today(), false);
         $periodEnd = dt::addSecs(-$rec->periodEnd, $periodStart, false);
 
-        //Определяме папките $foldersArr чиито отговорници са избраните дилъри
+        $dealers = type_UserList::toArray($rec->dealers);
+        $params = "от {$periodEnd} до {$periodStart}" . (!empty($dealers) ? ', търговци: ' . countR($dealers) : '');
+        self::setReportStat($data, 'params', tr(static::$statCaptions['params']) . ": {$params}");
+
+        //Определяме папките, чиито отговорници са избраните дилъри
         $fQuery = doc_Folders::getQuery();
         $fQuery->in('state', array('rejected', 'draft'), true);
 
-        $dealers = type_UserList::toArray($rec->dealers);
         if (!empty($dealers)) {
             $fQuery->in('inCharge', $dealers);
         }
+        $fQuery->show('id,inCharge');
 
+        $timer = microtime(true);
         while ($fRec = $fQuery->fetch()){
-            if(!isset($foldersArr[$fRec->inCharge])){
-                $foldersArr[$fRec->inCharge] = array($fRec->id);
-                $foldersForChek[$fRec->id] = $fRec->id;
-            }else{
-                $foldersArr[$fRec->inCharge][] = $fRec->id;
-                $foldersForChek[$fRec->id] = $fRec->id;
-            }
+            $folderDealers[$fRec->id] = $fRec->inCharge;
+            $foldersForChek[$fRec->id] = $fRec->id;
+
+            // Търговците остават в реда на първата си папка
+            $dealerEmails[$fRec->inCharge] = array();
         }
 
+        self::addReportStat($data, 'folders', microtime(true) - $timer, countR($foldersForChek));
+
         if (empty($foldersForChek)) {
+            self::addReportStat($data, 'rows', 0, 0);
+            $this->logReportStats($data, $startedOn);
+
             return $recs;
         }
 
@@ -134,35 +160,37 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
             $periodEnd . ' 00:00:00', $periodStart . ' 23:59:59'));
         $mOutQuery->where("#searchKeywords REGEXP ' [Q|q][0-9]+'");
 
+        $timer = microtime(true);
+        $outMailsCnt = 0;
         while ($emOutRec = $mOutQuery->fetch()) {
+            $outMailsCnt++;
 
             //$outgoingMailsArr последния изходящ имейл във всяка папка
-            if(!isset($outgoingMailsArr[$emOutRec->folderId])){
+            if (!isset($outgoingMailsArr[$emOutRec->folderId]) || $emOutRec->createdOn > $outgoingMailsArr[$emOutRec->folderId]->createdOn) {
                 $outgoingMailsArr[$emOutRec->folderId] = $emOutRec;
-            }else{
-
-                if($emOutRec->createdOn > $outgoingMailsArr[$emOutRec->folderId]->createdOn){
-                    $outgoingMailsArr[$emOutRec->folderId] = $emOutRec;
-                }
             }
-
         }
-;
+        self::addReportStat($data, 'outMails', microtime(true) - $timer, $outMailsCnt);
+
         //Разпределяне на папките и последния имейл в тях по дилъри
         //и филтрирам само тези които съдържат оферта
-        $lastOutEmails = array();
-        foreach ($foldersArr as $dil => $fId){
-            foreach ($outgoingMailsArr as $email){
-
-                if(in_array($email->folderId,$fId)){
-
-                    if (!preg_match('/#Q\d+/', $email->body ?? ''))continue;
-
-                    $key = $dil.'|'.$email->folderId;
-                    $lastOutEmails[$key] = $email;
-                }
+        $timer = microtime(true);
+        foreach ($outgoingMailsArr as $email){
+            if (!preg_match('/#Q\d+/', $email->body ?? '')) {
+                $skipped['noOfferInBody']++;
+                continue;
             }
+
+            $dil = $folderDealers[$email->folderId];
+            $dealerEmails[$dil][$dil . '|' . $email->folderId] = $email;
         }
+
+        $lastOutEmails = array();
+        foreach ($dealerEmails as $emails) {
+            $lastOutEmails += $emails;
+        }
+        self::addReportStat($data, 'lastOutMails', microtime(true) - $timer, countR($outgoingMailsArr));
+        self::addReportStat($data, 'noOfferInBody', 0, $skipped['noOfferInBody']);
 
         //Определяме последния входящ имейл в папките на избраните дилъри
         $mInQuery = email_Incomings::getQuery();
@@ -175,25 +203,19 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $mInQuery->groupBy('folderId');
         $mInQuery->show('folderId, maxCreatedOn');
 
+        $timer = microtime(true);
         while ($mInRec = $mInQuery->fetch()) {
             $incomingMailsArr[$mInRec->folderId] = $mInRec->maxCreatedOn;
         }
+        self::addReportStat($data, 'inMails', microtime(true) - $timer, countR($incomingMailsArr));
 
         // От филтрираните изходящи имейли съдържащи оферта, отделяме тези,
         // които са с по голяма дата от последния входящ имей в същата папка
         foreach ($lastOutEmails as $outMailKey => $outMail){
             list($deal, $outFolder) = explode('|', $outMailKey);
-            $shouldAdd = false;
 
-            if (!array_key_exists($outFolder, $incomingMailsArr)) {
-                // Няма входящ имейл — включваме офертата
-                $shouldAdd = true;
-            } elseif ($outMail->createdOn > $incomingMailsArr[$outFolder]) {
-                // Има входящ имейл, но офертата е по-късна — също я включваме
-                $shouldAdd = true;
-            }
-
-            if ($shouldAdd) {
+            // Включва се, ако в папката няма входящ имейл или офертата е след последния
+            if (!array_key_exists($outFolder, $incomingMailsArr) || $outMail->createdOn > $incomingMailsArr[$outFolder]) {
                 $id = $deal . '|' . $outFolder;
 
                 $recs[$id] = (object)[
@@ -201,8 +223,15 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
                     'outMail' => $outMail,
                     'dealer' => $deal,
                 ];
+            } else {
+                $skipped['replied']++;
             }
         }
+
+        self::addReportStat($data, 'replied', 0, $skipped['replied']);
+        $rowsCnt = countR($recs);
+        self::addReportStat($data, 'rows', 0, $rowsCnt);
+        $this->logReportStats($data, $startedOn, $rowsCnt);
 
         return $recs;
     }

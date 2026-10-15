@@ -635,7 +635,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('group', 'input=hidden');
         }
 
-        $form->input('selectPeriod,from,to',true);
+        // Изборът на период липсва, ако плъгинът не го е добавил (напр. периодът не може да се променя)
+        $form->input(isset($form->fields['selectPeriod']) ? 'selectPeriod,from,to' : 'from,to', true);
         $currentPeriod = acc_Periods::fetchByDate(dt::today());
         $periodStart = $rec->from ?? $currentPeriod->start;
         $periodEnd = $rec->to ?? $currentPeriod->end;
