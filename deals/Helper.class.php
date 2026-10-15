@@ -2036,6 +2036,314 @@ abstract class deals_Helper
 
         core_Debug::startTimer('CALC_INVOICE_PAYMENTS');
 
+        // Класовете на документите в нишките, за да не се търси в липсващите
+        $docClasses = $containerClasses = array();
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->in('threadId', $threads);
+        $cQuery->show('id,docClass');
+
+        // Таблицата е MyISAM - без HIGH_PRIORITY чака зад чужди записи
+        $cQuery->highPriority = true;
+        $cQuery->selectOnReplica();
+        while ($cRec = $cQuery->fetch()) {
+            $docClasses[$cRec->docClass] = $cRec->docClass;
+            $containerClasses[$cRec->id] = $cRec->docClass;
+        }
+
+        // Фактурите се извличат с по една заявка на клас
+        $invoiceRecs = $invoiceCidsByClass = array();
+        foreach (array_keys($invoicesArr) as $containerId) {
+            $invoiceCidsByClass[$containerClasses[$containerId] ?? 0][$containerId] = $containerId;
+        }
+        foreach ($invoiceCidsByClass as $classId => $cIds) {
+            if (empty($classId)) continue;
+
+            $iQuery = cls::get($classId)->getQuery();
+            $iQuery->in('containerId', $cIds);
+            $iQuery->selectOnReplica();
+            while ($iRec = $iQuery->fetch()) {
+                $invoiceRecs[$iRec->containerId] = $iRec;
+            }
+        }
+
+        // Платежните документи в нишките
+        $payDocs = $payContainerIds = array();
+        foreach (array(
+                     'cash_Pko',
+                     'cash_Rko',
+                     'bank_IncomeDocuments',
+                     'bank_SpendingDocuments',
+                     'findeals_CreditDocuments',
+                     'findeals_DebitDocuments'
+                 ) as $Pay) {
+
+            $Pdoc = cls::get($Pay);
+            if (!isset($docClasses[$Pdoc->getClassId()])) continue;
+
+            // Полетата нужни и за getPaymentData, за да не се презарежда записът
+            $showFields = array('id', 'containerId', 'threadId', 'amountDeal', 'amount', 'isReverse', 'activatedOn', 'valior');
+            foreach (array('currencyId', 'dealCurrencyId', 'operationSysId', 'earlyPaymentUntil', 'earlyPaymentPercent') as $fld) {
+                if ($Pdoc->getField($fld, false)) {
+                    $showFields[] = $fld;
+                }
+            }
+
+            $pQuery = $Pdoc->getQuery();
+            $pQuery->in('threadId', $threads);
+            $pQuery->where("#state = 'active'");
+            $pQuery->show(implode(',', $showFields));
+
+            // Изричен ред, за да е еднакъв и при общото зареждане (getInvoicePaymentsBulk)
+            $pQuery->orderBy('threadId,id', 'ASC');
+
+            if (isset($valior)) {
+                $pQuery->where("#valior <= '{$valior}'");
+            }
+
+            $pQuery->selectOnReplica();
+            while ($pRec = $pQuery->fetch()) {
+                $payDocs[] = array($Pay, $Pdoc, $pRec);
+                $payContainerIds[$pRec->containerId] = $pRec->containerId;
+            }
+        }
+
+        // Насочванията към фактури на всички плащания с една заявка (както в deals_InvoicesToDocuments::getInvoiceArr)
+        $invArrByPayment = array();
+        if (countR($payContainerIds)) {
+            $itdQuery = deals_InvoicesToDocuments::getQuery();
+            $itdQuery->in('documentContainerId', $payContainerIds);
+            $itdQuery->orderBy('id', 'ASC');
+            $itdQuery->selectOnReplica();
+            while ($itdRec = $itdQuery->fetch()) {
+                $invArrByPayment[$itdRec->documentContainerId][$itdRec->id] = $itdRec;
+            }
+        }
+
+        // Сделките с плащане в нишките
+        $dealPayRecs = array();
+        foreach (array('sales_Sales', 'purchase_Purchases') as $dealDoc) {
+            $DealDoc = cls::get($dealDoc);
+            if (!isset($docClasses[$DealDoc->getClassId()])) continue;
+
+            $dQuery = $DealDoc->getQuery();
+            $dQuery->in('threadId', $threads);
+            $dQuery->where("#state IN ('active', 'closed')");
+            $dQuery->where(array("#contoActions LIKE '%pay%'"));
+            $dQuery->show('containerId,amountDeal,currencyRate,currencyId,valior');
+            $dQuery->orderBy('threadId,id', 'ASC');
+
+            if (isset($valior)) {
+                $dQuery->where("#valior <= '{$valior}'");
+            }
+
+            while ($dRec = $dQuery->fetch()) {
+                $dealPayRecs[] = $dRec;
+            }
+        }
+
+        $newInvoiceArr = self::calcInvoicePayments(array_keys($invoicesArr), $invoiceRecs, $payDocs, $invArrByPayment, $dealPayRecs, $onlyExactPayments, $applyNotesToTheInvoice);
+
+        core_Debug::stopTimer('CALC_INVOICE_PAYMENTS');
+
+        return $newInvoiceArr;
+    }
+
+
+    /**
+     * Разпределението на плащанията по фактури за много нишки с общи заявки
+     *
+     * За всяка нишка резултатът е като от getInvoicePayments() със същите параметри
+     *
+     * @param array          $threadIds
+     * @param datetime|NULL  $valior
+     * @param boolean        $onlyExactPayments
+     * @param boolean        $applyNotesToTheInvoice
+     *
+     * @return array [threadId => разпределение като от getInvoicePayments()]
+     */
+    public static function getInvoicePaymentsBulk($threadIds, $valior = null, $onlyExactPayments = true, $applyNotesToTheInvoice = true)
+    {
+        $groups = $groupOfThread = array();
+        foreach ($threadIds as $threadId) {
+            $threads = static::getCombinedThreads($threadId);
+            if (!countR($threads)) continue;
+
+            ksort($threads);
+            $key = implode('|', $threads);
+            $groups[$key] = $threads;
+            $groupOfThread[$threadId] = $key;
+        }
+
+        // Цяла група влиза в една партида, за да е подредена като при getInvoicePayments()
+        $results = $batch = $batchThreads = array();
+        foreach ($groups as $key => $threads) {
+            if (countR($batch) && countR($batchThreads + $threads) > 1000) {
+                $results += self::getInvoicePaymentsForGroups($batch, $batchThreads, $valior, $onlyExactPayments, $applyNotesToTheInvoice);
+                $batch = $batchThreads = array();
+            }
+            $batch[$key] = $threads;
+            $batchThreads += $threads;
+        }
+        if (countR($batch)) {
+            $results += self::getInvoicePaymentsForGroups($batch, $batchThreads, $valior, $onlyExactPayments, $applyNotesToTheInvoice);
+        }
+
+        $res = array();
+        foreach ($threadIds as $threadId) {
+            $res[$threadId] = isset($groupOfThread[$threadId]) ? $results[$groupOfThread[$threadId]] : array();
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Зарежда с общи заявки данните на няколко групи нишки и разпределя плащанията по групи
+     *
+     * @param array          $groups - [ключ => [threadId => threadId]]
+     * @param array          $threads - всички нишки на групите
+     * @param datetime|NULL  $valior
+     * @param boolean        $onlyExactPayments
+     * @param boolean        $applyNotesToTheInvoice
+     *
+     * @return array [ключ => разпределение като от getInvoicePayments()]
+     */
+    private static function getInvoicePaymentsForGroups($groups, $threads, $valior, $onlyExactPayments, $applyNotesToTheInvoice)
+    {
+        core_Debug::startTimer('CALC_INVOICE_PAYMENTS');
+
+        $groupsOfThread = array();
+        foreach ($groups as $key => $gThreads) {
+            foreach ($gThreads as $threadId) {
+                $groupsOfThread[$threadId][$key] = $key;
+            }
+        }
+
+        // Фактурите с условията и реда на getInvoicesInThread(), заедно с целите записи
+        $invoiceIds = $invoiceRecs = array();
+        foreach (array('sales_Invoices', 'purchase_Invoices') as $class) {
+            $iQuery = cls::get($class)->getQuery();
+            $iQuery->in('threadId', $threads);
+            $iQuery->where("#state = 'active'");
+            $iQuery->orderBy('date,number,type,dealValue', 'ASC');
+            if (isset($valior)) {
+                $iQuery->where("#date <= '{$valior}'");
+            }
+            $iQuery->where("#type = 'invoice' || #type = 'dc_note' && #dealValue > 0 || #type = 'dc_note' && #dealValue <= 0");
+
+            while ($iRec = $iQuery->fetch()) {
+                foreach ($groupsOfThread[$iRec->threadId] ?? array() as $key) {
+                    $invoiceIds[$key][$iRec->containerId] = $iRec->containerId;
+                }
+                $invoiceRecs[$iRec->containerId] = $iRec;
+            }
+        }
+
+        // Плащанията трябват само за групите с фактури
+        $activeThreads = array();
+        foreach (array_keys($invoiceIds) as $key) {
+            $activeThreads += $groups[$key];
+        }
+
+        $payDocs = $payContainerIds = $invArrByPayment = $dealPayRecs = array();
+        if (countR($activeThreads)) {
+            foreach (array(
+                         'cash_Pko',
+                         'cash_Rko',
+                         'bank_IncomeDocuments',
+                         'bank_SpendingDocuments',
+                         'findeals_CreditDocuments',
+                         'findeals_DebitDocuments'
+                     ) as $Pay) {
+
+                $Pdoc = cls::get($Pay);
+
+                // Полетата нужни и за getPaymentData, за да не се презарежда записът
+                $showFields = array('id', 'containerId', 'threadId', 'amountDeal', 'amount', 'isReverse', 'activatedOn', 'valior');
+                foreach (array('currencyId', 'dealCurrencyId', 'operationSysId', 'earlyPaymentUntil', 'earlyPaymentPercent') as $fld) {
+                    if ($Pdoc->getField($fld, false)) {
+                        $showFields[] = $fld;
+                    }
+                }
+
+                $pQuery = $Pdoc->getQuery();
+                $pQuery->in('threadId', $activeThreads);
+                $pQuery->where("#state = 'active'");
+                $pQuery->show(implode(',', $showFields));
+                $pQuery->orderBy('threadId,id', 'ASC');
+                if (isset($valior)) {
+                    $pQuery->where("#valior <= '{$valior}'");
+                }
+
+                $pQuery->selectOnReplica();
+                while ($pRec = $pQuery->fetch()) {
+                    foreach ($groupsOfThread[$pRec->threadId] ?? array() as $key) {
+                        $payDocs[$key][] = array($Pay, $Pdoc, $pRec);
+                    }
+                    $payContainerIds[$pRec->containerId] = $pRec->containerId;
+                }
+            }
+
+            foreach (array_chunk($payContainerIds, 1000) as $chunk) {
+                $itdQuery = deals_InvoicesToDocuments::getQuery();
+                $itdQuery->in('documentContainerId', $chunk);
+                $itdQuery->orderBy('id', 'ASC');
+                $itdQuery->selectOnReplica();
+                while ($itdRec = $itdQuery->fetch()) {
+                    $invArrByPayment[$itdRec->documentContainerId][$itdRec->id] = $itdRec;
+                }
+            }
+
+            foreach (array('sales_Sales', 'purchase_Purchases') as $dealDoc) {
+                $dQuery = cls::get($dealDoc)->getQuery();
+                $dQuery->in('threadId', $activeThreads);
+                $dQuery->where("#state IN ('active', 'closed')");
+                $dQuery->where(array("#contoActions LIKE '%pay%'"));
+                $dQuery->show('threadId,containerId,amountDeal,currencyRate,currencyId,valior');
+                $dQuery->orderBy('threadId,id', 'ASC');
+                if (isset($valior)) {
+                    $dQuery->where("#valior <= '{$valior}'");
+                }
+
+                while ($dRec = $dQuery->fetch()) {
+                    foreach ($groupsOfThread[$dRec->threadId] ?? array() as $key) {
+                        $dealPayRecs[$key][] = $dRec;
+                    }
+                }
+            }
+        }
+
+        $res = array();
+        foreach (array_keys($groups) as $key) {
+            if (empty($invoiceIds[$key])) {
+                $res[$key] = array();
+                continue;
+            }
+
+            $res[$key] = self::calcInvoicePayments(array_keys($invoiceIds[$key]), $invoiceRecs, $payDocs[$key] ?? array(), $invArrByPayment, $dealPayRecs[$key] ?? array(), $onlyExactPayments, $applyNotesToTheInvoice);
+        }
+
+        core_Debug::stopTimer('CALC_INVOICE_PAYMENTS');
+
+        return $res;
+    }
+
+
+    /**
+     * Разпределя плащанията по фактурите на една група нишки от вече заредените данни
+     *
+     * @param array $invoiceIds - контейнерите на фактурите в реда на getInvoicesInThread()
+     * @param array $invoiceRecs - [containerId => запис на фактурата]
+     * @param array $payDocs - [[клас, мениджър, запис на плащането]]
+     * @param array $invArrByPayment - насочванията към фактури [containerId на плащането => [id => запис]]
+     * @param array $dealPayRecs - сделките с плащане
+     * @param bool $onlyExactPayments
+     * @param bool $applyNotesToTheInvoice
+     *
+     * @return array
+     */
+    private static function calcInvoicePayments($invoiceIds, $invoiceRecs, $payDocs, $invArrByPayment, $dealPayRecs, $onlyExactPayments, $applyNotesToTheInvoice)
+    {
         $newInvoiceArr = array();
         $invoiceMeta = array();
         $payArr = array();
@@ -2071,40 +2379,10 @@ abstract class deals_Helper
             return $amountBase / $payToBase;
         };
 
-        // Класовете на документите в нишките, за да не се търси в липсващите
-        $docClasses = $containerClasses = array();
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->in('threadId', $threads);
-        $cQuery->show('id,docClass');
-
-        // Таблицата е MyISAM - без HIGH_PRIORITY чака зад чужди записи
-        $cQuery->highPriority = true;
-        $cQuery->selectOnReplica();
-        while ($cRec = $cQuery->fetch()) {
-            $docClasses[$cRec->docClass] = $cRec->docClass;
-            $containerClasses[$cRec->id] = $cRec->docClass;
-        }
-
-        // Фактурите се извличат с по една заявка на клас
-        $invoiceRecs = $invoiceCidsByClass = array();
-        foreach (array_keys($invoicesArr) as $containerId) {
-            $invoiceCidsByClass[$containerClasses[$containerId] ?? 0][$containerId] = $containerId;
-        }
-        foreach ($invoiceCidsByClass as $classId => $cIds) {
-            if (empty($classId)) continue;
-
-            $iQuery = cls::get($classId)->getQuery();
-            $iQuery->in('containerId', $cIds);
-            $iQuery->selectOnReplica();
-            while ($iRec = $iQuery->fetch()) {
-                $invoiceRecs[$iRec->containerId] = $iRec;
-            }
-        }
-
         // --------------------------------
         // 1) Подготовка на фактурите
         // --------------------------------
-        foreach ($invoicesArr as $containerId => $handler) {
+        foreach ($invoiceIds as $containerId) {
             $iRec = $invoiceRecs[$containerId] ?? doc_Containers::getDocument($containerId)->fetch();
 
             $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
@@ -2132,58 +2410,6 @@ abstract class deals_Helper
                 'rate'        => $iRec->rate,
                 'currencyId'  => $iRec->currencyId
             );
-        }
-
-        // --------------------------------
-        // 2) Подготовка на плащанията
-        // --------------------------------
-        $payDocs = $payContainerIds = array();
-        foreach (array(
-                     'cash_Pko',
-                     'cash_Rko',
-                     'bank_IncomeDocuments',
-                     'bank_SpendingDocuments',
-                     'findeals_CreditDocuments',
-                     'findeals_DebitDocuments'
-                 ) as $Pay) {
-
-            $Pdoc = cls::get($Pay);
-            if (!isset($docClasses[$Pdoc->getClassId()])) continue;
-
-            // Полетата нужни и за getPaymentData, за да не се презарежда записът
-            $showFields = array('id', 'containerId', 'threadId', 'amountDeal', 'amount', 'isReverse', 'activatedOn', 'valior');
-            foreach (array('currencyId', 'dealCurrencyId', 'operationSysId', 'earlyPaymentUntil', 'earlyPaymentPercent') as $fld) {
-                if ($Pdoc->getField($fld, false)) {
-                    $showFields[] = $fld;
-                }
-            }
-
-            $pQuery = $Pdoc->getQuery();
-            $pQuery->in('threadId', $threads);
-            $pQuery->where("#state = 'active'");
-            $pQuery->show(implode(',', $showFields));
-
-            if (isset($valior)) {
-                $pQuery->where("#valior <= '{$valior}'");
-            }
-
-            $pQuery->selectOnReplica();
-            while ($pRec = $pQuery->fetch()) {
-                $payDocs[] = array($Pay, $Pdoc, $pRec);
-                $payContainerIds[$pRec->containerId] = $pRec->containerId;
-            }
-        }
-
-        // Насочванията към фактури на всички плащания с една заявка (както в deals_InvoicesToDocuments::getInvoiceArr)
-        $invArrByPayment = array();
-        if (countR($payContainerIds)) {
-            $itdQuery = deals_InvoicesToDocuments::getQuery();
-            $itdQuery->in('documentContainerId', $payContainerIds);
-            $itdQuery->orderBy('id', 'ASC');
-            $itdQuery->selectOnReplica();
-            while ($itdRec = $itdQuery->fetch()) {
-                $invArrByPayment[$itdRec->documentContainerId][$itdRec->id] = $itdRec;
-            }
         }
 
         foreach ($payDocs as $payDoc) {
@@ -2349,36 +2575,21 @@ abstract class deals_Helper
         // --------------------------------
         // 3) Сделки с плащане да участват и те
         // --------------------------------
-        foreach (array('sales_Sales', 'purchase_Purchases') as $dealDoc) {
-            $DealDoc = cls::get($dealDoc);
-            if (!isset($docClasses[$DealDoc->getClassId()])) continue;
+        foreach ($dealPayRecs as $dRec) {
+            $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
 
-            $dQuery = $DealDoc->getQuery();
-            $dQuery->in('threadId', $threads);
-            $dQuery->where("#state IN ('active', 'closed')");
-            $dQuery->where(array("#contoActions LIKE '%pay%'"));
-            $dQuery->show('containerId,amountDeal,currencyRate,currencyId,valior');
-
-            if (isset($valior)) {
-                $dQuery->where("#valior <= '{$valior}'");
-            }
-
-            while ($dRec = $dQuery->fetch()) {
-                $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
-
-                $payArr[$dRec->containerId] = (object) array(
-                    'containerId'  => $dRec->containerId,
-                    'amount'       => $amount,
-                    'available'    => $amount,
-                    'to'           => null,
-                    'paymentType'  => 'cash',
-                    'isReverse'    => false,
-                    'rate'         => $dRec->currencyRate,
-                    'currencyId'   => $dRec->currencyId,
-                    'date'         => $dRec->valior,
-                    'isExactLink'  => false
-                );
-            }
+            $payArr[$dRec->containerId] = (object) array(
+                'containerId'  => $dRec->containerId,
+                'amount'       => $amount,
+                'available'    => $amount,
+                'to'           => null,
+                'paymentType'  => 'cash',
+                'isReverse'    => false,
+                'rate'         => $dRec->currencyRate,
+                'currencyId'   => $dRec->currencyId,
+                'date'         => $dRec->valior,
+                'isExactLink'  => false
+            );
         }
 
         if ($onlyExactPayments) {
@@ -2392,8 +2603,6 @@ abstract class deals_Helper
         if ($applyNotesToTheInvoice) {
             $newInvoiceArr = self::mergeNotePaymentsToOriginInvoices($newInvoiceArr, $invoiceMeta);
         }
-
-        core_Debug::stopTimer('CALC_INVOICE_PAYMENTS');
 
         return $newInvoiceArr;
     }

@@ -540,6 +540,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             return $invoicePaymentsByThread[$threadId];
         };
+        // Плащанията на много нишки с общи заявки; getPayments() после ги взима наготово
+        $preloadPayments = function ($threadIds) use (&$invoicePaymentsByThread, $checkDate, &$paymentsSeconds) {
+            $threadIds = array_diff_key($threadIds, $invoicePaymentsByThread);
+            if (!countR($threadIds)) return;
+
+            $timer = microtime(true);
+            $invoicePaymentsByThread += deals_Helper::getInvoicePaymentsBulk($threadIds, $checkDate, false, false);
+            $paymentsSeconds += microtime(true) - $timer;
+        };
         $getFirstDocument = function ($threadId) use (&$firstDocuments) {
             if (!array_key_exists($threadId, $firstDocuments)) {
                 $firstDocuments[$threadId] = doc_Threads::getFirstDocument($threadId);
@@ -691,7 +700,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $invoices = $invQuery->fetchAll();
                 self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid == 'unpaid');
                 if ($rec->unpaid == 'all' && $InvDoc == sales_Invoices::class) {
-                    self::primeCombinedThreads(arr::extractValuesFromArray($invoices, 'threadId'), $firstDocuments, $salesCombiners);
+                    $invoiceThreads = arr::extractValuesFromArray($invoices, 'threadId');
+                    self::primeCombinedThreads($invoiceThreads, $firstDocuments, $salesCombiners);
+                    $preloadPayments($invoiceThreads);
                 }
 
                 foreach ($invoices as $salesInvoice) {
@@ -854,6 +865,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->unpaid == 'unpaid' && !empty($threadsId)) {
                 self::addReportStat($data, 'threads', 0, countR($threadsId));
                 self::primeCombinedThreads($threadsId, $firstDocuments, $salesCombiners);
+                $preloadPayments($threadsId);
 
                 $checkedSInvoices = array();
 
@@ -1316,7 +1328,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
-        self::addReportStat($data, 'payments', $paymentsSeconds, countR($invoicePaymentsByGroup));
+        self::addReportStat($data, 'payments', $paymentsSeconds, countR($invoicePaymentsByThread));
         foreach ($skipped as $reason => $numbers) {
             // Фактура от обединена сделка се среща във всяка нейна нишка
             $numbers = array_values(array_unique($numbers));
