@@ -50,6 +50,11 @@ checkDebugStats(array_values($stats['durations']) === array(1, 1, 1, 1, 6), 'Exe
 checkDebugStats($stats['intervals'][8]['size'] === array('count' => 2, 'sum' => 400000, 'max' => 300000), 'Sizes from names accumulate per interval');
 checkDebugStats($stats['intervals'][9]['size']['count'] === 1 && $stats['intervals'][9]['size']['sum'] === 500001, 'Initial names without size excluded from size average');
 checkDebugStats($stats['intervals'][10]['size']['count'] === 2 && $stats['intervals'][10]['size']['sum'] === 100, 'Zero size is a known size');
+$durationBreakdown = log_DebugStatistics::getDurationBreakdown($stats['totals'] + array('durations' => $stats['durations']));
+checkDebugStats($durationBreakdown['errors'] === 3 && $durationBreakdown['pending'] === 1 && $durationBreakdown['unknown'] === 2 && array_sum($durationBreakdown) === 10, 'Duration chart separates errors, unfinished and remaining unknown records without double counting');
+$pendingStats = debugStatsFor($names, array('status' => '000'));
+$pendingMetrics = log_DebugStatistics::getIntervalMetrics($pendingStats['intervals'][9]);
+checkDebugStats($pendingStats['totals']['errors'] === 0 && $pendingMetrics['errorPercent'] == 0 && $pendingMetrics['fastPercent'] === null, 'Unfinished records are neither errors nor known-duration requests');
 checkDebugStats(count($stats['intervals']) === 24 && $stats['intervals'][7]['total'] === 0 && abs($stats['average'] - 10 / 24) < 0.000001, 'Empty hours contribute to the average');
 foreach (array('2xx' => 2, '8xx' => 2, '000' => 1, '500|505|510|0' => 2, '404' => 1, '150' => 1) as $status => $count) {
     checkDebugStats(debugStatsFor($names, array('status' => $status))['totals']['total'] === $count, 'Status filter: ' . $status);
@@ -92,11 +97,14 @@ checkDebugStats(log_DebugStatistics::getIntervalMetrics($stats['intervals'][7]) 
 $export = log_DebugStatistics::exportText($stats, log_DebugStatistics::prepareFilter(array()), array('search' => "quoted\nfilter"));
 checkDebugStats(strpos($export, 'quoted\\nfilter') !== false && strpos($export, 'точна средна продължителност') !== false, 'Export keeps filter values quoted and explains duration limits');
 checkDebugStats(strpos($export, '"user":"all"') !== false && strpos($export, '"execTimeTo":"23:59:59"') !== false, 'Export describes effective all-user and full-day filters');
+checkDebugStats(strpos($export, 'Недовършени (000): 1') !== false && strpos($export, 'other_no_duration') !== false, 'Export labels unfinished records and explains the duration breakdown');
 preg_match('/```tsv\n(.*?)```/s', $export, $table);
 $exportRows = explode("\n", trim($table[1] ?? ''));
 checkDebugStats(count($exportRows) === 25 && count(explode("\t", $exportRows[0])) === 18, 'Export includes a header and all 24 intervals');
 $exportHour = explode("\t", $exportRows[9]);
 checkDebugStats($exportHour[0] === '08:00' && $exportHour[12] === '50' && $exportHour[14] === '2' && $exportHour[15] === '400000' && $exportHour[16] === '200000', 'Exported percentages, counts and exact byte sizes');
+$exportMixed = explode("\t", $exportRows[10]);
+checkDebugStats($exportMixed[0] === '09:00' && $exportMixed[3] === '1' && $exportMixed[4] === '1' && $exportMixed[11] === '0', 'Export keeps errors and unfinished records in separate columns without duplicating them as other unknown durations');
 checkDebugStats(strpos($exportRows[8], "NA\tNA\t0\t0\tNA\tNA") !== false, 'Export distinguishes no observations from zero');
 
 foreach (array(1, 5, 30, 60) as $interval) {
@@ -106,6 +114,8 @@ foreach (array(1, 5, 30, 60) as $interval) {
     checkDebugStats(abs($grouped['average'] - 10 / (1440 / $interval)) < 0.000001, 'Average per selected interval');
     foreach ($grouped['intervals'] as $values) {
         checkDebugStats(array_sum($values['durations']) === $values['total'], 'Known and unknown durations cover each interval');
+        $breakdown = log_DebugStatistics::getDurationBreakdown($values);
+        checkDebugStats(array_sum($breakdown) === $values['total'] && min($breakdown) >= 0, 'Separated duration chart preserves every interval, including empty intervals');
     }
     $sizes = array_column($grouped['intervals'], 'size');
     checkDebugStats(array_sum(array_column($sizes, 'count')) === 9 && array_sum(array_column($sizes, 'sum')) === 2101200, 'Size statistics preserved at every resolution');
