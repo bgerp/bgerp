@@ -825,7 +825,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            if ($filter->type) {
+            // При оттеглените полето за състояние не се добавя
+            if (!empty($filter->type)) {
                 $mvc->filterListFilterByOption($filter->type, $data->query);
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
@@ -835,7 +836,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        if(!in_array($data->listFilter->rec->type, array('draft', 'pending', 'all'))){
+        if(!in_array($data->listFilter->rec->type ?? null, array('draft', 'pending', 'all'))){
             unset($data->listFields['createdBy']);
             unset($data->listFields['createdOn']);
         }
