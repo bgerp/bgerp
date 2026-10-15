@@ -47,23 +47,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         'invoices' => 'Кандидат фактури',
         'payments' => 'Разпределени плащания по нишки',
         'rows' => 'Просрочени фактури',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
-
-
-    /**
-     * Показател за изпълнението на справката
-     */
-    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
-    {
-        $seconds = round($seconds, 3);
-        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
-        if ($seconds > 0) {
-            $msg .= " / {$seconds} " . tr('сек.');
-        }
-        static::setReportStat($data, $key, $msg);
-    }
 
 
     /**
@@ -399,14 +383,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $recs = self::orderInvoices($recs, $this->groupByField);
 
         self::addReportStat($data, 'rows', 0, count($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, count($recs));
-
-        // В лога на справката се записва едно обобщение на етапите
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, count($recs));
 
         return $recs;
     }

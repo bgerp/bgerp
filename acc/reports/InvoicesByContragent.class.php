@@ -86,8 +86,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         'rows' => 'Редове в справката',
         'contragents' => 'Контрагенти',
         'mixedCurrency' => 'Контрагенти с различни валути',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
 
 
@@ -1470,25 +1468,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $this->logReportStats($data, $startedOn);
 
         return $recs;
-    }
-
-
-    /**
-     * Записва диагностиката на изпълнението като един ред в лога на справката
-     *
-     * @param stdClass|null $data
-     * @param float $startedOn
-     */
-    private function logReportStats($data, $startedOn)
-    {
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, 0);
-
-        // Един ред, за да не изтласква предишните обновявания от 20-те реда на лога
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
     }
 
 
