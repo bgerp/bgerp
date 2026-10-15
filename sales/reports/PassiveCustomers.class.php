@@ -209,11 +209,13 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         if ($filterGroupInSql) {
             $shQuery->in('folderId', $foldersInGroups);
         }
+
+        // Времето включва и SQL заявката - selectOnReplica() я изпълнява веднага
+        $timer = microtime(true);
         $shQuery->selectOnReplica();
 
         // Първи обход - остават само експедициите, чиято нишка започва с продажба
         $shipmentRecs = $saleIds = array();
-        $timer = microtime(true);
         $shipmentsCnt = 0;
         while ($shRec = $shQuery->fetch()) {
             $shipmentsCnt++;
@@ -318,9 +320,10 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         if ($filterGroupInSql) {
             $salQuery->in('folderId', $foldersInGroups);
         }
-        $salQuery->selectOnReplica();
 
         $timer = microtime(true);
+        $salQuery->selectOnReplica();
+
         $fastSalesCnt = 0;
         while ($salRec = $salQuery->fetch()) {
             $fastSalesCnt++;
@@ -397,14 +400,15 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         }
 
         // Без редове няма и какво да се брои - иначе заявките остават без филтър по папка
-        if (!countR($recs)) {
+        $rowsCnt = countR($recs);
+        if (!$rowsCnt) {
             self::addReportStat($data, 'rows', 0, 0);
             $this->logReportStats($data, $startedOn);
 
             return $recs;
         }
 
-        core_App::setTimeLimit(0.05 * countR($recs), false, 250);
+        core_App::setTimeLimit(0.05 * $rowsCnt, false, 250);
 
         // Входящи и изходящи имейли през пасивния период
         $timer = microtime(true);
@@ -437,8 +441,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         }
 
         arr::sortObjects($recs, 'folderName', 'asc', 'stri');
-        self::addReportStat($data, 'rows', 0, countR($recs));
-        $this->logReportStats($data, $startedOn, countR($recs));
+        self::addReportStat($data, 'rows', 0, $rowsCnt);
+        $this->logReportStats($data, $startedOn, $rowsCnt);
 
         return $recs;
     }
