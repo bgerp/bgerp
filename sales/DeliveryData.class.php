@@ -447,8 +447,8 @@ class sales_DeliveryData extends core_Manager
         $explain .= "<li> Обикаляме артикулите";
 
         foreach ($agreedProducts as $pId => $pRec) {
-            $productRec = $pRecs[$pId];
-            if ($productRec->canStore != 'yes') continue;
+            $productRec = $pRecs[$pId] ?? null;
+            if (empty($productRec) || $productRec->canStore != 'yes') continue;
 
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
             $amount = null;

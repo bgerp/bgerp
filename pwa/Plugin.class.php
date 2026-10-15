@@ -201,7 +201,8 @@ class pwa_Plugin extends core_Plugin
         }
         $invoker->push('pwa/js/swRegister.js', 'JS', true);
         if ($runServiceWorkerSync) {
-            jquery_Jquery::run($invoker, 'syncServiceWorker();', true);
+            // Скриптът може да не се зареди (стара кеширана страница, блокиране)
+            jquery_Jquery::run($invoker, "if (typeof syncServiceWorker === 'function') { syncServiceWorker(); }", true);
         }
     }
 }

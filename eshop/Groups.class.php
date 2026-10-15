@@ -390,9 +390,10 @@ class eshop_Groups extends core_Master
 
             $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
-            $seoRec->seoTitle = $cRec->title;
+            $menuTitle = $cRec->title ?? '';
+            $seoRec->seoTitle = $menuTitle;
             cms_Content::prepareSeo($seoRec);
-            $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
+            $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($menuTitle) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
