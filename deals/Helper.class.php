@@ -36,6 +36,12 @@ abstract class deals_Helper
     
     
     /**
+     * Готови групи за getCombinedThreads() [threadId => [threadId => threadId]]
+     */
+    private static $combinedThreads = array();
+
+
+    /**
      * Константа за умно конвертиране
      */
     const SMART_PRICE_CONVERT = '0.015';
@@ -1938,6 +1944,10 @@ abstract class deals_Helper
      */
     public static function getCombinedThreads($threadId)
     {
+        if (array_key_exists($threadId, self::$combinedThreads)) {
+            return self::$combinedThreads[$threadId];
+        }
+
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if(!is_object($firstDoc)) return array();
         if (!$firstDoc->isInstanceOf('deals_DealBase')) return array();
@@ -1969,6 +1979,21 @@ abstract class deals_Helper
         }
 
         return $threads;
+    }
+
+
+    /**
+     * Задава предварително сглобени групи за getCombinedThreads(); null изчиства кеша
+     *
+     * @param array|null $groups - [threadId => [threadId => threadId]]
+     */
+    public static function setCombinedThreads($groups)
+    {
+        if (is_null($groups)) {
+            self::$combinedThreads = array();
+        } else {
+            self::$combinedThreads = $groups + self::$combinedThreads;
+        }
     }
 
 
