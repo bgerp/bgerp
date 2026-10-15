@@ -2,13 +2,6 @@
 
 
 /**
- * Колко голям да бъде максималния обект, който се съхранява
- * в кеша не-компресиран?
- */
-defIfNot('EF_CACHE_MAX_UNCOMPRESS', 10000);
-
-
-/**
  * Максимален размер за полето на типа
  */
 defIfNot('EF_CACHE_TYPE_SIZE', 16);
@@ -409,6 +402,8 @@ class core_Cache extends core_Manager
             }
             
             $data = $rec->data;
+
+            // Стари записи, сериализирани и тук, и от типа на полето
             if (is_string($rec->data) && strlen($rec->data) > 2) {
                 if (ord($rec->data[0]) == 120 && ord($rec->data[1]) == 156) {
                     $data = gzuncompress($data);
@@ -486,14 +481,9 @@ class core_Cache extends core_Manager
         $rec->type = ($sepPos !== false) ? substr($key, $sepPos + 1) : '';
 
         if (!$saved) {
-            
-            // Сериализираме обекта
-            $rec->data = serialize($data);
-            
-            // Ако е необходимо, компресираме данните
-            if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
-                $rec->data = gzcompress($rec->data);
-            }
+
+            // Сериализирането и компресирането ги прави типът на полето
+            $rec->data = $data;
         }
         
         // Задаваме крайното време за живот на данните

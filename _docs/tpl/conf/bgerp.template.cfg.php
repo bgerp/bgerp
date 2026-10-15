@@ -161,11 +161,6 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
  *                                                                           *
  *****************************************************************************/
 
-// Колко голям да бъде максималния обект, който се съхранява
-// в кеша не-компресиран?
- # defIfNot('EF_CACHE_MAX_UNCOMPRESS', 10000);
-
-
 // Максимален размер за полето на типа
  # defIfNot('EF_CACHE_TYPE_SIZE', 16);
 
