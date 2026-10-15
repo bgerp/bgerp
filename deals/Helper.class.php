@@ -1529,6 +1529,62 @@ abstract class deals_Helper
     
     
     /**
+     * Замразява отстъпката на ред при активиране: discount става осреднената с автоматичната,
+     * а ръчната (0 при липса) се пази в inputDiscount, който е и белегът за замразен ред
+     *
+     * @param stdClass $dRec
+     * @param int      $precision
+     *
+     * @return bool дали редът е променен
+     */
+    public static function freezeDetailDiscount($dRec, $precision)
+    {
+        if (empty($dRec->discount) && empty($dRec->autoDiscount)) {
+
+            return false;
+        }
+
+        // Вече замразен ред (напр. ревъртнат без размразяване) не натрупва автоматичната повторно
+        $manual = isset($dRec->inputDiscount) ? $dRec->inputDiscount : ($dRec->discount ?? null);
+        $dRec->inputDiscount = !empty($manual) ? $manual : 0;
+        if (isset($dRec->autoDiscount)) {
+            $dRec->discount = !empty($manual) ? round((1 - (1 - $manual) * (1 - $dRec->autoDiscount)), $precision) : $dRec->autoDiscount;
+        } else {
+            $dRec->discount = $manual;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Размразява редовете след ревъртване на контировката: discount отново е само ръчната отстъпка
+     *
+     * @param core_Master $masterMvc
+     * @param int         $masterId
+     */
+    public static function restoreInputDiscounts($masterMvc, $masterId)
+    {
+        $Detail = cls::get($masterMvc->mainDetail);
+        $query = $Detail->getQuery();
+        $query->where(array("#{$Detail->masterKey} = [#1#]", $masterId));
+        $query->where('#inputDiscount IS NOT NULL');
+
+        $saveRecs = array();
+        while ($dRec = $query->fetch()) {
+            $dRec->discount = !empty($dRec->inputDiscount) ? $dRec->inputDiscount : null;
+            $dRec->inputDiscount = null;
+            $saveRecs[] = $dRec;
+        }
+
+        if (countR($saveRecs)) {
+            $Detail->saveArray($saveRecs, 'id,discount,inputDiscount');
+            $masterMvc->updateMaster($masterId);
+        }
+    }
+
+
+    /**
      * Помощна ф-я за рекалкулиране на курса на бизнес документ
      *
      * @param mixed  $masterMvc
