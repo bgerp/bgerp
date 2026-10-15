@@ -54,7 +54,12 @@ class fileman_Upload2 extends core_Manager
 
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
-        expect(fileman_Buckets::canAddFileToBucket($bucketId), fileman_Buckets::fetch((int) $bucketId));
+        expect404($bucketId && fileman_Buckets::fetch($bucketId));
+        if (!fileman_Buckets::canAddFileToBucket($bucketId)) {
+            $tpl = new ET('<div class="red">' . tr('Нямате право за качване тук|*. |Обновете предишната страница и опитайте пак') . '</div>');
+
+            return $this->renderDialog($tpl);
+        }
 
         // Шаблона с качените файлове и грешките
         $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');

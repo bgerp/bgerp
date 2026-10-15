@@ -810,16 +810,14 @@ class bgerp_Notifications extends core_Manager
         
         expect($rec = $this->fetch($id));
         
-        expect($rec->userId == core_Users::getCurrent());
+        // Страницата може да е останала от предишна потребителска сесия.
+        if (($rec->userId ?? null) != core_Users::getCurrent()) {
+            return array();
+        }
         
         expect($replaceId = Request::get('replaceId', 'varchar'));
         
         $tpl = new core_ET();
-        
-        if ($rec->userId != core_Users::getCurrent()) {
-            
-            return array();
-        }
         
         $url = self::getUrl($rec);
         

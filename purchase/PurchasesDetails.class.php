@@ -251,7 +251,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        $rec->discount = $oldRec->inputDiscount;
+        // Контираната покупка пази в discount и автоматичната отстъпка, а ръчната - в inputDiscount
+        $oldMasterRec = purchase_Purchases::fetch($oldRec->requestId, 'state,brState');
+        $oldState = ($oldMasterRec->state == 'rejected') ? $oldMasterRec->brState : $oldMasterRec->state;
+        if (isset($oldRec->inputDiscount) || (!empty($oldRec->autoDiscount) && !in_array($oldState, array('draft', 'pending')))) {
+            $rec->discount = !empty($oldRec->inputDiscount) ? $oldRec->inputDiscount : null;
+        }
 
         // Подсигуряване, че цената няма да се развали при промяна на курса (понеже е записано в основна валута)
         $oldRate = purchase_Purchases::fetchField($oldRec->requestId, 'currencyRate');

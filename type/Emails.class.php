@@ -92,7 +92,7 @@ class type_Emails extends type_Varchar
             
             $parseArr = core_Url::parseUrl($domain);
             
-            $tld = $parseArr['tld'];
+            $tld = $parseArr['tld'] ?? null;
             if (!isset($tld)) {
                 continue ;
             }

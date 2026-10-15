@@ -1231,6 +1231,18 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
+     * След ревъртване на контировката
+     */
+    public static function on_AfterRollbackConto($mvc, $res, $id)
+    {
+        $rec = $mvc->fetch(is_object($id) ? $id->id : $id, 'id,state', false);
+        if (is_object($rec) && in_array($rec->state, array('draft', 'pending'))) {
+            deals_Helper::restoreInputDiscounts($mvc, $rec->id);
+        }
+    }
+
+
+    /**
      * Функция, която прихваща след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -1267,15 +1279,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
-                $dRec->inputDiscount = $dRec->discount;
-                if(isset($dRec->autoDiscount)){
-                    if(isset($dRec->discount)){
-                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 8);
-                    } else {
-                        $dRec->discount = $dRec->autoDiscount;
-                    }
-                }
+            if(deals_Helper::freezeDetailDiscount($dRec, 8)){
                 $save = true;
             }
 
@@ -2426,10 +2430,11 @@ abstract class deals_DealMaster extends deals_DealBase
      *      o $fields['receiptId']             - информативно от коя бележка е
      *      o $fields['onlineSale']            - дали е онлайн продажба
      *      o $fields['priceListId']           - ценова политика
+     * @param int|null $createdId - ид на сделката веднага след записа, 0 ако записът е опитан без ид
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
-    public static function createNewDraft($contragentClass, $contragentId, $fields = array())
+    public static function createNewDraft($contragentClass, $contragentId, $fields = array(), &$createdId = null)
     {
         $contragentClass = cls::get($contragentClass);
         expect($cRec = $contragentClass->fetch($contragentId));
@@ -2572,7 +2577,15 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->_receiptId = $fields['receiptId'];
         }
 
-        if ($id = $me->save($rec)) {
+        // Ид-то се връща веднага след записа, дори ако следващите стъпки прекъснат; 0 - записът е опитан без ид
+        $createdId = 0;
+        try {
+            $id = $me->save($rec);
+        } finally {
+            $createdId = (int) ($rec->id ?? 0);
+        }
+
+        if ($id) {
             if(core_Packs::isInstalled('voucher')) {
                 if(isset($rec->voucherId)) {
                     voucher_Cards::mark($rec->voucherId, 'used', $me->getClassId(), $rec->id);
@@ -2766,16 +2779,17 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Екшън показващ форма за избор на чернова бележка от папката на даден контрагент
+     * Черновите сделки на контрагента, в които могат да се прехвърлят редовете на оферта
+     *
+     * @param int         $contragentClassId - клас на контрагента
+     * @param int         $contragentId      - ид на контрагента
+     * @param string      $currencyId        - валута на офертата
+     * @param int|null    $quotationId       - ид на офертата
+     *
+     * @return array $options - [ид => заглавие]
      */
-    public function act_ChooseDraft()
+    public function getDraftsForQuotation($contragentClassId, $contragentId, $currencyId, $quotationId = null)
     {
-        $this->requireRightFor('edit');
-        expect(core_Users::isPowerUser());
-        expect($contragentClassId = Request::get('contragentClassId', 'int'));
-        expect($contragentId = Request::get('contragentId', 'int'));
-        expect($currencyId = Request::get('currencyId', 'varchar'));
-        $quotationId = Request::get('quotationId', 'int');
         if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
             $currencyId = "EUR";
         }
@@ -2801,6 +2815,23 @@ abstract class deals_DealMaster extends deals_DealBase
                 $options[$rec->id] = $this->getTitleById($rec->id, true);
             }
         }
+
+        return $options;
+    }
+
+
+    /**
+     * Екшън показващ форма за избор на чернова бележка от папката на даден контрагент
+     */
+    public function act_ChooseDraft()
+    {
+        $this->requireRightFor('edit');
+        expect(core_Users::isPowerUser());
+        expect($contragentClassId = Request::get('contragentClassId', 'int'));
+        expect($contragentId = Request::get('contragentId', 'int'));
+        expect($currencyId = Request::get('currencyId', 'varchar'));
+        $quotationId = Request::get('quotationId', 'int');
+        $options = $this->getDraftsForQuotation($contragentClassId, $contragentId, $currencyId, $quotationId);
 
         $retUrl = getRetUrl();
         

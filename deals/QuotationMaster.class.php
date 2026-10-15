@@ -691,7 +691,7 @@ abstract class deals_QuotationMaster extends core_Master
      *
      * @return array|NULL - продуктите
      */
-    protected function getItems($id, $onlyStorable = false, $groupByProduct = false)
+    public function getItems($id, $onlyStorable = false, $groupByProduct = false)
     {
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
@@ -980,7 +980,7 @@ abstract class deals_QuotationMaster extends core_Master
      *
      * @return int $dealId
      */
-    protected function createDeal($rec)
+    protected function createDeal($rec, &$dealId = null)
     {
         $DealClass = cls::get($this->dealClass);
         $templateId = cond_plg_DefaultValues::getFromLastDocument($DealClass, $rec->folderId, 'template');
@@ -1012,6 +1012,11 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 
+        // Ценовата политика на офертата остава и в сделката
+        if (!empty($rec->priceListId) && isset($DealClass->fields['priceListId'])) {
+            $fields['priceListId'] = $rec->priceListId;
+        }
+
         // Ако е инсталирана многофирменоста - продажбата ще е за същата избрана наша фирма
         if(core_Packs::isInstalled('holding')  && isset($this->ownCompanyFieldName)){
             $fields[$DealClass->ownCompanyFieldName] = $rec->{$this->ownCompanyFieldName};
@@ -1040,8 +1045,8 @@ abstract class deals_QuotationMaster extends core_Master
             $fields['currencyRate'] = currency_CurrencyRates::getRate(dt::today(), $fields['currencyId'], null);
         }
 
-        // Създаваме нова продажба от офертата
-        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+        // Създаваме нова продажба от офертата; ид-то идва и при прекъсване след записа
+        $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields, $dealId);
 
         return $dealId;
     }
@@ -1101,6 +1106,161 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Класът на сделката, която се създава от офертата
+     *
+     * @return string|null
+     */
+    public function getDealClass()
+    {
+        return $this->dealClass;
+    }
+
+
+    /**
+     * Дали сделката от офертата минава през формата за избор на редовете
+     *
+     * @param int $id - ид на оферта
+     *
+     * @return bool
+     */
+    public function isDealRowSelectionNeeded($id)
+    {
+        $Detail = cls::get($this->mainDetail);
+
+        return $Detail->fetch("#quotationId = {$id} AND #optional = 'yes'") || !$this->getItems($id);
+    }
+
+
+    /**
+     * Редовете на офертата, избрани във формата за създаване на сделка
+     *
+     * @param stdClass $rec      - запис на офертата
+     * @param array    $products - стойностите по полета на формата от filterProducts()
+     * @param array    $errors   - грешки по полета [поле => съобщение]
+     *
+     * @return array $saveRecs   - редовете за прехвърляне
+     */
+    public function getSelectedDealRows($rec, $products, &$errors = array())
+    {
+        $setError = true;
+        $errFields = array();
+        foreach ($products as $index1 => $quantity1) {
+            if (!empty($quantity1)) {
+                $setError = false;
+            } else {
+                $errFields[] = $index1;
+            }
+        }
+
+        if ($setError === true) {
+            $errors[implode(',', $errFields)] = 'Не са зададени количества';
+
+            return array();
+        }
+
+        $saveRecs = array();
+        $Detail = cls::get($this->mainDetail);
+        foreach ($products as $key => $val) {
+            if (empty($val)) continue;
+
+            list($pId, $optional, $packId) = explode('|', $key) + array('', '', '');
+            $dQuery = $Detail->getQuery();
+            $dQuery->where(array("#quotationId = {$rec->id} AND #productId = '[#1#]' AND #packagingId = '[#2#]' AND #optional = '[#3#]'", $pId, $packId, $optional));
+            $dQuery->orderBy('#quantity', 'ASC');
+
+            if ($optional == 'yes') {
+                if (strpos($val, '#') !== false) {
+                    $valArr = explode(':', $val);
+                    $pureId = (int) str_replace('#', '', $valArr[0]);
+                    $dQuery->where("#id = {$pureId}");
+                    $dRec = $dQuery->fetch();
+                } else {
+                    if (!core_Type::getByName('double')->fromVerbal($val)) {
+                        $errors[$key] = 'Невалидно к-во';
+                        continue;
+                    }
+                    $packRec = cat_products_Packagings::getPack($pId, $packId);
+                    $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+                    $dQuery2 = clone $dQuery;
+                    $q = $quantityInPack * $val;
+                    $dQuery2->where("#quantity = {$q}");
+                    $dRec = $dQuery2->fetch();
+                    if (empty($dRec)) {
+                        $dRec = $dQuery->fetch();
+                        if (is_object($dRec)) {
+                            $dRec->packQuantity = $val;
+                        }
+                    }
+                }
+            } else {
+                $dRec = $dQuery->fetch((int) $val);
+            }
+
+            if (!is_object($dRec)) {
+                $errors[$key] = 'Неразпознат ред';
+                continue;
+            }
+
+            $saveRecs[] = $dRec;
+        }
+
+        return $saveRecs;
+    }
+
+
+    /**
+     * Прехвърля редовете на офертата с цените им в нова или съществуваща чернова сделка
+     *
+     * @param stdClass $rec    - запис на офертата
+     * @param array    $dRecs  - редовете на офертата за прехвърляне
+     * @param int|null $dealId - ид на чернова сделка; ако е празно, се създава нова и тук се връща ид-то ѝ (0 - записът е опитан без ид)
+     *
+     * @return int $dealId
+     */
+    public function transferToDeal($rec, $dRecs, &$dealId = null)
+    {
+        $DealClass = cls::get($this->dealClass);
+        $dealSingleTitle = mb_strtolower($DealClass->singleTitle);
+        if (empty($dealId)) {
+            $this->createDeal($rec, $dealId);
+            expect($dealId, "Проблем при създаване на {$dealSingleTitle} от оферта");
+            $DealClass->logWrite('Създаване от оферта', $dealId);
+        }
+
+        $dealRec = $DealClass->fetch($dealId);
+        foreach ($dRecs as $dRec) {
+
+            // Ако основната валута е сменена - прави се преизчисляване
+            if (dt::today() >= acc_Setup::getEurozoneDate()) {
+                if (($rec->currencyId ?? null) == 'BGN') {
+                    $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->date, $dealRec->valior);
+                } else {
+                    $dRec->price = ($dRec->price / ($rec->currencyRate ?? 1)) * $dealRec->currencyRate;
+                }
+            }
+
+            $addedRecId = $DealClass::addRow($dealId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+
+            // Копира се и транспорта, ако има
+            if ($DealClass instanceof sales_Sales) {
+                $tRec = sales_TransportValues::get($this, $rec->id, $dRec->id);
+                if (isset($tRec)) {
+                    if (($tRec->fee ?? null) > 0) {
+                        $tRec->fee = deals_Helper::getSmartBaseCurrency($tRec->fee, $rec->date, $dealRec->valior);
+                    }
+                    sales_TransportValues::sync('sales_Sales', $dealId, $addedRecId, $tRec->fee ?? null, $tRec->deliveryTime ?? null, $tRec->explain ?? null);
+                }
+            }
+        }
+
+        $this->logWrite("Създаване на {$dealSingleTitle} от оферта", $rec->id);
+
+        return $dealId;
+    }
+
+
+    /**
      * Екшън за създаване на чернова сделка от оферта
      */
     public function act_FilterProductsForDeal()
@@ -1116,115 +1276,27 @@ abstract class deals_QuotationMaster extends core_Master
         $form->input();
 
         if ($form->isSubmitted()) {
-            $products = (array) $form->rec;
-
-            $setError = true;
-            $errFields = array();
-            foreach ($products as $index1 => $quantity1) {
-                if (!empty($quantity1)) {
-                    $setError = false;
-                } else {
-                    $errFields[] = $index1;
-                }
-            }
-
-            if ($setError === true) {
-                $form->setError(implode(',', $errFields), 'Не са зададени количества');
+            $errors = array();
+            $saveRecs = $this->getSelectedDealRows($rec, (array) $form->rec, $errors);
+            foreach ($errors as $field => $msg) {
+                $form->setError($field, $msg);
             }
 
             if (!$form->gotErrors()) {
-
-                $saveRecs = array();
-                $Detail = cls::get($this->mainDetail);
-                $DealClassName = $this->dealClass;
-                foreach ($products as $key => $val) {
-                    if(empty($val)) continue;
-
-                    list($pId, $optional, $packId) = explode('|', $key);
-                    $dQuery = $Detail->getQuery();
-                    $dQuery->where("#quotationId = {$rec->id} AND #productId = {$pId} AND #packagingId = {$packId} AND #optional='{$optional}'");
-                    $dQuery->orderBy("#quantity", 'ASC');
-
-                    if($optional == 'yes'){
-                        if(strpos($val, '#') !== false){
-                            $valArr = explode(':', $val);
-                            $val = $valArr[0];
-                            $pureId = str_replace('#', '', $val);
-                            $dQuery->where("id = {$pureId}");
-                            $dRec = $dQuery->fetch();
-                        } else {
-                            if(!core_Type::getByName('double')->fromVerbal($val)) {
-                                $form->setError($key, 'Невалидно к-во');
-                                continue;
-                            }
-                            $packRec = cat_products_Packagings::getPack($pId, $packId);
-                            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-
-                            $dQuery2 = clone $dQuery;
-                            $q = $quantityInPack * $val;
-                            $dQuery2->where("#quantity = {$q}");
-                            $dRec = $dQuery2->fetch();
-                            if(empty($dRec)){
-                                $dRec = $dQuery->fetch();
-                                $dRec->packQuantity = $val;
-                            }
-                        }
-                    } else {
-                        $dRec = $dQuery->fetch($val);
+                $sId = null;
+                try {
+                    $this->transferToDeal($rec, $saveRecs, $sId);
+                } catch (core_exception_Expect $e) {
+                    if (!empty($sId)) {
+                        throw $e;
                     }
-
-                    if(!is_object($dRec)) {
-                        $form->setError($key, "Неразпознат ред");
-                        continue;
-                    }
-
-                    $saveRecs[] = $dRec;
+                    reportException($e);
+                    $this->logErr($e->getMessage(), $rec->id);
+                    followRetUrl(null, 'Проблем при създаването на сделка', 'error');
                 }
 
-                if(!$form->gotErrors()){
-                    $sId = null;
-                    try{
-                        $errorMsg = 'Проблем при създаването на сделка';
-                        $sId = $this->createDeal($rec);
-                    } catch(core_exception_Expect $e){
-                        $errorMsg = $e->getMessage();
-                        reportException($e);
-                        $this->logErr($errorMsg, $rec->id);
-                    }
-
-                    if(empty($sId)){
-                        followRetUrl(null, $errorMsg, 'error');
-                    }
-
-                    $saleRec = sales_Sales::fetchRec($sId);
-                    foreach ($saveRecs as $dRec){
-
-                        // Ако основната валута е сменена - прави се преизчисляване
-                        if(dt::today() >= acc_Setup::getEurozoneDate()){
-                            if(($rec->currencyId ?? null) == 'BGN'){
-                                $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->date, $saleRec->valior);
-                            } else {
-                                $dRec->price = ($dRec->price / ($rec->currencyRate ?? 1)) * $saleRec->currencyRate;
-                            }
-                        }
-
-                        // Копира се и транспорта, ако има
-                        $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                        if($DealClassName == 'sales_Sales'){
-                            $tRec = sales_TransportValues::get($this, $id, $dRec->id);
-                            if (isset($tRec->fee)) {
-                                if($tRec->fee > 0){
-                                    $tRec->fee = deals_Helper::getSmartBaseCurrency($tRec->fee, $rec->date, $saleRec->valior);
-                                }
-
-                                sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
-                            }
-                        }
-                    }
-
-                    // Редирект към сингъла на новосъздадената сделка
-                    return new Redirect(array($DealClassName, 'single', $sId));
-                }
+                // Редирект към сингъла на новосъздадената сделка
+                return new Redirect(array($this->dealClass, 'single', $sId));
             }
         }
 
@@ -1282,10 +1354,8 @@ abstract class deals_QuotationMaster extends core_Master
                 $DealClass = cls::get($mvc->dealClass);
                 $singleTitle = mb_strtolower($DealClass->singleTitle);
                 if ($mvc->haveRightFor('dealfromquotation', (object) array('id' => $rec->id, 'folderId' => $rec->folderId, 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId))) {
-                    $items = $mvc->getItems($rec->id);
-
                     // Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
-                    if ($Detail->fetch("#quotationId = {$rec->id} AND #optional = 'yes'") || !$items) {
+                    if ($mvc->isDealRowSelectionNeeded($rec->id)) {
                         $data->toolbar->addBtn($DealClass->singleTitle, array($mvc, 'FilterProductsForDeal', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/star_2.png,title=Създаване на {$singleTitle} по офертата");
 
                         // Иначе, към създаването на нова сделка
@@ -1369,7 +1439,7 @@ abstract class deals_QuotationMaster extends core_Master
      *
      * @return array $products - филтрираните продукти
      */
-    protected function filterProducts($id)
+    public function filterProducts($id)
     {
         $Detail = clone cls::get($this->mainDetail);
 
@@ -1451,45 +1521,17 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        // Ако няма създава се нова сделка
-        if (!$sId = Request::get('dealId', "key(mvc={$DealClass->className})")) {
-            try{
-                $sId = $this->createDeal($rec);
-                $DealClass->logWrite('Създаване от оферта', $sId);
-            } catch(core_exception_Expect $e){
-                reportException($e);
-                $this->logErr($e->dump[0] ?? $e->getMessage(), $rec->id);
-                followRetUrl(null, "Проблем при създаване на {$dealSingleTitle} от оферта", 'error');
+        $sId = Request::get('dealId', "key(mvc={$DealClass->className})");
+        try {
+            $this->transferToDeal($rec, $items, $sId);
+        } catch (core_exception_Expect $e) {
+            if (!empty($sId)) {
+                throw $e;
             }
+            reportException($e);
+            $this->logErr($e->dump[0] ?? $e->getMessage(), $rec->id);
+            followRetUrl(null, "Проблем при създаване на {$dealSingleTitle} от оферта", 'error');
         }
-
-        // За всеки детайл на офертата подаваме го като детайл на сделката
-        $saleRec = $DealClass->fetch($sId);
-        foreach ($items as $item) {
-            // Ако основната валута е сменена - прави се преизчисляване
-            if(dt::today() >= acc_Setup::getEurozoneDate()){
-                if(($rec->currencyId ?? null) == 'BGN'){
-                    $item->price = deals_Helper::getSmartBaseCurrency($item->price, $rec->date, $saleRec->valior);
-                } else {
-                    $item->price = ($item->price / ($rec->currencyRate ?? 1)) * $saleRec->currencyRate;
-                }
-            }
-
-            $addedRecId = $DealClass::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
-
-            if($DealClass instanceof sales_Sales){
-                // Копира се и транспорта, ако има
-                $cRec = sales_TransportValues::get($this, $item->quotationId, $item->id);
-                if (isset($cRec)) {
-                    if($cRec->fee > 0){
-                        $cRec->fee = deals_Helper::getSmartBaseCurrency($cRec->fee, $rec->date, $saleRec->valior);
-                    }
-                    sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $cRec->fee, $cRec->deliveryTime);
-                }
-            }
-        }
-
-        $this->logWrite("Създаване на {$dealSingleTitle} от оферта", $id);
 
         // Редирект към новата сделка
         return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата|*!");

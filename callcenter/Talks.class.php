@@ -283,8 +283,8 @@ class callcenter_Talks extends core_Master
                 $div = "<div style='margin-top:5px;'>";
                 
                 // Добавяме данните към номерата
-                $row->externalNum .= $div . $row->externalData . '</div>';
-                $row->internalNum .= $div . $row->internalData . '</div>';
+                $row->externalNum = ($row->externalNum ?? '') . $div . ($row->externalData ?? '') . '</div>';
+                $row->internalNum = ($row->internalNum ?? '') . $div . ($row->internalData ?? '') . '</div>';
                 
                 // Ако има продължителност
                 if ($rec->duration) {

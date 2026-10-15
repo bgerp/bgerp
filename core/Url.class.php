@@ -278,7 +278,7 @@ class core_Url
         
         if ($parts['host']) {
             $parts['host'] = strtolower($parts['host']);
-            $domainPttr = "/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.(?P<tld>({$tdlPtr})))$/i";
+            $domainPttr = "/(?:^|\.)(?P<domain>[a-z0-9][a-z0-9\-]{0,62}\.(?P<tld>({$tdlPtr})))$/i";
             
             if (preg_match($domainPttr, $parts['host'], $match)) {
                 $parts['domain'] = $match['domain'];
@@ -292,7 +292,7 @@ class core_Url
         
         if (!core_URL::isValidUrl($url)) {
             $parts['error'] = 'Невалидно URL';
-        } elseif ($parts['tld'] && !in_array($parts['tld'], self::$valideTld)) {
+        } elseif (!empty($parts['tld']) && !in_array($parts['tld'], self::$valideTld)) {
             $parts['error'] = 'Невалидно разширение на домейн|*: <b>' . $parts['tld'] . '</b>';
         }
         
