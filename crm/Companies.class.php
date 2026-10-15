@@ -15,7 +15,7 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -1622,9 +1622,9 @@ class crm_Companies extends core_Master
             }
         }
         
-        // Добавяме визитка за Експерта ООД
-        $expertaName = 'Експерта ООД';
-        if (!self::fetch("#name = '{$expertaName}'")) {
+        // Добавяме визитка за Експерта ЕООД, ако няма такава с нейния ЕИК или старото име.
+        $expertaName = 'Експерта ЕООД';
+        if (!self::fetch(array("#vatId = 'BG104066415' OR #uicId = '104066415' OR #name IN ('[#1#]', 'Експерта ООД')", $expertaName))) {
             $eRec = new stdClass();
             $eRec->name = $expertaName;
             $eRec->{$me->expandInputFieldName} = '|'. crm_Groups::fetchField("#name = 'Доставчици'", 'id') . '|';

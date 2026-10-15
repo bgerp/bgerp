@@ -37,8 +37,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         'withoutWeight' => 'Без тегло (нулирани)',
         'grouped' => 'Редове след групиране',
         'zeroRows' => 'От тях изцяло нулеви',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
 
 
@@ -258,14 +256,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data, $withTotals);
         self::addReportStat($data, 'grouped', 0, countR($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
-
-        // В лога на справката се записва едно обобщение - иначе 20-те му реда стигат за два обхода
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, countR($recs));
 
         return $recs;
     }

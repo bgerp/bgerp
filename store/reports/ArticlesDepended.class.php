@@ -24,6 +24,12 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
+     * До колко ид-та се изброяват в показател от диагностиката
+     */
+    const MAX_SHOWN_STAT_IDS = 20;
+
+
+    /**
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
@@ -38,8 +44,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         'items' => 'Прочетени пера',
         'aboveReversibility' => 'Над обръщаемостта (пропуснати)',
         'rows' => 'Редове в справката',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
 
 
@@ -443,12 +447,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         self::addReportStat($data, 'aboveReversibility', 0, countR($aboveReversibility), $aboveReversibility);
         self::addReportStat($data, 'rows', 0, countR($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, countR($recs));
 
         $unpricedRecs = array_intersect_key($recs, $notSelfPrice);
         $recs = array_diff_key($recs, $notSelfPrice);
@@ -458,23 +457,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         return $recs;
-    }
-
-
-    /**
-     * Форматира показателите на тази справка за общата диагностика.
-     */
-    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
-    {
-        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
-        $seconds = round($seconds, 3);
-        if ($seconds > 0) $msg .= " / {$seconds} " . tr('сек.');
-        $shown = array_slice(array_values($ids), 0, 20);
-        if (countR($shown)) {
-            $rest = countR($ids) - countR($shown);
-            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
-        }
-        static::setReportStat($data, $key, $msg);
     }
 
 

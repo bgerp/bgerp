@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -81,11 +81,12 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
      */
     public function render($data)
     {
-        $expId = crm_Companies::fetchField("#name = 'Експерта ООД'");
+        $expertaName = 'Експерта ЕООД';
+        $expId = crm_Companies::fetchField(array("#vatId = 'BG104066415' OR #uicId = '104066415' OR #name IN ('[#1#]', 'Експерта ООД')", $expertaName));
         if ($expId && crm_Companies::haveRightFor('single', $expId)) {
-            $eLink = crm_Companies::getLinkToSingle($expId, 'name');
+            $eLink = crm_Companies::getLinkToSingle($expId, 'name', false, array('name' => $expertaName));
         } else {
-            $eLink = ht::createLink('Експерта ООД', 'https://experta.bg/Bg/Danni', false, array('target' => '_blank'));
+            $eLink = ht::createLink($expertaName, 'https://experta.bg/Bg/Danni', false, array('target' => '_blank'));
         }
 
         if (cls::load('eurozone_Setup', true)) {

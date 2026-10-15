@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   log
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -228,6 +228,20 @@ class log_DebugStatistics extends core_BaseClass
 
 
     /**
+     * Отделя грешките и недовършените от останалите записи без продължителност.
+     */
+    public static function getDurationBreakdown($values)
+    {
+        $durations = $values['durations'];
+        $durations['unknown'] -= $values['errors'] + $values['pending'];
+        $durations['errors'] = $values['errors'];
+        $durations['pending'] = $values['pending'];
+
+        return $durations;
+    }
+
+
+    /**
      * Общи производни показатели за графиките и текстовия експорт.
      */
     public static function getIntervalMetrics($values)
@@ -270,11 +284,13 @@ class log_DebugStatistics extends core_BaseClass
         $text .= "Имената нямат дата: едни и същи часове от различни дни са сумирани. Това не е хронология по дни. Крайните интервали може да са частични според часовия филтър.\n";
         $text .= "Една заявка може да има няколко записа; част от AJAX заявките не се записват. Успешните записи и грешките се пазят различно дълго. Брой записи не е точен брой HTTP заявки или измерване на CPU натоварването.\n";
         $text .= "Бързината е категория след закръгляване до цяла секунда: 200/800 = 0 - 1 сек.; 205/805 = 2 - 5 сек.; 220/820 = 6 - 20 сек.; 250/850 = над 20 сек. Кодовете не са точна продължителност; точна средна продължителност и точни персентили не могат да се изчислят.\n";
+        $text .= "pending са недовършените записи с код 000, създавани в началото на заявката и изтривани при нормалното приключване. Може да са още работещи или прекъснали заявки; само по името не могат да се разграничат. Те не се броят като грешки. Код 0 е грешка и е различен от 000.\n";
+        $text .= "Записите без продължителност са разделени в графиката и таблиците: errors = грешки; pending = недовършени (000); other_no_duration = останалите без продължителност, без errors и pending. Сборът на четирите категории за бързина, errors, pending и other_no_duration е общият брой записи.\n";
         $text .= "fast_percent е делът на кодовете 200/800 само сред записите с разпозната бързина. Бавни са останалите три категории с време. error_percent е делът на грешките от всички записи в интервала. Общите проценти се изчисляват от общите броеве, а не чрез осредняване на процентите по интервали.\n";
         $text .= "Размерът е броят байтове на дебъг записа според името, не размер на HTTP отговор или използвана памет. Графиката показва KiB = bytes / 1024. Записите без размер не участват в средния размер.\n";
         $text .= "NA означава липса на данни, не нула. Таблицата включва всички интервали, включително празните.\n";
         $text .= "\n## Обобщение\n";
-        $captions = array('total' => 'Общо записи', 'success' => 'Успешни', 'errors' => 'Грешки', 'pending' => 'Неприключени', 'observations' => 'Наблюдения', 'other' => 'Други');
+        $captions = array('total' => 'Общо записи', 'success' => 'Успешни', 'errors' => 'Грешки', 'pending' => 'Недовършени (000)', 'observations' => 'Наблюдения', 'other' => 'Други');
         foreach ($captions as $key => $caption) {
             $text .= $caption . ': ' . $stats['totals'][$key] . "\n";
         }
@@ -285,13 +301,14 @@ class log_DebugStatistics extends core_BaseClass
         $text .= 'Общ дял грешки (%): ' . $number($stats['totals']['total'] ? 100 * $stats['totals']['errors'] / $stats['totals']['total'] : null) . "\n";
         $text .= 'Пропуснати неразпознати имена в директорията: ' . $stats['ignored'] . "\n";
         $text .= "\n## Стойности зад петте графики\n";
-        $text .= "Колони: начало на интервала; общо; успешни; грешки; неприключени; наблюдения; други; четирите категории за време; без данни за време; дял бързи (%); дял грешки (%); записи с размер; общ размер; среден размер; максимален размер (в байтове).\n\n";
-        $text .= "```tsv\ninterval_start\ttotal\tsuccess\terrors\tpending\tobservations\tother\tfast_0_1s\tslow_2_5s\tslow_6_20s\tslow_over20s\tno_duration\tfast_percent\terror_percent\tsize_count\tsize_sum_bytes\tsize_avg_bytes\tsize_max_bytes\n";
+        $text .= "Колони: начало на интервала; общо; успешни; грешки; недовършени (000); наблюдения; други; четирите категории за време; други без продължителност; дял бързи (%); дял грешки (%); записи с размер; общ размер; среден размер; максимален размер (в байтове).\n\n";
+        $text .= "```tsv\ninterval_start\ttotal\tsuccess\terrors\tpending\tobservations\tother\tfast_0_1s\tslow_2_5s\tslow_6_20s\tslow_over20s\tother_no_duration\tfast_percent\terror_percent\tsize_count\tsize_sum_bytes\tsize_avg_bytes\tsize_max_bytes\n";
         foreach ($stats['intervals'] as $bucket => $values) {
             $minute = $bucket * $stats['interval'];
             $row = array(sprintf('%02d:%02d', (int) floor($minute / 60), $minute % 60));
             foreach ($captions as $key => $caption) $row[] = $values[$key];
-            foreach (array('00', '05', '20', '50', 'unknown') as $key) $row[] = $values['durations'][$key];
+            $durationValues = self::getDurationBreakdown($values);
+            foreach (array('00', '05', '20', '50', 'unknown') as $key) $row[] = $durationValues[$key];
             $metrics = self::getIntervalMetrics($values);
             $row[] = $metrics['fastPercent'];
             $row[] = $metrics['errorPercent'];

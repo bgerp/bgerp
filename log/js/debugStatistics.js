@@ -22,20 +22,30 @@ function render_debugStatistics() {
                 backgroundColor: series.color, borderColor: series.color, borderWidth: lineChart ? 2 : 0,
                 pointRadius: lineChart ? 2 : 0, pointHitRadius: 6, fill: false, lineTension: 0, spanGaps: false, yAxisID: 'counts'});
         });
-        var peak = Math.max(1, Math.max.apply(null, stats.labels.map(function (_, i) {
-            return Object.keys(stats.series).reduce(function (value, key) {
-                var next = stats.series[key].values[i] || 0;
-                return lineChart ? Math.max(value, next) : value + next;
-            }, 0);
-        })));
-        var step = Math.pow(10, Math.floor(Math.log(peak / 5) / Math.LN10));
-        var fraction = peak / (5 * step);
-        step = Math.max(stats.percent || stats.unit ? 0.01 : 1, step * (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10));
-        var max = Math.ceil(peak / step) * step;
-        if (stats.fixedMax) {
-            max = stats.fixedMax;
-            step = max / 5;
+        function getScale(chart) {
+            var visible = datasets.filter(function (dataset, index) {
+                return chart ? chart.isDatasetVisible(index) : !dataset.hidden;
+            });
+            var peak = 1;
+            stats.labels.forEach(function (_, i) {
+                var stacked = 0;
+                visible.forEach(function (dataset) {
+                    var value = dataset.data[i] || 0;
+                    if (dataset.type === 'bar') {
+                        stacked += value;
+                    } else {
+                        peak = Math.max(peak, value);
+                    }
+                });
+                peak = Math.max(peak, stacked);
+            });
+            var step = Math.pow(10, Math.floor(Math.log(peak / 5) / Math.LN10));
+            var fraction = peak / (5 * step);
+            step = Math.max(stats.percent || stats.unit ? 0.01 : 1, step * (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10));
+
+            return stats.fixedMax ? {max: stats.fixedMax, step: stats.fixedMax / 5} : {max: Math.ceil(peak / step) * step, step: step};
         }
+        var scale = getScale();
         new Chart(canvas, {
             type: 'bar',
             data: {labels: stats.labels, datasets: datasets},
@@ -43,6 +53,20 @@ function render_debugStatistics() {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {duration: 0},
+                legend: {
+                    onClick: function (event, item) {
+                        var chart = this.chart;
+                        var meta = chart.getDatasetMeta(item.datasetIndex);
+                        meta.hidden = meta.hidden === null ? !chart.data.datasets[item.datasetIndex].hidden : null;
+                        var scale = getScale(chart);
+                        // Линията за средното и колоните трябва да останат на еднаква скала.
+                        chart.options.scales.yAxes.forEach(function (axis) {
+                            axis.ticks.max = scale.max;
+                            axis.ticks.stepSize = scale.step;
+                        });
+                        chart.update();
+                    }
+                },
                 tooltips: {
                     callbacks: {
                         label: function (item, data) {
@@ -55,8 +79,8 @@ function render_debugStatistics() {
                 scales: {
                     xAxes: [{stacked: !lineChart, ticks: {maxTicksLimit: 24, maxRotation: 45}}],
                     yAxes: [
-                        {id: 'counts', stacked: !lineChart, scaleLabel: {display: !!stats.unit, labelString: stats.unit || ''}, ticks: {beginAtZero: true, min: 0, max: max, stepSize: step, callback: function (value) { return stats.percent ? value + '%' : value; }}},
-                        {id: 'average', display: false, ticks: {beginAtZero: true, min: 0, max: max}}
+                        {id: 'counts', stacked: !lineChart, scaleLabel: {display: !!stats.unit, labelString: stats.unit || ''}, ticks: {beginAtZero: true, min: 0, max: scale.max, stepSize: scale.step, callback: function (value) { return stats.percent ? value + '%' : value; }}},
+                        {id: 'average', display: false, ticks: {beginAtZero: true, min: 0, max: scale.max, stepSize: scale.step}}
                     ]
                 }
             }
