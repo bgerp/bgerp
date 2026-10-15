@@ -338,7 +338,7 @@ class fileman_Get extends core_Manager
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         $rec = $form->input('bucketId,callback,validUntil,url', true);
 
-        if ($errMsg = fileman_Upload2::checkLinkValidity($rec->validUntil)) {
+        if ($errMsg = fileman_Upload2::checkLinkValidity($rec->validUntil ?? null)) {
             $form->setError('url', $errMsg);
         }
 
