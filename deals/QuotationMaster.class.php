@@ -1012,6 +1012,11 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 
+        // Ценовата политика на офертата остава и в сделката
+        if (!empty($rec->priceListId) && isset($DealClass->fields['priceListId'])) {
+            $fields['priceListId'] = $rec->priceListId;
+        }
+
         // Ако е инсталирана многофирменоста - продажбата ще е за същата избрана наша фирма
         if(core_Packs::isInstalled('holding')  && isset($this->ownCompanyFieldName)){
             $fields[$DealClass->ownCompanyFieldName] = $rec->{$this->ownCompanyFieldName};
