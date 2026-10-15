@@ -103,7 +103,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=contragent,single=none');
 
         // --- Тип документи и режим на плащане ---
-        $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи,all=Всички)', 'caption=Фактури,after=crmGroup,maxRadio=3,mandatory,single=none');
+        $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи,all=Всички)', 'caption=Фактури,after=crmGroup,maxRadio=3,columns=3,mandatory,single=none');
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени,overdue=Просрочени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
 
         // --- Период и допълнителни филтри ---
@@ -489,8 +489,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         $rec->checkDate = $rec->checkDate ?? dt::today(false);
         $data = $data ?? new stdClass();
-        $data->groupByField = 'invoiceGroup';
-        $recs = $summaries = array();
+        $data->groupByField = 'contragent';
+        $groups = $summaries = array();
         $totalFields = array('totalInvoiceValueAll', 'totalInvoicePayoutAll', 'totalInvoiceNotPaydAll', 'totalInvoiceOverPaidAll', 'totalInvoiceOverDueAll');
         $summaryFields = array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue');
         foreach ($totalFields as $field) {
@@ -498,6 +498,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         foreach (array('out', 'in') as $type) {
+            $sign = $type == 'out' ? 1 : -1;
             $typeRec = clone $rec;
             $typeRec->typeOfInvoice = $type;
             // Кешът за обединени сделки се освобождава и между двата вида.
@@ -506,21 +507,27 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             foreach ($typeRecs as $key => $dRec) {
                 $contragent = $dRec->contragent ?? '';
                 $dRec->invoiceGroup = $type . '|' . $contragent;
-                $recs[$type . '|' . $key] = $dRec;
+                $groups[$contragent][$type . '|' . $key] = $dRec;
                 if (isset($seen[$contragent])) continue;
                 $seen[$contragent] = true;
                 if (!isset($summaries[$contragent])) {
                     $summaries[$contragent] = (object)array('contragent' => $contragent);
                 }
                 foreach ($summaryFields as $field) {
-                    $summaries[$contragent]->{$field} = ($summaries[$contragent]->{$field} ?? 0) + ($dRec->{$field} ?? 0);
+                    $summaries[$contragent]->{$field} = ($summaries[$contragent]->{$field} ?? 0) + $sign * ($dRec->{$field} ?? 0);
                 }
             }
             foreach ($totalFields as $field) {
-                $rec->{$field} += $typeRec->{$field} ?? 0;
+                $rec->{$field} += $sign * ($typeRec->{$field} ?? 0);
             }
         }
 
+        // Продажбите и покупките на една фирма остават последователни и при странициране.
+        ksort($groups, SORT_NATURAL | SORT_FLAG_CASE);
+        $recs = array();
+        foreach ($groups as $group) {
+            $recs += $group;
+        }
         foreach ($recs as $dRec) {
             $dRec->combinedSummary = $summaries[$dRec->contragent ?? ''];
         }
@@ -1556,8 +1563,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         if ($export === false) {
             // Колони за екран — различни според режима all/unpaid.
-            $groupField = ($rec->typeOfInvoice ?? 'out') == 'all' ? 'invoiceGroup' : 'contragent';
-            $fld->FLD($groupField, 'varchar', 'caption=Контрагент,smartCenter');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
             // Добавяме нова колона "Документ" преди колоната за номера
             $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId,tdClass=centered');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
@@ -1622,30 +1628,55 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected function groupRows($recs, &$rows, $listFields, $field, $data)
     {
         parent::groupRows($recs, $rows, $listFields, $field, $data);
-        if ($field != 'invoiceGroup') return;
+        if (($data->groupedFieldOnNewRow ?? null) !== true) return;
 
-        $last = $newRows = array();
+        $last = $types = $newRows = array();
         foreach ($recs as $index => $dRec) {
-            $last[$dRec->contragent ?? ''] = $index;
+            $contragent = $dRec->contragent ?? '';
+            $last[$contragent] = $index;
+            $types[$contragent][$dRec->className ?? ''] = true;
         }
+        $previousGroup = null;
+        $columns = countR($listFields);
         foreach ($rows as $index => $row) {
-            $newRows[$index] = $row;
             $dRec = $recs[$index] ?? null;
-            if (!$dRec || ($last[$dRec->contragent ?? ''] ?? null) !== $index || !isset($row->combinedSummary)) continue;
+            if (!$dRec) {
+                $content = "<td colspan='{$columns}' style='height:3px;padding:0!important;border:0;line-height:0;background:transparent'></td>";
+                $newRows['spacer' . $index] = ht::createElement('tr', array('style' => 'background:transparent'), $content);
+            } else {
+                $group = $dRec->invoiceGroup ?? $dRec->contragent ?? '';
+                if ($group !== $previousGroup && isset($row->invoiceSummary)) {
+                    $newRows['summary|' . $index] = $this->getSummaryRow($columns, $row->invoiceSummary, $data);
+                }
+                $previousGroup = $group;
+            }
+            $newRows[$index] = $row;
+            if (!$dRec || ($last[$dRec->contragent ?? ''] ?? null) !== $index || !isset($row->combinedSummary)
+                || countR($types[$dRec->contragent ?? ''] ?? array()) < 2) continue;
 
-            $content = $this->getGroupedTr(countR($listFields), '', $row->combinedSummary, $data);
-            $newRows['combined|' . $index] = ht::createElement('tr', array('class' => 'group-by-field-row'), $content);
+            $newRows['combined|' . $index] = $this->getSummaryRow($columns, $row->combinedSummary, $data);
         }
         $rows = $newRows;
     }
 
 
     /**
+     * По-светъл ред за сумите под заглавието на фирмата.
+     */
+    private function getSummaryRow($columns, $caption, $data)
+    {
+        $content = $this->getGroupedTr($columns, '', $caption, $data);
+
+        return ht::createElement('tr', array('class' => 'group-by-field-row', 'style' => 'background-color:#eee'), $content);
+    }
+
+
+    /**
      * Еднакво обобщение за отделния вид и за двата вида фактури.
      */
-    private function getContragentSummary($rec, $dRec)
+    private function getContragentSummary($rec, $dRec, $invoiceType)
     {
-        $caption = core_Type::getByName('varchar')->toVerbal($dRec->contragent ?? '');
+        $caption = '<span class="quiet">' . tr('Общо фактури') . '</span> ' . tr($invoiceType);
         if (!$this->canSeePriceFields($rec)) return $caption;
 
         $Double = core_Type::getByName('double(decimals=2)');
@@ -1654,15 +1685,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $amount);
         };
+        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0);
         if (($rec->unpaid ?? 'all') == 'all') {
-            $caption .= ' » <span class="quiet">' . tr('Общо стойност') . ': </span>' . $styleAmount($dRec->totalInvoiceValue ?? 0);
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
         } else {
-            $caption .= '<br><span class="quiet">' . tr('Общо фактури') . ': </span>' . $styleAmount($dRec->totalInvoiceValue ?? 0)
-                . ' » <span class="quiet">' . tr('Платено') . ': </span>' . $styleAmount($dRec->totalInvoicePayout ?? 0)
+            $caption .= ' » <span class="quiet">' . tr('Платено') . ': </span>' . $styleAmount($dRec->totalInvoicePayout ?? 0)
                 . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0);
         }
-        if (($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
+        if (abs($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
             $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0);
         }
 
@@ -1869,7 +1899,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
 
         $row = new stdClass();
-        $row->contragent = $this->getContragentSummary($rec, $dRec);
+        $row->contragent = core_Type::getByName('varchar')->toVerbal($dRec->contragent ?? '');
 
         // Линк към документа и означение: Ф=фактура, ПФ=проформа, ДИ/КИ=известие.
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
@@ -2013,12 +2043,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         } else {
             $row->className = 'Фактури ПРОДАЖБИ';
         }
+        $invoiceType = ($dRec->className ?? '') == 'purchase_Invoices' ? 'ПОКУПКИ' : 'ПРОДАЖБИ';
+        $row->invoiceSummary = $this->getContragentSummary($rec, $dRec, $invoiceType);
 
         if (($rec->typeOfInvoice ?? 'out') == 'all') {
-            $row->invoiceGroup = tr($row->className ?? '') . '<br>' . ($row->contragent ?? '');
             $summary = $dRec->combinedSummary ?? null;
             if (is_object($summary)) {
-                $row->combinedSummary = tr('Общо изходящи и входящи') . '<br>' . $this->getContragentSummary($rec, $summary);
+                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ');
             }
         }
 
@@ -2040,6 +2071,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
+        $valueCaption = ($data->rec->typeOfInvoice ?? 'out') == 'all' ? 'Стойност (ИЗХОДЯЩИ минус ВХОДЯЩИ)' : 'Стойност';
 
         // Блок „Филтър“ над таблицата: избрани критерии и обобщени суми.
         $fieldTpl = new core_ET(
@@ -2052,7 +2084,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
-                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
+                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|{$valueCaption}|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
                                         <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
                                         <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
                                         <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->

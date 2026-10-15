@@ -209,6 +209,13 @@ foreach (array('out', 'in') as $direction) {
     check($row->invoiceCurrentSumm == '60.00' && $row->paidAmount == '40.00', 'Показване на частично плащане: ' . $direction);
     check(isset($driver->fields($rec)['invoiceCurrentSumm']), 'Колона за остатък: ' . $direction);
     check($driver->exportRow($rec, $detail)->dueDateStatus == 'Просрочен', 'Просрочен статус при експорт: ' . $direction);
+    $data->groupByField = 'contragent';
+    $data->groupedFieldOnNewRow = true;
+    $rows = array(key($recs) => $row);
+    $driver->grouped($recs, $rows, $driver->fields($rec), $data);
+    check(count($rows) == 4 && strip_tags($rows['|Acme']->getContent()) == 'Acme', 'Отделен ред само с името: ' . $direction);
+    check(key($rows) == 'spacer|Acme' && strip_tags(reset($rows)->getContent()) == '', 'Празен разделител и преди първата фирма: ' . $direction);
+    check(strpos($row->invoiceSummary, $direction == 'out' ? 'ПРОДАЖБИ' : 'ПОКУПКИ') !== false, 'Видът е в реда със сумите: ' . $direction);
     $rec->unpaid = 'unpaid';
     check(count($driver->run($rec, $data)) == 6, 'Запазен режим неплатени и надплатени: ' . $direction);
     $rec->unpaid = 'all';
@@ -225,27 +232,36 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $recs = $driver->run($rec, $data);
     check(count($recs) == 3, 'Еднакви id на продажба и покупка: ' . $payment);
     check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
-    check($rec->totalInvoiceValueAll == 350, 'Обща стойност без повторение: ' . $payment);
+    check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
     $detail = end($recs);
-    check($detail->combinedSummary->totalInvoiceValue == 350, 'Обобщение за двата вида: ' . $payment);
-    if ($payment != 'all') check($detail->combinedSummary->totalInvoiceNotPayd == 280, 'Общ неплатен остатък: ' . $payment);
+    check($detail->combinedSummary->totalInvoiceValue == 250, 'Изходящи минус входящи: ' . $payment);
+    if ($payment != 'all') {
+        check($detail->combinedSummary->totalInvoiceNotPayd == 200, 'Нетен неплатен остатък: ' . $payment);
+        check($detail->combinedSummary->totalInvoicePayout == 50 && $rec->totalInvoicePayoutAll == 50, 'Нетно платено: ' . $payment);
+        check($detail->combinedSummary->totalInvoiceOverDue == 200 && $rec->totalInvoiceOverDueAll == 200, 'Нетно просрочено: ' . $payment);
+    }
     $data->groupedFieldOnNewRow = true;
     $fields = $driver->fields($rec);
     $rows = array();
     foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
     $driver->grouped($recs, $rows, $fields, $data);
-    check(count($rows) == 6, 'Две отделни и трето общо обобщение: ' . $payment);
-    check(strpos(end($rows)->getContent(), 'Общо изходящи и входящи') !== false, 'Общият ред е последен: ' . $payment);
+    check(count($rows) == 8, 'Разделител, едно име, две отделни и трето нетно обобщение: ' . $payment);
+    check(substr_count(implode('', array_map(function ($row) { return $row instanceof core_ET ? $row->getContent() : ''; }, $rows)), 'Acme') == 1, 'Името на фирмата е само веднъж: ' . $payment);
+    check(strpos(end($rows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетният ред е последен: ' . $payment);
     check(isset($driver->fields($rec, true)['invoiceDirection']), 'Посока при експорт: ' . $payment);
     check($driver->exportRow($rec, $detail)->invoiceDirection == 'Входящи', 'Правилна посока при експорт: ' . $payment);
     $pageRows = array();
     foreach (array_slice($recs, 0, 1, true) as $key => $detail) $pageRows[$key] = $driver->verbal($rec, $detail);
     $driver->grouped($recs, $pageRows, $fields, $data);
-    check(count($pageRows) == 2, 'Без преждевременен общ ред при странициране: ' . $payment);
+    check(count($pageRows) == 4, 'Без преждевременен общ ред при странициране: ' . $payment);
+    $pageRows = array();
+    foreach (array_slice($recs, -1, 1, true) as $key => $detail) $pageRows[$key] = $driver->verbal($rec, $detail);
+    $driver->grouped($recs, $pageRows, $fields, $data);
+    check(count($pageRows) == 5 && strpos(end($pageRows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетно обобщение на последната страница: ' . $payment);
     $driver->prices = false;
     $detail = end($recs);
     $row = $driver->verbal($rec, $detail);
-    check(strpos($row->combinedSummary, '350') === false && strpos($row->invoiceGroup, '50.00') === false, 'Скрити цени в обобщенията: ' . $payment);
+    check(strpos($row->combinedSummary, '250') === false && strpos($row->invoiceSummary, '50.00') === false, 'Скрити цени в обобщенията: ' . $payment);
     $driver->prices = true;
 }
 check(deals_Helper::$combined === null, 'Освободен кеш за обединени сделки');
@@ -255,7 +271,23 @@ $rec = reportRec('all', 'overdue');
 $data = new stdClass();
 check($driver->run($rec, $data) === array() && $rec->totalInvoiceValueAll == 0, 'Празни два списъка');
 InvoiceTestData::invoice('in', 1, 'Only purchase', '2026-10-14', 80, 20);
-check(count($driver->run($rec, $data)) == 1 && $rec->totalInvoiceValueAll == 80, 'Само единият вид има фактури');
+check(count($driver->run($rec, $data)) == 1 && $rec->totalInvoiceValueAll == -80, 'Само покупките дават отрицателна нетна стойност');
+
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 40);
+    InvoiceTestData::invoice($direction, 2, 'Acme', '2026-10-14', 200, 20);
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        $rec = reportRec('all', $payment);
+        $data = new stdClass();
+        $recs = $driver->run($rec, $data);
+        $data->groupedFieldOnNewRow = true;
+        $rows = array();
+        foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
+        $driver->grouped($recs, $rows, $driver->fields($rec), $data);
+        check(count($rows) == 5 && !($rows[array_key_last($rows)] instanceof core_ET), 'Без нетен ред при един вид фактури: ' . $direction . '/' . $payment);
+    }
+}
 
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40, '2026-10-01', 'USD', 2);
@@ -268,9 +300,39 @@ $rows = array();
 foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
 $data->groupedFieldOnNewRow = true;
 $driver->grouped($recs, $rows, $driver->fields($rec), $data);
-check(count($rows) == 8, 'Отделни общи редове за няколко контрагента');
-check($rec->totalInvoiceValueAll == 280 && $rec->totalInvoiceNotPaydAll == 185, 'Общи суми в основна валута');
-check($recs['in|1']->combinedSummary->totalInvoiceNotPayd == 160, 'Обобщението на контрагента включва курсовете');
+check(count($rows) == 11 && isset($rows['combined|in|1']) && !isset($rows['combined|out|2']), 'Нетен ред само за фирмата с двата вида фактури');
+check(isset($rows['spacer|Acme'], $rows['spacer|Beta']), 'Разделител пред всяка фирма');
+check(array_keys($recs) == array('out|1', 'in|1', 'out|2'), 'Двата вида са последователни за всяка фирма');
+check($rec->totalInvoiceValueAll == 180 && $rec->totalInvoiceNotPaydAll == 105, 'Нетни суми в основна валута');
+check($recs['in|1']->combinedSummary->totalInvoiceNotPayd == 80, 'Нетното обобщение включва курсовете');
+
+InvoiceTestData::reset();
+InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
+InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 150, 110);
+$rec = reportRec('all', 'overdue');
+$data = new stdClass();
+$recs = $driver->run($rec, $data);
+$detail = end($recs);
+$row = $driver->verbal($rec, $detail);
+check($rec->totalInvoiceValueAll == -50 && $rec->totalInvoicePayoutAll == -70, 'Покупките могат да надвишават продажбите');
+check($rec->totalInvoiceNotPaydAll == 20 && strpos($row->combinedSummary, '-50.00') !== false, 'Отрицателна стойност с положителен нетен остатък');
+check($detail->invoiceValue == 150 && $row->paidAmount == '110.00', 'Редовете за покупки запазват собствените суми');
+InvoiceTestData::reset();
+InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
+InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 100, 40);
+$rec = reportRec('all', 'overdue');
+$recs = $driver->run($rec, $data);
+check($rec->totalInvoiceValueAll == 0 && $rec->totalInvoiceNotPaydAll == 0, 'Равните суми се компенсират');
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 120);
+    $rec = reportRec('all', 'unpaid');
+    $recs = $driver->run($rec, $data);
+    $detail = end($recs);
+    $row = $driver->verbal($rec, $detail);
+    check($rec->totalInvoiceOverPaidAll == ($direction == 'out' ? -20 : 20), 'Знак на нетното надплащане: ' . $direction);
+    check(strpos($row->combinedSummary, 'Надплатено') !== false, 'Нетното надплащане се показва и с отрицателен знак: ' . $direction);
+}
 
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
