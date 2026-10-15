@@ -79,8 +79,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         'rights' => 'Проверени права',
         'build' => 'Редове',
         'sort' => 'Подреждане',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
     
     
@@ -277,14 +275,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             usort($recs, array($this, $sorting));
         }
         self::addReportStat($data, 'sort', microtime(true) - $timer, count($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, count($recs));
-
-        // В лога на справката се записва едно обобщение на етапите
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, count($recs));
 
         return $recs;
     }

@@ -15,7 +15,7 @@ defIfNot('DEBUG_PROTECT_HASH', md5(EF_SALT . 'logDebug'));
  * @package   core
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -411,8 +411,8 @@ class log_Debug extends core_Manager
     {
         $int = core_Type::getByName('int');
         $double = core_Type::getByName('double(decimals=2)');
-        $groups = array('success' => 'Успешни', 'errors' => 'Грешки', 'pending' => 'Неприключени', 'observations' => 'Наблюдения', 'other' => 'Други');
-        $durations = array('00' => 'Бързи (0 - 1 сек.)', '05' => '2 - 5 сек.', '20' => '6 - 20 сек.', '50' => 'Над 20 сек.', 'unknown' => 'Без данни за време');
+        $groups = array('success' => 'Успешни', 'errors' => 'Грешки', 'pending' => 'Недовършени (000)', 'observations' => 'Наблюдения', 'other' => 'Други');
+        $durations = array('00' => 'Бързи (0 - 1 сек.)', '05' => '2 - 5 сек.', '20' => '6 - 20 сек.', '50' => 'Над 20 сек.', 'errors' => 'Грешки', 'pending' => 'Недовършени (000)', 'unknown' => 'Други без продължителност');
         $total = $stats['totals']['total'];
         $summary = array('total' => 'Общо записи') + $groups;
         foreach ($summary as $key => $caption) {
@@ -428,6 +428,7 @@ class log_Debug extends core_Manager
         $known = $total - $stats['durations']['unknown'];
         $tpl->replace($int->toVerbal($total), 'TOTAL');
         $tpl->replace($int->toVerbal($stats['totals']['errors']), 'TOTAL_ERRORS');
+        $tpl->replace($int->toVerbal($stats['totals']['pending']), 'TOTAL_PENDING');
         $tpl->replace($int->toVerbal($known), 'KNOWN_DURATION');
         $tpl->replace($known ? $double->toVerbal(100 * $stats['durations']['00'] / $known) . '%' : '-', 'FAST_PERCENT');
         if (!$known) {
@@ -449,7 +450,7 @@ class log_Debug extends core_Manager
             'max' => array('label' => tr('Максимален размер'), 'color' => '#dc8135', 'values' => array()),
         ));
         $colors = array('success' => '#4a9665', 'errors' => '#d35454', 'pending' => '#a5aab0', 'observations' => '#dda337', 'other' => '#8a75b5');
-        $durationColors = array('00' => '#4a9665', '05' => '#dda337', '20' => '#dc8135', '50' => '#d35454', 'unknown' => '#a5aab0');
+        $durationColors = array('00' => '#4a9665', '05' => '#dda337', '20' => '#dc8135', '50' => '#b65f18', 'errors' => $colors['errors'], 'pending' => $colors['pending'], 'unknown' => $colors['other']);
         foreach ($groups as $key => $caption) {
             $chart['series'][$key] = array('label' => tr($caption), 'color' => $colors[$key], 'values' => array());
         }
@@ -471,9 +472,12 @@ class log_Debug extends core_Manager
                     $chart['series'][$key]['values'][] = $values[$key];
                 }
             }
-            foreach ($durations as $key => $caption) {
-                $cells->append(ht::createElement('td', array('class' => 'aright'), $int->toVerbal($values['durations'][$key])));
-                $durationChart['series']['duration' . $key]['values'][] = $values['durations'][$key];
+            $durationValues = log_DebugStatistics::getDurationBreakdown($values);
+            foreach (array('00', '05', '20', '50', 'unknown') as $key) {
+                $cells->append(ht::createElement('td', array('class' => 'aright'), $int->toVerbal($durationValues[$key])));
+            }
+            foreach ($durationValues as $key => $count) {
+                $durationChart['series']['duration' . $key]['values'][] = $count;
             }
             $metrics = log_DebugStatistics::getIntervalMetrics($values);
             $fastPercent = $metrics['fastPercent'];
@@ -501,8 +505,9 @@ class log_Debug extends core_Manager
         $tpl->push('log/js/debugStatistics.js', 'JS');
         jquery_Jquery::run($tpl, 'render_debugStatistics();');
 
+        $durationTotals = log_DebugStatistics::getDurationBreakdown($stats['totals'] + array('durations' => $stats['durations']));
         foreach ($durations as $key => $caption) {
-            $tpl->append(ht::createElement('tr', array(), ht::createElement('td', array(), tr($caption)) . ht::createElement('td', array('class' => 'aright'), $int->toVerbal($stats['durations'][$key]))), 'DURATION_ROWS');
+            $tpl->append(ht::createElement('tr', array(), ht::createElement('td', array(), tr($caption)) . ht::createElement('td', array('class' => 'aright'), $int->toVerbal($durationTotals[$key]))), 'DURATION_ROWS');
         }
         if (!$total) {
             $tpl->append(tr('Няма дебъг записи, отговарящи на филтъра'), 'MESSAGE');
@@ -552,7 +557,7 @@ class log_Debug extends core_Manager
         $form->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер,placeholderType=all, input, silent,class=debugField');
         $form->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $form->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
-        $form->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Изключение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
+        $form->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Недовършен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Изключение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
         $form->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         $form->FNC('statInterval', 'enum(1=1 мин.,5=5 мин.,30=30 мин.,60=60 мин.)', 'caption=Интервал, silent, input=' . ($statistics ? 'input' : 'hidden') . ',class=debugField');
         $form->setDefault('statInterval', 60);

@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,7 +48,7 @@ class bgerp_Index extends core_Manager
         $resData->INFO = tr('Интегрирана система за управление на бизнеса');
         $resData->VERSION = core_setup::CURRENT_VERSION;
         $resData->SN = core_setup::getBGERPUniqId();
-        $resData->AUTHOR = ht::createElement('a', array('target' => '_blank',  'href' => 'https://experta.bg'), tr('Експерта ООД'));
+        $resData->AUTHOR = ht::createElement('a', array('target' => '_blank',  'href' => 'https://experta.bg'), tr('Експерта ЕООД'));
         $resData->LOGO_IMG = ht::createElement('img', array('src' => sbf('img/logo.png', ''), 'class' => "aboutImg", 'width' => 40));
         $resData->LOGO_LINK = ht::createElement('a', array('target' => '_blank',  'href' =>'https://bgerp.com'), 'bgERP');
         

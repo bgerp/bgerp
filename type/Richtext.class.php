@@ -1163,7 +1163,7 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2]);
+        $color = parent::escape($match[2] ?? '');
         
         if (!$color) {
             $color = 'black';
@@ -1180,7 +1180,7 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2]);
+        $color = parent::escape($match[2] ?? '');
         
         if (!$color) {
             $color = 'black';
