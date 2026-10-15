@@ -88,8 +88,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         'tasks' => 'Операции',
         'scrap' => 'Записи за брак',
         'originJobs' => 'Задания извън периода',
+        'taskJobs' => 'Задания на операциите',
         'waste' => 'Записи за отпадък',
-        'jobWaste' => 'Задания с изчислен отпадък',
+        'jobWaste' => 'Задания с отделно изчислен отпадък (не са първи в нишката)',
         'convertKg' => 'Артикули с изчислено тегло',
         'rows' => 'Редове',
     );
@@ -280,6 +281,26 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Без doNotCalculate драйверът на eprod преизчислява и записва всеки артикул, смятан преди повече от ден
+        Mode::push('doNotCalculate', true);
+        try {
+            return $this->prepareWasteRecs($rec, $data);
+        } finally {
+            Mode::pop('doNotCalculate');
+        }
+    }
+
+
+    /**
+     * Записите на справката
+     *
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
+     * @return array
+     */
+    private function prepareWasteRecs($rec, &$data)
+    {
 
         $recs = $jobsArr = array();
         $rec->from = $rec->from ?? '1970-01-01';
@@ -313,33 +334,47 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $stateArr = array('active', 'wakeup', 'closed');
 
-        // Изваждаме всички задания за периода без оттеглените и черновите
-        $timer = microtime(true);
-        $jobQuery = planning_Jobs::getQuery();
-        $jobQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        // Полетата на заданията, които се ползват долу
+        $jobFields = 'id,containerId,productId,threadId';
 
-        $jobQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
-        $jobQuery->in('state', 'rejected, draft', true);
+        // По операции заданията от периода не филтрират - нужни са само тези на операциите
+        $byJobs = ($rec->type ?? 'task') == 'job';
 
-        //Филтър по създател на заданието
-        if (isset($rec->dealers)) {
-            $dealersArr = keylist::toArray($rec->dealers);
-            $jobQuery->in('createdBy', $dealersArr);
+        if ($byJobs) {
+            // Изваждаме всички задания за периода без оттеглените и черновите
+            $timer = microtime(true);
+            $jobQuery = planning_Jobs::getQuery();
+            $jobQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
+            $jobQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+            $jobQuery->in('state', 'rejected, draft', true);
+
+            //Филтър по създател на заданието
+            if (isset($rec->dealers)) {
+                $dealersArr = keylist::toArray($rec->dealers);
+                $jobQuery->in('createdBy', $dealersArr);
+            }
+
+            //Филтър по група артикули
+            if (isset($rec->groups)) {
+
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $jobQuery, $rec->groups, 'productId');
+            }
+
+
+            // По първия документ на нишката се разбира дали отпадъкът може да се зареди наведнъж
+            $jobQuery->EXT('firstDocClass', 'doc_Threads', 'externalKey=threadId');
+            $jobQuery->EXT('firstDocId', 'doc_Threads', 'externalKey=threadId');
+            $jobQuery->show("{$jobFields},firstDocClass,firstDocId");
+
+            while ($jobRec = $jobQuery->fetch()) {
+
+                //задания активирани в този период
+                $jobsArr[$jobRec->containerId] = $jobRec;
+
+            }
+            self::addReportStat($data, 'jobs', microtime(true) - $timer, countR($jobsArr));
         }
-
-        //Филтър по група артикули
-        if (isset($rec->groups)) {
-
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $jobQuery, $rec->groups, 'productId');
-        }
-
-        while ($jobRec = $jobQuery->fetch()) {
-
-            //задания активирани в този период
-            $jobsArr[$jobRec->containerId] = $jobRec;
-
-        }
-        self::addReportStat($data, 'jobs', microtime(true) - $timer, countR($jobsArr));
         $timer = microtime(true);
 
         //Изваждаме всички задачи
@@ -412,33 +447,61 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (countR($missingJobContainers)) {
             $otherJobQuery = planning_Jobs::getQuery();
             $otherJobQuery->in('containerId', $missingJobContainers);
+            $otherJobQuery->show($jobFields);
             while ($otherJobRec = $otherJobQuery->fetch()) {
                 $otherJobsArr[$otherJobRec->containerId] = $otherJobRec;
             }
         }
-        self::addReportStat($data, 'originJobs', microtime(true) - $timer, countR($otherJobsArr));
+        self::addReportStat($data, $byJobs ? 'originJobs' : 'taskJobs', microtime(true) - $timer, countR($otherJobsArr));
 
-        // При справка по операции отпадъците се зареждат наведнъж, групирани като в getTotalWasteArr()
+        // Отпадъците се зареждат наведнъж, групирани като в getTotalWasteArr() - по операция или по нишка на заданието
         $timer = microtime(true);
-        $wasteByTasks = array();
+        $wasteByGroup = $wasteGroupOf = $firstJobThreads = array();
         $wasteCount = 0;
-        if (($rec->type ?? 'task') != 'job' && countR($tasksArr)) {
-            $wasteQuery = planning_ProductionTaskProducts::getQuery();
-            $wasteQuery->in('taskId', $tasksArr);
-            $wasteQuery->where("#type = 'waste' AND #totalQuantity != 0");
-            $wasteQuery->show('taskId,productId,packagingId,quantityInPack,totalQuantity');
-            while ($wasteRec = $wasteQuery->fetch()) {
-                $wasteCount++;
-                $key = "{$wasteRec->productId}|{$wasteRec->packagingId}";
-                if (!isset($wasteByTasks[$wasteRec->taskId][$key])) {
-                    $wasteByTasks[$wasteRec->taskId][$key] = (object)array('packagingId' => $wasteRec->packagingId, 'quantityInPack' => $wasteRec->quantityInPack, 'productId' => $wasteRec->productId, 'quantity' => 0);
+        if ($byJobs) {
+
+            // Само за заданията, първи в нишката си - иначе getTotalWasteArr() взима операциите на друг документ
+            $jobsClassId = planning_Jobs::getClassId();
+            foreach ($jobsArr as $containerId => $jobRec) {
+                if (($jobRec->firstDocClass ?? null) == $jobsClassId && ($jobRec->firstDocId ?? null) == $jobRec->id) {
+                    $firstJobThreads[$containerId] = $jobRec->threadId;
                 }
-                $wasteByTasks[$wasteRec->taskId][$key]->quantity += $wasteRec->totalQuantity;
+            }
+
+            if (countR($firstJobThreads)) {
+                $jobTaskQuery = planning_Tasks::getQuery();
+                $jobTaskQuery->in('originId', array_keys($firstJobThreads));
+                $jobTaskQuery->in('state', array('active', 'wakeup', 'closed', 'stopped'));
+                $jobTaskQuery->show('id,originId');
+                while ($jobTaskRec = $jobTaskQuery->fetch()) {
+                    $wasteGroupOf[$jobTaskRec->id] = $firstJobThreads[$jobTaskRec->originId];
+                }
+            }
+        } else {
+            foreach ($tasksArr as $taskId) {
+                $wasteGroupOf[$taskId] = $taskId;
             }
         }
-        if (($rec->type ?? 'task') != 'job') {
-            self::addReportStat($data, 'waste', microtime(true) - $timer, $wasteCount);
+
+        if (countR($wasteGroupOf)) {
+            $wasteQuery = planning_ProductionTaskProducts::getQuery();
+            $wasteQuery->in('taskId', array_keys($wasteGroupOf));
+            $wasteQuery->where("#type = 'waste' AND #totalQuantity != 0");
+            $wasteQuery->show('taskId,productId,packagingId,quantityInPack,totalQuantity');
+
+            // Редът на уникалния индекс, по който чете и getTotalWasteArr()
+            $wasteQuery->orderBy('taskId,productId');
+            while ($wasteRec = $wasteQuery->fetch()) {
+                $wasteCount++;
+                $group = $wasteGroupOf[$wasteRec->taskId];
+                $key = "{$wasteRec->productId}|{$wasteRec->packagingId}";
+                if (!isset($wasteByGroup[$group][$key])) {
+                    $wasteByGroup[$group][$key] = (object)array('packagingId' => $wasteRec->packagingId, 'quantityInPack' => $wasteRec->quantityInPack, 'productId' => $wasteRec->productId, 'quantity' => 0);
+                }
+                $wasteByGroup[$group][$key]->quantity += $wasteRec->totalQuantity;
+            }
         }
+        self::addReportStat($data, 'waste', microtime(true) - $timer, $wasteCount);
 
         $kgMeasures = array();
         if ($kgMeasure = cat_UoM::fetchBySysId('kg')) {
@@ -467,7 +530,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             // Намиране на отпадъка
             $totalWastePercent = null;
-            if ($rec->type == 'job') {
+            if ($rec->type == 'job' && isset($firstJobThreads[$originJobRec->containerId])) {
+                $waste = $wasteByGroup[$originJobRec->threadId] ?? array();
+            } elseif ($rec->type == 'job') {
                 if (!array_key_exists($originJobRec->threadId, $jobWasteCache)) {
                     $jobWasteTimer = microtime(true);
                     $jobWasteCache[$originJobRec->threadId] = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
@@ -475,7 +540,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 }
                 $waste = $jobWasteCache[$originJobRec->threadId];
             } else {
-                $waste = $wasteByTasks[$taskRec->id] ?? array();
+                $waste = $wasteByGroup[$taskRec->id] ?? array();
             }
 
             $waste = is_array($waste) ? $waste : array();
