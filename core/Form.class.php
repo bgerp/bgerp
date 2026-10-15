@@ -857,7 +857,9 @@ class core_Form extends core_FieldSet
                 $isGet = ($this->getMethod() === 'GET');
                 if ($isGet) {
                     if (!empty($field->autoFilter) || !empty($field->refreshForm)) {
-                        $attr['onchange'] = 'this.form.submit();';
+
+                        // Радио групата е div без .form - формата се търси нагоре
+                        $attr['onchange'] = "$(this).closest('form').get(0).submit();";
                     }
                 } else {
                     $attr['onchange'] ??= '';
