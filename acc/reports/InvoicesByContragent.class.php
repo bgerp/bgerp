@@ -99,7 +99,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         // --- Филтри по контрагент ---
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=title');
+        $fieldset->FLD('contragent', 'keylist2(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=title');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=contragent,single=none');
 
         // --- Тип документи и режим на плащане ---
