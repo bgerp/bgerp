@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -202,8 +202,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         core_App::setTimeLimit(300);
 
         $pDetails = cls::get('planning_ProductionTaskDetails');
-        $pDetails->forceReplica($pDetails->className);
         $query = $pDetails->getQuery();
+
+        // Тежките заявки на справката - от репликата; данните ѝ се записват в основната база
+        $query->onReplica = true;
         $query->EXT('indTimeAllocation', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'indTimeAllocation'));
         $query->EXT('folderId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'folderId'));
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
@@ -307,6 +309,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $taskIds = arr::extractValuesFromArray($taskDetails, 'taskId');
         if(countR($taskIds)){
             $taskQuery = planning_Tasks::getQuery();
+            $taskQuery->onReplica = true;
             $taskQuery->in('id', $taskIds);
 
             // isFinal, productId и labelQuantityInPack са за calcNormByRec(), за да не чете операцията отново

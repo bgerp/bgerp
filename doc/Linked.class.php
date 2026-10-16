@@ -8,7 +8,7 @@
  * @package   doc
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1123,6 +1123,7 @@ class doc_Linked extends core_Manager
         
         $cInst = cls::get($params['mvc']);
         $cQuery = $cInst->getQuery();
+        $cQuery->onReplica = true;
         
         doc_Threads::restrictAccess($cQuery);
         
@@ -1402,8 +1403,8 @@ class doc_Linked extends core_Manager
             $fArr = core_Permanent::get($pKey, $minCreatedOn);
 
             if (!isset($fArr) || !is_array($fArr)) {
-                $docTypeInst->forceReplica($docTypeInst->className);
                 $dQuery = $docTypeInst->getQuery();
+                $dQuery->onReplica = true;
                 
                 $dQuery->where("#state != 'rejected'");
                 

@@ -56,7 +56,7 @@ defIfNot('CORE_REMOTE_REPORT_MAX_PER_HOUR', 30);
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -317,7 +317,7 @@ class core_Debug
             foreach ($timers as $name => $t) {
                 $t = number_format($t->workingTime ?? 0, 5);
                 if ($t > '0.00000') {
-                    $html .= "\n<li> '{$name}' => " . $t . ' sec.';
+                    $html .= "\n<li> '" . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "' => " . $t . ' sec.';
                 }
             }
             

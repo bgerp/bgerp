@@ -1,17 +1,30 @@
 <?php
 
+/** @copyright 2026 Experta EOOD */
+
 // Run with PHP CLI. Uses the real routing methods and synthetic connection settings, without a database.
 if (PHP_SAPI !== 'cli') exit("Run this regression test from CLI.\n");
 error_reporting(E_ALL);
 set_error_handler(function ($severity, $message, $file, $line) { throw new ErrorException($message, 0, $severity, $file, $line); });
 $checks = 0;
 function check($condition, $message) { global $checks; if (!$condition) throw new RuntimeException($message); $checks++; }
+function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
+function expect($condition, ...$args) { if (!$condition) throw new RuntimeException('Expect: ' . ($args[0] ?? '')); }
+class Debug
+{
+    public static $logs = array();
+    public static function log($text) { self::$logs[] = $text; }
+    public static function startTimer($name) {}
+    public static function stopTimer($name) {}
+    public static function getExecutionTime() { return microtime(true); }
+}
 class core_Mvc
 {
-    public $db, $fields = array(), $dbTableName = 'test_items', $dbIndexes = array();
+    public $db, $fields = array(), $dbTableName = 'test_items', $dbIndexes = array(), $title = 'Test';
 }
 class core_FieldSet {}
-class core_App { public static function isReplicationOK() { return ''; } }
+class core_App { public static $error = ''; public static function isReplicationOK() { return self::$error; } }
+class core_Cache { public static function get($type, $key) { return true; } }
 class cls
 {
     public static $db;
@@ -19,13 +32,17 @@ class cls
 }
 require dirname(__DIR__) . '/Manager.class.php';
 require dirname(__DIR__) . '/Query.class.php';
+require dirname(__DIR__) . '/Db.class.php';
 class RoutingQuery extends core_Query
 {
     public function select() { return $this->mvc->db->dbName; }
 }
 
 $primary = array('dbName' => 'primary', 'dbUser' => 'writer', 'dbPass' => null, 'dbHost' => 'primary.invalid');
-cls::$db = (object) $primary;
+cls::$db = (new ReflectionClass('core_Db'))->newInstanceWithoutConstructor();
+foreach ($primary as $name => $value) cls::$db->{$name} = $value;
+unset(cls::$db->__origDbName, cls::$db->__origDbUser, cls::$db->__origDbPass, cls::$db->__origDbHost);
+$primary = (array) cls::$db;
 $manager = new core_Manager();
 $manager->db = cls::$db;
 $query = new RoutingQuery();
@@ -38,7 +55,8 @@ define('SEARCH_DB_NAME', 'replica');
 define('SEARCH_DB_USER', 'reader');
 define('SEARCH_DB_PASS', 'synthetic-replica-password');
 define('SEARCH_DB_HOST', 'replica.invalid');
-$replica = array('dbName' => SEARCH_DB_NAME, 'dbUser' => SEARCH_DB_USER, 'dbPass' => SEARCH_DB_PASS, 'dbHost' => SEARCH_DB_HOST);
+$replica = array_replace($primary, array('dbName' => SEARCH_DB_NAME, 'dbUser' => SEARCH_DB_USER, 'dbPass' => SEARCH_DB_PASS, 'dbHost' => SEARCH_DB_HOST, 'dbRole' => 'replica'));
+unset($replica['replicaOwner']);
 check($query->selectOnReplica() === 'replica', 'Ordinary option queries still use the replica');
 check((array) cls::$db === $primary, 'Ordinary queries restore all primary settings');
 check(core_Manager::callWithoutReplica(function () use ($query, $manager, $primary) {
@@ -56,7 +74,8 @@ check((array) cls::$db === $primary, 'The callback leaves the connection unchang
 
 $manager->callOnReplica(function () use ($manager, $query, $primary, $replica) {
     $outerSettings = (array) cls::$db;
-    check(array_intersect_key($outerSettings, $primary) === $replica, 'The outer callback uses all replica settings');
+    check(array_diff_key(array_intersect_key($outerSettings, $primary), array('replicaOwner' => true)) === $replica, 'The outer callback uses all replica settings');
+    check(strpos($outerSettings['replicaOwner'] ?? '', 'replicaRouting.php:') !== false, 'The replica owner points to the calling code');
     check(core_Manager::callWithoutReplica(function () use ($manager, $query, $primary) {
         check(array_intersect_key((array) cls::$db, $primary) === $primary, 'Nested primary scope restores every primary credential');
         $manager->forceReplica();
@@ -85,4 +104,13 @@ try {
     check($e->getMessage() === 'Synthetic primary failure', 'Primary callback failures propagate');
 }
 check($query->selectOnReplica() === 'replica' && (array) cls::$db === $primary, 'A failed callback releases the primary-only scope');
+core_App::$error = 'Replica is unavailable';
+check($query->selectOnReplica() === 'primary', 'Failed replica health check preserves the primary route');
+check(strpos(implode('\n', Debug::$logs), 'forceReplica() END status=unavailable') !== false, 'Unavailable replica outcome must be logged');
+foreach (array('not-configured', 'disabled', 'selected') as $status) {
+    check(strpos(implode('\n', Debug::$logs), 'forceReplica() END status=' . $status) !== false, 'Missing routing outcome: ' . $status);
+}
+check(strpos(implode('\n', Debug::$logs), 'callWithoutReplica() BEGIN current=[primary host=primary.invalid db=primary]') !== false, 'Primary override must be labelled primary');
+check(strpos(implode('\n', Debug::$logs), 'callWithoutReplica() END current=[replica host=replica.invalid db=replica]') !== false, 'Restored replica must be labelled replica');
+check(strpos(implode('\n', Debug::$logs), SEARCH_DB_PASS) === false, 'Replica password leaked into debug');
 echo "OK: {$checks} replica routing checks\n";

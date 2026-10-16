@@ -8,7 +8,7 @@
  * @package   doc
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -21,6 +21,12 @@ class doc_Files extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'doc_Wrapper, plg_Sorting, plg_GroupByDate';
+
+
+    /**
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
+     */
+    public $listOnReplica = true;
     
     
     /**
@@ -500,20 +506,6 @@ class doc_Files extends core_Manager
         return "__folder__"  .$folderId;
     }
 
-    
-    /**
-     * Листване
-     *
-     * Ако е конфигурирана репликационна база, филтрирането се изпълнява
-     * върху нея, за да не се натоварва основната
-     */
-    public function act_List()
-    {
-        $this->forceReplica($this->className);
-
-        return parent::act_List();
-    }
-
 
     /**
      *
@@ -640,9 +632,8 @@ class doc_Files extends core_Manager
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
 
-                // Заявката вече ще се изпълнява от друг мениджър, а форсирането
-                // в act_List() е върху този. Затова форсираме и него
-                $data->query->mvc->forceReplica();
+                // Новата заявка също чете от репликата, както заявката на списъка
+                $data->query->onReplica = true;
 
                 if (isset($filter->search) && preg_match('/\.\w+/ui', $filter->search, $m)) {
                     $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));

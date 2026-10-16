@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -318,8 +318,13 @@ class core_Pager extends core_BaseClass
                 core_QueryCnts::delayCount($qCnt);
             }
         } else {
-            $dbRes = $qCnt->mvc->db->query('SELECT FOUND_ROWS()');
-            $cntArr = $qCnt->mvc->db->fetchArray($dbRes);
+            // FOUND_ROWS() се чете от връзката, на която е изпълнена заявката за id-тата
+            $foundRows = function () use ($qCnt) {
+                $dbRes = $qCnt->mvc->db->query('SELECT FOUND_ROWS()');
+
+                return $qCnt->mvc->db->fetchArray($dbRes);
+            };
+            $cntArr = (!empty($qCnt->onReplica) && ($qCnt->mvc instanceof core_Manager)) ? $qCnt->mvc->callOnReplica($foundRows) : $foundRows();
             $resCnt = array_shift($cntArr);
             if($query->addId) {
                 $resCnt++;   
