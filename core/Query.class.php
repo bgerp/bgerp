@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -154,6 +154,13 @@ class core_Query extends core_FieldSet
      * Дали SELECT заявката да е приоритетна
      */
     public $highPriority = false;
+
+
+    /**
+     * Дали SELECT и COUNT на заявката да се изпълнят на репликата.
+     * Връзката се връща към основната база веднага след тях - записите не се засягат.
+     */
+    public $onReplica = false;
     
     
     /**
@@ -795,6 +802,25 @@ class core_Query extends core_FieldSet
 
     public function count($cond = null, $limit = 0)
     {
+        // Само самото преброяване минава през репликата
+        if ($this->onReplica && ($this->mvc instanceof core_Manager)) {
+            $me = $this;
+
+            return $this->mvc->callOnReplica(function () use ($me, $cond, $limit) {
+
+                return $me->countOnConnection($cond, $limit);
+            });
+        }
+
+        return $this->countOnConnection($cond, $limit);
+    }
+
+
+    /**
+     * Преброява записите през текущата връзка
+     */
+    protected function countOnConnection($cond = null, $limit = 0)
+    {
         if ($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === false) {
             return $res;
         }
@@ -964,7 +990,11 @@ class core_Query extends core_FieldSet
     {
         if (!$this->executed) {
             $this->where($cond);
-            $this->select();
+            if ($this->onReplica) {
+                $this->selectOnReplica();
+            } else {
+                $this->select();
+            }
         }
         
         $db = $this->mvc->db;
