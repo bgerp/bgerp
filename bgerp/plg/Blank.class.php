@@ -218,7 +218,7 @@ class bgerp_plg_Blank extends core_Plugin
 
             $form->class .= ' simpleForm';
             $form->FNC('useBlank', 'enum(yes=Да,no=Не)', 'caption=Бланка, silent, input');
-            $form->addAttr('useBlank', array('onchange' => 'this.form.submit();'));
+            $form->addAttr('useBlank', array('onchange' => "$(this).closest('form').get(0).submit();"));
 
             // Гледа се от кеша дали има записан избор за този потребител
             $cu = core_Users::getCurrent();
