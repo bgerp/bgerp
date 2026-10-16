@@ -46,6 +46,10 @@ class drdata_Wrapper extends plg_ProtoWrapper
             $this->TAB('cvc_WayBills', 'CVC->Товарителници', 'admin');
         }
 
+        if(core_Packs::isInstalled('transpress')){
+            $this->TAB('transpress_WayBills', 'Transpress->Товарителници', 'admin');
+        }
+
         $this->title = 'Адресни данни';
         $this->title = 'Система « Адресни данни';
         Mode::set('menuPage', 'Адресни данни:Система');
