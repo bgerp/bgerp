@@ -775,11 +775,12 @@ function comboSelectOnChange(id, value, selectId) {
     }
 
     get$(id).focus();
-    $(id).trigger("change");
 
     var selCombo = get$(selectId);
     selCombo.value = '?';
-    $('#' + id).change();
+
+    // По елемента, не по селектор: id-то може да не е валиден CSS селектор (напр. ключ с „|“)
+    $(inp).change();
 
 }
 

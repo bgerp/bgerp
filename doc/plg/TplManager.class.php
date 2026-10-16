@@ -272,7 +272,7 @@ class doc_plg_TplManager extends core_Plugin
             
             $form->class .= ' simpleForm';
             $form->FNC('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, input');
-            $form->addAttr('tplId', array('onchange' => 'this.form.submit();'));
+            $form->addAttr('tplId', array('onchange' => "$(this).closest('form').get(0).submit();"));
             
             $tplArr = doc_TplManager::getTemplates($mvc->getClassId());
             

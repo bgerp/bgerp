@@ -99,7 +99,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         // --- Филтри по контрагент ---
-        $fieldset->FLD('contragent', 'keylist2(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=title');
+        $fieldset->FLD('contragent', 'keylist2(mvc=doc_Folders,select=title,allowEmpty,selectSourceArr=acc_reports_InvoicesByContragent::getContragentFolderOptions,maxSuggestions=200)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=title');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=contragent,single=none');
 
         // --- Тип документи и режим на плащане ---
@@ -163,51 +163,56 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
         $form->setDefault('typeOfInvoice', 'out');
+    }
 
 
-        // Подготвят се предложенията за контрагенти от продажбите и покупките.
-        /** @var core_Query $salesQuery */
-        $salesQuery = sales_Sales::getQuery();
+    /**
+     * Опции за полето „Контрагент“ - само папките, в които има продажби или покупки.
+     *
+     * @see doc_Folders::getSelectArr()
+     */
+    public static function getContragentFolderOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        // Вече избраните папки се показват винаги, дори без сделки
+        if (isset($onlyIds)) {
 
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $salesQuery->groupBy('folderId');
-
-        $salesQuery->show('folderId, contragentId, folderTitle');
-
-        /** @var core_Query $purchQuery */
-        $purchQuery = purchase_Purchases::getQuery();
-
-        $purchQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $purchQuery->groupBy('folderId');
-
-        $purchQuery->show('folderId, contragentId, folderTitle');
-
-        $purSuggestions = $suggestions = array();
-
-        while ($purContragent = $purchQuery->fetch()) {
-            if (!is_null($purContragent->contragentId)) {
-                $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle ?? null;
+            // type_Keylist2 подава избраните като "1,2,3", а getSelectArr приема масив или едно id
+            if (is_string($onlyIds)) {
+                $onlyIds = explode(',', trim($onlyIds, ','));
             }
+
+            return doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         }
 
-        while ($contragent = $salesQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle ?? null;
+        $folderIds = core_Cache::get('acc_reports_InvoicesByContragent', 'dealFolders');
+        if (!is_array($folderIds)) {
+
+            // Само по индекса на folderId, без JOIN към папките - иначе се сканират всички сделки
+            $folderIds = array();
+            foreach (array('sales_Sales', 'purchase_Purchases') as $dealClass) {
+                $dealQuery = $dealClass::getQuery();
+                $dealQuery->groupBy('folderId');
+                $dealQuery->show('folderId');
+                while ($dRec = $dealQuery->fetch()) {
+                    $folderIds[$dRec->folderId] = $dRec->folderId;
+                }
             }
+            core_Cache::set('acc_reports_InvoicesByContragent', 'dealFolders', $folderIds, 10, array('sales_Sales', 'purchase_Purchases'));
         }
 
-        // Обединяват се предложенията от покупки със списъка от продажби.
-        foreach ($purSuggestions as $k => $v) {
-            if (!array_key_exists($k, $suggestions)) {
-                $suggestions[$k] = $v;
-            }
+        if (!countR($folderIds)) {
+
+            return array();
         }
 
-        asort($suggestions);
+        // Затворените папки остават, защото по тях може да има стари фактури
+        $where = '#id IN (' . implode(',', $folderIds) . ") AND #state != 'rejected'";
+        if (!empty($params['where'])) {
+            $where = "({$params['where']}) AND {$where}";
+        }
+        $params['where'] = $where;
 
-        $form->setSuggestions('contragent', $suggestions);
+        return doc_Folders::getSelectArr($params, $limit, $q, null, true);
     }
 
 
