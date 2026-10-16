@@ -37,13 +37,17 @@ class drdata_Wrapper extends plg_ProtoWrapper
 
         if(core_Packs::isInstalled('speedy')){
             $this->TAB('speedy_Offices', 'Speedy->Офиси', 'admin');
-            $this->TAB('speedy_BillOfLadings', 'Speedy->Товарителници', 'admin');
+            $this->TAB('speedy_WayBills', 'Speedy->Товарителници', 'admin');
         }
 
         if(core_Packs::isInstalled('cvc')){
             $this->TAB('cvc_Offices', 'CVC->Офиси', 'admin');
             $this->TAB('cvc_Hubs', 'CVC->Хъбове', 'admin');
             $this->TAB('cvc_WayBills', 'CVC->Товарителници', 'admin');
+        }
+
+        if(core_Packs::isInstalled('transpress')){
+            $this->TAB('transpress_WayBills', 'Transpress->Товарителници', 'admin');
         }
 
         $this->title = 'Адресни данни';

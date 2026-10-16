@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -343,147 +343,147 @@ class doc_Threads extends core_Manager
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
+        try {
+            $resArr = array('firstContainerId' => 0, 'del_cnt' => 0, 'updateThread' => 0, 'folderId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerIdState' => 0);
 
-        $resArr = array('firstContainerId' => 0, 'del_cnt' => 0, 'updateThread' => 0, 'folderId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerIdState' => 0);
-        
-        // id на папката за несортирани
-        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
-        
-        // id на папката за несортирани
-        $currUser = core_Users::getCurrent();
-        $defaultFolderId = null;
-        if ($currUser > 0) {
-            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', false);
-        }
-        if (!isset($defaultFolderId)) {
-            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', false);
-        }
-        
-        $query = self::getQuery();
-        
-        // Подготвяме данните за търсене
-        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
-        
-        $query->where('#firstContainerId IS NULL');
-        $query->orWhere('#folderId IS NULL');
-        
-        // Не им се правят обработвки
-        // За да предизвикат стартиране за съответния запис в on_Shutdown
-        $query->orWhere('#allDocCnt IS NULL');
-        $query->orWhere('#partnerDocCnt IS NULL');
-        $query->orWhere('#lastAuthor IS NULL');
-        $query->orWhere('#lastState IS NULL');
-        $query->orWhere('#firstDocClass IS NULL');
-        $query->orWhere('#firstDocId IS NULL');
-        $query->orWhere('#partnerDocCnt > 0 AND #partnerDocLast IS NULL');
-        
-        $query->limit(500);
-        
-        while ($rec = $query->fetch()) {
-            try {
-                // Ако има нишка без firstContainerId
-                if (!isset($rec->firstContainerId)) {
-                    
-                    // Първия документ от нишката
-                    $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', false);
-                    
-                    // Ако не може да се определи първия документ в нишката, изтриваме нишката
-                    if (!$firstCid) {
-                        if (!empty($rec->id)) {
-                            self::delete($rec->id);
-                            $resArr['del_cnt']++;
-                            
-                            self::logNotice('Изтрита нишка, в която няма документи', $rec->id);
-                            
-                            continue;
+            // id на папката за несортирани
+            $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
+
+            // id на папката за несортирани
+            $currUser = core_Users::getCurrent();
+            $defaultFolderId = null;
+            if ($currUser > 0) {
+                $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}' AND #inCharge = '{$currUser}'", 'id', false);
+            }
+            if (!isset($defaultFolderId)) {
+                $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id', false);
+            }
+
+            $query = self::getQuery();
+
+            // Подготвяме данните за търсене
+            doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+
+            $query->where('#firstContainerId IS NULL');
+            $query->orWhere('#folderId IS NULL');
+
+            // Не им се правят обработвки
+            // За да предизвикат стартиране за съответния запис в on_Shutdown
+            $query->orWhere('#allDocCnt IS NULL');
+            $query->orWhere('#partnerDocCnt IS NULL');
+            $query->orWhere('#lastAuthor IS NULL');
+            $query->orWhere('#lastState IS NULL');
+            $query->orWhere('#firstDocClass IS NULL');
+            $query->orWhere('#firstDocId IS NULL');
+            $query->orWhere('#partnerDocCnt > 0 AND #partnerDocLast IS NULL');
+
+            $query->limit(500);
+
+            while ($rec = $query->fetch()) {
+                try {
+                    // Ако има нишка без firstContainerId
+                    if (!isset($rec->firstContainerId)) {
+
+                        // Първия документ от нишката
+                        $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', false);
+
+                        // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                        if (!$firstCid) {
+                            if (!empty($rec->id)) {
+                                self::delete($rec->id);
+                                $resArr['del_cnt']++;
+
+                                self::logNotice('Изтрита нишка, в която няма документи', $rec->id);
+
+                                continue;
+                            }
+                        }
+
+                        $rec->firstContainerId = $firstCid;
+
+                        if (self::save($rec, 'firstContainerId')) {
+                            $resArr['firstContainerId']++;
+                            self::logNotice("Контейнерът {$firstCid} е направен първи документ в нишката", $rec->id);
+
+                            self::updateThread($rec->id);
                         }
                     }
-                    
-                    $rec->firstContainerId = $firstCid;
-                    
-                    if (self::save($rec, 'firstContainerId')) {
-                        $resArr['firstContainerId']++;
-                        self::logNotice("Контейнерът {$firstCid} е направен първи документ в нишката", $rec->id);
-                        
-                        self::updateThread($rec->id);
+
+                    // Ако няма папка използваме папката за несортирани
+                    if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                        $rec->folderId = $defaultFolderId;
+
+                        if (self::save($rec, 'folderId')) {
+                            $resArr['folderId']++;
+                            self::logNotice("Нишката е преместена в папка {$defaultFolderId}", $rec->id);
+                        }
                     }
-                }
-                
-                // Ако няма папка използваме папката за несортирани
-                if (!isset($rec->folderId) && isset($defaultFolderId)) {
-                    $rec->folderId = $defaultFolderId;
-                    
-                    if (self::save($rec, 'folderId')) {
-                        $resArr['folderId']++;
-                        self::logNotice("Нишката е преместена в папка {$defaultFolderId}", $rec->id);
+
+                    // Ако няма firstDocClass използваме от контейнера
+                    if (!isset($rec->firstDocClass)) {
+                        $rec->firstDocClass = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docClass', false);
+
+                        if (self::save($rec, 'firstDocClass')) {
+                            $resArr['firstDocClass']++;
+                            self::logNotice('Добавен липсващ firstDocClass', $rec->id);
+                        }
                     }
-                }
-                
-                // Ако няма firstDocClass използваме от контейнера
-                if (!isset($rec->firstDocClass)) {
-                    $rec->firstDocClass = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docClass', false);
-                    
-                    if (self::save($rec, 'firstDocClass')) {
-                        $resArr['firstDocClass']++;
-                        self::logNotice('Добавен липсващ firstDocClass', $rec->id);
+
+                    // Ако няма firstDocId използваме от контейнера
+                    if (!isset($rec->firstDocId)) {
+                        $rec->firstDocId = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docId', false);
+
+                        if (self::save($rec, 'firstDocId')) {
+                            $resArr['firstDocId']++;
+                            self::logNotice('Добавен липсващ firstDocId', $rec->id);
+                        }
                     }
-                }
-                
-                // Ако няма firstDocId използваме от контейнера
-                if (!isset($rec->firstDocId)) {
-                    $rec->firstDocId = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docId', false);
-                    
-                    if (self::save($rec, 'firstDocId')) {
-                        $resArr['firstDocId']++;
-                        self::logNotice('Добавен липсващ firstDocId', $rec->id);
+
+                    // Ако ще се поправя само partnerDocCnt и allDocCnt или partnerDocLast
+                    $fields = array('allDocCnt', 'partnerDocCnt', 'visibleForPartners');
+                    foreach ($fields as $i => $f) {
+                        if (isset($rec->{$f})) {
+                            unset($fields[$i]);
+                        }
                     }
-                }
-                
-                // Ако ще се поправя само partnerDocCnt и allDocCnt или partnerDocLast
-                $fields = array('allDocCnt', 'partnerDocCnt', 'visibleForPartners');
-                foreach ($fields as $i => $f) {
-                    if (isset($rec->{$f})) {
-                        unset($fields[$i]);
+                    if (!isset($rec->partnerDocCnt) || ($rec->partnerDocCnt > 0 && !isset($rec->partnerDocLast))) {
+                        $fields[] = 'partnerDocLast';
                     }
-                }
-                if (!isset($rec->partnerDocCnt) || ($rec->partnerDocCnt > 0 && !isset($rec->partnerDocLast))) {
-                    $fields[] = 'partnerDocLast';
-                }
-                $exRec = clone($rec);
-                if (empty(self::$updateQueue[$rec->id]) && countR($fields)) {
-                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                    $fieldsList = implode(',', $fields);
-                    self::save($rec, $fieldsList);
-                    self::logNotice('Поправен/и ' . $fieldsList, $rec->id);
-                    foreach ($fields as $f) {
-                        $resArr[$f] = ($resArr[$f] ?? 0) + 1;
+                    $exRec = clone($rec);
+                    if (empty(self::$updateQueue[$rec->id]) && countR($fields)) {
+                        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                        $fieldsList = implode(',', $fields);
+                        self::save($rec, $fieldsList);
+                        self::logNotice('Поправен/и ' . $fieldsList, $rec->id);
+                        foreach ($fields as $f) {
+                            $resArr[$f] = ($resArr[$f] ?? 0) + 1;
+                        }
+
+                        continue;
                     }
-                    
-                    continue;
+
+                    self::logNotice('Нишката е обновена, защото има развалени данни', $rec->id);
+                    $resArr['updateThread']++;
+
+                    // Обновяваме нишката
+                    self::updateThread($rec->id);
+                } catch (ErrorException $e) {
+                    reportException($e);
                 }
-                
-                self::logNotice('Нишката е обновена, защото има развалени данни', $rec->id);
-                $resArr['updateThread']++;
-                
-                // Обновяваме нишката
-                self::updateThread($rec->id);
-            } catch (ErrorException $e) {
-                reportException($e);
             }
+
+            // Ако е зададено да се поправят всички стойности
+            if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                $resArr = doc_Folders::mergeRepairResults($resArr, self::repairAll($from, $to, $delay));
+            }
+
+            return $resArr;
+        } finally {
+            core_Debug::$isLogging = $isLoging;
         }
-        
-        // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
-            $resArr += self::repairAll($from, $to, $delay);
-        }
-        
-        // Връщаме старото състояние за ловговането в дебъг
-        core_Debug::$isLogging = $isLoging;
-        
-        return $resArr;
     }
-    
-    
+
+
     /**
      * Поправка на развалените полета за състоянието на нишките
      *
@@ -536,8 +536,6 @@ class doc_Threads extends core_Manager
                     $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
                     $cQuery->where("#state != 'rejected'");
                     
-                    $pCQuery = clone $cQuery;
-                    
                     // Ако се различава броя на документите
                     $cCnt = $cQuery->count();
                     
@@ -557,32 +555,31 @@ class doc_Threads extends core_Manager
                     }
                 }
                 
-                // Поправяме състоянието, ако се е счупило
-                if (!$rec->firstContainerId) {
-                    continue;
-                }
-                
-                try {
-                    $cRec = doc_Containers::fetch($rec->firstContainerId, '*', false);
-                } catch (ErrorException $e) {
-                    continue;
+                if (!$prepareDocCnt) {
+                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                    $prepareDocCnt = true;
                 }
 
+                // Данните трябва да са от действителния първи контейнер на нишката.
+                $cRec = $firstDcRec;
                 if (!$cRec) {
                     continue;
                 }
 
-                // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if ($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && empty(self::$updateQueue[$rec->id])) {
-                    // Ако се различава броя на документите, видими за партньори
-                    $pCQuery->where("#visibleForPartners = 'yes' AND #state != 'draft' AND #state != 'rejected'");
-                    $pCCnt = $pCQuery->count();
+                if (($rec->firstContainerId ?? null) != ($cRec->id ?? null)) {
+                    $oldFirstContainerId = $rec->firstContainerId ?? null;
+                    $rec->firstContainerId = $cRec->id ?? null;
+                    if (self::save($rec, 'firstContainerId')) {
+                        $resArr['firstContainerId']++;
+                        self::logNotice("Променено firstContainerId от {$oldFirstContainerId} на {$rec->firstContainerId} в нишка", $rec->id ?? null);
+                    }
+                }
+
+                // prepareDocCnt() отчита и невидим първи контейнер (нулев брой).
+                if (empty(self::$updateQueue[$rec->id])) {
+                    $pCCnt = (int) $rec->partnerDocCnt;
                     if ($pCCnt != $partnerCnt) {
                         $pCCnt = (int) $pCCnt;
-                        
-                        if (!$prepareDocCnt) {
-                            self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                        }
                         
                         self::logNotice("Променен брой на документите видими за партньори от {$partnerCnt} на {$pCCnt}", $rec->id);
                         
@@ -596,29 +593,7 @@ class doc_Threads extends core_Manager
                     }
                 }
                 
-                if (!$prepareDocCnt) {
-                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                }
-                
-                $fCid = null;
-                if ($firstDcRec && $firstDcRec->id && ($rec->firstContainerId != $firstDcRec->id)) {
-                    $fCid = $rec->firstContainerId;
-                    $rec->firstContainerId = $firstDcRec->id;
-                    
-                    self::save($rec, 'firstContainerId');
-                    $resArr['firstContainerId']++;
-                    self::logNotice("Променено firstContainerId от {$fCid} на {$firstDcRec->id} в нишка", $rec->id);
-                }
-                
-                if ($fCid) {
-                    try {
-                        $cRec = doc_Containers::fetch($fCid, '*', false);
-                    } catch (ErrorException $e) {
-                        continue;
-                    }
-                }
-                
-                if (!$cRec || !$cRec->docClass || !$cRec->docId) {
+                if (empty($cRec->docClass) || empty($cRec->docId)) {
                     continue;
                 }
                 
@@ -648,7 +623,11 @@ class doc_Threads extends core_Manager
                     }
                     
                     $clsInst = cls::get($cRec->docClass);
-                    $iRec = $clsInst->fetch($cRec->docId, 'state', false);
+                    $iRec = $clsInst->fetch($cRec->docId, 'state,containerId', false);
+
+                    if (($iRec->containerId ?? null) != ($cRec->id ?? null)) {
+                        continue;
+                    }
                     
                     if (!isset($iRec->state)) {
                         continue;

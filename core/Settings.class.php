@@ -412,7 +412,7 @@ class core_Settings extends core_Manager
         $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
-        $form->FNC('_userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin, rolesForDomains=admin)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
+        $form->FNC('_userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin, rolesForDomains=admin)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => "var f = $(this).closest('form').get(0); addCmdRefresh(f); f.submit();")));
         $form->FNC('_key', 'varchar', 'input=none, silent');
         $form->FNC('_className', 'varchar', 'input=none, silent');
         

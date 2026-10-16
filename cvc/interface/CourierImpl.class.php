@@ -37,13 +37,13 @@ class cvc_interface_CourierImpl extends core_Manager
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption = 'CVC';
+    public $requestWayBillBtnCaption = 'CVC';
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon = 'img/16/cvc.png';
+    public $requestWayBillBtnIcon = 'img/16/cvc.png';
 
 
     /**
@@ -55,7 +55,7 @@ class cvc_interface_CourierImpl extends core_Manager
     /**
      * Коментар към връзката на прикачения файл
      */
-    public $billOfLadingComment = 'Товарителница (CVC)';
+    public $wayBillComment = 'Товарителница (CVC)';
 
 
     /**
@@ -66,7 +66,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param int|null $userId - ид на потребител (null за текущия)
      * @return bool
      */
-    public function canRequestBillOfLading($mvc, $id, $userId = null)
+    public function canRequestWayBill($mvc, $id, $userId = null)
     {
         $res = haveRole($this->requireRoles, $userId);
         if($res){
@@ -92,13 +92,13 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param core_Form $form - Форма за създаване на товарителница
      * @return void
      */
-    public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
+    public function addFieldToWayBillForm($mvc, $rec, &$form)
     {
         $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
 
         $formRec = &$form->rec;
 
-        $form->class = 'cvcBillOfLading';
+        $form->class = 'cvcWayBill';
         $form->title = 'Попълване на товарителница за CVC към|* ' . $mvc->getFormTitleLink($rec);
 
         $form->FLD('parcelType', 'enum(parcel=Пакетна,pallet=Палетна,tires=Гуми)', 'caption=Тип на пратката,silent,removeAndRefreshForm=fixedTime,mandatory');
@@ -363,7 +363,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param core_Form $form       - Форма за създаване на товарителница
      * @return void
      */
-    public function inputBillOfLadingForm($mvc, $documentRec, &$form)
+    public function inputWayBillForm($mvc, $documentRec, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -770,7 +770,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param core_ET $tpl           - шаблона на формата
      * @return void
      */
-    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    public function afterPrepareWayBillForm($mvc, $documentRec, $form, &$tpl)
     {
         $url = '';
         if($this->haveRightFor('getplacesbystring')){
@@ -778,7 +778,7 @@ class cvc_interface_CourierImpl extends core_Manager
             $url = urlencode($url);
         }
 
-        $tpl->push('cvc/js/BillOfLadingForm.js', 'JS');
+        $tpl->push('cvc/js/WayBillForm.js', 'JS');
         jquery_Jquery::run($tpl, "enableApi('{$url}');");
         jquery_Jquery::runAfterAjax($tpl, "enableApi");
         jqueryui_Ui::enable($tpl);
@@ -878,7 +878,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param int $containerId
      * @return array $res - обекти с number, date, file и state
      */
-    public function getBillOfLadings($containerId)
+    public function getWayBills($containerId)
     {
         $res = array();
         $query = cvc_WayBills::getQuery();
@@ -900,7 +900,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param string $reason      - причина
      * @return stdClass {status, error}
      */
-    public function cancelBillOfLading($containerId, $number, $reason)
+    public function cancelWayBill($containerId, $number, $reason)
     {
         $rec = cvc_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
         if(empty($rec)){

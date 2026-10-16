@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -1455,6 +1455,19 @@ class doc_Folders extends core_Master
         
         $query->where(array("#{$dateField} <= '[#1#]'", $to));
     }
+
+
+    /**
+     * Сумира броячите от отделните етапи на поправката.
+     */
+    public static function mergeRepairResults($results, $additional)
+    {
+        foreach ($additional as $field => $count) {
+            $results[$field] = ($results[$field] ?? 0) + $count;
+        }
+
+        return $results;
+    }
     
     
     /**
@@ -1471,82 +1484,82 @@ class doc_Folders extends core_Master
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
-        
-        $resArr = array();
-        
-        $unsortedFolders = 'doc_UnsortedFolders';
-        $unsortedFolderId = core_Classes::getId($unsortedFolders);
-        
-        $currUser = core_Users::getCurrent();
-        if ($currUser <= 0) {
-            $currUser = core_Users::getFirstAdmin();
-        }
-        $currUser = ($currUser) ? $currUser : 1;
-        
-        $query = self::getQuery();
-        
-        // Подготвяме данните за търсене
-        self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
-        
-        // Търсим документи с развалени стойности
-        $query->where('#inCharge IS NULL');
-        $query->orWhere('#inCharge <= 0');
-        $query->orWhere('#coverClass IS NULL');
-        $query->orWhere('#coverId IS NULL');
-        $query->orWhere('#title IS NULL');
-        
-        $query->limit(500);
-        
-        while ($rec = $query->fetch()) {
-            try {
-                // Ако има папка без собственик
-                if (!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
-                    $resArr['inCharge'] = ($resArr['inCharge'] ?? 0) + 1;
-                    $rec->inCharge = $currUser;
-                    self::save($rec, 'inCharge');
-                    self::logNotice('Добавен е собственик на папката', $rec->id);
-                }
-                
-                // Ако липсва coverClass, да е на несортираните
-                if (!isset($rec->coverClass)) {
-                    $resArr += self::moveToUnsorted($rec, $currUser);
-                }
-                
-                // Ако няма coverId
-                if (!isset($rec->coverId)) {
-                    $resArr += self::moveToUnsorted($rec, $currUser);
-                }
-                
-                // Ако няма заглвиет, използваме заглавието от документа
-                if (!isset($rec->title)) {
-                    $resArr['title'] = ($resArr['title'] ?? 0) + 1;
-                    $coverMvc = cls::get($rec->coverClass);
-                    $rec->title = $coverMvc->getFolderTitle($rec->coverId, false);
-                    self::save($rec, 'title');
-                    self::logNotice("Добавено заглавие на корица {$rec->coverId}");
-                }
-                
-                self::logNotice('Папката е обновена, защото има развалени данни', $rec->id);
-                
-                // Обновяваме папката
-                self::updateFolderByContent($rec->id);
-            } catch (ErrorException $e) {
-                reportException($e);
+        try {
+            $resArr = array();
+
+            $unsortedFolders = 'doc_UnsortedFolders';
+            $unsortedFolderId = core_Classes::getId($unsortedFolders);
+
+            $currUser = core_Users::getCurrent();
+            if ($currUser <= 0) {
+                $currUser = core_Users::getFirstAdmin();
             }
+            $currUser = ($currUser) ? $currUser : 1;
+
+            $query = self::getQuery();
+
+            // Подготвяме данните за търсене
+            self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
+
+            // Търсим документи с развалени стойности
+            $query->where('#inCharge IS NULL');
+            $query->orWhere('#inCharge <= 0');
+            $query->orWhere('#coverClass IS NULL');
+            $query->orWhere('#coverId IS NULL');
+            $query->orWhere('#title IS NULL');
+
+            $query->limit(500);
+
+            while ($rec = $query->fetch()) {
+                try {
+                    // Ако има папка без собственик
+                    if (!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                        $resArr['inCharge'] = ($resArr['inCharge'] ?? 0) + 1;
+                        $rec->inCharge = $currUser;
+                        self::save($rec, 'inCharge');
+                        self::logNotice('Добавен е собственик на папката', $rec->id);
+                    }
+
+                    // Ако липсва coverClass, да е на несортираните
+                    if (!isset($rec->coverClass)) {
+                        $resArr = self::mergeRepairResults($resArr, self::moveToUnsorted($rec, $currUser));
+                    }
+
+                    // Ако няма coverId
+                    if (!isset($rec->coverId)) {
+                        $resArr = self::mergeRepairResults($resArr, self::moveToUnsorted($rec, $currUser));
+                    }
+
+                    // Ако няма заглвиет, използваме заглавието от документа
+                    if (!isset($rec->title)) {
+                        $resArr['title'] = ($resArr['title'] ?? 0) + 1;
+                        $coverMvc = cls::get($rec->coverClass);
+                        $rec->title = $coverMvc->getFolderTitle($rec->coverId, false);
+                        self::save($rec, 'title');
+                        self::logNotice("Добавено заглавие на корица {$rec->coverId}");
+                    }
+
+                    self::logNotice('Папката е обновена, защото има развалени данни', $rec->id);
+
+                    // Обновяваме папката
+                    self::updateFolderByContent($rec->id);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+            }
+
+            // Ако е зададено да се поправят всички стойности
+            if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                $resArr = self::mergeRepairResults($resArr, self::repairAll($from, $to, $delay));
+            }
+
+            return $resArr;
+        } finally {
+            core_Debug::$isLogging = $isLoging;
         }
-        
-        // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
-            $resArr += self::repairAll($from, $to, $delay);
-        }
-        
-        // Връщаме старото състояние за ловговането в дебъг
-        core_Debug::$isLogging = $isLoging;
-        
-        return $resArr;
     }
-    
-    
+
+
     /**
      * Проверка и поправка на всички записи
      *
@@ -1585,7 +1598,7 @@ class doc_Folders extends core_Master
             
             if ($mustRepair) {
                 try {
-                    $resArr += self::moveToUnsorted($rec);
+                    $resArr = self::mergeRepairResults($resArr, self::moveToUnsorted($rec));
                 } catch (ErrorException $e) {
                     reportException($e);
                     
@@ -1614,125 +1627,140 @@ class doc_Folders extends core_Master
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
-        
-        // Всички документи, които имат интерфейса
-        $clsArr = core_Classes::getOptionsByInterface('doc_FolderIntf', 'name');
-        
-        $fArr = array();
-        
-        foreach ($clsArr as $clsId => $clsName) {
-            if ($clsName == 'doc_Folders') {
-                continue;
-            }
-            
-            if (!cls::load($clsName, true)) {
-                continue ;
-            }
-            
-            $coverInst = cls::get($clsName);
-            $coverId = core_Classes::getId($coverInst);
-            
-            $cQuery = $coverInst->getQuery();
-            
-            // Подготвяме данните за търсене
-            self::prepareRepairDateQuery($cQuery, $from, $to, $delay);
-            
-            $cQuery->where("#folderId IS NOT NULL AND #folderId != ''");
-            
-            while ($cRec = $cQuery->fetch()) {
-                if (!$cRec->folderId) {
+        try {
+            // Всички документи, които имат интерфейса
+            $clsArr = core_Classes::getOptionsByInterface('doc_FolderIntf', 'name');
+
+            $fArr = array();
+
+            foreach ($clsArr as $clsId => $clsName) {
+                if ($clsName == 'doc_Folders') {
                     continue;
                 }
-                
-                // Премахва повтарящите се folderId
-                if (!empty($fArr[$cRec->folderId])) {
-                    
-                    // Избираме най-добрият запис
-                    $cPoints = self::getPointsForRec($cRec);
-                    $aPoints = self::getPointsForRec($fArr[$cRec->folderId]['rec']);
-                    
-                    if ($cPoints == $aPoints) {
-                        $cLastUsedOn = $cRec->lastUsedOn ?? null;
-                        $aLastUsedOn = $fArr[$cRec->folderId]['rec']->lastUsedOn ?? null;
-                        if ($cLastUsedOn > $aLastUsedOn) {
-                            $cPoints++;
-                        }
-                    }
-                    
-                    try {
-                        // Нулираме folderId на записа с по-малко точки
-                        if ($aPoints > $cPoints) {
-                            $cRec->folderId = null;
-                            $coverInst->save($cRec, 'folderId');
-                            $coverInst->logNotice('Нулирано повтарящо се "folderId"', $cRec->id);
-                        } else {
-                            $sInst = cls::get($fArr[$cRec->folderId]['cls']);
-                            $fArr[$cRec->folderId]['rec']->folderId = null;
-                            $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
-                            $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
-                            
-                            // Добавяме новите стойности в масива
-                            $fArr[$cRec->folderId]['cls'] = $clsName;
-                            $fArr[$cRec->folderId]['rec'] = $cRec;
-                        }
-                        $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
-                    } catch (ErrorException $e) {
-                        reportException($e);
-                    }
-                } else {
-                    $fArr[$cRec->folderId]['cls'] = $clsName;
-                    $fArr[$cRec->folderId]['rec'] = $cRec;
+
+                if (!cls::load($clsName, true)) {
+                    continue ;
                 }
-                
-                // Ако ще се проверяват всички записи
-                if (doc_Setup::get('REPAIR_ALL') == 'yes') {
-                    $fRec = false;
-                    if ($cRec->folderId) {
-                        $fRec = doc_Folders::fetch($cRec->folderId, '*', false);
+
+                $coverInst = cls::get($clsName);
+                $coverId = core_Classes::getId($coverInst);
+
+                $cQuery = $coverInst->getQuery();
+
+                // Подготвяме данните за търсене
+                self::prepareRepairDateQuery($cQuery, $from, $to, $delay);
+
+                $cQuery->where("#folderId IS NOT NULL AND #folderId != ''");
+
+                while ($cRec = $cQuery->fetch()) {
+                    if (!$cRec->folderId) {
+                        continue;
                     }
-                    
-                    // Ако няма такава папка
-                    if (!$fRec) {
+
+                    // Ако ще се проверяват всички записи
+                    if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                        $fRec = false;
+                        if ($cRec->folderId) {
+                            $fRec = doc_Folders::fetch($cRec->folderId, '*', false);
+                        }
+
+                        // Ако няма такава папка
+                        if (!$fRec) {
+                            try {
+                                $cRec->folderId = null;
+                                $coverInst->save($cRec, 'folderId');
+                                $coverInst->logNotice('Нулирано грешно "folderId"', $cRec->id);
+                                $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
+                                continue;
+                            } catch (ErrorException $e) {
+                                reportException($e);
+                            }
+                        } else {
+
+                            // Ако корицата не отговаря с данните на папката
+                            if ($fRec->coverClass != $coverId || $fRec->coverId != $cRec->id) {
+                                $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', false);
+
+                                try {
+                                    if ($newFolderId) {
+                                        $cRec->folderId = $newFolderId;
+                                        $coverInst->save($cRec, 'folderId');
+                                        $coverInst->logNotice('Променено грешно "folderId"', $cRec->id);
+                                        $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
+                                    } else {
+                                        // Съществуваща корица не се заменя с чужда заради грешен folderId.
+                                        $owner = !empty($fRec->coverClass) && cls::load($fRec->coverClass, true) ? cls::get($fRec->coverClass) : null;
+                                        if (!empty($fRec->coverId) && $owner instanceof core_Mvc && $owner->fetch($fRec->coverId, '*', false)) {
+                                            $cRec->folderId = null;
+                                            if ($coverInst->save($cRec, 'folderId')) {
+                                                $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
+                                                $coverInst->logNotice('Нулирано folderId, принадлежащо на друга корица', $cRec->id);
+                                            }
+                                            continue;
+                                        }
+
+                                        $fRec->coverClass = $coverId;
+                                        $fRec->coverId = $cRec->id;
+                                        self::save($fRec, 'coverClass, coverId', 'IGNORE');
+                                        self::logNotice('Промяна на coverClass и coverId', $fRec->id);
+                                        $resArr['coverId'] = ($resArr['coverId'] ?? 0) + 1;
+                                    }
+                                } catch (ErrorException $e) {
+                                    reportException($e);
+                                }
+                            }
+                        }
+                    }
+
+                    // Премахва повтарящите се folderId
+                    if (!empty($fArr[$cRec->folderId])) {
+
+                        // Избираме най-добрият запис
+                        $cPoints = self::getPointsForRec($cRec);
+                        $aPoints = self::getPointsForRec($fArr[$cRec->folderId]['rec']);
+
+                        if ($cPoints == $aPoints) {
+                            $cLastUsedOn = $cRec->lastUsedOn ?? null;
+                            $aLastUsedOn = $fArr[$cRec->folderId]['rec']->lastUsedOn ?? null;
+                            if ($cLastUsedOn > $aLastUsedOn) {
+                                $cPoints++;
+                            }
+                        }
+
                         try {
-                            $cRec->folderId = null;
-                            $coverInst->save($cRec, 'folderId');
-                            $coverInst->logNotice('Нулирано грешно "folderId"', $cRec->id);
+                            // Нулираме folderId на записа с по-малко точки
+                            if ($aPoints > $cPoints) {
+                                $cRec->folderId = null;
+                                $coverInst->save($cRec, 'folderId');
+                                $coverInst->logNotice('Нулирано повтарящо се "folderId"', $cRec->id);
+                            } else {
+                                $sInst = cls::get($fArr[$cRec->folderId]['cls']);
+                                $fArr[$cRec->folderId]['rec']->folderId = null;
+                                $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
+                                $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
+
+                                // Добавяме новите стойности в масива
+                                $fArr[$cRec->folderId]['cls'] = $clsName;
+                                $fArr[$cRec->folderId]['rec'] = $cRec;
+                            }
                             $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
                         } catch (ErrorException $e) {
                             reportException($e);
                         }
                     } else {
-                        
-                        // Ако корицата не отговаря с данните на папката
-                        if ($fRec->coverClass != $coverId || $fRec->coverId != $cRec->id) {
-                            $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', false);
-                            
-                            try {
-                                if ($newFolderId) {
-                                    $cRec->folderId = $newFolderId;
-                                    $coverInst->save($cRec, 'folderId');
-                                    $coverInst->logNotice('Променено грешно "folderId"', $cRec->id);
-                                    $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
-                                } else {
-                                    $fRec->coverClass = $coverId;
-                                    $fRec->coverId = $cRec->id;
-                                    self::save($fRec, 'coverClass, coverId', 'IGNORE');
-                                    self::logNotice('Промяна на coverClass и coverId', $fRec->id);
-                                    $resArr['coverId'] = ($resArr['coverId'] ?? 0) + 1;
-                                }
-                            } catch (ErrorException $e) {
-                                reportException($e);
-                            }
-                        }
+                        $fArr[$cRec->folderId]['cls'] = $clsName;
+                        $fArr[$cRec->folderId]['rec'] = $cRec;
                     }
                 }
             }
+
+            return $resArr;
+        } finally {
+            core_Debug::$isLogging = $isLoging;
         }
-        
-        return $resArr;
     }
-    
-    
+
+
     /**
      * Опитва се да извлече точки за записа
      *
