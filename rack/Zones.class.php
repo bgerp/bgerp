@@ -151,6 +151,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Хешът за обновяване не зависи от съдържанието - plg_RefreshRows го сверява преди рендирането
+     */
+    public $refreshRowsHashWithoutContent = true;
+
+
+    /**
      * Шаблон за реда в листовия изглед
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";

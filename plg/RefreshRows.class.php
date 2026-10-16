@@ -158,6 +158,22 @@ class plg_RefreshRows extends core_Plugin
         
         // Добавяме флага
         $refreshUrl['ajax_mode'] = $ajaxMode;
+
+        // Хеш, който не зависи от съдържанието, се сверява преди рендирането - без промяна не се рендира нищо
+        if (!empty($mvc->refreshRowsHashWithoutContent)) {
+            $noContent = '';
+            Request::push($refreshUrl, 'refreshRowsHash');
+            try {
+                $earlyHash = $mvc->getContentHash($noContent);
+            } finally {
+                Request::pop('refreshRowsHash');
+            }
+
+            if ($earlyHash == core_Cache::get(get_called_class(), $nameHash)) {
+
+                return false;
+            }
+        }
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
