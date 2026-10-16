@@ -9,6 +9,9 @@ var TM_COOLDOWN_MS      = 700;
 var TM_SLOW_MS          = 8000;
 var TM_TIMEOUT_MS       = 60000;
 
+// Активните заявки се пазят и при повторно зареждане на скрипта по AJAX.
+var tmPendingMoves = window.tmPendingMoves || {};
+
 function lockKey(moveId) { return TM_LOCK_PREFIX + String(moveId); }
 function coolKey(moveId) { return TM_COOL_PREFIX + String(moveId); }
 function nowMs() { return Date.now(); }
@@ -22,6 +25,7 @@ function _isFreshTs(raw, ttl) {
 
 function isLocked(moveId) {
 	if (!moveId) return false;
+	if (tmPendingMoves[moveId]) return true;
 
 	var key = lockKey(moveId);
 	var raw = sessionStorage.getItem(key);
@@ -103,7 +107,6 @@ function zoneActions() {
 				return false;
 			}
 
-			$btn.addClass('is-busy');
 		});
 
 	$(document.body)
@@ -131,6 +134,10 @@ function zoneActions() {
 			var ts  = String(Date.now());
 			var tab = tmGetTabId();
 
+			if (moveId) {
+				tmPendingMoves[moveId] = true;
+				$btn = $btn.add($('.toggle-movement[data-moveid="' + moveId + '"]'));
+			}
 			$btn.prop('disabled', true).addClass('is-busy');
 
 			getEO().isWaitingResponse = true;
@@ -139,22 +146,34 @@ function zoneActions() {
 			console.log('Call: ' + url, 'moveId=' + moveId, '_rid=' + rid, '_ts=' + ts, '_tab=' + tab);
 
 			// Асинхронно, за да може бутонът да върти и да се покаже грешка при бавен сървър
-			var request = getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId });
+			var request;
+			try {
+				request = getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId });
+			} catch (err) {
+				tmReleaseBtn(moveId, $btn);
+				throw err;
+			}
 			if (!request) {
 				tmReleaseBtn(moveId, $btn);
 				return false;
 			}
 
+			var $slowStatus;
 			var slowTimer = setTimeout(function () {
-				tmShowStatus('Сървърът се бави - изчакайте, движението се обработва', 'warning');
+				// Информацията за изчакване не трябва да потиска предупрежденията при HTTP 503.
+				$slowStatus = tmShowStatus('Сървърът се бави - изчакайте, движението се обработва', 'notice');
 			}, TM_SLOW_MS);
 
 			var abortTimer = setTimeout(function () {
 				request.abort();
 			}, TM_TIMEOUT_MS);
 
-			request.done(function () {
-				// Сървърът е приключил; не всеки отговор съдържа enableBtn (напр. повторно започване)
+			request.always(function () {
+				clearTimeout(slowTimer);
+				clearTimeout(abortTimer);
+				if ($slowStatus) {
+					$slowStatus.closest('.toast-item-wrapper').add($slowStatus).stop(true, true).remove();
+				}
 				tmReleaseBtn(moveId, $btn);
 			}).fail(function (xhr, textStatus) {
 				// Заявката е прекъсната от презареждане на страницата
@@ -168,10 +187,6 @@ function zoneActions() {
 					}
 					tmShowStatus(text + '. Проверете състоянието му преди да опитате отново!', 'error');
 				}
-				tmReleaseBtn(moveId, $btn);
-			}).always(function () {
-				clearTimeout(slowTimer);
-				clearTimeout(abortTimer);
 			});
 
 			return false;
@@ -179,20 +194,27 @@ function zoneActions() {
 }
 
 
-// Отключва бутона, когато отговор от сървъра няма да дойде
+// Освобождава и бутоните, подменени междувременно от AJAX обновяване.
 function tmReleaseBtn(moveId, $btn) {
-	if (moveId) unlock(moveId);
+	if (moveId) {
+		delete tmPendingMoves[moveId];
+		unlock(moveId);
+		$btn = $btn.add($('.toggle-movement[data-moveid="' + moveId + '"]'));
+	}
 	$btn.prop('disabled', false).removeClass('is-busy');
 }
 
 
 // Показва съобщение веднага; общият обработчик на AJAX грешки не добавя второ, ако вече има такова
 function tmShowStatus(text, type) {
-	if (typeof showToast != 'undefined' && $().toastmessage) {
-		showToast({ timeOut: 1, text: text, isSticky: type == 'error', stayTime: 6000, type: type });
-	} else {
-		render_html({ id: 'statuses', html: "<div class='statuses-message statuses-" + type + " connection-" + type + "-status'>" + text + "</div>", replace: false });
+	if ($().toastmessage) {
+		return $().toastmessage('showToast', {
+			text: text, sticky: type == 'error', stayTime: 6000, type: type,
+			inEffectDuration: 800, position: 'bottom-right'
+		});
 	}
+	return $('<div>').addClass('statuses-message statuses-' + type + ' connection-' + type + '-status')
+		.text(text).appendTo('#statuses');
 }
 
 
@@ -201,11 +223,8 @@ function render_enableBtn(data){
 	var moveId = (data && data.moveId != null) ? String(data.moveId) : null;
 
 	if (moveId) {
-		unlock(moveId);
-
-		$('.toggle-movement[data-moveid="' + moveId + '"]')
-			.prop('disabled', false)
-			.removeClass('is-busy');
+		// Активната заявка освобождава движението в своя always обработчик.
+		if (!tmPendingMoves[moveId]) tmReleaseBtn(moveId, $());
 	} else {
 		console.log('render_enableBtn without moveId (no unlock)');
 	}
