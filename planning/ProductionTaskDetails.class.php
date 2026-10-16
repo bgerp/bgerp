@@ -1843,7 +1843,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     return;
                 }
 
-                $rest = round($taskRec->plannedQuantity - $taskRec->totalQuantity, 4);
+                $rest = round(self::getFastProgressRest($taskRec), 4);
                 if($rest <= 0){
                     $requiredRoles = 'no_one';
                 } else {
@@ -2392,6 +2392,18 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
+     * Оставащото до 100% количество на ПО; бракът намалява прогреса, затова се добавя
+     *
+     * @param stdClass $taskRec
+     * @return double
+     */
+    private static function getFastProgressRest($taskRec)
+    {
+        return $taskRec->plannedQuantity - ($taskRec->totalQuantity - ($taskRec->scrappedQuantity ?? 0));
+    }
+
+
+    /**
      * Екшън за бърз прогрес на ПО
      */
     public function act_fastprogress()
@@ -2401,7 +2413,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->requireRightFor('fastprogress', (object)array('taskId' => $taskId));
         $taskRec = planning_Tasks::fetch($taskId);
 
-        $rest = $taskRec->plannedQuantity - $taskRec->totalQuantity;
+        $rest = self::getFastProgressRest($taskRec);
         $rest = $rest <= 0 ? null : $rest;
 
         // Ако има задължителни полета за попълване се минава през стандартната форма
