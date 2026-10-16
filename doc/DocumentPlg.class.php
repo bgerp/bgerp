@@ -11,7 +11,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -2203,9 +2203,7 @@ class doc_DocumentPlg extends core_Plugin
                                         );
                 
                 if ($document->haveRightFor('single')) {
-                    $docHtml = $document->getInlineDocumentBody();
-                    $tpl->replace($docHtml, "DOCUMENT");
-                    $data->form->layout->append($tpl, 'ORIGINAL_DOCUMENT');
+                    $data->form->_originPreview = array('document' => $document, 'template' => $tpl);
                 }
             } elseif ($fType == 'file') {
                 self::showOriginalFile($fRec, $data->form);
@@ -2344,6 +2342,31 @@ class doc_DocumentPlg extends core_Plugin
             
             doc_Linked::showLinkedInForm($data->form, $cId);
         }
+    }
+
+
+    /**
+     * Успешният запис не показва формата и не се нуждае от преглед на оригинала
+     */
+    public static function on_AfterRenderPrepareEditForm($mvc, &$tpl, $form)
+    {
+        $preview = $form->_originPreview ?? null;
+        if (!$preview || Mode::is('stopRenderOrigin') ||
+            strpos($tpl->content ?? '', '[#ORIGINAL_DOCUMENT#]') === false) {
+            return;
+        }
+
+        $document = $preview['document'] ?? null;
+        $template = $preview['template'] ?? null;
+        if (!$document || !$template || !$document->haveRightFor('single')) {
+            return;
+        }
+
+        if (empty($preview['rendered'])) {
+            $template->replace($document->getInlineDocumentBody(), 'DOCUMENT');
+            $form->_originPreview['rendered'] = true;
+        }
+        $tpl->replace($template, 'ORIGINAL_DOCUMENT');
     }
 
 
