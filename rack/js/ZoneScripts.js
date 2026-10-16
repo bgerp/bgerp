@@ -9,6 +9,10 @@ var TM_COOLDOWN_MS      = 700;
 var TM_SLOW_MS          = 8000;
 var TM_TIMEOUT_MS       = 60000;
 
+// Опресняването на редовете след успешно действие: таймаут и брой опити
+var TM_REFRESH_TIMEOUT_MS = 20000;
+var TM_REFRESH_TRIES      = 3;
+
 // Активните заявки се пазят и при повторно зареждане на скрипта по AJAX.
 var tmPendingMoves = window.tmPendingMoves || {};
 
@@ -116,6 +120,7 @@ function zoneActions() {
 			e.stopImmediatePropagation();
 
 			var $btn   = $(this);
+			var $clicked = $btn;
 			var moveId = getMoveId($btn);
 
 			if (moveId) {
@@ -174,8 +179,20 @@ function zoneActions() {
 				if ($slowStatus) {
 					$slowStatus.closest('.toast-item-wrapper').add($slowStatus).stop(true, true).remove();
 				}
-				tmReleaseBtn(moveId, $btn);
+			}).done(function (res) {
+				if (tmHasRenderFunc(res, 'movementDone')) {
+					// Действието е записано - отметка, а бутоните остават неактивни до новите редове
+					$btn.removeClass('is-busy');
+					$clicked.addClass('is-done');
+					tmRefreshAfterDone(moveId, $clicked, 1);
+				} else {
+					tmRefreshRows(function () {
+						tmReleaseBtn(moveId, $btn);
+					});
+				}
 			}).fail(function (xhr, textStatus) {
+				tmReleaseBtn(moveId, $btn);
+
 				// Заявката е прекъсната от презареждане на страницата
 				if (getEO().isReloading) return;
 
@@ -191,6 +208,74 @@ function zoneActions() {
 
 			return false;
 		});
+}
+
+
+// Има ли в AJAX отговора извикване на дадената render функция
+function tmHasRenderFunc(res, func) {
+	if (!res || typeof res.length == 'undefined') return false;
+
+	for (var i = 0; i < res.length; i++) {
+		if (res[i] && res[i].func == func) return true;
+	}
+
+	return false;
+}
+
+
+// Обновява веднага редовете на терминала, без да чака следващото периодично обновяване
+function tmRefreshRows(onDone) {
+	var name = 'rack_Zones_RefreshRows';
+	var efae = getEfae();
+	var sub = efae.subscribedArr ? efae.subscribedArr[name] : null;
+	var request = null;
+
+	if (sub && sub['url']) {
+		var subscribedObj = {};
+		subscribedObj[name] = sub['url'];
+		efae.lastTimeArr[name] = new Date();
+		request = efae.process(subscribedObj);
+	}
+
+	if (!request) {
+		onDone();
+		return;
+	}
+
+	var abortTimer = setTimeout(function () {
+		request.abort();
+	}, TM_REFRESH_TIMEOUT_MS);
+
+	request.always(function () {
+		clearTimeout(abortTimer);
+		onDone();
+	});
+}
+
+
+// След успешно действие: бутонът се отключва едва когато новите редове са на екрана
+function tmRefreshAfterDone(moveId, $btn, attempt) {
+	tmRefreshRows(function () {
+		// Редовете са подменени (от тази или от периодичната заявка) - старият бутон вече го няма
+		if (!$.contains(document.documentElement, $btn[0])) {
+			tmReleaseBtn(moveId, $());
+			return;
+		}
+
+		if (attempt < TM_REFRESH_TRIES) {
+			setTimeout(function () {
+				tmRefreshAfterDone(moveId, $btn, attempt + 1);
+			}, 2000);
+			return;
+		}
+
+		// Старият бутон остава неактивен, но движението се освобождава за редовете, които ще дойдат по-късно
+		if (moveId) {
+			delete tmPendingMoves[moveId];
+			unlock(moveId);
+		}
+		tmShowStatus('Движението е записано, но екранът не се обнови. Обновете страницата!', 'warning');
+	});
 }
 
 
@@ -219,6 +304,12 @@ function tmShowStatus(text, type) {
 
 
 // ===== AJAX callback =====
+
+// Сървърът потвърждава успешно действие; бутонът се обработва в обработчика на заявката
+function render_movementDone(data) {
+}
+
+
 function render_enableBtn(data){
 	var moveId = (data && data.moveId != null) ? String(data.moveId) : null;
 
