@@ -206,7 +206,9 @@ class type_Combodate extends type_Varchar
 
         $y = $m = $d = null;
         if ($cDate) {
-            list($y, $m, $d) = explode($div, $cDate);
+            // Стари записи може да са с точки (19.10.2016)
+            $cDate = str_replace('.', $div, $cDate);
+            list($y, $m, $d) = explode($div, $cDate) + array(null, null, null);
         }
 
         if (strlen($d ?? '') > 2) {
