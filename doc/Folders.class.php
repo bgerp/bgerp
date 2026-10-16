@@ -48,6 +48,12 @@ class doc_Folders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
+
+
+    /**
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
+     */
+    public $listOnReplica = true;
     
     
     /**
@@ -169,17 +175,6 @@ class doc_Folders extends core_Master
         expect($id = Request::get('id', 'int'));
         
         return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
-    }
-
-
-    /**
-     * Листване
-     */
-    public function act_List()
-    {
-        $this->forceReplica($this->className);
-
-        return parent::act_List();
     }
     
     

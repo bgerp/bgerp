@@ -51,6 +51,12 @@ class doc_Threads extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
+
+
+    /**
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
+     */
+    public $listOnReplica = true;
     
     
     /**
@@ -747,17 +753,6 @@ class doc_Threads extends core_Manager
         $data->title = $title;
         
         $mvc->title = '|*' . doc_Folders::getTitleById($folderRec->id) . '|' ;
-    }
-    
-    
-    /**
-     * Лист на папките на колабораторите
-     */
-    public function act_List()
-    {
-        $this->forceReplica($this->className);
-
-        return parent::act_List();
     }
 
 

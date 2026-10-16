@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -352,15 +352,9 @@ class cat_Products extends embed_Manager
 
 
     /**
-     * Листване от репликата
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
      */
-    public function act_List()
-    {
-        return $this->callOnReplica(function () {
-
-            return parent::act_List();
-        });
-    }
+    public $listOnReplica = true;
 
 
     /**

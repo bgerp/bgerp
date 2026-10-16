@@ -1,0 +1,14 @@
+.wide .invoicesByContragentForm .vertical .formTable {
+    width: calc(100vw - 32px);
+    max-width: 768px;
+    table-layout: fixed;
+    box-sizing: border-box;
+}
+
+.wide #main-container .invoicesByContragentForm .formTable .formElement {
+    min-width: 24em;
+}
+
+.wide .invoicesByContragentForm select[name="driverClass"] + .select2-container {
+    max-width: 32em;
+}

@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -70,6 +70,19 @@ class core_Manager extends core_Mvc
      * Временно изпълнение на заявките към основната база
      */
     private static $replicaDisabled = false;
+
+
+    /**
+     * DB обектите, включени чрез forceReplica(); всеки мениджър има собствен адаптер
+     */
+    private static $replicaDbs = array();
+
+
+    /**
+     * Дали тежките заявки на списъка (страниране, броене и записи) да се изпълняват на репликата.
+     * Записите по време на листването остават в основната база.
+     */
+    public $listOnReplica = false;
 
 
     /**
@@ -204,36 +217,56 @@ class core_Manager extends core_Mvc
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
-        if (self::$replicaDisabled) {
-            return;
-        }
-        if (defined('SEARCH_DB_HOST')) {
-            $error = core_App::isReplicationOK();
-            if (!empty($error)) {
-                if (false === core_Cache::get($this->title, 'Report_Replica')) {
-                    // Ако започва с 4151 да е logNotice
-                    if (strpos($error, '4151') === 0) {
-                        $this->logNotice("Replica: " . $error);
-                    } else {
-                        $this->logWarning("Replica: " . $error);
+        $target = defined('SEARCH_DB_HOST') ? 'host=' . SEARCH_DB_HOST . ' db=' . (defined('SEARCH_DB_NAME') ? SEARCH_DB_NAME : 'unknown') : 'not-configured';
+        $timer = 'DB::forceReplica() [' . $target . ']';
+        $started = DEBUG::getExecutionTime();
+        $status = 'error';
+        DEBUG::startTimer($timer);
+        DEBUG::log('forceReplica() BEGIN [' . $target . '] caller=' . get_class($this) . ' current=[' . $this->db->getDebugConnectionLabel() . ']');
+        try {
+            if (self::$replicaDisabled) {
+                $status = 'disabled';
+                return;
+            }
+            $status = 'not-configured';
+            if (defined('SEARCH_DB_HOST')) {
+                $status = 'error';
+                $error = core_App::isReplicationOK();
+                if (!empty($error)) {
+                    $status = 'unavailable';
+                    if (false === core_Cache::get($this->title, 'Report_Replica')) {
+                        // Ако започва с 4151 да е logNotice
+                        if (strpos($error, '4151') === 0) {
+                            $this->logNotice("Replica: " . $error);
+                        } else {
+                            $this->logWarning("Replica: " . $error);
+                        }
+
+                        core_Cache::set($this->title, 'Report_Replica', $error, 10);
+                        // todo: да праща signal msg на админа
+                    }
+                } else {
+                    if (!isset($this->db->__origDbName)) {
+                        $this->db->__origDbName = $this->db->dbName;
+                        $this->db->__origDbPass = $this->db->dbPass ?? null;
+                        $this->db->__origDbUser = $this->db->dbUser;
+                        $this->db->__origDbHost = $this->db->dbHost;
                     }
 
-                    core_Cache::set($this->title, 'Report_Replica', $error, 10);
-                    // todo: да праща signal msg на админа
+                    $this->db->dbName = SEARCH_DB_NAME;
+                    $this->db->dbPass = SEARCH_DB_PASS;
+                    $this->db->dbUser = SEARCH_DB_USER;
+                    $this->db->dbHost = SEARCH_DB_HOST;
+                    $this->db->dbRole = 'replica';
+                    $this->db->replicaOwner = self::getReplicaCaller($this);
+                    self::$replicaDbs[spl_object_hash($this->db)] = $this->db;
+                    $status = 'selected';
                 }
-            } else {
-                if (!isset($this->db->__origDbName)) {
-                    $this->db->__origDbName = $this->db->dbName;
-                    $this->db->__origDbPass = $this->db->dbPass ?? null;
-                    $this->db->__origDbUser = $this->db->dbUser;
-                    $this->db->__origDbHost = $this->db->dbHost;
-                }
-
-                $this->db->dbName = SEARCH_DB_NAME;
-                $this->db->dbPass = SEARCH_DB_PASS;
-                $this->db->dbUser = SEARCH_DB_USER;
-                $this->db->dbHost = SEARCH_DB_HOST;
             }
+        } finally {
+            DEBUG::stopTimer($timer);
+            DEBUG::log(sprintf('forceReplica() END status=%s duration=%.5fs current=[%s]',
+                $status, DEBUG::getExecutionTime() - $started, $this->db->getDebugConnectionLabel()));
         }
     }
 
@@ -257,17 +290,33 @@ class core_Manager extends core_Mvc
         }
 
         if (defined('SEARCH_DB_HOST')) {
-            if (isset($this->db->__origDbName, $this->db->__origDbUser, $this->db->__origDbHost)) {
-                $this->db->dbName = $this->db->__origDbName;
-                $this->db->dbPass = $this->db->__origDbPass ?? null;
-                $this->db->dbUser = $this->db->__origDbUser;
-                $this->db->dbHost = $this->db->__origDbHost;
-                unset($this->db->__origDbHost);
-                unset($this->db->__origDbName);
-                unset($this->db->__origDbPass);
-                unset($this->db->__origDbUser);
+            $previousConnection = $this->db->getDebugConnectionLabel();
+            if ($this->db->restorePrimary()) {
+                DEBUG::log('unforceReplica() [' . $previousConnection . '] -> [' . $this->db->getDebugConnectionLabel() . ']');
             }
         }
+        unset(self::$replicaDbs[spl_object_hash($this->db)]);
+    }
+
+
+    /**
+     * Мястото в кода, от което е включена репликата - за доклада при пропуснато връщане
+     *
+     * @param core_Manager $mvc
+     *
+     * @return string
+     */
+    protected static function getReplicaCaller($mvc)
+    {
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 8) as $frame) {
+            $file = $frame['file'] ?? '';
+            if ($file !== '' && $file !== __FILE__ && $file !== __DIR__ . '/Query.class.php') {
+
+                return get_class($mvc) . ' @ ' . $file . ':' . ($frame['line'] ?? 0);
+            }
+        }
+
+        return get_class($mvc);
     }
 
 
@@ -306,25 +355,37 @@ class core_Manager extends core_Mvc
      */
     public static function callWithoutReplica($callback)
     {
-        $db = cls::get('core_Db');
         $wasDisabled = self::$replicaDisabled;
-        $replicaConfig = array();
-        if (isset($db->__origDbName, $db->__origDbUser, $db->__origDbHost)) {
-            foreach (array('dbName', 'dbUser', 'dbPass', 'dbHost') as $field) {
-                $replicaConfig[$field] = $db->{$field} ?? null;
-                $originalField = '__orig' . ucfirst($field);
-                $db->{$field} = $db->{$originalField} ?? null;
-            }
-        }
+        $suspended = array();
         self::$replicaDisabled = true;
 
         try {
+            foreach (self::$replicaDbs as $key => $db) {
+                if ($db->dbRole !== 'replica') {
+                    continue;
+                }
+                expect(isset($db->__origDbName, $db->__origDbUser, $db->__origDbHost), 'Липсват данни за основната база');
+                $config = array('dbRole' => $db->dbRole, 'replicaOwner' => $db->replicaOwner);
+                foreach (array('dbName', 'dbUser', 'dbPass', 'dbHost') as $field) {
+                    $config[$field] = $db->{$field} ?? null;
+                    $originalField = '__orig' . ucfirst($field);
+                    $db->{$field} = $db->{$originalField} ?? null;
+                }
+                $suspended[$key] = array($db, $config);
+                $db->dbRole = 'primary';
+                $db->replicaOwner = null;
+                DEBUG::log('callWithoutReplica() BEGIN current=[' . $db->getDebugConnectionLabel() . ']');
+            }
+
             return call_user_func($callback);
         } finally {
-            foreach ($replicaConfig as $field => $value) {
-                $db->{$field} = $value;
-            }
             self::$replicaDisabled = $wasDisabled;
+            foreach ($suspended as list($db, $config)) {
+                foreach ($config as $field => $value) {
+                    $db->{$field} = $value;
+                }
+                DEBUG::log('callWithoutReplica() END current=[' . $db->getDebugConnectionLabel() . ']');
+            }
         }
     }
 
@@ -390,6 +451,9 @@ class core_Manager extends core_Mvc
         $data->ListId = Request::get('id', 'int');
 
         $data->query = $this->getQuery();
+
+        // Тежките заявки на списъка - на репликата; копията на заявката наследяват флага
+        $data->query->onReplica = !empty($this->listOnReplica);
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);

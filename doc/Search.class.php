@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,6 +26,12 @@ class doc_Search extends core_Manager
      * Зареждане на плъгини
      */
     public $loadList = 'doc_Wrapper, plg_Search, plg_State';
+
+
+    /**
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
+     */
+    public $listOnReplica = true;
     
     
     /**
@@ -67,7 +73,11 @@ class doc_Search extends core_Manager
      */
     public function description()
     {
-        $this->forceReplica('doc_Containers');
+        // Търсенето е върху таблицата на контейнерите; на репликата отиват само заявките на списъка
+        $Containers = cls::get('doc_Containers');
+        $this->fields = $Containers->fields;
+        $this->dbTableName = $Containers->dbTableName;
+        $this->dbIndexes = $Containers->dbIndexes;
     }
     
     

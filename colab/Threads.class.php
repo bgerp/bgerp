@@ -10,7 +10,7 @@
  * @package   colab
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.12
@@ -39,6 +39,12 @@ class colab_Threads extends core_Manager
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     public $loadList = 'cms_ExternalWrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers, doc_ThreadRefreshPlg, plg_RefreshRows';
+
+
+    /**
+     * Тежките заявки на списъка (страниране, броене и записи) - от репликата
+     */
+    public $listOnReplica = true;
     
     
     /**
@@ -120,8 +126,6 @@ class colab_Threads extends core_Manager
      */
     public function act_Single()
     {
-        $this->forceReplica($this->className);
-
         expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
         
         if (core_Users::isPowerUser()) {
@@ -165,6 +169,9 @@ class colab_Threads extends core_Manager
         $sharedUsers = implode(',', $sharedUsers);
         
         $data->query = $this->Containers->getQuery();
+
+        // Само тежкото извличане на документите е от репликата
+        $data->query->onReplica = true;
         $data->query->where("#threadId = {$id}");
         $data->query->where("#visibleForPartners = 'yes'");
         $data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
@@ -242,10 +249,6 @@ class colab_Threads extends core_Manager
      */
     public function act_List()
     {
-        $this->forceReplica($this->className);
-        $this->Threads->forceReplica();
-        $this->Containers->forceReplica();
-
         $folderId = Request::get('folderId', 'int');
         
         if (core_Users::isPowerUser()) {
