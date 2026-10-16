@@ -798,8 +798,8 @@ abstract class bank_Document extends deals_PaymentDocument
         $rec = $form->rec;
 
         // Взимане на избраните записи
-        expect($rec->id || $rec->Selected, $rec);
-        $selArr = arr::make($rec->Selected);
+        expect(!empty($rec->id) || !empty($rec->Selected), $rec);
+        $selArr = arr::make($rec->Selected ?? null);
         $selArrCnt = countR($selArr);
         if(!$selArrCnt) {
             followRetUrl(null, 'Няма избрани документи', 'error');
