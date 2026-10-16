@@ -2230,6 +2230,18 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * След ревъртване на контировката
+     */
+    public static function on_AfterRollbackConto($mvc, $res, $id)
+    {
+        $rec = $mvc->fetch(is_object($id) ? $id->id : $id, 'id,state', false);
+        if (is_object($rec) && in_array($rec->state, array('draft', 'pending'))) {
+            deals_Helper::restoreInputDiscounts($mvc, $rec->id);
+        }
+    }
+
+
+    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -2296,15 +2308,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             // Ако има ръчна отстъпка или авт. остъпка - ще се записва осреднената и ще се запомни ръчната
-            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
-                $dRec->inputDiscount = $dRec->discount;
-                if(isset($dRec->autoDiscount)){
-                    if(isset($dRec->discount)){
-                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
-                    } else {
-                        $dRec->discount = $dRec->autoDiscount;
-                    }
-                }
+            if(deals_Helper::freezeDetailDiscount($dRec, 6)){
                 $save = true;
             }
 

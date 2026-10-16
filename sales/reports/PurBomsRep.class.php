@@ -43,8 +43,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         'notPaid' => 'От тях с недостатъчен аванс',
         'delivery' => 'Изчислени срокове за доставка',
         'rows' => 'Редове в справката',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
     
     
@@ -262,14 +260,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         self::addReportStat($data, 'notPaid', 0, $notPaid);
         self::addReportStat($data, 'delivery', $deliverySeconds, $paymentChecks - $notPaid);
         self::addReportStat($data, 'rows', 0, countR($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
-        
-        // В лога на справката се записва едно обобщение на етапите
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, countR($recs));
         
         return $recs;
     }

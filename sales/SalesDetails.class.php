@@ -292,6 +292,13 @@ class sales_SalesDetails extends deals_DealDetail
             $newRate = sales_Sales::fetchField($rec->saleId, 'currencyRate');
             $rec->price = ($rec->price / $oldRate) * $newRate;
 
+            // Контираната продажба пази в discount и автоматичната отстъпка, а ръчната - в inputDiscount
+            $oldMasterRec = sales_Sales::fetch($oldRec->saleId, 'state,brState');
+            $oldState = ($oldMasterRec->state == 'rejected') ? $oldMasterRec->brState : $oldMasterRec->state;
+            if (isset($oldRec->inputDiscount) || (!empty($oldRec->autoDiscount) && !in_array($oldState, array('draft', 'pending')))) {
+                $rec->discount = !empty($oldRec->inputDiscount) ? $oldRec->inputDiscount : null;
+            }
+
             // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {

@@ -12,7 +12,7 @@ defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -3282,6 +3282,7 @@ class doc_Containers extends core_Manager
             // Резултат след поправката
             $res = '';
             foreach ($repArr as $name => $repairedArr) {
+                $repairedArr = array_filter((array) $repairedArr);
                 if (!empty($repairedArr)) {
                     if ($name == 'folders') {
                         $res .= "<li class='green'>Поправки в папките: </li>\n";

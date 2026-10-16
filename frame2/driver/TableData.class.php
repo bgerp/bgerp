@@ -151,6 +151,15 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * Имената на показателите от диагностиката, в реда на обработката
      */
     protected static $statCaptions = array();
+
+
+    /**
+     * Общите показатели на диагностиката, които справките не повтарят в $statCaptions
+     */
+    protected static $commonStatCaptions = array(
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
     
     
     /**
@@ -606,7 +615,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
     {
         $seconds = round($seconds, 3);
-        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
+        $msg = tr(static::$statCaptions[$key] ?? self::$commonStatCaptions[$key] ?? $key) . ": {$count}";
         if ($seconds > 0) {
             $msg .= " / {$seconds} " . tr('сек.');
         }
@@ -642,6 +651,28 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         }
 
         $data->reportStatRows[$key] = $msg;
+    }
+
+
+    /**
+     * Добавя паметта и общото време и записва диагностиката като един ред в лога на справката
+     *
+     * @param stdClass|null $data      - данните на справката
+     * @param float         $startedOn - началото на подготовката (microtime)
+     * @param int           $count     - броят, показван при общото време
+     *
+     * @return void
+     */
+    protected function logReportStats(&$data, $startedOn, $count = 0)
+    {
+        static::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        static::addReportStat($data, 'total', microtime(true) - $startedOn, $count);
+
+        // Един ред, за да не изтласква предишните обновявания от 20-те реда на лога
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
+        }
     }
 
 

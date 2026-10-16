@@ -365,7 +365,7 @@ class email_Inboxes extends core_Master
             }
         }
         
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             if (!haveRole('admin, manager, email')) {
                 $data->form->setReadonly('email');
                 $data->form->setReadonly('accountId');

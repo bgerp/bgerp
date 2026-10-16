@@ -36,8 +36,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         'sort' => 'Подреждане',
         'preloaded' => 'Заредени записи',
         'rows' => 'Редове в справката',
-        'memory' => 'Пикова памет (MB)',
-        'total' => 'Общо',
     );
 
 
@@ -637,7 +635,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('group', 'input=hidden');
         }
 
-        $form->input('selectPeriod,from,to',true);
+        // Изборът на период липсва, ако плъгинът не го е добавил (напр. периодът не може да се променя)
+        $form->input(isset($form->fields['selectPeriod']) ? 'selectPeriod,from,to' : 'from,to', true);
         $currentPeriod = acc_Periods::fetchByDate(dt::today());
         $periodStart = $rec->from ?? $currentPeriod->start;
         $periodEnd = $rec->to ?? $currentPeriod->end;
@@ -1942,14 +1941,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         self::addReportStat($data, 'rows', 0, countR($recs));
-        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
-
-        // В лога на справката се записва едно обобщение на етапите
-        $statsMsg = $this->getReportStatsMsg($data, ', ');
-        if (!empty($statsMsg)) {
-            $this->logWhilePreparing($statsMsg);
-        }
+        $this->logReportStats($data, $startedOn, countR($recs));
 
         return $recs;
 

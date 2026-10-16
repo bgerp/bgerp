@@ -686,6 +686,11 @@ class type_Richtext extends type_Blob
      */
     public function getPlace()
     {
+        // Без toHtml() (напр. от ical_Parser) маркерът още не е зададен
+        if (!isset($this->randMark)) {
+            $this->randMark = rand(1, 2000000000);
+        }
+
         return 'richText' . $this->randMark++;
     }
     
@@ -1163,7 +1168,7 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2]);
+        $color = parent::escape($match[2] ?? '');
         
         if (!$color) {
             $color = 'black';
@@ -1180,7 +1185,7 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2]);
+        $color = parent::escape($match[2] ?? '');
         
         if (!$color) {
             $color = 'black';

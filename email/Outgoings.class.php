@@ -3694,7 +3694,7 @@ class email_Outgoings extends core_Master
             $queryCorp->orderBy('createdOn', 'DESC');
             $queryCorp->limit(1);
             $emailCorpAcc = $queryCorp->fetch();
-            $folderId = $emailCorpAcc->folderId;
+            $folderId = $emailCorpAcc->folderId ?? null;
             
             // Ако има папка и имаме права
             if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
@@ -3710,7 +3710,9 @@ class email_Outgoings extends core_Master
         $queryEmail->orderBy('createdOn', 'DESC');
         $queryEmail->limit(1);
         $emailAcc = $queryEmail->fetch();
-        $folderId = $emailAcc->folderId;
+
+        // Потребителят може да не отговаря за нито една активна кутия
+        $folderId = $emailAcc->folderId ?? null;
         
         // Ако има папка и имаме права
         if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
