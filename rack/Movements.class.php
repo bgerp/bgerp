@@ -1185,6 +1185,17 @@ class rack_Movements extends rack_MovementAbstract
 
         $resArr = array();
 
+        // Операцията се проверява преди правата - иначе празен тип стига до getRequiredRoles()
+        if(!in_array($action, array('start', 'reject', 'load', 'unload'))){
+            if($ajaxMode){
+                core_Statuses::newStatus('|Невалидна операция|*!', 'error');
+                wp("RACK: невалидна операция", $cu, $url, $action);
+
+                return status_Messages::returnStatusesArray();
+            }
+            expect(false, $action);
+        }
+
         if($ajaxMode){
             if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
@@ -1247,15 +1258,7 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         if($ajaxMode){
-            if(!in_array($action, array('start', 'reject', 'load', 'unload'))){
-                core_Locks::release("movement{$rec->id}");
-                core_Statuses::newStatus('|Невалидна операция|*!', 'error');
-
-                wp("RACK: невалидна операция", $cu, $url, $action, $rec);
-                rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}", $rec->id);
-
-                return array_merge($resArr, status_Messages::returnStatusesArray());
-            } elseif(!$this->haveRightFor($action, $rec)){
+            if(!$this->haveRightFor($action, $rec)){
                 core_Locks::release("movement{$rec->id}");
 
                 // Ако отново се прави опит за стартиране на стартирано движение от същия потребител в рамките на минута да не дава грешка
