@@ -5,6 +5,10 @@ var TM_COOL_PREFIX = 'tm_cool_move_';
 var TM_LOCK_TTL_MS      = 15000;
 var TM_COOLDOWN_MS      = 700;
 
+// След колко време да се каже, че сървърът се бави, и кога заявката се прекъсва
+var TM_SLOW_MS          = 8000;
+var TM_TIMEOUT_MS       = 60000;
+
 function lockKey(moveId) { return TM_LOCK_PREFIX + String(moveId); }
 function coolKey(moveId) { return TM_COOL_PREFIX + String(moveId); }
 function nowMs() { return Date.now(); }
@@ -129,16 +133,66 @@ function zoneActions() {
 
 			$btn.prop('disabled', true).addClass('is-busy');
 
-			getEO().isReloading = true;
 			getEO().isWaitingResponse = true;
 			getEfae().waitPeriodicAjaxCall = 7;
 
 			console.log('Call: ' + url, 'moveId=' + moveId, '_rid=' + rid, '_ts=' + ts, '_tab=' + tab);
 
-			// data контекстът може да си остане само divId (не ти трябва за логовете)
-			getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId }, false);
+			// Асинхронно, за да може бутонът да върти и да се покаже грешка при бавен сървър
+			var request = getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId });
+			if (!request) {
+				tmReleaseBtn(moveId, $btn);
+				return false;
+			}
+
+			var slowTimer = setTimeout(function () {
+				tmShowStatus('Сървърът се бави - изчакайте, движението се обработва', 'warning');
+			}, TM_SLOW_MS);
+
+			var abortTimer = setTimeout(function () {
+				request.abort();
+			}, TM_TIMEOUT_MS);
+
+			request.done(function () {
+				// Сървърът е приключил; не всеки отговор съдържа enableBtn (напр. повторно започване)
+				tmReleaseBtn(moveId, $btn);
+			}).fail(function (xhr, textStatus) {
+				// Заявката е прекъсната от презареждане на страницата
+				if (getEO().isReloading) return;
+
+				// При 503 общият обработчик показва съобщението на сървъра
+				if (xhr.status != 503) {
+					var text = (textStatus == 'abort') ? 'Няма отговор от сървъра' : 'Грешка при обработката на движението';
+					if (xhr.status) {
+						text += ' (' + xhr.status + ')';
+					}
+					tmShowStatus(text + '. Проверете състоянието му преди да опитате отново!', 'error');
+				}
+				tmReleaseBtn(moveId, $btn);
+			}).always(function () {
+				clearTimeout(slowTimer);
+				clearTimeout(abortTimer);
+			});
+
 			return false;
 		});
+}
+
+
+// Отключва бутона, когато отговор от сървъра няма да дойде
+function tmReleaseBtn(moveId, $btn) {
+	if (moveId) unlock(moveId);
+	$btn.prop('disabled', false).removeClass('is-busy');
+}
+
+
+// Показва съобщение веднага; общият обработчик на AJAX грешки не добавя второ, ако вече има такова
+function tmShowStatus(text, type) {
+	if (typeof showToast != 'undefined' && $().toastmessage) {
+		showToast({ timeOut: 1, text: text, isSticky: type == 'error', stayTime: 6000, type: type });
+	} else {
+		render_html({ id: 'statuses', html: "<div class='statuses-message statuses-" + type + " connection-" + type + "-status'>" + text + "</div>", replace: false });
+	}
 }
 
 
