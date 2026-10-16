@@ -37,19 +37,19 @@ class transpress_interface_CourierImpl extends core_BaseClass
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption = 'Transpress';
+    public $requestWayBillBtnCaption = 'Transpress';
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon = 'img/16/transpress.png';
+    public $requestWayBillBtnIcon = 'img/16/transpress.png';
 
 
     /**
      * Коментар към връзката на прикачения файл
      */
-    public $billOfLadingComment = 'Товарителница (Transpress)';
+    public $wayBillComment = 'Товарителница (Transpress)';
 
 
     /**
@@ -74,7 +74,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param int|null $userId - ид на потребител (null за текущия)
      * @return bool
      */
-    public function canRequestBillOfLading($mvc, $id, $userId = null)
+    public function canRequestWayBill($mvc, $id, $userId = null)
     {
         $res = haveRole($this->requireRoles, $userId);
         if($res){
@@ -96,12 +96,12 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param core_Form $form - Форма за създаване на товарителница
      * @return void
      */
-    public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
+    public function addFieldToWayBillForm($mvc, $rec, &$form)
     {
         $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
         $formRec = &$form->rec;
 
-        $form->class = 'transpressBillOfLading';
+        $form->class = 'transpressWayBill';
         $form->title = '|Попълване на товарителница за|* Transpress |към|* ' . $mvc->getFormTitleLink($rec);
         $form->info = self::getTestNotice();
 
@@ -296,7 +296,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param core_Form $form       - Форма за създаване на товарителница
      * @return void
      */
-    public function inputBillOfLadingForm($mvc, $documentRec, &$form)
+    public function inputWayBillForm($mvc, $documentRec, &$form)
     {
         if(!$form->isSubmitted()) return;
 
@@ -627,7 +627,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param core_ET $tpl           - шаблона на формата
      * @return void
      */
-    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    public function afterPrepareWayBillForm($mvc, $documentRec, $form, &$tpl)
     {
     }
 
@@ -663,7 +663,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param int $containerId
      * @return array $res - обекти с number, date, file и state
      */
-    public function getBillOfLadings($containerId)
+    public function getWayBills($containerId)
     {
         $res = array();
         $query = transpress_WayBills::getQuery();
@@ -685,7 +685,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
      * @param string $reason      - причина
      * @return stdClass {status, error}
      */
-    public function cancelBillOfLading($containerId, $number, $reason)
+    public function cancelWayBill($containerId, $number, $reason)
     {
         $rec = transpress_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
         if(empty($rec)){

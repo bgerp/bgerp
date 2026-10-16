@@ -75,8 +75,9 @@ class speedy_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array('speedy_Offices',
-                             'speedy_BillOfLadings',
-                             'migrate::deletePlugins2251');
+                             'speedy_WayBills',
+                             'migrate::deletePlugins2251',
+                             'migrate::renamePluginsClass2642');
     
     
     /**
@@ -155,5 +156,20 @@ class speedy_Setup extends core_ProtoSetup
     public function deletePlugins2251()
     {
         core_Plugins::delete("#plugin = 'speedy_plg_BillOfLading'");
+    }
+
+
+    /**
+     * Плъгините, закачени към стария клас на товарителниците, минават към новия
+     */
+    public function renamePluginsClass2642()
+    {
+        $Plugins = cls::get('core_Plugins');
+        $query = $Plugins->getQuery();
+        $query->where("#class = 'speedy_BillOfLadings'");
+        while($rec = $query->fetch()){
+            $rec->class = 'speedy_WayBills';
+            $Plugins->save($rec, 'class');
+        }
     }
 }

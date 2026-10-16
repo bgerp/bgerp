@@ -37,19 +37,19 @@ class speedy_interface_ApiImpl extends core_BaseClass
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption = 'Speedy';
+    public $requestWayBillBtnCaption = 'Speedy';
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon = 'img/16/speedy.png';
+    public $requestWayBillBtnIcon = 'img/16/speedy.png';
 
 
     /**
      * Коментар към връзката на прикачения файл
      */
-    public $billOfLadingComment = 'Товарителница (Speedy)';
+    public $wayBillComment = 'Товарителница (Speedy)';
 
 
     /**
@@ -77,12 +77,12 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param core_Form $form - Форма за създаване на товарителница
      * @return void
      */
-    public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
+    public function addFieldToWayBillForm($mvc, $rec, &$form)
     {
         $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
         $formRec = &$form->rec;
 
-        $form->class = 'speedyBillOfLading';
+        $form->class = 'speedyWayBill';
         $form->title = 'Попълване на товарителница за Speedy към|* ' . $mvc->getFormTitleLink($rec);
 
         $form->FLD('accountName', 'varchar', 'caption=Подател->Акаунт');
@@ -324,7 +324,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 if(!empty($logisticData['toAddress'])){
                     // Само при отваряне: при refresh изтритото от потребителя поле не се подава и default-ът го връща
                     if(Request::get('receiverAddress') === null){
-                        $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
+                        $parsedAddress = cls::get('speedy_WayBills')->parseAddressSpeedy($logisticData['toAddress']);
 
                         // AI парсерът понякога връща комплекса и като улица
                         if(self::isStreetSameAsComplex($parsedAddress['street'] ?? null, $parsedAddress['number'] ?? null, $parsedAddress['complexName'] ?? null)){
@@ -464,7 +464,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param core_Form $form       - Форма за създаване на товарителница
      * @return void
      */
-    public function inputBillOfLadingForm($mvc, $documentRec, &$form)
+    public function inputWayBillForm($mvc, $documentRec, &$form)
     {
         if($form->isSubmitted()) {
             $rec = $form->rec;
@@ -855,7 +855,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $obj->number = $parcelIds[0] ?? $res->id;
         $obj->status = cond_CourierApiIntf::BOL_ISSUED_NO_PDF;
         $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $obj->number, 'takingDate' => $res->pickupDate ?? null, 'data' => $preparedBolParams, 'state' => 'pending');
-        speedy_BillOfLadings::save($bolRec);
+        speedy_WayBills::save($bolRec);
 
         // Кеш на избраните полета от формата
         $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
@@ -874,7 +874,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         $bolRec->file = $fh;
-        speedy_BillOfLadings::save($bolRec, 'file');
+        speedy_WayBills::save($bolRec, 'file');
         $obj->fh = $fh;
         $obj->status = cond_CourierApiIntf::BOL_ISSUED;
 
@@ -890,7 +890,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param int|null $userId - ид на потребител (null за текущия)
      * @return bool
      */
-    public function canRequestBillOfLading($mvc, $id, $userId = null)
+    public function canRequestWayBill($mvc, $id, $userId = null)
     {
         $res = haveRole($this->requireRoles, $userId);
         if($res){
@@ -913,7 +913,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
      * @throws core_exception_Expect
      */
-    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    public function afterPrepareWayBillForm($mvc, $documentRec, $form, &$tpl)
     {
 
     }
@@ -956,10 +956,10 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param int $containerId
      * @return array $res - обекти с number, date, file и state
      */
-    public function getBillOfLadings($containerId)
+    public function getWayBills($containerId)
     {
         $res = array();
-        $query = speedy_BillOfLadings::getQuery();
+        $query = speedy_WayBills::getQuery();
         $query->where(array("#containerId = [#1#]", $containerId));
         $query->orderBy('id', 'DESC');
         while($bolRec = $query->fetch()){
@@ -978,9 +978,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param string $reason      - причина
      * @return stdClass {status, error}
      */
-    public function cancelBillOfLading($containerId, $number, $reason)
+    public function cancelWayBill($containerId, $number, $reason)
     {
-        $rec = speedy_BillOfLadings::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        $rec = speedy_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
         if(empty($rec)){
 
             return (object)array('status' => 'notFound', 'error' => null);
@@ -991,12 +991,12 @@ class speedy_interface_ApiImpl extends core_BaseClass
             return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null, 'already' => true);
         }
 
-        if(!speedy_BillOfLadings::haveRightFor('reject', $rec)){
+        if(!speedy_WayBills::haveRightFor('reject', $rec)){
 
             return (object)array('status' => 'noRights', 'error' => null);
         }
 
-        return cls::get('speedy_BillOfLadings')->cancel($rec, $reason, 'Отказана товарителница от Аида');
+        return cls::get('speedy_WayBills')->cancel($rec, $reason, 'Отказана товарителница от Аида');
     }
 
 
@@ -1009,7 +1009,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      */
     private static function getLastBolRec($containerId)
     {
-        $spQuery = speedy_BillOfLadings::getQuery();
+        $spQuery = speedy_WayBills::getQuery();
         $spQuery->where("#containerId = {$containerId}");
         $spQuery->orderBy('id', 'DESC');
         $spQuery->limit(1);

@@ -66,7 +66,7 @@ class transpress_WayBills extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,containerId,number,barcodes,price,file,environment,account,state,createdOn,createdBy';
+    public $listFields = 'id,containerId,number,barcodes,price,file,data,environment,account,state,createdOn,createdBy';
 
 
     /**
@@ -89,7 +89,7 @@ class transpress_WayBills extends core_Manager
         $this->FLD('environment', 'enum(production=Продукция,test=Тест)', 'caption=Среда,notNull,value=production');
         $this->FLD('account', 'varchar(128)', 'caption=Акаунт');
         $this->FLD('state', 'enum(active=Издадена,rejected=Отказана)', 'caption=Състояние,notNull,value=active');
-        $this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,column=none');
+        $this->FLD('data', 'blob(serialize,compress)', 'caption=Данни');
 
         $this->setDbIndex('containerId');
         $this->setDbIndex('number');
@@ -167,7 +167,7 @@ class transpress_WayBills extends core_Manager
         // В историята на документа, от който е издадена
         $Document = doc_Containers::getDocument($rec->containerId);
         $Document->getInstance()->logWrite($docLogMsg, $Document->that);
-        store_plg_CourierApiShipment::rejectBillOfLadingLink($rec->containerId, $rec->file ?? null);
+        store_plg_CourierApiShipment::rejectWayBillLink($rec->containerId, $rec->file ?? null);
 
         return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null);
     }
@@ -236,7 +236,7 @@ class transpress_WayBills extends core_Manager
         $this->logWrite('Сваляне на PDF на товарителница', $rec->id);
 
         $fileId = fileman::fetchByFh($fh, 'id');
-        doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', cls::get('transpress_interface_CourierImpl')->billOfLadingComment);
+        doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', cls::get('transpress_interface_CourierImpl')->wayBillComment);
 
         followRetUrl(null, 'PDF-ът на товарителницата е изтеглен|*!');
     }

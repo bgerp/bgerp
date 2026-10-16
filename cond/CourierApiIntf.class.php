@@ -41,19 +41,19 @@ class cond_CourierApiIntf extends embed_DriverIntf
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption;
+    public $requestWayBillBtnCaption;
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon;
+    public $requestWayBillBtnIcon;
 
 
     /**
      * Коментар към връзката на прикачения файл
      */
-    public $billOfLadingComment = 'Товарителница (Speedy)';
+    public $wayBillComment = 'Товарителница (Speedy)';
 
 
     /**
@@ -64,9 +64,9 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param core_Form $form - Форма за създаване на товарителница
      * @return void
      */
-    public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
+    public function addFieldToWayBillForm($mvc, $rec, &$form)
     {
-        return $this->class->addFieldToBillOfLadingForm($mvc, $rec, $form);
+        return $this->class->addFieldToWayBillForm($mvc, $rec, $form);
     }
 
 
@@ -78,9 +78,9 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param core_Form $form       - Форма за създаване на товарителница
      * @return void
      */
-    public function inputBillOfLadingForm($mvc, $documentRec, &$form)
+    public function inputWayBillForm($mvc, $documentRec, &$form)
     {
-        return $this->class->inputBillOfLadingForm($mvc, $documentRec, $form);
+        return $this->class->inputWayBillForm($mvc, $documentRec, $form);
     }
 
 
@@ -108,9 +108,9 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
      * @throws core_exception_Expect
      */
-    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    public function afterPrepareWayBillForm($mvc, $documentRec, $form, &$tpl)
     {
-        return $this->class->afterPrepareBillOfLadingForm($mvc, $documentRec, $form, $tpl);
+        return $this->class->afterPrepareWayBillForm($mvc, $documentRec, $form, $tpl);
     }
 
 
@@ -137,9 +137,9 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param int|null $userId - ид на потребител (null за текущия)
      * @return bool
      */
-    public function canRequestBillOfLading($mvc, $id, $userId = null)
+    public function canRequestWayBill($mvc, $id, $userId = null)
     {
-        return $this->class->canRequestBillOfLading($mvc, $id, $userId);
+        return $this->class->canRequestWayBill($mvc, $id, $userId);
     }
 
 
@@ -162,12 +162,12 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param int $containerId
      * @return array|null $res - обекти с number, date, file и state; null ако драйверът не поддържа проверката
      */
-    public function getBillOfLadings($containerId)
+    public function getWayBills($containerId)
     {
         // Реализациите извън ядрото може да нямат метода
-        if(!cls::existsMethod($this->class, 'getBillOfLadings')) return null;
+        if(!cls::existsMethod($this->class, 'getWayBills')) return null;
 
-        return $this->class->getBillOfLadings($containerId);
+        return $this->class->getWayBills($containerId);
     }
 
 
@@ -179,10 +179,10 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param string $reason      - причина
      * @return stdClass|null $res - status (cancelled, rejected, unknown, notFound, noRights) и error; null ако драйверът не поддържа отказ
      */
-    public function cancelBillOfLading($containerId, $number, $reason)
+    public function cancelWayBill($containerId, $number, $reason)
     {
-        if(!cls::existsMethod($this->class, 'cancelBillOfLading')) return null;
+        if(!cls::existsMethod($this->class, 'cancelWayBill')) return null;
 
-        return $this->class->cancelBillOfLading($containerId, $number, $reason);
+        return $this->class->cancelWayBill($containerId, $number, $reason);
     }
 }
