@@ -320,7 +320,7 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
         } else {
-            $rec->discount = $oldRec->inputDiscount;
+            $rec->discount = !empty($oldRec->inputDiscount) ? $oldRec->inputDiscount : null;
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
                 $rec->price -= $cRec->fee / $rec->quantity;
