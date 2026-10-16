@@ -200,6 +200,14 @@
     filter: grayscale(40%);
 }
 
+/* Сървърът е потвърдил действието - отметка, докато дойдат новите редове */
+.toggle-movement.is-done {
+    opacity: 1;
+    filter: none;
+    cursor: default !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%232e9e3e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+}
+
 /* Иконата на бутона се сменя с въртящ се кръг, докато се чака сървъра */
 .toggle-movement.is-busy {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%23999' stroke-width='2' opacity='.35'/%3E%3Cpath d='M8 2a6 6 0 0 1 6 6' fill='none' stroke='%23333' stroke-width='2'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 8 8' to='360 8 8' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E") !important;

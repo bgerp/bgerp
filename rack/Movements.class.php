@@ -1174,6 +1174,7 @@ class rack_Movements extends rack_MovementAbstract
      */
     public function act_Toggle()
     {
+        $startTime = microtime(true);
         $ajaxMode = Request::get('ajax_mode');
         $action = Request::get('type', 'varchar');
         $additional = Request::get('additional', 'varchar');
@@ -1212,7 +1213,7 @@ class rack_Movements extends rack_MovementAbstract
 
         $rId = Request::get('_rid', 'varchar');
         $ts = Request::get('_ts', 'varchar');
-        $tab = Request::get('_ts', 'varchar');
+        $tab = Request::get('_tab', 'varchar');
 
         rack_Movements::logDebug("RACK TOGGLE '{$id}' -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $id);
 
@@ -1361,9 +1362,9 @@ class rack_Movements extends rack_MovementAbstract
 
         // Ако се обновява по Ajax
         if($ajaxMode){
-            rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
+            self::logSuccessTime($startTime, "RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
 
-            return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
+            return self::getAjaxSuccessRes($rec->id);
         }
         
         followretUrl(null, $msg, $type);
@@ -1513,10 +1514,37 @@ class rack_Movements extends rack_MovementAbstract
 
 
     /**
+     * AJAX отговор при успешно действие: изрично потвърждение за терминала, който сам обновява редовете
+     */
+    private static function getAjaxSuccessRes($id)
+    {
+        $resObj = new stdClass();
+        $resObj->func = 'movementDone';
+        $resObj->arg = array('moveId' => $id);
+
+        return array_merge(array($resObj), status_Messages::returnStatusesArray());
+    }
+
+
+    /**
+     * Логва колко ms са отнели стартът на хита и самото действие
+     */
+    private static function logSuccessTime($startTime, $msg, $id)
+    {
+        $requestTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? $startTime;
+        $bootMs = round(($startTime - $requestTime) * 1000);
+        $actionMs = round((microtime(true) - $startTime) * 1000);
+
+        rack_Movements::logDebug("{$msg}|boot:{$bootMs}ms|action:{$actionMs}ms", $id);
+    }
+
+
+    /**
      * Екшън за приключване на движението
      */
     public function act_Done()
     {
+        $startTime = microtime(true);
         $ajaxMode = Request::get('ajax_mode');
         
         if($ajaxMode){
@@ -1658,7 +1686,11 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         // Ако се обновява по Ajax
-        if($ajaxMode) return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
+        if($ajaxMode) {
+            self::logSuccessTime($startTime, "RACK DONE SUCCESS {$rec->id}", $rec->id);
+
+            return self::getAjaxSuccessRes($rec->id);
+        }
         
         followretUrl(array($this));
     }
