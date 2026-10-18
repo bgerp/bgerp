@@ -110,7 +110,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща,silent');
 
-        $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,input=none,single=none');
+        $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,single=none');
 
         $fieldset->FLD('sill', 'double', 'caption=Не се показват фактури по приключени сделки с Неплатено/Надплатено->По-малко от,unit= €,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
 
@@ -149,18 +149,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $form->input('unpaid', 'silent');
 
-        // При „неплатени“ се показват праг sill и начин на плащане; проформите се скриват.
+        // При „неплатени“ се показва праг sill; проформите се скриват.
         if (($rec->unpaid ?? 'all') != 'all') {
             $form->setField('sill', 'input');
             $form->setField('seeProformаs', 'input=none');
-            $form->setField('paymentType', 'input');
         }
 
 
-        // При „всички“ checkDate е днес; fromDate и paymentType не се ползват.
+        // При „всички“ крайната дата по подразбиране е днес.
         if (($rec->unpaid ?? 'all') == 'all') {
             $form->setDefault('fromDate', null);
-            unset($rec->paymentType);
             $checkDate = dt::today(false);
             $form->setDefault('checkDate', $checkDate);
         }
@@ -567,6 +565,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $rec->{'seeProformаs'} = $rec->{'seeProformаs'} ?? null;
         $onlyOverdue = $rec->unpaid == 'overdue';
         $today = dt::today();
+        $matchesPaymentType = function ($invoice) use ($rec) {
+            return empty($rec->paymentType) || $rec->paymentType == (($invoice->paymentType ?? null) ?: ($invoice->autoPaymentType ?? null));
+        };
 
         // Диагностика: пропуснатите фактури по причини и общото време за плащанията
         $startedOn = microtime(true);
@@ -825,6 +826,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     // Режим „всички“: записва всяка фактура с платена сума към checkDate.
                     if ($rec->unpaid == 'all') {
+                        if (!$matchesPaymentType($salesInvoice)) {
+                            $skipped['otherPaymentType'][] = $salesInvoice->number;
+                            continue;
+                        }
 
                         // масив от фактури в тази нишка //
                         $invoicePayments = ($InvDoc == 'sales_Proformas') ? array() : $getPayments($salesInvoice->threadId);
@@ -996,8 +1001,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 }
 
                                 //Ако е избран филтър по начин на плащане
-                                $paymentType = ($iRec->paymentType) ?: $iRec->autoPaymentType;
-                                if ($rec->paymentType && $rec->paymentType != $paymentType) {
+                                if (!$matchesPaymentType($iRec)) {
                                     $skipped['otherPaymentType'][] = $iRec->number;
                                     continue;
                                 }
@@ -1177,6 +1181,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
+                    if (!$matchesPaymentType($purchaseInvoices)) {
+                        $skipped['otherPaymentType'][] = $purchaseInvoices->number;
+                        continue;
+                    }
 
                     // Превалутиране за ЕЗ
                     $purchaseInvoices->dealValue = deals_Helper::getSmartBaseCurrency($purchaseInvoices->dealValue, $purchaseInvoices->date, $rec->checkDate);
@@ -1323,13 +1331,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $skipped['missingInvoice'][] = $pInv;
                                 continue;
                             }
+                            if (!$matchesPaymentType($iRec)) {
+                                $skipped['otherPaymentType'][] = $iRec->number;
+                                continue;
+                            }
 
                             if ($onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
                                 $skipped['notOverdue'][] = $iRec->number ?? $pInv;
                                 continue;
                             }
                             if ($onlyOverdue && !empty($rec->fromDate) && ($iRec->date ?? '') < $rec->fromDate) continue;
-                            if ($onlyOverdue && !empty($rec->paymentType) && $rec->paymentType != (($iRec->paymentType ?? null) ?: ($iRec->autoPaymentType ?? null))) continue;
 
                             //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
                             if ($checkDate < $iRec->date) {
@@ -1522,7 +1533,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             foreach ($recs as $key => $val) {
 
                 if (!isset($cArr[$val->contragent])) {
-                    $rec->totalInvoiceValueAll += $val->totalInvoiceValue;
+                    $rec->totalInvoiceValueAll += $val->totalInvoiceValue ?? 0;
                     $cArr[$val->contragent] = true;
 
                 }
