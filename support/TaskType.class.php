@@ -790,6 +790,7 @@ class support_TaskType extends core_Mvc
     public static function renderAssetSupport($data)
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append('asset-support', 'TAB_NAME');
 
         $Tasks = cls::get('cal_Tasks');
         $Tasks->rowToolsColumn['hnd'] = 'nowrap';

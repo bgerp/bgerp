@@ -1086,7 +1086,7 @@ class core_Manager extends core_Mvc
         if (!empty($data->form->rec->id) && $data->form->cmd != 'refresh') {
             
             // Очакваме, че има такъв запис
-            expect($rec = $this->fetch($data->form->rec->id));
+            expect($rec = $this->fetchRecForInfo($data->form->rec->id));
             
             foreach ((array) $rec as $key => $value) {
                 $data->form->rec->{$key} = $value;
@@ -1496,6 +1496,15 @@ class core_Manager extends core_Mvc
         
         return $requiredRoles;
     }
+
+
+    /**
+     * Записът за списъци, форми и права; по подразбиране се четат всички полета.
+     */
+    public static function fetchRecForInfo($id)
+    {
+        return static::fetchRec($id);
+    }
     
     
     /**
@@ -1513,7 +1522,7 @@ class core_Manager extends core_Mvc
         // за да участват реалните данни на записа в него. Иначе при подаден id ключът се
         // базира само на id-то и кешът не се инвалидира, ако данните на записа се сменят.
         if (!is_object($rec) && $rec > 0) {
-            $rec = $self->fetchRec($rec);
+            $rec = $self->fetchRecForInfo($rec);
         }
 
         $id = is_object($rec) ? ($rec->id ?? null) : $rec;
@@ -1532,7 +1541,8 @@ class core_Manager extends core_Mvc
             }
         }
 
-        $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
+        $cacheRec = is_object($rec) ? $self->fetchRecForInfo($rec) : $rec;
+        $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($cacheRec));
 
         if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
 
@@ -1602,7 +1612,7 @@ class core_Manager extends core_Mvc
         
         // Ако вместо $rec е зададено $id - зареждаме $rec
         if (!is_object($rec) && $rec > 0) {
-            $rec = $self->fetch($rec);
+            $rec = $self->fetchRecForInfo($rec);
         }
         
         // Ако нямаме зададен потребител - приемаме, че въпроса се отнася за текущия
