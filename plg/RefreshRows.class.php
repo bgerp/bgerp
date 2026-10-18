@@ -8,7 +8,7 @@
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -158,6 +158,17 @@ class plg_RefreshRows extends core_Plugin
         
         // Добавяме флага
         $refreshUrl['ajax_mode'] = $ajaxMode;
+
+        // Хеш, който не зависи от съдържанието, се сверява преди рендирането - без промяна не се рендира нищо
+        if (!empty($mvc->refreshRowsHashWithoutContent)) {
+            $noContent = '';
+            $earlyHash = static::getRefreshContentHash($mvc, $noContent, $refreshUrl);
+
+            if ($earlyHash == core_Cache::get(get_called_class(), $nameHash)) {
+
+                return false;
+            }
+        }
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
@@ -172,12 +183,13 @@ class plg_RefreshRows extends core_Plugin
         $status = static::getContent($tpl->getBlock('ListTable'));
         
         // Вземаме кеша на съдържанието
-        $statusHash = $mvc->getContentHash($status);
+        $statusHash = static::getRefreshContentHash($mvc, $status, $refreshUrl);
         
         // Вземаме съдържанието от предишния запис
         $savedHash = core_Cache::get(get_called_class(), $nameHash);
 
-        if (empty($savedHash)) {
+        // При ранна проверка липсващият кеш изисква обновяване дори за празен списък.
+        if (empty($savedHash) && empty($mvc->refreshRowsHashWithoutContent)) {
             $savedHash = md5($savedHash);
         }
         
@@ -259,6 +271,25 @@ class plg_RefreshRows extends core_Plugin
     }
     
     
+    /**
+     * Ранният и крайният хеш трябва да използват едни и същи филтри от URL-то.
+     */
+    protected static function getRefreshContentHash($mvc, &$content, $refreshUrl)
+    {
+        if (empty($mvc->refreshRowsHashWithoutContent)) {
+
+            return $mvc->getContentHash($content);
+        }
+
+        Request::push($refreshUrl, 'refreshRowsHash');
+        try {
+            return $mvc->getContentHash($content);
+        } finally {
+            Request::pop('refreshRowsHash');
+        }
+    }
+
+
     /**
      * Връща съдържанието на шаблона
      *
