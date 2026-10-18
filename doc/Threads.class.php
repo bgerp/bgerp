@@ -1060,7 +1060,7 @@ class doc_Threads extends core_Manager
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             Mode::push('onlyTitleInGetRecTitle', true);
-            $dRec = $docProxy->fetch();
+            $dRec = $docProxy->fetchRecForInfo();
             $docRow = $docProxy->getDocumentRow();
             Mode::pop('onlyTitleInGetRecTitle');
             $attr = array();
