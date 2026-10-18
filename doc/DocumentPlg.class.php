@@ -2838,7 +2838,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (!empty($rec->id)) {
-            $oRec = $mvc->fetch($rec->id);
+            $oRec = $mvc->fetchRecForInfo($rec->id);
             
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';

@@ -398,7 +398,7 @@ abstract class embed_Manager extends core_Master
                 case 'aftergetthreadstate':
                 case 'aftergeticon':
                     if ($args[1]) {
-                        $rec = $this->fetchRec($args[1]);
+                        $rec = $this->fetchRec($args[1], $this->driverClassField);
                         $driverClass = $rec->driverClass ?? null;
                     }
                     
