@@ -85,7 +85,7 @@ class arr {
         uasort($recs, function ($a, $b) use ($field) { return strcmp($a->{$field}, $b->{$field}); });
     }
 }
-function tr($value) { return $value; }
+function tr($value) { return str_replace(array('|*', '|'), '', $value); }
 function countR($value) { return is_countable($value) ? count($value) : 0; }
 if (!function_exists('mb_strtolower')) {
     function mb_strtolower($value, $encoding) { return strtolower($value); }
@@ -262,6 +262,9 @@ foreach (array('out', 'in') as $direction) {
     check($row->invoiceCurrentSumm == '60.00' && $row->paidAmount == '40.00', 'Показване на частично плащане: ' . $direction);
     $balanceColor = $direction == 'out' ? "<span style='color:#080'>60.00</span>" : "<span class='red'>60.00</span>";
     check(strpos($row->invoiceSummary, $balanceColor) !== false, 'Недоплатени продажби в зелено, покупки в червено: ' . $direction);
+    $valueColor = $direction == 'out' ? "<span style='color:#080'>100.00</span>" : "<span class='red'>100.00</span>";
+    $paidColor = $direction == 'out' ? "<span style='color:#080'>40.00</span>" : "<span class='red'>40.00</span>";
+    check(strpos($row->invoiceSummary, $valueColor) !== false && strpos($row->invoiceSummary, $paidColor) !== false, 'Стойността и платеното следват посоката на фактурите: ' . $direction);
     check(isset($driver->fields($rec)['invoiceCurrentSumm']), 'Колона за остатък: ' . $direction);
     check($driver->exportRow($rec, $detail)->dueDateStatus == 'Просрочен', 'Просрочен статус при експорт: ' . $direction);
     $data->groupByField = 'contragent';
@@ -288,8 +291,10 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     check(count($recs) == 3, 'Еднакви id на продажба и покупка: ' . $payment);
     check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
     check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
+    check($data->invoiceTotals == array('out' => 300, 'in' => 50), 'Отделни суми за разбивката без повторение: ' . $payment);
     $detail = end($recs);
     check($detail->combinedSummary->totalInvoiceValue == 250, 'Изходящи минус входящи: ' . $payment);
+    check($detail->combinedSummary->invoiceTotals == array('out' => 300, 'in' => 50), 'Фирмената разбивка не повтаря суми по фактури: ' . $payment);
     if ($payment != 'all') {
         check($detail->combinedSummary->totalInvoiceNotPayd == 200, 'Нетен неплатен остатък: ' . $payment);
         check($detail->combinedSummary->totalInvoicePayout == 50 && $rec->totalInvoicePayoutAll == 50, 'Нетно платено: ' . $payment);
@@ -300,11 +305,12 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $rows = array();
     foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
     check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>250.00</span>") !== false, 'Положителна нетна стойност в зелено: ' . $payment);
+    check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>300.00</span> − <span class='red'>50.00</span> = <span style='color:#080'>250.00</span>") !== false, 'Цветна разбивка за фирмата: ' . $payment);
     if ($payment != 'all') check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>200.00</span>") !== false, 'Нетно вземане в зелено: ' . $payment);
     $driver->grouped($recs, $rows, $fields, $data);
     check(count($rows) == 8, 'Разделител, едно име, две отделни и трето нетно обобщение: ' . $payment);
     check(substr_count(implode('', array_map(function ($row) { return $row instanceof core_ET ? $row->getContent() : ''; }, $rows)), 'Acme') == 1, 'Името на фирмата е само веднъж: ' . $payment);
-    check(strpos(end($rows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетният ред е последен: ' . $payment);
+    check(strpos(strip_tags(end($rows)->getContent()), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетният ред е последен: ' . $payment);
     check(isset($driver->fields($rec, true)['invoiceDirection']), 'Посока при експорт: ' . $payment);
     check($driver->exportRow($rec, $detail)->invoiceDirection == 'Входящи', 'Правилна посока при експорт: ' . $payment);
     $pageRows = array();
@@ -314,7 +320,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $pageRows = array();
     foreach (array_slice($recs, -1, 1, true) as $key => $detail) $pageRows[$key] = $driver->verbal($rec, $detail);
     $driver->grouped($recs, $pageRows, $fields, $data);
-    check(count($pageRows) == 5 && strpos(end($pageRows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетно обобщение на последната страница: ' . $payment);
+    check(count($pageRows) == 5 && strpos(strip_tags(end($pageRows)->getContent()), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетно обобщение на последната страница: ' . $payment);
     $driver->prices = false;
     $detail = end($recs);
     $row = $driver->verbal($rec, $detail);
@@ -322,13 +328,25 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $driver->prices = true;
 }
 check(deals_Helper::$combined === null, 'Освободен кеш за обединени сделки');
+Mode::$plain = true;
+$detail = end($recs);
+$row = $driver->verbal($rec, $detail);
+check(strpos(strip_tags($row->combinedSummary), '300.00 − 50.00 = 250.00') !== false && strpos($row->combinedSummary, 'style=') === false, 'Фирмена разбивка без оцветяване в обикновен текст');
+Mode::$plain = false;
+$legacyDetail = clone $detail;
+$legacyDetail->combinedSummary = clone $detail->combinedSummary;
+unset($legacyDetail->combinedSummary->invoiceTotals);
+$row = $driver->verbal($rec, $legacyDetail);
+check(strpos($row->combinedSummary, '250.00') !== false && strpos($row->combinedSummary, ' − ') === false, 'Старите запазени резултати показват нетната сума до обновяване');
 
 InvoiceTestData::reset();
 $rec = reportRec('all', 'overdue');
 $data = new stdClass();
 check($driver->run($rec, $data) === array() && $rec->totalInvoiceValueAll == 0, 'Празни два списъка');
+check($data->invoiceTotals == array('out' => 0, 'in' => 0), 'Нулеви суми за двата празни списъка');
 InvoiceTestData::invoice('in', 1, 'Only purchase', '2026-10-14', 80, 20);
 check(count($driver->run($rec, $data)) == 1 && $rec->totalInvoiceValueAll == -80, 'Само покупките дават отрицателна нетна стойност');
+check($data->invoiceTotals == array('out' => 0, 'in' => 80), 'Разбивка при налични само покупки');
 
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
@@ -374,6 +392,7 @@ $row = $driver->verbal($rec, $detail);
 check($rec->totalInvoiceValueAll == -50 && $rec->totalInvoicePayoutAll == -70, 'Покупките могат да надвишават продажбите');
 check($rec->totalInvoiceNotPaydAll == 20 && strpos($row->combinedSummary, '-50.00') !== false, 'Отрицателна стойност с положителен нетен остатък');
 check(strpos($row->combinedSummary, "<span class='red'>-50.00</span>") !== false && strpos($row->combinedSummary, "<span style='color:#080'>20.00</span>") !== false, 'Цветът на нетния остатък е независим от общата стойност');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>150.00</span> = <span class='red'>-50.00</span>") !== false, 'Разбивка с покупки над продажбите и отрицателен резултат');
 check($detail->invoiceValue == 150 && $row->paidAmount == '110.00', 'Редовете за покупки запазват собствените суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
@@ -383,7 +402,7 @@ $recs = $driver->run($rec, $data);
 check($rec->totalInvoiceValueAll == 0 && $rec->totalInvoiceNotPaydAll == 0, 'Равните суми се компенсират');
 $detail = end($recs);
 $row = $driver->verbal($rec, $detail);
-check(strpos($row->combinedSummary, "<span class='quiet'>0.00</span>") !== false && strpos($row->combinedSummary, 'color:#080') === false && strpos($row->combinedSummary, "class='red'") === false, 'Нулевото нетно салдо остава неутрално');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>100.00</span> = <span class='quiet'>0.00</span>") !== false, 'Нулевият резултат остава неутрален при цветни отделни суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
 InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 200, 50);
