@@ -243,7 +243,23 @@ class email_Mime extends core_BaseClass
                 if ($d['is_localtime']) {
 
                     // Фикс за времето
-                    $zTime = $d['zone'];
+                    $zTime = $d['zone'] ?? null;
+
+                    // Ако зоната е зададена като идентификатор (напр. "Europe/Sofia") - няма 'zone', а 'tz_id'
+                    if (!isset($zTime)) {
+                        $zTime = 0;
+                        if (!empty($d['tz_id'])) {
+                            try {
+                                $tz = new DateTimeZone($d['tz_id']);
+                                $zTime = $tz->getOffset(new DateTime('@' . $time));
+                            } catch (Exception $e) {
+                                $zTime = 0;
+                            }
+                        }
+                        if (PHP_VERSION_ID < 70200) {
+                            $zTime = -$zTime / 60;
+                        }
+                    }
 
                     // Ако е PHP под 7.2 - третираме като минути
                     if (PHP_VERSION_ID < 70200) {

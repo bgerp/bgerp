@@ -194,7 +194,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             }
             
             // Към кои разходни обекти ще се разпределят разходите
-            $splitRecs = acc_CostAllocations::getRecsByExpenses('purchase_PurchasesDetails', $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
+            $splitRecs = acc_CostAllocations::getRecsByExpenses('purchase_PurchasesDetails', $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $this->getDetailDiscount($rec, $dRec));
             
             foreach ($splitRecs as $dRec1) {
                 $amount = $dRec1->amount;
@@ -283,13 +283,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         foreach ($rec->details as $detailRec) {
 
-            $discountVal = $detailRec->discount;
-            if(!empty($detailRec->autoDiscount)){
-                if(in_array($rec->state, array('draft', 'pending'))){
-                    $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
-                }
-            }
-
+            $discountVal = $this->getDetailDiscount($rec, $detailRec);
             $amount = ($discountVal) ?  $detailRec->amount * (1 - $discountVal) : $detailRec->amount;
             $amount = round($amount, 2);
             $amountBase += $amount;
@@ -343,6 +337,20 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     
     
     /**
+     * Отстъпката на реда, а преди активиране - заедно с автоматичната, която още не е замразена в нея
+     */
+    protected function getDetailDiscount($rec, $dRec)
+    {
+        $discountVal = $dRec->discount;
+        if (!empty($dRec->autoDiscount) && in_array($rec->state, array('draft', 'pending'))) {
+            $discountVal = round((1 - (1 - $discountVal) * (1 - $dRec->autoDiscount)), 4);
+        }
+
+        return $discountVal;
+    }
+
+
+    /**
      * Помощен метод - генерира доставната част от транзакцията за покупка
      * Вкарване на стоката в склада (в някои случаи)
      *
@@ -369,13 +377,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             if (isset($pInfo->meta['canStore'])) {
                 $amount = $detailRec->amount;
 
-                $discountVal = $detailRec->discount;
-                if(!empty($detailRec->autoDiscount)){
-                    if(in_array($rec->state, array('draft', 'pending'))){
-                        $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
-                    }
-                }
-
+                $discountVal = $this->getDetailDiscount($rec, $detailRec);
                 $amount = ($discountVal) ?  $amount * (1 - $discountVal) : $amount;
                 $amount = round($amount, 2);
                 

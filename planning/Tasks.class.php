@@ -48,6 +48,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Хешът за обновяване не зависи от съдържанието - plg_RefreshRows го сверява преди рендирането
+     */
+    public $refreshRowsHashWithoutContent = true;
+
+
+    /**
      * Приложените стойности на филтъра за периодичното AJAX обновяване
      */
     protected $refreshRowsListFilterValues = array();

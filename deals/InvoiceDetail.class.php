@@ -196,7 +196,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
                 $autoDiscountPercent = $det->autoDiscount;
-                $det->discount = $det->inputDiscount;
+                $det->discount = !empty($det->inputDiscount) ? $det->inputDiscount : null;
                 $det->autoDiscount = null;
                 $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
@@ -834,7 +834,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        $rec->discount = $oldRec->inputDiscount;
+        $rec->discount = !empty($oldRec->inputDiscount) ? $oldRec->inputDiscount : null;
         $oldMasterRec = $mvc->Master->fetch($oldRec->{$mvc->masterKey}, 'date,currencyId,rate');
         $newMasterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'date,currencyId,rate');
 

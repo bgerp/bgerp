@@ -8,7 +8,7 @@
  * @package   email
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -3611,13 +3611,26 @@ class email_Incomings extends core_Master
             if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
                 $uLink = urldecode($uLink);
                 $uLink = str_replace(array("\n", "\r"), array('', ''), $uLink);
-                // Автоматично оттегля документа, ако е само един в нишката и има права за папката
+                // Предлага оттегляне само за единствен документ в достъпна папка.
                 $onClickArr = array();
-                if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {
-                    if (doc_Folders::haveRightFor('single', $data->rec->folderId)) {
-                        $threadRec = doc_Threads::fetch($data->rec->threadId);
-                        if ($threadRec && $threadRec->allDocCnt <= 1) {
-                            $onClickArr['onclick'] = "document.getElementById('btnDelete{$data->rec->containerId}').click();";
+                $rec = $data->rec ?? null;
+                if (($rec->state ?? null) != 'rejected' && !empty($rec->folderId) && !empty($rec->threadId) && !empty($rec->containerId)) {
+                    if (doc_Folders::haveRightFor('single', $rec->folderId) && $mvc->haveRightFor('reject', $rec)) {
+                        $threadRec = doc_Threads::fetch($rec->threadId);
+                        if ($threadRec && ($threadRec->allDocCnt ?? 0) <= 1) {
+                            // Оставаме при имейла, за да е достъпно повторното отписване.
+                            $retUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId,
+                                'docId' => $mvc->getHandle($rec->id ?? null));
+                            $rejectUrl = array($mvc, 'reject', $rec->id ?? null, 'ret_url' => $retUrl,
+                                'Cf' => Request::getSessHash('reject' . ($rec->id ?? '')));
+                            $warning = json_encode(tr('Наистина ли желаете да оттеглите документа?'));
+                            $onClickArr['data-unsubscribe-url'] = $uLink;
+                            $onClickArr['data-reject-url'] = toUrl($rejectUrl);
+                            // Отваряме линка при потребителския клик, преди потвърждението и пренасочването.
+                            $onClickArr['onclick'] = "window.open(this.getAttribute('data-unsubscribe-url'), '_blank');"
+                                . " var rejectUrl = this.getAttribute('data-reject-url');"
+                                . " efConfirm({$warning}).then(function (confirmed) {"
+                                . " if (confirmed) { document.location = rejectUrl; } }); return false;";
                         }
                     }
                 }

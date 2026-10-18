@@ -124,9 +124,6 @@ class cal_TaskConditions extends core_Detail
         $progressArr[''] = '';
         
         for ($i = 0; $i <= 100; $i += 10) {
-            if ($data->form->progress > ($i / 100)) {
-                continue;
-            }
             $p = $i . ' %';
             $progressArr[$p] = $p;
         }
