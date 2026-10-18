@@ -2118,138 +2118,127 @@ class doc_Containers extends core_Manager
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
-        
-        // Данни за папката за несортирани
-        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
-        $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id');
-        
-        $query = self::getQuery();
-        
-        // Подготвяме данните за търсене
-        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
-        
-        $query->where('#folderId IS NULL');
-        $query->orWhere('#threadId IS NULL');
-        $query->orWhere('#docClass IS NULL');
-        $query->orWhere('#docId IS NULL');
-        $query->orWhere('#visibleForPartners IS NULL');
-        $query->orWhere('#searchKeywords IS NULL');
-        $query->orWhere("#searchKeywords = ''");
-        
-        $query->limit(500);
-        
-        $resArr = array('folderId' => 0, 'threadId' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateVisibleForPartners' => 0, 'updateContainers' => 0);
+        try {
+            // Данни за папката за несортирани
+            $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
+            $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id');
 
-        while ($rec = $query->fetch()) {
-            $isDel = false;
-            try {
-                $docId = false;
-                $mustUpdate = true;
+            $query = self::getQuery();
 
-                // Ако няма id на папката
-                if (!isset($rec->folderId)) {
-                    
-                    // Опитваме се да определим от нишката
-                    if ($rec->threadId) {
-                        $rec->folderId = doc_Threads::fetchField("#id = '{$rec->threadId}'", 'folderId', false);
-                    }
-                    
-                    // Ако не е определена използваме папката за несортирани
+            // Подготвяме данните за търсене
+            doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+
+            $query->where('#folderId IS NULL');
+            $query->orWhere('#threadId IS NULL');
+            $query->orWhere('#docClass IS NULL');
+            $query->orWhere('#docId IS NULL');
+            $query->orWhere('#visibleForPartners IS NULL');
+            $query->orWhere('#searchKeywords IS NULL');
+            $query->orWhere("#searchKeywords = ''");
+
+            // searchKeywords е изключено от автоматичния SELECT.
+            $query->show('*');
+            $query->limit(500);
+
+            $resArr = array('folderId' => 0, 'threadId' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateVisibleForPartners' => 0, 'updateContainers' => 0);
+
+            while ($rec = $query->fetch()) {
+                $isDel = false;
+                try {
+                    self::repairContainerLinksFromDocument($rec, $resArr);
+
+                    // Ако няма id на папката
                     if (!isset($rec->folderId)) {
-                        $rec->folderId = $defaultFolderId;
+
+                        // Опитваме се да определим от нишката
+                        if ($rec->threadId) {
+                            $rec->folderId = doc_Threads::fetchField("#id = '{$rec->threadId}'", 'folderId', false);
+                        }
+
+                        // Ако не е определена използваме папката за несортирани
+                        if (!isset($rec->folderId)) {
+                            $rec->folderId = $defaultFolderId;
+                        }
+
+                        if (self::save($rec, 'folderId')) {
+                            self::logNotice('Поправено folderId', $rec->id);
+                            $resArr['folderId']++;
+                        }
                     }
-                    
-                    if (self::save($rec, 'folderId')) {
-                        self::logNotice('Поправено folderId', $rec->id);
-                        $resArr['folderId']++;
-                    }
-                }
-                
-                // Ако няма нишка
-                if (!isset($rec->threadId)) {
-                    
-                    // Опитваме се да намерим id-то на нишката от нишките
-                    $rec->threadId = doc_Threads::fetchField("#firstContainerId = '{$rec->id}' && #folderId = '{$rec->folderId}'", 'id', false);
-                    
-                    // Ако не може създаваме нова нишка
+
+                    // Ако няма нишка
                     if (!isset($rec->threadId)) {
-                        $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+
+                        // Опитваме се да намерим id-то на нишката от нишките
+                        $rec->threadId = doc_Threads::fetchField("#firstContainerId = '{$rec->id}' && #folderId = '{$rec->folderId}'", 'id', false);
+
+                        // Ако не може създаваме нова нишка
+                        if (!isset($rec->threadId)) {
+                            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+                        }
+
+                        if (self::save($rec, 'threadId')) {
+                            self::logNotice('Поправено threadId', $rec->id);
+                            $resArr['threadId']++;
+                        }
                     }
-                    
-                    if (self::save($rec, 'threadId')) {
-                        self::logNotice('Поправено threadId', $rec->id);
-                        $resArr['threadId']++;
+
+                    $removeMissing = doc_Setup::get('REPAIR_ALL') == 'yes' || !isset($rec->docClass, $rec->docId);
+                    if (!self::repairDocumentReference($rec, $resArr, $removeMissing)) {
+                        continue;
                     }
-                }
-                
-                // Ако няма id на класа на документа
-                if (!isset($rec->docClass)) {
-                    self::repairDocClass($rec);
-                    $resArr['docClass']++;
-                }
-                
-                // Ако няма id на документа
-                if (!isset($rec->docId) && isset($rec->docClass)) {
-                    $isDel = self::repairDocId($rec);
-                    
-                    $resArr['docId']++;
-                    
-                    if ($isDel) {
-                        $resArr['del_cnt']++;
-                    }
-                }
-                
-                // Обновяваме документа, за да се поправят другите полета
-                if (!$isDel) {
-                    
-                    // Ако ще се обновява само visibleForPartners, няма нужда да се обновява целия контейнер
-                    $updateOnlyVisible = false;
-                    if (!isset($rec->visibleForPartners) && $rec->docClass && $rec->docId) {
-                        if (cls::load($rec->docClass, true)) {
-                            try {
-                                $docMvc = cls::get($rec->docClass);
-                                $docRec = $docMvc->fetch($rec->docId);
-                                $updateOnlyVisible = true;
-                            } catch (ErrorException $e) {
-                                $updateOnlyVisible = false;
+
+                    // Обновяваме документа, за да се поправят другите полета
+                    if (!$isDel) {
+
+                        // Ако ще се обновява само visibleForPartners, няма нужда да се обновява целия контейнер
+                        $updateOnlyVisible = false;
+                        if (!isset($rec->visibleForPartners) && !empty($rec->searchKeywords) && $rec->docClass && $rec->docId) {
+                            if (cls::load($rec->docClass, true)) {
+                                try {
+                                    $docMvc = cls::get($rec->docClass);
+                                    $docRec = $docMvc->fetch($rec->docId);
+                                    $updateOnlyVisible = true;
+                                } catch (ErrorException $e) {
+                                    $updateOnlyVisible = false;
+                                }
                             }
                         }
-                    }
-                    
-                    if ($updateOnlyVisible) {
-                        self::logNotice('Обновяване на visibleForPartners', $rec->id);
-                        if ($docMvc->isVisibleForPartners($docRec)) {
-                            $rec->visibleForPartners = 'yes';
+
+                        if ($updateOnlyVisible) {
+                            self::logNotice('Обновяване на visibleForPartners', $rec->id);
+                            if ($docMvc->isVisibleForPartners($docRec)) {
+                                $rec->visibleForPartners = 'yes';
+                            } else {
+                                $rec->visibleForPartners = 'no';
+                            }
+
+                            self::save($rec, 'visibleForPartners');
+
+                            $resArr['updateVisibleForPartners']++;
                         } else {
-                            $rec->visibleForPartners = 'no';
+                            self::update($rec->id, true, true);
+                            $resArr['updateContainers']++;
+                            self::logNotice('Обновяване на контейнера', $rec->id);
                         }
-                        
-                        self::save($rec, 'visibleForPartners');
-                        
-                        $resArr['updateVisibleForPartners']++;
-                    } else {
-                        self::update($rec->id, true, true);
-                        $resArr['updateContainers']++;
-                        self::logNotice('Обновяване на контейнера', $rec->id);
                     }
+                } catch (ErrorException $e) {
+                    reportException($e);
                 }
-            } catch (ErrorException $e) {
-                reportException($e);
             }
+
+            // Ако е зададено да се поправят всички стойности
+            if (doc_Setup::get('REPAIR_ALL') == 'yes') {
+                $resArr = doc_Folders::mergeRepairResults($resArr, self::repairAll($from, $to, $delay));
+            }
+
+            return $resArr;
+        } finally {
+            core_Debug::$isLogging = $isLoging;
         }
-        
-        // Ако е зададено да се поправят всички стойности
-        if (doc_Setup::get('REPAIR_ALL') == 'yes') {
-            $resArr += self::repairAll($from, $to, $delay);
-        }
-        
-        // Връщаме старото състояние за ловговането в дебъг
-        core_Debug::$isLogging = $isLoging;
-        
-        return $resArr;
     }
-    
-    
+
+
     /**
      * Поправка на развалените полета за състояние
      *
@@ -2269,8 +2258,9 @@ class doc_Containers extends core_Manager
         while ($rec = $query->fetch()) {
             try {
 
+                self::repairContainerLinksFromDocument($rec, $resArr);
+
                 // Ако нишката е грешна (няма такъв запис)
-                
                 $tRec = false;
                 $oldThreadId = $rec->threadId;
                 
@@ -2311,45 +2301,21 @@ class doc_Containers extends core_Manager
                     }
                 }
                 
-                if ($rec->folderId && $fRec = doc_Folders::fetch($rec->folderId, '*', false)) {
-                    try {
-                        
-                        // Поправяме документите, които няма инстанция или липсва запис за тях
-                        if (cls::load($rec->docClass, true)) {
-                            $inst = cls::get($rec->docClass);
-                            
-                            if (!cls::haveInterface('doc_DocumentIntf', $inst)) {
-                                // Поправка на id на документа, ако ненаследява съответния интерфейс за документи
-                                self::repairDocClass($rec);
-                                $resArr['docClass']++;
-                            }
-                            
-                            // Ако е счупено docId на документа
-                            if (!$rec->docId || !$inst->fetch($rec->docId, '*', false)) {
-                                $isDel = self::repairDocId($rec);
-                                
-                                $resArr['docId']++;
-                                
-                                if ($isDel) {
-                                    $resArr['del_cnt']++;
-                                } else {
-                                    self::update($rec->id, true, true);
-                                    $resArr['updateContainers']++;
-                                }
-                            }
-                        } else {
-                            
-                            // Поправка на id на документа, ако е счупен
-                            self::repairDocClass($rec);
-                            $resArr['docClass']++;
-                        }
-                    } catch (ErrorException $e) {
-                        reportException($e);
-                        
+                $oldDocClass = $rec->docClass ?? null;
+                $oldDocId = $rec->docId ?? null;
+                if (!self::repairDocumentReference($rec, $resArr)) {
+                    continue;
+                }
+
+                if ($oldDocClass != ($rec->docClass ?? null) || $oldDocId != ($rec->docId ?? null)) {
+                    self::update($rec->id ?? null, true, true);
+                    $resArr['updateContainers']++;
+                    $rec = self::fetch($rec->id ?? null, '*', false);
+                    if (!$rec) {
                         continue;
                     }
                 }
-                
+
                 // Оправяме състоянието на документа
                 
                 if (!$rec->docClass || !$rec->docId) {
@@ -2404,229 +2370,324 @@ class doc_Containers extends core_Manager
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
-        
-        // Всички документи, които имат интерфейса
-        $clsArr = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'name');
-        
-        foreach ($clsArr as $clsId => $clsName) {
-            if (!cls::load($clsName, true)) {
-                continue ;
-            }
-            
-            $clsInst = cls::get($clsName);
-            
-            $dQuery = $clsInst->getQuery();
-            
-            if (!$clsInst->fields['modifiedOn']) {
-                continue;
-            }
-            
-            // Подготвяме данните за търсене
-            doc_Folders::prepareRepairDateQuery($dQuery, $from, $to, $delay);
-            
-            $repairAll = true;
-            if (doc_Setup::get('REPAIR_ALL') != 'yes') {
-                $dQuery->where("#folderId IS NULL OR #folderId = ''");
-                $dQuery->orWhere("#threadId IS NULL OR #threadId = ''");
-                $dQuery->orWhere("#containerId IS NULL OR #containerId = ''");
-                $repairAll = false;
-            }
-            
-            try {
-                while ($dRec = $dQuery->fetch()) {
-                    $delete = false;
-                    
-                    // Поправяме containerId
-                    if (!$dRec->containerId) {
-                        if ($dRec->state == 'rejected') {
-                            $delete = true;
-                            $reason = 'Няма containerId на оттеглен документ';
-                        }
-                    }
-                    
-                    if (!$delete) {
-                        
+        try {
+            // Всички документи, които имат интерфейса
+            $clsArr = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'name');
+
+            foreach ($clsArr as $clsId => $clsName) {
+                if (!cls::load($clsName, true)) {
+                    continue ;
+                }
+
+                $clsInst = cls::get($clsName);
+
+                $dQuery = $clsInst->getQuery();
+
+                if (empty($clsInst->fields['modifiedOn'])) {
+                    continue;
+                }
+
+                // Подготвяме данните за търсене
+                doc_Folders::prepareRepairDateQuery($dQuery, $from, $to, $delay);
+
+                $repairAll = true;
+                if (doc_Setup::get('REPAIR_ALL') != 'yes') {
+                    $dQuery->where("#folderId IS NULL OR #folderId = ''");
+                    $dQuery->orWhere("#threadId IS NULL OR #threadId = ''");
+                    $dQuery->orWhere("#containerId IS NULL OR #containerId = ''");
+                    $repairAll = false;
+                }
+
+                try {
+                    while ($dRec = $dQuery->fetch()) {
+                        $delete = false;
+                        $saveFields = array();
+
                         // Опитваме се да сравним със записа в doc_Containers
                         if (($docClassId = core_Classes::getId($clsInst)) && ($cId = self::fetchField(array("#docId = '[#1#]' AND #docClass = '[#2#]'", $dRec->id, $docClassId), 'id', false))) {
-                            $update = true;
-                            if ($repairAll) {
-                                if ($cId == $dRec->containerId) {
-                                    $update = false;
-                                }
-                            }
-                            
+                            $update = $cId != ($dRec->containerId ?? null);
+
                             if ($update) {
-                                $resArr['containerId'] = ($resArr['containerId'] ?? 0) + 1;
-                                $clsInst->logNotice('Обновен containerId на документа', $dRec->id);
+                                $saveFields['containerId'] = 'containerId';
                                 $dRec->containerId = $cId;
-                                
-                                try {
-                                    $clsInst->save($dRec, 'containerId');
-                                } catch (ErrorException $e) {
-                                    reportException($e);
-                                }
                             }
                         }
-                        
-                        // Да не се изтрива, защото може и да е на наследниците или бащите
-//                             $delete = TRUE;
-                    }
-                    
-                    if (!$dRec->containerId) {
-                        $delete = true;
-                        $reason = 'Няма containerId';
-                    }
-                    
-                    // Поправяме originId
-                    if (!$delete && $repairAll && $dRec->originId) {
-                        
-                        // Ако originId липсва в контейнерите
-                        if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', false)) {
-                            $resArr['originId'] = ($resArr['originId'] ?? 0) + 1;
-                            $clsInst->logNotice('Нулиран originId на документа', $dRec->id);
-                            $dRec->originId = null;
-                            
-                            try {
-                                $clsInst->save_($dRec, 'originId');
-                            } catch (ErrorException $e) {
-                                reportException($e);
-                            }
-                        }
-                    }
-                    
-                    // Поправяме threadId
-                    if (!$delete && !$dRec->threadId) {
-                        if ($dRec->state == 'rejected') {
+
+                        if (empty($dRec->containerId)) {
                             $delete = true;
-                            $reason = 'Няма threadId на оттеглен документ';
+                            $reason = 'Няма containerId';
                         }
-                    }
-                    
-                    if (!$delete) {
-                        if ($dRec->containerId && ($threadId = self::fetchField($dRec->containerId, 'threadId', false))) {
-                            $update = true;
-                            if ($repairAll) {
-                                if ($threadId == $dRec->threadId) {
-                                    $update = false;
-                                }
-                            }
-                            
-                            if ($update) {
-                                $resArr['threadId'] = ($resArr['threadId'] ?? 0) + 1;
-                                $clsInst->logNotice('Обновен threadId на документа', $dRec->id);
-                                $dRec->threadId = $threadId;
-                                try {
-                                    $clsInst->save($dRec, 'threadId');
-                                } catch (ErrorException $e) {
-                                    reportException($e);
-                                }
-                            }
-                        } else {
-                            $delete = true;
-                            $reason = 'Няма запис в doc_Threads за containerId';
-                        }
-                    }
-                    
-                    // Поправяме folderId
-                    if (!$delete) {
-                        if (!$dRec->folderId && $dRec->state == 'rejected') {
-                            $delete = true;
-                            $reason = 'Няма folderId на оттеглен документ';
-                        }
-                        
+
                         if (!$delete) {
-                            $folderId = null;
-                            
-                            if ($dRec->containerId) {
-                                $folderId = self::fetchField($dRec->containerId, 'folderId', false);
+                            $container = self::fetch($dRec->containerId, '*', false);
+                            if ($container && (($container->docClass ?? null) != $docClassId || ($container->docId ?? null) != $dRec->id)) {
+                                $clsInst->logWarning('Контейнерът принадлежи на друг документ', $dRec->id);
+                                continue;
                             }
-                            
-                            if (!$folderId && $dRec->threadId) {
+
+                            // Две валидни, но различни нишки изискват независимо потвърждение.
+                            if ($container && !empty($dRec->threadId) && $dRec->threadId != ($container->threadId ?? null)) {
+                                $docThread = doc_Threads::fetch($dRec->threadId, '*', false);
+                                $containerThread = !empty($container->threadId) ? doc_Threads::fetch($container->threadId, '*', false) : null;
+                                if ($docThread && $containerThread && $docThread->folderId == ($dRec->folderId ?? null)
+                                    && $containerThread->folderId == ($container->folderId ?? null)
+                                    && (($containerThread->firstContainerId ?? null) != $container->id || ($docThread->firstContainerId ?? null) == $container->id)) {
+                                    $clsInst->logWarning('Противоречиви връзки към различни нишки', $dRec->id);
+                                    continue;
+                                }
+                            }
+                        }
+
+                        // Поправяме originId
+                        if (!$delete && $repairAll && !empty($dRec->originId)) {
+
+                            // Ако originId липсва в контейнерите
+                            if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', false)) {
+                                $resArr['originId'] = ($resArr['originId'] ?? 0) + 1;
+                                $clsInst->logNotice('Нулиран originId на документа', $dRec->id);
+                                $dRec->originId = null;
+
+                                try {
+                                    $clsInst->save_($dRec, 'originId');
+                                } catch (ErrorException $e) {
+                                    reportException($e);
+                                }
+                            }
+                        }
+
+                        // Поправяме threadId
+                        if (!$delete) {
+                            if (!empty($dRec->containerId) && ($threadId = self::fetchField($dRec->containerId, 'threadId', false))) {
+                                $update = $threadId != ($dRec->threadId ?? null);
+
+                                if ($update) {
+                                    $saveFields['threadId'] = 'threadId';
+                                    $dRec->threadId = $threadId;
+                                }
+                            } else {
+                                $delete = true;
+                                $reason = 'Няма запис в doc_Threads за containerId';
+                            }
+                        }
+
+                        // Поправяме folderId
+                        if (!$delete) {
+                            $folderId = self::fetchField($dRec->containerId ?? null, 'folderId', false);
+                            if (!$folderId && !empty($dRec->threadId)) {
                                 $folderId = doc_Threads::fetchField($dRec->threadId, 'folderId', false);
                             }
-                            
+
                             if ($folderId) {
-                                $update = true;
-                                if ($repairAll) {
-                                    if ($folderId == $dRec->folderId) {
-                                        $update = false;
-                                    }
-                                }
-                                
-                                if ($update) {
-                                    $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
-                                    $clsInst->logNotice('Обновен folderId на документа', $dRec->id);
+                                if ($folderId != ($dRec->folderId ?? null)) {
+                                    $saveFields['folderId'] = 'folderId';
                                     $dRec->folderId = $folderId;
-                                    try {
-                                        $clsInst->save($dRec, 'folderId');
-                                    } catch (ErrorException $e) {
-                                        reportException($e);
-                                    }
                                 }
                             } else {
                                 $delete = true;
                                 $reason = 'Не може да се определи folderId';
                             }
                         }
-                    }
-                    
-                    // Ако не може да се поправи - премахваме записа
-                    if ($delete) {
-                        try {
-                            $delMsg = 'Изтрит документ' . ' - ' . $reason;
-                            if ($clsInst instanceof core_Master) {
-                                $dArr = arr::make($clsInst->details, true);
-                                
-                                // Изтирваме детайлите за документа
-                                if (!empty($dArr)) {
-                                    $delDetCnt = 0;
-                                    
-                                    foreach ($dArr as $detail) {
-                                        if (!cls::load($detail, true)) {
-                                            continue;
-                                        }
-                                        
-                                        $detailInst = cls::get($detail);
-                                        if (!($detailInst->Master instanceof $clsInst)) {
-                                            continue;
-                                        }
-                                        
-                                        if ($detailInst->masterKey) {
-                                            $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
-                                        }
+
+                        // Hooks могат да обновят контейнера, затова записваме връзките заедно.
+                        if (!$delete && $saveFields) {
+                            try {
+                                if ($clsInst->save($dRec, $saveFields)) {
+                                    foreach ($saveFields as $field) {
+                                        $resArr[$field] = ($resArr[$field] ?? 0) + 1;
+                                        $clsInst->logNotice("Обновен {$field} на документа", $dRec->id ?? null);
                                     }
-                                    $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
                                 }
+                            } catch (ErrorException $e) {
+                                reportException($e);
                             }
-                            
-                            $clsInst->logInfo($delMsg, $dRec->id);
-                            $resArr['del_cnt'] = ($resArr['del_cnt'] ?? 0) + 1;
-                            $clsInst->delete($dRec->id);
-                        } catch (ErrorException $e) {
-                            reportException($e);
+                        }
+
+                        // Ако не може да се поправи - премахваме записа
+                        if ($delete) {
+                            try {
+                                $delMsg = 'Изтрит документ' . ' - ' . $reason;
+                                if ($clsInst instanceof core_Master) {
+                                    $dArr = arr::make($clsInst->details ?? null, true);
+
+                                    // Изтирваме детайлите за документа
+                                    if (!empty($dArr)) {
+                                        $delDetCnt = 0;
+
+                                        foreach ($dArr as $detail) {
+                                            if (!cls::load($detail, true)) {
+                                                continue;
+                                            }
+
+                                            $detailInst = cls::get($detail);
+                                            if (!($detailInst->Master instanceof $clsInst)) {
+                                                continue;
+                                            }
+
+                                            if ($detailInst->masterKey) {
+                                                $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
+                                            }
+                                        }
+                                        $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
+                                    }
+                                }
+
+                                $clsInst->logInfo($delMsg, $dRec->id);
+                                $resArr['del_cnt'] = ($resArr['del_cnt'] ?? 0) + 1;
+                                $clsInst->delete($dRec->id);
+                            } catch (ErrorException $e) {
+                                reportException($e);
+                            }
                         }
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
+                } catch (Exception $e) {
+                    reportException($e);
                 }
-            } catch (core_exception_Redirect $e) {
-                throw $e;
-            } catch (Exception $e) {
-                reportException($e);
+            }
+
+            return $resArr;
+        } finally {
+            core_Debug::$isLogging = $isLoging;
+        }
+    }
+
+
+    /**
+     * Възстановява връзки от потвърден документ, преди да се създава нова нишка.
+     * При противоречие използва и папката/първия контейнер като независимо потвърждение.
+     */
+    protected static function repairContainerLinksFromDocument($rec, &$resArr)
+    {
+        if (empty($rec->docClass) || empty($rec->docId) || !cls::load($rec->docClass, true)) {
+            return;
+        }
+        $mvc = cls::get($rec->docClass);
+        if (!cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            return;
+        }
+        $document = $mvc->fetch($rec->docId, '*', false);
+        if (!$document || ($document->containerId ?? null) != $rec->id || empty($document->threadId) || empty($document->folderId)) {
+            return;
+        }
+        $docThread = doc_Threads::fetch($document->threadId, '*', false);
+        if (!$docThread || $docThread->folderId != $document->folderId || !doc_Folders::fetch($document->folderId, 'id', false)) {
+            return;
+        }
+        $thread = !empty($rec->threadId) ? doc_Threads::fetch($rec->threadId, '*', false) : null;
+        if ($thread && $thread->id != $docThread->id
+            && !(($docThread->firstContainerId ?? null) == $rec->id && ($thread->firstContainerId ?? null) != $rec->id)
+            && !($rec->folderId == $document->folderId && $thread->folderId != $rec->folderId)) {
+            return;
+        }
+        $old = clone $rec;
+        $fields = array();
+        foreach (array('threadId', 'folderId') as $field) {
+            if (($rec->{$field} ?? null) != $document->{$field}) {
+                $rec->{$field} = $document->{$field};
+                $fields[] = $field;
             }
         }
-        
-        // Връщаме старото състояние за ловговането в дебъг
-        core_Debug::$isLogging = $isLoging;
-        
-        return $resArr;
+        if ($fields) {
+            if (self::save($rec, $fields)) {
+                if (in_array('threadId', $fields)) {
+                    if ($thread) {
+                        doc_Threads::updateThread($thread->id);
+                    }
+                    doc_Threads::updateThread($docThread->id);
+                }
+                foreach ($fields as $field) {
+                    $resArr[$field] = ($resArr[$field] ?? 0) + 1;
+                }
+                self::logNotice('Възстановени връзки на контейнера от документа', $rec->id);
+            } else {
+                foreach ($fields as $field) {
+                    $rec->{$field} = $old->{$field} ?? null;
+                }
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Проверява връзката в двете посоки преди обновяване на контейнера.
+     *
+     * @return bool Може ли контейнерът да бъде обновен от този документ
+     */
+    protected static function repairDocumentReference($rec, &$resArr, $removeMissing = true)
+    {
+        $oldDocClass = $rec->docClass ?? null;
+        $oldDocId = $rec->docId ?? null;
+        $inst = $oldDocClass && cls::load($oldDocClass, true) ? cls::get($oldDocClass) : null;
+
+        if (!$inst || !cls::haveInterface('doc_DocumentIntf', $inst)) {
+            if (self::repairDocClass($rec, $removeMissing)) {
+                $resArr['del_cnt'] = ($resArr['del_cnt'] ?? 0) + 1;
+
+                return false;
+            }
+            if ($oldDocClass != ($rec->docClass ?? null)) {
+                $resArr['docClass'] = ($resArr['docClass'] ?? 0) + 1;
+            }
+            if ($oldDocId != ($rec->docId ?? null)) {
+                $resArr['docId'] = ($resArr['docId'] ?? 0) + 1;
+            }
+            $inst = cls::load($rec->docClass ?? null, true) ? cls::get($rec->docClass ?? null) : null;
+        }
+
+        if (!$inst || !cls::haveInterface('doc_DocumentIntf', $inst)) {
+            return false;
+        }
+
+        $docRec = !empty($rec->docId) ? $inst->fetch($rec->docId, '*', false) : null;
+        if ($docRec && !empty($docRec->containerId) && $docRec->containerId != ($rec->id ?? null)) {
+            // При противоречиви връзки не изтриваме контейнера без намерен документ.
+            if (!$inst->fetchField(array("#containerId = '[#1#]'", $rec->id ?? null), 'id', false)) {
+                self::logWarning('Противоречива връзка между контейнер и документ', $rec->id ?? null);
+
+                return false;
+            }
+            $docRec = null;
+        }
+
+        if (!$docRec) {
+            if (!$removeMissing && !$inst->fetchField(array("#containerId = '[#1#]'", $rec->id ?? null), 'id', false)) {
+                return false;
+            }
+            $previousDocId = $rec->docId ?? null;
+            if (self::repairDocId($rec)) {
+                $resArr['del_cnt'] = ($resArr['del_cnt'] ?? 0) + 1;
+
+                return false;
+            }
+            if (($rec->docId ?? null) == $previousDocId) {
+                return false;
+            }
+            $resArr['docId'] = ($resArr['docId'] ?? 0) + 1;
+        }
+
+        // update() копира връзките от документа. Непълни или противоречиви
+        // връзки трябва първо да се възстановят от repairDoc(), без да губим контейнера.
+        $docRec = $inst->fetch($rec->docId, '*', false);
+        if (empty($docRec->containerId) || empty($docRec->threadId) || empty($docRec->folderId)
+            || $docRec->containerId != $rec->id || $docRec->threadId != $rec->threadId
+            || $docRec->folderId != $rec->folderId) {
+            self::logWarning('Необходими са поправки на връзките в документа преди обновяване на контейнера', $rec->id);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
     /**
      * Помощна функция за поправка на docClass
      *
      * @param stdClass $rec
+     * @return bool Изтрит ли е невъзстановимият контейнер
      */
-    protected static function repairDocClass($rec)
+    protected static function repairDocClass($rec, $removeMissing = true)
     {
         // id' то на интерфейса
         $Interfaces = cls::get('core_Interfaces');
@@ -2634,22 +2695,29 @@ class doc_Containers extends core_Manager
         
         // Намираме всички докуемнти със съответния интерфейс
         $cQuery = core_Classes::getQuery();
-        $cQuery->where("#state = 'active' AND #interfaces LIKE '%|{$documentIntfId}|%'");
+        $cQuery->where(array("#state = 'active' AND #interfaces LIKE '%|[#1#]|%'", $documentIntfId));
         
         $haveRec = false;
         
         while ($cRec = $cQuery->fetch()) {
-            if (cls::load($cRec->name, true)) {
-                $clsInst = cls::get($cRec->name);
+            if (cls::load($cRec->name ?? null, true)) {
+                $clsInst = cls::get($cRec->name ?? null);
                 
                 // Ако има запис за съответния контейнер в мениджъра на докуемнта
-                if ($docId = $clsInst->fetchField("#containerId = {$rec->id}", 'id', false)) {
-                    self::logNotice("Променено ид на документ от {$rec->docClass} на {$cRec->id}", $rec->id);
+                if ($docId = $clsInst->fetchField(array("#containerId = '[#1#]'", $rec->id ?? null), 'id', false)) {
+                    $oldDocClass = $rec->docClass ?? null;
+                    $newDocClass = $cRec->id ?? null;
+                    self::logNotice("Променено ид на документ от {$oldDocClass} на {$newDocClass}", $rec->id ?? null);
                     
-                    $rec->docClass = $cRec->id;
-                    
-                    self::save($rec, 'docClass');
-                    
+                    $oldDocId = $rec->docId ?? null;
+                    $rec->docClass = $cRec->id ?? null;
+                    $rec->docId = $docId;
+                    if (!self::save($rec, 'docClass,docId')) {
+                        $rec->docClass = $oldDocClass;
+                        $rec->docId = $oldDocId;
+                        return false;
+                    }
+
                     $haveRec = true;
                     
                     break;
@@ -2658,9 +2726,12 @@ class doc_Containers extends core_Manager
         }
         
         if (!$haveRec) {
-            self::logNotice("Не може да се намери 'docClass' за {$rec->docClass}", $rec->id);
-            self::repairDocId($rec);
+            $oldDocClass = $rec->docClass ?? null;
+            self::logNotice("Не може да се намери 'docClass' за {$oldDocClass}", $rec->id ?? null);
+            return $removeMissing ? self::repairDocId($rec) : false;
         }
+
+        return false;
     }
     
     
@@ -2675,17 +2746,21 @@ class doc_Containers extends core_Manager
     {
         $isDel = false;
         
-        if (cls::load($rec->docClass, true)) {
-            $docClass = cls::get($rec->docClass);
+        if (cls::load($rec->docClass ?? null, true)) {
+            $docClass = cls::get($rec->docClass ?? null);
             
             // Ако класа може да се използва за документ
             if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
-                $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', false);
+                $docId = $docClass->fetchField(array("#containerId = '[#1#]'", $rec->id ?? null), 'id', false);
                 
                 if ($docId) {
-                    self::logNotice("Променено docId от {$rec->docId} на {$docId}", $rec->id);
+                    $oldDocId = $rec->docId ?? null;
                     $rec->docId = $docId;
-                    self::save($rec, 'docId');
+                    if (self::save($rec, 'docId')) {
+                        self::logNotice("Променено docId от {$oldDocId} на {$docId}", $rec->id);
+                    } else {
+                        $rec->docId = $oldDocId;
+                    }
                 } else {
                     if (!empty($rec->id)) {
                         

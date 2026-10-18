@@ -4053,11 +4053,11 @@ en,Нямате права за някои от избраните служит�
 en,Процентна надценка,Percentage markup
 en,Вижда се само от вътрешните потребители,Visible only to internal users
 en,Анулирана,Cancelled
-en,Анулиране на товарителницата,Cancel the bill of lading
-en,Анулиране на товарителница,Cancel bill of lading
+en,Анулиране на товарителницата,Cancel the waybill
+en,Анулиране на товарителница,Cancel waybill
 en,Speedy не прие анулирането,Speedy did not accept the cancellation
-en,Товарителницата е анулирана,The bill of lading is cancelled
-en,CVC не отговори - проверете в системата им дали товарителницата е отказана,CVC did not respond - check in their system whether the bill of lading is cancelled
+en,Товарителницата е анулирана,The waybill is cancelled
+en,CVC не отговори - проверете в системата им дали товарителницата е отказана,CVC did not respond - check in their system whether the waybill is cancelled
 en,Имате профил?,Have an account?
 en,Вход в профила,Sign in
 en,По-стари,Older
@@ -4083,3 +4083,64 @@ en,Количеството за тази мярка трябва да е,The qu
 en,в наличност,in stock
 en,Вид на справката,Report type
 en,Справка по,Report by
+en,Вашата пратка е подготвена за изпращане с товарителница,Your shipment is prepared for dispatch with waybill
+en,Може да проследите получаването ѝ от тук,You can track its delivery here
+en,Горивна такса,Fuel surcharge
+en,Дата на вземане,Pickup date
+en,До адрес,To address
+en,До офис,To office
+en,Допълнителни услуги,Additional services
+en,Доставка в събота,Saturday delivery
+en,Дължина [см],Length [cm]
+en,Ширина [см],Width [cm]
+en,Височина [см],Height [cm]
+en,Общо тегло [кг],Total weight [kg]
+en,Етикет и манифест,Label and manifest
+en,Запазен адрес,Saved address
+en,Застрахователна сума,Insured amount
+en,Застраховка,Insurance
+en,Издадена,Issued
+en,Отказана,Cancelled
+en,Изплащане на НП,COD payout
+en,Манифест,Manifest
+en,Обаждане преди доставка,Call before delivery
+en,Обратен амбалаж,Packaging return
+en,Обратна разписка,Proof of delivery
+en,Обратни документи,Documents return
+en,Отказване на товарителницата,Cancel the waybill
+en,Параметри на пратката,Shipment parameters
+en,По банка,By bank transfer
+en,Пощенски паричен превод,Postal money transfer
+en,Преглед при доставка,Review on delivery
+en,Тест при доставка,Test on delivery
+en,Предаване в офис,Hand-in at office
+en,От адрес,From address
+en,Продукция,Production
+en,Среда,Environment
+en,Проследяване на пратката,Track the shipment
+en,Стойност без ДДС,Amount without VAT
+en,Стойност с ДДС,Amount with VAT
+en,Цена с ДДС,Price with VAT
+en,Сума за събиране,Amount to collect
+en,Транспортът се плаща от,Transport paid by
+en,Указания,Instructions
+en,Фирма/Име,Company/Name
+en,Чупливо,Fragile
+en,Референция,Reference
+en,"е създадена, но PDF-ът ѝ не можа да се изтегли","was created, but its PDF could not be downloaded"
+en,Цената не може да бъде изчислена,The price cannot be calculated
+en,Товарителницата не можа да се създаде,The waybill could not be created
+en,PDF-ът не можа да се изтегли,The PDF could not be downloaded
+en,PDF-ът на товарителницата е изтеглен,The waybill PDF has been downloaded
+en,Товарителницата е отказана,The waybill has been cancelled
+en,Акаунт в,Account in
+en,Отказване на товарителницата в,Cancel the waybill in
+en,Сваляне на PDF-а от,Download the PDF from
+en,не прие отказа,did not accept the cancellation
+en,не отговори - проверете в системата им дали товарителницата е отказана,did not respond - check in their system whether the waybill was cancelled
+en,Попълване на товарителница за,Filling in a waybill for
+en,Само ако се изисква от куриера,Only if required by the courier
+en,Товарителницата е издадена от друг акаунт в,The waybill was issued from another account in
+en,ТЕСТОВА СРЕДА,TEST ENVIRONMENT
+en,товарителниците се създават в тестовата система на,waybills are created in the test system of
+en,и не се изпълняват,and are not carried out

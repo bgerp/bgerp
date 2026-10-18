@@ -9,7 +9,7 @@
  * @category   Experta Framework
  * @package    core
  * @author     Milen Georgiev
- * @copyright  2006-2014 Experta OOD
+ * @copyright  2006-2026 Experta EOOD
  * @license    GPL 3
  * @link
  */
@@ -430,7 +430,10 @@ function logHitState($debugCode = '200', $state = array())
         $state['_Ctr'] = ($_GET['Ctr'] ?? null) ? $_GET['Ctr'] : 'Index';
         $state['_Act'] = ($_GET['Act'] ?? null) ? $_GET['Act'] : 'default';
         $state['_dbName'] = defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown';
-        $state['_info'] = 'DB: ' . $state['_dbName'] . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
+        // _dbName остава за съвместимост; заглавието показва връзките на SQL заявките.
+        $state['_dbConnections'] = class_exists('core_Db', false) ? array_values(core_Db::$debugConnections) : array();
+        $dbInfo = $state['_dbConnections'] ? 'DB: ' . implode('; ', $state['_dbConnections']) : 'Configured DB: ' . $state['_dbName'] . ' (no SQL recorded)';
+        $state['_info'] = htmlspecialchars($dbInfo, ENT_QUOTES, 'UTF-8') . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
         $state['_debugCode'] = $debugCode;
         $state['_cookie'] = $_COOKIE;
         

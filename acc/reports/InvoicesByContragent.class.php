@@ -99,22 +99,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         // --- Филтри по контрагент ---
-        $fieldset->FLD('contragent', 'keylist2(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=title');
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=contragent,single=none');
+        $fieldset->FLD('contragent', 'keylist2(mvc=doc_Folders,select=title,allowEmpty,selectSourceArr=acc_reports_InvoicesByContragent::getContragentFolderOptions,maxSuggestions=200)', 'caption=Контрагенти->Конкретни,placeholderType=all,single=none,after=title');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Групи,placeholderType=all,after=contragent,single=none');
 
         // --- Тип документи и режим на плащане ---
         $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи,all=Всички)', 'caption=Фактури,after=crmGroup,maxRadio=3,columns=3,mandatory,single=none');
-        $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени,overdue=Просрочени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
+        $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени,overdue=Просрочени)', 'caption=Платено,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
 
         // --- Период и допълнителни филтри ---
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща,silent');
 
-        $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане, placeholderType=all,after=checkDate,input=none,single=none');
+        $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,input=none,single=none');
 
-        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit= €.,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
+        $fieldset->FLD('sill', 'double', 'caption=Не се показват фактури по приключени сделки с Неплатено/Надплатено->По-малко от,unit= €,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
 
-        $fieldset->FLD('seeProformаs', 'set(yes = )', 'caption=Покажи проформа фактурите,after=sill,input,single=none');
+        $fieldset->FLD('seeProformаs', 'set(yes=показват се и проформа фактурите)', 'caption=Разширена,after=sill,input,single=none');
 
         // --- Обобщаващи суми (попълват се в prepareRecs, показват се в on_AfterRenderSingle) ---
         $fieldset->FNC('totalInvoiceValueAll', 'double', 'input=none,single=none');
@@ -137,6 +137,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->layout = $form->renderLayout();
+        $form->layout->append(' invoicesByContragentForm', 'CLASS');
+        $form->layout->push('acc/css/InvoicesByContragent.css', 'CSS');
 
         // Начални стойности и видимост на полетата според избрания режим (всички / неплатени).
         $form->setDefault('seeProformаs', null);
@@ -163,51 +167,56 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
         $form->setDefault('typeOfInvoice', 'out');
+    }
 
 
-        // Подготвят се предложенията за контрагенти от продажбите и покупките.
-        /** @var core_Query $salesQuery */
-        $salesQuery = sales_Sales::getQuery();
+    /**
+     * Опции за полето „Контрагент“ - само папките, в които има продажби или покупки.
+     *
+     * @see doc_Folders::getSelectArr()
+     */
+    public static function getContragentFolderOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        // Вече избраните папки се показват винаги, дори без сделки
+        if (isset($onlyIds)) {
 
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $salesQuery->groupBy('folderId');
-
-        $salesQuery->show('folderId, contragentId, folderTitle');
-
-        /** @var core_Query $purchQuery */
-        $purchQuery = purchase_Purchases::getQuery();
-
-        $purchQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $purchQuery->groupBy('folderId');
-
-        $purchQuery->show('folderId, contragentId, folderTitle');
-
-        $purSuggestions = $suggestions = array();
-
-        while ($purContragent = $purchQuery->fetch()) {
-            if (!is_null($purContragent->contragentId)) {
-                $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle ?? null;
+            // type_Keylist2 подава избраните като "1,2,3", а getSelectArr приема масив или едно id
+            if (is_string($onlyIds)) {
+                $onlyIds = explode(',', trim($onlyIds, ','));
             }
+
+            return doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         }
 
-        while ($contragent = $salesQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle ?? null;
+        $folderIds = core_Cache::get('acc_reports_InvoicesByContragent', 'dealFolders');
+        if (!is_array($folderIds)) {
+
+            // Само по индекса на folderId, без JOIN към папките - иначе се сканират всички сделки
+            $folderIds = array();
+            foreach (array('sales_Sales', 'purchase_Purchases') as $dealClass) {
+                $dealQuery = $dealClass::getQuery();
+                $dealQuery->groupBy('folderId');
+                $dealQuery->show('folderId');
+                while ($dRec = $dealQuery->fetch()) {
+                    $folderIds[$dRec->folderId] = $dRec->folderId;
+                }
             }
+            core_Cache::set('acc_reports_InvoicesByContragent', 'dealFolders', $folderIds, 10, array('sales_Sales', 'purchase_Purchases'));
         }
 
-        // Обединяват се предложенията от покупки със списъка от продажби.
-        foreach ($purSuggestions as $k => $v) {
-            if (!array_key_exists($k, $suggestions)) {
-                $suggestions[$k] = $v;
-            }
+        if (!countR($folderIds)) {
+
+            return array();
         }
 
-        asort($suggestions);
+        // Затворените папки остават, защото по тях може да има стари фактури
+        $where = '#id IN (' . implode(',', $folderIds) . ") AND #state != 'rejected'";
+        if (!empty($params['where'])) {
+            $where = "({$params['where']}) AND {$where}";
+        }
+        $params['where'] = $where;
 
-        $form->setSuggestions('contragent', $suggestions);
+        return doc_Folders::getSelectArr($params, $limit, $q, null, true);
     }
 
 
@@ -1674,26 +1683,28 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Еднакво обобщение за отделния вид и за двата вида фактури.
      */
-    private function getContragentSummary($rec, $dRec, $invoiceType)
+    private function getContragentSummary($rec, $dRec, $invoiceType, $isCombined = false)
     {
         $caption = '<span class="quiet">' . tr('Общо фактури') . '</span> ' . tr($invoiceType);
         if (!$this->canSeePriceFields($rec)) return $caption;
 
         $Double = core_Type::getByName('double(decimals=2)');
-        $styleAmount = function ($amount) use ($Double) {
+        $balanceSign = ($dRec->className ?? null) == 'purchase_Invoices' ? -1 : 1;
+        $styleAmount = function ($amount, $isBalance = false) use ($Double, $balanceSign) {
             $verbal = $Double->toVerbal($amount);
+            $balance = $isBalance ? round($amount * $balanceSign, 2) : $amount;
 
-            return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $amount);
+            return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $balance, $isBalance ? '#080' : null);
         };
-        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0);
+        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0, $isCombined);
         if (($rec->unpaid ?? 'all') == 'all') {
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
         } else {
             $caption .= ' » <span class="quiet">' . tr('Платено') . ': </span>' . $styleAmount($dRec->totalInvoicePayout ?? 0)
-                . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0);
+                . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0, true);
         }
         if (abs($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
-            $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0);
+            $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0, true);
         }
 
         return $caption;
@@ -2049,7 +2060,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (($rec->typeOfInvoice ?? 'out') == 'all') {
             $summary = $dRec->combinedSummary ?? null;
             if (is_object($summary)) {
-                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ');
+                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ', true);
             }
         }
 

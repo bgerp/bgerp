@@ -22,7 +22,7 @@ class store_plg_CourierApiShipment extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->canRequestbilloflading, 'powerUser');
+        setIfNot($mvc->canRequestwaybill, 'powerUser');
         $mvc->FLD('courierApiPrice', 'double', 'input=none');
     }
 
@@ -47,12 +47,12 @@ class store_plg_CourierApiShipment extends core_Plugin
     {
         $rec = &$data->rec;
 
-        if ($mvc->haveRightFor('requestbilloflading', $rec)) {
+        if ($mvc->haveRightFor('requestwaybill', $rec)) {
             $apiDriverId = $mvc->getCourierApi4Document($rec);
             if ($apiDriverId) {
-                $serviceUrl = array($mvc, 'requestBillOfLading', 'objectId' => $rec->id, 'ret_url' => true);
+                $serviceUrl = array($mvc, 'requestWayBill', 'objectId' => $rec->id, 'ret_url' => true);
                 $Driver = cls::get($apiDriverId);
-                $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
+                $data->toolbar->addBtn($Driver->requestWayBillBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestWayBillBtnIcon},title=Създаване на нова товарителница");
             }
         }
     }
@@ -69,7 +69,7 @@ class store_plg_CourierApiShipment extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'requestbilloflading' && isset($rec)){
+        if($action == 'requestwaybill' && isset($rec)){
             $apiDriverId = $mvc->getCourierApi4Document($rec);
             if(empty($apiDriverId)){
                 $requiredRoles = 'no_one';
@@ -77,7 +77,7 @@ class store_plg_CourierApiShipment extends core_Plugin
 
                 // Ако потребителя може да избира драйвера
                 $Driver = cls::get($apiDriverId);
-                if(!$Driver->canRequestBillOfLading($mvc, $rec, $userId)){
+                if(!$Driver->canRequestWayBill($mvc, $rec, $userId)){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -109,19 +109,19 @@ class store_plg_CourierApiShipment extends core_Plugin
      */
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
-        if (strtolower($action) == 'requestbilloflading') {
-            $mvc->requireRightFor('requestbilloflading');
+        if (strtolower($action) == 'requestwaybill') {
+            $mvc->requireRightFor('requestwaybill');
             expect($id = Request::get('objectId', 'int'));
             expect($rec = $mvc->fetch($id));
-            $mvc->requireRightFor('requestbilloflading', $rec);
+            $mvc->requireRightFor('requestwaybill', $rec);
             $apiDriverId = $mvc->getCourierApi4Document($rec);
 
             // Подаване на формата на драйвера
             $Driver = cls::getInterface('cond_CourierApiIntf', $apiDriverId);
             $form = cls::get('core_Form');
-            $Driver->addFieldToBillOfLadingForm($mvc, $rec, $form);
+            $Driver->addFieldToWayBillForm($mvc, $rec, $form);
             $form->input();
-            $Driver->inputBillOfLadingForm($mvc, $rec, $form);
+            $Driver->inputWayBillForm($mvc, $rec, $form);
 
             // Неизясненият опит се потвърждава през предупреждението, след проверка при куриера
             if($form->cmd == 'save'){
@@ -133,7 +133,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             }
 
             if($form->isSubmitted()){
-                $submitted = self::submitBillOfLading($mvc, $rec, $Driver, $form);
+                $submitted = self::submitWayBill($mvc, $rec, $Driver, $form);
                 if(!empty($submitted->fh)){
                     followRetUrl(null, "Товарителницата е изпратена успешно|*!");
                 }
@@ -144,7 +144,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             }
 
             // Подготовка на тулбара
-            $form->toolbar->addSbBtn('Изпращане', 'save', "ef_icon ={$Driver->class->requestBillOfLadingBtnIcon}, title = Изпращане на товарителницата,id=save");
+            $form->toolbar->addSbBtn('Изпращане', 'save', "ef_icon ={$Driver->class->requestWayBillBtnIcon}, title = Изпращане на товарителницата,id=save");
             $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
@@ -152,7 +152,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             $mvc->logInfo('Форма за генериране на товарителница на Speedy', $rec->id);
 
             $res = $mvc->renderWrapping($form->renderHtml());
-            $Driver->afterPrepareBillOfLadingForm($mvc, $rec, $form, $res);
+            $Driver->afterPrepareWayBillForm($mvc, $rec, $form, $res);
             core_Form::preventDoubleSubmission($res, $form);
 
             return false;
@@ -173,13 +173,13 @@ class store_plg_CourierApiShipment extends core_Plugin
      * @return stdClass $res        - fh, number, status (cond_CourierApiIntf::BOL_* или noRights/exists/pendingCheck/unsupported/busy),
      *                                tpl на изчислението и price от драйвера
      */
-    public static function submitBillOfLading($mvc, $rec, $Driver, $form, $allowExisting = null, $saveCalcPrice = true)
+    public static function submitWayBill($mvc, $rec, $Driver, $form, $allowExisting = null, $saveCalcPrice = true)
     {
         $res = (object)array('fh' => null, 'tpl' => null, 'price' => null, 'number' => null, 'status' => null);
         if(!in_array($form->cmd, array('save', 'calc'))) return $res;
 
         // Извикванията извън екшъна също минават през правата и валидацията
-        if(!$mvc->haveRightFor('requestbilloflading', $rec)){
+        if(!$mvc->haveRightFor('requestwaybill', $rec)){
             $res->status = 'noRights';
 
             return $res;
@@ -242,7 +242,7 @@ class store_plg_CourierApiShipment extends core_Plugin
 
             if(!empty($requestedShipment->fh) && !$form->gotErrors()){
                 $fileId = fileman::fetchByFh($requestedShipment->fh, 'id');
-                doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
+                doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->wayBillComment);
                 $res->fh = $requestedShipment->fh;
             }
         } finally {
@@ -267,7 +267,7 @@ class store_plg_CourierApiShipment extends core_Plugin
         // UI-то и изричната допълнителна товарителница не зависят от издадените
         if($allowExisting !== false) return null;
 
-        $existing = $Driver->getBillOfLadings($containerId);
+        $existing = $Driver->getWayBills($containerId);
         if(!is_array($existing)) return 'unsupported';
 
         // Анулираните при куриера не пречат на нова
@@ -298,7 +298,7 @@ class store_plg_CourierApiShipment extends core_Plugin
      * @param string|null $fh          - файл на товарителницата
      * @return void
      */
-    public static function rejectBillOfLadingLink($containerId, $fh)
+    public static function rejectWayBillLink($containerId, $fh)
     {
         $fileId = empty($fh) ? null : fileman::fetchByFh($fh, 'id');
         if(empty($fileId)){
@@ -338,6 +338,7 @@ class store_plg_CourierApiShipment extends core_Plugin
      */
     private static function getPendingAttemptKey($containerId)
     {
+        // Старото име на ключа остава, за да не се изгубят записаните неизяснени опити
         return "courierBillOfLadingAttempt_{$containerId}";
     }
 

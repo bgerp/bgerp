@@ -1330,7 +1330,7 @@ class planning_Tasks extends core_Master
                 planning_plg_StateManager::changeState($this, $rec, 'close', 'Приключване при бърз прогрес');
                 $autoActivationMsg = "Операцията е приключена";
             }
-            Mode::setPermanent("autoCloseIfCompleted{$rec->taskId}", null);
+            Mode::setPermanent("autoCloseIfCompleted{$rec->id}", null);
         }
 
         if(!empty($autoActivationMsg)){

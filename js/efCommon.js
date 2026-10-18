@@ -140,6 +140,9 @@ window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
     // Безобидно предупреждение на браузъра за ResizeObserver (нищо не се чупи) - иначе заема мястото на реална грешка
     if (/^(Uncaught )?ResizeObserver loop/.test(String(errorMsg))) return false;
 
+    // Грешка в кода, който крипто портфейлите (MetaMask и др.) инжектират в страницата - не е наша
+    if (/window\.ethereum/.test(String(errorMsg))) return false;
+
     // Без стека се вижда само последната рамка - напр. jQuery.each при безкрайна рекурсия
     var stack = (errorObj && errorObj.stack) ? errorObj.stack : null;
 
@@ -775,11 +778,12 @@ function comboSelectOnChange(id, value, selectId) {
     }
 
     get$(id).focus();
-    $(id).trigger("change");
 
     var selCombo = get$(selectId);
     selCombo.value = '?';
-    $('#' + id).change();
+
+    // По елемента, не по селектор: id-то може да не е валиден CSS селектор (напр. ключ с „|“)
+    $(inp).change();
 
 }
 

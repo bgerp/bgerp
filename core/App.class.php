@@ -1504,9 +1504,30 @@ class core_App
     /**
      * Проверка дали репликацията е ОК
      *
+     * Проверката отваря отделна връзка (до 1 сек.), затова резултатът се пази 10 сек.
+     * Иначе всяка заявка към репликата би плащала нова проверка.
+     *
      * @return string
      */
     public static function isReplicationOK()
+    {
+        static $checkedOn = null, $errors = '';
+
+        if (!isset($checkedOn) || (time() - $checkedOn) >= 10) {
+            $errors = self::checkReplication();
+            $checkedOn = time();
+        }
+
+        return $errors;
+    }
+
+
+    /**
+     * Проверява състоянието на репликата
+     *
+     * @return string Грешките или празен стринг
+     */
+    protected static function checkReplication()
     {
         $errors = '';
         
@@ -1523,13 +1544,13 @@ class core_App
                 $errors = mysqli_errno($conn) . ":" . mysqli_error($conn);
                 return ($errors);
             }
-            $row = $result->fetch_assoc();
-            if ($row['Slave_IO_Running'] == 'No') {
+            $row = $result->fetch_assoc() ?: array();
+            if (($row['Slave_IO_Running'] ?? null) == 'No') {
                 $errors .= "Slave IO not running on " . SEARCH_DB_HOST . "\n";
                 $errors .= "Error number: {$row['Last_IO_Errno']}\n";
                 $errors .= "Error message: {$row['Last_IO_Error']}\n\n";
             }
-            if ($row['Slave_SQL_Running'] == 'No') {
+            if (($row['Slave_SQL_Running'] ?? null) == 'No') {
                 $errors .= "Slave SQL not running on " . SEARCH_DB_HOST . "\n";
                 $errors .= "Error number: {$row['Last_SQL_Errno']}\n";
                 $errors .= "Error message: {$row['Last_SQL_Error']}\n\n";

@@ -62,7 +62,7 @@ defIfNot('CORE_DB_REPORT_SLOW_QUERY_TIME', 1);
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -100,6 +100,22 @@ class core_Db
      * @var string
      */
     public $dbHost;
+
+
+    /** Роля на текущата връзка: primary или replica; на репликата се допуска само четене. */
+    public $dbRole = 'primary';
+
+
+    /** Кой е включил репликата - за доклада при опит за запис към нея. */
+    public $replicaOwner;
+
+
+    /** Използвани SQL връзки в текущия хит, без потребители и пароли. */
+    public static $debugConnections = array();
+
+
+    /** Последователен номер за свързване на началото и края на SQL заявките. */
+    private static $debugQueryId = 0;
 
 
     /**
@@ -170,6 +186,10 @@ class core_Db
      * Номер на mySQL код за грешка при непозната колона в таблица
      */
     const MYSQLI_UNKNOWN_COLUMN = 1054;
+
+
+    /** Максимален размер в байтове на една SQL заявка в общия debug лог. */
+    const DEBUG_QUERY_MAX_LEN = 16384;
     
     
     /**
@@ -301,24 +321,47 @@ class core_Db
             bp($sqlQuery);
         }
         
+        // Записите винаги отиват в основната база, дори някъде да е пропуснато unforceReplica()
+        if ($this->dbRole === 'replica' && !self::isReadOnlySql($sqlQuery)) {
+            $this->blockReplicaWrite($sqlQuery);
+        }
+
+        $queryId = ++self::$debugQueryId;
+        $connection = $this->getDebugConnectionLabel();
+        self::$debugConnections[$connection] = $connection;
+        $timer = 'DB::query() [' . $connection . ']';
+        $started = DEBUG::getExecutionTime();
+        $connected = null;
+        $eTime = null;
+        $dbRes = false;
         DEBUG::startTimer('DB::query()');
-        DEBUG::log("{$sqlQuery}");
+        DEBUG::startTimer($timer);
+        DEBUG::log("SQL #{$queryId} BEGIN [{$connection}] " . self::getDebugQuery($sqlQuery));
 
-        $link = $this->connect();
-        $this->query = $sqlQuery;
-
-        $eTimeBefore = DEBUG::getExecutionTime();
-        $dbRes = $link->query($sqlQuery, $resultMode);
-        $eTimeAfter = DEBUG::getExecutionTime();
-
-        $eTime = $eTimeAfter - $eTimeBefore;
+        $connectStarted = DEBUG::getExecutionTime();
+        try {
+            $link = $this->connect();
+            $connected = DEBUG::getExecutionTime();
+            $this->query = $sqlQuery;
+            $dbRes = $link->query($sqlQuery, $resultMode);
+        } finally {
+            $finished = DEBUG::getExecutionTime();
+            $connectTime = ($connected ?? $finished) - $connectStarted;
+            if ($connected !== null) {
+                $eTime = $finished - $connected;
+            }
+            DEBUG::stopTimer($timer);
+            DEBUG::stopTimer('DB::query()');
+            DEBUG::log(sprintf('SQL #%d END [%s] status=%s connect=%.5fs query=%s total=%.5fs',
+                $queryId, $connection, $dbRes !== false ? 'ok' : 'error', $connectTime,
+                $eTime === null ? 'not-started' : sprintf('%.5fs', $eTime), $finished - $started));
+        }
 
         if (defined('MIN_TIME_FOR_DB_QUERY_LOG') && $eTime >= MIN_TIME_FOR_DB_QUERY_LOG) {
           log_Mysql::add($sqlQuery, $eTime);
         }
 
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
-        DEBUG::stopTimer('DB::query()');
         
         if ($replication && self::$sqlLogEnebled) {
             if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
@@ -328,6 +371,163 @@ class core_Db
         
         return $dbRes;
     }
+
+
+    /**
+     * Връща връзката към основната база, ако е пренасочена към репликата
+     *
+     * @return bool Дали е имало пренасочване
+     */
+    public function restorePrimary()
+    {
+        if (!isset($this->__origDbName, $this->__origDbUser, $this->__origDbHost)) {
+
+            return false;
+        }
+
+        $this->dbName = $this->__origDbName;
+        $this->dbPass = $this->__origDbPass ?? null;
+        $this->dbUser = $this->__origDbUser;
+        $this->dbHost = $this->__origDbHost;
+        unset($this->__origDbHost, $this->__origDbName, $this->__origDbPass, $this->__origDbUser);
+        $this->dbRole = 'primary';
+        $this->replicaOwner = null;
+
+        return true;
+    }
+
+
+    /**
+     * Дали заявката само чете и може да се изпълни на репликата
+     *
+     * @param string $sqlQuery
+     *
+     * @return bool
+     */
+    public static function isReadOnlySql($sqlQuery)
+    {
+        // Разглеждаме целия SQL, без текстовете и обикновените коментари в него.
+        // Изпълнимите коментари и нееднозначните конструкции остават за основната база.
+        $tokens = <<<'REGEX'
+~'(?:[^'\\]++|\\.|'')*'|"(?:[^"\\]++|\\.|"")*"|`(?:[^`]++|``)*`|/\*.*?\*/|\#[^\r\n]*|--(?=[\x00-\x20])[^\r\n]*|['"`]|/\*~s
+REGEX;
+        $unsafe = false;
+        $sql = preg_replace_callback($tokens, function ($m) use (&$unsafe) {
+            $token = $m[0];
+            if ($token[0] === '/' || $token[0] === '#' || $token[0] === '-') {
+                if ($token === '/*' || preg_match('~^/\*(?:!|M!)~i', $token)) {
+                    $unsafe = true;
+                }
+
+                return ' ';
+            }
+            // Обратната наклонена черта е escape символ, освен ако SQL_MODE изрично я изключва
+            if (strlen($token) === 1 || (strpos($token, '\\') !== false && self::noBackslashEscapes()) ||
+                preg_match('/^(?:GET_LOCK|RELEASE_LOCK|RELEASE_ALL_LOCKS)$/i', trim($token, '`"'))) {
+                $unsafe = true;
+            }
+
+            return ' ? ';
+        }, (string) $sqlQuery);
+        if ($unsafe || $sql === null) {
+
+            return false;
+        }
+        // Допускаме един краен разделител, но не и пакет от заявки.
+        $sql = preg_replace('/;\s*$/', '', $sql);
+        $head = ltrim($sql, " \t\n\r\0\x0B(");
+        if (strpos($sql, ';') !== false) {
+
+            return false;
+        }
+        if (!preg_match('/^(SELECT|SHOW|DESCRIBE|DESC|EXPLAIN|WITH|SET)\b/i', $head, $m)) {
+
+            return false;
+        }
+
+        $kind = strtoupper($m[1]);
+        // Заключващите четения, именуваните заключвания и записът във файл са за основната база
+        if (preg_match('/\bFOR\s+(?:UPDATE|SHARE)\b|\bLOCK\s+IN\s+SHARE\s+MODE\b|\bINTO\s+(?:OUTFILE|DUMPFILE)\b|\b(?:GET_LOCK|RELEASE_LOCK|RELEASE_ALL_LOCKS)\s*\(/i', $sql)) {
+
+            return false;
+        }
+
+        if ($kind == 'SET') {
+            // Всяко присвояване може да зададе свой обхват, включително след запетая.
+            return !preg_match('/\b(?:GLOBAL|PERSIST|PERSIST_ONLY|PASSWORD|ROLE|STATEMENT)\b/i', $sql);
+        }
+
+        return !in_array($kind, array('WITH', 'EXPLAIN')) || !preg_match('/\b(?:INSERT|UPDATE|DELETE|REPLACE)\b/i', $sql);
+    }
+
+
+    /**
+     * Дали връзките може да не тълкуват обратната наклонена черта като escape символ
+     *
+     * @return bool
+     */
+    protected static function noBackslashEscapes()
+    {
+        // Без SET при свързване важи режимът на сървъра, който не е известен
+        if (!defined('EF_DB_SET_PARAMS') || EF_DB_SET_PARAMS === false) {
+
+            return true;
+        }
+
+        return defined('EF_SQL_MODE') && stripos(EF_SQL_MODE, 'NO_BACKSLASH_ESCAPES') !== false;
+    }
+
+
+    /**
+     * Връща основната база преди запис, заварен на репликата, и докладва пропуска
+     *
+     * @param string $sqlQuery
+     */
+    protected function blockReplicaWrite($sqlQuery)
+    {
+        static $reported = false;
+
+        $owner = $this->replicaOwner;
+
+        // Без данни за основната база записът не бива да продължи към репликата
+        expect($this->restorePrimary(), 'Запис при реплика без данни за основната база', $owner);
+        DEBUG::log('Replica write redirected to primary; replica selected by ' . ($owner ?? 'unknown'));
+
+        // Веднъж на хит - достатъчно е, за да се намери пропуснатото unforceReplica()
+        if (!$reported) {
+            $reported = true;
+            wp('Запис при активна реплика - изпълнен е в основната база', array('replicaSelectedBy' => $owner, 'sql' => substr((string) $sqlQuery, 0, 200)));
+        }
+    }
+
+
+    /** Сървърът (включително портът) и базата различават и бъдещи реплики. */
+    public function getDebugConnectionLabel()
+    {
+        return $this->dbRole . ' host=' . ($this->dbHost ?? 'unknown') . ' db=' . ($this->dbName ?? 'unknown');
+    }
+
+
+    /** Запазва началото и края на големи заявки, без да променя изпълнявания SQL. */
+    protected static function getDebugQuery($sqlQuery)
+    {
+        $sqlQuery = (string) ($sqlQuery ?? '');
+        $length = strlen($sqlQuery);
+        if ($length <= self::DEBUG_QUERY_MAX_LEN) {
+            return $sqlQuery;
+        }
+        $marker = "\n... [SQL truncated; original {$length} bytes] ...\n";
+        $tailLength = 4096;
+        $headLength = self::DEBUG_QUERY_MAX_LEN - $tailLength - strlen($marker);
+        $head = substr($sqlQuery, 0, $headLength);
+        $tail = substr($sqlQuery, -$tailLength);
+        if (preg_match('//u', $sqlQuery)) {
+            $head = mb_strcut($sqlQuery, 0, $headLength, 'UTF-8');
+            $tail = preg_replace('/^[\x80-\xBF]+/', '', $tail);
+        }
+
+        return $head . $marker . $tail;
+    }
     
     
     /**
@@ -335,6 +535,10 @@ class core_Db
      */
     public function multyQuery($sqlQueries, $silent = false)
     {
+        // Пакетите могат да съдържат записи и промени по схемата: изпълняват се в основната база.
+        if ($this->dbRole === 'replica') {
+            $this->blockReplicaWrite($sqlQueries);
+        }
         $res = array();
         $link = $this->connect();
         $this->query = $sqlQueries;

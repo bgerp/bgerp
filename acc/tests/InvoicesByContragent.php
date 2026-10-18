@@ -19,7 +19,10 @@ class dt {
     public static function now() { return '2026-10-15 12:00:00'; }
     public static function mysql2verbal($date, $mask) { return date($mask, strtotime($date)); }
 }
-class Mode { public static function is($name, $value = null) { return false; } }
+class Mode {
+    public static $plain = false;
+    public static function is($name, $value = null) { return self::$plain && $name == 'text' && $value == 'plain'; }
+}
 class acc_Setup { public static function getEurozoneDate() { return '2026-01-01'; } }
 class acc_Periods {
     public static function getBaseCurrencyCode($date) { return $date < '2026-01-01' ? 'BGN' : 'EUR'; }
@@ -53,7 +56,11 @@ class core_ET {
     public function removePlaces() {}
 }
 class ht {
-    public static function styleNumber($verbal, $amount) { return $verbal; }
+    public static function styleNumber($verbal, $amount, $colorIfPositive = null) {
+        if ($amount == 0) return "<span class='quiet'>{$verbal}</span>";
+        if ($amount < 0) return "<span class='red'>{$verbal}</span>";
+        return isset($colorIfPositive) ? "<span style='color:{$colorIfPositive}'>{$verbal}</span>" : $verbal;
+    }
     public static function createLinkRef($title, $url) { return $title; }
     public static function createHint($title, $hint, $type) { return $title; }
     public static function createElement($tag, $attr, $content) {
@@ -207,6 +214,8 @@ foreach (array('out', 'in') as $direction) {
     check($rec->totalInvoiceValueAll == 100 && $rec->totalInvoicePayoutAll == 40, 'Без суми от отхвърлените фактури: ' . $direction);
     $row = $driver->verbal($rec, $detail);
     check($row->invoiceCurrentSumm == '60.00' && $row->paidAmount == '40.00', 'Показване на частично плащане: ' . $direction);
+    $balanceColor = $direction == 'out' ? "<span style='color:#080'>60.00</span>" : "<span class='red'>60.00</span>";
+    check(strpos($row->invoiceSummary, $balanceColor) !== false, 'Недоплатени продажби в зелено, покупки в червено: ' . $direction);
     check(isset($driver->fields($rec)['invoiceCurrentSumm']), 'Колона за остатък: ' . $direction);
     check($driver->exportRow($rec, $detail)->dueDateStatus == 'Просрочен', 'Просрочен статус при експорт: ' . $direction);
     $data->groupByField = 'contragent';
@@ -244,6 +253,8 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $fields = $driver->fields($rec);
     $rows = array();
     foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
+    check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>250.00</span>") !== false, 'Положителна нетна стойност в зелено: ' . $payment);
+    if ($payment != 'all') check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>200.00</span>") !== false, 'Нетно вземане в зелено: ' . $payment);
     $driver->grouped($recs, $rows, $fields, $data);
     check(count($rows) == 8, 'Разделител, едно име, две отделни и трето нетно обобщение: ' . $payment);
     check(substr_count(implode('', array_map(function ($row) { return $row instanceof core_ET ? $row->getContent() : ''; }, $rows)), 'Acme') == 1, 'Името на фирмата е само веднъж: ' . $payment);
@@ -316,6 +327,7 @@ $detail = end($recs);
 $row = $driver->verbal($rec, $detail);
 check($rec->totalInvoiceValueAll == -50 && $rec->totalInvoicePayoutAll == -70, 'Покупките могат да надвишават продажбите');
 check($rec->totalInvoiceNotPaydAll == 20 && strpos($row->combinedSummary, '-50.00') !== false, 'Отрицателна стойност с положителен нетен остатък');
+check(strpos($row->combinedSummary, "<span class='red'>-50.00</span>") !== false && strpos($row->combinedSummary, "<span style='color:#080'>20.00</span>") !== false, 'Цветът на нетния остатък е независим от общата стойност');
 check($detail->invoiceValue == 150 && $row->paidAmount == '110.00', 'Редовете за покупки запазват собствените суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
@@ -323,6 +335,16 @@ InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 100, 40);
 $rec = reportRec('all', 'overdue');
 $recs = $driver->run($rec, $data);
 check($rec->totalInvoiceValueAll == 0 && $rec->totalInvoiceNotPaydAll == 0, 'Равните суми се компенсират');
+$detail = end($recs);
+$row = $driver->verbal($rec, $detail);
+check(strpos($row->combinedSummary, "<span class='quiet'>0.00</span>") !== false && strpos($row->combinedSummary, 'color:#080') === false && strpos($row->combinedSummary, "class='red'") === false, 'Нулевото нетно салдо остава неутрално');
+InvoiceTestData::reset();
+InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
+InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 200, 50);
+$recs = $driver->run($rec, $data);
+$detail = end($recs);
+$row = $driver->verbal($rec, $detail);
+check(strpos($row->combinedSummary, "<span class='red'>-90.00</span>") !== false, 'Нетно задължение в червено');
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
     InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 120);
@@ -332,7 +354,16 @@ foreach (array('out', 'in') as $direction) {
     $row = $driver->verbal($rec, $detail);
     check($rec->totalInvoiceOverPaidAll == ($direction == 'out' ? -20 : 20), 'Знак на нетното надплащане: ' . $direction);
     check(strpos($row->combinedSummary, 'Надплатено') !== false, 'Нетното надплащане се показва и с отрицателен знак: ' . $direction);
+    $overpaidColor = $direction == 'out' ? "<span class='red'>-20.00</span>" : "<span style='color:#080'>-20.00</span>";
+    check(strpos($row->invoiceSummary, $overpaidColor) !== false, 'Надплатени продажби се дължат, надплатени покупки се получават: ' . $direction);
+    $netColor = $direction == 'out' ? "<span class='red'>-20.00</span>" : "<span style='color:#080'>20.00</span>";
+    check(strpos($row->combinedSummary, $netColor) !== false, 'Цвят на нетното надплащане: ' . $direction);
 }
+
+Mode::$plain = true;
+$row = $driver->verbal($rec, $detail);
+check(strpos($row->invoiceSummary, 'color:') === false && strpos($row->invoiceSummary, "class='red'") === false, 'Без цветно форматиране в обикновен текст');
+Mode::$plain = false;
 
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
