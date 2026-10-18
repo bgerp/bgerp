@@ -334,7 +334,7 @@ class fileman_Get extends core_Manager
         $form = cls::get('core_Form', array('name' => 'Download', 'method' => 'GET'));
         $form->FNC('bucketId', 'int', 'input=none,silent');
         $form->FNC('callback', 'varchar', 'input=none,silent');
-        $form->FNC('validUntil', 'varchar', 'input=none,validUntil');
+        $form->FNC('validUntil', 'varchar', 'input=none,silent');
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         $rec = $form->input('bucketId,callback,validUntil,url', true);
 
