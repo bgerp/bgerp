@@ -4106,7 +4106,8 @@ abstract class deals_Helper
             }
 
             if(isset($manualDiscount) || isset($autoDiscountVerbal)){
-                $res = $Percent->toVerbal($manualDiscount);
+                // Замразеният ред без ръчна отстъпка пази 0 в inputDiscount - показва се само хинтът
+                $res = !empty($manualDiscount) ? $Percent->toVerbal($manualDiscount) : null;
                 if($calcedDiscount != $manualDiscount){
                     $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
                 }
