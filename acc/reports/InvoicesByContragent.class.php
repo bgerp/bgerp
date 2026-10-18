@@ -540,8 +540,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (isset($seen[$contragent])) continue;
                 $seen[$contragent] = true;
                 if (!isset($summaries[$contragent])) {
-                    $summaries[$contragent] = (object)array('contragent' => $contragent);
+                    $summaries[$contragent] = (object)array('contragent' => $contragent, 'invoiceTotals' => array());
                 }
+                $summaries[$contragent]->invoiceTotals[$type] = $dRec->totalInvoiceValue ?? 0;
                 foreach ($summaryFields as $field) {
                     $summaries[$contragent]->{$field} = ($summaries[$contragent]->{$field} ?? 0) + $sign * ($dRec->{$field} ?? 0);
                 }
@@ -1732,20 +1733,24 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Еднакво обобщение за отделния вид и за двата вида фактури.
      */
-    private function getContragentSummary($rec, $dRec, $invoiceType)
+    private function getContragentSummary($rec, $dRec, $invoiceType, $isCombined = false)
     {
-        $caption = '<span class="quiet">' . tr('Общо фактури') . '</span> ' . tr($invoiceType);
+        $caption = '<span class="quiet">' . tr('Общо фактури') . '</span> ' . ($isCombined ? self::getCombinedInvoiceCaption() : tr($invoiceType));
         if (!$this->canSeePriceFields($rec)) return $caption;
 
         $Double = core_Type::getByName('double(decimals=2)');
         $balanceSign = ($dRec->className ?? null) == 'purchase_Invoices' ? -1 : 1;
-        $styleAmount = function ($amount) use ($Double, $balanceSign) {
+        $styleAmount = function ($amount, $sign = null) use ($Double, $balanceSign) {
             $verbal = $Double->toVerbal($amount);
-            $balance = round($amount * $balanceSign, 2);
+            $balance = round($amount * ($sign ?? $balanceSign), 2);
 
             return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $balance, '#080');
         };
-        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0);
+        $value = $styleAmount($dRec->totalInvoiceValue ?? 0);
+        if ($isCombined && isset($dRec->invoiceTotals['out'], $dRec->invoiceTotals['in'])) {
+            $value = $styleAmount($dRec->invoiceTotals['out'], 1) . ' − ' . $styleAmount($dRec->invoiceTotals['in'], -1) . ' = ' . $value;
+        }
+        $caption .= ': ' . $value;
         if (($rec->unpaid ?? 'all') == 'all') {
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
         } else {
@@ -1757,6 +1762,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         return $caption;
+    }
+
+
+    /**
+     * Еднакви означения за посоките в общото и фирменото обобщение.
+     */
+    private static function getCombinedInvoiceCaption()
+    {
+        return Mode::is('text', 'plain') ? tr('ИЗХОДЯЩИ минус ВХОДЯЩИ')
+            : tr("|*<span style='color:#080'>|ИЗХОДЯЩИ|*</span> |минус|* <span class='red'>|ВХОДЯЩИ|*</span>");
     }
 
 
@@ -2109,7 +2124,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (($rec->typeOfInvoice ?? 'out') == 'all') {
             $summary = $dRec->combinedSummary ?? null;
             if (is_object($summary)) {
-                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ');
+                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ', true);
             }
         }
 
@@ -2133,7 +2148,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
         $invoiceType = $data->rec->typeOfInvoice ?? 'out';
         $valueCaption = $invoiceType == 'all'
-            ? tr("|Стойност|* (<span style='color:#080'>|ИЗХОДЯЩИ|*</span> |минус|* <span class='red'>|ВХОДЯЩИ|*</span>)")
+            ? tr('Стойност') . ' (' . self::getCombinedInvoiceCaption() . ')'
             : tr('Стойност');
 
         // Блок „Филтър“ над таблицата: избрани критерии и обобщени суми.
