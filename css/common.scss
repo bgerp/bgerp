@@ -2847,6 +2847,14 @@ div.alphabet.twoRows {
     }	
 }
 
+.document .asset-support {
+    .top-tab-content {
+        margin-top: 20px;
+    }
+    .pages {
+        margin-top: 0;
+    }
+}
 
 .badge {
 	@include border-radius(9px);

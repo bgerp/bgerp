@@ -2579,6 +2579,11 @@ div.alphabet.twoRows {
       .top-tab-content .detail-info .table-title a img {
         vertical-align: middle; }
 
+  .document .asset-support .top-tab-content {
+    margin-top: 20px; }
+  .document .asset-support .pages {
+    margin-top: 0; }
+
 .badge {
   -moz-border-radius: 9px;
   -webkit-border-radius: 9px;
