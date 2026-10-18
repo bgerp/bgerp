@@ -517,6 +517,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $rec->checkDate = $rec->checkDate ?? dt::today(false);
         $data = $data ?? new stdClass();
         $data->groupByField = 'contragent';
+        $data->invoiceTotals = array();
         $groups = $summaries = array();
         $totalFields = array('totalInvoiceValueAll', 'totalInvoicePayoutAll', 'totalInvoiceNotPaydAll', 'totalInvoiceOverPaidAll', 'totalInvoiceOverDueAll');
         $summaryFields = array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue');
@@ -530,6 +531,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $typeRec->typeOfInvoice = $type;
             // Кешът за обединени сделки се освобождава и между двата вида.
             $typeRecs = $this->prepareRecs($typeRec, $data);
+            $data->invoiceTotals[$type] = $typeRec->totalInvoiceValueAll ?? 0;
             $seen = array();
             foreach ($typeRecs as $key => $dRec) {
                 $contragent = $dRec->contragent ?? '';
@@ -1624,8 +1626,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId,tdClass=centered');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
 
-            $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
-            $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
+            $fld->FLD('invoiceDate', 'varchar', 'caption=Дата,tdClass=centered');
+            $fld->FLD('dueDate', 'varchar', 'caption=Краен срок,tdClass=centered');
 
             if ($rec->unpaid == 'all') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
@@ -1697,7 +1699,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         foreach ($rows as $index => $row) {
             $dRec = $recs[$index] ?? null;
             if (!$dRec) {
-                $content = "<td colspan='{$columns}' style='height:3px;padding:0!important;border:0;line-height:0;background:transparent'></td>";
+                $content = "<td colspan='{$columns}' style='height:5px;padding:0!important;border:0;line-height:0;background:transparent'></td>";
                 $newRows['spacer' . $index] = ht::createElement('tr', array('style' => 'background:transparent'), $content);
             } else {
                 $group = $dRec->invoiceGroup ?? $dRec->contragent ?? '';
@@ -1730,28 +1732,28 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Еднакво обобщение за отделния вид и за двата вида фактури.
      */
-    private function getContragentSummary($rec, $dRec, $invoiceType, $isCombined = false)
+    private function getContragentSummary($rec, $dRec, $invoiceType)
     {
         $caption = '<span class="quiet">' . tr('Общо фактури') . '</span> ' . tr($invoiceType);
         if (!$this->canSeePriceFields($rec)) return $caption;
 
         $Double = core_Type::getByName('double(decimals=2)');
         $balanceSign = ($dRec->className ?? null) == 'purchase_Invoices' ? -1 : 1;
-        $styleAmount = function ($amount, $isBalance = false) use ($Double, $balanceSign) {
+        $styleAmount = function ($amount) use ($Double, $balanceSign) {
             $verbal = $Double->toVerbal($amount);
-            $balance = $isBalance ? round($amount * $balanceSign, 2) : $amount;
+            $balance = round($amount * $balanceSign, 2);
 
-            return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $balance, $isBalance ? '#080' : null);
+            return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, $balance, '#080');
         };
-        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0, $isCombined);
+        $caption .= ': ' . $styleAmount($dRec->totalInvoiceValue ?? 0);
         if (($rec->unpaid ?? 'all') == 'all') {
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
         } else {
             $caption .= ' » <span class="quiet">' . tr('Платено') . ': </span>' . $styleAmount($dRec->totalInvoicePayout ?? 0)
-                . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0, true);
+                . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0);
         }
         if (abs($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
-            $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0, true);
+            $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0);
         }
 
         return $caption;
@@ -2107,7 +2109,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (($rec->typeOfInvoice ?? 'out') == 'all') {
             $summary = $dRec->combinedSummary ?? null;
             if (is_object($summary)) {
-                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ', true);
+                $row->combinedSummary = $this->getContragentSummary($rec, $summary, 'ИЗХОДЯЩИ минус ВХОДЯЩИ');
             }
         }
 
@@ -2129,7 +2131,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
-        $valueCaption = ($data->rec->typeOfInvoice ?? 'out') == 'all' ? 'Стойност (ИЗХОДЯЩИ минус ВХОДЯЩИ)' : 'Стойност';
+        $invoiceType = $data->rec->typeOfInvoice ?? 'out';
+        $valueCaption = $invoiceType == 'all'
+            ? tr("|Стойност|* (<span style='color:#080'>|ИЗХОДЯЩИ|*</span> |минус|* <span class='red'>|ВХОДЯЩИ|*</span>)")
+            : tr('Стойност');
 
         // Блок „Филтър“ над таблицата: избрани критерии и обобщени суми.
         $fieldTpl = new core_ET(
@@ -2142,7 +2147,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
-                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|{$valueCaption}|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
+                                        <!--ET_BEGIN totalInvoiceValueAll--><div>[#valueCaption#]: <b>[#totalInvoiceValueAll#]</b></div><!--ET_END totalInvoiceValueAll-->
                                         <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
                                         <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
                                         <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
@@ -2151,7 +2156,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"
             )
         );
-
         if (isset($data->rec->typeOfInvoice)) {
             $inv = array('out' => 'ИЗХОДЯЩИ', 'in' => 'ВХОДЯЩИ', 'all' => 'ВСИЧКИ')[$data->rec->typeOfInvoice] ?? '';
 
@@ -2202,14 +2206,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         //Всички фактури
         if (isset($data->rec->totalInvoiceValueAll)) {
+            $fieldTpl->replace($valueCaption, 'valueCaption');
             if (is_numeric($data->rec->totalInvoiceValueAll)) {
-                $fieldTpl->append(
-                    core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalInvoiceValueAll),
-                    'totalInvoiceValueAll'
-                );
+                $Double = core_Type::getByName('double(decimals=2)');
+                $styleAmount = function ($amount, $sign = 1) use ($Double, $baseCurrency) {
+                    $verbal = $Double->toVerbal($amount) . ' ' . $baseCurrency;
+
+                    return Mode::is('text', 'plain') ? $verbal : ht::styleNumber($verbal, round($amount * $sign, 2), '#080');
+                };
+                $value = $styleAmount($data->rec->totalInvoiceValueAll, $invoiceType == 'in' ? -1 : 1);
+                $invoiceTotals = $data->rec->data->invoiceTotals ?? array();
+                if ($invoiceType == 'all' && isset($invoiceTotals['out'], $invoiceTotals['in'])) {
+                    $value = $styleAmount($invoiceTotals['out']) . ' − ' . $styleAmount($invoiceTotals['in'], -1) . ' = ' . $value;
+                }
+                $fieldTpl->append($value, 'totalInvoiceValueAll');
             } else {
                 $fieldTpl->append(
-                    ($data->rec->totalInvoiceValueAll),
+                    $data->rec->totalInvoiceValueAll . ' ' . $baseCurrency,
                     'totalInvoiceValueAll'
                 );
             }

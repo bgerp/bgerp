@@ -262,6 +262,9 @@ foreach (array('out', 'in') as $direction) {
     check($row->invoiceCurrentSumm == '60.00' && $row->paidAmount == '40.00', 'Показване на частично плащане: ' . $direction);
     $balanceColor = $direction == 'out' ? "<span style='color:#080'>60.00</span>" : "<span class='red'>60.00</span>";
     check(strpos($row->invoiceSummary, $balanceColor) !== false, 'Недоплатени продажби в зелено, покупки в червено: ' . $direction);
+    $valueColor = $direction == 'out' ? "<span style='color:#080'>100.00</span>" : "<span class='red'>100.00</span>";
+    $paidColor = $direction == 'out' ? "<span style='color:#080'>40.00</span>" : "<span class='red'>40.00</span>";
+    check(strpos($row->invoiceSummary, $valueColor) !== false && strpos($row->invoiceSummary, $paidColor) !== false, 'Стойността и платеното следват посоката на фактурите: ' . $direction);
     check(isset($driver->fields($rec)['invoiceCurrentSumm']), 'Колона за остатък: ' . $direction);
     check($driver->exportRow($rec, $detail)->dueDateStatus == 'Просрочен', 'Просрочен статус при експорт: ' . $direction);
     $data->groupByField = 'contragent';
@@ -288,6 +291,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     check(count($recs) == 3, 'Еднакви id на продажба и покупка: ' . $payment);
     check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
     check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
+    check($data->invoiceTotals == array('out' => 300, 'in' => 50), 'Отделни суми за разбивката без повторение: ' . $payment);
     $detail = end($recs);
     check($detail->combinedSummary->totalInvoiceValue == 250, 'Изходящи минус входящи: ' . $payment);
     if ($payment != 'all') {
@@ -327,8 +331,10 @@ InvoiceTestData::reset();
 $rec = reportRec('all', 'overdue');
 $data = new stdClass();
 check($driver->run($rec, $data) === array() && $rec->totalInvoiceValueAll == 0, 'Празни два списъка');
+check($data->invoiceTotals == array('out' => 0, 'in' => 0), 'Нулеви суми за двата празни списъка');
 InvoiceTestData::invoice('in', 1, 'Only purchase', '2026-10-14', 80, 20);
 check(count($driver->run($rec, $data)) == 1 && $rec->totalInvoiceValueAll == -80, 'Само покупките дават отрицателна нетна стойност');
+check($data->invoiceTotals == array('out' => 0, 'in' => 80), 'Разбивка при налични само покупки');
 
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
