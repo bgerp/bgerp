@@ -180,7 +180,7 @@ class sales_Routes extends core_Manager
     private function getDefaultSalesman($rec)
     {
         // Ако имаме локация
-        if ($rec->locationId) {
+        if (!empty($rec->locationId)) {
             $query = $this->getQuery();
             $query->orderBy('#id', 'DESC');
             $query->where("#locationId = {$rec->locationId}");
