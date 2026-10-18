@@ -427,7 +427,7 @@ class frame2_Reports extends embed_Manager
                 $refresh = true;
                 if (isset($rec->id) && empty($form->_cloneForm)) {
                     $refresh = false;
-                    $oldRec = self::fetchRecForInfo($rec->id);
+                    $oldRec = self::fetch($rec->id);
                     
                     // Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
                     $fields = $mvc->getDriverFields($Driver);
@@ -556,7 +556,7 @@ class frame2_Reports extends embed_Manager
      */
     public function getDocumentRow_($id)
     {
-        $rec = $this->fetchRecForInfo($id);
+        $rec = $this->fetch($id);
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
@@ -577,54 +577,6 @@ class frame2_Reports extends embed_Manager
         $row->state = $rec->state;
 
         return $row;
-    }
-
-
-    /**
-     * Резултатът и диагностиката не участват в заглавията, формите и правата.
-     */
-    public static function fetchRecForInfo($id)
-    {
-        if (is_object($id)) {
-            $rec = clone $id;
-        } else {
-            $mvc = cls::get(get_called_class());
-            $fields = $mvc->selectFields("#kind == 'FLD' && !#dbAutoselectExcluded");
-            unset($fields['data'], $fields['log']);
-            $rec = static::fetchRec($id, implode(',', array_keys($fields)));
-        }
-        if (is_object($rec)) {
-            unset($rec->data, $rec->log);
-            // Частичното четене от пълен кеширан запис не изпълнява AfterRead.
-            foreach ($rec->driverRec ?? array() as $name => $value) {
-                if (!property_exists($rec, $name)) {
-                    $rec->{$name} = $value;
-                }
-            }
-        }
-
-        return $rec;
-    }
-
-
-    /**
-     * Частичният запис не се кешира като пълен чрез fetchAndCache().
-     */
-    public function prepareListRecs_(&$data)
-    {
-        if (!empty($data->pager)) {
-            $data->pager->setLimit($data->query);
-        }
-        $fields = $this->selectFields("#kind == 'FLD' && !#dbAutoselectExcluded");
-        unset($fields['data'], $fields['log']);
-        unset($data->query->show['*'], $data->query->show['data'], $data->query->show['log']);
-        $data->query->show(implode(',', array_keys($fields)));
-        $data->recs = $data->recs ?? array();
-        while ($rec = $data->query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-        }
-
-        return $data;
     }
     
     
