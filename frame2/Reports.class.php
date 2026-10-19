@@ -9,7 +9,7 @@
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1644,12 +1644,17 @@ class frame2_Reports extends embed_Manager
      */
     public function getIcon($id)
     {
-        if ($Driver = $this->getDriver($id)) {
-            
-            return $Driver->getIcon($id);
+        Mode::push(self::LIGHT_FETCH_MODE, true);
+        try {
+            if ($Driver = $this->getDriver($id)) {
+
+                return $Driver->getIcon($id);
+            }
+
+            return 'img/16/error-red.png';
+        } finally {
+            Mode::pop(self::LIGHT_FETCH_MODE);
         }
-        
-        return 'img/16/error-red.png';
     }
 
 

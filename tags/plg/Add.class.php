@@ -8,7 +8,7 @@
  * @package   tags
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -120,7 +120,8 @@ class tags_plg_Add extends core_Plugin
             return ;
         }
 
-        $rec = $mvc->fetchRec($id);
+        // За таговете е нужно само да проверим дали документът съществува.
+        $rec = $mvc->fetchRec($id, 'id');
         if (!isset($rowObj)) {
             $rowObj = new stdClass();
         }
