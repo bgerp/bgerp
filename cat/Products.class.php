@@ -5208,13 +5208,13 @@ class cat_Products extends embed_Manager
                 $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
         } else {
-            $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
+            $hint = tr('от Артикула') . '<br>' . tr('(параметър "Режийни разходи")');
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
         if(!isset($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
-            $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
+            $hint = tr('от пакета "cat"') . '<br>' . tr('(обща настройка по подразбиране за системата)');
         }
 
         $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
