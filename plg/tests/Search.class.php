@@ -20,7 +20,7 @@ class plg_tests_Search extends unit_Class
             ut::expectEqual(strpos($probe->buildQuery(), 'MATCH('), false);
             if ($count > 5000) {
                 ut::expectEqual($query->where, $before);
-                ut::expectEqual(substr_count(implode(' ', $query->where), 'MATCH('), 2);
+                ut::expectEqual(substr_count(implode(' ', $query->where), 'MATCH('), 1);
             } else {
                 ut::expectEqual(array_values(array_intersect($before, $query->where)), $before);
                 ut::expectEqual(isset($query->indexes[$query->mvc->dbTableName]['PRIMARY']), true);
@@ -31,6 +31,32 @@ class plg_tests_Search extends unit_Class
                 }
             }
         }
+    }
+
+
+    public static function test_FullTextTermsShareOneMatch()
+    {
+        // A single word keeps the previous predicate unchanged.
+        $query = self::query(array(1));
+        plg_Search::applySearch('hartia', $query);
+        ut::expectEqual($query->where, array("MATCH(#searchKeywords) AGAINST('+hartia*' IN BOOLEAN MODE)"));
+
+        // Required words and phrases are intersected by one index lookup; exclusions stay separate.
+        $query = self::query(array(1));
+        plg_Search::applySearch('hartia "art311 na karton" kraft -cardboard', $query);
+        $fullText = array_values(array_filter($query->where, function ($condition) {
+            return strpos($condition, 'MATCH(') !== false;
+        }));
+        ut::expectEqual(count($fullText), 1);
+        $match = $fullText[0] ?? '';
+
+        // Installation stop words keep their LOCATE predicate, as before.
+        foreach (array('hartia' => '+hartia*', 'art311 na karton' => '+"art311 na karton"', 'kraft' => '+kraft*') as $word => $term) {
+            ut::expectEqual(strpos($match, $term) !== false, !plg_Search::isStopWord($word));
+        }
+        ut::expectEqual(strpos($match, 'cardboard'), false);
+        ut::expectEqual(count(preg_grep("/^LOCATE\('\s?cardboard\s?', #searchKeywords\) = 0$/", $query->where)), 1);
+        ut::expectEqual(isset($query->searchConditions[$match]), true);
     }
 
 

@@ -176,7 +176,10 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                     $ignore[] = $documentItemRec->id;
                 } else {
                     if (is_object($firstDoc) && $firstDoc->fetchField('state') == 'active') {
-                        $ignore[] = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
+                        $firstDocItemRec = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that);
+                        if (!empty($firstDocItemRec->id)) {
+                            $ignore[] = $firstDocItemRec->id;
+                        }
                     }
                 }
             } else {

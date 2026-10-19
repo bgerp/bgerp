@@ -8,7 +8,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -295,7 +295,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             $this->totalAmount += round($combinedRec->totalAmount, 2);
             if ($pRec->canStore == 'yes') {
-                $entries = array_merge($entries, $this->getDeliveryPart($rec, $combinedRec, $posRec));
+                foreach ($this->getDeliveryPart($rec, $combinedRec, $posRec) as $deliveryEntry) {
+                    $entries[] = $deliveryEntry;
+                }
             }
         }
 

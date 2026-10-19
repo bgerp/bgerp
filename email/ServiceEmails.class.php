@@ -8,7 +8,7 @@
  * @package   email
  *
  * @author    Yusein Yuseinov <yyuseinov@gmnail.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -192,7 +192,7 @@ class email_ServiceEmails extends core_Manager
     {
         $lastCreated = dt::addDays(-email_Setup::get('SERVICEMAILS_KEEP_DAYS') / (24 * 3600));
         
-        $delClsArr = array('email_Receipts', 'email_Returned', 'email_Spam', 'email_Unparsable');
+        $delClsArr = array('email_Receipts', 'email_Returned', 'email_Spam', 'email_Unparsable', 'email_ServiceRulesData');
         
         $res = '';
         

@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,6 +74,13 @@ class type_Varchar extends core_Type
      */
     public function fromVerbal_($value)
     {
+        // Масив идва напр. от name[]=... в URL-то
+        if (is_array($value)) {
+            $this->error = 'Очаква се текст';
+            
+            return false;
+        }
+        
         //Ако няма параметър noTrim, тогава тримваме стойността
         if (empty($this->params['noTrim'])) {
             

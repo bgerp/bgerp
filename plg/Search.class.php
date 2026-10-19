@@ -22,7 +22,7 @@ defIfNot('PLG_SEARCH_MAX_KEYWORD_LEN', '10');
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -252,6 +252,7 @@ class plg_Search extends core_Plugin
             $shortWordLen = 4;
 
             $nWordsArr = array();
+            $ftsTerms = array();
 
             $wPattern = '/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu';
 
@@ -399,10 +400,10 @@ class plg_Search extends core_Plugin
                     } else {
                         $cond = '';
                         if ($mode == '+') {
-                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)";
+                            $ftsTerms[] = "+{$w}{$wordEndQ}";
                         }
                         if ($mode == '"') {
-                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)";
+                            $ftsTerms[] = "+\"{$w}\"";
                         }
                         if ($mode == '-') {
                             $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
@@ -413,6 +414,11 @@ class plg_Search extends core_Plugin
                         $query->where($cond);
                     }
                 }
+            }
+
+            // Един общ MATCH - индексът прави сечението на думите, вместо останалите да се проверяват ред по ред
+            if ($ftsTerms) {
+                $query->where("MATCH(#{$field}) AGAINST('" . implode(' ', $ftsTerms) . "' IN BOOLEAN MODE)");
             }
 
             if (!$longWordsCnt && self::isBigTable($query)) {

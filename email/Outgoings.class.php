@@ -1999,7 +1999,7 @@ class email_Outgoings extends core_Master
 
         if ($oDoc && $oDoc->that) {
             $oContrData = $oDoc->getContragentData($oDoc->that);
-            if ($oContrData && $oContrData->_getContragentDataFromLastDoc === false) {
+            if (($oContrData->_getContragentDataFromLastDoc ?? null) === false) {
 
                 return ;
             }

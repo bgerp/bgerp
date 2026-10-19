@@ -1098,13 +1098,16 @@ class doc_Threads extends core_Manager
                 $attr['class'] .= 'priority-' . $dRec->priority;
             }
             
+            // Масив (напр. search[]=...) не е валидно търсене за оцветяване
+            $search = Request::get('search');
+            
             $row->onlyTitle = $row->title = ht::createLink(
                 
                 str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
                     'threadId' => $rec->id,
                     'folderId' => $rec->folderId,
-                    'Q' => Request::get('search') ? Request::get('search') : null),
+                    'Q' => ($search && !is_array($search)) ? $search : null),
                 null,
                 
                 $attr

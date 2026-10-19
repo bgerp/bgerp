@@ -24,12 +24,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
-     * До колко ид-та се изброяват в показател от диагностиката
-     */
-    const MAX_SHOWN_STAT_IDS = 20;
-
-
-    /**
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(

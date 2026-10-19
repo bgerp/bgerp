@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -813,6 +813,7 @@ class cat_Boms extends core_Master
      * @param double $quantity - ид или запис
      * @param datetime $date - ид или запис
      * @param double|null $jobQuantity - к-во от заданието
+     * @param bool $calcPrimeCost - дали да се смята и себестойността, или само материалите
      *
      * @return array $res - Информация за рецептата
      *               ->quantity - к-во
@@ -822,7 +823,7 @@ class cat_Boms extends core_Master
      *               o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
      *               o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
-    public static function getResourceInfo($id, $quantity, $date, $jobQuantity = null)
+    public static function getResourceInfo($id, $quantity, $date, $jobQuantity = null, $calcPrimeCost = true)
     {
         $resources = $materials = array();
         
@@ -832,7 +833,7 @@ class cat_Boms extends core_Master
 
         try{
             $jQuantity = !empty($jobQuantity) ? $jobQuantity : $quantity;
-            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials, $jQuantity);
+            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials, $jQuantity, $calcPrimeCost);
         } catch(core_exception_Expect $e){
             reportException($e);
             $resources['primeCost'] = null;
@@ -1524,10 +1525,11 @@ class cat_Boms extends core_Master
      * @param int      $priceListId   - ид на ценоразпис
      * @param bool     $savePriceCost - дали да кешираме изчислената цена
      * @param array    $materials     - масив със сумираните вложени материали
+     * @param bool     $calcPrice     - дали да се търси цена, или само да се съберат материалите
      *
      * @return float|FALSE $price   - намерената цена или FALSE ако не можем
      */
-    private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = false, &$materials = array(), $collectMaterials = false)
+    private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = false, &$materials = array(), $collectMaterials = false, $calcPrice = true)
     {
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->productId);
@@ -1581,7 +1583,9 @@ class cat_Boms extends core_Master
         $type = static::fetchField($rec->bomId, 'type');
         
         // Ако реда не е етап а е материал или отпадък
-        if ($rec->type != 'stage') {
+        if ($rec->type != 'stage' && $calcPrice === false) {
+            $price = null;
+        } elseif ($rec->type != 'stage') {
             if (in_array($rec->type, array('pop', 'subProduct'))) {
                 
                 // Ако е отпадък или субпродукт търсим твърдо мениджърската себестойност
@@ -1648,7 +1652,7 @@ class cat_Boms extends core_Master
 
                 // Опитваме се да намерим цената му
                 if($rQuantity != cat_BomDetails::CALC_ERROR){
-                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials, $collectMaterials);
+                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials, $collectMaterials, $calcPrice);
                 } else {
                     $dRec->primeCost = null;
 
@@ -1723,10 +1727,11 @@ class cat_Boms extends core_Master
      * @param int   $priceListId - ид на ценоразпис
      * @param array $materials   - какви материали са вложени
      * @param array $jobQuantity   - тираж на заданието
+     * @param bool  $calcPrice     - false само събира материалите, без да търси цени
      *
      * @return FALSE|float - намерената цена или FALSE ако няма
      */
-    public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array(), $jobQuantity = null)
+    public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array(), $jobQuantity = null, $calcPrice = true)
     {
         // Брояча против зацикляне важи само в рамките на едно изчисление от горно ниво
         if (static::$calcPriceDepth == 0) {
@@ -1738,7 +1743,7 @@ class cat_Boms extends core_Master
 
         static::$calcPriceDepth++;
         try {
-            $price = static::calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, $materials, $collectMaterials, $jobQuantity);
+            $price = static::calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, $materials, $collectMaterials, $jobQuantity, $calcPrice);
         } finally {
             static::$calcPriceDepth--;
         }
@@ -1753,10 +1758,11 @@ class cat_Boms extends core_Master
      * @see cat_Boms::getBomPrice()
      *
      * @param bool $collectMaterials - дали да се събират вложените материали
+     * @param bool $calcPrice        - false само събира материалите, без да търси цени
      *
      * @return FALSE|float - намерената цена или FALSE ако няма
      */
-    protected static function calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials, $collectMaterials, $jobQuantity)
+    protected static function calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials, $collectMaterials, $jobQuantity, $calcPrice = true)
     {
         $primeCost1 = $primeCost2 = null;
         
@@ -1778,7 +1784,7 @@ class cat_Boms extends core_Master
         $savePrimeCost = false;
         $bomQuantity = ($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
         
-        if ($minDelta === 0 && $maxDelta === 0 && $priceListId == price_ListRules::PRICE_LIST_COST && $bomQuantity == $quantity) {
+        if ($calcPrice === true && $minDelta === 0 && $maxDelta === 0 && $priceListId == price_ListRules::PRICE_LIST_COST && $bomQuantity == $quantity) {
             $savePrimeCost = true;
         }
         
@@ -1826,7 +1832,7 @@ class cat_Boms extends core_Master
                 self::pushParams($params, $pushParams);
 
                 // Опитваме се да намерим себестойността за основното количество
-                $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials, $collectMaterials);
+                $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials, $collectMaterials, $calcPrice);
 
                 // Ако няма връщаме FALSE
                 if ($rowCost1 === false) {
@@ -1834,7 +1840,7 @@ class cat_Boms extends core_Master
                 }
                 
                 // Ако мин и макс делта са различни изчисляваме редовете за двата тиража
-                if ($minDelta != $maxDelta) {
+                if ($calcPrice === true && $minDelta != $maxDelta) {
                     $params[$rec->productId]['$T'] = $t1;
                     $rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
                     
@@ -1858,7 +1864,7 @@ class cat_Boms extends core_Master
             }
         }
         
-        if ($canCalcPrimeCost === false) {
+        if ($canCalcPrimeCost === false || $calcPrice === false) {
             
             return;
         }
