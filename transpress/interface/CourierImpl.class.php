@@ -8,7 +8,7 @@
  * @package   transpress
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title  Transpress API
  *
@@ -318,6 +318,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
     {
         $res = $error = $errorFields = array();
         $Double = core_Type::getByName('double');
+        $packagingAttr = transpress_Adapter::getPackagingAttributes();
 
         foreach (type_Table::toArray($tableData) as $i => $obj){
             foreach (array('count', 'weight', 'length', 'width', 'height') as $field){
@@ -332,6 +333,17 @@ class transpress_interface_CourierImpl extends core_BaseClass
                 if(!strlen((string)($obj->{$field} ?? ''))){
                     $error[$field] = $msg;
                     $errorFields[$field][$i] = $msg;
+                }
+            }
+
+            // При палетите размерите, които не са фиксирани от опаковката, определят цената и са задължителни
+            $attr = $packagingAttr[$obj->packaging ?? ''] ?? array();
+            if(($attr['standard'] ?? null) == 'true'){
+                foreach (array('length' => 'package_x', 'width' => 'package_y', 'height' => 'package_z') as $field => $attrName){
+                    if(!isset($attr[$attrName]) && !strlen((string)($obj->{$field} ?? ''))){
+                        $error['dimensions'] = 'Опаковката изисква размерите, които не са фиксирани от нея (за европалет - височина)';
+                        $errorFields[$field][$i] = 'Задължително за опаковката';
+                    }
                 }
             }
         }

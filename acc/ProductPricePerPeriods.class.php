@@ -9,13 +9,19 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class acc_ProductPricePerPeriods extends core_Manager
 {
+    /**
+     * Колко исторически реда най-много чете getPricesToDate() преди групирането
+     */
+    const PRICES_TO_DATE_ROW_LIMIT = 1000000;
+
+
     /**
      * Заглавие на мениджъра
      */
@@ -415,7 +421,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         }
 
         $toDate = $toDate ?? dt::getLastDayOfMonth();
-        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `otherItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} ) ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.otherItemId, temp.productItemId";
+        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `otherItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} ) ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT " . self::PRICES_TO_DATE_ROW_LIMIT . ") as temp GROUP BY temp.otherItemId, temp.productItemId";
         $dbTableRes = $me->db->query($query1);
 
         $res = array();

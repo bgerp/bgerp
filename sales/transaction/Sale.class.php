@@ -638,13 +638,15 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
         core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
 
-        foreach ($bomDataCombined as $bomData){
+        $bomInfos = $materialIds = array();
+        foreach ($bomDataCombined as $bomId => $bomData){
 
             // И тя има ресурси, произвежда се по нея
             // Себестойността на рецептата не е нужна - сумите се смятат от материалите
             $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior, null, false);
             if(is_array($bomInfo['resources'])){
                 foreach ($bomInfo['resources'] as &$resRec){
+                    $materialIds[$resRec->productId] = $resRec->productId;
                     $resRec->quantity = $resRec->propQuantity;
                     $resRec->storeId = $bomData->storeId;
                     $resRec->fromAccId = '61102';
@@ -665,6 +667,16 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     }
                     core_Debug::stopTimer('CALC_BATCH_DATA');
                 }
+                unset($resRec);
+                $bomInfos[$bomId] = $bomInfo;
+            }
+        }
+
+        // Един и същ материал участва в много рецепти - средните му цени се зареждат наведнъж
+        cat_Products::pushWacPriceCache($materialIds, $rec->valior);
+        try {
+            foreach ($bomInfos as $bomId => $bomInfo){
+                $bomData = $bomDataCombined[$bomId];
 
                 // Извличане на записите за производството
                 $isComplete = ($bomData->rec->isComplete == 'auto') ? cat_Setup::get('DEFAULT_BOM_IS_COMPLETE') : $bomData->rec->isComplete;
@@ -675,6 +687,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     $entries = array_merge($entries, $prodArr);
                 }
             }
+        } finally {
+            cat_Products::popWacPriceCache();
         }
 
         core_Debug::stopTimer('FAST_PRODUCTION_BOM_DATA');
