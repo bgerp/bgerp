@@ -713,6 +713,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Диагностика: пропуснатите фактури по причини и общото време за плащанията
         $startedOn = microtime(true);
         $skipped = $closedDealThreads = array();
+
+        // При „Всички“ двата вида се логват отделно, без показатели от предишния
+        if (is_object($data)) {
+            $data->reportStatRows = array();
+        }
         $paymentsSeconds = 0;
 
         $sRecs = $sRecsAll = $pRecs = $pRecsAll = array();
@@ -857,7 +862,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $salesQuery->where("#closedDocuments != '' OR #contoActions LIKE '%pay%'");
             $salesQuery->show('id,threadId,folderId,closedDocuments,contoActions');
             $salesQuery->selectOnReplica();
+            $dealsCount = 0;
             while ($sale = $salesQuery->fetch()) {
+                $dealsCount++;
                 foreach (keylist::toArray($sale->closedDocuments ?? '') as $id) {
                     $salesUN[$id] = true;
                     $salesCombiners[$sale->id] = $sale;
@@ -866,7 +873,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastSales[$sale->id ?? 0] = true;
                 }
             }
-            self::addReportStat($data, 'deals', microtime(true) - $timer, $salesQuery->numRec());
+            self::addReportStat($data, 'deals', microtime(true) - $timer, $dealsCount);
             self::addReportStat($data, 'unitedDeals', 0, countR($salesUN));
             self::addReportStat($data, 'fastDeals', 0, countR($fastSales));
 
@@ -1305,7 +1312,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $purchasesUN = $purchaseCombiners = array();
             $fastPur = array();
 
+            $dealsCount = 0;
             while ($purchase = $purchasesQuery->fetch()) {
+                $dealsCount++;
                 foreach ((keylist::toArray($purchase->closedDocuments ?? '')) as $v) {
                     $purchasesUN[$v] = ($v);
                     $purchaseCombiners[$purchase->id] = $purchase;
@@ -1317,7 +1326,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastPur[$purchase->id ?? 0] = true;
                 }
             }
-            self::addReportStat($data, 'deals', microtime(true) - $timer, $purchasesQuery->numRec());
+            self::addReportStat($data, 'deals', microtime(true) - $timer, $dealsCount);
             self::addReportStat($data, 'unitedDeals', 0, countR($purchasesUN));
             self::addReportStat($data, 'fastDeals', 0, countR($fastPur));
 
