@@ -713,7 +713,7 @@ class cat_Boms extends core_Master
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
                         $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span class='blueText'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
+                        $row->expenses = ht::createHint("<span class='blueText'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false, array('isHtml' => true));
                     } else {
                         $row->expenses = ht::createHint("<span class='blueText'>n/a</span>", "Не може да се определи автоматично|*!");
                     }

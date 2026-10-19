@@ -510,19 +510,25 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $byStores[$dRec->storeId][] = $dRec;
         }
 
-        // Кои материали ще се произвеждат преди да се вложат
-        foreach ($byStores as $storeId => $dRecs){
-            $clone = clone $rec;
-            $clone->storeId = $storeId;
-            $clone->details = $dRecs;
-            $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'pos_Reports', 'storeId', $this->instantProducts, 'value');
+        // Средните цени на материалите се помнят между складовете на отчета
+        cat_Products::pushWacPriceCache(array(), $rec->valior);
+        try {
+            // Кои материали ще се произвеждат преди да се вложат
+            foreach ($byStores as $storeId => $dRecs){
+                $clone = clone $rec;
+                $clone->storeId = $storeId;
+                $clone->details = $dRecs;
+                $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'pos_Reports', 'storeId', $this->instantProducts, 'value');
 
-            if (countR($entriesProduction)) {
-                foreach ($entriesProduction as $pRec){
-                    $this->totalAmount += $pRec['amount'] ?? 0;
+                if (countR($entriesProduction)) {
+                    foreach ($entriesProduction as $pRec){
+                        $this->totalAmount += $pRec['amount'] ?? 0;
+                    }
+                    $entries = array_merge($entries, $entriesProduction);
                 }
-                $entries = array_merge($entries, $entriesProduction);
             }
+        } finally {
+            cat_Products::popWacPriceCache();
         }
 
         return $entries;

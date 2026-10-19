@@ -1924,10 +1924,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $orderBy = $changePrimeCost;
             }
 
-            if ($rec->orderBy == 'quantity' && $rec->grouping == 'yes') {
-               // $orderBy = 'group';
-            }
-
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
         self::addReportStat($data, 'sort', microtime(true) - $timer, countR($recs));
@@ -2539,9 +2535,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $dRec->changeDeltaLastYear);
                 }
             }
-
-            return $row;
         }
+
+        return $row;
     }
 
 
@@ -2666,7 +2662,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
 
-                $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
+            $fieldTpl->append('<b>' . trim($dealersVerb, ', ') . '</b>', 'dealers');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
         }
@@ -2722,7 +2718,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
         }
-        $marker = 0;
+        $marker = 0;$groupVerb = '';
         if (isset($data->rec->group)) {
             $groups = type_Keylist::toArray($data->rec->group);
 
@@ -3032,10 +3028,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $foldersInGroups = array();
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            /** @var core_Manager $Contragent */
+            $Contragent = cls::get($clsName);
             /** @var core_Query $q */
-            $q = $clsName::getQuery();
+            $q = $Contragent->getQuery();
 
-            plg_ExpandInput::applyExtendedInputSearch($clsName, $q, $rec->crmGroup);
+            plg_ExpandInput::applyExtendedInputSearch($clsName, $q, $rec->crmGroup ?? null);
 
             $q->where('#folderId IS NOT NULL');
 
@@ -3114,6 +3112,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public function canSendNotificationOnRefresh($rec)
     {
-        //   return true;
+        return false;
     }
 }
