@@ -541,6 +541,37 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Изключва още в заявката фактурите от приключени, необединени сделки
+     *
+     * Същото условие се проверява и после по фактура; тук само спестява четенето им.
+     *
+     * @param core_Query $query
+     * @param string $dealClass
+     * @param string $checkDate
+     * @param array $united - [id на обединена сделка => ...]
+     */
+    private static function excludeClosedDealThreads($query, $dealClass, $checkDate, $united)
+    {
+        $Deal = cls::get($dealClass);
+        $col = function ($field) {
+            return '`' . str::phpToMysqlName($field) . '`';
+        };
+
+        // Като PHP сравнението на низове: приключената в деня на дата без час не се изключва
+        $op = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $checkDate) ? '<' : '<=';
+
+        // NULL в NOT IN би изключил всичко, затова нишката е задължителна
+        $cond = "SELECT {$col('threadId')} FROM `{$Deal->dbTableName}` WHERE {$col('threadId')} IS NOT NULL"
+            . " AND {$col('state')} = 'closed' AND {$col('closedOn')} {$op} '" . $Deal->db->escape($checkDate) . "'";
+        $unitedIds = array_filter(array_map('intval', array_keys($united)));
+        if (countR($unitedIds)) {
+            $cond .= " AND {$col('id')} NOT IN (" . implode(',', $unitedIds) . ')';
+        }
+        $query->where("#threadId NOT IN ({$cond})");
+    }
+
+
+    /**
      * Допълва фактурите от обединени нишки и известията с общи заявки.
      *
      * @param class-string<core_Mvc> $className
@@ -888,6 +919,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     unset($fields['type']);
                 }
                 $invQuery->show($fields);
+                if ($rec->unpaid != 'all' && $InvDoc == sales_Invoices::class) {
+                    self::excludeClosedDealThreads($invQuery, sales_Sales::class, $checkDate, $salesUN);
+                }
 
                 //Изваждаме нишките за проверка  са избрани НЕПЛАТЕНИ
                 //Ако са избрани ВСИЧКИ записваме масив $allInvoices със всички фактури
@@ -1289,6 +1323,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $timer = microtime(true);
             $fetched = 0;
+            if ($rec->unpaid != 'all') {
+                self::excludeClosedDealThreads($pQuery, purchase_Purchases::class, $checkDate, $purchasesUN);
+            }
             self::selectReportQuery($pQuery, 5);
             $invoices = $pQuery->fetchAll();
             self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');
