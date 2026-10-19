@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,7 +161,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
             
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (!empty($w) && !is_null($cWeight))) {
+            if (!is_null($cWeight) && (empty($rec->{$mvc->quantityFld}) || !empty($w))) {
                 $cWeight += $w;
             } else {
                 $cWeight = null;
@@ -181,7 +181,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (isset($w1) && !is_null($cNetWeight))) {
+            if (!is_null($cNetWeight) && (empty($rec->{$mvc->quantityFld}) || isset($w1))) {
                 $cNetWeight += $w1;
             } else {
                 $cNetWeight = null;
@@ -201,7 +201,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
             
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (!empty($v) && !is_null($cVolume))) {
+            if (!is_null($cVolume) && (empty($rec->{$mvc->quantityFld}) || !empty($v))) {
                 $cVolume += $v;
             } else {
                 $cVolume = null;
@@ -219,7 +219,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (isset($tW) && !is_null($cTareWeight))) {
+            if (!is_null($cTareWeight) && (empty($rec->{$mvc->quantityFld}) || isset($tW))) {
                 $cTareWeight += $tW;
             } else {
                 $cTareWeight = null;
