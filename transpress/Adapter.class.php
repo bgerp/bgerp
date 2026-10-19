@@ -8,7 +8,7 @@
  * @package   transpress
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -423,6 +423,22 @@ class transpress_Adapter extends core_BaseClass
         }
 
         return $options;
+    }
+
+
+    /**
+     * Атрибутите на опаковките (standard, package_x, package_y, package_z)
+     *
+     * @return array - код на опаковката => атрибути
+     */
+    public static function getPackagingAttributes()
+    {
+        $res = array();
+        foreach (self::getCatalog('packaging.do') as $item){
+            $res[(string)$item['value']] = (array)($item['attributes'] ?? array());
+        }
+
+        return $res;
     }
 
 
