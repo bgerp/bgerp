@@ -2226,6 +2226,9 @@ abstract class deals_Helper
             $iQuery->in('threadId', $threads);
             $iQuery->where("#state = 'active'");
             $iQuery->orderBy('date,number,type,dealValue', 'ASC');
+
+            // Само полетата за calcInvoicePayments() - без ключовите думи и останалите колони
+            $iQuery->show('containerId,threadId,date,dueDate,dealValue,discountAmount,vatAmount,rate,currencyId,type,originId');
             if (isset($valior)) {
                 $iQuery->where("#date <= '{$valior}'");
             }

@@ -2838,7 +2838,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (!empty($rec->id)) {
-            $oRec = $mvc->fetchRecForInfo($rec->id);
+            $oRec = $mvc->fetch($rec->id);
             
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
@@ -4007,6 +4007,30 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Връща контейнера на документа - записът може да е непълен или още незаписан
+     *
+     * @param core_Mvc     $mvc
+     * @param object|false $rec
+     *
+     * @return int|null
+     */
+    private static function getLinkedObjContainerId($mvc, $rec)
+    {
+        if (!is_object($rec)) {
+            
+            return null;
+        }
+        
+        $cId = $rec->containerId ?? null;
+        if (!$cId && !empty($rec->id)) {
+            $cId = $mvc->fetchField($rec->id, 'containerId');
+        }
+        
+        return $cId;
+    }
+    
+    
+    /**
      * Метод по подразбиране за намиране на прикачените файлове в документ
      *
      * @param object $mvc -
@@ -4028,7 +4052,13 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        $filesArr = self::getLinkedObj($rec->containerId, 'files');
+        $cId = self::getLinkedObjContainerId($mvc, $rec);
+        if (!$cId) {
+            
+            return ;
+        }
+        
+        $filesArr = self::getLinkedObj($cId, 'files');
         
         if (is_array($filesArr)) {
             foreach ($filesArr as $fileHndArr) {
@@ -4065,7 +4095,13 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        $imgArr = self::getLinkedObj($rec->containerId, 'images');
+        $cId = self::getLinkedObjContainerId($mvc, $rec);
+        if (!$cId) {
+            
+            return ;
+        }
+        
+        $imgArr = self::getLinkedObj($cId, 'images');
         
         if (is_array($imgArr)) {
             foreach ($imgArr as $fileNameArr) {
@@ -4107,7 +4143,13 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
-        $docsArr = self::getLinkedObj($rec->containerId, 'docs', $userId);
+        $cId = self::getLinkedObjContainerId($mvc, $rec);
+        if (!$cId) {
+            
+            return ;
+        }
+        
+        $docsArr = self::getLinkedObj($cId, 'docs', $userId);
         
         if (is_array($docsArr)) {
             foreach ($docsArr as $docArr) {

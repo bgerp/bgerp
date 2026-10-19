@@ -74,6 +74,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         'purchase_Invoices' => 'Входящи фактури',
         'noFirstDocument' => 'Пропуснати: без първи документ в нишката',
         'closedDeal' => 'Пропуснати: приключена сделка',
+        'closedDealThreads' => 'Нишки на пропуснатите приключени сделки',
+        'sales_InvoicesFetch' => 'Четене на изходящите фактури',
+        'sales_ProformasFetch' => 'Четене на проформите',
+        'purchase_InvoicesFetch' => 'Четене на входящите фактури',
         'threads' => 'Нишки за остатъци',
         'payments' => 'Разпределени плащания по нишки',
         'repeated' => 'Повторени в друга нишка',
@@ -346,6 +350,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function primeCombinedThreads($threadIds, $firstDocuments, $combiners, $dealClass = 'sales_Sales')
     {
+        self::primeOtherDealThreads($threadIds, $firstDocuments, $dealClass);
+
         $dealIds = array();
         foreach ($threadIds as $threadId) {
             $document = $firstDocuments[$threadId] ?? null;
@@ -355,21 +361,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         if (!countR($dealIds)) return array();
 
-        // Като LOCATE в getCombinedThreads() взима обединяващата с най-малко id
-        ksort($combiners);
-        $combinerOf = array();
-        foreach ($combiners as $cRec) {
-            foreach (keylist::toArray($cRec->closedDocuments ?? '') as $closedId) {
-                $combinerOf[$closedId][] = $cRec;
-            }
-        }
-
         $deals = $fastThreads = array();
         foreach (array_chunk(array_unique($dealIds), 1000) as $chunk) {
             /** @var core_Query $dQuery */
             $dQuery = $dealClass::getQuery();
             $dQuery->in('id', $chunk);
-            $dQuery->show('id,state,folderId,threadId,contoActions');
+            $dQuery->show('id,state,folderId,threadId,closedDocuments,contoActions');
             $dQuery->selectOnReplica();
             while ($dRec = $dQuery->fetch()) {
                 $deals[$dRec->id] = $dRec;
@@ -379,65 +376,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
-        // Основата на групата е обединяващата сделка, ако приключената е обединена с нея
-        $bases = $baseOfThread = $dealThreads = array();
-        foreach ($dealIds as $threadId => $dealId) {
-            $dRec = $deals[$dealId] ?? null;
-            if (!$dRec) continue;
+        $baseOfThread = array();
+        $groups = self::buildDealGroups($dealClass, $dealIds, $deals, $combiners, $baseOfThread);
 
-            $base = $dRec;
-            $baseThread = $threadId;
-            if ($dRec->state == 'closed') {
-                foreach ($combinerOf[$dealId] ?? array() as $cRec) {
-                    if ($cRec->folderId != $dRec->folderId) continue;
-                    if (!empty($cRec->threadId)) {
-                        $base = $cRec;
-                        $baseThread = $cRec->threadId;
-                    }
-                    break;
-                }
-            }
-            $bases[$baseThread] = $combiners[$base->id]->closedDocuments ?? '';
-            $baseOfThread[$threadId] = $baseThread;
-            $dealThreads[$dRec->id] = $dRec->threadId;
-        }
-        foreach ($combiners as $cRec) {
-            $dealThreads[$cRec->id] = $cRec->threadId;
-        }
-
-        // Нишките на обединените сделки, които още не са заредени
-        $missing = array();
-        foreach ($bases as $closedDocuments) {
-            foreach (keylist::toArray($closedDocuments) as $closedId) {
-                if (!array_key_exists($closedId, $dealThreads)) {
-                    $missing[$closedId] = $closedId;
-                }
-            }
-        }
-        foreach (array_chunk($missing, 1000) as $chunk) {
-            /** @var core_Query $dQuery */
-            $dQuery = $dealClass::getQuery();
-            $dQuery->in('id', $chunk);
-            $dQuery->show('id,threadId');
-            $dQuery->selectOnReplica();
-            while ($dRec = $dQuery->fetch()) {
-                $dealThreads[$dRec->id] = $dRec->threadId;
-            }
-        }
-
-        $groupsByBase = array();
-        foreach ($bases as $baseThread => $closedDocuments) {
-            $groupsByBase[$baseThread] = array($baseThread => $baseThread);
-            foreach (keylist::toArray($closedDocuments) as $closedId) {
-                if (!empty($dealThreads[$closedId])) {
-                    $groupsByBase[$baseThread][$dealThreads[$closedId]] = $dealThreads[$closedId];
-                }
-            }
-        }
         // Една група се изгражда веднъж и се споделя между нейните нишки.
-        $groups = $representatives = $paymentThreads = array();
+        $representatives = $paymentThreads = array();
         foreach ($baseOfThread as $threadId => $baseThread) {
-            $groups[$threadId] = $groupsByBase[$baseThread];
             $representatives[$baseThread] = $representatives[$baseThread] ?? $threadId;
             // Бърза сделка занулява остатъците; небързата запазва общия резултат.
             if (isset($fastThreads[$representatives[$baseThread]]) && !isset($fastThreads[$threadId])) {
@@ -450,6 +394,149 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         deals_Helper::setCombinedThreads($groups);
 
         return $paymentThreads;
+    }
+
+
+    /**
+     * Групите на deals_Helper::getCombinedThreads() за нишките, чийто първи документ не е $dealClass
+     *
+     * Иначе getCombinedThreads() ги сглобява поотделно с по четири заявки на нишка.
+     *
+     * @param array $threadIds
+     * @param array $firstDocuments - [threadId => (className, that)]
+     * @param string $dealClass
+     */
+    private static function primeOtherDealThreads($threadIds, $firstDocuments, $dealClass)
+    {
+        $groups = $dealIds = array();
+        foreach ($threadIds as $threadId) {
+            $document = $firstDocuments[$threadId] ?? null;
+            if (!is_object($document) || $document->className == $dealClass) continue;
+
+            if (cls::load($document->className, true) && is_a($document->className, 'deals_DealBase', true)) {
+                $dealIds[$document->className][$threadId] = $document->that;
+            } else {
+                $groups[$threadId] = array();
+            }
+        }
+
+        foreach ($dealIds as $className => $ids) {
+            $deals = $closedFolders = array();
+            foreach (array_chunk(array_unique($ids), 1000) as $chunk) {
+                /** @var core_Query $dQuery */
+                $dQuery = $className::getQuery();
+                $dQuery->in('id', $chunk);
+                $dQuery->show('id,state,folderId,threadId,closedDocuments');
+                $dQuery->selectOnReplica();
+                while ($dRec = $dQuery->fetch()) {
+                    $deals[$dRec->id] = $dRec;
+                    if ($dRec->state == 'closed') {
+                        $closedFolders[$dRec->folderId] = $dRec->folderId;
+                    }
+                }
+            }
+
+            // Обединяващите сделки трябват само в папките на приключените
+            $combiners = array();
+            foreach (array_chunk($closedFolders, 1000) as $chunk) {
+                /** @var core_Query $cQuery */
+                $cQuery = $className::getQuery();
+                $cQuery->in('folderId', $chunk);
+                $cQuery->where("#closedDocuments IS NOT NULL AND #closedDocuments != ''");
+                $cQuery->show('id,folderId,threadId,closedDocuments');
+                $cQuery->selectOnReplica();
+                while ($cRec = $cQuery->fetch()) {
+                    $combiners[$cRec->id] = $cRec;
+                }
+            }
+
+            $baseOfThread = array();
+            $groups = self::buildDealGroups($className, $ids, $deals, $combiners, $baseOfThread) + $groups;
+        }
+
+        deals_Helper::setCombinedThreads($groups);
+    }
+
+
+    /**
+     * Групите на getCombinedThreads() за сделките от един клас
+     *
+     * @param string $className
+     * @param array $dealIds - [threadId => id на сделката]
+     * @param array $deals - [id => rec(id,state,folderId,threadId,closedDocuments)]
+     * @param array $combiners - обединяващите сделки [id => rec(id,folderId,threadId,closedDocuments)]
+     * @param array $baseOfThread - [threadId => нишката на основата на групата]
+     * @return array [threadId => [threadId => threadId]]
+     */
+    private static function buildDealGroups($className, $dealIds, $deals, $combiners, &$baseOfThread)
+    {
+        // Като LOCATE в getCombinedThreads(): обединяващата в същата папка, с най-малко id
+        ksort($combiners);
+        $combinerOf = array();
+        $dealThreads = array();
+        foreach ($combiners as $cRec) {
+            $dealThreads[$cRec->id] = $cRec->threadId;
+            foreach (keylist::toArray($cRec->closedDocuments ?? '') as $closedId) {
+                if (!isset($combinerOf[$closedId][$cRec->folderId])) {
+                    $combinerOf[$closedId][$cRec->folderId] = $cRec;
+                }
+            }
+        }
+
+        // Основата на групата е обединяващата сделка, ако приключената е обединена с нея
+        $closedOfBase = array();
+        foreach ($dealIds as $threadId => $dealId) {
+            $dRec = $deals[$dealId] ?? null;
+            if (!$dRec) continue;
+
+            $base = $dRec;
+            $baseThread = $threadId;
+            $cRec = ($dRec->state == 'closed') ? ($combinerOf[$dealId][$dRec->folderId] ?? null) : null;
+            if (is_object($cRec) && !empty($cRec->threadId)) {
+                $base = $cRec;
+                $baseThread = $cRec->threadId;
+            }
+            $closedOfBase[$baseThread] = keylist::toArray($base->closedDocuments ?? '');
+            $baseOfThread[$threadId] = $baseThread;
+            $dealThreads[$dRec->id] = $dRec->threadId;
+        }
+
+        // Нишките на обединените сделки, които още не са заредени
+        $missing = array();
+        foreach ($closedOfBase as $closedIds) {
+            foreach ($closedIds as $closedId) {
+                if (!array_key_exists($closedId, $dealThreads)) {
+                    $missing[$closedId] = $closedId;
+                }
+            }
+        }
+        foreach (array_chunk($missing, 1000) as $chunk) {
+            /** @var core_Query $mQuery */
+            $mQuery = $className::getQuery();
+            $mQuery->in('id', $chunk);
+            $mQuery->show('id,threadId');
+            $mQuery->selectOnReplica();
+            while ($mRec = $mQuery->fetch()) {
+                $dealThreads[$mRec->id] = $mRec->threadId;
+            }
+        }
+
+        $groupsByBase = array();
+        foreach ($closedOfBase as $baseThread => $closedIds) {
+            $groupsByBase[$baseThread] = array($baseThread => $baseThread);
+            foreach ($closedIds as $closedId) {
+                if (!empty($dealThreads[$closedId])) {
+                    $groupsByBase[$baseThread][$dealThreads[$closedId]] = $dealThreads[$closedId];
+                }
+            }
+        }
+
+        $groups = array();
+        foreach ($baseOfThread as $threadId => $baseThread) {
+            $groups[$threadId] = $groupsByBase[$baseThread];
+        }
+
+        return $groups;
     }
 
 
@@ -594,7 +681,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         // Диагностика: пропуснатите фактури по причини и общото време за плащанията
         $startedOn = microtime(true);
-        $skipped = array();
+        $skipped = $closedDealThreads = array();
         $paymentsSeconds = 0;
 
         $sRecs = $sRecsAll = $pRecs = $pRecsAll = array();
@@ -649,6 +736,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $invoicePaymentsByThread[$threadId] = $payments[$paymentThreads[$threadId] ?? $threadId] ?? array();
             }
             $paymentsSeconds += microtime(true) - $timer;
+        };
+        // Фактурите от плащанията на всички нишки с общи заявки, вместо по една заявка на нишка
+        $preloadInvoiceRecords = function ($className, $threadIds) use ($getPayments, &$invoiceRecords, &$invoiceFields) {
+            $payments = array();
+            foreach ($threadIds as $threadId) {
+                $threadPayments = $getPayments($threadId);
+                if (is_array($threadPayments)) {
+                    $payments += $threadPayments;
+                }
+            }
+            self::loadInvoiceRecords($className, $payments, $invoiceRecords, $invoiceFields);
         };
         $getFirstDocument = function ($threadId) use (&$firstDocuments) {
             if (!array_key_exists($threadId, $firstDocuments)) {
@@ -800,6 +898,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 self::selectReportQuery($invQuery, 10);
                 $invoices = $invQuery->fetchAll();
                 self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');
+                self::addReportStat($data, "{$InvDoc}Fetch", microtime(true) - $timer, countR($invoices));
                 if ($rec->unpaid == 'all' && $InvDoc == sales_Invoices::class) {
                     $invoiceThreads = arr::extractValuesFromArray($invoices, 'threadId');
                     $paymentThreads = self::primeCombinedThreads($invoiceThreads, $firstDocuments, $salesCombiners);
@@ -836,6 +935,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             ($dealRec->closedOn ?? null) <= $checkDate &&
                             !$unitedCheck) {
                             $skipped['closedDeal'][] = $salesInvoice->number;
+                            $closedDealThreads[$salesInvoice->threadId] = $salesInvoice->threadId;
                             continue;
                         }
                     }
@@ -971,6 +1071,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 self::addReportStat($data, 'threads', 0, countR($threadsId));
                 $paymentThreads = self::primeCombinedThreads($threadsId, $firstDocuments, $salesCombiners);
                 $preloadPayments($threadsId, $paymentThreads);
+                $preloadInvoiceRecords(sales_Invoices::class, array_unique($paymentThreads + $threadsId));
 
                 $checkedSInvoices = array();
 
@@ -1191,6 +1292,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             self::selectReportQuery($pQuery, 5);
             $invoices = $pQuery->fetchAll();
             self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');
+            self::addReportStat($data, 'purchase_InvoicesFetch', microtime(true) - $timer, countR($invoices));
             if ($rec->unpaid == 'all') {
                 $invoiceThreads = arr::extractValuesFromArray($invoices, 'threadId');
                 $paymentThreads = self::primeCombinedThreads($invoiceThreads, $firstDocuments, $purchaseCombiners, purchase_Purchases::class);
@@ -1298,6 +1400,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         ($dealRec->closedOn ?? null) <= $checkDate &&
                         !$purUnitedCheck) {
                         $skipped['closedDeal'][] = $purchaseInvoices->number;
+                        $closedDealThreads[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
                         continue;
                     }
                 }
@@ -1316,6 +1419,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 self::addReportStat($data, 'threads', 0, countR($pThreadsId));
                 $paymentThreads = self::primeCombinedThreads($pThreadsId, $firstDocuments, $purchaseCombiners, purchase_Purchases::class);
                 $preloadPayments($pThreadsId, $paymentThreads);
+                $preloadInvoiceRecords(purchase_Invoices::class, array_unique($paymentThreads + $pThreadsId));
                 $checkedPInvoices = array();
 
                 foreach (array_unique($paymentThreads + $pThreadsId) as $pThread) {
@@ -1465,6 +1569,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Фактура от обединена сделка се среща във всяка нейна нишка
             $numbers = array_values(array_unique($numbers));
             self::addReportStat($data, $reason, 0, countR($numbers), $numbers);
+        }
+        // Колко нишки би изключил филтър по приключени сделки още в заявката за фактурите
+        if (countR($closedDealThreads)) {
+            self::addReportStat($data, 'closedDealThreads', 0, countR($closedDealThreads));
         }
 
         if ($rec->unpaid == 'all') {
