@@ -307,15 +307,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             $selectedTab = $tabs->getSelected();
             $defaultTab = ($this->chartTabDefault === true) ?"chart{$rec->containerId}":$tabs->getFirstTab();
-            
             $data->selectedTab = ($selectedTab) ? $selectedTab : $defaultTab ;
             
             // Ако има избран детайл от горния таб рендираме го
             if($data->selectedTab == "chart{$rec->containerId}"){
-                $dtpl = $this->renderChart($rec, $data);
+                $dTpl = $this->renderChart($rec, $data);
                 $tabCaption = $data->chartTabCaption;
             } else {
-                $dtpl = $this->renderTable($rec, $data);
+                $dTpl = $this->renderTable($rec, $data);
             }
             
             if(!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))){
@@ -325,10 +324,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $tpl->replace("<div>{$tabCaption}</div>", 'TABS');
             }
         } else {
-            $dtpl = $this->renderTable($rec, $data);
+            $dTpl = $this->renderTable($rec, $data);
         }
         
-        $tpl->append($dtpl);
+        $tpl->append($dTpl);
         $tpl->removeBlocks();
         $tpl->removePlaces();
         
