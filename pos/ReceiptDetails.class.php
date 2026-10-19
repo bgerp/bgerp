@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -1265,13 +1265,14 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Използва се от репортите за извличане на данни за продажбата
      *
-     * @param int $receiptId - ид на бележка
+     * @param int|stdClass $receiptId - ид или запис на бележка
      *
      * @return array $result - масив от всички плащания и продажби на бележката;
      */
     public static function fetchReportData($receiptId)
     {
-        expect($masterRec = pos_Receipts::fetch($receiptId));
+        expect($masterRec = pos_Receipts::fetchRec($receiptId));
+        $receiptId = $masterRec->id;
         $caseId = pos_Points::fetchField($masterRec->pointId, 'caseId');
 
         $result = array();

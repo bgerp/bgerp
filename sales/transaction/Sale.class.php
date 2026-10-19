@@ -8,7 +8,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -641,7 +641,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         foreach ($bomDataCombined as $bomData){
 
             // И тя има ресурси, произвежда се по нея
-            $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
+            // Себестойността на рецептата не е нужна - сумите се смятат от материалите
+            $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior, null, false);
             if(is_array($bomInfo['resources'])){
                 foreach ($bomInfo['resources'] as &$resRec){
                     $resRec->quantity = $resRec->propQuantity;

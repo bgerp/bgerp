@@ -68,6 +68,12 @@ class ht {
         return new core_ET('<' . $tag . ' class="' . ($attr['class'] ?? '') . '">' . $content . '</' . $tag . '>');
     }
 }
+class str {
+    public static function phpToMysqlName($name) { return strtolower(preg_replace('/([A-Z])/', '_$1', $name)); }
+}
+class InvoiceTestDb {
+    public function escape($value) { return addslashes($value); }
+}
 class keylist {
     public static function toArray($value) { return array_filter(explode('|', $value ?? '')); }
 }
@@ -108,6 +114,12 @@ class InvoiceTestQuery {
         }));
     }
     public function where($condition) {
+        // Изключването на приключените сделки в SQL се проверява и по фактура
+        if (is_string($condition) && strpos($condition, '#threadId NOT IN (SELECT ') === 0) {
+            InvoiceTestData::$sqlConditions[] = $condition;
+
+            return;
+        }
         $this->recs = array_values(array_filter($this->recs, function ($rec) use ($condition) {
             if (is_array($condition)) {
                 if (strpos($condition[0], '#date >=') === 0) return $rec->date >= $condition[1];
@@ -125,6 +137,9 @@ class InvoiceTestQuery {
     }
 }
 class InvoiceTestModel {
+    public $dbTableName = 'test_deals';
+    public $db;
+    public function __construct() { $this->db = new InvoiceTestDb(); }
     public static function getQuery() { return new InvoiceTestQuery(InvoiceTestData::$records[static::class] ?? array()); }
     public static function getClassId() { return static::class; }
     public static function fetch($id) {
@@ -173,7 +188,8 @@ class deals_Helper {
 class InvoiceTestData {
     public static $records = array();
     public static $payments = array();
-    public static function reset() { self::$records = self::$payments = array(); }
+    public static $sqlConditions = array();
+    public static function reset() { self::$records = self::$payments = self::$sqlConditions = array(); }
     public static function invoice($direction, $id, $name, $due, $amount, $paid, $date = '2026-10-01', $currency = 'EUR', $rate = 1) {
         $invoiceClass = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
         $dealClass = $direction == 'out' ? 'sales_Sales' : 'purchase_Purchases';
@@ -289,6 +305,11 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $data = new stdClass();
     $recs = $driver->run($rec, $data);
     check(count($recs) == 3, 'Еднакви id на продажба и покупка: ' . $payment);
+    $closedConds = implode(' ', InvoiceTestData::$sqlConditions);
+    InvoiceTestData::$sqlConditions = array();
+    check(($payment == 'all') == ($closedConds === ''), 'Приключените сделки се изключват в заявката само при остатъци: ' . $payment);
+    check($payment == 'all' || (substr_count($closedConds, "`state` = 'closed' AND `closed_on` < '2026-10-15'") >= 2
+        && substr_count($closedConds, '#threadId NOT IN (SELECT `thread_id` FROM') == substr_count($closedConds, '`thread_id` IS NOT NULL')), 'Изключване и за продажби, и за покупки: ' . $payment);
     check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
     check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
     check($data->invoiceTotals == array('out' => 300, 'in' => 50), 'Отделни суми за разбивката без повторение: ' . $payment);
@@ -612,6 +633,30 @@ foreach (array('out', 'in') as $direction) {
         check(array_sum(array_column($recs, 'invoicePayout')) == $amount * ($payment == 'all' ? 2.25 : 0.25), 'Запазени реални плащания в отделните групи: ' . $case);
         check(array_sum(array_map('count', deals_Helper::$bulkThreads)) == 2, 'Две разпределения за две групи: ' . $case);
     }
+}
+
+// SQL изключването трябва да съвпада с PHP проверката closedOn <= checkDate (сравнение на низове)
+$exclude = Closure::bind(function ($query, $dealClass, $checkDate, $united) {
+    self::excludeClosedDealThreads($query, $dealClass, $checkDate, $united);
+}, null, 'acc_reports_InvoicesByContragent');
+$closedCases = array(
+    array('2026-10-17', '2026-10-17 00:00:00'),
+    array('2026-10-17', '2026-10-17 12:30:00'),
+    array('2026-10-17', '2026-10-16 23:59:59'),
+    array('2026-10-17', '2026-10-18 00:00:00'),
+    array('2026-10-17 12:00:00', '2026-10-17 12:00:00'),
+    array('2026-10-17 12:00:00', '2026-10-17 12:00:01'),
+    array('2026-10-17 12:00:00', '2026-10-17 00:00:00'),
+);
+foreach ($closedCases as $case) {
+    list($checkDate, $closedOn) = $case;
+    InvoiceTestData::$sqlConditions = array();
+    $exclude(sales_Invoices::getQuery(), 'sales_Sales', $checkDate, array());
+    check(preg_match("/`closed_on` (<=?) '([^']+)'/", InvoiceTestData::$sqlConditions[0] ?? '', $m), 'Условие по дата на приключване: ' . $checkDate);
+
+    // MySQL сравнява DATETIME с дата без час като с полунощ
+    $sqlExcludes = $m[1] == '<' ? strtotime($closedOn) < strtotime($m[2]) : strtotime($closedOn) <= strtotime($m[2]);
+    check($sqlExcludes === ($closedOn <= $checkDate), "SQL съвпада с PHP: {$closedOn} към {$checkDate}");
 }
 
 echo "OK: {$checks} invoice report checks\n";

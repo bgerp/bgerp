@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -260,6 +260,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $prodRec = cat_Products::fetchRec($productId);
         expect($prodRec);
         $productId = $prodRec->id;
+
+        // Себестойността на материал се търси и при влагането, и при изписването - заявката е една
+        $wacAmounts = array();
+        $getWacAmount = function ($wacQuantity, $wacProductId, $wacStoreId) use ($valior, &$wacAmounts) {
+            $key = serialize(array($wacQuantity, $wacProductId, $wacStoreId));
+            if (!array_key_exists($key, $wacAmounts)) {
+                $wacAmounts[$key] = cat_Products::getWacAmountInStore($wacQuantity, $wacProductId, $valior, $wacStoreId);
+            }
+
+            return $wacAmounts[$key];
+        };
+
         $foundConvertedProducedRecs = array_filter($details, function($a) use ($productId){return $a->productId == $productId && $a->type == 'input' && isset($a->storeId);});
         $foundOtherInputedRecs = array_filter($details, function($a) use ($productId){return $a->productId != $productId && $a->type == 'input';});
 
@@ -338,7 +350,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                 'quantity' => $det1->quantity),
                             'reason' => 'Влагане на чужди материали - производство на ишлеме');
 
-                        $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+                        $amountCheck = $getWacAmount($det1->quantity, $det1->productId, $det1->storeId);
                         if(!empty($amountCheck)){
                             $entry['amount'] = $amountCheck;
                         }
@@ -346,7 +358,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $entries[] = $entry;
                     }
 
-                    $consignmentAmount += cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+                    $consignmentAmount += $getWacAmount($det1->quantity, $det1->productId, $det1->storeId);
 
                     $Cover = doc_Folders::getCover(cat_Products::fetchField($det1->productId, 'folderId'));
                     $entry = array('debit' => array('3232',
@@ -387,7 +399,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                       'quantity' => $dRec->quantity),
                             'reason' => 'Влагане на материал в производството');
 
-                            $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId);
+                            $amountCheck = $getWacAmount($dRec->quantity, $dRec->productId, $dRec->storeId);
                             if(!empty($amountCheck)){
                                 $entry['amount'] = $amountCheck;
                             }
@@ -435,7 +447,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 if ($dRec1->type == 'input' || $dRec1->type == 'allocated') {
                     // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
                     if ($canStore == 'yes') {
-                        $primeCost = cat_Products::getWacAmountInStore($cQuantity, $dRec1->productId, $valior, $dRec1->storeId);
+                        $primeCost = $getWacAmount($cQuantity, $dRec1->productId, $dRec1->storeId);
                     } else {
                         if(empty($dRec1->fromAccId)){
                             $primeCost = planning_GenericMapper::getWacAmountInProduction($cQuantity, $dRec1->productId, $valior);

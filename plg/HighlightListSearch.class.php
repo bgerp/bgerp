@@ -9,7 +9,7 @@
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -22,8 +22,8 @@ class plg_HighlightListSearch extends core_Plugin
         // Име на полето по което се търси
         $field = ($mvc->searchFilterField ?? null) ?: 'search';
         
-        // Оцветяваме ако има търсене
-        if ($q = Request::get($field)) {
+        // Оцветяваме ако има търсене. Масив (напр. search[]=...) не е валидно търсене
+        if (($q = Request::get($field)) && !is_array($q)) {
             plg_Search::highlight($res, $q, $mvc->className);
         }
     }
