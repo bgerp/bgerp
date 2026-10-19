@@ -63,7 +63,7 @@ defIfNot('CMS_SEO_SYNONYMS', '');
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -214,6 +214,7 @@ class cms_Setup extends core_ProtoSetup
         $html .= core_Classes::add('cms_themes_commerce_Theme');
         $html .= core_Classes::add('cms_themes_b2b_Theme');
         $html .= core_Classes::add('cms_themes_executive_Theme');
+        $html .= core_Classes::add('cms_themes_bordeaux_Theme');
         //$html .= core_Classes::add('cms_themes_christmas_Theme');
 
         return $html;
