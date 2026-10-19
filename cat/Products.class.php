@@ -294,6 +294,18 @@ class cat_Products extends embed_Manager
      * Кеширана информация за артикулите
      */
     protected static $productInfos = array();
+
+
+    /**
+     * Кеш на средните складови цени за всички складове, докато е включен
+     */
+    protected static $wacPriceCache = array();
+
+
+    /**
+     * Колко пъти е включен кешът на средните складови цени
+     */
+    protected static $wacPriceCacheDepth = 0;
     
     
     /**
@@ -3542,8 +3554,25 @@ class cat_Products extends embed_Manager
      */
     public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
+        // При включен кеш средната цена за всички складове се помни по артикул и месец
+        $cacheKey = null;
+        if (self::$wacPriceCacheDepth > 0 && is_numeric($productId) && !(is_array($stores) && countR($stores))) {
+            $cacheKey = dt::getLastDayOfMonth($date) . "|{$productId}";
+            if (array_key_exists($cacheKey, self::$wacPriceCache)) {
+                $avgPrice = self::$wacPriceCache[$cacheKey];
+
+                return isset($avgPrice) ? round($quantity * $avgPrice, 4) : null;
+            }
+        }
+
         $itemRec = acc_Items::fetchItem('cat_Products', $productId);
-        if (!is_object($itemRec)) return;
+        if (!is_object($itemRec)) {
+            if (isset($cacheKey)) {
+                self::$wacPriceCache[$cacheKey] = null;
+            }
+
+            return;
+        }
 
         $item2 = $itemRec->id;
         core_Debug::startTimer('WAC_AMOUNT');
@@ -3563,13 +3592,22 @@ class cat_Products extends embed_Manager
 
         if($countPricesBefore){
             $priceSum = arr::sumValuesArray($pricesArr, 'price');
+            $avgPrice = $priceSum / $countPricesBefore;
+            if (isset($cacheKey)) {
+                self::$wacPriceCache[$cacheKey] = $avgPrice;
+            }
+
             core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
             core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime ?? 0, 6));
 
             core_Debug::stopTimer('WAC_AMOUNT');
             core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime ?? 0, 6));
 
-            return round($quantity * ($priceSum / $countPricesBefore), 4);
+            return round($quantity * $avgPrice, 4);
+        }
+
+        if (isset($cacheKey)) {
+            self::$wacPriceCache[$cacheKey] = null;
         }
 
         core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
@@ -3580,6 +3618,88 @@ class cat_Products extends embed_Manager
 
         // Връщаме сумата
         return null;
+    }
+
+    
+    /**
+     * Включва кеша на средните складови цени и зарежда наведнъж цените на подадените артикули
+     *
+     * @param array    $productIds - ид-та на артикули
+     * @param datetime $date       - към коя дата
+     *
+     * @return void
+     */
+    public static function pushWacPriceCache($productIds, $date)
+    {
+        if (self::$wacPriceCacheDepth == 0) {
+            self::$wacPriceCache = array();
+        }
+
+        $date = dt::getLastDayOfMonth($date);
+        $toLoad = array();
+        foreach (arr::make($productIds, true) as $productId) {
+            if (is_numeric($productId) && !array_key_exists("{$date}|{$productId}", self::$wacPriceCache)) {
+                $toLoad[$productId] = $productId;
+            }
+        }
+
+        // Зарежда се встрани и кешът се включва чак след успешно зареждане - при грешка нищо не се променя
+        $loaded = array();
+        foreach (array_chunk($toLoad, 100, true) as $chunk) {
+            $products = array();
+            $iQuery = acc_Items::getQuery();
+            $iQuery->where('#classId = ' . static::getClassId());
+            $iQuery->in('objectId', $chunk);
+            $iQuery->show('id,objectId');
+            while ($iRec = $iQuery->fetch()) {
+                $products[$iRec->id] = $iRec->objectId;
+            }
+
+            // Ако историята на порцията надхвърля лимита на getPricesToDate, артикулите ѝ се търсят поединично
+            if (countR($products)) {
+                $pQuery = acc_ProductPricePerPeriods::getQuery();
+                $pQuery->where(array("#date <= '[#1#]'", $date));
+                $pQuery->where("#type = 'stores'");
+                $pQuery->in('productItemId', array_keys($products));
+                if ($pQuery->count() > acc_ProductPricePerPeriods::PRICES_TO_DATE_ROW_LIMIT) continue;
+            }
+
+            foreach ($chunk as $productId) {
+                $loaded["{$date}|{$productId}"] = null;
+            }
+
+            if (!countR($products)) continue;
+
+            // Редовете се групират по артикул в реда, в който ги връща и единичната заявка
+            $pricesByItem = array();
+            foreach (acc_ProductPricePerPeriods::getPricesToDate($date, array_keys($products)) as $key => $priceRec) {
+                $pricesByItem[$priceRec->productItemId][$key] = $priceRec;
+            }
+
+            foreach ($pricesByItem as $itemId => $pricesArr) {
+                $productId = $products[$itemId] ?? null;
+                if (isset($productId)) {
+                    $loaded["{$date}|{$productId}"] = arr::sumValuesArray($pricesArr, 'price') / countR($pricesArr);
+                }
+            }
+        }
+
+        self::$wacPriceCache = $loaded + self::$wacPriceCache;
+        self::$wacPriceCacheDepth++;
+    }
+    
+    
+    /**
+     * Изключва кеша на средните складови цени, включен с pushWacPriceCache()
+     *
+     * @return void
+     */
+    public static function popWacPriceCache()
+    {
+        self::$wacPriceCacheDepth = max(0, self::$wacPriceCacheDepth - 1);
+        if (self::$wacPriceCacheDepth == 0) {
+            self::$wacPriceCache = array();
+        }
     }
     
     
@@ -5088,13 +5208,13 @@ class cat_Products extends embed_Manager
                 $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
         } else {
-            $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
+            $hint = tr('от Артикула') . '<br>' . tr('(параметър "Режийни разходи")');
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
         if(!isset($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
-            $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
+            $hint = tr('от пакета "cat"') . '<br>' . tr('(обща настройка по подразбиране за системата)');
         }
 
         $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);

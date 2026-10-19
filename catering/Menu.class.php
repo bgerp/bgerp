@@ -9,7 +9,7 @@
  * @package   catering
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -274,6 +274,25 @@ class catering_Menu extends core_Master
     
     
     /**
+     * Проверка дали в полето "Ден" е въведен ден от седмицата или дата
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if (!$form->isSubmitted() || empty($form->rec->day)) return;
+        
+        // Дните за повторение са опциите на "repeatDay" без "За дата"
+        $repeatDays = $mvc->getFieldType('repeatDay')->options;
+        unset($repeatDays['0.OnlyOnThisDate']);
+        if (!in_array($form->rec->day, $repeatDays) && !dt::verbal2mysql($form->rec->day, false)) {
+            $form->setError('day', 'Невалидна дата|*!');
+        }
+    }
+    
+    
+    /**
      * При нов запис, ако повторението не е само за конкретна дата, то полето 'date' е NULL
      * Проверка, ако повторението е за конкретна дата, дали датата е въведена
      *
@@ -317,13 +336,11 @@ class catering_Menu extends core_Master
                 $rec->date = null;
                 break;
             default:
-            $rec->day = substr($rec->day, 0, 10);
-            $regexCond = '/^[0-3]{1}[0-9]{1}[-]{1}(01|02|03|04|05|06|07|08|09|10|11|12){1}[-]{1}(20){1}[0-9]{2}/';
-            
-            expect(preg_match($regexCond, $rec->day));
+            $date = dt::verbal2mysql($rec->day, false);
+            expect($date);
             
             $rec->repeatDay = '0.OnlyOnThisDate';
-            $rec->date = dt::verbal2mysql($rec->day);
+            $rec->date = $date;
         }
     }
 }

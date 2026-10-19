@@ -4144,3 +4144,5 @@ en,Товарителницата е издадена от друг акаунт
 en,ТЕСТОВА СРЕДА,TEST ENVIRONMENT
 en,товарителниците се създават в тестовата система на,waybills are created in the test system of
 en,и не се изпълняват,and are not carried out
+en,"Опаковката изисква размерите, които не са фиксирани от нея (за европалет - височина)","The packaging requires the dimensions it does not fix (height for a euro pallet)"
+en,Задължително за опаковката,Required for the packaging

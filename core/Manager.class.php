@@ -747,7 +747,7 @@ class core_Manager extends core_Mvc
             }
         }
         
-        if (countR($data->listFields)) {
+        if (countR($data->listFields ?? null)) {
             if (haveRole('debug') && haveRole('admin')) {
                 if (Request::get('debugSearchKeywords')) {
                     $data->listFields['searchKeywords'] = 'Ключови думи';
@@ -1401,7 +1401,7 @@ class core_Manager extends core_Mvc
         }
         
         // Кои ще са колоните на таблицата
-        $data->listFields = arr::make($data->listFields, true);
+        $data->listFields = arr::make($data->listFields ?? null, true);
         
         // Ако има колони за филтриране, филтрираме ги
         if (!empty($data->hideListFieldsIfEmpty) && countR($data->hideListFieldsIfEmpty)) {

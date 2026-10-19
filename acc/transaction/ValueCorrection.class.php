@@ -134,7 +134,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             $vatAmount = 0;
 
             foreach ($rec->productsData as $prod) {
-                if(is_array($prod->inStores) && countR($prod->inStores)){
+                if(isset($prod->inStores) && is_array($prod->inStores) && countR($prod->inStores)){
                     foreach ($prod->inStores as $storeId => $storeQuantity) {
                         $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                         $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
@@ -262,7 +262,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             
             if ($isPurchase || $isTransfer) {
 
-                if(is_array($p->inStores) && countR($p->inStores)){
+                if(isset($p->inStores) && is_array($p->inStores) && countR($p->inStores)){
                     $storesArr = array();
                     foreach ($p->inStores as $storeId => $p2) {
                         $q = (is_array($p2)) ? $p2['quantity'] : $p2;
