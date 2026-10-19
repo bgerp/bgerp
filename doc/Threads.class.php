@@ -1059,12 +1059,21 @@ class doc_Threads extends core_Manager
         
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
-            Mode::push('onlyTitleInGetRecTitle', true);
-            $dRec = $docProxy->fetch();
-            $docRow = $docProxy->getDocumentRow();
-            Mode::pop('onlyTitleInGetRecTitle');
+            Mode::push('lightFetch', true);
+            try {
+                Mode::push('onlyTitleInGetRecTitle', true);
+                try {
+                    $dRec = $docProxy->fetch();
+                    $docRow = $docProxy->getDocumentRow();
+                } finally {
+                    Mode::pop('onlyTitleInGetRecTitle');
+                }
+                $icon = $docProxy->getIcon();
+            } finally {
+                Mode::pop('lightFetch');
+            }
             $attr = array();
-            $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
+            $attr = ht::addBackgroundIcon($attr, $icon);
             
             if (mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attrTitle = ($docRow->recTitle) ? $docRow->recTitle : $docRow->title;

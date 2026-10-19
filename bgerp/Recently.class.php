@@ -207,9 +207,16 @@ class bgerp_Recently extends core_Manager
                     $threadRec = doc_Threads::fetch($threadId);
                 }
                 $docProxy = doc_Containers::getDocument($rec->objectId);
-                $docRow = $docProxy->getDocumentRow();
-                
-                $docRec = $docProxy->fetch();
+
+                // Трябват само заглавие и състояние - без тежките данни на документа
+                Mode::push('lightFetch', true);
+                try {
+                    $docRow = $docProxy->getDocumentRow();
+                    $docRec = $docProxy->fetch();
+                    $icon = $docRec ? $docProxy->getIcon($docRec->id) : null;
+                } finally {
+                    Mode::pop('lightFetch');
+                }
                 expect($docRec);
                 if (!$threadRec) {
                     $threadRec = doc_Threads::fetch($docRec->threadId);
@@ -234,7 +241,7 @@ class bgerp_Recently extends core_Manager
                     $attr['class'] .= " tUnsighted";
                 }
                 
-                $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
+                $attr = ht::addBackgroundIcon($attr, $icon);
                 
                 if (mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = '|*' . $docRow->title;

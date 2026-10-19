@@ -45,6 +45,7 @@ class core_FieldSet {
 class cls {
     public static function load($name, $silent = false) { return true; }
     public static function get($name) {
+        if (is_subclass_of($name, 'InvoiceTestModel')) return new $name();
         return $name == 'core_FieldSet' ? new core_FieldSet() : new InvoiceTestType($name);
     }
 }
@@ -84,7 +85,7 @@ class arr {
         uasort($recs, function ($a, $b) use ($field) { return strcmp($a->{$field}, $b->{$field}); });
     }
 }
-function tr($value) { return $value; }
+function tr($value) { return str_replace(array('|*', '|'), '', $value); }
 function countR($value) { return is_countable($value) ? count($value) : 0; }
 if (!function_exists('mb_strtolower')) {
     function mb_strtolower($value, $encoding) { return strtolower($value); }
@@ -95,6 +96,7 @@ class InvoiceTestQuery {
     public function __construct($recs) { $this->recs = array_values($recs); }
     public function show($fields) {}
     public function groupBy($field) {}
+    public function orderBy($field, $direction) {}
     public function selectOnReplica() {}
     public function numRec() { return count($this->recs); }
     public function fetch() { return array_shift($this->recs); }
@@ -110,8 +112,10 @@ class InvoiceTestQuery {
             if (is_array($condition)) {
                 if (strpos($condition[0], '#date >=') === 0) return $rec->date >= $condition[1];
                 if (strpos($condition[0], '#date <=') === 0) return $rec->date <= $condition[1];
+                if (strpos($condition[0], 'IF(#paymentType') === 0) return (($rec->paymentType ?? null) ?: ($rec->autoPaymentType ?? null)) == $condition[1];
             }
             if ($condition == "#type = 'invoice'") return ($rec->type ?? '') == 'invoice';
+            if ($condition == "#state = 'active'") return ($rec->state ?? '') == 'active';
             if ($condition == '#number IS NOT NULL') return isset($rec->number);
             if ($condition == "#closedDocuments != '' OR #contoActions LIKE '%pay%'") {
                 return !empty($rec->closedDocuments) || strpos($rec->contoActions ?? '', 'pay') !== false;
@@ -122,8 +126,27 @@ class InvoiceTestQuery {
 }
 class InvoiceTestModel {
     public static function getQuery() { return new InvoiceTestQuery(InvoiceTestData::$records[static::class] ?? array()); }
+    public static function getClassId() { return static::class; }
+    public static function fetch($id) {
+        foreach (InvoiceTestData::$records[static::class] ?? array() as $rec) {
+            if ($rec->id == $id) return clone $rec;
+        }
+        return null;
+    }
 }
 class sales_Invoices extends InvoiceTestModel {}
+class sales_Proformas extends InvoiceTestModel {}
+class cash_Pko extends InvoiceTestModel {}
+class bank_IncomeDocuments extends InvoiceTestModel {}
+class deals_InvoicesToDocuments extends InvoiceTestModel {}
+class doc_Containers {
+    public static function getDocument($container) {
+        foreach (InvoiceTestData::$records['sales_Proformas'] ?? array() as $rec) {
+            if ($rec->containerId == $container) return (object)array('className' => 'sales_Proformas', 'that' => $rec->id);
+        }
+        return null;
+    }
+}
 class purchase_Invoices extends InvoiceTestModel {}
 class sales_Sales extends InvoiceTestModel {}
 class purchase_Purchases extends InvoiceTestModel {}
@@ -131,12 +154,20 @@ class doc_Threads extends InvoiceTestModel {}
 class core_Classes { public static function getName($name) { return $name; } }
 class deals_Helper {
     public static $combined;
+    public static $bulkThreads = array(), $conversions = 0;
     public static function setCombinedThreads($value) { self::$combined = $value; }
-    public static function getCombinedThreads($thread) { return array($thread => $thread); }
-    public static function getSmartBaseCurrency($amount, $date, $checkDate) { return $amount; }
-    public static function getInvoicePayments($thread, $date, $a, $b) { return InvoiceTestData::$payments[$thread] ?? array(); }
+    public static function getCombinedThreads($thread) { return self::$combined[$thread] ?? array($thread => $thread); }
+    public static function getSmartBaseCurrency($amount, $date, $checkDate) { self::$conversions++; return $amount; }
+    public static function getInvoicePayments($thread, $date, $a, $b) {
+        $payments = array();
+        foreach (self::getCombinedThreads($thread) as $groupThread) $payments += InvoiceTestData::$payments[$groupThread] ?? array();
+        return $payments;
+    }
     public static function getInvoicePaymentsBulk($threads, $date, $a, $b) {
-        return array_intersect_key(InvoiceTestData::$payments, $threads);
+        self::$bulkThreads[] = $threads;
+        $payments = array();
+        foreach ($threads as $thread) $payments[$thread] = self::getInvoicePayments($thread, $date, $a, $b);
+        return $payments;
     }
 }
 class InvoiceTestData {
@@ -160,6 +191,21 @@ class InvoiceTestData {
         );
         self::$records['doc_Threads'][] = (object)array('id' => $thread, 'firstDocClass' => $dealClass, 'firstDocId' => $id);
         self::$payments[$thread] = array($container => (object)array('amount' => $amount, 'payout' => $paid, 'date' => $date, 'used' => array()));
+    }
+    public static function combine($direction, $ids) {
+        $dealClass = $direction == 'out' ? 'sales_Sales' : 'purchase_Purchases';
+        $base = end($ids);
+        $closed = array();
+        foreach (self::$records[$dealClass] as $deal) {
+            if (!in_array($deal->id, $ids)) continue;
+            if ($deal->id == $base) continue;
+            $deal->state = 'closed';
+            $deal->closedOn = '2026-10-01';
+            $closed[] = $deal->id;
+        }
+        foreach (self::$records[$dealClass] as $deal) {
+            if ($deal->id == $base) $deal->closedDocuments = '|' . implode('|', $closed) . '|';
+        }
     }
 }
 
@@ -216,6 +262,9 @@ foreach (array('out', 'in') as $direction) {
     check($row->invoiceCurrentSumm == '60.00' && $row->paidAmount == '40.00', 'Показване на частично плащане: ' . $direction);
     $balanceColor = $direction == 'out' ? "<span style='color:#080'>60.00</span>" : "<span class='red'>60.00</span>";
     check(strpos($row->invoiceSummary, $balanceColor) !== false, 'Недоплатени продажби в зелено, покупки в червено: ' . $direction);
+    $valueColor = $direction == 'out' ? "<span style='color:#080'>100.00</span>" : "<span class='red'>100.00</span>";
+    $paidColor = $direction == 'out' ? "<span style='color:#080'>40.00</span>" : "<span class='red'>40.00</span>";
+    check(strpos($row->invoiceSummary, $valueColor) !== false && strpos($row->invoiceSummary, $paidColor) !== false, 'Стойността и платеното следват посоката на фактурите: ' . $direction);
     check(isset($driver->fields($rec)['invoiceCurrentSumm']), 'Колона за остатък: ' . $direction);
     check($driver->exportRow($rec, $detail)->dueDateStatus == 'Просрочен', 'Просрочен статус при експорт: ' . $direction);
     $data->groupByField = 'contragent';
@@ -242,8 +291,10 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     check(count($recs) == 3, 'Еднакви id на продажба и покупка: ' . $payment);
     check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
     check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
+    check($data->invoiceTotals == array('out' => 300, 'in' => 50), 'Отделни суми за разбивката без повторение: ' . $payment);
     $detail = end($recs);
     check($detail->combinedSummary->totalInvoiceValue == 250, 'Изходящи минус входящи: ' . $payment);
+    check($detail->combinedSummary->invoiceTotals == array('out' => 300, 'in' => 50), 'Фирмената разбивка не повтаря суми по фактури: ' . $payment);
     if ($payment != 'all') {
         check($detail->combinedSummary->totalInvoiceNotPayd == 200, 'Нетен неплатен остатък: ' . $payment);
         check($detail->combinedSummary->totalInvoicePayout == 50 && $rec->totalInvoicePayoutAll == 50, 'Нетно платено: ' . $payment);
@@ -254,11 +305,12 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $rows = array();
     foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
     check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>250.00</span>") !== false, 'Положителна нетна стойност в зелено: ' . $payment);
+    check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>300.00</span> − <span class='red'>50.00</span> = <span style='color:#080'>250.00</span>") !== false, 'Цветна разбивка за фирмата: ' . $payment);
     if ($payment != 'all') check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>200.00</span>") !== false, 'Нетно вземане в зелено: ' . $payment);
     $driver->grouped($recs, $rows, $fields, $data);
     check(count($rows) == 8, 'Разделител, едно име, две отделни и трето нетно обобщение: ' . $payment);
     check(substr_count(implode('', array_map(function ($row) { return $row instanceof core_ET ? $row->getContent() : ''; }, $rows)), 'Acme') == 1, 'Името на фирмата е само веднъж: ' . $payment);
-    check(strpos(end($rows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетният ред е последен: ' . $payment);
+    check(strpos(strip_tags(end($rows)->getContent()), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетният ред е последен: ' . $payment);
     check(isset($driver->fields($rec, true)['invoiceDirection']), 'Посока при експорт: ' . $payment);
     check($driver->exportRow($rec, $detail)->invoiceDirection == 'Входящи', 'Правилна посока при експорт: ' . $payment);
     $pageRows = array();
@@ -268,7 +320,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $pageRows = array();
     foreach (array_slice($recs, -1, 1, true) as $key => $detail) $pageRows[$key] = $driver->verbal($rec, $detail);
     $driver->grouped($recs, $pageRows, $fields, $data);
-    check(count($pageRows) == 5 && strpos(end($pageRows)->getContent(), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетно обобщение на последната страница: ' . $payment);
+    check(count($pageRows) == 5 && strpos(strip_tags(end($pageRows)->getContent()), 'ИЗХОДЯЩИ минус ВХОДЯЩИ') !== false, 'Нетно обобщение на последната страница: ' . $payment);
     $driver->prices = false;
     $detail = end($recs);
     $row = $driver->verbal($rec, $detail);
@@ -276,13 +328,25 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $driver->prices = true;
 }
 check(deals_Helper::$combined === null, 'Освободен кеш за обединени сделки');
+Mode::$plain = true;
+$detail = end($recs);
+$row = $driver->verbal($rec, $detail);
+check(strpos(strip_tags($row->combinedSummary), '300.00 − 50.00 = 250.00') !== false && strpos($row->combinedSummary, 'style=') === false, 'Фирмена разбивка без оцветяване в обикновен текст');
+Mode::$plain = false;
+$legacyDetail = clone $detail;
+$legacyDetail->combinedSummary = clone $detail->combinedSummary;
+unset($legacyDetail->combinedSummary->invoiceTotals);
+$row = $driver->verbal($rec, $legacyDetail);
+check(strpos($row->combinedSummary, '250.00') !== false && strpos($row->combinedSummary, ' − ') === false, 'Старите запазени резултати показват нетната сума до обновяване');
 
 InvoiceTestData::reset();
 $rec = reportRec('all', 'overdue');
 $data = new stdClass();
 check($driver->run($rec, $data) === array() && $rec->totalInvoiceValueAll == 0, 'Празни два списъка');
+check($data->invoiceTotals == array('out' => 0, 'in' => 0), 'Нулеви суми за двата празни списъка');
 InvoiceTestData::invoice('in', 1, 'Only purchase', '2026-10-14', 80, 20);
 check(count($driver->run($rec, $data)) == 1 && $rec->totalInvoiceValueAll == -80, 'Само покупките дават отрицателна нетна стойност');
+check($data->invoiceTotals == array('out' => 0, 'in' => 80), 'Разбивка при налични само покупки');
 
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
@@ -328,6 +392,7 @@ $row = $driver->verbal($rec, $detail);
 check($rec->totalInvoiceValueAll == -50 && $rec->totalInvoicePayoutAll == -70, 'Покупките могат да надвишават продажбите');
 check($rec->totalInvoiceNotPaydAll == 20 && strpos($row->combinedSummary, '-50.00') !== false, 'Отрицателна стойност с положителен нетен остатък');
 check(strpos($row->combinedSummary, "<span class='red'>-50.00</span>") !== false && strpos($row->combinedSummary, "<span style='color:#080'>20.00</span>") !== false, 'Цветът на нетния остатък е независим от общата стойност');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>150.00</span> = <span class='red'>-50.00</span>") !== false, 'Разбивка с покупки над продажбите и отрицателен резултат');
 check($detail->invoiceValue == 150 && $row->paidAmount == '110.00', 'Редовете за покупки запазват собствените суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
@@ -337,7 +402,7 @@ $recs = $driver->run($rec, $data);
 check($rec->totalInvoiceValueAll == 0 && $rec->totalInvoiceNotPaydAll == 0, 'Равните суми се компенсират');
 $detail = end($recs);
 $row = $driver->verbal($rec, $detail);
-check(strpos($row->combinedSummary, "<span class='quiet'>0.00</span>") !== false && strpos($row->combinedSummary, 'color:#080') === false && strpos($row->combinedSummary, "class='red'") === false, 'Нулевото нетно салдо остава неутрално');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>100.00</span> = <span class='quiet'>0.00</span>") !== false, 'Нулевият резултат остава неутрален при цветни отделни суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
 InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 200, 50);
@@ -365,6 +430,119 @@ $row = $driver->verbal($rec, $detail);
 check(strpos($row->invoiceSummary, 'color:') === false && strpos($row->invoiceSummary, "class='red'") === false, 'Без цветно форматиране в обикновен текст');
 Mode::$plain = false;
 
+// Изричният начин има предимство; автоматичният се използва само при празен изричен.
+$paymentCases = array(
+    array('bank', null, 0.4), array('cash', 'bank', 0.2),
+    array(null, 'bank', 0.3), array('', 'bank', 0.1),
+    array(null, null, 0), array(null, 'mixed', 0.5),
+    array('card', null, 0.1), array('intercept', null, 0.2),
+    array('factoring', null, 0.3), array('postal', null, 0.4),
+    array('bank', 'cash', 1), array('bank', 'cash', 1.2),
+);
+InvoiceTestData::reset();
+foreach (array('out', 'in') as $direction) {
+    foreach ($paymentCases as $i => $paymentCase) {
+        list($explicit, $automatic, $paidRatio) = $paymentCase;
+        $amount = ($i + 1) * ($direction == 'out' ? 100 : 50);
+        InvoiceTestData::invoice($direction, $i + 1, $i < 4 ? 'Acme' : 'Beta', '2026-10-14', $amount, $amount * $paidRatio);
+        $invoiceClass = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+        $invoice = end(InvoiceTestData::$records[$invoiceClass]);
+        $invoice->paymentType = $explicit;
+        $invoice->autoPaymentType = $automatic;
+    }
+}
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        foreach (array(null, 'bank', 'cash', 'intercept', 'card', 'factoring', 'postal', 'missing') as $filter) {
+            $rec = reportRec($direction, $payment);
+            $rec->paymentType = $filter;
+            $data = new stdClass();
+            $recs = $driver->run($rec, $data);
+            $expectedIds = $expectedGroups = array();
+            $expectedValue = $expectedPaid = $expectedUnpaid = $expectedOverpaid = 0;
+            foreach ($direction == 'all' ? array('out', 'in') : array($direction) as $invoiceDirection) {
+                $sign = $direction == 'all' && $invoiceDirection == 'in' ? -1 : 1;
+                foreach ($paymentCases as $i => $paymentCase) {
+                    list($explicit, $automatic, $paidRatio) = $paymentCase;
+                    if ($filter && $filter != ($explicit ?: $automatic)) continue;
+                    if ($payment == 'unpaid' && $paidRatio == 1) continue;
+                    if ($payment == 'overdue' && $paidRatio >= 1) continue;
+                    $amount = ($i + 1) * ($invoiceDirection == 'out' ? 100 : 50);
+                    $expectedIds[] = ($invoiceDirection == 'out' ? 'sales_Invoices' : 'purchase_Invoices') . '|' . ($i + 1);
+                    $expectedValue += $sign * $amount;
+                    $expectedPaid += $sign * $amount * $paidRatio;
+                    $expectedUnpaid += $sign * max(0, $amount * (1 - $paidRatio));
+                    $expectedOverpaid += $sign * min(0, $amount * (1 - $paidRatio));
+                    $group = ($invoiceDirection == 'out' ? 'sales_Invoices' : 'purchase_Invoices') . '|' . ($i < 4 ? 'Acme' : 'Beta');
+                    $expectedGroups[$group] = ($expectedGroups[$group] ?? 0) + $amount;
+                }
+            }
+            $actualIds = array();
+            $actualGroups = array();
+            $actualPaid = 0;
+            foreach ($recs as $detail) {
+                $actualIds[] = $detail->className . '|' . $detail->invoiceId;
+                $actualGroups[$detail->className . '|' . $detail->contragent] = $detail->totalInvoiceValue;
+                $sign = $direction == 'all' && $detail->className == 'purchase_Invoices' ? -1 : 1;
+                $actualPaid += $sign * ($detail->invoicePayout ?? $detail->paidAmount);
+            }
+            sort($actualIds);
+            sort($expectedIds);
+            $case = $direction . '/' . $payment . '/' . ($filter ?? 'без филтър');
+            check($actualIds == $expectedIds, 'Точните фактури след филтъра: ' . $case);
+            check(abs($rec->totalInvoiceValueAll - $expectedValue) < 0.001, 'Обща стойност само на избраните фактури: ' . $case);
+            check($actualGroups == $expectedGroups, 'Суми по контрагент и вид само на избраните фактури: ' . $case);
+            check(abs($actualPaid - $expectedPaid) < 0.001, 'Цялото плащане остава към избраната фактура: ' . $case);
+            if ($payment != 'all') {
+                check(abs($rec->totalInvoicePayoutAll - $expectedPaid) < 0.001, 'Общо платено след филтриране: ' . $case);
+                check(abs($rec->totalInvoiceNotPaydAll - $expectedUnpaid) < 0.001, 'Неплатен остатък след филтриране: ' . $case);
+                check(abs($rec->totalInvoiceOverPaidAll - $expectedOverpaid) < 0.001, 'Надплатен остатък след филтриране: ' . $case);
+            }
+        }
+    }
+}
+
+// Общото разпределение на плащанията може да върне и фактура от друга нишка.
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 40);
+    InvoiceTestData::invoice($direction, 2, 'Acme', '2026-10-14', 200, 50);
+    $invoiceClass = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+    $invoice = end(InvoiceTestData::$records[$invoiceClass]);
+    $invoice->paymentType = 'cash';
+    $thread = $direction == 'out' ? 1001 : 2001;
+    InvoiceTestData::$payments[$thread] += InvoiceTestData::$payments[$thread + 1];
+    foreach (array('unpaid', 'overdue') as $payment) {
+        $rec = reportRec($direction, $payment);
+        $rec->paymentType = 'bank';
+        $data = new stdClass();
+        $recs = $driver->run($rec, $data);
+        check(count($recs) == 1 && reset($recs)->invoiceId == 1, 'Без фактура с друг начин от общото разпределение: ' . $direction . '/' . $payment);
+        check($rec->totalInvoiceValueAll == 100 && $rec->totalInvoicePayoutAll == 40 && $rec->totalInvoiceNotPaydAll == 60, 'Коректни суми при общо разпределение: ' . $direction . '/' . $payment);
+    }
+}
+
+InvoiceTestData::reset();
+InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
+InvoiceTestData::invoice('out', 2, 'Acme', '2026-10-14', 200, 0);
+$proforma = array_pop(InvoiceTestData::$records['sales_Invoices']);
+$proforma->paymentType = 'cash';
+InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+InvoiceTestData::$records['cash_Pko'][] = (object)array('id' => 1, 'containerId' => 30000, 'threadId' => $proforma->threadId, 'state' => 'active', 'amount' => 80, 'valior' => '2026-10-10');
+InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => 1, 'documentContainerId' => 30000, 'containerId' => $proforma->containerId);
+foreach (array('out', 'all') as $direction) {
+    foreach (array(null, 'bank', 'cash') as $filter) {
+        $rec = reportRec($direction, 'all');
+        $rec->paymentType = $filter;
+        $rec->{'seeProformаs'} = 'yes';
+        $data = new stdClass();
+        $recs = $driver->run($rec, $data);
+        check(count($recs) == ($filter ? 1 : 2), 'Филтърът важи и за показаните проформи: ' . $direction . '/' . ($filter ?? 'всички'));
+        check($rec->totalInvoiceValueAll == ($filter == 'cash' ? 0 : 100), 'Проформа без избрана реална фактура не влиза в общата стойност: ' . $direction . '/' . ($filter ?? 'всички'));
+        if ($filter == 'cash') check(reset($recs)->invoicePayout == 80, 'Насоченото плащане по проформа се запазва: ' . $direction);
+    }
+}
+
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
     InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 40);
@@ -376,6 +554,64 @@ foreach (array('out', 'in') as $direction) {
     $data = new stdClass();
     $recs = $driver->run($rec, $data);
     check(count($recs) == 1 && $rec->totalInvoiceValueAll == 100, 'Без суми от обединена фактура преди периода: ' . $direction);
+}
+
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        InvoiceTestData::reset();
+        foreach (array('out', 'in') as $invoiceDirection) {
+            for ($id = 1; $id <= 20; $id++) {
+                InvoiceTestData::invoice($invoiceDirection, $id, 'Combined', '2026-10-14', $invoiceDirection == 'out' ? 100 : 50, 0);
+            }
+            InvoiceTestData::combine($invoiceDirection, range(1, 20));
+        }
+        $rec = reportRec($direction, $payment);
+        $rec->paymentType = 'bank';
+        $data = new stdClass();
+        deals_Helper::$bulkThreads = array();
+        $recs = $driver->run($rec, $data);
+        $case = $direction . '/' . $payment;
+        check(count($recs) == ($direction == 'all' ? 40 : 20), 'Всички фактури от обединени сделки: ' . $case);
+        check($rec->totalInvoiceValueAll == ($direction == 'out' ? 2000 : 1000), 'Суми без повторения в обединени сделки: ' . $case);
+        check(array_sum(array_map('count', deals_Helper::$bulkThreads)) == ($direction == 'all' ? 2 : 1), 'Едно разпределение за всяка обединена група: ' . $case);
+        $rec->paymentType = 'cash';
+        deals_Helper::$conversions = 0;
+        $recs = $driver->run($rec, $data);
+        check(!$recs && $rec->totalInvoiceValueAll == 0, 'Отпадналите по начин фактури не влизат в обобщението: ' . $case);
+        check(deals_Helper::$conversions <= ($direction == 'all' ? 80 : 40), 'Отпадналите фактури не се обработват повторно: ' . $case);
+        foreach (array('sales_Sales', 'purchase_Purchases') as $dealClass) {
+            InvoiceTestData::$records[$dealClass][0]->contoActions = 'pay';
+        }
+        $rec->paymentType = 'bank';
+        $recs = $driver->run($rec, $data);
+        check(count($recs) == ($direction == 'all' ? 40 : 20), 'Бърза първа сделка не скрива фактурите на цялата група: ' . $case);
+        check($rec->totalInvoiceValueAll == ($direction == 'out' ? 2000 : 1000), 'Запазени суми при бърза сделка в обединението: ' . $case);
+    }
+}
+
+foreach (array('out', 'in') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        InvoiceTestData::reset();
+        $amount = $direction == 'out' ? 100 : 50;
+        for ($id = 1; $id <= 6; $id++) {
+            $paid = $id % 3 == 1 ? $amount : ($id % 3 == 2 ? $amount / 4 : 0);
+            InvoiceTestData::invoice($direction, $id, 'Two groups', '2026-10-14', $amount, $paid, $id == 3 ? '2026-10-20' : '2026-10-01');
+        }
+        InvoiceTestData::combine($direction, array(1, 2, 3));
+        InvoiceTestData::combine($direction, array(4, 5, 6));
+        $invoiceClass = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+        InvoiceTestData::$records[$invoiceClass][4]->paymentType = 'cash';
+        $rec = reportRec($direction, $payment);
+        $rec->paymentType = 'bank';
+        deals_Helper::$bulkThreads = array();
+        $data = new stdClass();
+        $recs = $driver->run($rec, $data);
+        $case = $direction . '/' . $payment;
+        check(count($recs) == ($payment == 'all' ? 4 : 2), 'Независими групи с платени, частично платени и филтрирани фактури: ' . $case);
+        check($rec->totalInvoiceValueAll == $amount * ($payment == 'all' ? 4 : 2), 'Запазени стойности при частично избрани групи: ' . $case);
+        check(array_sum(array_column($recs, 'invoicePayout')) == $amount * ($payment == 'all' ? 2.25 : 0.25), 'Запазени реални плащания в отделните групи: ' . $case);
+        check(array_sum(array_map('count', deals_Helper::$bulkThreads)) == 2, 'Две разпределения за две групи: ' . $case);
+    }
 }
 
 echo "OK: {$checks} invoice report checks\n";

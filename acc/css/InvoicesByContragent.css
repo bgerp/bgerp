@@ -12,3 +12,13 @@
 .wide .invoicesByContragentForm select[name="driverClass"] + .select2-container {
     max-width: 32em;
 }
+
+/* select2 записва естествената ширина на дългия списък и избутва полетата извън формата */
+.wide #main-container .invoicesByContragentForm select[multiple] + .select2-container {
+    width: 100% !important;
+}
+
+.wide #main-container .invoicesByContragentForm select[multiple] + .select2-container .select2-search__field {
+    width: auto !important;
+    max-width: 100%;
+}

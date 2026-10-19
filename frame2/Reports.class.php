@@ -9,7 +9,7 @@
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -238,6 +238,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Общ мод: записът трябва само за заглавие, състояние и права - справките се четат без резултата и лога
+     */
+    const LIGHT_FETCH_MODE = 'lightFetch';
+
+
+    /**
      * Максимално време за заключване на ръчното обновяване от един потребител
      */
     const MANUAL_REFRESH_LOCK_DURATION = 120;
@@ -427,7 +433,7 @@ class frame2_Reports extends embed_Manager
                 $refresh = true;
                 if (isset($rec->id) && empty($form->_cloneForm)) {
                     $refresh = false;
-                    $oldRec = self::fetch($rec->id);
+                    $oldRec = self::fetchRecWithoutData($rec->id);
                     
                     // Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
                     $fields = $mvc->getDriverFields($Driver);
@@ -556,8 +562,8 @@ class frame2_Reports extends embed_Manager
      */
     public function getDocumentRow_($id)
     {
-        $rec = $this->fetch($id);
-        
+        $rec = static::fetchRecWithoutData($id);
+
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
         $row->recTitle = $row->title;
@@ -577,6 +583,132 @@ class frame2_Reports extends embed_Manager
         $row->state = $rec->state;
 
         return $row;
+    }
+
+
+    /**
+     * Записът без резултата и лога, които не са нужни за права и заглавия
+     */
+    public static function fetchRecWithoutData($id)
+    {
+        if (is_object($id)) {
+            $rec = clone $id;
+            unset($rec->data, $rec->log);
+
+            return $rec;
+        }
+
+        Mode::push(self::LIGHT_FETCH_MODE, true);
+        try {
+            $rec = static::fetch($id);
+        } finally {
+            Mode::pop(self::LIGHT_FETCH_MODE);
+        }
+
+        return $rec;
+    }
+
+
+    /**
+     * В мода без резултата целият запис се чете без резултата и лога
+     */
+    public static function fetch($cond, $fields = '*', $cache = true)
+    {
+        if ($fields != '*' || !Mode::is(self::LIGHT_FETCH_MODE)) {
+
+            return parent::fetch($cond, $fields, $cache);
+        }
+
+        // Вече зареденият пълен запис не се чете повторно
+        $rec = $cache ? parent::fetch($cond, '*', 'only') : null;
+        if (!is_object($rec) && $cache !== 'only') {
+
+            // Под собствен ключ в кеша, за да не се вземе после за пълен
+            $rec = parent::fetch($cond, self::getFieldsWithoutData(), $cache);
+        }
+
+        if (is_object($rec)) {
+            unset($rec->data, $rec->log);
+        }
+
+        return $rec;
+    }
+
+
+    /**
+     * Полетата на модела без резултата и лога
+     */
+    private static function getFieldsWithoutData()
+    {
+        $fields = cls::get(get_called_class())->selectFields("#kind == 'FLD' && !#dbAutoselectExcluded");
+        unset($fields['data'], $fields['log']);
+
+        return implode(',', array_keys($fields));
+    }
+
+
+    /**
+     * Частичните записи не трябва да се кешират като пълни чрез fetchAndCache().
+     */
+    public function prepareListRecs_(&$data)
+    {
+        if (!empty($data->pager)) {
+            $data->pager->setLimit($data->query);
+        }
+
+        $fields = self::getFieldsWithoutData();
+        unset($data->query->show['*'], $data->query->show['data'], $data->query->show['log']);
+        $data->query->show($fields);
+        $data->recs = $data->recs ?? array();
+        while ($rec = $data->query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+
+            // Правата по редовете четат записа в lightFetch - да го намерят в кеша
+            $this->_cachedRecords["{$rec->id}|{$fields}"] = clone $rec;
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Правата не зависят от резултата, а сериализирането му за ключа на кеша е бавно
+     */
+    public static function haveRightFor($action, $rec = null, $userId = null)
+    {
+        if (is_object($rec)) {
+            $rec = static::fetchRecWithoutData($rec);
+        }
+
+        // И hook-овете за права (напр. doc_DocumentPlg) четат записа без резултата
+        Mode::push(self::LIGHT_FETCH_MODE, true);
+        try {
+            $res = parent::haveRightFor($action, $rec, $userId);
+        } finally {
+            Mode::pop(self::LIGHT_FETCH_MODE);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Изисква права, без да зарежда резултата на справката
+     */
+    public static function requireRightFor($action, $rec = null, $userId = null, $retUrl = null)
+    {
+        if (is_object($rec)) {
+            $rec = static::fetchRecWithoutData($rec);
+        }
+
+        Mode::push(self::LIGHT_FETCH_MODE, true);
+        try {
+            $res = parent::requireRightFor($action, $rec, $userId, $retUrl);
+        } finally {
+            Mode::pop(self::LIGHT_FETCH_MODE);
+        }
+
+        return $res;
     }
     
     
@@ -1019,7 +1151,7 @@ class frame2_Reports extends embed_Manager
         
         if (in_array($action, array('edit', 'clonerec', 'close')) && isset($rec->driverClass, $rec->id)) {
             if ($Driver = $mvc->getDriver($rec)) {
-                $fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+                $fRec = $mvc->fetchRecWithoutData($rec->id);
                 $changeFields = $sharedUsers =  $createdBy = null;
                 
                 // Взимат се стойностите от записа в БД, защото може да е подменен ако се разглежда по стара версия
@@ -1512,12 +1644,17 @@ class frame2_Reports extends embed_Manager
      */
     public function getIcon($id)
     {
-        if ($Driver = $this->getDriver($id)) {
-            
-            return $Driver->getIcon($id);
+        Mode::push(self::LIGHT_FETCH_MODE, true);
+        try {
+            if ($Driver = $this->getDriver($id)) {
+
+                return $Driver->getIcon($id);
+            }
+
+            return 'img/16/error-red.png';
+        } finally {
+            Mode::pop(self::LIGHT_FETCH_MODE);
         }
-        
-        return 'img/16/error-red.png';
     }
 
 
