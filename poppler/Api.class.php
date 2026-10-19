@@ -23,15 +23,18 @@ class poppler_Api
      *                        'page'       => null|0 - всички страници; int - конкретна страница (1-базирано)
      *                        'resolution' => разделителна способност (DPI); по подразбиране POPPLER_DEFAULT_RESOLUTION
      *                        'bucket'     => име на кофата за резултата; по подразбиране 'fileIndex'
+     * @param array|null $error - безопасно описание на отказа; null при успех
      *
      * @return string|array|null
      *                          - при зададена конкретна страница: манипулатор на един JPG файл
      *                          - при всички страници: масив [номер на страница => манипулатор]
      *                          - null при неуспех
      */
-    public static function convertPdfToJpg($fileHnd, $params = array())
+    public static function convertPdfToJpg($fileHnd, $params = array(), &$error = null)
     {
+        $error = null;
         if (!$fileHnd) {
+            $error = array('error' => 'A PDF file is required.', 'reason' => 'missing_file');
 
             return null;
         }
@@ -82,7 +85,12 @@ class poppler_Api
         $Script->setCheckProgramsArr('pdftocairo');
 
         // Стартираме скрипта синхронно
-        $Script->run(false);
+        if ($Script->run(false) === false) {
+            $error = array('error' => 'The PDF image converter (pdftocairo) is unavailable. Ask an administrator to check its installation and configuration.',
+                'reason' => 'converter_unavailable');
+
+            return null;
+        }
 
         // Събираме генерираните JPG файлове от tempDir и ги вкарваме в fileman
         $resArr = self::absorbOutputFiles($Script->tempDir, $name, $bucketName);
@@ -93,9 +101,17 @@ class poppler_Api
                 core_Os::deleteDir($Script->tempDir);
             }
         } else {
+            $err = '';
             if (is_file($errFilePath)) {
-                $err = @file_get_contents($errFilePath);
-                log_System::add('poppler_Api', 'Грешка при конвертиране на PDF към JPG: ' . $err, null, 'err');
+                $err = (string) @file_get_contents($errFilePath);
+            }
+            log_System::add('poppler_Api', 'Грешка при конвертиране на PDF към JPG: ' . ($err !== '' ? $err : 'Няма изходен файл.'), null, 'err');
+            $error = array('error' => 'The PDF could not be rendered. It may be damaged, password-protected or unsupported; technical details are in the conversion log.',
+                'reason' => 'conversion_failed');
+            if ($singlePage && preg_match('/first page \(\d+\).*after the last page \((\d+)\)/i', $err, $match) && $page > (int) $match[1]) {
+                $pageCount = (int) $match[1];
+                $error = array('error' => "PDF page {$page} does not exist. The file has {$pageCount} pages; choose a page from 1 to {$pageCount}.",
+                    'reason' => 'invalid_page', 'page' => $page, 'pageCount' => $pageCount);
             }
 
             return null;
