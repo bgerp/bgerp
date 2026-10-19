@@ -77,6 +77,14 @@ class currency_CurrencyRates extends core_Detail
      * @var array
      */
     protected static $cache = array();
+
+
+    /**
+     * Двойки валути без записан курс към дата, за да не се търсят отново
+     *
+     * @var array
+     */
+    protected static $missingRates = array();
     
     
     /**
@@ -463,7 +471,7 @@ class currency_CurrencyRates extends core_Detail
      */
     private static function getStoredRate($date, $fromId, $toId)
     {
-        if (!isset(static::$cache[$date][$fromId][$toId])) {
+        if (!isset(static::$cache[$date][$fromId][$toId]) && !isset(static::$missingRates[$date][$fromId][$toId])) {
 
             // Търсим най-близкия минал или текущ курс до подадената дата
             $query = static::getQuery();
@@ -496,6 +504,8 @@ class currency_CurrencyRates extends core_Detail
                     if(empty($nextRec->rate)){
                         wp($nextRec->rate, $nextRec, $date, $fromId, $toId);
                     }
+                } else {
+                    static::$missingRates[$date][$fromId][$toId] = true;
                 }
             }
         }
@@ -539,6 +549,15 @@ class currency_CurrencyRates extends core_Detail
         }
         
         return static::$cache[$date][$fromId][$toId][$baseCurrencyId] = $fromBaseRate / $toBaseRate;
+    }
+    
+    
+    /**
+     * Нов курс може да запълни липсващите двойки
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        static::$missingRates = array();
     }
     
     
