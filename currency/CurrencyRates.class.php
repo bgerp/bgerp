@@ -85,6 +85,28 @@ class currency_CurrencyRates extends core_Detail
      * @var array
      */
     protected static $missingRates = array();
+
+
+    /**
+     * Всички курсове на двойка валути, заредени след многократно търсене по различни дати
+     *
+     * @var array [fromId][toId] => array('dates' => array, 'rates' => array)
+     */
+    protected static $pairRates = array();
+
+
+    /**
+     * Брой отделни заявки за курс по двойка валути
+     *
+     * @var array
+     */
+    protected static $pairQueries = array();
+
+
+    /**
+     * След толкова заявки за една двойка, курсовете ѝ се зареждат наведнъж
+     */
+    const PAIR_PRELOAD_AFTER = 10;
     
     
     /**
@@ -472,6 +494,23 @@ class currency_CurrencyRates extends core_Detail
     private static function getStoredRate($date, $fromId, $toId)
     {
         if (!isset(static::$cache[$date][$fromId][$toId]) && !isset(static::$missingRates[$date][$fromId][$toId])) {
+            $pairQueries = static::$pairQueries[$fromId][$toId] ?? 0;
+            if (!isset(static::$pairRates[$fromId][$toId]) && $pairQueries >= static::PAIR_PRELOAD_AFTER) {
+                static::loadPairRates($fromId, $toId);
+            }
+            static::$pairQueries[$fromId][$toId] = $pairQueries + 1;
+        }
+
+        if (!isset(static::$cache[$date][$fromId][$toId]) && !isset(static::$missingRates[$date][$fromId][$toId]) && isset(static::$pairRates[$fromId][$toId])) {
+            $rate = static::findPairRate($date, $fromId, $toId);
+            if (is_null($rate)) {
+                static::$missingRates[$date][$fromId][$toId] = true;
+            } else {
+                static::$cache[$date][$fromId][$toId] = $rate;
+            }
+        }
+
+        if (!isset(static::$cache[$date][$fromId][$toId]) && !isset(static::$missingRates[$date][$fromId][$toId])) {
 
             // Търсим най-близкия минал или текущ курс до подадената дата
             $query = static::getQuery();
@@ -527,6 +566,69 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
+     * Зарежда наведнъж всички курсове на двойка валути
+     *
+     * @param int $fromId
+     * @param int $toId
+     */
+    private static function loadPairRates($fromId, $toId)
+    {
+        $pair = array('dates' => array(), 'rates' => array());
+        $query = static::getQuery();
+        $query->where("#baseCurrencyId = {$fromId}");
+        $query->where("#currencyId = {$toId}");
+        $query->orderBy('date', 'ASC');
+        $query->show('date,rate');
+        while ($rec = $query->fetch()) {
+            $pair['dates'][] = $rec->date;
+            $pair['rates'][] = $rec->rate;
+        }
+
+        static::$pairRates[$fromId][$toId] = $pair;
+    }
+
+
+    /**
+     * Курсът от заредената двойка като в getStoredRate: последният до датата, иначе първият след нея
+     *
+     * @param string $date
+     * @param int    $fromId
+     * @param int    $toId
+     *
+     * @return float|null
+     */
+    private static function findPairRate($date, $fromId, $toId)
+    {
+        $dates = static::$pairRates[$fromId][$toId]['dates'];
+        if (!countR($dates)) {
+
+            return null;
+        }
+
+        // Двоично търсене на последната дата <= $date
+        $low = 0;
+        $high = countR($dates) - 1;
+        $found = -1;
+        while ($low <= $high) {
+            $mid = ($low + $high) >> 1;
+            if (strcmp($dates[$mid], $date) <= 0) {
+                $found = $mid;
+                $low = $mid + 1;
+            } else {
+                $high = $mid - 1;
+            }
+        }
+
+        $rate = static::$pairRates[$fromId][$toId]['rates'][max($found, 0)];
+        if (empty($rate)) {
+            wp($rate, $date, $fromId, $toId);
+        }
+
+        return $rate;
+    }
+
+
+    /**
      * Изчисляване на курс чрез преминаване през междинна валута
      *
      * @param string $date
@@ -558,6 +660,7 @@ class currency_CurrencyRates extends core_Detail
     public static function on_AfterSave($mvc, &$id, $rec)
     {
         static::$missingRates = array();
+        static::$pairRates = array();
     }
     
     
