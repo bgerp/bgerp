@@ -8,7 +8,7 @@
  * @package   email
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,7 +24,11 @@ class email_ServiceRulesIntf extends embed_DriverIntf
      * @param email_Mime  $mime
      * @param stdClass  $serviceRec
      *
-     * @return string|null
+     * @return string|array|false|null
+     *                  o string - писмото е обработено и не се записва като входящ имейл
+     *                  o array  - записва се като входящ имейл с подадените опции
+     *                  o null   - без действие, правилото се счита за съвпаднало
+     *                  o false  - правилото не се прилага за писмото
      */
     public function process($mime, $serviceRec)
     {

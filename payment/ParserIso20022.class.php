@@ -8,7 +8,7 @@
  * @package   payment
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -210,7 +210,7 @@ class payment_ParserIso20022 extends core_BaseClass
      * @param email_Mime $mime
      * @param stdClass   $serviceRec
      *
-     * @return string|null
+     * @return string|false false, ако писмото не е обработено
      *
      * @see email_ServiceRulesIntf
      */
@@ -222,7 +222,7 @@ class payment_ParserIso20022 extends core_BaseClass
             
             log_System::add(get_called_class(), "Не е подходящ за ISO20022 - висок спам резултат: {$sScore}", null, 'debug', 3);
             
-            return ;
+            return false;
         }
 
         $mime->saveFiles();
@@ -234,10 +234,10 @@ class payment_ParserIso20022 extends core_BaseClass
             
             log_System::add(get_called_class(), "Не е подходящ за ISO20022 - няма файлове", null, 'debug', 3);
             
-            return ;
+            return false;
         }
 
-        $res = null;
+        $res = false;
         
         foreach ($filesArr as $fId) {
             $fName = fileman::fetchField($fId, 'name');
@@ -256,30 +256,30 @@ class payment_ParserIso20022 extends core_BaseClass
                     continue;
                 }
                 
-                $res = $this->getRecs($xml, 'EMAIL ISO20022');
+                $parsed = $this->getRecs($xml, 'EMAIL ISO20022');
                 
-                if (!$res) {
+                if (!$parsed) {
                     fileman::logWarning('Не може да се извлекат данни за ISO20022', $fId);
                     
                     continue;
                 }
                 
-                if (countR($res->warnings)) {
-                    fileman::logWarning('ISO20022 предупреждения: ' . implode(' ', $res->warnings), $fId);
+                if (countR($parsed->warnings)) {
+                    fileman::logWarning('ISO20022 предупреждения: ' . implode(' ', $parsed->warnings), $fId);
                 }
                 
-                if (countR($res->errors)) {
-                    fileman::logWarning('ISO20022 грешки: ' . implode(' ', $res->errors), $fId);
+                if (countR($parsed->errors)) {
+                    fileman::logWarning('ISO20022 грешки: ' . implode(' ', $parsed->errors), $fId);
                 }
                 
-                if (!countR($res->recs)) {
+                if (!countR($parsed->recs)) {
                     fileman::logNotice('ISO20022: Няма записи', $fId);
                 } else {
-                    $status = bank_Register::importRecs($res->recs);
+                    $status = bank_Register::importRecs($parsed->recs);
                     fileman::logNotice('ISO20022: ' . $status, $fId);
                     
-                    $res = bank_Register::findMatches();
-                    fileman::logNotice("ISO20022: Обработени {$res} записа", $fId);
+                    $matches = bank_Register::findMatches();
+                    fileman::logNotice("ISO20022: Обработени {$matches} записа", $fId);
                 }
                 
                 $res = 'ISO20022';
