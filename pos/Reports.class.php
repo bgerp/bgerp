@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -573,7 +573,7 @@ class pos_Reports extends core_Master
             $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'waitingOn' => $rec->waitingOn, 'waitingBy' => $rec->waitingBy, 'total' => $rec->total);
             
             // Добавяне на детайлите на бележките
-            $data = pos_ReceiptDetails::fetchReportData($rec->id);
+            $data = pos_ReceiptDetails::fetchReportData($rec);
 
             foreach ($data as $obj) {
                 $indexArr = array(
@@ -653,8 +653,16 @@ class pos_Reports extends core_Master
             
             // Ако има намерени продадени артикули се маркират/демаркират като използвани
             if(countR($affectedProducts)){
+                $pQuery = cat_Products::getQuery();
+                $pQuery->in('id', $affectedProducts);
+                $pQuery->show('containerId');
+                $pContainerIds = array();
+                while ($pRec = $pQuery->fetch()) {
+                    $pContainerIds[$pRec->id] = $pRec->containerId;
+                }
+
                 foreach ($affectedProducts as $productId){
-                    $pContainerId = cat_Products::fetchField($productId, 'containerId');
+                    $pContainerId = $pContainerIds[$productId] ?? null;
                     if($remove){
                         doclog_Used::remove($rec->containerId, $pContainerId);
                     } else {
@@ -728,8 +736,20 @@ class pos_Reports extends core_Master
             // Всяка бележка в репорта се "затваря"
             $count = 0;
             $Receipts = cls::get('pos_Receipts');
-            foreach ($rec->details['receipts'] ?? array() as $receiptRec) {
-                $state = pos_Receipts::fetchField($receiptRec->id, 'state');
+            $receipts = $rec->details['receipts'] ?? array();
+            $receiptStates = array();
+            $receiptIds = arr::extractValuesFromArray($receipts, 'id');
+            if (countR($receiptIds)) {
+                $rQuery = pos_Receipts::getQuery();
+                $rQuery->in('id', $receiptIds);
+                $rQuery->show('state');
+                while ($rRec = $rQuery->fetch()) {
+                    $receiptStates[$rRec->id] = $rRec->state;
+                }
+            }
+
+            foreach ($receipts as $receiptRec) {
+                $state = $receiptStates[$receiptRec->id] ?? null;
                 if ($state == $nextState) {
                     continue;
                 }

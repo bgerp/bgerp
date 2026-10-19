@@ -8,7 +8,7 @@
  * @package   email
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -202,6 +202,13 @@ class email_ServiceRules extends embed_Manager
                     continue;
                 } catch (Throwable $e) {
                     reportException($e);
+                    continue;
+                }
+
+                // Отказаното писмо не е съвпадение и не трябва да пропуска спам проверката
+                if ($pRes === false) {
+                    $pRes = null;
+
                     continue;
                 }
 

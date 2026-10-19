@@ -541,6 +541,37 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Изключва още в заявката фактурите от приключени, необединени сделки
+     *
+     * Същото условие се проверява и после по фактура; тук само спестява четенето им.
+     *
+     * @param core_Query $query
+     * @param string $dealClass
+     * @param string $checkDate
+     * @param array $united - [id на обединена сделка => ...]
+     */
+    private static function excludeClosedDealThreads($query, $dealClass, $checkDate, $united)
+    {
+        $Deal = cls::get($dealClass);
+        $col = function ($field) {
+            return '`' . str::phpToMysqlName($field) . '`';
+        };
+
+        // Като PHP сравнението на низове: приключената в деня на дата без час не се изключва
+        $op = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $checkDate) ? '<' : '<=';
+
+        // NULL в NOT IN би изключил всичко, затова нишката е задължителна
+        $cond = "SELECT {$col('threadId')} FROM `{$Deal->dbTableName}` WHERE {$col('threadId')} IS NOT NULL"
+            . " AND {$col('state')} = 'closed' AND {$col('closedOn')} {$op} '" . $Deal->db->escape($checkDate) . "'";
+        $unitedIds = array_filter(array_map('intval', array_keys($united)));
+        if (countR($unitedIds)) {
+            $cond .= " AND {$col('id')} NOT IN (" . implode(',', $unitedIds) . ')';
+        }
+        $query->where("#threadId NOT IN ({$cond})");
+    }
+
+
+    /**
      * Допълва фактурите от обединени нишки и известията с общи заявки.
      *
      * @param class-string<core_Mvc> $className
@@ -682,6 +713,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Диагностика: пропуснатите фактури по причини и общото време за плащанията
         $startedOn = microtime(true);
         $skipped = $closedDealThreads = array();
+
+        // При „Всички“ двата вида се логват отделно, без показатели от предишния
+        if (is_object($data)) {
+            $data->reportStatRows = array();
+        }
         $paymentsSeconds = 0;
 
         $sRecs = $sRecsAll = $pRecs = $pRecsAll = array();
@@ -826,7 +862,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $salesQuery->where("#closedDocuments != '' OR #contoActions LIKE '%pay%'");
             $salesQuery->show('id,threadId,folderId,closedDocuments,contoActions');
             $salesQuery->selectOnReplica();
+            $dealsCount = 0;
             while ($sale = $salesQuery->fetch()) {
+                $dealsCount++;
                 foreach (keylist::toArray($sale->closedDocuments ?? '') as $id) {
                     $salesUN[$id] = true;
                     $salesCombiners[$sale->id] = $sale;
@@ -835,7 +873,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastSales[$sale->id ?? 0] = true;
                 }
             }
-            self::addReportStat($data, 'deals', microtime(true) - $timer, $salesQuery->numRec());
+            self::addReportStat($data, 'deals', microtime(true) - $timer, $dealsCount);
             self::addReportStat($data, 'unitedDeals', 0, countR($salesUN));
             self::addReportStat($data, 'fastDeals', 0, countR($fastSales));
 
@@ -888,6 +926,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     unset($fields['type']);
                 }
                 $invQuery->show($fields);
+                if ($rec->unpaid != 'all' && $InvDoc == sales_Invoices::class) {
+                    self::excludeClosedDealThreads($invQuery, sales_Sales::class, $checkDate, $salesUN);
+                }
 
                 //Изваждаме нишките за проверка  са избрани НЕПЛАТЕНИ
                 //Ако са избрани ВСИЧКИ записваме масив $allInvoices със всички фактури
@@ -1271,7 +1312,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $purchasesUN = $purchaseCombiners = array();
             $fastPur = array();
 
+            $dealsCount = 0;
             while ($purchase = $purchasesQuery->fetch()) {
+                $dealsCount++;
                 foreach ((keylist::toArray($purchase->closedDocuments ?? '')) as $v) {
                     $purchasesUN[$v] = ($v);
                     $purchaseCombiners[$purchase->id] = $purchase;
@@ -1283,12 +1326,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastPur[$purchase->id ?? 0] = true;
                 }
             }
-            self::addReportStat($data, 'deals', microtime(true) - $timer, $purchasesQuery->numRec());
+            self::addReportStat($data, 'deals', microtime(true) - $timer, $dealsCount);
             self::addReportStat($data, 'unitedDeals', 0, countR($purchasesUN));
             self::addReportStat($data, 'fastDeals', 0, countR($fastPur));
 
             $timer = microtime(true);
             $fetched = 0;
+            if ($rec->unpaid != 'all') {
+                self::excludeClosedDealThreads($pQuery, purchase_Purchases::class, $checkDate, $purchasesUN);
+            }
             self::selectReportQuery($pQuery, 5);
             $invoices = $pQuery->fetchAll();
             self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');

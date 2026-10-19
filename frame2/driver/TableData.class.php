@@ -144,7 +144,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * До колко ид-та се изброяват в показател от диагностиката
      */
-    const MAX_SHOWN_STAT_IDS = 50;
+    const MAX_SHOWN_STAT_IDS = 10;
 
 
     /**
