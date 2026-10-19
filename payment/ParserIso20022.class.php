@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Правила при получаване на имейли » Обработка на ISO 22000 банкови извлечения
+ * @title     Правила при получаване на имейли » Обработка на ISO 20022 банкови извлечения
  */
 class payment_ParserIso20022 extends core_BaseClass
 {
