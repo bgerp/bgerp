@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Select2 compatibility</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/Application.css">
+    <link rel="stylesheet" href="../../css/internalTheme.css">
+    <link rel="stylesheet" href="../../css/default-theme.css">
+    <link rel="stylesheet" href="../../css/new-design.css">
+    <script>
+        var versions = ['4.0rc2', '4.0', '4.0.1', '4.0.7', '4.0.13', '4.1.0'];
+        var jqueryVersions = ['1.11.2', '3.7.1', '4.0.0'];
+        var query = new URLSearchParams(location.search);
+        var version = versions.includes(query.get('v')) ? query.get('v') : '4.1.0';
+        var jq = jqueryVersions.includes(query.get('jq')) ? query.get('jq') : '3.7.1';
+        document.write('<link rel="stylesheet" href="../' + version + '/select2.min.css">');
+        document.write('<script src="../../jquery/' + jq + '/jquery.min.js"><\/script>');
+        if (jq === '4.0.0' && !query.get('withoutMigrate')) {
+            document.write('<script src="../../jquery/migrate-4.0.2/jquery-migrate.min.js"><\/script>');
+        }
+        document.write('<script src="../' + version + '/select2.min.js"><\/script>');
+        document.write('<script src="../' + version + '/i18n/bg.js"><\/script>');
+    </script>
+    <script>
+        var cacheBust = Date.now();
+        document.write('<script src="../../js/efCommon.js?t=' + cacheBust + '"><\/script>');
+        document.write('<link rel="stylesheet" href="../css/select2-custom.css?t=' + cacheBust + '">');
+        document.write('<script src="../js/adapter.js?t=' + cacheBust + '"><\/script>');
+        document.write('<script src="../toTree_19.03.26/select2totree.js?t=' + cacheBust + '"><\/script>');
+    </script>
+    <link rel="stylesheet" href="../toTree_19.03.26/select2totree.css">
+    <style>
+        body { padding: 16px; box-sizing: border-box; }
+        .field { margin: 16px 0; max-width: 540px; }
+        .narrow .field { max-width: 300px; }
+        .field > label { display: block; margin-bottom: 4px; }
+        select { width: 100%; }
+        #results { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .pass { color: #176329; }
+        .fail { color: #b32020; }
+        iframe { width: 100%; height: 680px; border: 1px solid #aaa; }
+    </style>
+</head>
+<body class="modern-theme wide">
+    <h1>Select2 compatibility</h1>
+    <p id="versions"></p>
+    <p>Serve the repository root over HTTP and open select2/tests/compatibility.html.
+        The fixtures use synthetic data and the actual bgERP assets.</p>
+    <button id="matrix" type="button">Run all versions</button>
+    <div id="matrix-results"></div>
+    <div class="field">
+        <label for="single">Single / grouped / clear / keyboard</label>
+        <select id="single"><option></option>
+            <optgroup label="Цветове">
+                <option value="1">Червен</option>
+                <option value="2" data-color="#00aa00" data-colorClass="green">Зелен</option>
+                <option value="3" disabled>Недостъпен</option>
+            </optgroup>
+            <option value="4">&lt;em&gt;буквален текст&lt;/em&gt;</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="multiple">Multiple / remove / clear</label>
+        <select id="multiple" multiple>
+            <option value="1">Първи</option><option value="2">Втори</option>
+            <option value="3">Трети с по-дълъг етикет</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="tree">Tree / expand / search</label>
+        <select id="tree" multiple>
+            <option value="10" class="l1 non-leaf">Родител</option>
+            <option value="12" class="l1">Родител и други</option>
+            <option value="11" class="l2 non-leaf" data-pup="10">Родител » Дъщерен</option>
+            <option value="13" class="l3 non-leaf" data-pup="11">Родител » Дъщерен » Трето ниво</option>
+            <option value="14" class="l4 non-leaf" data-pup="13">Родител » Дъщерен » Трето ниво » Четвърто</option>
+            <option value="15" class="l5 non-leaf" data-pup="14">Родител » Дъщерен » Трето ниво » Четвърто » Пето</option>
+            <option value="16" class="l6 non-leaf" data-pup="15">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто</option>
+            <option value="17" class="l7 non-leaf" data-pup="16">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо</option>
+            <option value="18" class="l8" data-pup="17">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо » Осмо</option>
+            <option value="50" class="l1 non-leaf">Втори родител</option>
+            <option value="51" class="l2" data-pup="50">Втори родител » Втори клон</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="remote">AJAX transport / numeric IDs</label>
+        <select id="remote" multiple></select>
+    </div>
+    <pre id="results" role="status">Running...</pre>
+    <script>
+        document.body.className = 'modern-theme ' + (query.get('narrow') ? 'narrow' : 'wide');
+        $('#versions').text('Select2 ' + version + ' / jQuery ' + jq);
+        var results = [], failures = 0;
+        function check(name, ok) {
+            results.push((ok ? 'PASS ' : 'FAIL ') + name);
+            if (!ok) failures++;
+        }
+        function options(extra) {
+            return $.extend({
+                placeholder: 'Избор', allowClear: true, language: 'bg',
+                minimumResultsForSearch: 0, matcher: modelMatcherStartWith,
+                templateResult: formatSelect2Data, templateSelection: formatSelect2DataSelection
+            }, extra);
+        }
+        function search($select, text) {
+            $select.select2('open');
+            var instance = $select.data('select2');
+            var $search = instance.$container.find('.select2-search__field');
+            if (!$search.length) $search = instance.$dropdown.find('.select2-search__field');
+            $search.val(text).trigger('input');
+            return $search;
+        }
+        async function run() {
+            try {
+                for (var i = 20; i < 45; i++) {
+                    $('#tree option[value="10"]').before('<option value="' + i + '" class="l1">Група ' + i + '</option>');
+                }
+                var $single = $('#single').select2(options());
+                var $multiple = $('#multiple').select2(options());
+                var $tree = $('#tree').select2ToTree(options());
+                var $remote = $('#remote').select2(options({ajax: {
+                    transport: function (params, success) {
+                        var timer = setTimeout(function () {
+                            success([{id: 101, text: 'Отдалечен първи'}, {id: 102, text: 'Отдалечен втори'}]);
+                        }, 10);
+                        return {abort: function () { clearTimeout(timer); }};
+                    },
+                    processResults: function (data) { return {results: data}; }
+                }}));
+                check('all widgets initialized', $('.select2-selection').length === 4);
+                search($single, 'зеле');
+                check('Cyrillic search', $('.select2-results__option').text().includes('Зелен'));
+                check('colour preview', $('.select2-results .color-preview').length === 1);
+                $('.select2-results__option').filter(function () { return $(this).text().trim() === 'Зелен'; }).trigger('mouseup');
+                check('single selection', $single.val() === '2');
+                $single.next().find('.select2-selection__clear').trigger('mousedown');
+                check('single clear', !$single.val());
+                search($single, 'несъществуващ');
+                check('Bulgarian no-results message', $('.select2-results').text().includes('Няма намерени съвпадения'));
+                search($single, 'буквален');
+                check('template escapes markup', $('.select2-results em').length === 0 &&
+                    $('.select2-results').text().includes('<em>'));
+                $single.select2('close');
+                check('match anywhere', !!modelMatcherEverywhere({term: 'ерв'}, {text: 'Червен'}));
+                check('match at word start', !modelMatcherStartWith({term: 'ерв'}, {text: 'Червен'}));
+                check('OR search', !!modelMatcherStartWith({term: 'син|черв'}, {text: 'Червен'}));
+                $multiple.val(['1', '2']).trigger('change');
+                check('multiple selection', $multiple.next().find('.select2-selection__choice').length === 2);
+                var $remove = $multiple.next().find('.select2-selection__choice__remove').first();
+                check('remove control fits its label', $remove.outerHeight() <= $remove.closest('li').outerHeight());
+                var removeBox = $remove[0].getBoundingClientRect();
+                var choiceBox = $remove.closest('li')[0].getBoundingClientRect();
+                check('remove control stays inside the right edge',
+                    removeBox.right <= choiceBox.right && choiceBox.right - removeBox.right <= 3 &&
+                    removeBox.top >= choiceBox.top && removeBox.bottom <= choiceBox.bottom);
+                $remove.trigger('mousedown').trigger('click');
+                check('remove one item', ($multiple.val() || []).join(',') === '2');
+                var clearBox = $multiple.next().find('.select2-selection__clear')[0].getBoundingClientRect();
+                var selectionBox = $multiple.next().find('.select2-selection')[0].getBoundingClientRect();
+                check('clear all stays at the right edge beside the arrow',
+                    clearBox.right <= selectionBox.right && selectionBox.right - clearBox.right <= 3);
+                $multiple.next().find('.select2-selection__clear').trigger('mousedown');
+                check('clear all items', ($multiple.val() || []).length === 0);
+                $multiple.select2('close');
+                var $treeSearch = $tree.data('select2').$container.find('.select2-search__field');
+                $treeSearch.val('Трето').trigger('input');
+                check('first input opens tree with visible search result',
+                    $('.select2-results__option[data-val="13"]').is(':visible'));
+                $treeSearch.val('').trigger('input');
+                $tree.select2('close');
+                $tree.select2('open');
+                check('tree child initially hidden', !$('.select2-results__option[data-val="11"]').is(':visible'));
+                $('.select2-results__option[data-val="10"] .expand-collapse').trigger('mouseup');
+                check('tree expands', $('.select2-results__option[data-val="11"]').is(':visible'));
+                check('expanding does not select a parent', ($tree.val() || []).length === 0);
+                var $toggle = $('.select2-results__option[data-val="10"] .expand-collapse');
+                check('tree expand target is at least 26px', $toggle.outerWidth() >= 26 && $toggle.outerHeight() >= 26);
+                var toggleIcon = getComputedStyle($toggle[0], ':before');
+                check('tree icon stays compact and inside its click target',
+                    parseFloat(toggleIcon.left) >= 0 && parseFloat(toggleIcon.top) >= 0 &&
+                    parseFloat(toggleIcon.fontSize) === 14 &&
+                    parseFloat(toggleIcon.left) + parseFloat(toggleIcon.width) <= $toggle.outerWidth());
+                check('tree labels omit repeated ancestor names',
+                    $('.select2-results__option[data-val="11"] .item-label').text() === 'Дъщерен');
+                check('tree keeps descendants directly after their parent',
+                    $('.select2-results__option[data-val="10"]').next().attr('data-val') === '11' &&
+                    $('.select2-results__option[data-val="18"]').next().attr('data-val') === '12');
+                search($tree, 'Дъщ');
+                check('tree search reveals child', $('.select2-results__option[data-val="11"]').is(':visible'));
+                $('.select2-results__option[data-val="11"]').trigger('mouseup');
+                check('tree selection', ($tree.val() || []).join(',') === '11');
+                $tree.select2('close');
+                $tree.val(['13', '51']).trigger('change');
+                $tree.select2('open');
+                var $treeResults = $tree.data('select2').results.$results;
+                var $firstSelected = $treeResults.find('[data-val="13"]');
+                check('selected grandchild opens all ancestors', $firstSelected.is(':visible') &&
+                    $treeResults.find('[data-val="10"]').hasClass('opened') &&
+                    $treeResults.find('[data-val="11"]').hasClass('opened'));
+                check('all selected branches open', $treeResults.find('[data-val="51"]').is(':visible'));
+                check('tree scrolls to first selected item', $treeResults.scrollTop() > 0 &&
+                    $firstSelected.offset().top >= $treeResults.offset().top - 1 &&
+                    $firstSelected.offset().top < $treeResults.offset().top + $treeResults.height());
+                var $root = $treeResults.find('[data-val="10"]');
+                var $parent = $treeResults.find('[data-val="11"]');
+                check('scroll keeps the selected branch parent visible',
+                    $root.offset().top >= $treeResults.offset().top - 1);
+                check('tree levels have equal horizontal steps',
+                    $parent.find('.item-label').offset().left - $root.find('.item-label').offset().left === 18 &&
+                    $firstSelected.find('.item-label').offset().left - $parent.find('.item-label').offset().left === 18);
+                check('parent and leaf rows keep the same height',
+                    $root.outerHeight() === $parent.outerHeight() && $parent.outerHeight() === $firstSelected.outerHeight());
+                check('opening preserves selected values only', ($tree.val() || []).join(',') === '13,51');
+                check('selected tree labels keep their full path',
+                    $tree.next().text().includes('Родител » Дъщерен » Трето ниво'));
+                search($tree, 'Трето');
+                check('search keeps selected grandchild visible', $treeResults.find('[data-val="13"]').is(':visible'));
+                check('tree search results use short labels',
+                    $treeResults.find('[data-val="13"] .item-label').text() === 'Трето ниво');
+                var $deepSearch = search($tree, 'Осмо');
+                check('search shows the matching leaf with its ancestors',
+                    [10, 11, 13, 14, 15, 16, 17, 18].every(function (value) {
+                        return $treeResults.find('[data-val="' + value + '"]').is(':visible');
+                    }));
+                check('search omits unrelated branches',
+                    !$treeResults.find('[data-val="12"], [data-val="50"], [data-val="51"]').length);
+                check('search highlights the match rather than a context parent',
+                    $treeResults.find('.select2-results__option--highlighted').attr('data-val') === '18');
+                var $searchMatch = $treeResults.find('[data-val="18"]');
+                check('deep search match is fully visible',
+                    $searchMatch.offset().top >= $treeResults.offset().top - 1 &&
+                    $searchMatch.offset().top + $searchMatch.outerHeight() <=
+                        $treeResults.offset().top + $treeResults.height() + 1);
+                $treeResults.find('[data-val="10"] .expand-collapse').trigger('mouseup');
+                check('search branch can be collapsed', !$treeResults.find('[data-val="18"]').is(':visible'));
+                $treeResults.find('[data-val="10"] .expand-collapse').trigger('mouseup');
+                check('search branch can be expanded', $treeResults.find('[data-val="18"]').is(':visible'));
+                $deepSearch.trigger($.Event('keydown', {which: 13, keyCode: 13}));
+                check('Enter selects the search match without its context ancestors',
+                    ($tree.val() || []).join(',') === '13,18,51');
+                search($tree, '');
+                check('clearing search restores selected branch', $treeResults.find('[data-val="13"]').is(':visible'));
+                $tree.select2('close');
+                $tree.val(['18', '51']).trigger('change');
+                $tree.select2('open');
+                var deepItems = [10, 11, 13, 14, 15, 16, 17, 18].map(function (value) {
+                    return $treeResults.find('[data-val="' + value + '"]');
+                });
+                check('eight levels and another selected branch open',
+                    deepItems.every(function ($item) { return $item.is(':visible'); }) &&
+                    $treeResults.find('[data-val="51"]').is(':visible'));
+                check('all eight levels have consistent indents and row heights',
+                    deepItems.every(function ($item, index) {
+                        return $item.outerHeight() === deepItems[0].outerHeight() &&
+                            (!index || $item.find('.item-label').offset().left -
+                                deepItems[index - 1].find('.item-label').offset().left === 18);
+                    }));
+                check('deepest selection is scrolled into view',
+                    deepItems[7].offset().top >= $treeResults.offset().top - 1 &&
+                    deepItems[7].offset().top + deepItems[7].outerHeight() <=
+                        $treeResults.offset().top + $treeResults.height() + 1);
+                check('deep tree does not overflow horizontally',
+                    $treeResults[0].scrollWidth <= $treeResults[0].clientWidth);
+                var treeSelection = $tree.next().find('.select2-selection')[0];
+                var treeBox = treeSelection.getBoundingClientRect();
+                check('long selected paths stay inside the field',
+                    $tree.next().find('.select2-selection__choice').toArray().every(function (item) {
+                        var box = item.getBoundingClientRect();
+                        var remove = item.querySelector('.select2-selection__choice__remove').getBoundingClientRect();
+                        return box.left >= treeBox.left && box.right <= treeBox.right &&
+                            remove.right <= box.right;
+                    }));
+                var treeClear = $tree.next().find('.select2-selection__clear')[0];
+                var treeClearBox = treeClear.getBoundingClientRect();
+                check('clear button remains reachable beside a long path',
+                    treeClear.contains(document.elementFromPoint(
+                        treeClearBox.left + treeClearBox.width / 2,
+                        treeClearBox.top + treeClearBox.height / 2)));
+                check('deep selection does not select ancestors', ($tree.val() || []).join(',') === '18,51');
+                $tree.select2('close');
+                search($remote, 'Отдалечен');
+                await new Promise(function (resolve) { setTimeout(resolve, 60); });
+                $('.select2-results__option').filter(function () { return $(this).text() === 'Отдалечен първи'; }).trigger('mouseup');
+                check('AJAX numeric selection', ($remote.val() || []).join(',') === '101');
+                $remote.next().find('.select2-selection__choice__remove').trigger('mousedown').trigger('click');
+                check('AJAX unselect', ($remote.val() || []).length === 0);
+                $remote.select2('close');
+                var $keyboard = search($single, 'Черв');
+                $keyboard.trigger($.Event('keydown', {which: 9, keyCode: 9}));
+                check('Tab selection follows version contract', version === '4.1.0' ? $single.val() === '1' : !$single.val());
+                $single.select2('close');
+                $multiple.prop('disabled', true).trigger('change');
+                await new Promise(function (resolve) { setTimeout(resolve, 10); });
+                check('disabled state', $multiple.next().hasClass('select2-container--disabled'));
+                $multiple.prop('disabled', false).trigger('change');
+                $single.select2('destroy');
+                $single.select2(options());
+                check('destroy and reinitialize', $('#single').next().hasClass('select2-container'));
+            } catch (error) {
+                check('uncaught error: ' + error.stack, false);
+            }
+            $('#results').attr('class', failures ? 'fail' : 'pass')
+                .text(results.join('\n') + '\n' + results.length + ' checks; ' + failures + ' failures');
+            if (window.parent !== window) {
+                window.parent.postMessage({select2Test: true, version: version, jq: jq,
+                    narrow: query.get('narrow'), checks: results.length, failures: failures}, location.origin);
+            }
+        }
+        $('#matrix').on('click', function () {
+            var combinations = [];
+            jqueryVersions.forEach(function (jqueryVersion) {
+                versions.forEach(function (select2Version) {
+                    combinations.push({v: select2Version, jq: jqueryVersion});
+                });
+            });
+            combinations.push({v: '4.0.1', jq: '1.11.2', narrow: '1'});
+            combinations.push({v: '4.1.0', jq: '3.7.1', narrow: '1'});
+            combinations.push({v: '4.1.0', jq: '4.0.0', narrow: '1'});
+            var $output = $('#matrix-results').empty();
+            var $frame = $('<iframe title="Compatibility matrix"></iframe>').insertAfter($output);
+            function next() {
+                if (!combinations.length) {
+                    window.removeEventListener('message', receive);
+                    $frame.remove();
+                    return;
+                }
+                $frame.attr('src', '?' + $.param(combinations.shift()));
+            }
+            function receive(event) {
+                if (event.origin !== location.origin || event.source !== $frame[0].contentWindow ||
+                    !event.data.select2Test) return;
+                var data = event.data;
+                $('<p></p>').attr('class', data.failures ? 'fail' : 'pass').text(
+                    data.version + ' / jQuery ' + data.jq + (data.narrow ? ' / narrow' : '') +
+                    ': ' + data.checks + ' checks, ' + data.failures + ' failures').appendTo($output);
+                next();
+            }
+            window.addEventListener('message', receive);
+            next();
+        });
+        run();
+    </script>
+</body>
+</html>
