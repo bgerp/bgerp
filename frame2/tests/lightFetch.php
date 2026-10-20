@@ -19,6 +19,10 @@ function expect($condition, ...$args) { if (!$condition) throw new RuntimeExcept
 function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
 function setIfNot(&$value, $default) { if (!isset($value)) $value = $default; }
 function countR($value) { return is_countable($value) ? count($value) : 0; }
+function tr($value) { return $value; }
+class ht { public static function createLink($title, $url, $unused = null, $attr = array()) { return array('title' => $title, 'url' => $url, 'attr' => $attr); } }
+class str { public static function limitLen($value, $length) { return mb_substr($value, 0, $length); } }
+class doc_Threads { public static function haveRightFor($action, $id) { return true; } }
 class arr
 {
     public static function make($value, $keys = false) { return is_array($value) ? $value : explode(',', $value); }
@@ -65,6 +69,7 @@ require dirname(__DIR__, 2) . '/core/Plugin.class.php';
 require dirname(__DIR__, 2) . '/embed/Manager.class.php';
 require dirname(__DIR__) . '/Reports.class.php';
 require dirname(__DIR__, 2) . '/tags/plg/Add.class.php';
+require dirname(__DIR__, 2) . '/doc/DocumentPlg.class.php';
 
 class LightFetchQuery
 {
@@ -88,11 +93,14 @@ class LightFetchQuery
 }
 class LightFetchReport extends frame2_Reports
 {
-    public function __construct() { $this->_plugins = array(new tags_plg_Add()); }
+    public function __construct() { $this->_plugins = array(new tags_plg_Add(), new doc_DocumentPlg()); }
     public function getQuery() { return new LightFetchQuery($this); }
     public function selectFields($where = '', $fieldsArr = null) { return $this->fields; }
     public static function getClassId() { return 1; }
     public static function getVerbal_($rec, $fieldName) { return (string) ($rec->{$fieldName} ?? ''); }
+    public function getSingleUrlArray($id) { return array('LightFetchReport', 'single', $id); }
+    public function getHandle($id) { return 'Rpt' . $id; }
+    public function getUrlForDblClick($id, $url) { return null; }
 }
 class LightFetchDriver
 {
@@ -132,7 +140,7 @@ function noPayloadRead()
 
 $report = cls::get('LightFetchReport');
 $record = (object) array('id' => 1, 'title' => 'Неплатени фактури', 'driverClass' => 'LightFetchDriver',
-    'createdBy' => 6, 'state' => 'active', 'driverRec' => array('fromDate' => '2020-01-01'),
+    'createdBy' => 6, 'state' => 'active', 'threadId' => 2, 'driverRec' => array('fromDate' => '2020-01-01'),
     'data' => (object) array('result' => 'large report'), 'log' => array('history'));
 LightFetchQuery::$records = array(1 => $record);
 foreach (array_keys((array) $record) as $name) $report->fields[$name] = (object) array('kind' => 'FLD');
@@ -165,6 +173,18 @@ Mode::pop('lightFetch');
 LightFetchDriver::$exception = null;
 check($report->getIcon(999) === 'img/16/error-red.png' && !Mode::is('lightFetch'), 'Липсващ запис запазва резервната икона и режима');
 
+resetReads($report);
+$link = $report->getLink(1, 64, array('Q' => 'test'));
+check(noPayloadRead(), 'Линкът през истинския doc_DocumentPlg не зарежда data/log');
+check(strpos($link['title'], '#Rpt1') === 0 && $link['url']['Q'] === 'test' && isset($link['attr']['ef_icon']),
+    'Линкът запазва хендъла, търсенето и иконата');
+check(!Mode::is('lightFetch'), 'Линкът възстановява режима');
+LightFetchDriver::$exception = new RuntimeException('link icon failed');
+$caught = null;
+try { $report->getLink(1); } catch (RuntimeException $e) { $caught = $e; }
+check($caught === LightFetchDriver::$exception && !Mode::is('lightFetch'), 'Грешка при линк не оставя включен lightFetch');
+LightFetchDriver::$exception = null;
+check(isset($report->fetch(1)->data), 'Пълното четене след линк запазва резултата');
 resetReads($report);
 $report->getDocumentRow(1);
 $report->getIcon(1);

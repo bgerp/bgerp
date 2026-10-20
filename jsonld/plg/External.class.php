@@ -17,6 +17,8 @@ class jsonld_plg_External extends core_Plugin
         try {
             $organization = jsonld_Helper::getOrganization();
             $orgScript = isset($organization) ? jsonld_Renderer::render(array($organization)) : '';
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
             $orgScript = '';
@@ -29,6 +31,8 @@ class jsonld_plg_External extends core_Plugin
             if (isset($webSite)) {
                 jsonld_Aggregator::add($webSite);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
         }
@@ -36,6 +40,8 @@ class jsonld_plg_External extends core_Plugin
         // Структурираните данни са второстепенни и не бива да чупят страницата
         try {
             $script = jsonld_Renderer::render(jsonld_Aggregator::getAll());
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
             $script = '';

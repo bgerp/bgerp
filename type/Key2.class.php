@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -86,6 +86,11 @@ class type_Key2 extends type_Int
      */
     public function fromVerbal_($value)
     {
+        if (is_array($value)) {
+            $this->error = 'Некоректна стойност';
+
+            return false;
+        }
         if (empty($value)) {
             
             return;
