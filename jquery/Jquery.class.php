@@ -9,7 +9,7 @@
  * @package   jquery
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,10 +47,22 @@ class jquery_Jquery
             
             // Добавяме библиотеката
             $tpl->push($jQuery, 'JS');
+            if ($migrateFile = self::getMigrateFile(jquery_Setup::get('VERSION'))) {
+                $tpl->push($migrateFile, 'JS');
+            }
         }
     }
     
     
+    /**
+     * Възстановява премахнатите в jQuery 4 функции за старите плъгини.
+     */
+    public static function getMigrateFile($version)
+    {
+        return version_compare($version, '4.0.0', '>=') ? 'jquery/migrate-4.0.2/jquery-migrate.min.js' : null;
+    }
+
+
     /**
      * Добавя подадения код във функция, на JQuery, която се вика след зареждане на страницата
      *

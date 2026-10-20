@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -104,11 +104,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
         //Групи артикули
-        if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->По групи,placeholder = Всички,after=products,single=none');
-        } else {
-            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->По групи,placeholder = Всички,after=products,single=none');
-        }
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->По групи,placeholder = Всички,after=products,single=none');
 
         //Период
         $fieldset->FLD('from', 'date', 'caption=От,after=groups,removeAndRefreshForm,single=none,silent,mandatory');

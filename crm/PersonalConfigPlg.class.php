@@ -25,6 +25,13 @@ class crm_PersonalConfigPlg extends core_Plugin
      */
     public function on_BeforeGetConfConst($mvc, &$value, $name)
     {
+        global $setupFlag;
+
+        // При инсталация зависимите таблици още може да не са обновени.
+        if (!empty($setupFlag)) {
+            return;
+        }
+
         $currUserId = core_Users::getCurrent();
 
         if ($currUserId < 0) {
