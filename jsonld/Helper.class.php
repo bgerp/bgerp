@@ -8,7 +8,7 @@
  * @package   jsonld
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -132,13 +132,40 @@ class jsonld_Helper
         }
 
         $properties = array('name' => $name);
-        $website = trim((string) ($company->website ?? ''));
+
+        // Полето може да има няколко адреса - сайтът на фирмата е първият
+        $websites = preg_split(type_Urls::$pattern, trim((string) ($company->website ?? '')), -1, PREG_SPLIT_NO_EMPTY);
+        $website = $websites[0] ?? '';
 
         if ($website !== '' && filter_var($website, FILTER_VALIDATE_URL)) {
             $properties['url'] = $website;
         }
 
-        return new jsonld_Node('Organization', $properties);
+        $logoFh = !empty($company->companyId) ? crm_Companies::fetchField($company->companyId, 'logo') : null;
+        $logo = self::getImageUrl($logoFh);
+
+        if ($logo !== null) {
+            $properties['logo'] = $logo;
+        }
+
+        // Еднаквият @id на всички домейни казва, че е една и съща фирма - затова е по сайта ѝ, а не по домейна
+        $base = $properties['url'] ?? getBoot(true, false, true);
+        $id = rtrim($base, '/') . '/#organization';
+
+        return new jsonld_Node('Organization', $properties, $id, 'organization');
+    }
+
+
+    /**
+     * Връща препратка към собствената фирма - самият възел се добавя отделно на всяка страница
+     *
+     * @return array|null
+     */
+    public static function getOrganizationRef()
+    {
+        $organization = self::getOrganization();
+
+        return isset($organization) ? array('@id' => $organization->getId()) : null;
     }
 
 
@@ -178,7 +205,7 @@ class jsonld_Helper
         }
 
         if (isset($organization)) {
-            $properties['publisher'] = $organization;
+            $properties['publisher'] = array('@id' => $organization->getId());
         }
 
         $searchUrl = self::getSearchUrlTemplate($domainRec->id);
@@ -287,7 +314,7 @@ class jsonld_Helper
             $properties['dateModified'] = $dateModified;
         }
 
-        $organization = self::getOrganization();
+        $organization = self::getOrganizationRef();
 
         if (isset($organization)) {
             $properties['publisher'] = $organization;

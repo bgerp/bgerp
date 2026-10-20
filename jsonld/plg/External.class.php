@@ -2,17 +2,26 @@
 
 
 /**
- * Добавя еднократно събраните JSON-LD възли в HEAD на външната страница
+ * Добавя еднократно събраните JSON-LD възли и фирмата в HEAD на външната страница
  *
- * Това е единствената финална точка за вмъкване на JSON-LD script.
+ * Това е единствената финална точка за вмъкване на JSON-LD script-овете.
  */
 class jsonld_plg_External extends core_Plugin
 {
     /**
-     * Добавя един JSON-LD script при финализиране на страницата
+     * Добавя JSON-LD script-овете при финализиране на страницата
      */
     public static function on_Output(&$invoker)
     {
+        // Фирмата е в собствен script на всяка страница - графът сочи към нея по @id
+        try {
+            $organization = jsonld_Helper::getOrganization();
+            $orgScript = isset($organization) ? jsonld_Renderer::render(array($organization)) : '';
+        } catch (Throwable $e) {
+            reportException($e);
+            $orgScript = '';
+        }
+
         // Сайтът с търсенето му е на всяка страница - не всяка има начална
         try {
             $webSite = jsonld_Helper::getWebSite();
@@ -24,21 +33,18 @@ class jsonld_plg_External extends core_Plugin
             reportException($e);
         }
 
-        if (jsonld_Aggregator::isEmpty()) {
-            return;
-        }
-
         // Структурираните данни са второстепенни и не бива да чупят страницата
         try {
             $script = jsonld_Renderer::render(jsonld_Aggregator::getAll());
         } catch (Throwable $e) {
             reportException($e);
-
-            return;
+            $script = '';
         }
 
-        if ($script !== '') {
-            $invoker->appendOnce($script, 'HEAD');
+        foreach (array($script, $orgScript) as $str) {
+            if ($str !== '') {
+                $invoker->appendOnce("\n" . $str, 'HEAD');
+            }
         }
     }
 }
