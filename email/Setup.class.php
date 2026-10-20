@@ -694,12 +694,18 @@ class email_Setup extends core_ProtoSetup
     {
         $inst = cls::get('email_ServiceRules');
 
+        // Старото поле липсва при таблици, създадени с новия модел.
+        if (!$inst->db->isFieldExists($inst->dbTableName, str::phpToMysqlName('classId'))) {
+            return;
+        }
+
         $inst->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
 
         $query = $inst->getQuery();
         while ($rec = $query->fetch()) {
-            if ($rec->classId && !$rec->driverClass) {
-                $rec->driverClass = $rec->classId;
+            $classId = $rec->classId ?? null;
+            if ($classId && empty($rec->driverClass)) {
+                $rec->driverClass = $classId;
 
                 $inst->save($rec, 'driverClass');
             }
