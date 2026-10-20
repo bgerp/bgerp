@@ -148,11 +148,57 @@ class jsonld_Helper
             $properties['logo'] = $logo;
         }
 
+        $legalName = self::getCleanText($company->company ?? null);
+        $emails = type_Emails::toArray($company->email ?? '');
+        $tel = trim((string) ($company->tel ?? ''));
+        $tel = ($tel !== '') ? (string) drdata_PhoneType::getNumberStr($tel, 0) : '';
+
+        $properties += array_filter(array(
+            'legalName' => $legalName,
+            'email' => reset($emails) ?: null,
+            'telephone' => (strpos($tel, '+') === 0) ? $tel : null,
+            'vatID' => self::getCleanText($company->vatNo ?? null),
+            'taxID' => self::getCleanText($company->uicId ?? null),
+        ));
+
+        $address = self::getPostalAddress($company);
+
+        if (isset($address)) {
+            $properties['address'] = $address;
+        }
+
         // Еднаквият @id на всички домейни казва, че е една и съща фирма - затова е по сайта ѝ, а не по домейна
         $base = $properties['url'] ?? getBoot(true, false, true);
         $id = rtrim($base, '/') . '/#organization';
 
         return new jsonld_Node('Organization', $properties, $id, 'organization');
+    }
+
+
+    /**
+     * Връща адреса на фирмата като PostalAddress възел
+     *
+     * @param stdClass $company данните от crm_Companies::fetchOwnCompany()
+     *
+     * @return jsonld_Node|null
+     */
+    protected static function getPostalAddress($company)
+    {
+        $countryCode = !empty($company->countryId) ? drdata_Countries::fetchField($company->countryId, 'letterCode2') : null;
+
+        $address = array_filter(array(
+            'streetAddress' => self::getCleanText($company->address ?? null),
+            'addressLocality' => self::getCleanText($company->place ?? null),
+            'postalCode' => self::getCleanText($company->pCode ?? null),
+            'addressCountry' => self::getCleanText($countryCode),
+        ));
+
+        // Само държавата не е адрес
+        if (empty($address['streetAddress']) && empty($address['addressLocality'])) {
+            return null;
+        }
+
+        return new jsonld_Node('PostalAddress', $address);
     }
 
 
