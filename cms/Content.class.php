@@ -1377,11 +1377,12 @@ class cms_Content extends core_Master
         $used = array();
 
         while ($dRec = $dQuery->fetch()) {
-            if (isset($used[$dRec->domain])) {
+            $domain = $dRec->domain ?? '';
+            if (isset($used[$domain])) {
                 continue;
             }
             self::registerLlmsTxt($dRec);
-            $used[$dRec->domain] = true;
+            $used[$domain] = true;
         }
     }
 
@@ -1424,10 +1425,10 @@ class cms_Content extends core_Master
     {
         $dRecs = array();
         $dQuery = cms_Domains::getQuery();
-        $dQuery->where(array("#domain = '[#1#]' AND #llmsTxt = 'yes'", $dRec->domain ?? ''));
+        $dQuery->where(array("#domain = '[#1#]' AND #llmsTxt = 'yes' AND #state = 'active'", $dRec->domain ?? ''));
         $dQuery->orderBy('id');
         while ($d = $dQuery->fetch()) {
-            $dRecs[$d->id] = $d;
+            $dRecs[] = $d;
         }
 
         if (!countR($dRecs)) {
@@ -1436,49 +1437,58 @@ class cms_Content extends core_Master
         }
 
         $main = reset($dRecs);
-        $isLocalhost = ($main->domain == 'localhost');
+        $domain = $main->domain ?? '';
+        $isLocalhost = ($domain == 'localhost');
         if (!$isLocalhost) {
-            Mode::push('BGERP_CURRENT_DOMAIN', $main->domain);
+            Mode::push('BGERP_CURRENT_DOMAIN', $domain);
         }
-        core_Lg::push(!empty($main->lang) ? $main->lang : core_Lg::getCurrent());
 
         try {
-            $lines = self::getLlmsHeader($main);
+            $lines = array();
 
             foreach ($dRecs as $d) {
-                $query = self::getQuery();
-                $query->where(array("#state = 'active' AND #domainId = [#1#]", $d->id));
-                $query->orderBy('order');
-
-                while ($rec = $query->fetch()) {
-                    $class = cls::getClassName($rec->source, true);
-                    if (!$class || !cls::existsMethod($class, 'getLlmsEntries')) {
-                        continue;
+                $lang = $d->lang ?? core_Lg::getCurrent();
+                core_Lg::push($lang);
+                try {
+                    if (!countR($lines)) {
+                        $lines = self::getLlmsHeader($d);
                     }
 
-                    $entries = cls::get($class)->getLlmsEntries($rec->id);
-                    if (!countR($entries)) {
-                        continue;
-                    }
+                    $query = self::getQuery();
+                    $query->where(array("#state = 'active' AND #domainId = [#1#]", (int) ($d->id ?? 0)));
+                    $query->orderBy('order');
 
-                    // При няколко езика на хоста разделите се различават по езика
-                    $heading = self::getCleanText($rec->menu);
-                    if (countR($dRecs) > 1) {
-                        $heading .= " ({$d->lang})";
-                    }
+                    while ($rec = $query->fetch()) {
+                        $class = cls::getClassName($rec->source ?? null, true);
+                        if (!$class || !cls::existsMethod($class, 'getLlmsEntries')) {
+                            continue;
+                        }
 
-                    $lines[] = '';
-                    $lines[] = "## {$heading}";
-                    foreach ($entries as $entry) {
-                        $line = self::getLlmsLine($entry);
-                        if ($line !== null) {
-                            $lines[] = $line;
+                        $entries = cls::get($class)->getLlmsEntries((int) ($rec->id ?? 0));
+                        if (!countR($entries)) {
+                            continue;
+                        }
+
+                        // При няколко езика на хоста разделите се различават по езика
+                        $heading = self::getCleanText($rec->menu ?? null);
+                        if (countR($dRecs) > 1) {
+                            $heading .= " ({$lang})";
+                        }
+
+                        $lines[] = '';
+                        $lines[] = "## {$heading}";
+                        foreach ($entries as $entry) {
+                            $line = self::getLlmsLine($entry);
+                            if ($line !== null) {
+                                $lines[] = $line;
+                            }
                         }
                     }
+                } finally {
+                    core_Lg::pop();
                 }
             }
         } finally {
-            core_Lg::pop();
             if (!$isLocalhost) {
                 Mode::pop('BGERP_CURRENT_DOMAIN');
             }
@@ -1499,7 +1509,7 @@ class cms_Content extends core_Master
     {
         $company = crm_Companies::fetchOwnCompany();
         $companyName = self::getCleanText($company->company ?? null);
-        $title = self::getCleanText($dRec->seoTitle ?? null) ?? $companyName ?? $dRec->domain;
+        $title = self::getCleanText($dRec->seoTitle ?? null) ?? $companyName ?? ($dRec->domain ?? '');
 
         $lines = array("# {$title}");
 
@@ -1539,7 +1549,7 @@ class cms_Content extends core_Master
             $info[] = tr('ДДС №') . ': ' . $vatNo;
         }
 
-        $searchUrl = self::getSearchUrlTemplate($dRec->id, '{query}');
+        $searchUrl = self::getSearchUrlTemplate((int) ($dRec->id ?? 0), '{query}');
         if ($searchUrl !== null) {
             $info[] = tr('Търсене') . ': ' . $searchUrl;
         }
@@ -1565,12 +1575,13 @@ class cms_Content extends core_Master
     protected static function getLlmsLine($entry)
     {
         $title = self::getCleanText($entry->title ?? null);
-        if ($title === null || empty($entry->loc)) {
+        $loc = $entry->loc ?? null;
+        if ($title === null || empty($loc)) {
 
             return null;
         }
 
-        $url = is_array($entry->loc) ? toUrl($entry->loc, 'absolute') : $entry->loc;
+        $url = is_array($loc) ? toUrl($loc, 'absolute') : $loc;
         $title = str_replace(array('[', ']'), array('\[', '\]'), $title);
 
         $description = self::getCleanText($entry->description ?? null) ?? self::getPlainText($entry->richtext ?? null);
@@ -1580,7 +1591,7 @@ class cms_Content extends core_Master
         }
 
         $notes = array_filter(array(
-            !empty($entry->date) ? dt::mysql2verbal($entry->date, 'd.m.Y', null, false) : null,
+            !empty($entry->date) ? dt::mysql2verbal($entry->date ?? null, 'd.m.Y', null, false) : null,
             $description,
         ));
 
@@ -1605,11 +1616,12 @@ class cms_Content extends core_Master
         // Обхожда целия сайт - вика се от cron и от core_CallOnTime, които имат малък лимит
         core_App::setTimeLimit(300);
 
-        $key = 'cms_LlmsTxt|' . cms_Domains::getReal($dRec->domain);
+        $domainId = (int) ($dRec->id ?? 0);
+        $key = 'cms_LlmsTxt|' . cms_Domains::getReal($dRec->domain ?? '');
         $txt = self::getLlmsTxt($dRec);
 
         if ($txt !== null) {
-            core_Webroot::register($txt, 'Content-Type: text/plain; charset=utf-8', 'llms.txt', $dRec->id);
+            core_Webroot::register($txt, 'Content-Type: text/plain; charset=utf-8', 'llms.txt', $domainId);
             core_Permanent::set($key, md5($txt), core_Permanent::FOREVER_VALUE);
 
             return;
@@ -1621,8 +1633,8 @@ class cms_Content extends core_Master
             return;
         }
 
-        if (core_Webroot::isExists('llms.txt', $dRec->id) && md5((string) core_Webroot::getContents('llms.txt', $dRec->id)) == $hash) {
-            core_Webroot::remove('llms.txt', $dRec->id);
+        if (core_Webroot::isExists('llms.txt', $domainId) && md5((string) core_Webroot::getContents('llms.txt', $domainId)) == $hash) {
+            core_Webroot::remove('llms.txt', $domainId);
         }
         core_Permanent::remove($key);
     }
@@ -1680,7 +1692,7 @@ class cms_Content extends core_Master
         );
         $value = str_replace("\xc2\xa0", ' ', $value);
         $value = preg_replace('/\s+/u', ' ', $value);
-        $value = trim($value);
+        $value = trim($value ?? '');
 
         return $value !== '' ? $value : null;
     }
@@ -1704,6 +1716,11 @@ class cms_Content extends core_Master
 
         $html = cls::get('type_Richtext')->toVerbal($richtext);
         $html = ($html instanceof core_ET) ? $html->getContent() : (string) $html;
+        // Richtext екранира маркерите; премахваме ги без зареждане на вложени шаблони
+        $tpl = new ET();
+        $tpl->setContent(core_ET::unEscape($html));
+        $tpl->removePlaces();
+        $html = $tpl->getContent();
         $html = preg_replace('#<(script|style)\b.*?</\1>#is', ' ', $html);
 
         // Интервал на мястото на блоковите елементи, за да не се слепват думите

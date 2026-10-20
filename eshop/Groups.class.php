@@ -1356,6 +1356,7 @@ class eshop_Groups extends core_Master
     public function getLlmsEntries($menuId)
     {
         $menuId = (int) $menuId;
+        $settings = cms_Domains::getSettings(cms_Content::fetchField($menuId, 'domainId'));
         $query = self::getQuery();
         $query->where(array("#state = 'active' AND (#menuId = [#1#] OR LOCATE('|[#1#]|', #sharedMenus))", $menuId));
         $query->orderBy('order');
@@ -1363,25 +1364,37 @@ class eshop_Groups extends core_Master
 
         $res = $usedProducts = array();
         while ($rec = $query->fetch()) {
-            if ($rec->menuId != $menuId) {
+            $groupId = (int) ($rec->id ?? 0);
+            if (($rec->menuId ?? null) != $menuId) {
                 $rec->altMenuId = $menuId;
             }
-            $res[] = (object) array('title' => $rec->name, 'loc' => $this->getUrl($rec, true), 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->info ?? null, 'level' => 0);
+            $res[] = (object) array('title' => $rec->name ?? null, 'loc' => $this->getUrl($rec, true), 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->info ?? null, 'level' => 0);
+
+            $showWithoutPrices = $rec->showProductsWithoutPrices ?? 'auto';
+            if ($showWithoutPrices == 'auto') {
+                $showWithoutPrices = $settings->showProductsWithoutPrices ?? 'yes';
+            }
 
             $pQuery = eshop_Products::getQuery();
-            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$rec->id} OR LOCATE('|{$rec->id}|', #sharedInGroups))");
+            $pQuery->where(array("#state = 'active' AND #saleState != 'closed' AND (#groupId = [#1#] OR LOCATE('|[#1#]|', #sharedInGroups))", $groupId));
             $pQuery->orderBy('name');
             while ($pRec = $pQuery->fetch()) {
-                // Е-артикул в няколко групи на менюто е само под първата
-                if (!empty($usedProducts[$pRec->id])) {
+                $pRec->showProductsWithoutPrices = $showWithoutPrices;
+                if (eshop_Products::isHiddenWithoutPrices($pRec)) {
                     continue;
                 }
-                $usedProducts[$pRec->id] = true;
 
-                if ($pRec->groupId != $rec->id) {
-                    $pRec->altGroupId = $rec->id;
+                // Е-артикул в няколко групи на менюто е само под първата
+                $productId = (int) ($pRec->id ?? 0);
+                if (!empty($usedProducts[$productId])) {
+                    continue;
                 }
-                $res[] = (object) array('title' => $pRec->name, 'loc' => eshop_Products::getUrl($pRec, true), 'description' => $pRec->seoDescription ?? null, 'richtext' => $pRec->info ?? null, 'level' => 1);
+                $usedProducts[$productId] = true;
+
+                if (($pRec->groupId ?? null) != $groupId) {
+                    $pRec->altGroupId = $groupId;
+                }
+                $res[] = (object) array('title' => $pRec->name ?? null, 'loc' => eshop_Products::getUrl($pRec, true), 'description' => $pRec->seoDescription ?? null, 'richtext' => $pRec->info ?? null, 'level' => 1);
             }
         }
 

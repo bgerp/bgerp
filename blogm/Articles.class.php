@@ -1799,6 +1799,7 @@ class blogm_Articles extends core_Master
      */
     public function getLlmsEntries($menuId)
     {
+        $menuId = (int) $menuId;
         $cRec = cms_Content::fetch($menuId);
         $categories = blogm_Categories::getCategoriesByDomain($cRec->domainId ?? null, $menuId, null, true);
         $res = $used = array();
@@ -1812,15 +1813,16 @@ class blogm_Articles extends core_Master
             $articles = array();
             while ($rec = $query->fetch()) {
                 // Статия в няколко категории е само под първата
-                if (!empty($used[$rec->id])) {
+                $articleId = (int) ($rec->id ?? 0);
+                if (!empty($used[$articleId])) {
                     continue;
                 }
-                $used[$rec->id] = true;
+                $used[$articleId] = true;
                 // getUrl() кодира vid-а, а toUrl() го кодира пак - тук е кодиран веднъж
                 $loc = $this->getUrl($rec, true);
-                $loc[2] = urldecode((string) $loc[2]);
+                $loc[2] = urldecode((string) ($loc[2] ?? ''));
 
-                $articles[] = (object) array('title' => $rec->title, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body, 'date' => $rec->publishedOn ?? $rec->createdOn, 'level' => 1);
+                $articles[] = (object) array('title' => $rec->title ?? null, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body ?? null, 'date' => $rec->publishedOn ?? $rec->createdOn ?? null, 'level' => 1);
             }
 
             if (countR($articles)) {
