@@ -244,6 +244,15 @@ class jsonld_Helper
             $properties['name'] = $name;
         }
 
+        // Домейнът е другото име, с което сайтът е познат
+        $host = preg_replace('/^www\./i', '', (string) parse_url($url, PHP_URL_HOST));
+
+        $isRealDomain = (strpos($host, '.') !== false) && !filter_var($host, FILTER_VALIDATE_IP);
+
+        if ($isRealDomain && mb_strtolower($host) !== mb_strtolower((string) $name)) {
+            $properties['alternateName'] = $host;
+        }
+
         $language = self::getCleanText($domainRec->lang ?? null);
 
         if ($language !== null) {
