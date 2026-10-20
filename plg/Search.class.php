@@ -253,6 +253,7 @@ class plg_Search extends core_Plugin
 
             $nWordsArr = array();
             $ftsTerms = array();
+            $prefixTerms = array();
 
             $wPattern = '/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu';
 
@@ -400,18 +401,18 @@ class plg_Search extends core_Plugin
                     } else {
                         $cond = '';
                         if ($mode == '+') {
-                            $ftsTerms[] = array(
-                                'fts' => "+{$w}{$wordEndQ}",
-                                'locate' => "LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field})",
-                                'len' => strlen($w),
-                            );
+                            if ($wordEndQ) {
+                                $prefixTerms[] = array(
+                                    'fts' => "+{$w}{$wordEndQ}",
+                                    'locate' => "LOCATE('{$wordBegin}{$w}', #{$field})",
+                                    'len' => strlen($w),
+                                );
+                            } else {
+                                $ftsTerms[] = "+{$w}";
+                            }
                         }
                         if ($mode == '"') {
-                            $ftsTerms[] = array(
-                                'fts' => "+\"{$w}\"",
-                                'locate' => "LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field})",
-                                'len' => strlen($w),
-                            );
+                            $ftsTerms[] = "+\"{$w}\"";
                         }
                         if ($mode == '-') {
                             $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
@@ -424,18 +425,21 @@ class plg_Search extends core_Plugin
                 }
             }
 
-            // MyISAM FTS не пресича ефективно няколко prefix термина (+a* +b* е по-бавно от всеки поотделно).
-            // Само най-дългият (най-селективен) термин минава през индекса, останалите са LOCATE
-            // върху вече филтрирания резултат - семантично еквивалентно на +w*
-            if ($ftsTerms) {
-                usort($ftsTerms, function ($a, $b) {
+            // В общ boolean MATCH MyISAM търси по индекса само последния prefix термин, а другите проверява ред по ред.
+            // Затова фразите и целите думи остават в MATCH (или най-дългият prefix, ако няма такива), а другите
+            // prefix термини са LOCATE - еквивалентно на +w*, защото ключовите думи започват с интервал
+            if ($prefixTerms && !$ftsTerms) {
+                usort($prefixTerms, function ($a, $b) {
                     return $b['len'] - $a['len'];
                 });
-                $first = array_shift($ftsTerms);
-                $query->where("MATCH(#{$field}) AGAINST('{$first['fts']}' IN BOOLEAN MODE)");
-                foreach ($ftsTerms as $t) {
-                    $query->where($t['locate']);
-                }
+                $first = array_shift($prefixTerms);
+                $ftsTerms[] = $first['fts'];
+            }
+            if ($ftsTerms) {
+                $query->where("MATCH(#{$field}) AGAINST('" . implode(' ', $ftsTerms) . "' IN BOOLEAN MODE)");
+            }
+            foreach ($prefixTerms as $t) {
+                $query->where($t['locate']);
             }
 
             if (!$longWordsCnt && self::isBigTable($query)) {
