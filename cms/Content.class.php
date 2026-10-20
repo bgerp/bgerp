@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -282,6 +282,12 @@ class cms_Content extends core_Master
     {
         if (empty($rec->folderId) && self::isFolderCover($rec)) {
             $mvc->forceCoverAndFolder($rec);
+        }
+
+        // Менютата са разделите на llms.txt
+        $domainId = $rec->domainId ?? $mvc->fetchField($id, 'domainId');
+        if (!empty($domainId)) {
+            self::requestLlmsTxtUpdate($domainId);
         }
     }
     
@@ -1348,9 +1354,9 @@ class cms_Content extends core_Master
     public function cron_UpdateSitemap()
     {
         $dQuery = cms_Domains::getQuery();
-        
+
         $used = array();
-        
+
         while ($dRec = $dQuery->fetch()) {
             if (isset($used[$dRec->domain])) {
                 continue;
@@ -1358,5 +1364,351 @@ class cms_Content extends core_Master
             self::registerSitemap($dRec);
             $used[$dRec->domain] = true;
         }
+    }
+
+
+    /**
+     * Обновява llms.txt-ите за всички хостове
+     */
+    public function cron_UpdateLlmsTxt()
+    {
+        $dQuery = cms_Domains::getQuery();
+
+        $used = array();
+
+        while ($dRec = $dQuery->fetch()) {
+            if (isset($used[$dRec->domain])) {
+                continue;
+            }
+            self::registerLlmsTxt($dRec);
+            $used[$dRec->domain] = true;
+        }
+    }
+
+
+    /**
+     * Заявява обновяване на llms.txt на домейна след малко - повторните заявки се сливат
+     *
+     * @param int $domainId
+     */
+    public static function requestLlmsTxtUpdate($domainId)
+    {
+        core_CallOnTime::setOnce('cms_Content', 'updateLlmsTxt', (int) $domainId, dt::addSecs(60));
+    }
+
+
+    /**
+     * Обновява llms.txt на домейна по заявка от requestLlmsTxtUpdate()
+     *
+     * @param int $domainId
+     */
+    public static function callback_updateLlmsTxt($domainId)
+    {
+        $dRec = cms_Domains::fetch((int) $domainId);
+        if (is_object($dRec)) {
+            self::registerLlmsTxt($dRec);
+        }
+    }
+
+
+    /**
+     * Връща съдържанието на llms.txt за хоста на домейна - Markdown по llmstxt.org
+     *
+     * Файлът е общ за хоста, затова събира езиковите версии, за които е включен.
+     *
+     * @param stdClass $dRec
+     *
+     * @return string|null null, ако за хоста не е включен
+     */
+    public static function getLlmsTxt($dRec)
+    {
+        $dRecs = array();
+        $dQuery = cms_Domains::getQuery();
+        $dQuery->where(array("#domain = '[#1#]' AND #llmsTxt = 'yes'", $dRec->domain ?? ''));
+        $dQuery->orderBy('id');
+        while ($d = $dQuery->fetch()) {
+            $dRecs[$d->id] = $d;
+        }
+
+        if (!countR($dRecs)) {
+
+            return null;
+        }
+
+        $main = reset($dRecs);
+        $isLocalhost = ($main->domain == 'localhost');
+        if (!$isLocalhost) {
+            Mode::push('BGERP_CURRENT_DOMAIN', $main->domain);
+        }
+        core_Lg::push(!empty($main->lang) ? $main->lang : core_Lg::getCurrent());
+
+        try {
+            $lines = self::getLlmsHeader($main);
+
+            foreach ($dRecs as $d) {
+                $query = self::getQuery();
+                $query->where(array("#state = 'active' AND #domainId = [#1#]", $d->id));
+                $query->orderBy('order');
+
+                while ($rec = $query->fetch()) {
+                    $class = cls::getClassName($rec->source, true);
+                    if (!$class || !cls::existsMethod($class, 'getLlmsEntries')) {
+                        continue;
+                    }
+
+                    $entries = cls::get($class)->getLlmsEntries($rec->id);
+                    if (!countR($entries)) {
+                        continue;
+                    }
+
+                    // При няколко езика на хоста разделите се различават по езика
+                    $heading = self::getCleanText($rec->menu);
+                    if (countR($dRecs) > 1) {
+                        $heading .= " ({$d->lang})";
+                    }
+
+                    $lines[] = '';
+                    $lines[] = "## {$heading}";
+                    foreach ($entries as $entry) {
+                        $line = self::getLlmsLine($entry);
+                        if ($line !== null) {
+                            $lines[] = $line;
+                        }
+                    }
+                }
+            }
+        } finally {
+            core_Lg::pop();
+            if (!$isLocalhost) {
+                Mode::pop('BGERP_CURRENT_DOMAIN');
+            }
+        }
+
+        return implode("\n", $lines) . "\n";
+    }
+
+
+    /**
+     * Връща началото на llms.txt - името на сайта, описанието, фирмата и търсенето
+     *
+     * @param stdClass $dRec
+     *
+     * @return array редовете
+     */
+    protected static function getLlmsHeader($dRec)
+    {
+        $company = crm_Companies::fetchOwnCompany();
+        $companyName = self::getCleanText($company->company ?? null);
+        $title = self::getCleanText($dRec->seoTitle ?? null) ?? $companyName ?? $dRec->domain;
+
+        $lines = array("# {$title}");
+
+        $description = self::getCleanText($dRec->seoDescription ?? null);
+        if ($description !== null) {
+            $lines[] = '';
+            $lines[] = "> {$description}";
+        }
+
+        $info = array();
+        if ($companyName !== null && $companyName != $title) {
+            $info[] = $companyName;
+        }
+
+        $address = array_filter(array(
+            self::getCleanText($company->address ?? null),
+            self::getCleanText(trim(($company->pCode ?? '') . ' ' . ($company->place ?? ''))),
+            self::getCleanText($company->country ?? null),
+        ));
+        if (countR($address)) {
+            $info[] = tr('Адрес') . ': ' . implode(', ', $address);
+        }
+
+        $tel = trim((string) ($company->tel ?? ''));
+        $tel = ($tel !== '') ? (string) drdata_PhoneType::getNumberStr($tel, 0) : '';
+        if (strpos($tel, '+') === 0) {
+            $info[] = tr('Телефон') . ': ' . $tel;
+        }
+
+        $emails = type_Emails::toArray($company->email ?? '');
+        if (countR($emails)) {
+            $info[] = tr('Имейл') . ': ' . reset($emails);
+        }
+
+        $vatNo = self::getCleanText($company->vatNo ?? null);
+        if ($vatNo !== null) {
+            $info[] = tr('ДДС №') . ': ' . $vatNo;
+        }
+
+        $searchUrl = self::getSearchUrlTemplate($dRec->id, '{query}');
+        if ($searchUrl !== null) {
+            $info[] = tr('Търсене') . ': ' . $searchUrl;
+        }
+
+        if (countR($info)) {
+            $lines[] = '';
+            foreach ($info as $str) {
+                $lines[] = "- {$str}";
+            }
+        }
+
+        return $lines;
+    }
+
+
+    /**
+     * Връща реда на llms.txt за една връзка от getLlmsEntries()
+     *
+     * @param stdClass $entry title, loc, description, richtext, date, level
+     *
+     * @return string|null
+     */
+    protected static function getLlmsLine($entry)
+    {
+        $title = self::getCleanText($entry->title ?? null);
+        if ($title === null || empty($entry->loc)) {
+
+            return null;
+        }
+
+        $url = is_array($entry->loc) ? toUrl($entry->loc, 'absolute') : $entry->loc;
+        $title = str_replace(array('[', ']'), array('\[', '\]'), $title);
+
+        $description = self::getCleanText($entry->description ?? null) ?? self::getPlainText($entry->richtext ?? null);
+        if ($description !== null && mb_strlen($description) > 200) {
+            $description = mb_substr($description, 0, 200);
+            $description = preg_replace('/\s+\S*$/u', '', $description) . '...';
+        }
+
+        $notes = array_filter(array(
+            !empty($entry->date) ? dt::mysql2verbal($entry->date, 'd.m.Y', null, false) : null,
+            $description,
+        ));
+
+        $line = str_repeat('  ', (int) ($entry->level ?? 0)) . "- [{$title}]({$url})";
+        if (countR($notes)) {
+            $line .= ': ' . implode(' - ', $notes);
+        }
+
+        return $line;
+    }
+
+
+    /**
+     * Генерира и регистрира llms.txt за хоста на домейна или го маха, ако не е включен
+     *
+     * Маха се само генерираният файл - ръчно каченият (от "Статични файлове") остава.
+     *
+     * @param stdClass $dRec
+     */
+    public static function registerLlmsTxt($dRec)
+    {
+        // Обхожда целия сайт - вика се от cron и от core_CallOnTime, които имат малък лимит
+        core_App::setTimeLimit(300);
+
+        $key = 'cms_LlmsTxt|' . cms_Domains::getReal($dRec->domain);
+        $txt = self::getLlmsTxt($dRec);
+
+        if ($txt !== null) {
+            core_Webroot::register($txt, 'Content-Type: text/plain; charset=utf-8', 'llms.txt', $dRec->id);
+            core_Permanent::set($key, md5($txt), core_Permanent::FOREVER_VALUE);
+
+            return;
+        }
+
+        $hash = core_Permanent::get($key);
+        if (empty($hash)) {
+
+            return;
+        }
+
+        if (core_Webroot::isExists('llms.txt', $dRec->id) && md5((string) core_Webroot::getContents('llms.txt', $dRec->id)) == $hash) {
+            core_Webroot::remove('llms.txt', $dRec->id);
+        }
+        core_Permanent::remove($key);
+    }
+
+
+    /**
+     * Шаблонът на адреса за търсене в домейна - на магазина, който търси във всички външни страници, или на статиите
+     *
+     * @param int    $domainId
+     * @param string $term     какво да стои на мястото на търсения текст
+     *
+     * @return string|null
+     */
+    public static function getSearchUrlTemplate($domainId, $term)
+    {
+        $placeholder = 'SEARCHTERMSTRING';
+        $sources = array(
+            'eshop_Groups' => array('eshop_Groups', 'ShowAll', 'cMenuId'),
+            'cms_Articles' => array('cms_Articles', 'Article', 'menuId'),
+        );
+
+        foreach ($sources as $class => list($ctr, $act, $menuVar)) {
+            $menuId = self::getDefaultMenuId($class, $domainId);
+
+            if (empty($menuId) || self::fetchField($menuId, 'state') != 'active') {
+                continue;
+            }
+
+            $url = toUrl(array($ctr, $act, 'q' => $placeholder, $menuVar => $menuId), 'absolute');
+
+            return str_replace($placeholder, $term, $url);
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Преобразува публична скаларна стойност в чист текст
+     *
+     * @param mixed $value
+     *
+     * @return string|null
+     */
+    public static function getCleanText($value)
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $value = html_entity_decode(
+            strip_tags((string) $value),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+        $value = str_replace("\xc2\xa0", ' ', $value);
+        $value = preg_replace('/\s+/u', ' ', $value);
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
+    }
+
+
+    /**
+     * Връща richtext като чист публичен текст, както се вижда на страницата
+     *
+     * Текстовият режим на richtext добавя маркировка (====, *, адреси на връзките),
+     * затова се рендира HTML и се махат таговете.
+     *
+     * @param string|null $richtext
+     *
+     * @return string|null
+     */
+    public static function getPlainText($richtext)
+    {
+        if (empty($richtext)) {
+            return null;
+        }
+
+        $html = cls::get('type_Richtext')->toVerbal($richtext);
+        $html = ($html instanceof core_ET) ? $html->getContent() : (string) $html;
+        $html = preg_replace('#<(script|style)\b.*?</\1>#is', ' ', $html);
+
+        // Интервал на мястото на блоковите елементи, за да не се слепват думите
+        $html = preg_replace('#<(?:br|/?(?:p|div|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|hr))\b[^>]*>#i', ' $0', $html);
+
+        return self::getCleanText($html);
     }
 }

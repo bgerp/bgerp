@@ -24,20 +24,7 @@ class jsonld_Helper
      */
     public static function getCleanText($value)
     {
-        if (!is_scalar($value)) {
-            return null;
-        }
-
-        $value = html_entity_decode(
-            strip_tags((string) $value),
-            ENT_QUOTES | ENT_HTML5,
-            'UTF-8'
-        );
-        $value = str_replace("\xc2\xa0", ' ', $value);
-        $value = preg_replace('/\s+/u', ' ', $value);
-        $value = trim($value);
-
-        return $value !== '' ? $value : null;
+        return cms_Content::getCleanText($value);
     }
 
 
@@ -85,18 +72,7 @@ class jsonld_Helper
      */
     public static function getPlainText($richtext)
     {
-        if (empty($richtext)) {
-            return null;
-        }
-
-        $html = cls::get('type_Richtext')->toVerbal($richtext);
-        $html = ($html instanceof core_ET) ? $html->getContent() : (string) $html;
-        $html = preg_replace('#<(script|style)\b.*?</\1>#is', ' ', $html);
-
-        // Интервал на мястото на блоковите елементи, за да не се слепват думите
-        $html = preg_replace('#<(?:br|/?(?:p|div|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|hr))\b[^>]*>#i', ' $0', $html);
-
-        return self::getCleanText($html);
+        return cms_Content::getPlainText($richtext);
     }
 
 
@@ -263,7 +239,7 @@ class jsonld_Helper
             $properties['publisher'] = array('@id' => $organization->getId());
         }
 
-        $searchUrl = self::getSearchUrlTemplate($domainRec->id);
+        $searchUrl = cms_Content::getSearchUrlTemplate($domainRec->id, '{search_term_string}');
 
         if (isset($searchUrl)) {
             $properties['potentialAction'] = new jsonld_Node('SearchAction', array(
@@ -275,36 +251,6 @@ class jsonld_Helper
         return new jsonld_Node('WebSite', $properties, $url . '#website', 'website-' . $domainRec->id);
     }
 
-
-    /**
-     * Шаблонът на адреса за търсене в домейна - на магазина, който търси във всички външни страници, или на статиите
-     *
-     * @param int $domainId
-     *
-     * @return string|null
-     */
-    protected static function getSearchUrlTemplate($domainId)
-    {
-        $placeholder = 'SEARCHTERMSTRING';
-        $sources = array(
-            'eshop_Groups' => array('eshop_Groups', 'ShowAll', 'cMenuId'),
-            'cms_Articles' => array('cms_Articles', 'Article', 'menuId'),
-        );
-
-        foreach ($sources as $class => list($ctr, $act, $menuVar)) {
-            $menuId = cms_Content::getDefaultMenuId($class, $domainId);
-
-            if (empty($menuId) || cms_Content::fetchField($menuId, 'state') != 'active') {
-                continue;
-            }
-
-            $url = toUrl(array($ctr, $act, 'q' => $placeholder, $menuVar => $menuId), 'absolute');
-
-            return str_replace($placeholder, '{search_term_string}', $url);
-        }
-
-        return null;
-    }
 
 
     /**
