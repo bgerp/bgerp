@@ -7,7 +7,7 @@
  * @package   compactor
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -58,6 +58,20 @@ class compactor_Plugin extends core_Plugin
         }
         $filesArr = arr::make($filesArr, true);
         $configFilesArr = arr::make($configFilesArr, true);
+
+        // Migrate трябва да е непосредствено след jQuery, преди останалите плъгини.
+        $configWithDependencies = array();
+        foreach ($configFilesArr as $file) {
+            $configWithDependencies[$file] = $file;
+            if (preg_match('#^jquery/([^/]+)/jquery\.min\.js$#', $file, $matches)) {
+                $jqueryVersion = strpos($matches[1], '[#') !== false ? jquery_Setup::get('VERSION') : $matches[1];
+                if ($migrateFile = jquery_Jquery::getMigrateFile($jqueryVersion)) {
+                    unset($configWithDependencies[$migrateFile]);
+                    $configWithDependencies[$migrateFile] = $migrateFile;
+                }
+            }
+        }
+        $configFilesArr = $configWithDependencies;
         
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
         if (!countR(array_intersect_key($filesArr, $configFilesArr))) {

@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -89,11 +89,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         
         //Групи артикули
-        if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
-        } else {
-            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
-        }
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
         
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none');

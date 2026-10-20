@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -94,11 +94,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=compareStart');
         $fieldset->FLD('seeCrmGroup', 'set(yes = )', 'caption=Контрагенти->Група контрагенти,after=contragent,removeAndRefreshForm,silent,single=none');
 
-        if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=seeCrmGroup,single=none');
-        } else {
-            $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=seeCrmGroup,single=none');
-        }
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=seeCrmGroup,single=none');
 
         //Склад
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Избор на склад->Склад,placeholderType=all,after=crmGroup,single=none');
@@ -106,11 +102,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Групиране на резултата
         $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=storeId,removeAndRefreshForm,silent,single=none');
 
-        if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholderType=all,after=seeGroup,single=none');
-        } else {
-            $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholderType=all,after=seeGroup,single=none');
-        }
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholderType=all,after=seeGroup,single=none');
 
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
 

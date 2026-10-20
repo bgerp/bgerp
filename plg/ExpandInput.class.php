@@ -8,7 +8,7 @@
  * @package   plg
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -78,25 +78,22 @@ class plg_ExpandInput extends core_Plugin
         // Създаваме ново инпут поле
         if (!$fieldset->getField($inputFieldName, false)) { 
             $expandField = $mvc->getField($originalFieldName);
-            $pMvc = $expandField->type->params['mvc'];
-            $select = $expandField->type->params['select'];
-            $caption = 'caption=' . $expandField->caption;
+            $pMvc = $expandField->type->params['mvc'] ?? '';
+            $select = $expandField->type->params['select'] ?? '';
+            $caption = 'caption=' . ($expandField->caption ?? '');
             
             // Ако полето е мандатори
             if ($expandField->mandatory ?? null) {
                 $caption .= ',mandatory';
             }
             
-            if (BGERP_GIT_BRANCH == 'dev') {
-                $fieldset->FLD($inputFieldName, "keylist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
-            } else {
-                $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
-            }
+            $parentId = $mvc->expandParentFieldName ?? 'parentId';
+            $fieldset->FLD($inputFieldName, "keylist(mvc={$pMvc}, select={$select}, parentId={$parentId})", $caption);
 
             $expand36Name = $mvc->getExpandFieldName36();
             $fieldset->FLD($expand36Name, "text", 'input=none');
          
-            $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params);
+            $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params ?? array());
 
         }
     }

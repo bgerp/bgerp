@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -79,11 +79,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,single=none');
 
         // Групи артикули
-        if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=slalesDog,single=none');
-        } else {
-            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=weeks,single=none');
-        }
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=slalesDog,single=none');
 
         $fieldset->FLD('period', 'enum(all=Общо за периода,byWeeks=По седмици)', 'caption=Показване,after=groups,silent');
     }
