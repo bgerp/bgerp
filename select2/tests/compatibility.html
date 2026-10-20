@@ -79,7 +79,7 @@
             <option value="15" class="l5 non-leaf" data-pup="14">Родител » Дъщерен » Трето ниво » Четвърто » Пето</option>
             <option value="16" class="l6 non-leaf" data-pup="15">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто</option>
             <option value="17" class="l7 non-leaf" data-pup="16">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо</option>
-            <option value="18" class="l8" data-pup="17">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо » Осмо</option>
+            <option value="18" class="l8" data-pup="17" data-color="#00aa00" data-colorClass="green">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо » Осмо</option>
             <option value="50" class="l1 non-leaf">Втори родител</option>
             <option value="51" class="l2" data-pup="50">Втори родител » Втори клон</option>
         </select>
@@ -123,7 +123,14 @@
                 var $remote = $('#remote').select2(options({ajax: {
                     transport: function (params, success) {
                         var timer = setTimeout(function () {
-                            success([{id: 101, text: 'Отдалечен първи'}, {id: 102, text: 'Отдалечен втори'}]);
+                            success([
+                                {id: null, text: 'Отдалечена група', group: true,
+                                    gElement: {className: 'group', group: true}},
+                                {id: 101, text: 'Отдалечен първи',
+                                    gElement: {className: 'ajax-colour'},
+                                    attr: {'data-color': '#00aa00', 'data-colorClass': 'green'}},
+                                {id: 102, text: 'Отдалечен втори'}
+                            ]);
                         }, 10);
                         return {abort: function () { clearTimeout(timer); }};
                     },
@@ -279,11 +286,27 @@
                         treeClearBox.left + treeClearBox.width / 2,
                         treeClearBox.top + treeClearBox.height / 2)));
                 check('deep selection does not select ancestors', ($tree.val() || []).join(',') === '18,51');
+                check('short tree label preserves colour from the native option',
+                    deepItems[7].find('.color-preview.green').length === 1);
+                check('selected tree path preserves colour',
+                    $tree.next().find('.select2-selection__choice .color-preview.green').length === 1);
                 $tree.select2('close');
                 search($remote, 'Отдалечен');
                 await new Promise(function (resolve) { setTimeout(resolve, 60); });
-                $('.select2-results__option').filter(function () { return $(this).text() === 'Отдалечен първи'; }).trigger('mouseup');
+                check('AJAX group uses gElement metadata', $('.select2-results span.group').length === 1);
+                check('AJAX colour and class render without a synthetic element',
+                    $('.select2-results .ajax-colour .color-preview.green').length === 1);
+                $('.select2-results__option').filter(function () { return $(this).text().trim() === 'Отдалечен първи'; }).trigger('mouseup');
                 check('AJAX numeric selection', ($remote.val() || []).join(',') === '101');
+                check('AJAX selection has a native option element',
+                    $remote.select2('data')[0].element === $remote.find('option[value="101"]')[0]);
+                check('AJAX selected colour is preserved',
+                    $remote.next().find('.select2-selection__choice .color-preview.green').length === 1);
+                search($remote, 'Отдалечен');
+                await new Promise(function (resolve) { setTimeout(resolve, 60); });
+                check('AJAX colour survives a repeated search',
+                    $('.select2-results .ajax-colour .color-preview.green').length === 1);
+                $remote.select2('close');
                 $remote.next().find('.select2-selection__choice__remove').trigger('mousedown').trigger('click');
                 check('AJAX unselect', ($remote.val() || []).length === 0);
                 $remote.select2('close');
