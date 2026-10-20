@@ -1107,7 +1107,13 @@ class cms_Articles extends core_Master
             if (!trim((string) $rec->body)) {
                 continue;
             }
-            $res[] = (object) array('title' => $rec->title, 'loc' => $this->getUrl($rec, true), 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body, 'level' => 0);
+            // При A/a/<vid> getUrl() кодира vid-а, а toUrl() го кодира пак - тук е кодиран веднъж
+            $loc = $this->getUrl($rec, true);
+            if ($loc[0] == 'A') {
+                $loc[2] = urldecode((string) $loc[2]);
+            }
+
+            $res[] = (object) array('title' => $rec->title, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body, 'level' => 0);
         }
 
         return $res;

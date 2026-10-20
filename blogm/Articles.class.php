@@ -1816,7 +1816,11 @@ class blogm_Articles extends core_Master
                     continue;
                 }
                 $used[$rec->id] = true;
-                $articles[] = (object) array('title' => $rec->title, 'loc' => $this->getUrl($rec, true), 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body, 'date' => $rec->publishedOn ?? $rec->createdOn, 'level' => 1);
+                // getUrl() кодира vid-а, а toUrl() го кодира пак - тук е кодиран веднъж
+                $loc = $this->getUrl($rec, true);
+                $loc[2] = urldecode((string) $loc[2]);
+
+                $articles[] = (object) array('title' => $rec->title, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body, 'date' => $rec->publishedOn ?? $rec->createdOn, 'level' => 1);
             }
 
             if (countR($articles)) {
