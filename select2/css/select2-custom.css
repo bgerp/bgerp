@@ -92,6 +92,7 @@ select.largeSelect + span.select2-container--default{
 .select2-container .select2-selection--multiple .select2-selection__rendered {
     position: relative;
     top: 2px;
+    overflow: visible;
 }
 .select2-container .select2-selection--multiple .select2-selection__choice {
     margin-top: 2px !important;
@@ -165,9 +166,32 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-    margin-right: 0;
-    margin-left: 2px;
-    float: right;
+    position: absolute;
+    left: auto;
+    right: 1px;
+    top: 0;
+    bottom: 0;
+    width: 16px;
+    margin: 0;
+    color: #777;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: center;
+    cursor: pointer;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    padding: 0 19px 0 5px;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #333;
+    background: transparent;
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__clear {
@@ -177,9 +201,44 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     font-size: 1.1em;
 }
 
+/* В 4.0.x изчистването е вътре в списъка, преди десния padding на полето. */
+.select2-container--default .select2-selection--multiple .select2-selection__rendered > .select2-selection__clear {
+    right: -10px;
+}
+
 .select2-container--default .select2-selection--single .select2-selection__clear {
     position: absolute;
     right: 20px;
+}
+
+/* Select2 4.1 използва бутони; темите задават общи стилове с !important. */
+.select2-container--default .select2-selection button.select2-selection__choice__remove,
+.select2-container--default .select2-selection button.select2-selection__clear {
+    padding: 0 !important;
+    margin: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    line-height: inherit;
+}
+
+.select2-container--default .select2-selection button.select2-selection__choice__remove {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.select2-container--default .select2-selection__clear {
+    width: 18px;
+    margin: 0 !important;
+    font-family: Arial, sans-serif;
+    font-size: 16px !important;
+    font-weight: normal;
+    text-align: center;
+    cursor: pointer;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__display {
+    padding: 0;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected],
@@ -249,13 +308,51 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
        background-color: #5897fb !important;
 }
 .s2-to-tree .expand-collapse {
-    font-size: 1.3em;
-    top: -3px;
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 26px;
+    min-height: 26px;
+    cursor: pointer;
 }
-.select2-results__option.l2, .select2-results__option.l3, .select2-results__option.l4 {
+.select2-container.s2-to-tree li.select2-results__option.non-leaf > .expand-collapse:before {
+    content: "+";
+    left: 6px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    color: #666;
+    background: #fff;
+    font: normal 14px/12px Arial, sans-serif;
+    text-align: center;
+}
+.select2-container.s2-to-tree li.select2-results__option.non-leaf.opened > .expand-collapse:before {
+    content: "\2212";
+}
+.select2-container.s2-to-tree li.select2-results__option.non-leaf > .expand-collapse:hover:before {
+    border-color: #5684b3;
+    color: #35638e;
+    background: #eef4fa;
+}
+.s2-to-tree li.select2-results__option > .item-label {
+    margin-left: 26px;
+    width: calc(100% - 26px);
+}
+.s2-to-tree li.select2-results__option {
     font-size: 1em !important;
 }
+.s2-to-tree li.select2-results__option.l1 { margin-left: 0; }
+.s2-to-tree li.select2-results__option.l2 { margin-left: 18px; }
+.s2-to-tree li.select2-results__option.l3 { margin-left: 36px; }
+.s2-to-tree li.select2-results__option.l4 { margin-left: 54px; }
+.s2-to-tree li.select2-results__option.l5 { margin-left: 72px; }
+.s2-to-tree li.select2-results__option.l6 { margin-left: 90px; }
+.s2-to-tree li.select2-results__option.l7 { margin-left: 108px; }
+.s2-to-tree li.select2-results__option.l8 { margin-left: 126px; }
 .s2-to-tree  .select2-results__option--highlighted,  .s2-to-tree  .select2-results__option--highlighted:hover,.s2-to-tree  .expand-collapse{
     background: none !important;
 }
