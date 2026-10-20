@@ -268,6 +268,11 @@ class type_Key2 extends type_Int
         // 2. Ако опциите са под MaxSuggestions - показваме обикновен селект
         // 2. Комбобокс с id вградени в титлата, ако нямаме селект 2
         
+        // Отказан масив от URL-а (name[]=...) се показва като празно поле
+        if (is_array($value)) {
+            $value = '';
+        }
+        
         if (defined('TEST_MODE') && TEST_MODE) {
             $this->params['maxSuggestions'] = 100000;
         }

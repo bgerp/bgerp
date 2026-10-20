@@ -20,6 +20,9 @@ class dt
     public static function mysql2verbal(...$args) { return '20-10-2026'; }
 }
 class core_HackDetector { public static function check($value, $tolerance) {} }
+class core_Packs { public static function isInstalled($pack) { return false; } }
+class ht { public static function createSelect($name, $options, $value, $attr) { return array('name' => $name, 'value' => $value); } }
+class arr { public static function combine(...$arrays) { $res = array(); foreach ($arrays as $a) $res += $a; return $res; } }
 require dirname(__DIR__, 2) . '/core/BaseClass.class.php';
 require dirname(__DIR__, 2) . '/core/Type.class.php';
 foreach (array('Varchar', 'Date', 'Keylist', 'Users', 'Int', 'Key2') as $name) require dirname(__DIR__) . '/' . $name . '.class.php';
@@ -63,6 +66,12 @@ check($users->fromVerbal_('1_7') === '|7|' && $users->fromVerbal_('7') === '|7|'
 $key = new InputKey();
 check($key->fromVerbal_('7') === 7 && $key->fromVerbal_('Synthetic group (7)') === 7 && $key->fromVerbal_('') === null,
     'Key ids, titles and empty values still work');
+$key = new InputKey();
+$key->params['maxSuggestions'] = 10;
+$attr = array();
+check($key->renderInput_('groupId', array('1'), $attr)['value'] === '', 'The form with a refused array renders an empty key field');
+$attr = array();
+check($key->renderInput_('groupId', '7', $attr)['value'] === '7', 'A valid key is still rendered as selected');
 $text = new type_Varchar();
 check($text->fromVerbal_('  abc  ') === 'abc' && $text->fromVerbal_(null) === '', 'Text trimming and empty input remain unchanged');
 echo "PASS: {$checks} input checks\n";

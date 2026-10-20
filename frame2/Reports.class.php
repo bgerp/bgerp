@@ -1635,12 +1635,15 @@ class frame2_Reports extends embed_Manager
     }
     
     
-    /** Линкът и неговите hooks използват само заглавие, състояние и права. */
-    public function getLink($id, $maxLength = false, $attr = array())
+    /**
+     * Линкът и неговите hooks използват само заглавие, състояние и права.
+     * Статичен е, защото се вика и като frame2_Reports::getLink() (досега през __callStatic).
+     */
+    public static function getLink($id, $maxLength = false, $attr = array())
     {
         Mode::push(self::LIGHT_FETCH_MODE, true);
         try {
-            return parent::__call('getLink', array($id, $maxLength, $attr));
+            return static::instance()->__call('getLink', array($id, $maxLength, $attr));
         } finally {
             Mode::pop(self::LIGHT_FETCH_MODE);
         }

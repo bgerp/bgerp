@@ -184,6 +184,9 @@ $caught = null;
 try { $report->getLink(1); } catch (RuntimeException $e) { $caught = $e; }
 check($caught === LightFetchDriver::$exception && !Mode::is('lightFetch'), 'Грешка при линк не оставя включен lightFetch');
 LightFetchDriver::$exception = null;
+resetReads($report);
+$link = LightFetchReport::getLink(1, 0);
+check(noPayloadRead() && strpos($link['title'], '#Rpt1') === 0 && !Mode::is('lightFetch'), 'Статичното извикване на линка работи както преди');
 check(isset($report->fetch(1)->data), 'Пълното четене след линк запазва резултата');
 resetReads($report);
 $report->getDocumentRow(1);
