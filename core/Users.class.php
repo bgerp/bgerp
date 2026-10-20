@@ -90,7 +90,7 @@ defIfNot(
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -138,6 +138,12 @@ class core_Users extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'admin';
+    
+    
+    /**
+     * Кой може групово да подменя роли?
+     */
+    public $canReplaceroles = 'admin';
     
     
     /**
@@ -608,6 +614,10 @@ class core_Users extends core_Manager
     {
         if (haveRole('admin')) {
             $data->toolbar->addBtn('Миграция на папки', array('core_Users', 'migrateFolders'));
+        }
+        
+        if ($mvc->haveRightFor('replaceroles')) {
+            $data->toolbar->addBtn('Подмяна на роли', array($mvc, 'replaceRoles', 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Групова подмяна на роли на потребителите');
         }
     }
     
@@ -2645,6 +2655,85 @@ class core_Users extends core_Manager
         }
         
         return $html;
+    }
+    
+    
+    /**
+     * Сменя посочените роли с новата при потребителите, които ги имат
+     *
+     * @param array $oldIds - ид-та на старите роли
+     * @param int   $newId  - ид на новата роля
+     *
+     * @return int - брой променени потребители
+     */
+    public static function replaceRolesForUsers($oldIds, $newId)
+    {
+        expect(ctype_digit((string) $newId) && core_Roles::fetchById($newId), $newId);
+        $ids = arr::makeIds($oldIds);
+        $oldIds = array_combine($ids, $ids);
+        unset($oldIds[$newId]);
+
+        // При празен списък likeKeylist не ограничава заявката и ролята би се дала на всички
+        if (empty($oldIds)) {
+
+            return 0;
+        }
+
+        $Users = cls::get('core_Users');
+        $query = self::getQuery();
+        $query->likeKeylist('rolesInput', keylist::fromArray($oldIds));
+        $count = 0;
+        while ($rec = $query->fetch()) {
+            $rolesArr = array_diff_key(keylist::toArray($rec->rolesInput), $oldIds);
+            $rolesArr[$newId] = $newId;
+            $rec->rolesInput = keylist::fromArray($rolesArr);
+            $Users->save($rec, 'rolesInput,roles');
+            self::logWrite('Подмяна на роли', $rec->id);
+            $count++;
+        }
+        
+        return $count;
+    }
+    
+    
+    /**
+     * Групова подмяна на роли с друга роля при потребителите
+     */
+    public function act_ReplaceRoles()
+    {
+        $this->requireRightFor('replaceroles');
+        
+        // Ранговете и системните роли не се подменят, защото се поддържат автоматично
+        $where = "#type !\\= \\'rang\\' AND #type !\\= \\'system\\'";
+        $form = cls::get('core_Form');
+        $form->title = 'Подмяна на роли';
+        $form->FLD('oldRoles', "keylist(mvc=core_Roles,select=role,groupBy=type,where={$where},orderBy=orderByRole)", 'caption=Роли за подмяна,mandatory');
+        $form->FLD('newRole', "key(mvc=core_Roles,select=role,where={$where},allowEmpty)", 'caption=Нова роля,mandatory');
+        $form->input();
+        
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            $oldIds = keylist::toArray($rec->oldRoles);
+            if (isset($oldIds[$rec->newRole])) {
+                $form->setError('newRole', 'Новата роля не може да е сред подменяните|*!');
+            } else {
+                
+                // Преди подмяната се показва колко потребители ще бъдат засегнати
+                $uQuery = self::getQuery();
+                $uQuery->likeKeylist('rolesInput', $rec->oldRoles);
+                $form->setWarning('oldRoles,newRole', '|Брой потребители, при които ролите ще бъдат подменени|*: ' . $uQuery->count());
+            }
+
+            if (!$form->gotErrors()) {
+                $count = self::replaceRolesForUsers($oldIds, $rec->newRole);
+                followRetUrl(array($this, 'list'), "|Ролите са подменени при потребителите|*: {$count}!");
+            }
+        }
+        
+        $form->toolbar->addSbBtn('Подмяна', 'save', 'ef_icon=img/16/arrow_refresh.png, title=Подмяна на ролите');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png, title=Прекратяване на действията');
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
