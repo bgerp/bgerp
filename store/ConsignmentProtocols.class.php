@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -201,7 +201,7 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
@@ -505,7 +505,7 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         if(isset($rec->contragentClassId) && isset($rec->contragentId)){
-            $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
+            $form->setFieldTypeParams('locationId', array('contragentClass' => $rec->contragentClassId, 'contragentId' => $rec->contragentId));
         } else {
             $form->setReadOnly('locationId');
         }

@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -221,7 +221,7 @@ class store_Stores extends core_Master
         $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време');
 
         $this->FLD('chiefs', 'userList(roles=store|ceo|production,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
-        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
         $this->FLD('workersIds', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Допълнително->Товарачи');
 
@@ -306,8 +306,7 @@ class store_Stores extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $company = crm_Companies::fetchOwnCompany();
-        $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);
-        $data->form->setOptions('locationId', $locations);
+        $data->form->setFieldTypeParams('locationId', array('contragentClass' => crm_Companies::getClassId(), 'contragentId' => $company->companyId));
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {

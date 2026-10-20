@@ -9,7 +9,7 @@
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.12
@@ -353,7 +353,7 @@ class crm_Persons extends core_Master
             'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)',
             'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId'
         );
-        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
+        $this->FLD('buzLocationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
@@ -1983,10 +1983,8 @@ class crm_Persons extends core_Master
         }
 
         if (!empty($form->rec->buzCompanyId)) {
-            $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
-            $form->setOptions('buzLocationId', $locations);
-            if (countR($locations)) {
-                $form->setOptions('buzLocationId', $locations);
+            $form->setFieldTypeParams('buzLocationId', array('contragentClass' => crm_Companies::getClassId(), 'contragentId' => $form->rec->buzCompanyId));
+            if (countR($form->getFieldType('buzLocationId')->getOptions(1))) {
                 $form->setField('buzLocationId', 'input');
             }
         }
