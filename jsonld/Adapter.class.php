@@ -2,7 +2,7 @@
 
 
 /**
- * Сериализира jsonld_Node възлите в една обща JSON-LD графа
+ * Сериализира jsonld_Node възлите в обща JSON-LD графа, а единичен възел - направо
  *
  * Без външни библиотеки - възлите сами дават масива си (jsonld_Node::toArray()).
  */
@@ -33,11 +33,13 @@ class jsonld_Adapter
             $graph[] = $node->toArray();
         }
 
+        // Един възел се дава направо, без обвивка в граф
+        $data = (count($graph) == 1)
+            ? array('@context' => 'https://schema.org') + $graph[0]
+            : array('@context' => 'https://schema.org', '@graph' => $graph);
+
         $json = json_encode(
-            array(
-                '@context' => 'https://schema.org',
-                '@graph' => $graph,
-            ),
+            $data,
             JSON_UNESCAPED_UNICODE |
             JSON_UNESCAPED_SLASHES |
             JSON_HEX_TAG |

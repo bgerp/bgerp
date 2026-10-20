@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -333,7 +333,7 @@ class planning_Jobs extends core_Master
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок,input=hidden');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие,input=hidden');
-        $this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място,input=hidden');
+        $this->FLD('deliveryPlace', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Данни от договора->Място,input=hidden');
 
         $this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
         $this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -509,8 +509,7 @@ class planning_Jobs extends core_Master
                 $form->setDefault('deliveryTermId', $sourceRec->deliveryTermId ?? null);
                 $form->setDefault('deliveryDate', $deliveryDate);
                 $form->setDefault('deliveryPlace', $sourceRec->deliveryLocationId ?? null);
-                $locations = crm_Locations::getContragentOptions($sourceRec->contragentClassId ?? null, $sourceRec->contragentId ?? null);
-                $form->setOptions('deliveryPlace', $locations);
+                $form->setFieldTypeParams('deliveryPlace', array('contragentClass' => $sourceRec->contragentClassId ?? null, 'contragentId' => $sourceRec->contragentId ?? null));
                 $caption = '|Данни от|* <b>' . $sourceClass::getRecTitle($sourceId) . '</b>';
                 $caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
 

@@ -8,7 +8,7 @@
  * @package   cvc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title  CVC API
  *
@@ -19,7 +19,7 @@ class cvc_interface_CourierImpl extends core_Manager
     /**
      * Роли по дефолт, които изисква драйвера
      */
-    public $requireRoles = 'ceo,cvc';
+    public $requireRoles = 'ceo,courier';
 
 
     /**
@@ -49,7 +49,7 @@ class cvc_interface_CourierImpl extends core_Manager
     /**
      * Кой може да взима опциите от стринг
      */
-    public $canGetplacesbystring = 'cvc,ceo';
+    public $canGetplacesbystring = 'courier,ceo';
 
 
     /**

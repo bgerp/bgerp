@@ -400,10 +400,18 @@ class plg_Search extends core_Plugin
                     } else {
                         $cond = '';
                         if ($mode == '+') {
-                            $ftsTerms[] = "+{$w}{$wordEndQ}";
+                            $ftsTerms[] = array(
+                                'fts' => "+{$w}{$wordEndQ}",
+                                'locate' => "LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field})",
+                                'len' => strlen($w),
+                            );
                         }
                         if ($mode == '"') {
-                            $ftsTerms[] = "+\"{$w}\"";
+                            $ftsTerms[] = array(
+                                'fts' => "+\"{$w}\"",
+                                'locate' => "LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field})",
+                                'len' => strlen($w),
+                            );
                         }
                         if ($mode == '-') {
                             $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
@@ -416,9 +424,18 @@ class plg_Search extends core_Plugin
                 }
             }
 
-            // Един общ MATCH - индексът прави сечението на думите, вместо останалите да се проверяват ред по ред
+            // MyISAM FTS не пресича ефективно няколко prefix термина (+a* +b* е по-бавно от всеки поотделно).
+            // Само най-дългият (най-селективен) термин минава през индекса, останалите са LOCATE
+            // върху вече филтрирания резултат - семантично еквивалентно на +w*
             if ($ftsTerms) {
-                $query->where("MATCH(#{$field}) AGAINST('" . implode(' ', $ftsTerms) . "' IN BOOLEAN MODE)");
+                usort($ftsTerms, function ($a, $b) {
+                    return $b['len'] - $a['len'];
+                });
+                $first = array_shift($ftsTerms);
+                $query->where("MATCH(#{$field}) AGAINST('{$first['fts']}' IN BOOLEAN MODE)");
+                foreach ($ftsTerms as $t) {
+                    $query->where($t['locate']);
+                }
             }
 
             if (!$longWordsCnt && self::isBigTable($query)) {

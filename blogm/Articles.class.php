@@ -9,7 +9,7 @@
  * @package   blogm
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1790,6 +1790,51 @@ class blogm_Articles extends core_Master
     }
     
     
+    /**
+     * Връща категориите на блога и статиите в тях за llms.txt
+     *
+     * @param int $menuId
+     *
+     * @return array
+     */
+    public function getLlmsEntries($menuId)
+    {
+        $menuId = (int) $menuId;
+        $cRec = cms_Content::fetch($menuId);
+        $categories = blogm_Categories::getCategoriesByDomain($cRec->domainId ?? null, $menuId, null, true);
+        $res = $used = array();
+
+        foreach ($categories as $id => $title) {
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->likeKeylist('categories', $id);
+            $query->orderBy('publishedOn', 'DESC');
+
+            $articles = array();
+            while ($rec = $query->fetch()) {
+                // Статия в няколко категории е само под първата
+                $articleId = (int) ($rec->id ?? 0);
+                if (!empty($used[$articleId])) {
+                    continue;
+                }
+                $used[$articleId] = true;
+                // getUrl() кодира vid-а, а toUrl() го кодира пак - тук е кодиран веднъж
+                $loc = $this->getUrl($rec, true);
+                $loc[2] = urldecode((string) ($loc[2] ?? ''));
+
+                $articles[] = (object) array('title' => $rec->title ?? null, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->body ?? null, 'date' => $rec->publishedOn ?? $rec->createdOn ?? null, 'level' => 1);
+            }
+
+            if (countR($articles)) {
+                $res[] = (object) array('title' => $title, 'loc' => array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $id), 'level' => 0);
+                $res = array_merge($res, $articles);
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Връща масив с обекти, съдържащи връзки към публичните страници на блога
      */

@@ -135,8 +135,17 @@ body.commerce-theme .externalPage > header .headerImg {
     position: relative;
 }
 body.commerce-theme .externalPage > header .headerImg:not(.commerce-default-banner) {
-    width: auto !important;
-    margin-inline: auto;
+    width: 100% !important;
+    height: var(--commerce-banner-height, 180px) !important;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+    margin: 0;
+}
+body.commerce-theme .externalPage > header .fadein:has(.headerImg) {
+    position: relative;
+    height: var(--commerce-banner-height, 180px);
+    overflow: hidden;
 }
 body.commerce-theme .externalPage > header .headerImg[style*="display:none"],
 body.commerce-theme .externalPage > header .headerImg[style*="display: none"] { display: none; }
@@ -161,7 +170,8 @@ body.commerce-theme .externalPage > header .headerImg[style*="display: none"] { 
         margin-top: 16px;
         border-radius: 8px;
     }
-    body.commerce-theme .externalPage > header .headerImg { max-height: 140px; }
+    body.commerce-theme .externalPage > header { --commerce-banner-height: 140px; }
+    body.commerce-theme .externalPage > header .commerce-default-banner { max-height: 140px; }
 }
 @media (prefers-reduced-motion: reduce) {
     body.commerce-theme #cmsMenu.menuRow a { transition: none; }
