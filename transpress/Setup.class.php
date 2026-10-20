@@ -38,7 +38,7 @@ defIfNot('TRANSPRESS_TEST_URL', 'https://app.transpress.bg/steps-beta');
  * @package   transpress
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -61,8 +61,8 @@ class transpress_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'TRANSPRESS_USERNAME' => array('varchar', 'caption=|Акаунт в|* Transpress->Потребител,customizeBy=transpress|ceo'),
-        'TRANSPRESS_PASSWORD' => array('password', 'caption=|Акаунт в|* Transpress->Парола,customizeBy=transpress|ceo'),
+        'TRANSPRESS_USERNAME' => array('varchar', 'caption=|Акаунт в|* Transpress->Потребител,customizeBy=courier|ceo'),
+        'TRANSPRESS_PASSWORD' => array('password', 'caption=|Акаунт в|* Transpress->Парола,customizeBy=courier|ceo'),
         'TRANSPRESS_ENVIRONMENT' => array('enum(production=Продукция,test=Тест)', 'caption=Връзка->Среда'),
         'TRANSPRESS_PRODUCTION_URL' => array('url', 'caption=Връзка->Продукция'),
         'TRANSPRESS_TEST_URL' => array('url', 'caption=Връзка->Тест'),
@@ -72,13 +72,13 @@ class transpress_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'transpress';
+    public $roles = 'courier';
 
 
     /**
      * Мениджъри за инсталиране
      */
-    public $managers = array('transpress_WayBills');
+    public $managers = array('transpress_WayBills', 'migrate::replaceRoleWithCourier2643');
 
 
     /**
@@ -112,5 +112,14 @@ class transpress_Setup extends core_ProtoSetup
         }
 
         return null;
+    }
+
+
+    /**
+     * Ролята transpress се заменя с общата роля courier
+     */
+    public function replaceRoleWithCourier2643()
+    {
+        return core_Roles::replaceRole('transpress', 'courier');
     }
 }

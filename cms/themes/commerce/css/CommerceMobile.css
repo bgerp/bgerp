@@ -83,8 +83,8 @@ body.commerce-theme:is(.narrow, .commerce-compact) .commerce-primary-menu[open] 
 }
 body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu .commerce-primary-links a { justify-content: flex-start; }
 body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header { width: calc(100% - 1.5rem); margin-top: 0.75rem; border-radius: 8px; }
-/* Качените банери запазват пропорциите си и на тесен екран. */
-body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header .headerImg:not(.commerce-default-banner) { min-height: 0; object-fit: contain; }
+/* Постоянна височина и при смяна на качените банери. */
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header { --commerce-banner-height: 140px; }
 /* Лентата с потребителя е в потока под банера - без отстъпите за абсолютната ѝ позиция от класическата тема */
 body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #maincontent.hasLogoutBlock { padding-top: 0 !important; }
 body.commerce-theme:is(.narrow, .commerce-compact) #maincontent.hasLogoutBlock .centerContent { padding-top: 0; }

@@ -612,10 +612,14 @@ class cat_Products extends embed_Manager
             
             // При редакция ако артикула е използван с тази мярка, тя не може да се променя
             if (isset($rec->id) && ($data->action ?? null) != 'clone') {
+                $createdOn = $rec->createdOn ?? null;
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
+                } elseif (!empty($createdOn) && $createdOn <= cat_products_Packagings::getPastHorizon()) {
+                    $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId ?? null);
+                    $usedMeasures = core_Permanent::get("productUsedMeasures|{$rec->id}");
+                    $isUsed = is_array($usedMeasures) && isset($rec->measureId) && isset($usedMeasures[$rec->measureId]);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена

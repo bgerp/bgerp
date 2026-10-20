@@ -16,7 +16,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -433,6 +433,11 @@ class type_Users extends type_Keylist
      */
     public function fromVerbal_($value)
     {
+        if (is_array($value)) {
+            $this->error = 'Некоректна стойност';
+
+            return false;
+        }
         $this->prepareOptions();
 
         if (!isset($value) || $value === '') {

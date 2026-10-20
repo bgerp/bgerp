@@ -39,7 +39,7 @@ defIfNot('SPEEDY_DEFAULT_ACCOUNT_PASSWORD', '');
  * @package   speedy
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -77,13 +77,14 @@ class speedy_Setup extends core_ProtoSetup
     public $managers = array('speedy_Offices',
                              'speedy_WayBills',
                              'migrate::deletePlugins2251',
-                             'migrate::renamePluginsClass2642');
+                             'migrate::renamePluginsClass2642',
+                             'migrate::replaceRoleWithCourier2643');
     
     
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'speedy';
+    public $roles = 'courier';
     
     
     /**
@@ -112,8 +113,8 @@ class speedy_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'SPEEDY_DEFAULT_ACCOUNT_USERNAME' => array('varchar','caption=Акаунт в сайта на Speedy->Потребител,customizeBy=speedy|ceo'),
-        'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=speedy|ceo'),
+        'SPEEDY_DEFAULT_ACCOUNT_USERNAME' => array('varchar','caption=Акаунт в сайта на Speedy->Потребител,customizeBy=courier|ceo'),
+        'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=courier|ceo'),
         'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=URL->Локатор на офис'),
         'SPEEDY_TRACKING_URL' => array('varchar', 'caption=URL->Проследяване на пратка'),
         'SPEEDY_API_BASE_URL' => array('url', 'caption=URL->REST API'),
@@ -171,5 +172,14 @@ class speedy_Setup extends core_ProtoSetup
             $rec->class = 'speedy_WayBills';
             $Plugins->save($rec, 'class');
         }
+    }
+
+
+    /**
+     * Ролята speedy се заменя с общата роля courier
+     */
+    public function replaceRoleWithCourier2643()
+    {
+        return core_Roles::replaceRole('speedy', 'courier');
     }
 }

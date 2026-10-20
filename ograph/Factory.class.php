@@ -12,7 +12,7 @@ require_once getFullPath('ograph/open-graph-protocol-tools/objects.php');
  * @package   ograph
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -309,11 +309,18 @@ class ograph_Factory extends core_Master
             $rec->ogp->imageInfo = array('url' => $imageURL, 'type' => "image/{$type}");
         }
         
-        $lang = cms_Domains::getPublicDomain('lang');
-        
+        $domainRec = cms_Domains::getPublicDomain();
+        $lang = $domainRec->lang ?? null;
+
+        // Името на сайта е като в заглавието на страницата - SEO заглавието на домейна, а не хостът
+        $siteName = !empty($domainRec->seoTitle) ? $domainRec->seoTitle : core_Setup::get('EF_APP_TITLE', true);
+        if (empty($siteName)) {
+            $siteName = $_SERVER['HTTP_HOST'] ?? (defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : ($domainRec->domain ?? null));
+        }
+
         // Ако преглеждаме единична статия зареждаме и нейния Ograph
         $rec->ogp->siteInfo = array('Locale' => ($lang == 'bg') ? 'bg_BG' : 'en_GB',
-            'SiteName' => $_SERVER['HTTP_HOST'] ?? (defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : cms_Domains::getPublicDomain('domain')),
+            'SiteName' => $siteName,
             'Title' => $rec->seoTitle,
             'Description' => $rec->seoDescription,
             'Type' => 'article',

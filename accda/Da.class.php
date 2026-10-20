@@ -9,7 +9,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -180,7 +180,7 @@ class accda_Da extends core_Master
         $this->FLD('info', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Описание,column=none,width=400px');
         $this->FLD('origin', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Произход,column=none,width=400px');
         $this->FLD('amortNorm', 'percent', 'caption=Дълготраен актив->ГАН,hint=Годишна амортизационна норма,notNull');
-        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Дълготраен актив->Локация,column=none,width=400px,silent,refreshForm');
+        $this->FLD('location', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Дълготраен актив->Локация,column=none,width=400px,silent,refreshForm');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Дълготраен актив->Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Дълготраен актив->Снимка');
         $this->FLD('syncWithAsset', 'enum(no=Няма,new=Нов ресурс,existing=Съществуващ ресурс)', 'caption=Оборудване->Ресурс,notNull,value=new,silent,removeAndRefreshForm=exAssetId|assetCode|assetGroupId|assetResourceFolderId|assetSupportFolderId');
@@ -235,10 +235,8 @@ class accda_Da extends core_Master
         
         // Показваме само локациите на нашата фирма за ибзор
         $ownCompany = crm_Companies::fetchOurCompany();
-        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
-        if (countR($ourLocations)) {
-            $form->setOptions('location', array('' => '') + $ourLocations);
-        } else {
+        $form->setFieldTypeParams('location', array('contragentClass' => 'crm_Companies', 'contragentId' => $ownCompany->id ?? null));
+        if (!countR($form->getFieldType('location')->getOptions(1))) {
             $form->setReadOnly('location');
         }
         
@@ -426,11 +424,10 @@ class accda_Da extends core_Master
     {
         $data->listFilter->setField('location', 'caption=Локация,placeholderType=all');
         $ownCompany = crm_Companies::fetchOurCompany();
-        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
-        if (countR($ourLocations)) {
+        $data->listFilter->setFieldTypeParams('location', array('contragentClass' => 'crm_Companies', 'contragentId' => $ownCompany->id ?? null));
+        if (countR($data->listFilter->getFieldType('location')->getOptions(1))) {
             $data->listFilter->addAttr('location', array('formOrder' => 11));
             $data->listFilter->fields['location']->formOrder = 11;
-            $data->listFilter->setOptions('location', array('' => '') + $ourLocations);
             $data->listFilter->showFields .= ',location';
             $data->listFilter->input('location');
             

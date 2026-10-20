@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -79,7 +79,7 @@ abstract class deals_ServiceMaster extends core_Master
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
+        $mvc->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Обект до,silent');
         $mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $mvc->FLD('received', 'varchar', 'caption=Получил');
         $mvc->FLD('delivered', 'varchar', 'caption=Доставил');
@@ -282,8 +282,7 @@ abstract class deals_ServiceMaster extends core_Master
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         
         // Поле за избор на локация - само локациите на контрагента по покупката
-        $form->getField('locationId')->type->options =
-        array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+        $form->setFieldTypeParams('locationId', array('contragentClass' => $rec->contragentClassId, 'contragentId' => $rec->contragentId));
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {

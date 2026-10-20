@@ -8,7 +8,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -99,9 +99,12 @@ class cat_plg_LogPackUsage extends core_Plugin
 
             // Преди запис се извличат старите опаковки
             $packagingFields = $mvc->getPackagingFields();
-            $exRec = $mvc->fetch($rec->id, $packagingFields, false);
+            $fetchFields = $packagingFields;
+            $fetchFields[$mvc->productFld] = $mvc->productFld;
+            $exRec = $mvc->fetch($rec->id, $fetchFields, false);
+            $rec->_exPackProductId = $exRec->{$mvc->productFld} ?? null;
             foreach ($packagingFields as $packagingField) {
-                $rec->{"_ex{$packagingField}"} = $exRec->{$packagingField};
+                $rec->{"_ex{$packagingField}"} = $exRec->{$packagingField} ?? null;
             }
         }
     }
@@ -117,17 +120,28 @@ class cat_plg_LogPackUsage extends core_Plugin
 
         // След запис за всяко поле на опаковка
         $packagingFields = $mvc->getPackagingFields();
+        $savedFields = isset($fields) ? arr::make($fields, true) : null;
+        $oldProductId = $rec->_exPackProductId ?? null;
+        $productId = $oldProductId;
+        if (property_exists($rec, $mvc->productFld) && (!isset($savedFields) || isset($savedFields[$mvc->productFld]))) {
+            $productId = $rec->{$mvc->productFld};
+        }
         foreach ($packagingFields as $packagingField) {
+            $oldPackagingId = $rec->{"_ex{$packagingField}"} ?? null;
+            $packagingId = $oldPackagingId;
+            if (property_exists($rec, $packagingField) && (!isset($savedFields) || isset($savedFields[$packagingField]))) {
+                $packagingId = $rec->{$packagingField};
+            }
 
-            // Ако тя е сменена се инкрементира използването на новата
-            if(($rec->{$packagingField} ?? null) != ($rec->{"_ex{$packagingField}"} ?? null)){
-                if(!empty($rec->{$packagingField})){
-                    cat_products_Packagings::logUsage($rec->{$mvc->productFld}, $rec->{$packagingField});
+            // При смяна на артикула или опаковката се прехвърля използването
+            if ($productId != $oldProductId || $packagingId != $oldPackagingId) {
+                if (!empty($productId) && !empty($packagingId)) {
+                    cat_products_Packagings::logUsage($productId, $packagingId);
                 }
 
                 // а на старата се декрементира
-                if(!empty($rec->{"_ex{$packagingField}"})){
-                    cat_products_Packagings::logUsage($rec->{$mvc->productFld}, $rec->{"_ex{$packagingField}"}, true);
+                if (!empty($oldProductId) && !empty($oldPackagingId)) {
+                    cat_products_Packagings::logUsage($oldProductId, $oldPackagingId, true);
                 }
             }
         }

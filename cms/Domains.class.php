@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -209,6 +209,9 @@ class cms_Domains extends core_Embedder
         
         // Sitemap.xml
         $this->FLD('sitemap', 'varchar(64)', 'caption=Статични файлове->SiteMap.xml,placeholder=Няма,suggestions=|' . self::CMS_PUBLIC_SITEMAP_NAME);
+
+        // Описание на сайта за езиковите модели
+        $this->FLD('llmsTxt', 'enum(no=Не,yes=Да)', 'caption=Статични файлове->llms.txt,notNull,value=no');
         
         // Икона за сайта
         $this->FLD('favicon', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Статични файлове->Икона за сайта');
@@ -837,6 +840,9 @@ class cms_Domains extends core_Embedder
         
         core_Webroot::register($fiContent, '', 'robots.txt', $id);
         $rec->toRemove['robots.txt'] = 'robots.txt';
+
+        // llms.txt е общ за хоста - пресъздава се отделно от всички негови езикови версии
+        cms_Content::requestLlmsTxtUpdate($id);
         
         // Всички останали файлове
         if(!empty($rec->wrFiles)) {

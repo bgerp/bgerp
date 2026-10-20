@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -77,6 +77,19 @@ class cms_SourceIntf
     public function getSitemapEntries($menuId)
     {
         return $this->class->getSitemapEntries($menuId);
+    }
+
+
+    /**
+     * Връща връзките към публичните страници за llms.txt
+     *
+     * @param int $menuId
+     *
+     * @return array обекти с title, loc, description, richtext, date и level
+     */
+    public function getLlmsEntries($menuId)
+    {
+        return $this->class->getLlmsEntries($menuId);
     }
 
 

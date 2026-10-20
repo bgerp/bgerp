@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -717,9 +717,9 @@ class eshop_Products extends core_Master
      *
      * @return bool
      */
-    private static function isHiddenWithoutPrices($rec)
+    public static function isHiddenWithoutPrices($rec)
     {
-        return $rec->showProductsWithoutPrices == 'no' && $rec->detailActions == 'onlySell' && $rec->haveProductsWithPrice == 'no' && empty($rec->coDriver);
+        return ($rec->showProductsWithoutPrices ?? null) == 'no' && ($rec->detailActions ?? null) == 'onlySell' && ($rec->haveProductsWithPrice ?? null) == 'no' && empty($rec->coDriver);
     }
 
 

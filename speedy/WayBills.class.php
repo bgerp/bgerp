@@ -8,7 +8,7 @@
  * @package   speedy
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,7 +42,7 @@ class speedy_WayBills extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'speedy,admin';
+    public $canList = 'courier,admin';
     
     
     /**
@@ -54,19 +54,19 @@ class speedy_WayBills extends core_Manager
     /**
      * Кой може да прави чакащи?
      */
-    public $canRequest = 'speedy,admin';
+    public $canRequest = 'courier,admin';
 
 
     /**
      * Кой може да парсира адрес?
      */
-    public $canParseaddress = 'speedy,admin';
+    public $canParseaddress = 'courier,admin';
 
 
     /**
      * Кой може да анулира товарителница?
      */
-    public $canReject = 'speedy,admin';
+    public $canReject = 'courier,admin';
 
 
     /**

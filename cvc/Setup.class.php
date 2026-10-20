@@ -32,7 +32,7 @@ defIfNot('CVC_TRACKING_URL', "https://my.e-cvc.bg/track?wb=[#NUM#]");
  * @package   cvc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -67,7 +67,7 @@ class cvc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('cvc'),
+        array('courier'),
     );
 
 
@@ -77,6 +77,7 @@ class cvc_Setup extends core_ProtoSetup
     public $managers = array('cvc_Offices',
                              'cvc_Hubs',
                              'cvc_WayBills',
+                             'migrate::replaceRoleWithCourier2643',
         );
 
 
@@ -164,5 +165,14 @@ class cvc_Setup extends core_ProtoSetup
         $html .= fileman_Buckets::createBucket('cvc', 'Файлове за cvc', '', '104857600', 'user', 'user');
 
         return $html;
+    }
+
+
+    /**
+     * Ролята cvc се заменя с общата роля courier
+     */
+    public function replaceRoleWithCourier2643()
+    {
+        return core_Roles::replaceRole('cvc', 'courier');
     }
 }

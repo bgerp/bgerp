@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -93,7 +93,7 @@ class sales_Routes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent,tdClass=nowrap');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,showContragent,allowEmpty)', 'caption=Локация,mandatory,silent,tdClass=nowrap');
         $this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
         $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory,smartCenter');
         $this->FLD('type', 'enum(visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)', 'caption=Посещения->Вид,mandatory,notNull,default=visit');
@@ -127,39 +127,7 @@ class sales_Routes extends core_Manager
     {
         $form = &$data->form;
         $form->setDefault('dateFld', dt::today());
-        $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
         $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
-    }
-    
-    
-    /**
-     * Всяка локация я представяме като "<локация> « <име на контрагент>"
-     *
-     * @param stdClass $rec - запис от модела
-     *
-     * @return array $options - Масив с локациите и новото им представяне
-     */
-    private function getLocationOptions($rec)
-    {
-        $options = array();
-        $varchar = cls::get('type_Varchar');
-        $locQuery = crm_Locations::getQuery();
-        $locQuery->where("#state != 'rejected'");
-        if ($locId = Request::get('locationId', 'int')) {
-            $locQuery->where("#id = {$locId}");
-        }
-        
-        while ($locRec = $locQuery->fetch()) {
-            $locRec = crm_Locations::fetch($locRec->id);
-            if (cls::load($locRec->contragentCls, true)) {
-                $contragentCls = cls::get($locRec->contragentCls);
-                $contragentName = $contragentCls->fetchField($locRec->contragentId, 'name');
-                $lockName = $varchar->toVerbal($locRec->title) . ' « ' . $varchar->toVerbal($contragentName);
-                $options[$locRec->id] = $lockName;
-            }
-        }
-        
-        return $options;
     }
     
     
