@@ -1060,16 +1060,13 @@ class doc_Threads extends core_Manager
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             Mode::push('lightFetch', true);
+            Mode::push('onlyTitleInGetRecTitle', true);
             try {
-                Mode::push('onlyTitleInGetRecTitle', true);
-                try {
-                    $dRec = $docProxy->fetch();
-                    $docRow = $docProxy->getDocumentRow();
-                } finally {
-                    Mode::pop('onlyTitleInGetRecTitle');
-                }
+                $dRec = $docProxy->fetch();
+                $docRow = $docProxy->getDocumentRow();
                 $icon = $docProxy->getIcon();
             } finally {
+                Mode::pop('onlyTitleInGetRecTitle');
                 Mode::pop('lightFetch');
             }
             $attr = array();
