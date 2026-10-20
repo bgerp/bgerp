@@ -19,7 +19,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
     /**
      * Роли по дефолт, които изисква драйвера
      */
-    public $requireRoles = 'ceo,transpress';
+    public $requireRoles = 'ceo,courier';
 
 
     /**

@@ -8,7 +8,7 @@
  * @package   transpress
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -36,7 +36,7 @@ class transpress_WayBills extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'transpress,admin';
+    public $canList = 'courier,admin';
 
 
     /**
@@ -48,13 +48,13 @@ class transpress_WayBills extends core_Manager
     /**
      * Кой може да отказва товарителница?
      */
-    public $canReject = 'transpress,admin';
+    public $canReject = 'courier,admin';
 
 
     /**
      * Кой може да сваля PDF-а наново?
      */
-    public $canPrint = 'transpress,admin';
+    public $canPrint = 'courier,admin';
 
 
     /**
