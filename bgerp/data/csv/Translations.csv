@@ -4146,3 +4146,15 @@ en,товарителниците се създават в тестовата с
 en,и не се изпълняват,and are not carried out
 en,"Опаковката изисква размерите, които не са фиксирани от нея (за европалет - височина)","The packaging requires the dimensions it does not fix (height for a euro pallet)"
 en,Задължително за опаковката,Required for the packaging
+en,Подмяна на роли,Replace roles
+en,Групова подмяна на роли на потребителите,Bulk replacement of user roles
+en,Роли за подмяна,Roles to replace
+en,Нова роля,New role
+en,Новата роля не може да е сред подменяните,The new role cannot be among the replaced ones
+en,"Брой потребители, при които ролите ще бъдат подменени",Number of users whose roles will be replaced
+en,Ролите са подменени при потребителите,Roles replaced for users
+en,Подмяна,Replace
+en,Подмяна на ролите,Replace the roles
+en,Очаква се текст,Text expected
+en,Очаква се дата,Date expected
+en,Некоректна стойност,Invalid value

@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1344,6 +1344,64 @@ class eshop_Groups extends core_Master
     }
     
     
+    /**
+     * Връща връзките към групите на менюто и техните е-артикули за llms.txt
+     *
+     * Включва и споделените, с адреси в контекста на менюто, както ги показва сайтът.
+     *
+     * @param int $menuId
+     *
+     * @return array
+     */
+    public function getLlmsEntries($menuId)
+    {
+        $menuId = (int) $menuId;
+        $settings = cms_Domains::getSettings(cms_Content::fetchField($menuId, 'domainId'));
+        $query = self::getQuery();
+        $query->where(array("#state = 'active' AND (#menuId = [#1#] OR LOCATE('|[#1#]|', #sharedMenus))", $menuId));
+        $query->orderBy('order');
+        $query->orderBy('name');
+
+        $res = $usedProducts = array();
+        while ($rec = $query->fetch()) {
+            $groupId = (int) ($rec->id ?? 0);
+            if (($rec->menuId ?? null) != $menuId) {
+                $rec->altMenuId = $menuId;
+            }
+            $res[] = (object) array('title' => $rec->name ?? null, 'loc' => $this->getUrl($rec, true), 'description' => $rec->seoDescription ?? null, 'richtext' => $rec->info ?? null, 'level' => 0);
+
+            $showWithoutPrices = $rec->showProductsWithoutPrices ?? 'auto';
+            if ($showWithoutPrices == 'auto') {
+                $showWithoutPrices = $settings->showProductsWithoutPrices ?? 'yes';
+            }
+
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where(array("#state = 'active' AND #saleState != 'closed' AND (#groupId = [#1#] OR LOCATE('|[#1#]|', #sharedInGroups))", $groupId));
+            $pQuery->orderBy('name');
+            while ($pRec = $pQuery->fetch()) {
+                $pRec->showProductsWithoutPrices = $showWithoutPrices;
+                if (eshop_Products::isHiddenWithoutPrices($pRec)) {
+                    continue;
+                }
+
+                // Е-артикул в няколко групи на менюто е само под първата
+                $productId = (int) ($pRec->id ?? 0);
+                if (!empty($usedProducts[$productId])) {
+                    continue;
+                }
+                $usedProducts[$productId] = true;
+
+                if (($pRec->groupId ?? null) != $groupId) {
+                    $pRec->altGroupId = $groupId;
+                }
+                $res[] = (object) array('title' => $pRec->name ?? null, 'loc' => eshop_Products::getUrl($pRec, true), 'description' => $pRec->seoDescription ?? null, 'richtext' => $pRec->info ?? null, 'level' => 1);
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Какво предупреждение да се показва на бутона за активиране/деактивиране
      *

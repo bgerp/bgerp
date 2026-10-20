@@ -173,7 +173,7 @@ defIfNot('CAT_USE_BOM_PRICE_OF_NON_STANDART_GP', 'yes');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -248,6 +248,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::setDefaultFilterableParams2640v2',
         'migrate::markEshopProductsForParamIndex2640',
         'migrate::deleteParamIndexStateWithoutProduct2640',
+        'migrate::forceRecalcLastUsedPacks2643',
     );
     
     
@@ -622,6 +623,16 @@ class cat_Setup extends core_ProtoSetup
         }
 
         cat_products_ParamIndexState::delete('#productId IS NULL OR #productId <= 0');
+    }
+
+
+    /**
+     * Форсиране на преизчисляването на използванията, за да се запише кешът на основните мерки
+     */
+    public function forceRecalcLastUsedPacks2643()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Recalc Last Used Packs', $callOn);
     }
 
 

@@ -8,7 +8,7 @@
  * @package   dec
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -169,7 +169,7 @@ class dec_Declarations extends core_Master
         
         // допълнителен текст
         $this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележка');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Допълнително->Локация');
 
 
         // поле събирателно за плейсхолдерите
@@ -291,13 +291,12 @@ class dec_Declarations extends core_Master
             $form->setDefault('inv', $rec->id);
 
             if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
-                $locationOptions = crm_Locations::getContragentOptions($rec->displayContragentClassId, $rec->displayContragentId);
+                $form->setFieldTypeParams('locationId', array('contragentClass' => $rec->displayContragentClassId, 'contragentId' => $rec->displayContragentId));
             } else {
-                $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+                $form->setFieldTypeParams('locationId', array('contragentClass' => $rec->contragentClassId, 'contragentId' => $rec->contragentId));
             }
 
-            if(countR($locationOptions)){
-                $form->setOptions('locationId', $locationOptions);
+            if(countR($form->getFieldType('locationId')->getOptions(1))){
                 $form->setDefault('locationId', $rec->deliveryPlaceId ?? null);
             } else {
                 $form->setReadOnly('locationId');

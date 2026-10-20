@@ -15,7 +15,7 @@ defIfNot('EF_ROLES_DEFAULT', 'user');
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -383,6 +383,68 @@ class core_Roles extends core_Manager
                 self::delete($r);
             }
         }
+    }
+    
+    
+    /**
+     * Заменя старите роли с новата при потребителите и наследяванията
+     *
+     * @param string|int|array $oldRoles      - име, ид или масив от стари роли
+     * @param string           $newRole
+     * @param bool             $deleteOldRole - дали старите роли да се изтрият от модела
+     *
+     * @return string
+     */
+    public static function replaceRole($oldRoles, $newRole, $deleteOldRole = false)
+    {
+        // Новата роля се създава, ако я няма
+        $res = self::addOnce($newRole);
+        $newId = self::fetchByName($newRole);
+        expect($newId);
+
+        // Старите роли могат да са подадени с име или ид, несъществуващите се пропускат
+        $oldIds = $oldNames = array();
+        foreach (arr::make($oldRoles) as $role) {
+            $oldId = is_numeric($role) ? (self::fetchById($role) ? (int) $role : null) : self::fetchByName($role);
+            if (empty($oldId) || $oldId == $newId) {
+                continue;
+            }
+            $oldIds[$oldId] = $oldId;
+            $oldNames[$oldId] = self::fetchById($oldId);
+        }
+        if (empty($oldIds)) {
+
+            return $res;
+        }
+
+        // Ролите, наследяващи старите, започват да наследяват новата
+        $Roles = cls::get('core_Roles');
+        $rQuery = self::getQuery();
+        $rQuery->likeKeylist('inheritInput', keylist::fromArray($oldIds));
+        while ($rec = $rQuery->fetch()) {
+            $inheritArr = array_diff_key(keylist::toArray($rec->inheritInput), $oldIds);
+
+            // Новата роля не може да наследява сама себе си
+            if ($rec->id != $newId) {
+                $inheritArr[$newId] = $newId;
+            }
+            $rec->inheritInput = keylist::fromArray($inheritArr);
+            $Roles->save($rec, 'inheritInput');
+        }
+
+        // На потребителите старите роли се сменят с новата
+        $count = core_Users::replaceRolesForUsers($oldIds, $newId);
+
+        if ($deleteOldRole) {
+            self::removeRoles($oldIds);
+        }
+
+        // Преизчисляване на индиректните роли на ролите и потребителите
+        self::rebuildRoles();
+        core_Users::rebuildRoles();
+        $oldNames = implode(', ', $oldNames);
+
+        return $res . "<li class=\"debug-update\">Ролите <b>{$oldNames}</b> са заменени с <b>{$newRole}</b> при {$count} потребителя</li>";
     }
     
     

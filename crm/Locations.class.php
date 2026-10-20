@@ -9,7 +9,7 @@
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -634,12 +634,10 @@ class crm_Locations extends core_Master
      *
      * @param mixed $contragentClassId            - име, ид или инстанция на клас-мениджър на контрагент
      * @param int   $contragentId                 - първичен ключ на контрагента (в мениджъра му)
-     * @param int   $countries                    - държави
-     * @param int|null $onlyWithRoutesInNextNdays - само с маршрути в следващите N дена, null ако не искаме ограничение
      *
      * @return array $recs
      */
-    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array(), $onlyWithRoutesInNextNdays = null)
+    private static function getContragentLocations($contragentClassId, $contragentId)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
 
@@ -651,14 +649,9 @@ class crm_Locations extends core_Master
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
         $query->where("#state != 'rejected'");
-        if(countR($countries)){
-            $query->in('countryId', $countries);
-        }
         
         $recs = array();
         while ($rec = $query->fetch()) {
-            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays, 'delivery'))) continue;
-            
             $recs[$rec->id] = $rec;
         }
         
@@ -679,27 +672,162 @@ class crm_Locations extends core_Master
      */
     public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $showAddress = false, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
-        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries, $onlyWithRoutesInNextNdays);
-        
-        $res = array();
-        foreach ($locationRecs as $rec) {
-            $titleFinal = $title = static::getTitleById($rec->id, false);
-            if($showAddress){
-                $countryCode = drdata_Countries::fetchField($rec->countryId, 'letterCode2');
-                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . $rec->address;
-                $fullTitle = rtrim($fullTitle, ", ");
-                $fullTitle .= ", {$countryCode}";
-                $titleFinal .= " [{$fullTitle}]";
-            }
-            
-            $key = ($intKeys) ? $rec->id : $title;
-            $res[$key] = $titleFinal;
+        expect($contragentClassId = core_Classes::getId($contragentClassId));
+        if (empty($contragentId)) {
+
+            return array();
         }
-        
+
+        $params = array('contragentClass' => $contragentClassId, 'contragentId' => $contragentId, 'orderBy' => 'id');
+        if ($showAddress) {
+            $params['showAddress'] = true;
+        }
+        if (countR($countries)) {
+            $params['countries'] = $countries;
+        }
+        if (isset($onlyWithRoutesInNextNdays)) {
+            $params['onlyWithRoutesInNextNdays'] = $onlyWithRoutesInNextNdays;
+        }
+
+        $res = static::getSelectOptions($params);
+        if (!$intKeys) {
+            $byTitle = array();
+            foreach ($res as $id => $title) {
+                $byTitle[static::getTitleById($id, false)] = $title;
+            }
+            $res = $byTitle;
+        }
+
         return $res;
     }
     
     
+    /**
+     * Опции за key2 полета към локации
+     *
+     * Параметри: showContragent - към името се добавя и контрагента,
+     * showAddress - към името се добавя и адреса,
+     * contragentClass и contragentId - само локациите на контрагента,
+     * countries - само от тези държави, onlyWithRoutesInNextNdays - само с доставки в следващите N дни
+     * Филтрите важат само при изброяване, избраните по ид се показват винаги
+     */
+    public static function getSelectOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $query = static::getQuery();
+        $byIds = true;
+
+        // key2 подава текста без "(id)" накрая като ид, а при търсене - true
+        if (is_bool($onlyIds) || (is_string($onlyIds) && !ctype_digit($onlyIds))) {
+            if (is_string($onlyIds) && strlen($onlyIds) && !strlen($q ?? '')) {
+                $q = '"' . $onlyIds;
+            }
+            $onlyIds = null;
+        }
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
+            $query->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = {$onlyIds}");
+        } else {
+            $byIds = false;
+            $query->where("#state != 'rejected'");
+
+            if (!empty($params['contragentClass'])) {
+                $contragentClassId = core_Classes::getId($params['contragentClass']);
+                $contragentId = $params['contragentId'] ?? null;
+                expect($contragentClassId, $params);
+                if (!ctype_digit("{$contragentId}")) {
+
+                    return array();
+                }
+                $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
+            }
+
+            if (!empty($params['countries'])) {
+                $query->in('countryId', $params['countries']);
+            }
+        }
+
+        if ($q) {
+            if ($q[0] == '"') {
+                // Точно по заглавие, както в core_Mvc::getSelectArr_()
+                $w = str_replace(' ', '.*', mb_strtolower(trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q))));
+                $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #title, ' ', #id))");
+                $query->where(array("#searchFieldXpr REGEXP '(" . type_Key2::getRegexPatterForSQLBegin() . "){1}[#1#]'", $w));
+            } else {
+                plg_Search::applySearch($q, $query);
+            }
+        }
+
+        // Филтърът по маршрути е след заявката, затова тогава лимитът се брои в цикъла
+        $filterByRoutes = !$byIds && isset($params['onlyWithRoutesInNextNdays']);
+        if ($limit && !$filterByRoutes) {
+            $query->limit($limit);
+        }
+
+        $query->orderBy($params['orderBy'] ?? 'title');
+        $query->show('id,title,contragentCls,contragentId,countryId,pCode,place,address');
+
+        $recs = array();
+        while ($rec = $query->fetch()) {
+            if ($filterByRoutes && !countR(sales_Routes::getRouteOptions($rec->id, $params['onlyWithRoutesInNextNdays'], 'delivery'))) {
+                continue;
+            }
+            $recs[$rec->id] = $rec;
+
+            if ($limit && countR($recs) >= $limit) {
+                break;
+            }
+        }
+
+        // Имената на контрагентите - с една заявка за клас
+        $contragentNames = array();
+        if (!empty($params['showContragent'])) {
+            $idsByClass = array();
+            foreach ($recs as $rec) {
+                $idsByClass[$rec->contragentCls][$rec->contragentId] = $rec->contragentId;
+            }
+            foreach ($idsByClass as $classId => $contragentIds) {
+                if (!cls::load($classId, true)) {
+                    continue;
+                }
+                $cQuery = cls::get($classId)->getQuery();
+                $cQuery->in('id', $contragentIds);
+                $cQuery->show('id,name');
+                while ($cRec = $cQuery->fetch()) {
+                    $contragentNames[$classId][$cRec->id] = $cRec->name;
+                }
+            }
+        }
+
+        $res = array();
+        foreach ($recs as $rec) {
+            $title = static::getRecTitle($rec, false);
+            if (!empty($params['showAddress'])) {
+                $countryCode = drdata_Countries::fetchField($rec->countryId, 'letterCode2');
+                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . $rec->address;
+                $fullTitle = rtrim($fullTitle, ", ");
+                $fullTitle .= ", {$countryCode}";
+                $title .= " [{$fullTitle}]";
+            }
+
+            if (isset($contragentNames[$rec->contragentCls][$rec->contragentId])) {
+                $title .= ' « ' . $contragentNames[$rec->contragentCls][$rec->contragentId];
+            }
+            $res[$rec->id] = $title;
+        }
+
+        return $res;
+    }
+
+
     /**
      * GLN на всички локации на зададен контрагент + id-тата им
      *
@@ -798,7 +926,7 @@ class crm_Locations extends core_Master
     {
         if (!$rec || !($rec->email ?? null)) {
 
-            return ;
+            return;
         }
 
         if (!($rec->contragentCls ?? null) || !($rec->contragentId ?? null)) {
@@ -928,12 +1056,13 @@ class crm_Locations extends core_Master
             if (!$form->gotErrors()) {
                 
                 // Създаваме първо фирмата
-                $companyId = crm_Companies::save((object) array('name' => $rec->name, 'country' => $rec->country, 'vatId' => $rec->vatId, 'uicId' => $rec->uicId));
+                $companyRec = (object) array('name' => $rec->name, 'country' => $rec->country, 'vatId' => $rec->vatId, 'uicId' => $rec->uicId);
+                $companyId = crm_Companies::save($companyRec);
                 
                 if ($companyId) {
                     
                     // Създаваме локацията към фирмата
-                    $locationId = crm_Locations::save((object) array('title' => $rec->title,
+                    $locationRec = (object) array('title' => $rec->title,
                         'countryId' => $rec->country,
                         'type' => $rec->type,
                         'place' => $rec->place,
@@ -943,12 +1072,14 @@ class crm_Locations extends core_Master
                         'gpsCoords' => $rec->gpsCoords,
                         'image' => $rec->image,
                         'comment' => $rec->comment,
-                        'address' => $rec->address));
-                    
+                        'address' => $rec->address);
+                    $locationId = crm_Locations::save($locationRec);
+
                     if ($locationId) {
                         
                         // Създаваме търговския маршрут към новосъздадената локация
-                        $routeId = sales_Routes::save((object) array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat));
+                        $routeRec = (object) array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat);
+                        $routeId = sales_Routes::save($routeRec);
                         
                         return new Redirect(array('crm_Locations', 'single', $locationId), '|Успешно е създаден търговския обект');
                     }

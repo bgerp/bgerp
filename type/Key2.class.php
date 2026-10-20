@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -86,6 +86,11 @@ class type_Key2 extends type_Int
      */
     public function fromVerbal_($value)
     {
+        if (is_array($value)) {
+            $this->error = 'Некоректна стойност';
+
+            return false;
+        }
         if (empty($value)) {
             
             return;
@@ -262,6 +267,11 @@ class type_Key2 extends type_Int
         // 1. Ако има Select2 - винаги използваме неговото рендиане
         // 2. Ако опциите са под MaxSuggestions - показваме обикновен селект
         // 2. Комбобокс с id вградени в титлата, ако нямаме селект 2
+        
+        // Отказан масив от URL-а (name[]=...) се показва като празно поле
+        if (is_array($value)) {
+            $value = '';
+        }
         
         if (defined('TEST_MODE') && TEST_MODE) {
             $this->params['maxSuggestions'] = 100000;

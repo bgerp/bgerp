@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -524,7 +524,8 @@ class drdata_Vats extends core_Manager
 	 */
 	public function canonize($vat)
 	{
-		$canonicalVat = preg_replace('/[^a-z\d]/i', '', $vat);
+		// Без ДДС номер (напр. "Моята фирма" без ЕИК) се подава null - в PHP 8.1+ preg_replace го отхвърля
+		$canonicalVat = preg_replace('/[^a-z\d]/i', '', $vat ?? '');
 		$canonicalVat = strtoupper($canonicalVat);
 
 		// BE legacy: ако е BE + 9 цифри, допълваме водеща 0 (често срещан стар формат)

@@ -166,6 +166,15 @@ class cms_Setup extends core_ProtoSetup
             'offset' => 77,
             'timeLimit' => 20
         ),
+        array(
+            'systemId' => 'UpdateLlmsTxt',
+            'description' => 'Обновяване на llms.txt',
+            'controller' => 'cms_Content',
+            'action' => 'UpdateLlmsTxt',
+            'period' => 180,
+            'offset' => 97,
+            'timeLimit' => 300
+        ),
     );
     
     

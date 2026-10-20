@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1085,6 +1085,38 @@ class cms_Articles extends core_Master
             $res[] = $resObj;
         }
         
+        return $res;
+    }
+
+
+    /**
+     * Връща връзките към статиите на менюто за llms.txt - без празните, които са само заглавия в навигацията
+     *
+     * @param int $menuId
+     *
+     * @return array
+     */
+    public function getLlmsEntries($menuId)
+    {
+        $query = self::getQuery();
+        $query->where(array("#state = 'active' AND #menuId = [#1#]", (int) $menuId));
+        $query->orderBy('level');
+
+        $res = array();
+        while ($rec = $query->fetch()) {
+            $body = $rec->body ?? '';
+            if (!trim($body)) {
+                continue;
+            }
+            // При A/a/<vid> getUrl() кодира vid-а, а toUrl() го кодира пак - тук е кодиран веднъж
+            $loc = $this->getUrl($rec, true);
+            if (($loc[0] ?? null) == 'A') {
+                $loc[2] = urldecode((string) ($loc[2] ?? ''));
+            }
+
+            $res[] = (object) array('title' => $rec->title ?? null, 'loc' => $loc, 'description' => $rec->seoDescription ?? null, 'richtext' => $body, 'level' => 0);
+        }
+
         return $res;
     }
 }
