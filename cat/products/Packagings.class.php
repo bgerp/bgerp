@@ -1560,11 +1560,11 @@ class cat_products_Packagings extends core_Detail
             $usages["{$pRec->productId}|{$pRec->packagingId}"] = (object)array('id' => $pRec->id, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'usages' => 0);
         }
 
-        // Броячите на основните мерки се четат преди преброяването, за да се засекат промените по време на него
+        // Използването на основните мерки се чете преди преброяването, за да не се презапише отбелязаното по време на него
         $exMeasureUsages = array();
         $prodQuery = cat_Products::getQuery();
         $prodQuery->where("#createdOn > '{$from}'");
-        $prodQuery->show('id,measureId,baseMeasureUsages');
+        $prodQuery->show('id,measureId,isBaseMeasureUsed');
         while ($prodRec = $prodQuery->fetch()) {
             $exMeasureUsages[$prodRec->id] = $prodRec;
         }
@@ -1585,18 +1585,14 @@ class cat_products_Packagings extends core_Detail
             $Packagings->saveArray($usages, 'id,usages');
         }
 
-        // Използванията с основната мярка се обновяват само при артикулите след хоризонта, по-старите са заключени
-        $changed = array();
+        // Използването с основната мярка се отбелязва само при артикулите след хоризонта, по-старите са заключени
+        $Products = cls::get('cat_Products');
         foreach ($exMeasureUsages as $productId => $prodRec) {
-            $count = $measureUsages[$productId][$prodRec->measureId] ?? 0;
-            $exCount = (int) ($prodRec->baseMeasureUsages ?? 0);
-            if ($count != $exCount) {
-                $changed["{$count}|{$exCount}"][$productId] = $productId;
+            $isUsed = !empty($measureUsages[$productId][$prodRec->measureId]) ? 'yes' : 'no';
+            if ($isUsed != $prodRec->isBaseMeasureUsed) {
+                $saveRec = (object) array('id' => $productId, 'isBaseMeasureUsed' => $isUsed);
+                $Products->save_($saveRec, 'isBaseMeasureUsed');
             }
-        }
-        foreach ($changed as $key => $productIds) {
-            list($count, $exCount) = explode('|', $key);
-            self::updateBaseMeasureUsages($productIds, $count, false, $exCount);
         }
         core_Debug::stopTimer('SAVE_ALL');
     }
@@ -1682,41 +1678,6 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
-     * Обновява използванията с основната мярка на артикулите
-     *
-     * Директно в таблицата: save_() на артикула препакетира данните на драйвера, а промяната трябва да е атомарна
-     *
-     * @param array $productIds
-     * @param int $value           - новата стойност или с колко да се промени
-     * @param bool $isDelta        - дали стойността е промяна към текущата
-     * @param int|null $exValue    - новата стойност се записва само ако текущата е тази
-     * @return void
-     */
-    private static function updateBaseMeasureUsages($productIds, $value, $isDelta = false, $exValue = null)
-    {
-        $ids = implode(',', arr::makeIds($productIds));
-        if (!strlen($ids)) return;
-
-        $Products = cls::get('cat_Products');
-        $col = str::phpToMysqlName('baseMeasureUsages');
-        $value = (int) $value;
-
-        // Ако е подадена старата стойност, промяна междувременно не се презаписва
-        $where = '';
-        if ($isDelta) {
-            $setSql = "`{$col}` = GREATEST(COALESCE(`{$col}`, 0) + {$value}, 0)";
-        } else {
-            $setSql = "`{$col}` = " . max($value, 0);
-            if (isset($exValue)) {
-                $where = " AND COALESCE(`{$col}`, 0) = " . (int) $exValue;
-            }
-        }
-
-        $Products->db->query("UPDATE `{$Products->dbTableName}` SET {$setSql} WHERE `id` IN ({$ids}){$where}");
-    }
-
-
-    /**
      * Може ли продуктовата опаковка да бъде редактирана или изтривана
      *
      * @param int $productId
@@ -1751,10 +1712,13 @@ class cat_products_Packagings extends core_Detail
         $rec = self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
         if(empty($rec)) {
 
-            // Основната мярка на артикул след хоризонта се брои в самия артикул
-            $pRec = cat_Products::fetch($productId, 'measureId,createdOn');
-            if(is_object($pRec) && $packagingId == $pRec->measureId && $pRec->createdOn > self::getPastHorizon()){
-                self::updateBaseMeasureUsages(array($productId), $remove ? -1 : 1, true);
+            // Използването с основната мярка на артикул след хоризонта се отбелязва в самия артикул, а крона го сваля
+            if(!$remove){
+                $pRec = cat_Products::fetch($productId, 'measureId,createdOn,isBaseMeasureUsed');
+                if(is_object($pRec) && $packagingId == $pRec->measureId && $pRec->isBaseMeasureUsed != 'yes' && $pRec->createdOn > self::getPastHorizon()){
+                    $saveRec = (object) array('id' => $productId, 'isBaseMeasureUsed' => 'yes');
+                    cls::get('cat_Products')->save_($saveRec, 'isBaseMeasureUsed');
+                }
             }
 
             return null;
