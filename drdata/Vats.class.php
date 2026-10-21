@@ -656,7 +656,7 @@ class drdata_Vats extends core_Manager
         
         $data->listFilter->input('vatNum');
         
-        if ($data->listFilter->rec->vatNum) {
+        if (!empty($data->listFilter->rec->vatNum)) {
             $data->query->like('vat', $data->listFilter->rec->vatNum);
         }
         
