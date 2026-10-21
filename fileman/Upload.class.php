@@ -9,7 +9,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,8 +29,8 @@ class fileman_Upload extends core_Manager
     
     
     public $canAdd = 'every_one';
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
@@ -38,116 +38,168 @@ class fileman_Upload extends core_Manager
     {
         // Дали ще качаваме много файлове едновременно
         $allowMultiUpload = false;
-        
+
         Request::setProtected('callback, bucketId, validUntil');
 
         $validUntil = Request::get('validUntil', 'datetime');
 
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
-            
             // Ако файловете ще се добавят в richText
             if (stripos($callback, 'placeFile_') !== false) {
-                
                 // Позволяваме множествено добавяне
                 $allowMultiUpload = true;
             }
         }
-        
+
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
-        expect(fileman_Buckets::canAddFileToBucket($bucketId), fileman_Buckets::fetch((int) $bucketId));
-        
+        expect404($bucketId && fileman_Buckets::fetch($bucketId));
+        if (!fileman_Buckets::canAddFileToBucket($bucketId)) {
+            $tpl = new ET('<div class="red">' . tr('Нямате право за качване тук|*. |Обновете предишната страница и опитайте пак') . '</div>');
+
+            return $this->renderDialog($tpl);
+        }
+
         // Шаблона с качените файлове и грешките
         $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');
-        
-        $add->push('fileman/simpleUpload/1.0/simpleUpload.min.js', 'JS');
-        
-        // Ако е стартрино качването
-        if (Request::get('Upload')) {
-            $resEt = new ET();
-            
-            $this->makeUpload($_FILES, $bucketId, $resEt, $callback, $success);
-            
-            if (Request::get('ajax_mode')) {
-                core_App::outputJson(array('success' => $success, 'res' => $resEt->getContent()));
-            } else {
-                $add->prepend($resEt);
-            }
-        }
-        
+
         // Ако има id на кофата
         if ($bucketId) {
-            
+
             // Вземаме максималния размер за файл в кофата
             $maxAllowedFileSize = fileman_Buckets::fetchField($bucketId, 'maxSize');
         }
-        
+
         $tpl = $this->getProgressTpl($allowMultiUpload, $maxAllowedFileSize);
-        
+
         $tpl->prepend($add);
 
-        fileman_Upload2::checkLinkValidity($validUntil, $tpl);
+        $this->checkLinkValidity($validUntil, $tpl);
 
         return $this->renderDialog($tpl);
     }
-    
-    
+
+
+    /**
+     * Проверява валидността на линка за качване
+     *
+     * @param $tpl
+     * @param $validUntil
+     *
+     * @return null|string
+     */
+    public static function checkLinkValidity($validUntil, &$tpl = null)
+    {
+        if (!$validUntil || $validUntil < dt::now()) {
+            $msg = tr('Тази връзка вече не е активна!|* Обновете предишната страница и опитайте пак!');
+            $tpl = new ET('<div class="red">' . $msg . '</div>');
+
+            return $msg;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Качване на файлове чрез AJAX
+     */
+    public function act_Upload()
+    {
+        Request::setProtected('callback, bucketId, validUntil');
+        $bucketId = Request::get('bucketId', 'int');
+        $callback = Request::get('callback', 'identifier');
+        try {
+            expect(($_SERVER['REQUEST_METHOD'] ?? '') === 'POST', 'Очаква се POST');
+            expect($bucketId && fileman_Buckets::canAddFileToBucket($bucketId), 'Нямате право за качване тук');
+            expect(!self::checkLinkValidity(Request::get('validUntil', 'datetime')), 'Връзката за качване е изтекла');
+            $scope = 'fileman|' . $bucketId;
+            if (fileman_ChunkedUpload::getContentType() === 'application/json') {
+                $data = fileman_ChunkedUpload::readJson();
+                expect(!empty($data['init']), 'Невалидно начало на качване');
+                $files = fileman_ChunkedUpload::validateFiles(array($data), $bucketId);
+                $result = fileman_ChunkedUpload::begin($files, array('bucketId' => $bucketId, 'callback' => $callback), $scope);
+                $result['fileHash'] = $files[0]['sha256'];
+            } else {
+                $result = fileman_ChunkedUpload::receive($scope, function ($files, $context) {
+                    $resEt = new ET();
+                    $success = false;
+                    $handles = self::makeUpload(array('ulfile' => $files), $context['bucketId'], $resEt, $context['callback'], $success);
+                    expect($success && count($handles), 'Неуспешно качване на файла');
+
+                    return array('ok' => true, 'fileName' => $files['name'][0], 'fh' => reset($handles),
+                        'callback' => $context['callback'], 'res' => $resEt->getContent());
+                });
+            }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (core_exception_Expect $e) {
+            $result = array('ok' => false, 'error' => tr('Неуспешно качване. Проверете файла и валидността на връзката.'));
+        } catch (Throwable $e) {
+            reportException($e);
+            $result = array('ok' => false, 'error' => tr('Грешка при качване на файл'));
+        }
+        core_App::outputJson($result);
+    }
+
+
     /**
      * Помощна функция за качвана на файловете
-     * 
+     *
      * @param array $files
      * @param integer $bucketId
      * @param null|core_ET $resEt
      * @param null|string $callback
-     * 
+     *
      * @return array
      */
     public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null, &$success = null)
     {
         $resArr = array();
-        
+        $success = true;
+
         // Вземаме инфото на обекта, който ще получи файла
         $Buckets = cls::get('fileman_Buckets');
-        
+
         // Обхождаме качените файлове
         foreach ((array) $files as $inputName => $inputArr) {
-            
-            $fh = null;
-            
-            // Масив с грешките
-            $err = array();
-            
-            $fRec = new stdClass();
-            
+
             foreach ((array) $inputArr['name'] as $id => $inpName) {
-                
+                $fh = null;
+                $err = array();
+                $fRec = null;
+
                 // Ако файла е качен успешно
                 if ($files[$inputName]['name'][$id] && $files[$inputName]['tmp_name'][$id]) {
-                    
+
                     // Ако има кофа
                     if ($bucketId) {
-                        
+
                         // Ако файла е валиден по размер и разширение - добавяме го към собственика му
                         if ($Buckets->isValid($err, $bucketId, $files[$inputName]['name'][$id], $files[$inputName]['tmp_name'][$id])) {
                             try {
                                 $bucketName = fileman_Buckets::fetchField($bucketId, 'name');
-                                
+
                                 $fh = fileman::absorb($files[$inputName]['tmp_name'][$id], $bucketName, $files[$inputName]['name'][$id]);
                             } catch (ErrorException $e) {
                                 reportException($e);
                                 self::logWarning('Грешка при качване на файл: ' . $e->getMessage());
                             }
-                            
+
                             if (isset($fh)) {
                                 $fRec = fileman_Files::fetchByFh($fh);
                             }
-                            
+
                             if (isset($resEt)) {
                                 $resEt->append($Buckets->getInfoAfterAddingFile($fh));
-                                
-                                if ($callback && !$files[$inputName]['error'][$id]) {
-                                    $resEt->append("<script>  if (window.opener) { if(window.opener.{$callback}('{$fh}','{$fRec->name}') != true) self.close(); else self.focus();}</script>");
+
+                                if ($callback && $fh && !$files[$inputName]['error'][$id]) {
+                                    $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+                                    $jsCallback = json_encode($callback, $flags);
+                                    $jsHandle = json_encode($fh, $flags);
+                                    $jsName = json_encode($fRec->name ?? '', $flags);
+                                    $resEt->append("<script>if (window.opener) { if (window.opener[{$jsCallback}]({$jsHandle}, {$jsName}) != true) self.close(); else self.focus(); }</script>");
                                 }
                             }
                         }
@@ -155,7 +207,7 @@ class fileman_Upload extends core_Manager
                         $err[] = 'Не е избрана кофа';
                     }
                 }
-                
+
                 // Ако има грешка в $files за съответния файл
                 if ($files[$inputName]['error'][$id]) {
                     // Ако са възникнали грешки при качването - записваме ги в променливата $err
@@ -168,13 +220,12 @@ class fileman_Upload extends core_Manager
                         case 7: $err[] = tr('Грешка при записване на файла на диска'); break;
                     }
                 }
-                
-                $success = true;
-                
+
                 // Ако има грешки, показваме ги в прозореца за качване
                 if (!empty($err)) {
-                    $error = new ET("<div class='upload-error'><ul>{$files[$inputName]['name'][$id]}[#ERR#]</ul></div>");
-                    
+                    $escapedName = ht::escapeAttr($files[$inputName]['name'][$id]);
+                    $error = new ET("<div class='upload-error'><ul>{$escapedName}[#ERR#]</ul></div>");
+
                     foreach ($err as $e) {
                         $error->append('<li>' . tr($e) . '</li>', 'ERR');
                         fileman_Files::logWarning('Грешка при добавяне на файл: ' . $e);
@@ -185,17 +236,17 @@ class fileman_Upload extends core_Manager
                     }
                 } else {
                     if (isset($fh)) {
-                        fileman_Files::logWrite('Качен файл', $fRec->id);
+                        fileman_Files::logWrite('Качен файл', $fRec->id ?? null);
                         $resArr[$fh] = $fh;
                     }
                 }
             }
         }
-        
+
         return $resArr;
     }
-    
-    
+
+
     /**
      * Връща линк към подадения обект
      *
@@ -207,8 +258,8 @@ class fileman_Upload extends core_Manager
     {
         return ht::createLink(get_called_class(), array());
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
@@ -216,25 +267,25 @@ class fileman_Upload extends core_Manager
     {
         return $tpl;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
     public function getProgressTpl($allowMultiUpload = false, $maxAllowedFileSize = 0)
     {
         $uploadStr = tr('Качване') . ':';
-        
+
         $multiple = '';
         if ($allowMultiUpload) {
             $multiple = 'multiple';
         }
         $message = tr("Изберете, поставете (Ctrl+V) или провлачете файл");
         $allowMultiUpload = (int) $allowMultiUpload;
-        
+
         $tpl = new ET('
             <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
-            <form id="uploadform" enctype="multipart/form-data" method="post">
+            <form id="uploadform" method="post">
                 <span class="uploaded-filenames"> </span>
                 <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button hidden" id="uploadBtn"/>
                     <div class="uploadBox"> 
@@ -242,24 +293,26 @@ class fileman_Upload extends core_Manager
                         <span class="uploadMessage">' . $message. '</span>
                     </div>
             </form>');
-        
+
         $currUrl = getCurrentUrl();
-        $currUrl['Upload'] = '1';
         $currUrl['ajax_mode'] = '1';
+        $currUrl['Act'] = 'Upload';
         $uploadUrl = toUrl($currUrl);
         $uploadUrl = json_encode($uploadUrl);
-        
+
         $crossImg = sbf('img/16/delete.png', '');
         $crossImg = json_encode($crossImg);
-        
+
         $uploadErrStr = tr('Грешка при качване на файл') . ': ';
         $uploadErrStr = json_encode($uploadErrStr);
-        
+
         $fileSizeErr = tr('Файлът е над допустимия размер');
         $fileSizeErr = json_encode($fileSizeErr);
-        
+
         $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr}; var allowMultiupload = {$allowMultiUpload};", 'SCRIPTS');
-        
+        $tpl->appendOnce("const CHUNK_SIZE_DEFAULT = " . fileman_Setup::get('CHUNK_SIZE') . ';', 'SCRIPTS');
+
+        $tpl->push('fileman/js/sha256.js', 'JS');
         $tpl->push('fileman/js/upload.js', 'JS');
 
         $tpl->appendOnce("window.addEventListener('paste', e => {
@@ -290,7 +343,7 @@ class fileman_Upload extends core_Manager
                                         
                                         return false;
                                     }, false);", 'SCRIPTS');
-        
+
         return $tpl;
     }
 }
