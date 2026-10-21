@@ -35,7 +35,8 @@ class fileman_ChunkedUpload
     }
 
 
-    public static function validateFiles($files, $bucketId)
+    /** При отказ от кофата причината остава в $errors за показване на потребителя. */
+    public static function validateFiles($files, $bucketId, &$errors = array())
     {
         expect(is_array($files) && count($files) > 0 && count($files) <= self::MAX_FILES,
             'Невалиден брой файлове');
@@ -77,8 +78,12 @@ class fileman_ChunkedUpload
     }
 
 
-    /** Повторение на последната заявка връща запазения резултат без ново добавяне. */
-    public static function receive($scope, $finish)
+    /**
+     * Повторение на последната заявка връща запазения резултат без ново добавяне.
+     * Без $abort неуспешна част може да се повтори. С $abort грешка прекратява
+     * незавършеното качване под lock-а, след което $abort освобождава ресурсите му.
+     */
+    public static function receive($scope, $finish, $abort = null)
     {
         expect(self::getContentType() === 'application/octet-stream', 'Очакват се двоични данни');
         $id = $_SERVER['HTTP_X_UPLOAD_ID'] ?? '';
@@ -92,11 +97,13 @@ class fileman_ChunkedUpload
         $path = rtrim(fileman::getTempDir(), '/') . '/raw-' . $id;
         $lockId = 'rawUpload|' . $id;
         expect(core_Locks::obtain($lockId, 120, 10, 10), 'Заето качване');
+        $abortOnError = false;
         try {
             expect(is_file($path . '/meta.json'), 'Неизвестно качване');
             $meta = json_decode(file_get_contents($path . '/meta.json'), true);
             expect(is_array($meta) && ($meta['owner'] ?? '') === self::getOwner() &&
                 ($meta['scope'] ?? '') === $scope && ($meta['expires'] ?? 0) >= time(), 'Изтекло или чуждо качване');
+            $abortOnError = $abort && !isset($meta['result']);
             $file = $meta['files'][$fileIndex] ?? null;
             expect(is_array($file), 'Невалиден номер на файл');
             $chunkSize = $meta['chunkSize'];
@@ -167,13 +174,28 @@ class fileman_ChunkedUpload
                 $files['error'][] = UPLOAD_ERR_OK;
                 $files['size'][] = $item['size'];
             }
-            $meta['result'] = call_user_func($finish, $files, $meta['context']);
+            $result = call_user_func($finish, $files, $meta['context']);
+
+            // Завършеното качване остава за повторение, а ресурсите му - заети
+            $abortOnError = false;
+            $meta['result'] = $result;
             $meta['result']['uploadId'] = $id;
             self::saveMeta($path, $meta);
             foreach (glob($path . '/part.*') as $filePath) @unlink($filePath);
             foreach (glob($path . '/assembled.*') as $filePath) @unlink($filePath);
 
             return $meta['result'];
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            if ($abortOnError) {
+                // Без meta следващите части се отказват, затова ресурсите вече могат да се освободят
+                @unlink($path . '/meta.json');
+                core_Os::deleteDir($path);
+                call_user_func($abort, $meta['context'] ?? null);
+            }
+
+            throw $e;
         } finally {
             core_Locks::release($lockId);
         }

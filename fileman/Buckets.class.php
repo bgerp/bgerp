@@ -9,7 +9,7 @@
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -232,7 +232,9 @@ class fileman_Buckets extends core_Manager
                 $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
                 
                 if ($ext && empty($extensions[$ext])) {
-                    $err[] = "Разширението на файла |* <b>{$ext}</b> | не е в допустимите|*: {$row->extensions}";
+                    // Името идва от потребителя, а съобщението се показва като HTML
+                    $extVerbal = type_Varchar::escape($ext);
+                    $err[] = "Разширението на файла |* <b>{$extVerbal}</b> | не е в допустимите|*: {$row->extensions}";
                 }
             }
         }

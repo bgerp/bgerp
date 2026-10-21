@@ -10,15 +10,41 @@ import {createServer} from 'node:net';
 import vm from 'node:vm';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const hashSource = await readFile(new URL('../js/sha256.js', import.meta.url), 'utf8');
+const lengths = [0, 1, 55, 56, 63, 64, 65, 127, 128, 1025, 1048575, 1048576, 1048577, 2097153];
 for (const crypto of [undefined, webcrypto, {subtle: {digest() { throw Error('disabled'); }}}]) {
     const context = vm.createContext({self: {crypto}, Uint8Array, Uint32Array, DataView});
     vm.runInContext(hashSource, context);
-    for (const length of [0, 1, 55, 56, 63, 64, 65, 127, 128, 1025, 2097153]) {
+    for (const length of lengths) {
         const bytes = Uint8Array.from({length}, (_, i) => i % 251);
         assert.equal(await context.sha256File(new Blob([bytes])), sha(bytes));
     }
 }
-console.log('SHA-256: native, absent and failing Web Crypto; 33 vectors passed');
+// Без Blob.arrayBuffer() се чете през FileReader; файл над паметта минава към JS на части.
+class FileReader {
+    readAsArrayBuffer(blob) {
+        blob.source.arrayBuffer().then(result => { this.result = result; this.onload(); });
+    }
+}
+const oldBlob = source => ({size: source.size, source, slice: (start, end) => oldBlob(source.slice(start, end))});
+const hugeBlob = source => ({size: source.size, slice: (start, end) => source.slice(start, end),
+    arrayBuffer: () => source.size > 1048576 ? Promise.reject(new RangeError('Array buffer allocation failed')) : source.arrayBuffer()});
+for (const [crypto, wrap] of [[undefined, oldBlob], [webcrypto, oldBlob], [webcrypto, hugeBlob]]) {
+    const context = vm.createContext({self: {crypto}, FileReader, Uint8Array, Uint32Array, DataView});
+    vm.runInContext(hashSource, context);
+    for (const length of [0, 65, 1048577, 2097153]) {
+        const bytes = Uint8Array.from({length}, (_, i) => i % 251);
+        assert.equal(await context.sha256File(wrap(new Blob([bytes]))), sha(bytes));
+    }
+}
+// Над 256MB native digest не се използва, за да не се зарежда целият файл в паметта.
+{
+    const context = vm.createContext({self: {crypto: webcrypto}, Uint8Array, Uint32Array, DataView});
+    vm.runInContext(hashSource, context);
+    context.sha256Blob = async () => 'js';
+    assert.equal(await context.sha256File({size: 268435456, arrayBuffer: async () => new ArrayBuffer(1)}), sha(new Uint8Array(1)));
+    assert.equal(await context.sha256File({size: 268435457, arrayBuffer() { throw Error('whole file read'); }}), 'js');
+}
+console.log('SHA-256: native, absent and failing Web Crypto, FileReader, out-of-memory and size-limit fallback; 56 checks passed');
 let server, directory;
 let url = process.argv[2];
 try {
@@ -75,7 +101,25 @@ try {
     }
     assert.equal((await post('x'.repeat(65537), {'Content-Type': 'application/json'})).ok, false);
     assert.equal((await post('--test--', {'Content-Type': 'multipart/form-data; boundary=test'})).ok, false);
-    console.log('Raw HTTP: multiple files, reordered/duplicate parts, final retry, SHA, size, owner, indices and multipart rejection passed');
+    // С $abort (PWA) грешка прекратява незавършеното качване; чужди заявки и завършено качване не го засягат.
+    const abort = {'X-Test-Abort': '1'};
+    const guarded = await begin([file('abcdef')]);
+    for (const extra of [{'X-Test-User': '2'}, {'X-Test-Brid': 'other'}, {'X-Test-Scope': 'other'}]) {
+        assert.equal((await part(guarded.uploadId, 0, 'abcd', 0, {...abort, ...extra})).ok, false, 'foreign abort request');
+    }
+    assert.equal((await part(guarded.uploadId, 0, 'abcd', 0, abort)).received, 4, 'foreign requests must not abort');
+    assert.equal((await part(guarded.uploadId, 1, 'XYZ', 0, abort)).ok, false, 'oversized part aborts');
+    assert.equal((await part(guarded.uploadId, 1, 'ef', 0, abort)).ok, false, 'aborted upload rejects parts');
+    const done = await begin([file('ok')]);
+    const doneResult = await part(done.uploadId, 0, 'ok', 0, abort);
+    assert.deepEqual(doneResult.contents, ['ok']);
+    assert.equal((await part(done.uploadId, 1, 'x', 0, abort)).ok, false, 'invalid index after completion');
+    assert.deepEqual(await part(done.uploadId, 0, 'ok', 0, abort), doneResult, 'completed upload keeps its result');
+    if (directory) {
+        assert.equal((await readdir(directory)).includes('raw-' + guarded.uploadId), false, 'aborted upload removed');
+        assert.equal(await readFile(join(directory, 'aborted'), 'utf8'), '1', 'abort runs once');
+    }
+    console.log('Raw HTTP: multiple files, reordered/duplicate parts, final retry, SHA, size, owner, indices, multipart rejection and abort passed');
 } finally {
     if (server) {
         server.kill();

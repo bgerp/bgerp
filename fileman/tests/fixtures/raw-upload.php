@@ -20,6 +20,9 @@ class core_Locks {
     public static function obtain($id, $ttl, $wait, $tries) { return true; }
     public static function release($id) {}
 }
+class core_Os {
+    public static function deleteDir($dir) { array_map('unlink', glob($dir . '/*')); return rmdir($dir); }
+}
 class fileman_Buckets {
     public static function isValid(&$errors, $bucket, $name, $path, $size) {
         $errors = array('Test bucket rejects size or extension');
@@ -35,13 +38,18 @@ try {
         $files = fileman_ChunkedUpload::validateFiles($data['files'] ?? null, 1);
         $result = fileman_ChunkedUpload::begin($files, array(), $scope);
     } else {
+        // X-Test-Abort включва прекратяването, което PWA използва за анонимната квота
+        $abort = empty($_SERVER['HTTP_X_TEST_ABORT']) ? null : function ($context) {
+            $counter = fileman::getTempDir() . '/aborted';
+            file_put_contents($counter, (string) ((is_file($counter) ? (int) file_get_contents($counter) : 0) + 1));
+        };
         $result = fileman_ChunkedUpload::receive($scope, function ($files) {
             $counter = fileman::getTempDir() . '/finished';
             $count = is_file($counter) ? (int) file_get_contents($counter) : 0;
             file_put_contents($counter, (string) ++$count);
             return array('ok' => true, 'finished' => $count,
                 'contents' => array_map('file_get_contents', $files['tmp_name']), 'names' => $files['name']);
-        });
+        }, $abort);
     }
     echo json_encode($result);
 } catch (Throwable $e) {

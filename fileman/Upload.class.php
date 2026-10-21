@@ -110,6 +110,7 @@ class fileman_Upload extends core_Manager
         Request::setProtected('callback, bucketId, validUntil');
         $bucketId = Request::get('bucketId', 'int');
         $callback = Request::get('callback', 'identifier');
+        $errors = array();
         try {
             expect(($_SERVER['REQUEST_METHOD'] ?? '') === 'POST', 'Очаква се POST');
             expect($bucketId && fileman_Buckets::canAddFileToBucket($bucketId), 'Нямате право за качване тук');
@@ -118,7 +119,7 @@ class fileman_Upload extends core_Manager
             if (fileman_ChunkedUpload::getContentType() === 'application/json') {
                 $data = fileman_ChunkedUpload::readJson();
                 expect(!empty($data['init']), 'Невалидно начало на качване');
-                $files = fileman_ChunkedUpload::validateFiles(array($data), $bucketId);
+                $files = fileman_ChunkedUpload::validateFiles(array($data), $bucketId, $errors);
                 $result = fileman_ChunkedUpload::begin($files, array('bucketId' => $bucketId, 'callback' => $callback), $scope);
                 $result['fileHash'] = $files[0]['sha256'];
             } else {
@@ -135,7 +136,9 @@ class fileman_Upload extends core_Manager
         } catch (core_exception_Redirect $e) {
             throw $e;
         } catch (core_exception_Expect $e) {
-            $result = array('ok' => false, 'error' => tr('Неуспешно качване. Проверете файла и валидността на връзката.'));
+            // Отказът на кофата (разширение, размер) се показва както при старото качване
+            $error = $errors ? implode('<br>', array_map('tr', $errors)) : tr('Неуспешно качване. Проверете файла и валидността на връзката.');
+            $result = array('ok' => false, 'error' => $error);
         } catch (Throwable $e) {
             reportException($e);
             $result = array('ok' => false, 'error' => tr('Грешка при качване на файл'));

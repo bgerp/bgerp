@@ -200,7 +200,12 @@ class pwa_Share extends core_Mvc
                     ? fileman_ChunkedUpload::begin($metadata, $context, $scope)
                     : $finish(array(), $context);
             } else {
-                $result = fileman_ChunkedUpload::receive($scope, $finish);
+                // Worker-ът спира при грешка, затова качването се прекратява и слотът не чака изтичането си
+                $result = fileman_ChunkedUpload::receive($scope, $finish, function ($context) {
+                    if (!empty($context['quota'])) {
+                        self::releaseAnonymousUploadSlot((object) $context['quota']);
+                    }
+                });
             }
         } catch (core_exception_Redirect $e) {
             throw $e;

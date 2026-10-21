@@ -105,13 +105,13 @@ async function afterSelectFile(inputInst, multiUpload, maxFileSize)
         // Името на файла
         var fileName = getFileName(filePath);
 
-        var filePathEsc = filePath.replace('"', '\"');
-        var filePathEsc = filePath.replace("'", "\'");
+        // Името идва от файловата система и може да съдържа HTML и кавички
+        var filePathEsc = escapeUploadHtml(JSON.stringify(filePath));
 
-        var crossImgLink = ' <a style="color:red;" href="#" onclick="unsetFile(' + btnCntId + ', ' + multiUpload + ', ' + filePathArr.length + ', \'' + filePathEsc + '\')">' + crossImg + '</a>';
+        var crossImgLink = ' <a style="color:red;" href="#" onclick="unsetFile(' + btnCntId + ', ' + multiUpload + ', ' + filePathArr.length + ', ' + filePathEsc + ')">' + crossImg + '</a>';
 
         // В държача за качени файлове добавяме името на файла и линк за премахване
-        $('.uploaded-filenames').append('<span' + uploadedFileTitle + ' class="' + uploadedFileClass + '" id="' + uploadedFileId + '">' + fileName + crossImgLink +' </span>');
+        $('.uploaded-filenames').append('<span' + uploadedFileTitle + ' class="' + uploadedFileClass + '" id="' + uploadedFileId + '">' + escapeUploadHtml(fileName) + crossImgLink +' </span>');
 
         if (multiUpload) {
             btnCntId++;
@@ -175,6 +175,35 @@ function getFileName(filePath)
         // Лимитираме дължината и връщаме
         return limitLen(string, 32);
     }
+}
+
+
+/**
+ * Ескейпва текст за HTML съдържание и атрибути
+ *
+ * @param str
+ */
+function escapeUploadHtml(str)
+{
+    return String(str).replace(/[&<>"']/g, function(ch) {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+    });
+}
+
+
+/**
+ * Показва грешка при качване на файла
+ *
+ * @param error - HTML съобщение от сървъра
+ * @param fileName
+ */
+function showUploadError(error, fileName)
+{
+    $('#add-error-info').append('<div class="upload-error">' + error + '<div><b>' + escapeUploadHtml(fileName) + '</b></div></div>');
+
+    $('#add-file-info').animate({
+        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-error").prop('scrollHeight')
+    }, 2000);
 }
 
 
@@ -246,6 +275,9 @@ function unsetFile(id, multiUpload, len, filePath)
 $(document).ready(function() {
     // Прихваща натискането на бутона за качване
     $('#uploadBtn').on('click', async function() {
+        // Хеширането без crypto.subtle е по-бавно - да не стартира повторно междувременно
+        if (this.disabled) return;
+        this.disabled = true;
 
         const metas = [];
         const shaArr = [];
@@ -267,7 +299,15 @@ $(document).ready(function() {
                     }
                 }
 
-                const sha = await sha256File(file);
+                let sha;
+                try {
+                    sha = await sha256File(file);
+                } catch (error) {
+                    // Файлът може да е изтрит или променен след избирането
+                    showUploadError(uploadErrStr, file.name);
+
+                    continue;
+                }
                 const meta = {
                     name: file.name,
                     size: file.size,
@@ -282,11 +322,7 @@ $(document).ready(function() {
                 var initOnServer = await initUploadOnServer(meta);
 
                 if (!initOnServer.ok) {
-                    $('#add-error-info').append('<div class="upload-error">' + initOnServer.error + '<div><b>' + file.name + '</b></div></div>');
-
-                    $('#add-file-info').animate({
-                        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-error").prop('scrollHeight')
-                    }, 2000);
+                    showUploadError(initOnServer.error, file.name);
 
                     continue;
                 }
@@ -311,7 +347,7 @@ $(document).ready(function() {
                 // Променлива за име на файл
                 input.fileName = getFileName(file.name);
                 var td11 = $('<td class="fileNameRow"></td>');
-                td11.append(input.fileName);
+                td11.text(input.fileName);
 
                 // Линк за спиране на качването по време на качване
                 var crossImg = '<img src="' + crossImgPng + '" align="absmiddle" alt="">';
@@ -425,11 +461,7 @@ $(document).ready(function() {
                 if (!chunkResp.ok) {
                     $("table[data-sha='" + server.fileHash + "']").remove();
 
-                    $('#add-error-info').append('<div class="upload-error">' + chunkResp.error + '<div><b>' + file.name + '</b></div></div>');
-
-                    $('#add-file-info').animate({
-                        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-error").prop('scrollHeight')
-                    }, 2000);
+                    showUploadError(chunkResp.error, file.name);
 
                     break;
                 }
@@ -452,6 +484,7 @@ $(document).ready(function() {
         }
 
         await showButtonsAfterUpload();
+        this.disabled = false;
     });
 });
 

@@ -1,22 +1,36 @@
 // ==== SHA-256 на целия файл (изчислява се преди качване) ====
 async function sha256File(file){
-    const buf = await file.arrayBuffer();
-
-    // crypto.subtle липсва извън защитен контекст (http, който не е localhost)
-    try {
-        if (self.crypto && self.crypto.subtle) {
-            const digest = await self.crypto.subtle.digest('SHA-256', buf);
+    // crypto.subtle липсва извън защитен контекст (http, който не е localhost).
+    // Той иска целия файл в паметта - по-големите се хешират на части (PWA на телефон).
+    if (self.crypto && self.crypto.subtle && file.size <= 268435456) {
+        try {
+            const digest = await self.crypto.subtle.digest('SHA-256', await readBlobBuffer(file));
             return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (error) {
+            // Някои браузъри отказват digest, а голям файл може да не се побере в паметта.
         }
-    } catch (error) {
-        // Някои браузъри предоставят API, но отказват digest в този контекст.
     }
-    return sha256Bytes(new Uint8Array(buf));
+
+    return sha256Blob(file);
 }
 
 
-// SHA-256 на JS, когато crypto.subtle не е наличен
-function sha256Bytes(bytes){
+// Blob.arrayBuffer() липсва в по-старите браузъри
+function readBlobBuffer(blob){
+    if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
+
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(blob);
+    });
+}
+
+
+// SHA-256 на JS, когато crypto.subtle не е наличен. Четенето на части от 1MB
+// пази паметта и оставя страницата отзивчива при големи файлове.
+async function sha256Blob(blob){
     const K = new Uint32Array([
         0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
         0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -46,14 +60,20 @@ function sha256Bytes(bytes){
         H[0] += a; H[1] += c1; H[2] += c2; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
     };
 
-    // Пълните блокове се обработват на място, без копие на целия файл
-    const len = bytes.length, full = len - (len % 64);
-    for (let o = 0; o < full; o += 64) block(bytes, o);
+    // Размерът на частта е кратен на 64, затова остатък има само в последната
+    const len = blob.size, sliceSize = 1048576;
+    let rest = new Uint8Array(0);
+    for (let start = 0; start < len; start += sliceSize) {
+        const bytes = new Uint8Array(await readBlobBuffer(blob.slice(start, start + sliceSize)));
+        if (bytes.length !== Math.min(sliceSize, len - start)) throw new Error('Unexpected file read size');
+        const full = bytes.length - (bytes.length % 64);
+        for (let o = 0; o < full; o += 64) block(bytes, o);
+        rest = bytes.subarray(full);
+    }
 
-    const rest = len - full;
-    const tail = new Uint8Array(rest < 56 ? 64 : 128);
-    tail.set(bytes.subarray(full));
-    tail[rest] = 0x80;
+    const tail = new Uint8Array(rest.length < 56 ? 64 : 128);
+    tail.set(rest);
+    tail[rest.length] = 0x80;
     const dv = new DataView(tail.buffer);
     dv.setUint32(tail.length - 8, Math.floor(len / 0x20000000));
     dv.setUint32(tail.length - 4, (len % 0x20000000) * 8);
