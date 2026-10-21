@@ -221,7 +221,8 @@
                 var toggleIcon = getComputedStyle($toggle[0], ':before');
                 check('tree icon stays compact and inside its click target',
                     parseFloat(toggleIcon.left) >= 0 && parseFloat(toggleIcon.top) >= 0 &&
-                    parseFloat(toggleIcon.fontSize) === 14 &&
+                    parseFloat(toggleIcon.width) === 14 && parseFloat(toggleIcon.height) === 14 &&
+                    parseFloat(toggleIcon.top) + parseFloat(toggleIcon.height) <= $toggle.outerHeight() &&
                     parseFloat(toggleIcon.left) + parseFloat(toggleIcon.width) <= $toggle.outerWidth());
                 check('tree labels omit repeated ancestor names',
                     $('.select2-results__option[data-val="11"] .item-label').text() === 'Дъщерен');
