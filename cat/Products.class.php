@@ -384,6 +384,8 @@ class cat_Products extends embed_Manager
         $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
+        $this->FLD('baseMeasureUsages', 'int', 'input=none,single=none,column=none');
+        $this->FLD('baseMeasureUsagesOn', 'datetime', 'input=none,single=none,column=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
         $this->FNC('price', 'double(minDecimals=2,maxDecimals=6)', 'input=none,caption=Цена,smartCenter');
         
@@ -618,7 +620,7 @@ class cat_Products extends embed_Manager
                 } elseif (!empty($createdOn) && $createdOn <= cat_products_Packagings::getPastHorizon()) {
                     $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::isMeasureUsed($rec->id);
+                    $isUsed = cat_Products::fetchField($rec->id, 'baseMeasureUsages', false) > 0;
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
