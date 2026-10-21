@@ -141,7 +141,7 @@ function modelMatcher(params, data, onlyStartsWith = true)
     data.parentText = data.parentText || "";
     
     // Always return the object if there is nothing to compare
-    if ($.trim(params.term) === '') {
+    if (String(params.term || '').trim() === '') {
     	
     	return data;
     }
@@ -263,3 +263,40 @@ function modelMatcherEverywhere(params, data)
 
 	return modelMatcher(params, data, false);
 }
+
+
+/**
+ * Select2 4.1 разпъва празното поле за търсене с placeholder до 100%, а 4.0 му задава
+ * ширината на полето. Формите и филтрите на bgERP се оразмеряват по нея, затова я запазваме.
+ */
+function select2KeepSearchWidth()
+{
+	var amd = $.fn.select2 && $.fn.select2.amd;
+	if (!amd || select2KeepSearchWidth.done) return;
+	select2KeepSearchWidth.done = true;
+
+	try {
+		var Search = amd.require('select2/selection/search');
+	} catch (e) {
+
+		return;
+	}
+
+	var resizeSearch = Search.prototype.resizeSearch;
+	Search.prototype.resizeSearch = function () {
+		resizeSearch.apply(this, arguments);
+
+		var search = this.$search[0];
+		if (search.tagName != 'TEXTAREA' || !search.getAttribute('placeholder')) return;
+
+		var width = this.$selection.width() - (this.$search.outerWidth(true) - this.$search.width());
+		if (width > 0) {
+			this.$search.css('width', width + 'px');
+		}
+	};
+}
+
+
+// В компактирания файл адаптерът е преди Select2, затова прилагаме и при зареждане на страницата.
+select2KeepSearchWidth();
+$(select2KeepSearchWidth);

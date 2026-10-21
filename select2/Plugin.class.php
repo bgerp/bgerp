@@ -8,7 +8,7 @@
  * @package   selec2
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -188,11 +188,14 @@ class select2_Plugin extends core_Plugin
             $dataL = array();
             $dataNonLeaf = array();
             while($rec = $query->fetch("#id IN ({$keys})")) {
-                if ($rec->{$parentIdName}) {
-                    $dataPup[$rec->id] = $rec->{$parentIdName};
+                $recParentId = $rec->{$parentIdName} ?? null;
+
+                // Родител, който не е сред опциите, не се показва и елементът е корен в дървото
+                if ($recParentId && isset($optArr[$recParentId])) {
+                    $dataPup[$rec->id] = $recParentId;
                     $dataL[$rec->id] = 2;
-                    
-                    $dataNonLeaf[$rec->{$parentIdName}] = $rec->{$parentIdName};
+
+                    $dataNonLeaf[$recParentId] = $recParentId;
                 }
             }
             

@@ -8,7 +8,7 @@
  * @package   selec2
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -91,6 +91,7 @@ class select2_Adapter
             $select2ToTreeVersion = select2_Setup::get('TOTREE_VERSION');
             $tpl->push('select2/toTree_' . $select2ToTreeVersion . '/select2totree.css', 'CSS');
             $tpl->push('select2/toTree_' . $select2ToTreeVersion . '/select2totree.js', 'JS');
+            $tpl->push('select2/js/toTree.js', 'JS');
         }
         
         // custom стилове за плъгина
