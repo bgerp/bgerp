@@ -114,7 +114,7 @@
 }
 
 .tdsComplianceItem strong + span::before {
-    content: " — ";
+    content: " - ";
 }
 
 .tdsProductDescription {
