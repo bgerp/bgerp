@@ -56,7 +56,7 @@ defIfNot('CRM_CONNECTED_COMPANIES', '');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -164,6 +164,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroups2524',
         'migrate::calcExpand36Field2445v3',
         'migrate::forceGatherCron2451v3',
+        'migrate::clearForeignVatUic2643',
     );
     
     
@@ -371,5 +372,21 @@ class crm_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(480);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
+    }
+
+
+    /**
+     * Изчиства Национален №, попълнен автоматично с чуждия ДДС № след 24.07.2026
+     */
+    public function clearForeignVatUic2643()
+    {
+        $Companies = cls::get('crm_Companies');
+        $query = $Companies->getQuery();
+        $query->where("#vatId != '' AND #uicId = #vatId AND #vatId NOT LIKE 'BG%' AND #modifiedOn >= '2026-07-24 00:00:00'");
+        $query->show('id,uicId');
+        while ($rec = $query->fetch()) {
+            $rec->uicId = null;
+            $Companies->save_($rec, 'uicId');
+        }
     }
 }
