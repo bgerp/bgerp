@@ -327,7 +327,7 @@ class dec_Tds extends core_Master
         $row->originCountry = $mvc->getVerbal($rec, 'originCountrySnapshot');
         $row->productDescription = self::removeInternalLinks($rec->productSnapshot);
         $row->date = dt::mysql2verbal($rec->date ?: $rec->createdOn, 'd.m.Y');
-        $row->ESHOP_LINKS = self::renderEshopLinks($rec->productId, $language, $labels);
+        $row->ESHOP_LINKS = self::renderEshopLinks($rec->productId, $language);
         $unitWeight = $mvc->getVerbal($rec, 'unitWeight');
         $row->unitWeightCaption = !empty($rec->unitWeight) ? $labels['unitWeight'] : '';
         $row->unitWeightValue = !empty($rec->unitWeight) ? $unitWeight . ' g' : '';
@@ -582,7 +582,6 @@ class dec_Tds extends core_Master
             'yes' => tr('Да'),
             'no' => tr('Не'),
             'notSpecified' => tr('Не е посочено'),
-            'order' => tr('Поръчай'),
         );
         core_Lg::pop();
 
@@ -591,11 +590,11 @@ class dec_Tds extends core_Master
 
 
     /**
-     * Бутони към страниците в е-магазина, от които артикулът може да се купи
+     * Линкове към страниците в е-магазина, от които артикулът може да се купи
      */
-    protected static function renderEshopLinks($productId, $language, $labels)
+    protected static function renderEshopLinks($productId, $language)
     {
-        if (!core_Packs::isInstalled('eshop') || Mode::is('printing') || Mode::is('pdf')) {
+        if (!core_Packs::isInstalled('eshop')) {
 
             return null;
         }
@@ -626,16 +625,10 @@ class dec_Tds extends core_Master
                 continue;
             }
 
-            // При localhost в надписа е реалният хост
-            $hostName = $host;
-            if ($host == 'localhost') {
-                cms_Domains::getAbsoluteUrl($domainRec->id, $hostName);
-            }
-
-            $links[$host] = (object) array('lang' => $domainRec->lang, 'url' => $url, 'hostName' => $hostName);
+            $links[$host] = (object) array('lang' => $domainRec->lang, 'url' => $url);
         }
 
-        $res = '';
+        $res = array();
         foreach ($links as $host => $link) {
             if ($host != 'localhost') {
                 Mode::push('BGERP_CURRENT_DOMAIN', $host);
@@ -646,16 +639,10 @@ class dec_Tds extends core_Master
                 Mode::pop('BGERP_CURRENT_DOMAIN');
             }
 
-            $caption = type_Varchar::escape((countR($links) > 1) ? "{$labels['order']} {$link->hostName}" : $labels['order']);
-            if (Mode::is('text', 'xhtml')) {
-                // Без JS в имейла - линк, оформен като бутон
-                $res .= ' ' . ht::createLink($caption, $url, false, array('class' => 'tdsEshopBtn', 'target' => '_blank'));
-            } else {
-                $res .= ' ' . ht::createBtn('|*' . $caption, $url, false, true, array('ef_icon' => 'img/16/cart_go.png', 'title' => $link->hostName));
-            }
+            $res[] = ht::createLink(type_Varchar::escape(rawurldecode($url)), $url, false, array('target' => '_blank'));
         }
 
-        return $res;
+        return implode('<br>', $res);
     }
 
 

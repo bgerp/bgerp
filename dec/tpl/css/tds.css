@@ -195,21 +195,6 @@
     font-size: 9pt;
 }
 
-.tdsEshopLinks {
-    margin: 0 0 4mm;
-}
-
-.tdsEshopBtn {
-    display: inline-block;
-    padding: 4px 12px;
-    border: 1px solid #008800;
-    border-radius: 3px;
-    background-color: #f4fbf4;
-    color: #008800;
-    font-weight: bold;
-    text-decoration: none;
-}
-
 .tdsSignatureSection {
     margin-top: 7mm;
     break-inside: avoid;

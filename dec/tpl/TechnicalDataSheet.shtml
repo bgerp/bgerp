@@ -4,8 +4,6 @@
     <div>Issued on<strong>[#date#]</strong></div>
 </section>
 
-<!--ET_BEGIN ESHOP_LINKS--><div class="tdsEshopLinks">[#ESHOP_LINKS#]</div><!--ET_END ESHOP_LINKS-->
-
 <section class="tdsSection">
     <h2 class="tdsSectionTitle">Product identification</h2>
     <table class="tdsDataTable">
@@ -25,6 +23,10 @@
             <th>Origin</th>
             <td>[#originCountry#]</td>
         </tr>
+        <!--ET_BEGIN ESHOP_LINKS--><tr>
+            <th>Buy</th>
+            <td colspan="3">[#ESHOP_LINKS#]</td>
+        </tr><!--ET_END ESHOP_LINKS-->
     </table>
 </section>
 

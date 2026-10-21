@@ -4,8 +4,6 @@
     <div>Издаден на<strong>[#date#]</strong></div>
 </section>
 
-<!--ET_BEGIN ESHOP_LINKS--><div class="tdsEshopLinks">[#ESHOP_LINKS#]</div><!--ET_END ESHOP_LINKS-->
-
 <section class="tdsSection">
     <h2 class="tdsSectionTitle">Идентификация на продукта</h2>
     <table class="tdsDataTable">
@@ -25,6 +23,10 @@
             <th>Произход</th>
             <td>[#originCountry#]</td>
         </tr>
+        <!--ET_BEGIN ESHOP_LINKS--><tr>
+            <th>Купи</th>
+            <td colspan="3">[#ESHOP_LINKS#]</td>
+        </tr><!--ET_END ESHOP_LINKS-->
     </table>
 </section>
 
