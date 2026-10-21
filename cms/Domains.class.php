@@ -152,7 +152,24 @@ class cms_Domains extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'domain,lang,theme,createdOn,createdBy';
+    public $listFields = 'domain,lang,theme,themePalette,createdOn,createdBy';
+
+
+    /** Избраната палитра се съхранява във вградените настройки на темата. */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        if (!isset($fields['-list'])) {
+            return;
+        }
+        $driver = $mvc->getDriver($rec);
+        if ($driver instanceof cms_themes_cards_Theme) {
+            $themeFields = new core_FieldSet();
+            $driver->addEmbeddedFields($themeFields);
+            $palette = $rec->form->colorPalette ?? 'default';
+            $row->themePalette = $themeFields->getFieldType('colorPalette')->toVerbal($palette);
+        }
+    }
+
     
     
     /**
@@ -184,6 +201,10 @@ class cms_Domains extends core_Embedder
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
         
+        $this->FNC('themePalette', 'varchar', 'caption=Цветова палитра,input=none,single=none');
+
+        $this->FLD('navigationPosition', 'enum(left=Лява лента,right=Дясна лента,top=Над съдържанието)', 'caption=Оформление->Положение на навигацията,allowEmpty');
+
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('form', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
         
@@ -687,6 +708,9 @@ class cms_Domains extends core_Embedder
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $data->form->setField('domain', 'focus');
+        self::on_AfterPrepareEmbeddedForm($mvc, $data->form);
+        $data->form->setDefault('navigationPosition', self::getNavigationPosition($data->form->rec));
         $langQuery = drdata_Languages::getQuery();
         $langOpt = array();
         while ($lRec = $langQuery->fetch()) {
@@ -708,6 +732,17 @@ class cms_Domains extends core_Embedder
     }
     
     
+    /** Бутоните за файлове не трябва да превъртат формата при отваряне. */
+    public static function on_AfterPrepareEmbeddedForm($mvc, &$form)
+    {
+        foreach ($form->selectFields() as $name => $field) {
+            if ($field->type instanceof fileman_FileType) {
+                $form->setFieldTypeParams($name, array('focus' => 'none'));
+            }
+        }
+    }
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      *
@@ -1068,6 +1103,20 @@ class cms_Domains extends core_Embedder
     }
     
     
+    /** Общата позиция на навигацията; старите настройки на магазина са резервен източник. */
+    public static function getNavigationPosition($domainRec = null)
+    {
+        $domainRec = $domainRec ?? self::getPublicDomain();
+        $position = $domainRec->navigationPosition ?? null;
+        if (!$position && !empty($domainRec->id) && core_Packs::isInstalled('eshop')) {
+            $settings = self::getSettings($domainRec->id);
+            $position = $settings->navigationPosition ?? null;
+        }
+
+        return in_array($position, array('left', 'right', 'top')) ? $position : 'left';
+    }
+
+
     /**
      * Какви са настройките на домейна
      *

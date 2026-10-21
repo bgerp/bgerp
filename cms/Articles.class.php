@@ -536,9 +536,17 @@ class cms_Articles extends core_Master
         $navTpl = new ET("");
         $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
+        $groupNavigation = ($data->searchCtr ?? null) == 'cms_Articles' && cms_Domains::getNavigationPosition() == 'top';
+        $branchOpen = false;
 
         if (is_array($data->links ?? null)) {
+            if ($groupNavigation) $navTpl->append('<div class="cms-navigation-columns">');
             foreach ($data->links as $l) {
+                if ($groupNavigation && (($l->level ?? 1) == 1 || !$branchOpen)) {
+                    if ($branchOpen) $navTpl->append('</div>');
+                    $navTpl->append('<div class="cms-navigation-branch">');
+                    $branchOpen = true;
+                }
                 $selected = ($l->selected ?? null) ? 'sel_page' : '';
                 if (!empty($l->closed)) {
                     $aAttr = array('style' => 'color:#aaa !important;');
@@ -568,6 +576,8 @@ class cms_Articles extends core_Master
                 }
                 $navTpl->append('</div>');
             }
+            if ($branchOpen) $navTpl->append('</div>');
+            if ($groupNavigation) $navTpl->append('</div>');
         }
 
         if (!empty($data->addLink)) {

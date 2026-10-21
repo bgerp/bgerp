@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -94,6 +94,8 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $domainRec = cms_Domains::getPublicDomain();
+        $this->appendOnce(' cms-navigation-' . cms_Domains::getNavigationPosition($domainRec), 'BODY_CLASS_NAME');
+        $this->push('cms/css/publicLayout.css', 'CSS');
         $this->append(' lang="' . ht::escapeAttr($domainRec->lang ?? core_Lg::getCurrent()) . '"', 'HTML_ATTR');
         
         // Къде да добавим линковете

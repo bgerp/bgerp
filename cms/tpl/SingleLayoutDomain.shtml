@@ -33,6 +33,8 @@
                 </tr>
                 <!--ET_END theme-->
 
+                <tr><td class="gray-title aright">|Положение на навигацията|*:</td><td>[#navigationPosition#]</td></tr>
+
                 <!--ET_BEGIN sharedUsers-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">

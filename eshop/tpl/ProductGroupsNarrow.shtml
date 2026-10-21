@@ -1,4 +1,4 @@
-<div class='cms-row'>
+<div class='cms-row eshop-configured-layout [#ESHOP_LAYOUT_CLASS#]'>
     <!--ET_BEGIN NAVIGATION-->
     <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
         <div class='articles-navigation'>
