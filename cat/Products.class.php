@@ -618,8 +618,7 @@ class cat_Products extends embed_Manager
                 } elseif (!empty($createdOn) && $createdOn <= cat_products_Packagings::getPastHorizon()) {
                     $isUsed = true;
                 } else {
-                    $usedMeasures = core_Permanent::get("productUsedMeasures|{$rec->id}");
-                    $isUsed = is_array($usedMeasures) && isset($rec->measureId) && isset($usedMeasures[$rec->measureId]);
+                    $isUsed = cat_products_Packagings::isMeasureUsed($rec->id);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
