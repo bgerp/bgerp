@@ -1549,7 +1549,6 @@ class cat_products_Packagings extends core_Detail
     {
         // Детайли в които ще проверяваме
         $from = self::getPastHorizon();
-        $startedOn = dt::now();
 
         // Извличат се продуктовите опаковки създавани след посочения хоризонт
         core_Debug::startTimer('GET_PACKS');
@@ -1559,6 +1558,15 @@ class cat_products_Packagings extends core_Detail
         $pQuery->where("#createdOn >= '{$from}'");
         while ($pRec = $pQuery->fetch()) {
             $usages["{$pRec->productId}|{$pRec->packagingId}"] = (object)array('id' => $pRec->id, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'usages' => 0);
+        }
+
+        // Броячите на основните мерки се четат преди преброяването, за да се засекат промените по време на него
+        $exMeasureUsages = array();
+        $prodQuery = cat_Products::getQuery();
+        $prodQuery->where("#createdOn > '{$from}'");
+        $prodQuery->show('id,measureId,baseMeasureUsages');
+        while ($prodRec = $prodQuery->fetch()) {
+            $exMeasureUsages[$prodRec->id] = $prodRec;
         }
         core_Debug::stopTimer('GET_PACKS');
 
@@ -1579,17 +1587,16 @@ class cat_products_Packagings extends core_Detail
 
         // Използванията с основната мярка се обновяват само при артикулите след хоризонта, по-старите са заключени
         $changed = array();
-        $prodQuery = cat_Products::getQuery();
-        $prodQuery->where("#createdOn > '{$from}'");
-        $prodQuery->show('id,measureId,baseMeasureUsages');
-        while ($prodRec = $prodQuery->fetch()) {
-            $count = $measureUsages[$prodRec->id][$prodRec->measureId] ?? 0;
-            if ($count != ($prodRec->baseMeasureUsages ?? 0)) {
-                $changed[$count][$prodRec->id] = $prodRec->id;
+        foreach ($exMeasureUsages as $productId => $prodRec) {
+            $count = $measureUsages[$productId][$prodRec->measureId] ?? 0;
+            $exCount = (int) ($prodRec->baseMeasureUsages ?? 0);
+            if ($count != $exCount) {
+                $changed["{$count}|{$exCount}"][$productId] = $productId;
             }
         }
-        foreach ($changed as $count => $productIds) {
-            self::updateBaseMeasureUsages($productIds, $count, false, $startedOn);
+        foreach ($changed as $key => $productIds) {
+            list($count, $exCount) = explode('|', $key);
+            self::updateBaseMeasureUsages($productIds, $count, false, $exCount);
         }
         core_Debug::stopTimer('SAVE_ALL');
     }
@@ -1680,31 +1687,28 @@ class cat_products_Packagings extends core_Detail
      * Директно в таблицата: save_() на артикула препакетира данните на драйвера, а промяната трябва да е атомарна
      *
      * @param array $productIds
-     * @param int $value                   - новата стойност или с колко да се промени
-     * @param bool $isDelta                - дали стойността е промяна към текущата
-     * @param string|null $notChangedSince - новата стойност се записва само ако артикулът не е променян от този момент
+     * @param int $value           - новата стойност или с колко да се промени
+     * @param bool $isDelta        - дали стойността е промяна към текущата
+     * @param int|null $exValue    - новата стойност се записва само ако текущата е тази
      * @return void
      */
-    private static function updateBaseMeasureUsages($productIds, $value, $isDelta = false, $notChangedSince = null)
+    private static function updateBaseMeasureUsages($productIds, $value, $isDelta = false, $exValue = null)
     {
         $ids = implode(',', arr::makeIds($productIds));
         if (!strlen($ids)) return;
 
         $Products = cls::get('cat_Products');
         $col = str::phpToMysqlName('baseMeasureUsages');
-        $onCol = str::phpToMysqlName('baseMeasureUsagesOn');
         $value = (int) $value;
 
-        // Текущата промяна се отбелязва, за да не я презапише по-ранно преброяване от крона
+        // Ако е подадена старата стойност, промяна междувременно не се презаписва
         $where = '';
         if ($isDelta) {
-            $now = $Products->db->escape(dt::now());
-            $setSql = "`{$col}` = GREATEST(COALESCE(`{$col}`, 0) + {$value}, 0), `{$onCol}` = '{$now}'";
+            $setSql = "`{$col}` = GREATEST(COALESCE(`{$col}`, 0) + {$value}, 0)";
         } else {
             $setSql = "`{$col}` = " . max($value, 0);
-            if (isset($notChangedSince)) {
-                $since = $Products->db->escape($notChangedSince);
-                $where = " AND (`{$onCol}` IS NULL OR `{$onCol}` < '{$since}')";
+            if (isset($exValue)) {
+                $where = " AND COALESCE(`{$col}`, 0) = " . (int) $exValue;
             }
         }
 
