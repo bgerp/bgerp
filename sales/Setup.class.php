@@ -287,7 +287,7 @@ defIfNot('SALES_SHOW_NEXT_PACK_UNIT', 'no');
  * @package sales
  *
  * @author Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license GPL 3
  *
  * @since v 0.1
@@ -485,6 +485,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::migrateDeltas3024v2',
         'migrate::forceIsSaleOverdue2451',
         'migrate::forceCalcDeliveryData2524',
+        'migrate::clearForeignVatUicNo2643',
 
     );
     
@@ -724,5 +725,28 @@ class sales_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(200);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'CacheSalesDeliveryData', $callOn);
+    }
+
+
+    /**
+     * Изчиства Национален №, попълнен с чуждия ДДС № във фактурите и проформите след 24.07.2026
+     */
+    public function clearForeignVatUicNo2643()
+    {
+        foreach (array('sales_Invoices', 'sales_Proformas') as $class) {
+            $save = array();
+            $Mvc = cls::get($class);
+            $query = $Mvc->getQuery();
+            $query->where("#contragentVatNo != '' AND #uicNo = #contragentVatNo AND #contragentVatNo NOT LIKE 'BG%' AND #modifiedOn >= '2026-07-24 00:00:00'");
+            $query->show('id,uicNo');
+            while ($rec = $query->fetch()) {
+                $rec->uicNo = null;
+                $save[$rec->id] = $rec;
+            }
+
+            if (countR($save)) {
+                $Mvc->saveArray($save, 'id,uicNo');
+            }
+        }
     }
 }

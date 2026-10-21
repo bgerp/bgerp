@@ -4,6 +4,8 @@ class cams_ONVIFTest extends core_Manager
 {
     public function act_ponvif()
     {
+        requireTestMode();
+
         //requireRole('debug');
         
         // require_once ('/home/mitko/git/ponvif/lib/class.ponvif.php');
@@ -116,6 +118,8 @@ class cams_ONVIFTest extends core_Manager
     
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
         ini_set('default_socket_timeout', 600);
         
@@ -238,6 +242,8 @@ class cams_ONVIFTest extends core_Manager
     
     public function act_Test1()
     {
+        requireTestMode();
+
         requireRole('debug');
         try {
             $HeaderSecurity = array(

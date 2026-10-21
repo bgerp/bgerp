@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -2330,7 +2330,7 @@ class eshop_Carts extends core_Master
             }
         }
 
-        self::setDefaultsFromFolder($form, $form->rec->saleFolderId ?? null);
+        $lockedInvoiceData = self::setDefaultsFromFolder($form, $form->rec->saleFolderId ?? null);
         
         if(empty($form->rec->termId)){
             $form->setField('deliveryCountry', 'input=hidden');
@@ -2377,6 +2377,13 @@ class eshop_Carts extends core_Master
         }
 
         $this->modifyInvoiceFields($form);
+
+        // Данните на регистрирания контрагент не се редактират от поръчката, иначе се създава нова негова версия
+        if (($form->rec->makeInvoice ?? null) != 'none') {
+            foreach ($lockedInvoiceData as $fld => $value) {
+                $form->setReadOnly($fld, $value);
+            }
+        }
         $form->input();
         
         if (($rec->makeInvoice ?? null) != 'none') {
@@ -2388,6 +2395,11 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+            if ($rec->makeInvoice != 'none') {
+                foreach ($lockedInvoiceData as $fld => $value) {
+                    $rec->{$fld} = $value;
+                }
+            }
 
             // Ако има въведен номер на ваучер - той се записва успешно
             $voucherAddedStatus = false;
@@ -2468,12 +2480,6 @@ class eshop_Carts extends core_Master
                 
                 if(isset($rec->termId)){
                     cond_DeliveryTerms::inputDocumentForm($rec->termId, $form, $this);
-                }
-                
-                // Ако има избрана папка обновява се
-                if (!empty($rec->saleFolderId)) {
-                    $Cover = doc_Folders::getCover($rec->saleFolderId);
-                    $Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceUicNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
                 }
                 
                 $cu = core_Users::getCurrent('id', false);
@@ -2645,10 +2651,13 @@ class eshop_Carts extends core_Master
      *
      * @param core_Form $form
      * @param int|NULL  $folderId
+     *
+     * @return array - попълнените от контрагента данни за фактуриране
      */
     private static function setDefaultsFromFolder(&$form, $folderId)
     {
         $rec = &$form->rec;
+        $lockedInvoiceData = array();
         $cu = core_Users::getCurrent('id', false);
         $isColab = isset($cu) && core_Users::isContractor($cu);
         $settings = cms_Domains::getSettings();
@@ -2674,6 +2683,9 @@ class eshop_Carts extends core_Master
                 $form->rec->invoicePCode = $contragentData->pCode ?? null;
                 $form->rec->invoicePlace = $contragentData->place ?? null;
                 $form->rec->invoiceAddress = $contragentData->address ?? null;
+                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $fld) {
+                    $lockedInvoiceData[$fld] = $form->rec->{$fld};
+                }
                 
                 if (!empty($contragentData->countryId)) {
                     $form->countries[$contragentData->countryId] = $contragentData->countryId;
@@ -2773,6 +2785,8 @@ class eshop_Carts extends core_Master
                 }
             }
         }
+
+        return $lockedInvoiceData;
     }
     
     

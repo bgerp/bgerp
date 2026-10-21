@@ -248,7 +248,8 @@ class cat_Setup extends core_ProtoSetup
         'migrate::setDefaultFilterableParams2640v2',
         'migrate::markEshopProductsForParamIndex2640',
         'migrate::deleteParamIndexStateWithoutProduct2640',
-        'migrate::forceRecalcLastUsedPacks2643',
+        'migrate::deleteProductUsedMeasures2643',
+        'migrate::fillBaseMeasureUsages2643',
     );
     
     
@@ -627,9 +628,18 @@ class cat_Setup extends core_ProtoSetup
 
 
     /**
-     * Форсиране на преизчисляването на използванията, за да се запише кешът на основните мерки
+     * Изтриване на стария кеш на използваните основни мерки
      */
-    public function forceRecalcLastUsedPacks2643()
+    public function deleteProductUsedMeasures2643()
+    {
+        core_Permanent::remove('productUsedMeasures|', true);
+    }
+
+
+    /**
+     * Първоначално преброяване на използванията с основната мярка в артикулите
+     */
+    public function fillBaseMeasureUsages2643()
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Recalc Last Used Packs', $callOn);

@@ -581,6 +581,8 @@ class store_Stores extends core_Master
      */
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
 
         $form = cls::get('core_Form');

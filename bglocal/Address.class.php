@@ -11,7 +11,7 @@
  * @package   bglocal
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -235,6 +235,8 @@ class bglocal_Address extends core_MVC
      */
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
         $form = cls::get('core_Form');
         
@@ -259,6 +261,8 @@ class bglocal_Address extends core_MVC
      */
     public function act_Test2()
     {
+        requireTestMode();
+
         $query = email_Incomings::getQuery();
         
         $query->limit(100);

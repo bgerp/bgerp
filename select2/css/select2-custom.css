@@ -189,6 +189,11 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     text-overflow: ellipsis;
 }
 
+/* На телефон дългият път на група разширяваше полето извън екрана. */
+.narrow .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    max-width: calc(100vw - 60px);
+}
+
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
     color: #333;
     background: transparent;
@@ -239,6 +244,41 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice__display {
     padding: 0;
+}
+
+/* В 4.1 търсенето е textarea извън списъка, а бутоните - извън текста; подреждаме ги като в 4.0. */
+.select2-container .select2-selection--multiple > .select2-selection__rendered > .select2-selection__choice {
+    float: left;
+}
+
+.select2-container .select2-selection--multiple > .select2-search--inline {
+    float: left;
+    position: relative;
+    top: 2px;
+    margin-bottom: -1px;
+}
+
+.select2-container .select2-selection--multiple::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.select2-container .select2-search--inline textarea.select2-search__field {
+    height: 1.26em;
+    font-family: inherit;
+}
+
+.select2-container--default .select2-selection--multiple > button.select2-selection__clear {
+    top: 1px !important;
+}
+
+.select2-container--default .select2-selection--single > button.select2-selection__clear {
+    height: 24px;
+}
+
+#all .select2-container--default .select2-selection--single > button.select2-selection__clear {
+    height: 28px;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected],
@@ -353,6 +393,13 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
 .s2-to-tree li.select2-results__option.l6 { margin-left: 90px; }
 .s2-to-tree li.select2-results__option.l7 { margin-left: 108px; }
 .s2-to-tree li.select2-results__option.l8 { margin-left: 126px; }
+/* При търсене клоновете се виждат според .showme, за да може да се свиват. */
+.s2-to-tree.searching-result li.select2-results__option[data-pup] {
+    display: none;
+}
+.s2-to-tree.searching-result li.select2-results__option[data-pup].showme {
+    display: block;
+}
 .s2-to-tree  .select2-results__option--highlighted,  .s2-to-tree  .select2-results__option--highlighted:hover,.s2-to-tree  .expand-collapse{
     background: none !important;
 }

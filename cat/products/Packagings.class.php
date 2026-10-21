@@ -1559,23 +1559,21 @@ class cat_products_Packagings extends core_Detail
         while ($pRec = $pQuery->fetch()) {
             $usages["{$pRec->productId}|{$pRec->packagingId}"] = (object)array('id' => $pRec->id, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'usages' => 0);
         }
+
+        // Използването на основните мерки се чете преди преброяването, за да не се презапише отбелязаното по време на него
+        $exMeasureUsages = array();
+        $prodQuery = cat_Products::getQuery();
+        $prodQuery->where("#createdOn > '{$from}'");
+        $prodQuery->show('id,measureId,isBaseMeasureUsed');
+        while ($prodRec = $prodQuery->fetch()) {
+            $exMeasureUsages[$prodRec->id] = $prodRec;
+        }
         core_Debug::stopTimer('GET_PACKS');
 
         // За всеки от детайлите се преброяват използванията
         core_Debug::startTimer('COUNT_ALL');
         $measureUsages = array();
-        foreach (self::$detailsArr as $Detail) {
-            core_Debug::startTimer("COUNT {$Detail}");
-
-            $packagingFields = cls::get($Detail)->getPackagingFields();
-            foreach ($packagingFields as $packagingFieldName){
-                $this->calcUsage($Detail, $packagingFieldName, $from, $usages, $measureUsages);
-            }
-
-            core_Debug::stopTimer("COUNT {$Detail}");
-            core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime ?? 0, 6));
-        }
-
+        self::calcAllUsages($from, $usages, $measureUsages);
         core_Debug::stopTimer('COUNT_ALL');
         core_Debug::log("END GET_PACKS" . round(core_Debug::$timers["GET_PACKS"]->workingTime ?? 0, 6));
         core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime ?? 0, 6));
@@ -1586,19 +1584,40 @@ class cat_products_Packagings extends core_Detail
         if (countR($usages)) {
             $Packagings->saveArray($usages, 'id,usages');
         }
-        core_Debug::stopTimer('SAVE_ALL');
 
-        // Кешът на основните мерки се изравнява с преброеното, неизползваните се изтриват
-        foreach (core_Permanent::getLikeKey('productUsedMeasures|') as $fullKey => $cached) {
-            $productId = substr(strrchr($fullKey, '|'), 1);
-            if (!isset($measureUsages[$productId])) {
-                core_Permanent::remove("productUsedMeasures|{$productId}");
-            } elseif ($cached == $measureUsages[$productId]) {
-                unset($measureUsages[$productId]);
+        // Използването с основната мярка се отбелязва само при артикулите след хоризонта, по-старите са заключени
+        $Products = cls::get('cat_Products');
+        foreach ($exMeasureUsages as $productId => $prodRec) {
+            $isUsed = !empty($measureUsages[$productId][$prodRec->measureId]) ? 'yes' : 'no';
+            if ($isUsed != $prodRec->isBaseMeasureUsed) {
+                $saveRec = (object) array('id' => $productId, 'isBaseMeasureUsed' => $isUsed);
+                $Products->save_($saveRec, 'isBaseMeasureUsed');
             }
         }
-        foreach ($measureUsages as $productId => $counts) {
-            core_Permanent::set("productUsedMeasures|{$productId}", $counts, core_Permanent::FOREVER_VALUE);
+        core_Debug::stopTimer('SAVE_ALL');
+    }
+
+
+    /**
+     * Преброява използванията на продукт+опаковка във всички следени детайли
+     *
+     * @param string $from              - от коя дата
+     * @param array $usages             - масив към който да се добавя бройката
+     * @param array|null $measureUsages - бройки с основната мярка [productId][measureId], null ако не се броят
+     * @return void
+     */
+    private static function calcAllUsages($from, &$usages, &$measureUsages = null)
+    {
+        foreach (self::$detailsArr as $Detail) {
+            core_Debug::startTimer("COUNT {$Detail}");
+
+            $packagingFields = cls::get($Detail)->getPackagingFields();
+            foreach ($packagingFields as $packagingFieldName){
+                self::calcUsage($Detail, $packagingFieldName, $from, $usages, $measureUsages);
+            }
+
+            core_Debug::stopTimer("COUNT {$Detail}");
+            core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime ?? 0, 6));
         }
     }
 
@@ -1606,14 +1625,14 @@ class cat_products_Packagings extends core_Detail
     /**
      * Преброява използванията да продукт+опаковка в подадения документ
      *
-     * @param mixed $Detail        - детайл
-     * @param string $packagingFld - име на полето за опаковката
-     * @param string $from         - от коя дата
-     * @param array $usages        - масив към който да се добавя бройката
-     * @param array $measureUsages - бройки на използванията с основната мярка: [productId][measureId]
+     * @param mixed $Detail             - детайл
+     * @param string $packagingFld      - име на полето за опаковката
+     * @param string $from              - от коя дата
+     * @param array $usages             - масив към който да се добавя бройката
+     * @param array|null $measureUsages - бройки с основната мярка [productId][measureId], null ако не се броят
      * @return void
      */
-    private function calcUsage($Detail, $packagingFld, $from, &$usages, &$measureUsages)
+    private static function calcUsage($Detail, $packagingFld, $from, &$usages, &$measureUsages = null)
     {
         $dInst = cls::get($Detail);
         $dQuery = $dInst->getQuery();
@@ -1633,20 +1652,20 @@ class cat_products_Packagings extends core_Detail
         }
 
         $dQuery->EXT('pMeasureId', 'cat_Products', "externalName=measureId,externalKey={$productFld}");
-        $dQuery->EXT('pCreatedOn', 'cat_Products', "externalName=createdOn,externalKey={$productFld}");
+
+        // Основната мярка се взима само ако се броят и нейните използвания
+        if (!is_array($measureUsages)) {
+            $dQuery->where("#pMeasureId != #{$packagingFld}");
+        }
 
         $dQuery->XPR('count', 'int', "COUNT(#id)");
-        $dQuery->groupBy("{$productFld},{$packagingFld},pMeasureId,pCreatedOn");
+        $dQuery->groupBy("{$productFld},{$packagingFld},pMeasureId");
         $dQuery->where("#createdOn >= '{$from}'");
-        $dQuery->show("{$productFld},{$packagingFld},pMeasureId,pCreatedOn,count");
+        $dQuery->show("{$productFld},{$packagingFld},pMeasureId,count");
 
         while ($dRec = $dQuery->fetch()) {
-
-            // Използването с основната мярка се брои само за артикулите след хоризонта, по-старите са заключени
             if ($dRec->{$packagingFld} == $dRec->pMeasureId) {
-                if ($dRec->pCreatedOn > $from) {
-                    $measureUsages[$dRec->{$productFld}][$dRec->pMeasureId] = ($measureUsages[$dRec->{$productFld}][$dRec->pMeasureId] ?? 0) + $dRec->count;
-                }
+                $measureUsages[$dRec->{$productFld}][$dRec->pMeasureId] = ($measureUsages[$dRec->{$productFld}][$dRec->pMeasureId] ?? 0) + $dRec->count;
                 continue;
             }
 
@@ -1681,36 +1700,6 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
-     * Брои използванията на артикула с основната му мярка в постоянния кеш
-     *
-     * @param int $productId
-     * @param int $measureId
-     * @param bool $remove
-     * @return void
-     */
-    public static function logMeasureUsage($productId, $measureId, $remove = false)
-    {
-        $key = "productUsedMeasures|{$productId}";
-        $usedMeasures = core_Permanent::get($key);
-        $usedMeasures = is_array($usedMeasures) ? $usedMeasures : array();
-
-        $count = ($usedMeasures[$measureId] ?? 0) + ($remove ? -1 : 1);
-        if ($count > 0) {
-            $usedMeasures[$measureId] = $count;
-        } else {
-            unset($usedMeasures[$measureId]);
-        }
-
-        // Неизползваният артикул няма запис, за да му се отключи мярката
-        if (countR($usedMeasures)) {
-            core_Permanent::set($key, $usedMeasures, core_Permanent::FOREVER_VALUE);
-        } else {
-            core_Permanent::remove($key);
-        }
-    }
-
-
-    /**
      * Логване на използване на продуктовата опаковка
      *
      * @param int $productId
@@ -1723,10 +1712,13 @@ class cat_products_Packagings extends core_Detail
         $rec = self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
         if(empty($rec)) {
 
-            // Ако е основната мярка на артикул след хоризонта, а не продуктова опаковка, се брои в постоянния кеш
-            $pRec = cat_Products::fetch($productId, 'measureId,createdOn');
-            if(is_object($pRec) && $packagingId == $pRec->measureId && $pRec->createdOn > self::getPastHorizon()){
-                self::logMeasureUsage($productId, $packagingId, $remove);
+            // Използването с основната мярка на артикул след хоризонта се отбелязва в самия артикул, а крона го сваля
+            if(!$remove){
+                $pRec = cat_Products::fetch($productId, 'measureId,createdOn,isBaseMeasureUsed');
+                if(is_object($pRec) && $packagingId == $pRec->measureId && $pRec->isBaseMeasureUsed != 'yes' && $pRec->createdOn > self::getPastHorizon()){
+                    $saveRec = (object) array('id' => $productId, 'isBaseMeasureUsed' => 'yes');
+                    cls::get('cat_Products')->save_($saveRec, 'isBaseMeasureUsed');
+                }
             }
 
             return null;

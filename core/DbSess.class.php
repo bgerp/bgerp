@@ -365,7 +365,7 @@ class core_DbSess extends core_Manager
     /** Дали бисквитката да е само за HTTPS */
     private function isSecureCookie()
     {
-        return $this->secure || (EF_HTTPS == 'MANDATORY') || (strcasecmp($this->sameSite, 'None') === 0);
+        return $this->secure || (EF_HTTPS == 'MANDATORY') || (strcasecmp($this->sameSite, 'None') === 0) || (core_Setup::get('COOKIE_SECURE') == 'yes');
     }
 
     private function buildCookieParams()

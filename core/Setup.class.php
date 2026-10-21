@@ -122,6 +122,12 @@ defIfNot('CORE_COOKIE_LIFETIME', 5259492);
 
 
 /**
+ * Secure за brid и сесията; при задължителен HTTPS винаги е включено
+ */
+defIfNot('CORE_COOKIE_SECURE', 'no');
+
+
+/**
  * Колко дълго да се пазят файловете в temp директорията
  * 10 дни
  */
@@ -285,7 +291,7 @@ defIfNot('CORE_REGISTER_USER', 'none');
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -388,6 +394,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Брой'),
         
         'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
+
+        'CORE_COOKIE_SECURE' => array('enum(no=Не,yes=Да)', 'caption=Сигурност на кукитата->Само през HTTPS,hint=За brid и сесията. При задължителен HTTPS винаги е включено.'),
         
         'CORE_TEMP_PATH_MAX_AGE' => array('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
         

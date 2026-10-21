@@ -14,7 +14,7 @@ use CloudAtlas\Flyclone\Providers\MegaProvider;
  * @package   backup
  *
  * @author    Dimitar Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,6 +31,8 @@ class backup_Test extends core_Manager
      */
     public function act_asw()
     {
+        requireTestMode();
+
         if (core_Composer::isInUse()) {
             self::$s3Client = new S3Client([
                 'version' => 'latest',
@@ -53,6 +55,8 @@ class backup_Test extends core_Manager
      */
     public function act_rclone()
     {
+        requireTestMode();
+
         
         if (core_Composer::isInUse()) {
             $left_side = new LocalProvider('mydisk'); // nickname
