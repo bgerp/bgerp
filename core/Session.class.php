@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>, Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -260,7 +260,7 @@ class core_Session
                 @session_set_cookie_params(0);
                 ini_set('session.cookie_httponly', 1);
                 ini_set('session.use_only_cookies', 1);
-                if (EF_HTTPS == 'MANDATORY') {
+                if (EF_HTTPS == 'MANDATORY' || core_Setup::get('COOKIE_SECURE') == 'yes') {
                     ini_set('session.cookie_secure', 1);
                 }
 

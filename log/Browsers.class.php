@@ -13,7 +13,7 @@ defIfNot('BRID_SALT', md5(getEF_SALT() . '_BRID'));
  * @package   logs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -545,7 +545,7 @@ class log_Browsers extends core_Master
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
         
-        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true, 'samesite' => 'Lax');
+        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY' || core_Setup::get('COOKIE_SECURE') == 'yes'), 'httponly' => true, 'samesite' => 'Lax');
         
         // Опитваме се да определим домейна за кукито
         $cArr['domain'] = null;
