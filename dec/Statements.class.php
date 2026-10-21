@@ -49,12 +49,18 @@ class dec_Statements extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'ceo, dec';
-    
+
+
+    /**
+     * Кой може да активира/деактивира, вкл. създадените от системата
+     */
+    public $canChangestate = 'ceo, dec';
+
     
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    public $listFields = 'id, title, createdOn, createdBy';
+    public $listFields = 'id, title, state, createdOn, createdBy';
     
     
     /**
