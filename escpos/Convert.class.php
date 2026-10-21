@@ -8,7 +8,7 @@
  * @package   escprint
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -315,6 +315,8 @@ class escpos_Convert extends core_Manager
      */
     public function act_Test()
     {
+        requireTestMode();
+
         $test = '<c F b>Фактура №123/28.02.17' .
         '<p><r32 =>' .
         '<p b>1.<l3 b>Кисело мляко' .

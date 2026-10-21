@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -213,6 +213,8 @@ class sales_LastSaleByContragents extends core_Manager
      */
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
 
         // От кога до кога

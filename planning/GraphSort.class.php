@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Milen Georgiev <milen@bags.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  */
@@ -82,6 +82,8 @@ class planning_GraphSort extends core_Mvc
 
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
 
         //$arr = [ 1 => [2, 3], 2 => [3,4], 3 => [3,2], 4 => [] ];
