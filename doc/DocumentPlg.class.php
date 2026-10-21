@@ -2762,6 +2762,43 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Промените по документа изискват достъп до нишката.
+     */
+    public static function on_BeforeGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        $id = $rec->id ?? null;
+        if (empty($id) || !in_array($action, array('edit', 'changerec', 'pickup', 'assign', 'reject', 'restore',
+            'activate', 'activateagain', 'pending', 'changestate', 'conto', 'reconto', 'debugreconto',
+            'stop', 'start', 'close', 'wakeup'))) {
+            return;
+        }
+
+        $userId = $userId ?? core_Users::getCurrent();
+        // Служебните операции запазват собствените си проверки и жизнен цикъл.
+        if ($userId == core_Users::SYSTEM_USER) {
+            return;
+        }
+
+        $documentRec = $mvc->fetch($id);
+        $threadId = $documentRec->threadId ?? null;
+        $haveThreadAccess = false;
+        if (!empty($threadId)) {
+            $haveThreadAccess = doc_Threads::haveRightFor('single', $threadId, $userId);
+            if (!$haveThreadAccess && core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)) {
+                $threadRec = doc_Threads::fetch($threadId);
+                $haveThreadAccess = $threadRec && colab_Threads::haveRightFor('single', $threadRec, $userId);
+            }
+        }
+
+        if (!$haveThreadAccess) {
+            $requiredRoles = 'no_one';
+
+            return false;
+        }
+    }
+
+
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * Забранява изтриването на вече използвани сметки
