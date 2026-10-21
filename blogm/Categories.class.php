@@ -9,7 +9,7 @@
  * @package   blogm
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -267,7 +267,8 @@ class blogm_Categories extends core_Manager
 
         $showRoot = blogm_Setup::get('SHOW_CATEGORIES_ROOT');
         if($showRoot == 'yes'){
-            $tpl->append(tr('Категории'), 'CATEGORY_CAPTION');
+            // Плейсхолдърът е в лейаута на темата - при обикновен append надписът се поставя два пъти
+            $tpl->appendOnce(tr('Категории'), 'CATEGORY_CAPTION');
         }
 
         // Връщаме вече рендираният шаблон
