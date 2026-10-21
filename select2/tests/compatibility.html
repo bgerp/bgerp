@@ -221,7 +221,7 @@
                 var toggleIcon = getComputedStyle($toggle[0], ':before');
                 check('tree icon stays compact and inside its click target',
                     parseFloat(toggleIcon.left) >= 0 && parseFloat(toggleIcon.top) >= 0 &&
-                    parseFloat(toggleIcon.width) === 14 && parseFloat(toggleIcon.height) === 14 &&
+                    parseFloat(toggleIcon.width) === 13 && parseFloat(toggleIcon.height) === 13 &&
                     parseFloat(toggleIcon.top) + parseFloat(toggleIcon.height) <= $toggle.outerHeight() &&
                     parseFloat(toggleIcon.left) + parseFloat(toggleIcon.width) <= $toggle.outerWidth());
                 check('tree labels omit repeated ancestor names',
@@ -316,6 +316,9 @@
                     }));
                 var treeClear = $tree.next().find('.select2-selection__clear')[0];
                 var treeClearBox = treeClear.getBoundingClientRect();
+                check('clear button is vertically centered beside wrapped choices',
+                    Math.abs(treeClearBox.top + treeClearBox.height / 2 -
+                        treeBox.top - treeBox.height / 2) <= 2);
                 check('clear button remains reachable beside a long path',
                     treeClear.contains(document.elementFromPoint(
                         treeClearBox.left + treeClearBox.width / 2,
