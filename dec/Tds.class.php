@@ -217,13 +217,7 @@ class dec_Tds extends core_Master
         $language = self::getRecordLanguage($rec);
 
         // Твърденията са на езика на шаблона
-        $declarationOptions = array();
-        $sQuery = dec_Statements::getQuery();
-        $sQuery->where(array("#lg = '[#1#]' AND #state = 'active'", $language));
-        $sQuery->show('title');
-        while ($sRec = $sQuery->fetch()) {
-            $declarationOptions[$sRec->id] = $sRec->title;
-        }
+        $declarationOptions = dec_Statements::getStatementOptions($language, $rec->complianceDeclarationIds ?? null);
         if (countR($declarationOptions)) {
             $form->setSuggestions('complianceDeclarationIds', $declarationOptions);
         } else {
@@ -241,6 +235,11 @@ class dec_Tds extends core_Master
 
         if ($productRec) {
             $defaults = self::getProductDefaults($productRec, $language);
+
+            // Деактивираните твърдения не се предлагат по подразбиране
+            if (!empty($defaults->complianceDeclarationIds)) {
+                $defaults->complianceDeclarationIds = keylist::fromArray(array_intersect_key(keylist::toArray($defaults->complianceDeclarationIds), $declarationOptions));
+            }
             foreach ($defaults as $name => $value) {
                 if (!$form->getField($name, false)) {
                     continue;

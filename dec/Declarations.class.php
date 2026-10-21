@@ -220,11 +220,7 @@ class dec_Declarations extends core_Master
             // кой е езика на шаблона
             $lang = doc_TplManager::fetch($form->rec->template)->lang;
 
-            $sQuery = dec_Statements::getQuery();
-            $sQuery->where("#lg = '{$lang}'");
-            while($sRec = $sQuery->fetch()){
-                $statementOptions[$sRec->id] = $sRec->title;
-            }
+            $statementOptions = dec_Statements::getStatementOptions($lang, $form->rec->statements ?? null);
             $form->setSuggestions('statements', $statementOptions);
 
             // зареждаме шаблонха

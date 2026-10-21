@@ -116,6 +116,34 @@ class dec_Statements extends core_Master
 
 
     /**
+     * Опции за избор - активните твърдения на езика и вече избраните, дори да са деактивирани
+     *
+     * @param string      $lang     - език
+     * @param string|null $selected - кейлист с избраните твърдения
+     *
+     * @return array
+     */
+    public static function getStatementOptions($lang, $selected = null)
+    {
+        $options = array();
+        $query = self::getQuery();
+        $query->where(array("#lg = '[#1#]' AND #state = 'active'", $lang));
+        $query->show('title');
+        while ($rec = $query->fetch()) {
+            $options[$rec->id] = $rec->title;
+        }
+
+        foreach (keylist::toArray($selected) as $id) {
+            if (!isset($options[$id]) && ($title = self::fetchField((int) $id, 'title'))) {
+                $options[$id] = $title;
+            }
+        }
+
+        return $options;
+    }
+
+
+    /**
      * Добавя след таблицата
      *
      * @param core_Mvc $mvc
