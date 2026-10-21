@@ -8,7 +8,7 @@
  * @package   dec
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,8 +69,8 @@ class dec_Statements extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(64)', 'caption=Заглавие, width=100%');
+        $this->FLD('shortText', 'text(rows=2)', 'caption=Кратък текст');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
-        
         cls::get('core_Lg');
         
         $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,changable');
@@ -92,6 +92,7 @@ class dec_Statements extends core_Master
             0 => 'title',
             1 => 'text',
             2 => 'lg',
+            3 => 'shortText',
         );
         
         // Импортираме данните от CSV файла.
@@ -104,13 +105,24 @@ class dec_Statements extends core_Master
     
     
     /**
+     * Краткият текст под заглавието в списъка
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (isset($fields['-list']) && !empty($rec->shortText)) {
+            $row->title .= "<div class='small quiet'>" . $mvc->getVerbal($rec, 'shortText') . '</div>';
+        }
+    }
+
+
+    /**
      * Добавя след таблицата
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
-    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $mvc->currentTab = 'Декларации->Твърдения';
         $mvc->menuPage = 'Търговия:Продажби';

@@ -37,7 +37,13 @@ class dec_Declarations extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Декларация за съответствие';
-    
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/declarations.png';
+
     
     /**
      * Заглавие на менюто
@@ -49,7 +55,13 @@ class dec_Declarations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'sales_Wrapper, doc_plg_TplManager, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, plg_Clone,
-                        cond_plg_DefaultValues, plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
+                        cond_plg_DefaultValues, plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg, acc_plg_DocumentSummary';
+    
+    
+    /**
+     * Полета, по които може да се филтрира по дата
+     */
+    public $filterDateField = 'date,createdOn,modifiedOn';
     
     
     /**
@@ -85,7 +97,7 @@ class dec_Declarations extends core_Master
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    public $listFields = 'id, doc, folderId, state, createdOn, createdBy';
+    public $listFields = 'handle=Декларация, doc, folderId, state, createdOn, createdBy';
     
     
     /**
@@ -331,6 +343,8 @@ class dec_Declarations extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $row->handle = $mvc->getLink($rec->id, 0);
+
         try {
             $row->doc = doc_Containers::getLinkForSingle($rec->doc);
         } catch (core_exception_Expect $e) {

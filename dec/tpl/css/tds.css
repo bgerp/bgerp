@@ -1,0 +1,273 @@
+.tds-document {
+    box-sizing: border-box;
+    color: #202124;
+    font-size: 10pt;
+    line-height: 1.35;
+}
+
+.tds-document,
+.tds-document table,
+.tds-document td,
+.tds-document th {
+    box-sizing: border-box;
+}
+
+.tds-document-heading {
+    margin: 5mm 0 7mm;
+    text-align: center;
+}
+
+.tds-document-heading h1 {
+    margin: 0;
+    color: #211d51;
+    font-size: 18pt;
+    line-height: 1.1;
+    letter-spacing: 0.035em;
+}
+
+.tds-document-heading div {
+    margin-top: 2mm;
+    color: #666;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+.tdsSection {
+    margin: 0 0 5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.tdsSectionTitle {
+    margin: 0 0 2.5mm;
+    padding: 1.7mm 2.5mm;
+    border-left: 1.2mm solid #302968;
+    background: #f0f0f7;
+    color: #211d51;
+    font-size: 10.5pt;
+    font-weight: bold;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.tds-document .tdsDataTable {
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+    table-layout: fixed;
+}
+
+.tds-document .tdsDataTable th,
+.tds-document .tdsDataTable td {
+    padding: 1.5mm 2.2mm !important;
+    border: 0 !important;
+    border-bottom: 0.25mm solid #ddd !important;
+    vertical-align: top;
+    text-align: left !important;
+    white-space: normal !important;
+}
+
+.tds-document .tdsDataTable th {
+    width: 34mm;
+    color: #555;
+    font-size: 8.5pt;
+    font-weight: normal;
+}
+
+.tds-document .tdsDataTable td {
+    color: #111;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.tdsComplianceIntro,
+.tdsComplianceRequest,
+.tdsComplianceList {
+    font-weight: normal;
+}
+
+.tdsComplianceIntro {
+    margin-bottom: 1.8mm;
+}
+
+.tdsComplianceRequest {
+    margin-bottom: 0.8mm;
+}
+
+.tdsComplianceList {
+    margin: 0;
+    padding-left: 5mm;
+}
+
+.tdsComplianceItem {
+    margin-bottom: 0.7mm;
+    padding-left: 0.5mm;
+}
+
+.tdsComplianceItem:last-child {
+    margin-bottom: 0;
+}
+
+.tdsComplianceItem strong {
+    color: #211d51;
+}
+
+.tdsComplianceItem strong + span::before {
+    content: " — ";
+}
+
+.tdsProductDescription {
+    display: flex;
+    align-items: flex-start;
+    gap: 9mm;
+    min-width: 0;
+    padding: 1mm 2mm 0;
+}
+
+.tdsProductDescription > img.productPreview {
+    flex: 0 0 auto;
+    display: block;
+    width: auto !important;
+    max-width: 40mm !important;
+    max-height: 66mm !important;
+    margin: 0 auto;
+}
+
+.tdsProductDescription > .groupList {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tdsProductDescription > .groupList > .richtext:first-child {
+    margin: 0 0 2.5mm !important;
+    color: #211d51;
+    font-size: 11pt;
+    line-height: 1.25;
+}
+
+.tds-document .tdsProductDescription .groupList table {
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+}
+
+.tds-document .tdsProductDescription .groupList td {
+    padding: 0.7mm 1mm !important;
+    border: 0 !important;
+    vertical-align: top;
+    line-height: 1.25;
+}
+
+.tds-document .tdsProductDescription .groupList td:first-child {
+    width: 5mm;
+    color: #777;
+}
+
+.tds-document .tdsProductDescription .groupList td:nth-child(2) {
+    width: 38%;
+    color: #444;
+}
+
+.tds-document .tdsProductDescription .productGroupInfo {
+    padding-top: 2mm !important;
+    color: #211d51;
+    font-size: 9.5pt;
+    font-weight: bold;
+}
+
+.tdsDocumentControl {
+    display: grid;
+    grid-template-columns: 1.4fr 0.7fr 1fr;
+    gap: 4mm;
+    margin: 0 0 5mm;
+    padding: 3mm 2.2mm;
+    border-top: 0.6mm solid #302968;
+    border-bottom: 0.25mm solid #ddd;
+    color: #555;
+    font-size: 8.5pt;
+}
+
+.tdsDocumentControl strong {
+    display: block;
+    margin-top: 0.5mm;
+    color: #111;
+    font-size: 9pt;
+}
+
+.tdsEshopLinks {
+    margin: 0 0 4mm;
+}
+
+.tdsEshopBtn {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid #008800;
+    border-radius: 3px;
+    background-color: #f4fbf4;
+    color: #008800;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.tdsSignatureSection {
+    margin-top: 7mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.tds-document .tdsSignatureTable {
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+    min-height:15em;
+}
+
+.tds-document .tdsSignatureTable th,
+.tds-document .tdsSignatureTable td {
+    padding: 1.2mm 2.2mm !important;
+    border: 0 !important;
+    vertical-align: middle;
+    text-align: left !important;
+}
+
+.tds-document .tdsSignatureTable th {
+    width: 34mm;
+    color: #555;
+    font-size: 8.5pt;
+    font-weight: normal;
+}
+
+.tds-document .tdsSignatureValue {
+    height: 22mm;
+    border-bottom: 0.25mm solid #aaa !important;
+}
+
+.tds-document .tdsSignatureValue .documentSignatureHolder {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
+
+.tdsSignerName {
+    width: 60mm;
+    margin: 1.5mm 0 0;
+    padding-top: 1mm;
+    border-top: 0.25mm dotted #555;
+    color: #111;
+    font-weight: normal;
+    text-align: center;
+}
+
+@media screen and (max-width: 760px) {
+    .tdsProductDescription {
+        display: block;
+    }
+
+    .tdsProductDescription > img.productPreview {
+        margin: 0 auto 5mm;
+    }
+
+    .tdsDocumentControl {
+        grid-template-columns: 1fr;
+    }
+}

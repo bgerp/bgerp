@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1138,6 +1138,64 @@ abstract class cat_ProductDriver extends core_BaseClass
         $res['planningParams'] = array();
 
         return $res;
+    }
+
+
+    /**
+     * Връща стойностите по подразбиране за техническа спецификация (TDS) на артикула
+     *
+     * @param int|stdClass $rec  - ид или запис на артикул
+     * @param string       $lang - език на документа (bg|en)
+     *
+     * @return array
+     * @see cat_ProductDriverIntf::getTdsData()
+     */
+    public function getTdsData($rec, $lang)
+    {
+        $rec = cat_Products::fetchRec($rec);
+        $res = static::getDefaultTdsData();
+
+        $weight = cat_Products::getParams($rec->id, 'weight');
+        if (!is_numeric($weight)) {
+            $weightKg = cat_Products::getParams($rec->id, 'weightKg');
+            $weight = is_numeric($weightKg) ? $weightKg * 1000 : null;
+        }
+        if (is_numeric($weight) && $weight > 0) {
+            $res['unitWeight'] = round((float) $weight, 2);
+        }
+
+        $countryId = cat_Products::getParams($rec->id, 'originCountry');
+        if (empty($countryId)) {
+            $countryId = crm_Companies::fetchOwnCompany()->countryId ?? null;
+        }
+        if (!empty($countryId)) {
+            $res['originCountry'] = drdata_Countries::fetchField($countryId, ($lang == 'bg') ? 'commonNameBg' : 'commonName');
+        }
+
+        $expiryTime = cat_Products::getParams($rec->id, 'expiryTime');
+        if (!empty($expiryTime)) {
+            $res['storageConditions'] = tr('Срок на годност') . ': ' . core_Type::getByName('time')->toVerbal($expiryTime);
+        }
+
+        $res['foodContactStatus'] = 'notSpecified';
+
+        return $res;
+    }
+
+
+    /**
+     * Връща празен шаблон с данните за техническа спецификация (TDS)
+     *
+     * @return array
+     */
+    public static function getDefaultTdsData()
+    {
+        return array_fill_keys(array(
+            'unitWeight', 'originCountry', 'intendedUse', 'useRestrictions', 'foodContactStatus',
+            'countriesOfUse', 'recycledContent', 'recyclability', 'complianceDeclarationIds',
+            'certifications', 'complianceDocuments', 'storageConditions', 'packagingDescription',
+            'tolerances'
+        ), null);
     }
 
 

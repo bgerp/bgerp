@@ -1,0 +1,58 @@
+<section class="tdsDocumentControl">
+    <div>Document<strong>[#documentNumber#]</strong></div>
+    <div>Revision<strong>[#revision#]</strong></div>
+    <div>Issued on<strong>[#date#]</strong></div>
+</section>
+
+<!--ET_BEGIN ESHOP_LINKS--><div class="tdsEshopLinks">[#ESHOP_LINKS#]</div><!--ET_END ESHOP_LINKS-->
+
+<section class="tdsSection">
+    <h2 class="tdsSectionTitle">Product identification</h2>
+    <table class="tdsDataTable">
+        <tr>
+            <th>Product</th>
+            <td colspan="3">[#productName#]</td>
+        </tr>
+        <tr>
+            <th>Code</th>
+            <td>[#productCode#]</td>
+            <th>Manufacturer</th>
+            <td>[#manufacturer#]</td>
+        </tr>
+        <tr>
+            <th>[#unitWeightCaption#]</th>
+            <td>[#unitWeightValue#]</td>
+            <th>Origin</th>
+            <td>[#originCountry#]</td>
+        </tr>
+    </table>
+</section>
+
+<!--ET_BEGIN productDescription-->
+<section class="tdsSection">
+    <h2 class="tdsSectionTitle">Product description and technical specification</h2>
+    <div class="tdsProductDescription">[#productDescription#]</div>
+</section>
+<!--ET_END productDescription-->
+
+<!--ET_BEGIN INTENDED_USE_SECTION-->[#INTENDED_USE_SECTION#]<!--ET_END INTENDED_USE_SECTION-->
+<!--ET_BEGIN COMPLIANCE_SECTION-->[#COMPLIANCE_SECTION#]<!--ET_END COMPLIANCE_SECTION-->
+<!--ET_BEGIN STORAGE_SECTION-->[#STORAGE_SECTION#]<!--ET_END STORAGE_SECTION-->
+<!--ET_BEGIN PACKAGING_SECTION-->[#PACKAGING_SECTION#]<!--ET_END PACKAGING_SECTION-->
+<!--ET_BEGIN NOTES_SECTION-->[#NOTES_SECTION#]<!--ET_END NOTES_SECTION-->
+
+<section class="tdsSignatureSection">
+    <table class="tdsSignatureTable">
+        <tr>
+            <th>For the manufacturer</th>
+            <td>[#MANUFACTURER_SIGN_PAD#]</td>
+        </tr>
+        <tr>
+            <th>Signature</th>
+            <td class="tdsSignatureValue">
+                [#MANUFACTURER_SIGN#]
+                <!--ET_BEGIN signerName--><div class="tdsSignerName">/[#signerName#]/</div><!--ET_END signerName-->
+            </td>
+        </tr>
+    </table>
+</section>
