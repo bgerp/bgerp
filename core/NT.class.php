@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -84,6 +84,10 @@ class core_NT extends core_BaseClass
             $fromTo = array();
             foreach ($data as $placeHolder => $value) {
                 if ($value !== null) {
+                    // Линковете от ht::createLink() са core_ET
+                    if (is_object($value) && method_exists($value, '__toString')) {
+                        $value = (string) $value;
+                    }
                     if(!is_scalar($value)) continue;
                     $fromTo[$this->toPlace($placeHolder)] = $this->escape($value);
                 }
