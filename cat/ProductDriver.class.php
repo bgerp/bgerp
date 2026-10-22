@@ -1155,13 +1155,10 @@ abstract class cat_ProductDriver extends core_BaseClass
         $rec = cat_Products::fetchRec($rec);
         $res = static::getDefaultTdsData();
 
-        $weight = cat_Products::getParams($rec->id, 'weight');
-        if (!is_numeric($weight)) {
-            $weightKg = cat_Products::getParams($rec->id, 'weightKg');
-            $weight = is_numeric($weightKg) ? $weightKg * 1000 : null;
-        }
-        if (is_numeric($weight) && $weight > 0) {
-            $res['unitWeight'] = round((float) $weight, 2);
+        // Нетото на 1-ца - от мярката, опаковките или параметрите за тегло
+        $weightKg = cat_Products::convertToUom($rec->id, 'kg');
+        if (is_numeric($weightKg) && $weightKg > 0) {
+            $res['unitWeight'] = round($weightKg * 1000, 2);
         }
 
         $countryId = cat_Products::getParams($rec->id, 'originCountry');
