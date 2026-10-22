@@ -9,7 +9,7 @@
  * @package   hr
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -180,7 +180,7 @@ class hr_Trips extends core_Master
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител, mandatory');
         $this->FLD('startDate', 'datetime', 'caption=Считано->От, mandatory');
         $this->FLD('toDate', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
         $this->FLD('place', 'richtext(rows=5, bucket=Notes)', 'caption=Място');

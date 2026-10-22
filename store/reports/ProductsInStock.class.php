@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -100,7 +100,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholderType=all,after=selfPrices,single=none');
 
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholderType=all,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,hasProperties=canStore,maxSuggestions=100,forceAjax)','caption=Филтри->Артикули,placeholderType=all,after=group,single=none,class=w100');
 
         $fieldset->FLD('availability', 'set(available=Положителна,neg=Отрицателна,zero=Нулева)', 'notNull,caption=Филтри->Наличност,maxRadio=4,columns=4,after=products,mandatory,single=none');
 
@@ -179,12 +179,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         asort($suggestions);
 
         $form->setSuggestions('storeId', $suggestions);
-
-        $suggestions1 = array();
-
-        $suggestions1 = cat_Products::getProducts(null, null, null, 'canStore', null, null, false, null);
-
-        $form->setSuggestions('products', $suggestions1);
     }
 
 
