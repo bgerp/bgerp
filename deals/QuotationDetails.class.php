@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -682,6 +682,7 @@ class deals_QuotationDetails extends doc_Detail
 
         core_Lg::push($masterRec->tplLang);
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         foreach ($rows as $id => &$row) {
             $rec = $recs[$id];
@@ -703,7 +704,6 @@ class deals_QuotationDetails extends doc_Detail
 
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
-            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $row->amount = sales_TransportValues::getAmountHint($row->amount, ($fee->fee ?? null), $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, ($fee->explain ?? null));
@@ -737,6 +737,7 @@ class deals_QuotationDetails extends doc_Detail
         $pcsUom = cat_UoM::fetchBySinonim('pcs')->id;
 
         if (countR($recs)) {
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             foreach ($recs as $id => $rec) {
                 if (!isset($rec->price)) {
                     $mvc::calcLivePrice($rec, $masterRec);
@@ -750,7 +751,6 @@ class deals_QuotationDetails extends doc_Detail
                 }
 
                 if(isset($rec->price)) {
-                    $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
                     $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                     $rec->vatPackPrice = ($rec->packPrice * (1 + $vat) / $masterRec->currencyRate);
                 }
@@ -856,13 +856,16 @@ class deals_QuotationDetails extends doc_Detail
         deals_Helper::fillRecs($mvc, $optional, $masterRec, $mvc->map);
         $recs = $notOptional + $optional;
 
-        // Изчисляване на цената с отстъпка
+        // Една проверка на групите вместо обхождане на всички редове за всеки артикул.
+        $seenProducts = array();
         foreach ($recs as $id => $rec) {
-            if ($rec->optional == 'no') {
-                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id, 'no', $rec->notes);
-                if ($other) {
+            if (($rec->optional ?? null) == 'no') {
+                $key = (int) $rec->productId . '|' . md5((string) ($rec->notes ?? ''));
+                if (isset($seenProducts[$key]) && $seenProducts[$key] != $rec->id) {
                     unset($data->summary);
+                    break;
                 }
+                $seenProducts[$key] = $rec->id;
             }
         }
 
