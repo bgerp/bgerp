@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -358,7 +358,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         if (isset($dRec->pkoId)) {
             
             
-            $handle = "Pko #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
+            $handle = "Pko #$dRec->pkoId";
+            if (!empty($dRec->pkoValior)) {
+                $handle .= ' / '.$Date->toVerbal($dRec->pkoValior);
+            }
             
             $url = toUrl(array("cash_Pko",'single', $dRec->pkoId));
             

@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -173,7 +173,7 @@ class ical_Parser extends core_Mvc
         if (is_array($p)) {
             $tE = cls::get('type_Email');
             foreach ($p as $el) {
-                if (is_array($el) && $el['CN']) {
+                if (is_array($el) && !empty($el['CN'])) {
                     $res .= ($res ? "\n<br>" : '') . $el['CN'];
                 } elseif (is_string($el) && stripos($el, 'mailto:') !== false) {
                     $eml = type_Email::extractEmails($el);
