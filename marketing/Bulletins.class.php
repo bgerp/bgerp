@@ -7,7 +7,7 @@
  * @package   marketing
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1244,7 +1244,7 @@ class marketing_Bulletins extends core_Master
         $resArr = array();
         
         while ($rec = $query->fetch()) {
-            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->name, 'company' => $rec->company);
+            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->name ?? null, 'company' => $rec->company ?? null);
         }
         
         return $resArr;
