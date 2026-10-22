@@ -254,10 +254,10 @@ class core_Settings extends core_Manager
 
         // Обхождаме всички записи и добавяме в масива
         while ($rec = $query->fetch()) {
-            if (!$rec->data) {
+            if (empty($rec->data)) {
                 continue;
             }
-            foreach ((array) $rec->data as $property => $val) {
+            foreach ((array) ($rec->data ?? null) as $property => $val) {
                 if (isset($allResArr[$keyHash][$property])) {
                     continue;
                 }

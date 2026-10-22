@@ -90,7 +90,7 @@ class SettingsDomainQuery
     public function fetch() {
         while (isset($this->rows[$this->offset])) {
             $rec = $this->rows[$this->offset++];
-            if (in_array($rec->userOrRole, $this->roles, true)) return $rec;
+            if (in_array($rec->userOrRole ?? null, $this->roles, true)) return $rec;
         }
         return false;
     }
