@@ -49,7 +49,7 @@ class dec_Tds extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, doc_plg_TplManager, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, plg_RowTools2, doc_DocumentPlg, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, change_Plugin';
+    public $loadList = 'sales_Wrapper, doc_plg_TplManager, plg_Clone, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, plg_RowTools2, doc_DocumentPlg, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, change_Plugin';
 
 
     /**
@@ -327,7 +327,7 @@ class dec_Tds extends core_Master
         $row->originCountry = $mvc->getVerbal($rec, 'originCountrySnapshot');
         $row->productDescription = self::removeInternalLinks($rec->productSnapshot);
         $row->date = dt::mysql2verbal($rec->date ?: $rec->createdOn, 'd.m.Y');
-        $row->ESHOP_LINKS = self::renderEshopLinks($rec->productId, $language);
+        $row->ESHOP_LINKS = self::renderEshopLinks($rec->productId);
         $unitWeight = $mvc->getVerbal($rec, 'unitWeight');
         $row->unitWeightCaption = !empty($rec->unitWeight) ? $labels['unitWeight'] : '';
         $row->unitWeightValue = !empty($rec->unitWeight) ? $unitWeight . ' g' : '';
@@ -592,7 +592,7 @@ class dec_Tds extends core_Master
     /**
      * Линкове към страниците в е-магазина, от които артикулът може да се купи
      */
-    protected static function renderEshopLinks($productId, $language)
+    protected static function renderEshopLinks($productId)
     {
         if (!core_Packs::isInstalled('eshop')) {
 
@@ -607,16 +607,15 @@ class dec_Tds extends core_Master
         $dQuery->in('action', array('buy', 'both'));
         $dQuery->orderBy('id', 'ASC');
 
-        // По един линк на домейн, като с повече езици се предпочита този на документа
+        // По един линк на домейн - езиковите версии на един хост са отделни домейни
         $links = array();
         while ($dRec = $dQuery->fetch()) {
-            $domainRec = cms_Domains::fetch($dRec->domainId);
-            if (!is_object($domainRec) || ($domainRec->state ?? null) != 'active') {
+            if (isset($links[$dRec->domainId])) {
                 continue;
             }
 
-            $host = $domainRec->domain;
-            if (isset($links[$host]) && ($links[$host]->lang == $language || $domainRec->lang != $language)) {
+            $domainRec = cms_Domains::fetch($dRec->domainId);
+            if (!is_object($domainRec) || ($domainRec->state ?? null) != 'active') {
                 continue;
             }
 
@@ -625,11 +624,12 @@ class dec_Tds extends core_Master
                 continue;
             }
 
-            $links[$host] = (object) array('lang' => $domainRec->lang, 'url' => $url);
+            $links[$dRec->domainId] = (object) array('host' => $domainRec->domain, 'url' => $url);
         }
 
         $res = array();
-        foreach ($links as $host => $link) {
+        foreach ($links as $link) {
+            $host = $link->host;
             if ($host != 'localhost') {
                 Mode::push('BGERP_CURRENT_DOMAIN', $host);
             }
