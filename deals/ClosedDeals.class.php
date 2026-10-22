@@ -12,7 +12,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,7 +28,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'tools=Пулт, title=Документ, valior=Вальор, docId=Сделка, createdOn, createdBy';
+    protected $listFields = 'title=Документ, valior=Вальор, docId=Сделка, createdOn, createdBy';
     
     
     /**
