@@ -100,7 +100,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         }
 
         $refreshFields = 'productId|packPrice|discount|packagingId|batch|baseQuantity';
-        $form->FLD('relatedTo', 'int', "caption=Устройство,input,silent,before=productId,removeAndRefreshForm=relatedGroup|{$refreshFields}");
+        $form->FLD('relatedTo', 'int', "caption=Устройство,class=w100,input,silent,before=productId,removeAndRefreshForm=relatedGroup|{$refreshFields}");
         $form->setOptions('relatedTo', $relatedOptions);
         $form->input('relatedTo', 'silent');
 
@@ -109,7 +109,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             return;
         }
 
-        $form->FLD('relatedGroup', 'varchar', "caption=Релация,input,silent,before=productId,removeAndRefreshForm={$refreshFields}");
+        $form->FLD('relatedGroup', 'varchar', "caption=Релация,class=w100,input,silent,before=productId,removeAndRefreshForm={$refreshFields}");
         $form->setOptions('relatedGroup', array('' => '') + $groups[$relatedId]);
         if (countR($groups[$relatedId]) == 1) {
             $form->setDefault('relatedGroup', key($groups[$relatedId]));
