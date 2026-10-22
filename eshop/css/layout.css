@@ -1,4 +1,28 @@
 /* Compact text columns, kept separate from the theme's sidebar buttons. */
+.eshop-expanded-groups .eshop-category-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 20px;
+    margin: 20px 0;
+    align-items: start;
+}
+.eshop-expanded-groups .eshop-category-section {
+    padding: 18px;
+    border: 1px solid var(--c-accent-line, #d9e5e9);
+    border-radius: 12px;
+    background: var(--c-surface, #fff);
+    overflow-wrap: anywhere;
+}
+.eshop-expanded-groups .eshop-category-title {
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+.eshop-expanded-groups .eshop-category-link { padding-block: 5px; }
+.eshop-expanded-groups .eshop-category-section a { color: var(--c-accent, #496678); }
+.eshop-expanded-groups .eshop-category-section a:is(:hover, :focus-visible) { text-decoration: underline; }
+.eshop-expanded-groups .eshop-category-overview { display: none; }
+
 .eshop-navigation-top .eshop-category-panel {
     box-sizing: border-box;
     width: 100%;

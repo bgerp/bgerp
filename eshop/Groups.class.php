@@ -397,6 +397,12 @@ class eshop_Groups extends core_Master
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
+            if (cms_Domains::getNavigationPosition() == 'none') {
+                $menuRec = cms_Content::fetch($data->menuId);
+                $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($menuRec->title ?? '') . '</h1>', 'PAGE_CONTENT');
+                cms_Content::prepareSeo($menuRec);
+                cms_Content::renderSeo($layout, $menuRec);
+            }
             eshop_Products::prepareAllProducts($data);
 
             // Без навигация филтрите по всички е-артикули от менюто са над тях
@@ -438,6 +444,10 @@ class eshop_Groups extends core_Master
      */
     public static function mustShowSideNavigation()
     {
+        if (cms_Domains::getNavigationPosition() == 'none') {
+            return false;
+        }
+
         $menuId = Mode::get('cMenuId');
         
         if (!$menuId) {
@@ -673,6 +683,14 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
+        if (cms_Domains::getNavigationPosition() == 'none') {
+            $expanded = (object) array('links' => array());
+            foreach (($data->recs ?? array()) as $rec) {
+                $expanded->links[] = (object) array('level' => 1, 'title' => $this->getVerbal($rec, 'name'), 'url' => $rec->url);
+            }
+
+            return new ET('<div class="eshop-expanded-groups">[#1#]</div>', self::renderTopNavigation($expanded));
+        }
         $all = new ET('<div class="productHolder">');
         
         if (is_array($data->recs ?? null)) {
@@ -860,7 +878,7 @@ class eshop_Groups extends core_Master
         }
 
 
-        $showAll = cms_Domains::getNavigationPosition() == 'top' || eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
+        $showAll = in_array(cms_Domains::getNavigationPosition(), array('top', 'none')) || eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
         if(!$showAll){
             if ($groupId && $groupId > 0) {
                 $fRec = self::fetch($groupId);

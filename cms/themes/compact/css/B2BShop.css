@@ -147,9 +147,9 @@ body.b2b-theme.eshop-public .eshop-card-actions .productBtn.addToCard:hover {
     background: var(--c-accent-dark) !important;
     border-color: var(--c-accent-dark) !important;
 }
-body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard):hover {
-    background: #28384b !important;
-    border-color: #28384b !important;
+body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard):is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--c-ink) 94%, white) !important;
+    border-color: color-mix(in srgb, var(--c-ink) 94%, white) !important;
 }
 body.commerce-theme.b2b-theme.eshop-public .productHolder {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));

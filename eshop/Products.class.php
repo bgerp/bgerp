@@ -566,8 +566,9 @@ class eshop_Products extends core_Master
 
         if (!countR($groups)) return;
 
+        $expandedCatalog = cms_Domains::getNavigationPosition() == 'none';
         $cu = core_Users::getCurrent();
-        $products = eshop_Favourites::getProducts($cu);
+        $products = $expandedCatalog ? array() : eshop_Favourites::getProducts($cu);
 
         $data->groups = array();
         if(countR($products)){
@@ -580,16 +581,18 @@ class eshop_Products extends core_Master
         $gQuery = eshop_Groups::getQuery();
         $groupList = implode(',', array_keys($groups));
         $gQuery->where("#id IN ({$groupList})");
+        if ($expandedCatalog) eshop_Groups::setOrder($gQuery, $data->menuId);
 
         while ($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
             $data->groups[$gRec->id]->menuId = $data->menuId;
             $data->groups[$gRec->id]->groupRec = $gRec;
+            $data->groups[$gRec->id]->showAllProducts = $expandedCatalog;
             self::prepareGroupList($data->groups[$gRec->id]);
         }
 
-        if($cu){
+        if($cu && !$expandedCatalog){
             $products = eshop_Carts::getLastOrderedProducts($cu);
             if(countR($products)){
                 $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID] = new stdClass();
@@ -814,6 +817,7 @@ class eshop_Products extends core_Master
             if (!empty($data->onlyParamFilter)) return;
         }
 
+        if (!empty($data->showAllProducts)) $perPage = max(1, countR($data->recs));
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
 
@@ -976,7 +980,7 @@ class eshop_Products extends core_Master
 
                 $layout->append("<h2 class='eshop-catalog-group'>" . $groupName . '</h2>');
 
-                if (!empty($gData->groupRec->image)) {
+                if (empty($gData->showAllProducts) && !empty($gData->groupRec->image)) {
                     $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
                     $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
                     $layout->replace($image, 'IMAGE');
