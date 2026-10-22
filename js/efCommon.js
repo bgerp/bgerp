@@ -4321,13 +4321,17 @@ efae.prototype.run = function () {
         // Увеличаваме брояча
         this.increaseTimeout();
 
-        // Ако е заключено изпълнението на AJAX заявките, излизаме
-        var lockEfaeAjaxCalls = localStorage.getItem('lockEfaeAjaxCalls');
-        if (lockEfaeAjaxCalls > 0) {
-            lockEfaeAjaxCalls--;
-            localStorage.setItem('lockEfaeAjaxCalls', lockEfaeAjaxCalls);
+        // Недостъпно хранилище не трябва да спира периодичните AJAX заявки.
+        try {
+            var lockEfaeAjaxCalls = localStorage.getItem('lockEfaeAjaxCalls');
+            if (lockEfaeAjaxCalls > 0) {
+                lockEfaeAjaxCalls--;
+                localStorage.setItem('lockEfaeAjaxCalls', lockEfaeAjaxCalls);
 
-            return ;
+                return ;
+            }
+        } catch (err) {
+            getEO().log('Не може да се прочете или обнови заключването за AJAX заявките: ' + err);
         }
 
         if (this.waitPeriodicAjaxCall <= 0) {

@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -449,7 +449,7 @@ class acc_BalanceDetails extends core_Detail
     private function canReadRecord($rec)
     {
         foreach (range(1, 3) as $i) {
-            $ent = $rec->{"ent{$i}Id"};
+            $ent = $rec->{"ent{$i}Id"} ?? null;
             
             if (empty($ent)) continue;
             if($itemRec = acc_Items::fetch($ent, 'classId,objectId')){

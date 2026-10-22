@@ -134,7 +134,8 @@
     margin: 0 auto;
 }
 
-.tdsProductDescription > .groupList {
+.tdsProductDescription > .groupList,
+.tdsProductDescription > .general-product-description {
     flex: 1 1 auto;
     min-width: 0;
 }
@@ -150,6 +151,24 @@
     width: 100% !important;
     margin: 0 !important;
     border-collapse: collapse !important;
+}
+
+/* При универсалния артикул снимката е вляво от параметрите, както при eprod */
+.tds-document .tdsProductDescription .general-product-description .groupList table {
+    width: auto !important;
+}
+
+.tdsProductDescription .general-product-description .productImage {
+    float: left;
+    padding: 0 9mm 0 0;
+}
+
+.tdsProductDescription .general-product-description .productImage img {
+    display: block;
+    width: auto !important;
+    height: auto !important;
+    max-width: 40mm !important;
+    max-height: 66mm !important;
 }
 
 .tds-document .tdsProductDescription .groupList td {
@@ -250,6 +269,16 @@
 
     .tdsProductDescription > img.productPreview {
         margin: 0 auto 5mm;
+    }
+
+    .tdsProductDescription .general-product-description .productImage {
+        float: none;
+        padding: 0 0 5mm;
+        text-align: center;
+    }
+
+    .tdsProductDescription .general-product-description .productImage img {
+        display: inline-block;
     }
 
     .tdsDocumentControl {
