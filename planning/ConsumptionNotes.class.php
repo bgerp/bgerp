@@ -425,7 +425,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                 $dQuery = planning_ConsumptionNoteDetails::getQuery();
                 $dQuery->where("#noteId = {$rec->id}");
                 while($dRec = $dQuery->fetch()){
-                    $detailQuantities[$dRec->productId] += -1 * $dRec->quantity;
+                    $productId = $dRec->productId ?? null;
+                    $detailQuantities[$productId] = ($detailQuantities[$productId] ?? 0) - ($dRec->quantity ?? 0);
                 }
 
                 if ($error = planning_WorkInProgress::getContoRedirectError($detailQuantities, false)){
