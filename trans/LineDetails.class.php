@@ -229,9 +229,14 @@ class trans_LineDetails extends doc_Detail
 
         $tags = tags_Logs::getTagsFor($Document->getClassId(), $Document->that);
         if(countR($tags)){
-            $tagsStr = '';
-            array_walk($tags, function($a) use (&$tagsStr){$tagsStr .= $a['span'] ?? '';});
-            $row->containerId .= "<span class='documentTags'>{$tagsStr}</span>";
+            // В LLM експорта спановете се сливат с хендъла, затова таговете се изреждат отделно
+            if(Mode::is('renderForLlm')){
+                $row->containerId .= ' ' . doc_plg_LlmExportable::systemNote('Tags: ' . implode(', ', arr::extractValuesFromArray($tags, 'name')));
+            } else {
+                $tagsStr = '';
+                array_walk($tags, function($a) use (&$tagsStr){$tagsStr .= $a['span'] ?? '';});
+                $row->containerId .= "<span class='documentTags'>{$tagsStr}</span>";
+            }
         }
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
@@ -453,6 +458,14 @@ class trans_LineDetails extends doc_Detail
         $row->ROW_ATTR['class'] .= " group{$rec->classId}";
         if(isset($fields['renderDocumentInline'])){
             $row->ROW_ATTR['class'] .= " detailedView";
+        }
+
+        // В LLM експорта групата се слива с текущите редове, затова всеки премахнат ред казва къде е документа сега
+        if($rec->status == 'removed' && Mode::is('renderForLlm')){
+            $currentLineId = $Document->fetchField('lineId');
+            $removedNote = 'Removed from this line, not part of its load; ';
+            $removedNote .= (!empty($currentLineId) && $currentLineId != $rec->lineId) ? 'now on #' . trans_Lines::getHandle($currentLineId) : 'now on no transport line';
+            $row->containerId .= ' ' . doc_plg_LlmExportable::systemNote($removedNote);
         }
     }
     

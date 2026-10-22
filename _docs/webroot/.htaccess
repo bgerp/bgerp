@@ -18,6 +18,9 @@ ServerSignature Off
 # Very important for URL rewriting
 <IfModule mod_rewrite.c> 
 RewriteEngine on
+# File uploads use JSON metadata and application/octet-stream chunks.
+RewriteCond %{HTTP:Content-Type} multipart [NC]
+RewriteRule ^ - [F,L]
 RewriteCond %{REQUEST_FILENAME} !-d  
 RewriteCond %{REQUEST_FILENAME} !-f 
 RewriteRule ^(.*)$ index.php?virtual_url=$1 [QSA,L] 

@@ -9,7 +9,7 @@ use Minishlink\WebPush\Subscription;
  * @package   pwa
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -760,7 +760,12 @@ class pwa_Settings extends core_Manager
             return false;
         }
 
-        return @file_get_contents($defaultPath);
+        $hashPath = getFullPath('fileman/js/sha256.js');
+        if (!$hashPath || !is_file($hashPath)) {
+            return false;
+        }
+
+        return file_get_contents($hashPath) . "\n" . file_get_contents($defaultPath);
     }
 
 
@@ -798,12 +803,7 @@ class pwa_Settings extends core_Manager
             $manifest = self::getPWAManifest($domainId, $webrootDomain);
         }
 
-        if (array_key_exists('serviceworker.js', $customFiles)) {
-            $serviceWorker = $customFiles['serviceworker.js'];
-        } else {
-            $defaultPath = getFullPath('pwa/js/sw.js');
-            $serviceWorker = ($defaultPath && is_file($defaultPath)) ? @file_get_contents($defaultPath) : false;
-        }
+        $serviceWorker = self::getServiceWorkerContentsForDomain($domainId);
 
         if ($manifest === false || $serviceWorker === false) {
             return false;

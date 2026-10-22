@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class cms_themes_christmas_Theme extends cms_themes_commerce_Theme
+class cms_themes_christmas_Theme extends cms_themes_cards_Theme
 {
     public $oldClassName = null;
 

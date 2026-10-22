@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -70,6 +70,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_CalcQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantityInPack) || empty($rec->packQuantity)) {
+            $rec->quantity = null;
             
             return;
         }

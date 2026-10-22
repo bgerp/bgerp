@@ -3243,7 +3243,13 @@ class cat_Products extends embed_Manager
                 $data->toolbar->addBtn('Нова партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
             }
         }
-        
+
+        if (core_Packs::isInstalled('dec') && $data->rec->state != 'rejected') {
+            if (dec_Tds::haveRightFor('add', (object) array('originId' => $data->rec->containerId))) {
+                $data->toolbar->addBtn('TDS', array('dec_Tds', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/technical-sheet.png,title=Създаване на техническа спецификация,row=2');
+            }
+        }
+
         if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
             $saleUrlArr =  array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true);
             if(!empty($data->rec->originId)){
