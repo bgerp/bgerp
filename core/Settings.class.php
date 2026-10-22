@@ -224,7 +224,21 @@ class core_Settings extends core_Manager
             $orToPrevious = true;
         }
 
-        setIfNot($domainId, cms_Domains::getCurrent('id', false));
+        $domainSettingsAvailable = true;
+        if (!isset($domainId)) {
+            try {
+                $domainId = cms_Domains::getCurrent('id', false);
+            } catch (core_exception_Db $e) {
+                unset($allResArr[$keyHash]);
+                if (!$e->isNotInitializedDB()) {
+                    throw $e;
+                }
+
+                // Входът трябва да работи и преди обновяването на CMS схемата.
+                $domainSettingsAvailable = false;
+                $allResArr[$keyHash] = array();
+            }
+        }
 
         if (isset($domainId)) {
             $domainSysRoleId = type_UserOrRole::getSysRoleId($domainId, 'domain');
@@ -251,7 +265,12 @@ class core_Settings extends core_Manager
             }
         }
 
-        return $allResArr[$keyHash];
+        $result = $allResArr[$keyHash];
+        if (!$domainSettingsAvailable) {
+            unset($allResArr[$keyHash]);
+        }
+
+        return $result;
     }
     
     
