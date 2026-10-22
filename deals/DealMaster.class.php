@@ -2960,8 +2960,112 @@ abstract class deals_DealMaster extends deals_DealBase
             $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
+
+        if ($strategy == 'shippedNotInvoiced') {
+            $details = $this->splitDetailsByRelatedProducts($rec, $details, $ForMvc);
+        }
         
         return $details;
+    }
+
+
+    /**
+     * Разделя редовете за фактуриране според артикула от сделката, за който са експедирани
+     * (напр. резервна част за конкретно устройство и сериен номер)
+     *
+     * @param stdClass            $rec     - запис на сделката
+     * @param array               $details - редовете за фактуриране
+     * @param deals_InvoiceMaster $ForMvc  - фактурата
+     *
+     * @return array
+     */
+    protected function splitDetailsByRelatedProducts($rec, $details, $ForMvc)
+    {
+        if (!countR($details)) {
+            return $details;
+        }
+
+        // Експедираните и фактурираните к-ва по артикул и свързан артикул, вкл. от обединените сделки
+        $shipped = $invoiced = array();
+        $invoiceClassId = $ForMvc->getClassId();
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->in('threadId', deals_Helper::getCombinedThreads($rec->threadId));
+        $cQuery->where("#state = 'active'");
+        $cQuery->show('docClass,docId');
+        while ($cRec = $cQuery->fetch()) {
+            $Doc = cls::get($cRec->docClass);
+            $isInvoice = ($cRec->docClass == $invoiceClassId);
+            $detailName = $Doc->mainDetail ?? null;
+            if (!$detailName || (!$isInvoice && !cls::isSubclass($detailName, 'deals_DeliveryDocumentDetail'))) {
+                continue;
+            }
+
+            $docRec = $Doc->fetch($cRec->docId);
+            if ($isInvoice) {
+                if (!in_array($docRec->type ?? 'invoice', array('invoice', 'dc_note'))) {
+                    continue;
+                }
+
+                $Detail = cls::get($detailName);
+                foreach ($Doc->getInvoicedQuantities($docRec) as $iQuantity) {
+                    $dRec = $iQuantity->rec;
+                    $relatedProductId = $dRec->relatedProductId ?? null;
+                    if (empty($relatedProductId) && !empty($dRec->clonedFromDetailId)) {
+                        $relatedProductId = $Detail->fetchField($dRec->clonedFromDetailId, 'relatedProductId');
+                    }
+
+                    if (!empty($relatedProductId)) {
+                        $invoiced[$dRec->productId][$relatedProductId] = ($invoiced[$dRec->productId][$relatedProductId] ?? 0) + $iQuantity->quantity;
+                    }
+                }
+
+                continue;
+            }
+
+            $Detail = cls::get($detailName);
+            $masterKey = $Detail->masterKey ?? null;
+            if (!$masterKey) {
+                continue;
+            }
+
+            $sign = (($docRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
+            $dQuery = $Detail->getQuery();
+            $dQuery->where(array("#{$masterKey} = '[#1#]'", $cRec->docId));
+            $dQuery->where("#relatedProductId IS NOT NULL");
+            while ($dRec = $dQuery->fetch()) {
+                $shipped[$dRec->productId][$dRec->relatedProductId] = ($shipped[$dRec->productId][$dRec->relatedProductId] ?? 0) + $sign * $dRec->quantity;
+            }
+        }
+
+        if (!countR($shipped)) {
+            return $details;
+        }
+
+        $res = array();
+        foreach ($details as $dRec) {
+            $quantityInPack = !empty($dRec->quantityInPack) ? $dRec->quantityInPack : 1;
+            $remaining = $dRec->quantity * $quantityInPack;
+            foreach ($shipped[$dRec->productId] ?? array() as $relatedProductId => $quantity) {
+                $quantity = min($remaining, $quantity - ($invoiced[$dRec->productId][$relatedProductId] ?? 0));
+                if (round($quantity, 5) <= 0) {
+                    continue;
+                }
+
+                $noted = clone $dRec;
+                $noted->relatedProductId = $relatedProductId;
+                $noted->notes = deals_Helper::getRelatedProductNote($relatedProductId);
+                $noted->quantity = $quantity / $quantityInPack;
+                $res[] = $noted;
+                $remaining -= $quantity;
+            }
+
+            if (round($remaining, 5) > 0) {
+                $dRec->quantity = $remaining / $quantityInPack;
+                $res[] = $dRec;
+            }
+        }
+
+        return $res;
     }
     
     

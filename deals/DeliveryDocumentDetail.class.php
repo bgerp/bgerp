@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,6 +37,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter,tdClass=small-field');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
+        $mvc->FLD('relatedProductId', 'key(mvc=cat_Products,select=name)', 'caption=Свързан артикул,input=none,column=none');
 
         $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));
         $mvc->setDbIndex('productId,packagingId');
@@ -67,6 +68,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
+        } else {
+            static::prepareRelatedGroupField($mvc, $data->form, $masterRec);
         }
         
         if (!empty($rec->packPrice)) {
@@ -76,6 +79,174 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     }
     
     
+    /**
+     * Полета за избор на артикул през свързан артикул от сделката (напр. приеманото устройство)
+     * и групата му свързани артикули (напр. вид релация)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     * @param stdClass  $masterRec
+     */
+    protected static function prepareRelatedGroupField(core_Mvc $mvc, core_Form $form, $masterRec)
+    {
+        $groups = static::getDealRelatedProductGroups($mvc, $masterRec);
+        if (!countR($groups)) {
+            return;
+        }
+
+        $relatedOptions = array('' => '');
+        foreach (array_keys($groups) as $relatedId) {
+            $relatedOptions[$relatedId] = deals_Helper::getRelatedProductNote($relatedId);
+        }
+
+        $refreshFields = 'productId|packPrice|discount|packagingId|batch|baseQuantity';
+        $form->FLD('relatedTo', 'int', "caption=Устройство,input,silent,before=productId,removeAndRefreshForm=relatedGroup|{$refreshFields}");
+        $form->setOptions('relatedTo', $relatedOptions);
+        $form->input('relatedTo', 'silent');
+
+        $relatedId = $form->rec->relatedTo ?? null;
+        if (!isset($groups[$relatedId])) {
+            return;
+        }
+
+        $form->FLD('relatedGroup', 'varchar', "caption=Релация,input,silent,before=productId,removeAndRefreshForm={$refreshFields}");
+        $form->setOptions('relatedGroup', array('' => '') + $groups[$relatedId]);
+        if (countR($groups[$relatedId]) == 1) {
+            $form->setDefault('relatedGroup', key($groups[$relatedId]));
+        }
+        $form->input('relatedGroup', 'silent');
+
+        // При избрана релация за артикул се предлагат само свързаните по нея
+        $groupKey = $form->rec->relatedGroup ?? '';
+        if (isset($groups[$relatedId][$groupKey])) {
+            $productIds = array_keys(static::getRelatedGroupProducts($relatedId, $groupKey));
+            $form->setFieldTypeParams('productId', array('onlyIn' => countR($productIds) ? $productIds : array(0)));
+        }
+    }
+
+
+    /**
+     * Групите свързани артикули на артикулите от сделката на документа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $masterRec
+     *
+     * @return array - [ид на артикул от сделката] => [ключ на група => заглавие]
+     */
+    protected static function getDealRelatedProductGroups(core_Mvc $mvc, $masterRec)
+    {
+        static $cache = array();
+
+        $cacheKey = $mvc->className . '|' . ($masterRec->id ?? '');
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
+
+        $groups = array();
+        $origin = $mvc->Master->getOrigin($masterRec);
+        if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            $productIds = array();
+            foreach ((array) $origin->getAggregateDealInfo()->get('products') as $p) {
+                $productId = $p->productId ?? null;
+                if ($productId) {
+                    $productIds[$productId] = $productId;
+                }
+            }
+
+            foreach ($productIds as $productId) {
+                $Driver = cat_Products::getDriver($productId);
+                if (!$Driver || !cls::existsMethod($Driver, 'getRelatedProductGroups')) {
+                    continue;
+                }
+
+                $productGroups = (array) $Driver->getRelatedProductGroups($productId);
+                if (countR($productGroups)) {
+                    $groups[$productId] = $productGroups;
+                }
+            }
+        }
+
+        $cache[$cacheKey] = $groups;
+
+        return $groups;
+    }
+
+
+    /**
+     * Артикулите от група свързани артикули
+     *
+     * @param int    $relatedId - ид на артикул от сделката
+     * @param string $groupKey  - ключ на групата
+     *
+     * @return array - [ид на артикул] => заглавие
+     */
+    protected static function getRelatedGroupProducts($relatedId, $groupKey)
+    {
+        $Driver = cat_Products::getDriver($relatedId);
+
+        return $Driver ? (array) $Driver->getRelatedProductsByGroup($relatedId, $groupKey) : array();
+    }
+
+
+    /**
+     * Проверява артикула, избран през свързан артикул и група, и добавя
+     * в забележките за кой артикул от сделката е
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     * @param stdClass  $masterRec
+     */
+    protected static function inputRelatedGroupField(core_Mvc $mvc, core_Form $form, $masterRec)
+    {
+        $rec = &$form->rec;
+        if (!$form->isSubmitted() || !isset($form->fields['relatedTo'])) {
+            return;
+        }
+
+        $groups = static::getDealRelatedProductGroups($mvc, $masterRec);
+        $relatedId = $rec->relatedTo ?? null;
+        $groupKey = $rec->relatedGroup ?? '';
+        if (!empty($relatedId)) {
+            if (!isset($groups[$relatedId])) {
+                $form->setError('relatedTo', 'Невалидно устройство');
+
+                return;
+            }
+
+            if (!isset($groups[$relatedId][$groupKey])) {
+                $form->setError('relatedGroup', 'Изберете релация');
+
+                return;
+            }
+
+            if (empty($rec->productId) || !array_key_exists($rec->productId, static::getRelatedGroupProducts($relatedId, $groupKey))) {
+                $form->setError('relatedGroup,productId', 'Артикулът не е от избраната релация');
+
+                return;
+            }
+        }
+
+        // При повторно изпращане, смяна или изчистване на устройството автоматичният текст се подменя, ръчните забележки остават
+        $autoNotes = array();
+        foreach (array_keys($groups) as $productId) {
+            $autoNotes[] = deals_Helper::getRelatedProductNote($productId);
+        }
+
+        $lines = array();
+        foreach (preg_split('/\R/u', $rec->notes ?? '') as $line) {
+            if (!in_array(trim($line), $autoNotes, true)) {
+                $lines[] = $line;
+            }
+        }
+
+        $rec->relatedProductId = !empty($relatedId) ? $relatedId : null;
+        if (!empty($relatedId)) {
+            array_unshift($lines, deals_Helper::getRelatedProductNote($relatedId));
+        }
+        $rec->notes = trim(implode("\n", $lines));
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -131,6 +302,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
             }
         }
+
+        static::inputRelatedGroupField($mvc, $form, $masterRec);
 
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->packQuantity)) {

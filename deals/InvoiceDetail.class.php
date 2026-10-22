@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -79,6 +79,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter,tdClass=small-field');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $mvc->FLD('relatedProductId', 'key(mvc=cat_Products,select=name)', 'caption=Свързан артикул,input=none,column=none');
         $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
         $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));

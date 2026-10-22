@@ -1825,17 +1825,14 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $Detail = $this->mainDetail;
-        $dQuery = $Detail::getQuery();
-        $dQuery->where("#invoiceId = '{$rec->id}'");
-        
         // Намираме всички фактурирани досега продукти
         $invoiced = $aggregator->get('invoicedProducts');
-        while ($dRec = $dQuery->fetch()) {
+        foreach ($this->getInvoicedQuantities($rec) as $iQuantity) {
+            $dRec = $iQuantity->rec;
             $p = new stdClass();
             $p->productId = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
-            $p->quantity = $dRec->quantity * $dRec->quantityInPack;
+            $p->quantity = $iQuantity->quantity;
             
             // Добавяме към фактурираните продукти
             $update = false;
@@ -1855,6 +1852,47 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         $aggregator->set('invoicedProducts', $invoiced);
+    }
+
+
+    /**
+     * С какви к-ва редовете на документа променят фактурираното;
+     * при известие се отчита само промяната в к-то спрямо фактурата, към която е
+     *
+     * @param mixed $rec - ид или запис на документа
+     *
+     * @return array - [ид на ред] => (object) ['rec' => запис на реда, 'quantity' => к-во в осн. мярка]
+     */
+    public function getInvoicedQuantities($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $originQuantities = null;
+        if (($rec->type ?? null) == 'dc_note' && !empty($rec->originId)) {
+            $originQuantities = $this->getInvoiceDetailedInfo($rec->originId)->recWithIds;
+        }
+
+        $res = array();
+        $Detail = cls::get($this->mainDetail);
+        $dQuery = $Detail->getQuery();
+        $dQuery->where(array("#invoiceId = '[#1#]'", $rec->id));
+        while ($dRec = $dQuery->fetch()) {
+            $quantity = $dRec->quantity;
+            if (isset($originQuantities)) {
+                $clonedFromId = $dRec->clonedFromDetailId ?? null;
+                if (!isset($clonedFromId, $originQuantities[$clonedFromId])) {
+                    continue;
+                }
+
+                $quantity -= $originQuantities[$clonedFromId]['quantity'];
+                if (round($quantity, 5) == 0) {
+                    continue;
+                }
+            }
+
+            $res[$dRec->id] = (object) array('rec' => $dRec, 'quantity' => $quantity * $dRec->quantityInPack);
+        }
+
+        return $res;
     }
     
     
