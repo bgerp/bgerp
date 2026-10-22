@@ -45,7 +45,7 @@ class type_Check extends type_Enum
         $caption = tr($caption);
         $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('varchar')->toVerbal($caption);
           
-        $attr['class'] .= ' checkbox';
+        $attr['class'] = ($attr['class'] ?? '') . ' checkbox';
         ht::setUniqId($attr);
         
         $errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": '';

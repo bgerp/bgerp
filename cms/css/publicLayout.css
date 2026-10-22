@@ -1,4 +1,27 @@
 /* The domain owns the navigation position in articles, blog and shop. */
+.cms-expanded-article {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--c-line, #d9e5e9);
+}
+.cms-expanded-article:last-child { margin-bottom: 0; border-bottom: 0; }
+.cms-expanded-article > h2 { color: var(--c-accent, inherit); margin: 0 0 16px; }
+.cms-expanded-article-edit {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: normal;
+    vertical-align: middle;
+}
+body.cms-navigation-none #maincontent #cmsNavigation { display: none; }
+body.cms-navigation-none #maincontent .cms-row:has(> #cmsNavigation) {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+body.cms-navigation-none #maincontent .cms-row > #cmsNavigation + div {
+    width: 100% !important;
+    margin-left: 0 !important;
+    float: none;
+}
 @media (min-width: 901px) {
     body:not(.narrow):not(.commerce-compact) #maincontent .cms-row:has(> #cmsNavigation) {
         display: grid;
