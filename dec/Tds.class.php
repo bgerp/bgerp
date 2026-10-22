@@ -207,7 +207,7 @@ class dec_Tds extends core_Master
             $productRec = self::getProductFromOrigin($rec->originId);
             if ($productRec) {
                 $form->setDefault('productId', $productRec->id);
-                $form->setDefault('documentNumber', 'TDS-' . ($productRec->code ?: 'Art' . $productRec->id));
+                $form->setDefault('documentNumber', 'TDS-' . self::getProductCode($productRec));
             }
         }
 
@@ -281,15 +281,15 @@ class dec_Tds extends core_Master
         }
 
         if (empty($rec->documentNumber)) {
-            $productCode = cat_Products::fetchField($rec->productId, 'code');
-            $rec->documentNumber = 'TDS-' . ($productCode ?: 'Art' . $rec->productId);
+            $rec->documentNumber = 'TDS-' . self::getProductCode(cat_Products::fetch($rec->productId));
         }
 
         $rec->revision = $rec->revision ?: '1';
         $rec->date = $rec->date ?: dt::today();
+        $language = self::getRecordLanguage($rec);
 
         if (empty($rec->productSnapshot)) {
-            $snapshot = self::createProductSnapshot($rec->productId, self::getRecordLanguage($rec));
+            $snapshot = self::createProductSnapshot($rec->productId, $language);
             $rec->productNameSnapshot = $snapshot->name;
             $rec->productCodeSnapshot = $snapshot->code;
             $rec->manufacturerSnapshot = $snapshot->manufacturer;
@@ -301,7 +301,7 @@ class dec_Tds extends core_Master
         if (($rec->state ?? null) == 'active') {
             $declarationsChanged = ($storedRec->complianceDeclarationIds ?? null) != ($rec->complianceDeclarationIds ?? null);
             if (!isset($rec->declarationSnapshot) || $declarationsChanged) {
-                $rec->declarationSnapshot = self::renderComplianceDeclarations($rec, self::getRecordLanguage($rec));
+                $rec->declarationSnapshot = self::renderComplianceDeclarations($rec, $language);
             }
         }
     }
@@ -337,12 +337,13 @@ class dec_Tds extends core_Master
             'useRestrictions' => array('caption' => $labels['useRestrictions'], 'richtext' => true),
         ));
 
+        // Опциите на енума са с преводи - вербализират се на езика на документа
+        core_Lg::push($language);
+        $foodContactStatus = $mvc->getVerbal($rec, 'foodContactStatus');
+        core_Lg::pop();
+
         $row->COMPLIANCE_SECTION = self::renderSection($mvc, $rec, $labels['complianceSection'], array(
-            'foodContactStatus' => array('caption' => $labels['foodContact'], 'valueMap' => array(
-                'yes' => $labels['yes'],
-                'no' => $labels['no'],
-                'notSpecified' => $labels['notSpecified'],
-            )),
+            'foodContactStatus' => array('caption' => $labels['foodContact'], 'value' => $foodContactStatus, 'html' => true),
             'countriesOfUse' => array('caption' => $labels['countriesOfUse']),
             'recycledContent' => array('caption' => $labels['recycledContent']),
             'recyclability' => array('caption' => $labels['recyclability']),
@@ -380,8 +381,8 @@ class dec_Tds extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->setField('productId', 'input,placeholderType=Всички,silent,formOrder=1100');
-        $data->listFilter->showFields .=  ',productId';
+        $data->listFilter->setField('productId', 'input,placeholder=Всички,silent,formOrder=1100');
+        $data->listFilter->showFields .= ',productId';
         $data->listFilter->input();
 
         $filterRec = $data->listFilter->rec;
@@ -579,9 +580,6 @@ class dec_Tds extends core_Master
             'tolerances' => tr('Технически допуски'),
             'notes' => tr('Бележки'),
             'disclaimer' => tr('Отказ от отговорност'),
-            'yes' => tr('Да'),
-            'no' => tr('Не'),
-            'notSpecified' => tr('Не е посочено'),
         );
         core_Lg::pop();
 
@@ -629,13 +627,13 @@ class dec_Tds extends core_Master
 
         $res = array();
         foreach ($links as $link) {
-            $host = $link->host;
-            if ($host != 'localhost') {
-                Mode::push('BGERP_CURRENT_DOMAIN', $host);
+            $pushDomain = ($link->host != 'localhost');
+            if ($pushDomain) {
+                Mode::push('BGERP_CURRENT_DOMAIN', $link->host);
             }
 
             $url = toUrl($link->url, 'absolute');
-            if ($host != 'localhost') {
+            if ($pushDomain) {
                 Mode::pop('BGERP_CURRENT_DOMAIN');
             }
 
@@ -726,7 +724,7 @@ class dec_Tds extends core_Master
     protected static function getPackagingDescription($productRec, $language)
     {
         $query = cat_products_Packagings::getQuery();
-        $query->where("#productId = {$productRec->id}");
+        $query->where(array("#productId = [#1#]", $productRec->id));
         $query->where("#state != 'closed'");
         $query->EXT('packagingType', 'cat_UoM', 'externalName=type,externalKey=packagingId');
         $query->where("#packagingType = 'packaging'");
@@ -790,12 +788,21 @@ class dec_Tds extends core_Master
 
         $snapshot = new stdClass();
         $snapshot->name = $name;
-        $snapshot->code = $productRec->code ?: 'Art' . $productRec->id;
+        $snapshot->code = self::getProductCode($productRec);
         $snapshot->manufacturer = self::getManufacturer($lang);
         $snapshot->originCountry = self::getDriverTdsData($productRec, $lang)['originCountry'] ?? null;
         $snapshot->description = self::removeInternalLinks($description);
 
         return $snapshot;
+    }
+
+
+    /**
+     * Кодът на артикула, а без код - Art и ид-то
+     */
+    protected static function getProductCode($productRec)
+    {
+        return !empty($productRec->code) ? $productRec->code : 'Art' . $productRec->id;
     }
 
 
@@ -812,9 +819,7 @@ class dec_Tds extends core_Master
                 continue;
             }
 
-            if (isset($field['valueMap'])) {
-                $value = $field['valueMap'][$value] ?? $value;
-            } elseif (!empty($field['html'])) {
+            if (!empty($field['html'])) {
                 $value = (string) $value;
             } elseif (!empty($field['richtext'])) {
                 $value = $mvc->getVerbal($rec, $name);
