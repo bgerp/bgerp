@@ -14,7 +14,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -212,7 +212,8 @@ class acc_ReportDetails extends core_Manager
                         arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
                     }
                     
-                    $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
+                    // Сумира се само показаното - пропуснатите сделки не влизат в общото
+                    $res[$accountId]['total'] = arr::sumValuesArray($res[$accountId]['rows'] ?? array(), 'amountRec', true);
                 } else {
                     $objPos = acc_Lists::getPosition($accSysId, $groupBy);
                     if(empty($objPos)){
@@ -266,7 +267,7 @@ class acc_ReportDetails extends core_Manager
             }
         }
 
-        $data->total = arr::sumValuesArray($data->recs, 'blAmount');
+        $data->total = arr::sumValuesArray($res, 'total', true);
         $data->totalRow = core_Type::getByName('double(decimals=2)')->toVerbal($data->total);
         $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;
         

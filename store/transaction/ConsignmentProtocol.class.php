@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -143,7 +143,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             );
 
             if($debitAccId == '3232'){
-                $amount = round($sendRec->amount * $rate, 2);
+                $amount = round(($sendRec->amount ?? 0) * $rate, 2);
                 $entry['amount'] = $amount;
             }
 
@@ -168,7 +168,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             );
 
             if($creditAccId == '3232'){
-                $amount = round($recRec->amount * $rate, 2);
+                $amount = round(($recRec->amount ?? 0) * $rate, 2);
                 $entry['amount'] = $amount;
             }
 
