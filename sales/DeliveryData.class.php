@@ -613,7 +613,7 @@ class sales_DeliveryData extends core_Manager
         }
 
         // Готовността е процент на изпълнената сума от общата
-        $readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
+        $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
 
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
