@@ -8,7 +8,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -233,7 +233,7 @@ class fileman_Log extends core_Manager
         $tpl->push('fileman/js/lastUsed.js', 'JS');
         jquery_Jquery::run($tpl, 'lastUsedActions();');
 
-        if (fileman_Upload2::checkLinkValidity($validUntil, $tpl)) {
+        if (fileman_Upload::checkLinkValidity($validUntil, $tpl)) {
 
             // Рендираме диалоговия прозорец
             return $this->renderDialog($tpl);

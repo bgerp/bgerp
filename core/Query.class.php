@@ -167,6 +167,12 @@ class core_Query extends core_FieldSet
      * Масив за хинтове на индекси
      */
     public $indexes = array();
+
+
+    /**
+     * Engines по таблица и SQL връзка, споделени между заявките в текущия хит
+     */
+    private static $indexTableEngines = array();
     
     
     /**
@@ -1635,7 +1641,50 @@ class core_Query extends core_FieldSet
         }
 
         if ($haveIndexes) {
-            $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes[$tableName])) . ')';
+            $indexes = $this->indexes[$tableName];
+            $expressions = $this->where;
+            $expressions[] = $this->onCond ?? '';
+            foreach ($this->selectFields("#kind == 'XPR'") as $field) {
+                $expressions[] = $field->expression ?? '';
+            }
+
+            if (preg_match('/\bMATCH\s*\(/i', implode(' ', $expressions))) {
+                $indexMvc = $this->mvc;
+                if (($indexMvc->dbTableName ?? null) !== $tableName) {
+                    $indexMvc = null;
+                    foreach ($this->selectFields("#kind == 'EXT'") as $field) {
+                        if (empty($field->externalClass)) {
+                            continue;
+                        }
+                        $externalMvc = cls::get($field->externalClass);
+                        if (($externalMvc->dbTableName ?? null) === $tableName) {
+                            $indexMvc = $externalMvc;
+                            break;
+                        }
+                    }
+                }
+                $fullTextIndexes = array();
+                foreach ((array) ($indexMvc->dbIndexes ?? array()) as $name => $index) {
+                    if (($index->type ?? null) === 'FULLTEXT' && !isset($indexes[$name])) {
+                        $fullTextIndexes[$name] = true;
+                    }
+                }
+
+                $db = $this->mvc->db ?? null;
+                if ($fullTextIndexes && $db) {
+                    $key = serialize(array($db->dbHost ?? '', $db->dbUser ?? '', $db->dbName ?? '', $tableName));
+                    if (!isset(self::$indexTableEngines[$key])) {
+                        self::$indexTableEngines[$key] = strtoupper((string) $db->getTableInfo($tableName, 'ENGINE'));
+                    }
+
+                    // InnoDB изисква FULLTEXT индекс; MyISAM запазва бързия PRIMARY план.
+                    if (self::$indexTableEngines[$key] === 'INNODB') {
+                        $indexes += $fullTextIndexes;
+                    }
+                }
+            }
+
+            $res = "\nUSE INDEX(" . implode(',', array_keys($indexes)) . ')';
         }
 
         return  $res;

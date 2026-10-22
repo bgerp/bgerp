@@ -10,7 +10,7 @@ defIfNot('SELECT2_VERSION', '4.0.1');
 /**
  * Пътя до външния код на SELECT2toTree
  */
-defIfNot('SELECT2_TOTREE_VERSION', '19.03.26');
+defIfNot('SELECT2_TOTREE_VERSION', '1.1.1');
 
 
 /**
@@ -73,7 +73,7 @@ class select2_Setup extends core_ProtoSetup
         'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
         'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
         'SELECT2_VERSION' => array('enum(4.0rc2, 4.0.1, 4.0.7, 4.0.13, 4.1.0)', 'caption=Версия на Select2->Версия'),
-        'SELECT2_TOTREE_VERSION' => array('enum(19.03.26)', 'caption=Версия на Select2ToTree->Версия'),
+        'SELECT2_TOTREE_VERSION' => array('enum(1.1.1, 1.2.0)', 'caption=Версия на Select2ToTree->Версия'),
     );
     
     

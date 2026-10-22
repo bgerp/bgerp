@@ -25,7 +25,7 @@ class ht { public static function createSelect($name, $options, $value, $attr) {
 class arr { public static function combine(...$arrays) { $res = array(); foreach ($arrays as $a) $res += $a; return $res; } }
 require dirname(__DIR__, 2) . '/core/BaseClass.class.php';
 require dirname(__DIR__, 2) . '/core/Type.class.php';
-foreach (array('Varchar', 'Date', 'Keylist', 'Users', 'Int', 'Key2') as $name) require dirname(__DIR__) . '/' . $name . '.class.php';
+foreach (array('Varchar', 'Identifier', 'Date', 'Keylist', 'Users', 'Int', 'Key2') as $name) require dirname(__DIR__) . '/' . $name . '.class.php';
 class InputUsers extends type_Users
 {
     public $prepared = 0;
@@ -74,4 +74,16 @@ $attr = array();
 check($key->renderInput_('groupId', '7', $attr)['value'] === '7', 'A valid key is still rendered as selected');
 $text = new type_Varchar();
 check($text->fromVerbal_('  abc  ') === 'abc' && $text->fromVerbal_(null) === '', 'Text trimming and empty input remain unchanged');
+foreach (array(array(), array('noTrim' => true), array('nullIfEmpty' => true)) as $params) {
+    $identifier = new type_Identifier();
+    $identifier->params = $params;
+    foreach (array(null, '', '  ') as $value) {
+        check($identifier->fromVerbal($value) === null && empty($identifier->error), 'Empty identifiers do not raise PHP warnings');
+    }
+    check($identifier->fromVerbal('  valid_name2  ') === 'valid_name2', 'Identifier trimming is preserved');
+    check(empty($identifier->isValid(null)['error']), 'Direct validation accepts an empty identifier');
+    foreach (array(array('name'), array('key' => 'name')) as $value) {
+        check($identifier->fromVerbal($value) === false && $identifier->error === 'Очаква се текст', 'Identifier arrays become field errors');
+    }
+}
 echo "PASS: {$checks} input checks\n";

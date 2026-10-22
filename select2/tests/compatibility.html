@@ -12,25 +12,35 @@
     <script>
         var versions = ['4.0rc2', '4.0', '4.0.1', '4.0.7', '4.0.13', '4.1.0'];
         var jqueryVersions = ['1.11.2', '3.7.1', '4.0.0'];
+        var treeVersions = ['1.1.1', '1.2.0'];
         var query = new URLSearchParams(location.search);
         var version = versions.includes(query.get('v')) ? query.get('v') : '4.1.0';
         var jq = jqueryVersions.includes(query.get('jq')) ? query.get('jq') : '3.7.1';
+        var tt = treeVersions.includes(query.get('tt')) ? query.get('tt') : '1.2.0';
+        // The compactor bundles adapter.js before Select2.
+        var adapterFirst = !!query.get('adapterFirst');
+        var cacheBust = Date.now();
         document.write('<link rel="stylesheet" href="../' + version + '/select2.min.css">');
+        document.write('<link rel="stylesheet" href="../toTree_' + tt + '/select2totree.css">');
         document.write('<script src="../../jquery/' + jq + '/jquery.min.js"><\/script>');
         if (jq === '4.0.0' && !query.get('withoutMigrate')) {
             document.write('<script src="../../jquery/migrate-4.0.2/jquery-migrate.min.js"><\/script>');
+        }
+        if (adapterFirst) {
+            document.write('<script src="../js/adapter.js?t=' + cacheBust + '"><\/script>');
         }
         document.write('<script src="../' + version + '/select2.min.js"><\/script>');
         document.write('<script src="../' + version + '/i18n/bg.js"><\/script>');
     </script>
     <script>
-        var cacheBust = Date.now();
         document.write('<script src="../../js/efCommon.js?t=' + cacheBust + '"><\/script>');
         document.write('<link rel="stylesheet" href="../css/select2-custom.css?t=' + cacheBust + '">');
-        document.write('<script src="../js/adapter.js?t=' + cacheBust + '"><\/script>');
-        document.write('<script src="../toTree_19.03.26/select2totree.js?t=' + cacheBust + '"><\/script>');
+        if (!adapterFirst) {
+            document.write('<script src="../js/adapter.js?t=' + cacheBust + '"><\/script>');
+        }
+        document.write('<script src="../toTree_' + tt + '/select2totree.js?t=' + cacheBust + '"><\/script>');
+        document.write('<script src="../js/toTree.js?t=' + cacheBust + '"><\/script>');
     </script>
-    <link rel="stylesheet" href="../toTree_19.03.26/select2totree.css">
     <style>
         body { padding: 16px; box-sizing: border-box; }
         .field { margin: 16px 0; max-width: 540px; }
@@ -82,7 +92,17 @@
             <option value="18" class="l8" data-pup="17" data-color="#00aa00" data-colorClass="green">Родител » Дъщерен » Трето ниво » Четвърто » Пето » Шесто » Седмо » Осмо</option>
             <option value="50" class="l1 non-leaf">Втори родител</option>
             <option value="51" class="l2" data-pup="50">Втори родител » Втори клон</option>
+            <option value="60" class="l1 non-leaf">Скрит родител » Сирак</option>
+            <option value="61" class="l2" data-pup="60">Скрит родител » Сирак » Дете</option>
         </select>
+    </div>
+    <div class="field">
+        <label for="empty">Empty multiple / placeholder in a shrink-to-fit cell</label>
+        <table><tr><td><div style="width: 300px"></div></td></tr><tr><td>
+            <select id="empty" multiple style="width:100%">
+                <option value="1">Първи</option><option value="2">Втори</option>
+            </select>
+        </td></tr></table>
     </div>
     <div class="field">
         <label for="remote">AJAX transport / numeric IDs</label>
@@ -91,7 +111,7 @@
     <pre id="results" role="status">Running...</pre>
     <script>
         document.body.className = 'modern-theme ' + (query.get('narrow') ? 'narrow' : 'wide');
-        $('#versions').text('Select2 ' + version + ' / jQuery ' + jq);
+        $('#versions').text('Select2 ' + version + ' / jQuery ' + jq + ' / Select2ToTree ' + tt);
         var results = [], failures = 0;
         function check(name, ok) {
             results.push((ok ? 'PASS ' : 'FAIL ') + name);
@@ -136,7 +156,21 @@
                     },
                     processResults: function (data) { return {results: data}; }
                 }}));
-                check('all widgets initialized', $('.select2-selection').length === 4);
+                var $empty = $('#empty').select2(options({placeholder: 'Всички'}));
+                check('all widgets initialized', $('.select2-selection').length === 5);
+                var $emptyField = $empty.next().find('.select2-search__field');
+                var $emptySelection = $empty.next().find('.select2-selection');
+                // 4.1 leaves the placeholder field at 100%; bgERP forms are sized by the 4.0 width.
+                check('empty multiple search keeps the field width',
+                    $emptyField.outerWidth() >= $emptySelection.width() - 25);
+                check('inline search uses the page font', $emptyField.css('font-family') !== 'sans-serif');
+                var emptyFieldTop = $emptyField[0].getBoundingClientRect().top -
+                    $emptySelection[0].getBoundingClientRect().top;
+                check('inline search keeps the 4.0 vertical offset', emptyFieldTop >= 2.5 && emptyFieldTop <= 4.5);
+                check('inline search height follows the font',
+                    Math.abs($emptyField.outerHeight() - 1.26 * parseFloat($emptyField.css('font-size'))) <= 1);
+                check('empty multiple keeps a single row height',
+                    $emptySelection.outerHeight() - $single.next().find('.select2-selection').outerHeight() <= 5);
                 search($single, 'зеле');
                 check('Cyrillic search', $('.select2-results__option').text().includes('Зелен'));
                 check('colour preview', $('.select2-results .color-preview').length === 1);
@@ -187,7 +221,8 @@
                 var toggleIcon = getComputedStyle($toggle[0], ':before');
                 check('tree icon stays compact and inside its click target',
                     parseFloat(toggleIcon.left) >= 0 && parseFloat(toggleIcon.top) >= 0 &&
-                    parseFloat(toggleIcon.fontSize) === 14 &&
+                    parseFloat(toggleIcon.width) === 13 && parseFloat(toggleIcon.height) === 13 &&
+                    parseFloat(toggleIcon.top) + parseFloat(toggleIcon.height) <= $toggle.outerHeight() &&
                     parseFloat(toggleIcon.left) + parseFloat(toggleIcon.width) <= $toggle.outerWidth());
                 check('tree labels omit repeated ancestor names',
                     $('.select2-results__option[data-val="11"] .item-label').text() === 'Дъщерен');
@@ -281,6 +316,9 @@
                     }));
                 var treeClear = $tree.next().find('.select2-selection__clear')[0];
                 var treeClearBox = treeClear.getBoundingClientRect();
+                check('clear button is vertically centered beside wrapped choices',
+                    Math.abs(treeClearBox.top + treeClearBox.height / 2 -
+                        treeBox.top - treeBox.height / 2) <= 2);
                 check('clear button remains reachable beside a long path',
                     treeClear.contains(document.elementFromPoint(
                         treeClearBox.left + treeClearBox.width / 2,
@@ -290,6 +328,16 @@
                     deepItems[7].find('.color-preview.green').length === 1);
                 check('selected tree path preserves colour',
                     $tree.next().find('.select2-selection__choice .color-preview.green').length === 1);
+                // The server renders an item whose parent is not offered as a root.
+                var $orphan = $treeResults.find('[data-val="60"]');
+                check('root without an offered parent keeps its full path',
+                    $orphan.is(':visible') && $orphan.find('.item-label').text() === 'Скрит родител » Сирак' &&
+                    $orphan.find('.item-label').offset().left ===
+                        $treeResults.find('[data-val="10"] .item-label').offset().left);
+                $orphan.find('.expand-collapse').trigger('mouseup');
+                check('child of such a root uses its short label',
+                    $treeResults.find('[data-val="61"]').is(':visible') &&
+                    $treeResults.find('[data-val="61"] .item-label').text() === 'Дете');
                 $tree.select2('close');
                 search($remote, 'Отдалечен');
                 await new Promise(function (resolve) { setTimeout(resolve, 60); });
@@ -327,20 +375,27 @@
             $('#results').attr('class', failures ? 'fail' : 'pass')
                 .text(results.join('\n') + '\n' + results.length + ' checks; ' + failures + ' failures');
             if (window.parent !== window) {
-                window.parent.postMessage({select2Test: true, version: version, jq: jq,
-                    narrow: query.get('narrow'), checks: results.length, failures: failures}, location.origin);
+                window.parent.postMessage({select2Test: true, version: version, jq: jq, tt: tt,
+                    narrow: query.get('narrow'), withoutMigrate: query.get('withoutMigrate'), adapterFirst: adapterFirst,
+                    checks: results.length, failures: failures}, location.origin);
             }
         }
         $('#matrix').on('click', function () {
             var combinations = [];
-            jqueryVersions.forEach(function (jqueryVersion) {
-                versions.forEach(function (select2Version) {
-                    combinations.push({v: select2Version, jq: jqueryVersion});
+            treeVersions.forEach(function (treeVersion) {
+                jqueryVersions.forEach(function (jqueryVersion) {
+                    versions.forEach(function (select2Version) {
+                        combinations.push({v: select2Version, jq: jqueryVersion, tt: treeVersion});
+                    });
                 });
             });
-            combinations.push({v: '4.0.1', jq: '1.11.2', narrow: '1'});
-            combinations.push({v: '4.1.0', jq: '3.7.1', narrow: '1'});
-            combinations.push({v: '4.1.0', jq: '4.0.0', narrow: '1'});
+            combinations.push({v: '4.0.1', jq: '1.11.2', tt: '1.1.1', narrow: '1'});
+            combinations.push({v: '4.1.0', jq: '3.7.1', tt: '1.2.0', narrow: '1'});
+            combinations.push({v: '4.1.0', jq: '4.0.0', tt: '1.2.0', narrow: '1'});
+            // bgERP adapters must not depend on the functions removed in jQuery 4.
+            combinations.push({v: '4.1.0', jq: '4.0.0', tt: '1.2.0', withoutMigrate: '1'});
+            combinations.push({v: '4.1.0', jq: '1.11.2', tt: '1.2.0', adapterFirst: '1'});
+            combinations.push({v: '4.1.0', jq: '4.0.0', tt: '1.2.0', adapterFirst: '1'});
             var $output = $('#matrix-results').empty();
             var $frame = $('<iframe title="Compatibility matrix"></iframe>').insertAfter($output);
             function next() {
@@ -349,21 +404,26 @@
                     $frame.remove();
                     return;
                 }
-                $frame.attr('src', '?' + $.param(combinations.shift()));
+                $frame.attr('src', '?' + $.param($.extend(combinations.shift(), {t: cacheBust})));
             }
             function receive(event) {
                 if (event.origin !== location.origin || event.source !== $frame[0].contentWindow ||
                     !event.data.select2Test) return;
                 var data = event.data;
                 $('<p></p>').attr('class', data.failures ? 'fail' : 'pass').text(
-                    data.version + ' / jQuery ' + data.jq + (data.narrow ? ' / narrow' : '') +
+                    data.version + ' / jQuery ' + data.jq + ' / Select2ToTree ' + data.tt + (data.narrow ? ' / narrow' : '') +
+                    (data.withoutMigrate ? ' / without Migrate' : '') + (data.adapterFirst ? ' / adapter first' : '') +
                     ': ' + data.checks + ' checks, ' + data.failures + ' failures').appendTo($output);
                 next();
             }
             window.addEventListener('message', receive);
             next();
         });
-        run();
+        // bgERP starts Select2 on document ready, after the adapter hooks;
+        // jQuery 1.x does not recognize an async function as a ready callback.
+        $(function () {
+            run();
+        });
     </script>
 </body>
 </html>

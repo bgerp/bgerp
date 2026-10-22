@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -55,8 +55,9 @@ class store_iface_ShipmentOrderToXmlImpl
         // Кои полета ще се вземат от вербалното показване
         $fieldsFromRow = array('storeId', 'locationId', 'MyCompany', 'MyCompanyVatNo', 'contragentName', 'eori', 'uicId', 'inlineContragentAddress', 'MyAddress', 'contragentUicId', 'responsible', 'weight', 'volume', 'amountDeliveredVat', 'amountDiscount', 'amountDelivered', 'lineForwarderId', 'lineVehicleId');
         foreach ($fieldsFromRow as $fld){
-            $val = is_object($row->{$fld}) ? $row->{$fld}->getContent() : $row->{$fld};
-            $data->{$fld} = trim(strip_tags($val));
+            $val = $row->{$fld} ?? '';
+            $val = is_object($val) ? $val->getContent() : $val;
+            $data->{$fld} = trim(strip_tags($val ?? ''));
         }
 
         $data->vatIncluded = in_array($rec->chargeVat, array('yes', 'separate')) ? 'yes' : 'no';
@@ -91,8 +92,9 @@ class store_iface_ShipmentOrderToXmlImpl
             $pRec->vat = core_Type::getByName('percent')->toVerbal(cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId));
             $fieldsFromDetailRow = array('packagingId', 'notes', 'weight', 'volume', 'discount');
             foreach ($fieldsFromDetailRow as $fld){
-                $val = is_object($dRow->{$fld}) ? $dRow->{$fld}->getContent() : $dRow->{$fld};
-                $pRec->{$fld} = trim(strip_tags($val));
+                $val = $dRow->{$fld} ?? '';
+                $val = is_object($val) ? $val->getContent() : $val;
+                $pRec->{$fld} = trim(strip_tags($val ?? ''));
             }
 
             $pRec->batches = array();

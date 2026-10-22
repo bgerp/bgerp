@@ -418,6 +418,7 @@ class cal_Calendar extends core_Master
         $url = parseLocalUrl($rec->url, FALSE);
         
         $cUrl = getCurrentUrl();
+        $currentAct = strtolower($cUrl['Act'] ?? '');
         
         // TODO да стане с интерфейс
         $isLink = TRUE;
@@ -476,7 +477,7 @@ class cal_Calendar extends core_Master
             $seeUserFlag = true;
             $row->event = ht::createLink($row->title, $url, NULL, $attr);
             
-            if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
+            if($currentAct == "day" || $currentAct == "week" || $currentAct == "month"){
                 if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel' || $rec->type == 'attendance'){
                     $row->event = "<div class='task'>" . $img . ht::createLink("<p class='state-{$rec->state}'>".$row->title . "</p>", $url, NULL)."</div>";
                 } else{
@@ -546,7 +547,7 @@ class cal_Calendar extends core_Master
         
         //Ако изпълнителте са няколко те се показват в инфото за задачата
         
-        $condUrl = $cUrl['Act']!='month' && $cUrl['Act']!='week' && $cUrl['Act']!='day';
+        $condUrl = $currentAct != 'month' && $currentAct != 'week' && $currentAct != 'day';
         
         $condType = $rec->type == 'task' ||
                     $rec->type == 'end-date'||

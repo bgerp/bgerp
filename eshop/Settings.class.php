@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -274,9 +274,11 @@ class eshop_Settings extends core_Master
         $this->FLD('saleEndedText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Изтекли');
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
-        $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
-        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,removeAndRefreshForm=paramFilterParams,silent');
-        $this->FLD('paramFilterParams', 'table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)', 'caption=Навигация със списъка с групите->Параметри (в този ред),input=none');
+        $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация - разгърнат списък с подгрупи)', 'caption=Положение на групите->Изглед,silent');
+        $this->FLD('navigationPosition', 'enum(left=Лява лента,right=Дясна лента,top=Горна меню лента)', 'caption=Положение на групите->Навигация,notNull,value=left,input=none,column=none,single=none');
+        $this->FLD('filterPosition', 'enum(auto=Автоматично,above=Над групите,below=Под групите,top=Хоризонтална лента)', 'caption=Филтри->Положение,notNull,value=auto');
+        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Филтри->По параметри,notNull,value=auto,removeAndRefreshForm=paramFilterParams,silent');
+        $this->FLD('paramFilterParams', 'table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)', 'caption=Филтри->Параметри (в този ред),input=none');
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
@@ -405,6 +407,12 @@ class eshop_Settings extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+        $form->setOptions('filterPosition', array('above' => 'Над групите', 'below' => 'Под групите', 'top' => 'Хоризонтална лента'));
+        if (empty($rec->filterPosition) || $rec->filterPosition == 'auto') {
+            $showNavigation = $rec->showNavigation ?? null;
+            $showNavigation = in_array($showNavigation, array('yes', 'no')) ? $showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
+            $rec->filterPosition = $showNavigation == 'yes' ? 'below' : 'top';
+        }
         
         $domainClassId = cms_Domains::getClassId();
         $classes = array($domainClassId => core_Classes::getTitleById($domainClassId));

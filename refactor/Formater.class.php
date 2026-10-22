@@ -31,7 +31,7 @@ defIfNot('PHP_PATH', core_Os::getPhpCmd());
  * @package   php
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -371,6 +371,8 @@ class refactor_Formater extends core_Manager
     
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
         
         ini_set('memory_limit', '256M');

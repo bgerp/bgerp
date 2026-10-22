@@ -1,0 +1,301 @@
+/* Curated palettes are independent from layout and inherited theme defaults. */
+body.commerce-theme.cms-palette.cms-palette-bordeaux {
+    --c-accent: #7d2639 !important;
+    --c-accent-dark: #591a29 !important;
+    --c-accent-deep: #651d2b !important;
+    --c-accent-muted: #864c59 !important;
+    --c-accent-soft: #f8edef !important;
+    --c-accent-soft-2: #f3e4e7 !important;
+    --c-accent-soft-3: #fcf6f7 !important;
+    --c-accent-line: #e5cbd1 !important;
+    --c-accent-line-strong: #b77f8b !important;
+    --c-focus: #9b4054 !important;
+    --c-highlight: #eed4ad !important;
+    --c-ink: #35262a !important;
+    --c-text: #59464b !important;
+    --c-text-2: #6b565b !important;
+    --c-muted: #78656a !important;
+    --c-dark: #481622 !important;
+    --c-line: #e4d9d2 !important;
+    --c-line-2: #e4d9d2 !important;
+    --c-line-3: #dccbc7 !important;
+    --c-line-4: #eee5de !important;
+    --c-line-5: #e9ded8 !important;
+    --c-line-6: #e4d9d2 !important;
+    --c-line-strong: #bca5a2 !important;
+    --c-line-strong-2: #cdbab5 !important;
+    --c-bg: #faf7f2 !important;
+    --c-surface: #faf7f2 !important;
+    --c-surface-2: #f2eae2 !important;
+    --c-surface-3: #fdfbf8 !important;
+    --c-accent-rgb: 125, 38, 57 !important;
+    --c-ink-rgb: 53, 38, 42 !important;
+}
+body.commerce-theme.cms-palette.cms-palette-navy {
+    --c-accent: #213c78 !important;
+    --c-accent-dark: #172c5a !important;
+    --c-accent-deep: #263e65 !important;
+    --c-accent-muted: #415b83 !important;
+    --c-accent-soft: #edf2fc !important;
+    --c-accent-soft-2: #e8effc !important;
+    --c-accent-soft-3: #f1f5fc !important;
+    --c-accent-line: #d2def3 !important;
+    --c-accent-line-strong: #97b1de !important;
+    --c-focus: #2459c4 !important;
+    --c-highlight: #edbd67 !important;
+    --c-ink: #202c3c !important;
+    --c-text: #48586b !important;
+    --c-text-2: #566579 !important;
+    --c-muted: #617084 !important;
+    --c-dark: #101c38 !important;
+    --c-line: #dce1e8 !important;
+    --c-line-2: #dce1e8 !important;
+    --c-line-3: #d6dde7 !important;
+    --c-line-4: #e9edf2 !important;
+    --c-line-5: #e3e8ef !important;
+    --c-line-6: #dce3ed !important;
+    --c-line-strong: #b7c3d4 !important;
+    --c-line-strong-2: #c4cddb !important;
+    --c-bg: #f3f5f8 !important;
+    --c-surface: #f3f5f8 !important;
+    --c-surface-2: #eaf0f7 !important;
+    --c-surface-3: #f8fafc !important;
+    --c-accent-rgb: 33, 60, 120 !important;
+    --c-ink-rgb: 32, 44, 60 !important;
+}
+body.commerce-theme.cms-palette.cms-palette-teal {
+    --c-accent: #087c80 !important;
+    --c-accent-dark: #065d62 !important;
+    --c-accent-deep: #159da1 !important;
+    --c-accent-muted: #387b7d !important;
+    --c-accent-soft: #e4f7f4 !important;
+    --c-accent-soft-2: #d1f0ec !important;
+    --c-accent-soft-3: #f0fcfa !important;
+    --c-accent-line: #bce7e0 !important;
+    --c-accent-line-strong: #67bdb7 !important;
+    --c-focus: #087c80 !important;
+    --c-highlight: #a5f3df !important;
+    --c-ink: #173a3b !important;
+    --c-text: #395d5e !important;
+    --c-text-2: #4e7070 !important;
+    --c-muted: #607b7b !important;
+    --c-dark: #073d43 !important;
+    --c-line: #d5e9e5 !important;
+    --c-line-2: #d5e9e5 !important;
+    --c-line-3: #d5e9e5 !important;
+    --c-line-4: #d5e9e5 !important;
+    --c-line-5: #d5e9e5 !important;
+    --c-line-6: #d5e9e5 !important;
+    --c-line-strong: #a8cbc5 !important;
+    --c-line-strong-2: #bedbd5 !important;
+    --c-bg: #f3fbfa !important;
+    --c-surface: #f3fbfa !important;
+    --c-surface-2: #e8f6f3 !important;
+    --c-surface-3: #f8fdfc !important;
+    --c-accent-rgb: 8, 124, 128 !important;
+    --c-ink-rgb: 23, 58, 59 !important;
+}
+body.commerce-theme.cms-palette.cms-palette-purple {
+    --c-accent: #7546a4 !important;
+    --c-accent-dark: #583180 !important;
+    --c-accent-deep: #9462c4 !important;
+    --c-accent-muted: #806397 !important;
+    --c-accent-soft: #f2eafa !important;
+    --c-accent-soft-2: #e7d9f4 !important;
+    --c-accent-soft-3: #faf5fe !important;
+    --c-accent-line: #decbee !important;
+    --c-accent-line-strong: #b494d0 !important;
+    --c-focus: #7546a4 !important;
+    --c-highlight: #e7c9fc !important;
+    --c-ink: #35253f !important;
+    --c-text: #5c4967 !important;
+    --c-text-2: #705c7b !important;
+    --c-muted: #82708c !important;
+    --c-dark: #30203f !important;
+    --c-line: #e6dced !important;
+    --c-line-2: #e6dced !important;
+    --c-line-3: #e6dced !important;
+    --c-line-4: #e6dced !important;
+    --c-line-5: #e6dced !important;
+    --c-line-6: #e6dced !important;
+    --c-line-strong: #c7b2d7 !important;
+    --c-line-strong-2: #d5c5e1 !important;
+    --c-bg: #faf7fd !important;
+    --c-surface: #faf7fd !important;
+    --c-surface-2: #f0e9f7 !important;
+    --c-surface-3: #fdfaff !important;
+    --c-accent-rgb: 117, 70, 164 !important;
+    --c-ink-rgb: 53, 37, 63 !important;
+}
+body.commerce-theme.cms-palette.cms-palette-sand {
+    --c-accent: #92502e !important;
+    --c-accent-dark: #713a20 !important;
+    --c-accent-deep: #573c2e !important;
+    --c-accent-muted: #7e6251 !important;
+    --c-accent-soft: #f5eade !important;
+    --c-accent-soft-2: #efdfce !important;
+    --c-accent-soft-3: #faf4ec !important;
+    --c-accent-line: #dfc5af !important;
+    --c-accent-line-strong: #bc8d6b !important;
+    --c-focus: #92502e !important;
+    --c-highlight: #d5ad77 !important;
+    --c-ink: #292c2b !important;
+    --c-text: #50534f !important;
+    --c-text-2: #62635e !important;
+    --c-muted: #6e706a !important;
+    --c-dark: #232927 !important;
+    --c-line: #dedbd4 !important;
+    --c-line-2: #dedbd4 !important;
+    --c-line-3: #d7d3ca !important;
+    --c-line-4: #eae6de !important;
+    --c-line-5: #e4dfd6 !important;
+    --c-line-6: #ded9d0 !important;
+    --c-line-strong: #bfb7aa !important;
+    --c-line-strong-2: #cec5b8 !important;
+    --c-bg: #fff !important;
+    --c-surface: #fff !important;
+    --c-surface-2: #eeeae2 !important;
+    --c-surface-3: #faf8f4 !important;
+    --c-accent-rgb: 146, 80, 46 !important;
+    --c-ink-rgb: 41, 44, 43 !important;
+}
+body.commerce-theme.cms-palette.cms-palette-sky {
+    --c-accent: #267ba0 !important;
+    --c-accent-dark: #1d6080 !important;
+    --c-accent-deep: #cfe8f3 !important;
+    --c-accent-muted: #3e6a7f !important;
+    --c-accent-soft: #edf7fc !important;
+    --c-accent-soft-2: #e2f1f8 !important;
+    --c-accent-soft-3: #f4faff !important;
+    --c-accent-line: #d0e2e9 !important;
+    --c-accent-line-strong: #9bbac6 !important;
+    --c-focus: #92b8c6 !important;
+    --c-highlight: #d2ecf8 !important;
+    --c-ink: #182b3a !important;
+    --c-text: #405a68 !important;
+    --c-text-2: #526875 !important;
+    --c-muted: #647582 !important;
+    --c-dark: #24566a !important;
+    --c-line: #dce3e8 !important;
+    --c-line-2: #dce5e9 !important;
+    --c-line-3: #d5e1e7 !important;
+    --c-line-4: #e6ecef !important;
+    --c-line-5: #e1e9ed !important;
+    --c-line-6: #dce6eb !important;
+    --c-line-strong: #b9cbd4 !important;
+    --c-line-strong-2: #c5d5dc !important;
+    --c-bg: #f5fbfe !important;
+    --c-surface: #f5fbfe !important;
+    --c-surface-2: #edf3f6 !important;
+    --c-surface-3: #f8fafb !important;
+    --c-accent-rgb: 38, 123, 160 !important;
+    --c-ink-rgb: 24, 43, 58 !important;
+}
+
+/* Palette-aware decorative banners; uploaded images keep their own appearance.
+   Each layout keeps its motif, while all colors come from the selected palette. */
+body.commerce-theme {
+    --banner-base: var(--c-dark);
+    --banner-end: var(--c-accent);
+    --banner-detail: var(--c-accent-line-strong);
+    --banner-art: radial-gradient(ellipse 75% 190% at 110% 145%,
+        var(--c-accent-dark) 0 34%,
+        var(--c-accent) 34.2% 45%,
+        var(--c-accent-line-strong) 45.2% 45.5%,
+        transparent 45.7% 56%,
+        var(--c-accent-line-strong) 56.2% 56.5%,
+        transparent 56.7%);
+}
+body.commerce-theme.cms-palette.b2b-theme {
+    --banner-art: linear-gradient(30deg, transparent 72%, var(--c-accent-dark) 72.2%, transparent 90%),
+        repeating-linear-gradient(90deg, transparent 0 39px, var(--c-accent-line-strong) 40px, transparent 41px 80px),
+        repeating-linear-gradient(0deg, transparent 0 39px, var(--c-accent-line-strong) 40px, transparent 41px 80px);
+}
+body.commerce-theme.cms-palette.executive-theme {
+    --banner-art: radial-gradient(circle at 10% 120%, transparent 0 150px, var(--banner-detail) 151px 152px, transparent 153px),
+        radial-gradient(circle at 10% 120%, var(--c-accent-dark) 125px, transparent 126px),
+        radial-gradient(circle at 90% -20%, transparent 0 150px, var(--banner-detail) 151px 152px, transparent 153px),
+        radial-gradient(circle at 90% -20%, var(--c-accent-dark) 125px, transparent 126px);
+}
+body.commerce-theme.cms-palette:is(.cms-palette-sky, .cms-palette-sand) {
+    --banner-base: var(--c-accent-soft);
+    --banner-end: var(--c-highlight);
+}
+body.commerce-theme:not(.b2b-theme):not(.bordeaux-theme) .externalPage > header:has(.commerce-default-banner),
+body.commerce-theme.cms-palette[class][class] .externalPage > header:has(.commerce-default-banner) {
+    background: var(--banner-art), linear-gradient(120deg, var(--banner-base), var(--banner-end)) !important;
+}
+/* Fill the header without empty strips around the SVG. */
+body.commerce-theme.cms-palette.bordeaux-theme[class][class] .externalPage > header:has(.commerce-default-banner) {
+    background: var(--editorial-banner) center / cover no-repeat !important;
+}
+body.commerce-theme:not(.b2b-theme):not(.bordeaux-theme) header .narrowCenter .commerce-default-banner,
+body.commerce-theme.cms-palette[class][class] header .narrowCenter .commerce-default-banner { visibility: hidden; }
+body.commerce-theme:not(.b2b-theme):not(.bordeaux-theme) header .narrowCenter:has(.commerce-default-banner)::before,
+body.commerce-theme.cms-palette[class][class] header .narrowCenter:has(.commerce-default-banner)::before { display: none; }
+body.commerce-theme.cms-palette[class][class] header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle),
+body.commerce-theme.cms-palette[class][class] header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) span {
+    color: #fff !important;
+}
+body.commerce-theme.cms-palette[class][class]:is(.cms-palette-sky, .cms-palette-sand) header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle),
+body.commerce-theme.cms-palette[class][class]:is(.cms-palette-sky, .cms-palette-sand) header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) span {
+    color: var(--c-ink) !important;
+}
+body.commerce-theme.cms-palette.bordeaux-theme #cmsMenu.menuRow a:is(:hover, :focus-visible) { background: var(--c-accent-dark); }
+body.commerce-theme.cms-palette.bordeaux-theme #cmsMenu.menuRow a.selected { color: var(--c-highlight) !important; }
+body.commerce-theme.cms-palette.bordeaux-theme #cmsMenu a.commerce-cart-link { background: var(--c-accent-dark) !important; border-color: var(--c-accent-line-strong); }
+body.commerce-theme.cms-palette.bordeaux-theme #cmsMenu.menuRow .cms-menu-tools { border-left-color: var(--c-accent-line-strong); }
+body.commerce-theme.cms-palette.executive-theme .externalPage #cmsBottom { background: var(--c-accent-soft); }
+/* A menu below the masthead remains a separate, aligned band. */
+body.commerce-theme.cms-menu-below .externalPage > header { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+body.commerce-theme.cms-menu-below #cmsMenu.menuRow { border-top: 1px solid var(--c-line) !important; }
+body.commerce-theme.cms-menu-above:is(.b2b-theme, .bordeaux-theme) .externalPage > header { margin-top: 0; }
+
+/* The cards layout joins the banner and lower menu into one rounded panel. */
+body.commerce-theme.cms-menu-below:not(.b2b-theme):not(.bordeaux-theme) #cmsMenu.menuRow {
+    width: calc(100% - 64px);
+    max-width: var(--commerce-page-width);
+    margin: 0 auto;
+    border-radius: 0 0 12px 12px;
+    box-sizing: border-box;
+}
+body.commerce-theme.cms-menu-below:not(.b2b-theme):not(.bordeaux-theme) #cmsMenu.menuRow .centerContent {
+    width: 100% !important;
+    padding: 8px 16px;
+    box-sizing: border-box;
+}
+@media (max-width: 700px) {
+    body.commerce-theme.cms-menu-below:not(.b2b-theme):not(.bordeaux-theme) #cmsMenu.menuRow {
+        width: calc(100% - 32px);
+        border-radius: 0 0 8px 8px;
+    }
+}
+body.commerce-theme.cms-menu-below:is(.narrow, .commerce-compact):not(.b2b-theme):not(.bordeaux-theme) #cmsMenu.menuRow {
+    width: calc(100% - 1.5rem);
+    border-radius: 0 0 8px 8px;
+}
+
+/* Login and system links share stable contrast in every layout and palette. */
+body.commerce-theme {
+    --login-bg: var(--c-accent-soft);
+    --login-ink: var(--c-dark);
+    --login-icon-filter: brightness(0);
+}
+body.commerce-theme.b2b-theme {
+    --login-bg: var(--c-accent);
+    --login-ink: #fff;
+    --login-icon-filter: brightness(0) invert(1);
+}
+body.commerce-theme[class][class] #cmsMenu.menuRow a.loginIcon[class] {
+    background: var(--login-bg);
+    color: var(--login-ink) !important;
+    transition: background-color 150ms ease;
+}
+body.commerce-theme[class][class] #cmsMenu.menuRow a.loginIcon[class]:is(:hover, :focus-visible) {
+    background: var(--login-bg);
+    background: color-mix(in srgb, var(--login-bg) 94%, #000);
+    color: var(--login-ink) !important;
+}
+body.commerce-theme[class][class] #cmsMenu.menuRow a.loginIcon[class] img {
+    filter: var(--login-icon-filter);
+}

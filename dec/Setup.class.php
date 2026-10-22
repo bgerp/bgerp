@@ -29,7 +29,7 @@ defIfNot('DEC_PARAM_PROD', '');
  * @package   dec
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -67,8 +67,10 @@ class dec_Setup extends core_ProtoSetup
         'dec_Declarations',
         'dec_Statements',
         'dec_Materials',
+        'dec_Tds',
         'migrate::fixDuplicateTitle2116',
         'migrate::updateStatementLang2521',
+        'migrate::migrateTdsDeclarations2643',
     );
     
     
@@ -170,5 +172,237 @@ class dec_Setup extends core_ProtoSetup
 
             cls::get('dec_Statements')->save_($rec, 'lg');
         }
+    }
+
+
+    /**
+     * Старите декларации в TDS стават твърдения (dec_Statements), а нечерновите пазят досегашния си вид
+     */
+    public function migrateTdsDeclarations2643()
+    {
+        $Tds = cls::get('dec_Tds');
+        $Tds->setupMvc();
+        $tbl = $Tds->dbTableName;
+        $oldCol = str::phpToMysqlName('complianceDeclarations');
+        if (!$Tds->db->isFieldExists($tbl, $oldCol)) {
+
+            return;
+        }
+
+        // Твърденията се натрупват: контактът с храни включва PPWR, а то - общото качество
+        $titles = array(
+            'bg' => array(
+                'plastic' => 'Пластмасови материали за контакт с храни',
+                'paper' => 'Хартия и картон за контакт с храни',
+                'ppwr' => 'Опаковки - PPWR',
+                'quality' => 'Общо качество',
+            ),
+            'en' => array(
+                'plastic' => 'Plastic materials intended for food contact',
+                'paper' => 'Paper and board intended for food contact',
+                'ppwr' => 'Packaging - PPWR',
+                'quality' => 'General Quality',
+            ),
+        );
+
+        $oldValues = array();
+        $dbRes = $Tds->db->query("SELECT `id`, `{$oldCol}` AS `old` FROM `{$tbl}` WHERE `{$oldCol}` IS NOT NULL AND `{$oldCol}` != ''");
+        while ($dbRec = $Tds->db->fetchObject($dbRes)) {
+            $oldValues[$dbRec->id] = $dbRec->old;
+        }
+
+        foreach ($oldValues as $id => $old) {
+            $rec = $Tds->fetch($id);
+            if (!$rec) {
+                continue;
+            }
+
+            $lang = (!empty($rec->template) && doc_TplManager::fetchField($rec->template, 'lang') == 'bg') ? 'bg' : 'en';
+            $keys = type_Set::toArray($old);
+
+            // Активираните (и след това затворени или оттеглени) пазят досегашния вид на декларациите
+            $state = ($rec->state == 'rejected') ? ($rec->brState ?? null) : $rec->state;
+            if (!isset($rec->declarationSnapshot) && in_array($state, array('active', 'closed'))) {
+                $manufacturer = dec_Tds::getManufacturer($lang, $rec->manufacturerSnapshot ?? null);
+                $rec->declarationSnapshot = static::getOldTdsDeclarationsHtml($keys, $lang, $manufacturer);
+                $Tds->save_($rec, 'declarationSnapshot');
+            }
+
+            if (!empty($rec->complianceDeclarationIds)) {
+                continue;
+            }
+
+            $groups = array();
+            if (isset($keys['foodContactPaper'])) {
+                $groups[] = 'paper';
+            }
+            if (isset($keys['foodContactPlastic']) || (!countR($groups) && (isset($keys['pfasFood']) || isset($keys['bisphenols'])))) {
+                $groups[] = 'plastic';
+            }
+            if (!countR($groups) && (isset($keys['ppwr']) || isset($keys['heavyMetals']) || isset($keys['technicalDocumentation']))) {
+                $groups[] = 'ppwr';
+            }
+            if (!countR($groups) && (isset($keys['quality']) || isset($keys['reach']) || isset($keys['pops']))) {
+                $groups[] = 'quality';
+            }
+
+            $statementIds = array();
+            foreach ($groups as $group) {
+                $statementId = dec_Statements::fetchField(array("#title = '[#1#]'", $titles[$lang][$group]), 'id');
+                if ($statementId) {
+                    $statementIds[$statementId] = $statementId;
+                }
+            }
+
+            if (countR($statementIds)) {
+                $rec->complianceDeclarationIds = keylist::fromArray($statementIds);
+                $Tds->save_($rec, 'complianceDeclarationIds');
+            }
+        }
+    }
+
+
+    /**
+     * HTML на декларациите в TDS във вида преди твърденията
+     *
+     * @param array  $keys         - избраните стари ключове
+     * @param string $language     - bg|en
+     * @param string $manufacturer - производителят от документа
+     *
+     * @return string
+     */
+    private static function getOldTdsDeclarationsHtml($keys, $language, $manufacturer)
+    {
+        if (!countR($keys)) {
+
+            return '';
+        }
+
+        $declarations = static::getOldTdsDeclarationItems($language, $manufacturer);
+        $html = '';
+        if (isset($keys['quality'])) {
+            $html .= "<div class='tdsComplianceIntro'>" . ht::escapeAttr($declarations['quality']['text']) . '</div>';
+        }
+
+        $items = '';
+        foreach ($declarations as $key => $declaration) {
+            if ($key == 'quality' || !isset($keys[$key])) {
+                continue;
+            }
+
+            $title = ht::escapeAttr($declaration['title']);
+            $text = ht::escapeAttr($declaration['text']);
+            $items .= "<li class='tdsComplianceItem'><strong>{$title}</strong><span>{$text}</span></li>";
+        }
+
+        if ($items) {
+            $requestText = ($language == 'bg')
+                ? 'Продуктът отговаря на приложимите изисквания, посочени по-долу. При поискване производителят издава отделни декларации за съответствие за конкретния продукт.'
+                : 'The product complies with the applicable requirements listed below. Upon request, the manufacturer issues separate declarations of compliance for the specific product.';
+            $html .= "<div class='tdsComplianceRequest'>" . ht::escapeAttr($requestText) . '</div>';
+            $html .= "<ul class='tdsComplianceList'>{$items}</ul>";
+        }
+
+        return $html;
+    }
+
+
+    /**
+     * Текстовете на декларациите в TDS преди твърденията
+     *
+     * @param string $language     - bg|en
+     * @param string $manufacturer - производителят от документа
+     *
+     * @return array
+     */
+    private static function getOldTdsDeclarationItems($language, $manufacturer)
+    {
+        if ($language == 'bg') {
+            return array(
+                'quality' => array(
+                    'title' => 'Фирмени стандарти и системи за управление',
+                    'text' => "Продуктът е произведен по утвърдена техническа спецификация и производствена рецептура в рамките на системите за управление на {$manufacturer}: ISO 9001:2015 и ISO 14001:2015.",
+                ),
+                'reach' => array(
+                    'title' => 'REACH / SVHC',
+                    'text' => 'Регламент (ЕО) № 1907/2006 - Приложение XVII и Candidate List.',
+                ),
+                'pops' => array(
+                    'title' => 'POPs',
+                    'text' => 'Регламент (ЕС) 2019/1021 относно устойчивите органични замърсители.',
+                ),
+                'ppwr' => array(
+                    'title' => 'PPWR',
+                    'text' => 'Регламент (ЕС) 2025/40 - приложимите изисквания към датата на пускане на пазара.',
+                ),
+                'heavyMetals' => array(
+                    'title' => 'Тежки метали',
+                    'text' => 'Олово, кадмий, живак и шествалентен хром - общ лимит 100 mg/kg.',
+                ),
+                'technicalDocumentation' => array(
+                    'title' => 'Техническа документация',
+                    'text' => 'Материален състав, проследимост на суровините, декларации на доставчиците и приложими изпитвания.',
+                ),
+                'foodContactPlastic' => array(
+                    'title' => 'Контакт с храни',
+                    'text' => 'Регламенти (ЕО) № 1935/2004 и № 2023/2006; Регламент (ЕС) № 10/2011; FSSC 22000.',
+                ),
+                'foodContactPaper' => array(
+                    'title' => 'Контакт с храни',
+                    'text' => 'Регламенти (ЕО) № 1935/2004 и № 2023/2006; FSSC 22000.',
+                ),
+                'pfasFood' => array(
+                    'title' => 'PFAS за хранителни опаковки',
+                    'text' => 'Регламент (ЕС) 2025/40 - ограничения за PFAS при опаковки за контакт с храни.',
+                ),
+                'bisphenols' => array(
+                    'title' => 'BPA и други бисфеноли',
+                    'text' => 'Регламент (ЕС) 2024/3190.',
+                ),
+            );
+        }
+
+        return array(
+            'quality' => array(
+                'title' => 'Company standards and management systems',
+                'text' => "The product is manufactured to an approved technical specification and production recipe under the {$manufacturer} management systems certified to ISO 9001:2015 and ISO 14001:2015.",
+            ),
+            'reach' => array(
+                'title' => 'REACH / SVHC',
+                'text' => 'Regulation (EC) No 1907/2006 - Annex XVII and the Candidate List.',
+            ),
+            'pops' => array(
+                'title' => 'POPs',
+                'text' => 'Regulation (EU) 2019/1021 on persistent organic pollutants.',
+            ),
+            'ppwr' => array(
+                'title' => 'PPWR',
+                'text' => 'Regulation (EU) 2025/40 - requirements applicable on the date the product is placed on the market.',
+            ),
+            'heavyMetals' => array(
+                'title' => 'Heavy metals',
+                'text' => 'Lead, cadmium, mercury and hexavalent chromium - combined limit of 100 mg/kg.',
+            ),
+            'technicalDocumentation' => array(
+                'title' => 'Technical documentation',
+                'text' => 'Material composition, raw-material traceability, supplier declarations and applicable testing.',
+            ),
+            'foodContactPlastic' => array(
+                'title' => 'Food contact',
+                'text' => 'Regulations (EC) No 1935/2004 and No 2023/2006; Regulation (EU) No 10/2011; FSSC 22000.',
+            ),
+            'foodContactPaper' => array(
+                'title' => 'Food contact',
+                'text' => 'Regulations (EC) No 1935/2004 and No 2023/2006; FSSC 22000.',
+            ),
+            'pfasFood' => array(
+                'title' => 'PFAS for food packaging',
+                'text' => 'Regulation (EU) 2025/40 - PFAS restrictions for food-contact packaging.',
+            ),
+            'bisphenols' => array(
+                'title' => 'BPA and other bisphenols',
+                'text' => 'Regulation (EU) 2024/3190.',
+            ),
+        );
     }
 }

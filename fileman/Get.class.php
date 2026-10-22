@@ -9,7 +9,7 @@
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -338,7 +338,7 @@ class fileman_Get extends core_Manager
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         $rec = $form->input('bucketId,callback,validUntil,url', true);
 
-        if ($errMsg = fileman_Upload2::checkLinkValidity($rec->validUntil ?? null)) {
+        if ($errMsg = fileman_Upload::checkLinkValidity($rec->validUntil ?? null)) {
             $form->setError('url', $errMsg);
         }
 

@@ -1,4 +1,4 @@
-<div class='cms-row'>
+<div class='cms-row eshop-configured-layout [#ESHOP_LAYOUT_CLASS#]'>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation'>
         [#TOP_NAV#]

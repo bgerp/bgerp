@@ -9,7 +9,7 @@
  * @package   keyboard
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,8 @@ class keyboard_Plugin extends core_Plugin
         
         if (strpos(($attr['ondblclick'] ?? ''), 'showKeyboard') === false) {
             $attr['ondblclick'] ??= '';
-            $attr['ondblclick'] .= '; showKeyboard(this, event.clientX);';
+            // showKeyboard се дефинира чак на window.load
+            $attr['ondblclick'] .= "; if (typeof showKeyboard == 'function') showKeyboard(this, event.clientX);";
         }
     }
     
@@ -52,7 +53,7 @@ class keyboard_Plugin extends core_Plugin
         $tpl->push("keyboard/{$conf->VKI_version}/keyboard.css", 'CSS');
         
         if (cls::isSubclass($invoker, 'type_Richtext')) {
-            $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . ' height=15 width=28 alt=""></a>', 'LEFT_TOOLBAR');
+            $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"if (typeof showKeyboard == 'function') showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . ' height=15 width=28 alt=""></a>', 'LEFT_TOOLBAR');
         }
     }
     

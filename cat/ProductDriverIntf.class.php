@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -678,6 +678,34 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     public function getProductionData($productId)
     {
         return $this->class->getProductionData($productId);
+    }
+
+
+    /**
+     * Връща стойностите по подразбиране за техническа спецификация (TDS) на артикула
+     *
+     * @param int|stdClass $rec  - ид или запис на артикул
+     * @param string       $lang - език на документа (bg|en)
+     *
+     * @return array
+     *          double|null ['unitWeight']             - тегло на единично изделие (гр)
+     *          string|null ['originCountry']          - страна на произход
+     *          string|null ['intendedUse']            - предназначение
+     *          string|null ['useRestrictions']        - ограничения за употреба
+     *          string|null ['foodContactStatus']      - контакт с храни (yes|no|notSpecified)
+     *          string|null ['countriesOfUse']         - държави на употреба
+     *          string|null ['recycledContent']        - рециклирано съдържание
+     *          string|null ['recyclability']          - рециклируемост
+     *          string|null ['complianceDeclarationIds'] - кейлист с твърдения (@see dec_Statements)
+     *          string|null ['certifications']         - сертификати
+     *          string|null ['complianceDocuments']    - свързани документи
+     *          string|null ['storageConditions']      - условия за съхранение
+     *          string|null ['packagingDescription']   - описание на опаковката
+     *          string|null ['tolerances']             - технически допуски
+     */
+    public function getTdsData($rec, $lang)
+    {
+        return $this->class->getTdsData($rec, $lang);
     }
 
 

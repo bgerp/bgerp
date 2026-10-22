@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,6 +28,7 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_Services', 'Протоколи', 'ceo,sales');
         $this->TAB('marketing_Inquiries2', 'Запитвания', 'ceo,marketing');
         $this->TAB('dec_Declarations', 'Декларации->Списък', 'ceo,dec');
+        $this->TAB('dec_Tds', 'Декларации->TDS', 'ceo,dec');
         $this->TAB('dec_Statements', 'Декларации->Твърдения', 'ceo,dec');
         $this->TAB('dec_Materials', 'Декларации->Материали', 'ceo,dec');
         $this->TAB('sales_ClosedDeals', 'Приключвания', 'ceo,sales');

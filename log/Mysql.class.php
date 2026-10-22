@@ -7,7 +7,7 @@
  * @package   mysql
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -226,6 +226,8 @@ class log_Mysql extends core_Manager {
 
     public function act_Test()
     {
+        requireTestMode();
+
 
         $query = "UPDATE `acc_items` SET `lists` = '|37|44|', `uom_id` = NULL, `last_use_on` = '2024-11-05 09:12:26', `closed_on` = NULL WHERE id = 570033";
 

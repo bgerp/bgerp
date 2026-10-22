@@ -11,7 +11,7 @@ defIfNot('EF_VENDOR_PATH', EF_ROOT_PATH . '/composer');
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -312,6 +312,8 @@ class core_Composer extends core_Mvc
      */
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
         
         $pack = Request::get('pack');

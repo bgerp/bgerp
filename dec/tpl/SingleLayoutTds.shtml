@@ -1,0 +1,13 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<div class="tds-document">
+    <div class="tds-document-heading">
+        <h1>[#documentTitle#]</h1>
+        <div>[#documentSubtitle#]</div>
+    </div>
+
+    [#content#]
+</div>
+
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+

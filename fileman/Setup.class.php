@@ -152,13 +152,6 @@ defIfNot('FILEMAN_CHUNK_SIZE', 2097152); // 2MB
 
 
 /**
- * Максимален размер на част от файл при качване
- * 2MB
- */
-defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'yes');
-
-
-/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -166,7 +159,7 @@ defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'yes');
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -248,7 +241,6 @@ class fileman_Setup extends core_ProtoSetup
 
         'FILEMAN_CHUNK_SIZE' => array('fileman_FileSize', 'caption=Максимален размер на част от файл при качване->Размер'),
 
-        'FILEMAN_USE_CHUNK_UPLOAD' => array('enum(no=Не,yes=Да)', 'caption=Използване на качване на части->Избор')
     );
     
     

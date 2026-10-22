@@ -10,7 +10,7 @@
  * @package   bglocal
  *
  * @author    Gabriela Petrova
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -30,6 +30,8 @@ class bglocal_IsBgName extends core_Manager
      */
     public function act_Test()
     {
+        requireTestMode();
+
         $name = 'ahah';
         self:: foundName($name);
     }

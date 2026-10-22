@@ -8,7 +8,7 @@
  * @package   change
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -164,6 +164,10 @@ class change_Plugin extends core_Plugin
 
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
+
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $mvc->fetch($id));
+        $mvc->requireRightFor('changerec', $rec);
 
         $data = new stdClass();
 

@@ -2,13 +2,116 @@
 
 
 /**
- * Проверки на проекцията при преброяване на групирани заявки
+ * Проверки на индексните подсказки и проекцията при преброяване
  *
  * @category  ef
  * @package   core
+ * @copyright 2026 Experta EOOD
  */
 class core_tests_Query extends unit_Class
 {
+    public static function test_FullTextIndexHints()
+    {
+        $query = self::makeThreadQuery();
+        $query->mvc->dbIndexes = array('title_fts' => (object) array('type' => 'FULLTEXT', 'fields' => 'title'));
+        $query->useIndex('PRIMARY');
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY)");
+        ut::expectEqual($query->mvc->db->engineReads, 0);
+
+        $query->where("MATCH (#title) AGAINST('+synthetic*' IN BOOLEAN MODE)");
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY,title_fts)");
+        ut::expectEqual($query->indexes['doc_threads'], array('PRIMARY' => true));
+
+        $query->where = array();
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY)");
+        $query->fields['relevance'] = (object) array(
+            'name' => 'relevance', 'kind' => 'XPR',
+            'expression' => "match(#title) against('+synthetic*' IN BOOLEAN MODE)",
+        );
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY,title_fts)");
+
+        $query->useIndex('title_fts');
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY,title_fts)");
+        $query->indexes = array();
+        ut::expectEqual($query->getIndexes('doc_threads'), '');
+        ut::expectEqual($query->mvc->db->engineReads, 1);
+    }
+
+
+    public static function test_ExternalFullTextIndexHints()
+    {
+        $query = self::makeThreadQuery();
+        $query->useIndex('PRIMARY');
+        $query->useIndex('folder_id', 'core_tests_QueryContainers');
+        $query->where("MATCH(#containerSearchKeywords) AGAINST('+synthetic*' IN BOOLEAN MODE)");
+        ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(folder_id,search_keywords)");
+        ut::expectEqual($query->getIndexes('doc_threads'), "\nUSE INDEX(PRIMARY)");
+        $sql = $query->buildQuery();
+        ut::expectEqual(strpos($sql, 'USE INDEX(folder_id,search_keywords)') !== false, true);
+        ut::expectEqual(strpos($sql, 'MATCH(`doc_containers`.`search_keywords`)') !== false, true);
+
+        $query->where = array();
+        ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(folder_id)");
+    }
+
+
+    public static function test_MyisamFullTextKeepsPrimaryPlan()
+    {
+        foreach (array('MyISAM', 'Aria') as $engine) {
+            $query = self::makeThreadQuery();
+            $query->mvc->db->engine = $engine;
+            $query->useIndex('PRIMARY', 'core_tests_QueryContainers');
+            $query->where("MATCH(#containerSearchKeywords) AGAINST('+synthetic*' IN BOOLEAN MODE)");
+            ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(PRIMARY)");
+            ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(PRIMARY)");
+            ut::expectEqual($query->mvc->db->engineReads, 1);
+
+            // Същият обект на БД може временно да бъде пренасочен към реплика с друг engine.
+            $primaryDbName = $query->mvc->db->dbName;
+            $query->mvc->db->dbName = $primaryDbName . '_replica';
+            $query->mvc->db->engine = 'InnoDB';
+            ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(PRIMARY,search_keywords)");
+            ut::expectEqual($query->mvc->db->engineReads, 2);
+            $query->mvc->db->dbName = $primaryDbName;
+            ut::expectEqual($query->getIndexes('doc_containers'), "\nUSE INDEX(PRIMARY)");
+            ut::expectEqual($query->mvc->db->engineReads, 2);
+        }
+    }
+
+
+    public static function test_FullTextEngineCacheSharedByQueries()
+    {
+        foreach (array('MyISAM', 'Aria', 'InnoDB') as $engine) {
+            $query = self::makeThreadQuery();
+            $query->mvc->db->engine = $engine;
+            $query->useIndex('PRIMARY', 'core_tests_QueryContainers');
+            $query->where("MATCH(#containerSearchKeywords) AGAINST('+synthetic*' IN BOOLEAN MODE)");
+            $copy = clone $query;
+
+            $hash = $query->getHash(true);
+            ut::expectEqual($query->getHash(true), $hash);
+            $sql = $query->buildQuery();
+            ut::expectEqual($copy->buildQuery(), $sql);
+            ut::expectEqual($query->mvc->db->engineReads, 1);
+
+            // Независима заявка със същата SQL връзка също ползва вече прочетения engine.
+            $other = self::makeThreadQuery();
+            $other->mvc->db = clone $query->mvc->db;
+            $other->mvc->db->engineReads = 0;
+            $other->useIndex('PRIMARY', 'core_tests_QueryContainers');
+            $other->where("MATCH(#containerSearchKeywords) AGAINST('+synthetic*' IN BOOLEAN MODE)");
+            ut::expectEqual($other->buildQuery(), $sql);
+            ut::expectEqual($other->mvc->db->engineReads, 0);
+
+            // Същото име на база на друг сървър не трябва да използва този кеш.
+            $other->mvc->db->dbHost = 'replica.example.test';
+            $other->mvc->db->engine = 'InnoDB';
+            ut::expectEqual($other->getIndexes('doc_containers'), "\nUSE INDEX(PRIMARY,search_keywords)");
+            ut::expectEqual($other->mvc->db->engineReads, 1);
+        }
+    }
+
+
     public static function test_PlainCountDropsProjectionButPreservesJoins()
     {
         $query = self::makeThreadQuery();
@@ -275,6 +378,7 @@ class core_tests_Query extends unit_Class
 class core_tests_QueryMvc
 {
     public $dbTableName = 'doc_threads';
+    public $dbIndexes = array();
     public $db;
 
 
@@ -288,12 +392,40 @@ class core_tests_QueryMvc
 class core_tests_QueryContainers
 {
     public $dbTableName = 'doc_containers';
+    public $dbIndexes;
+
+
+    public function __construct()
+    {
+        $this->dbIndexes = array('search_keywords' => (object) array('type' => 'FULLTEXT', 'fields' => 'searchKeywords'));
+    }
 }
 
 
 class core_tests_QueryDb
 {
     public $lastQuery;
+    public $dbHost = 'localhost';
+    public $dbName;
+    public $dbUser = 'fixture';
+    public $engine = 'InnoDB';
+    public $engineReads = 0;
+
+
+    public function __construct()
+    {
+        static $nextDatabase = 0;
+        $this->dbName = 'query_fixture_' . ++$nextDatabase;
+    }
+
+
+    public function getTableInfo($tableName, $part = null)
+    {
+        ut::expectEqual($part, 'ENGINE');
+        $this->engineReads++;
+
+        return $this->engine;
+    }
 
 
     public function query($sql)
