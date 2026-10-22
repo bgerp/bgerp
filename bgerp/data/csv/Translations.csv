@@ -2469,7 +2469,7 @@ en,файл,file
 en,февруари,February
 en,фирми,companies
 en,хареса,like
-en,хил. бр.,K pcs  
+en,хил. бр.,K pcs
 en,хиляди бройки,thousand pieces
 en,цените са в,prices are in
 en,ценоразпис,Price list
@@ -4158,3 +4158,27 @@ en,Подмяна на ролите,Replace the roles
 en,Очаква се текст,Text expected
 en,Очаква се дата,Date expected
 en,Некоректна стойност,Invalid value
+en,Срок на годност,Shelf life
+en,Технически спецификации,Technical data sheets
+en,Техническа спецификация,Technical data sheet
+en,"Моля, запознайте се с нашата техническа спецификация",Please see our technical data sheet
+en,Технически данни за продукта,Product technical specification
+en,Тегло на единично изделие,Unit weight
+en,Предназначение и приложение,Intended use and application
+en,Предназначение,Intended use
+en,Ограничения за употреба,Use restrictions
+en,Съответствие и регулаторна информация,Compliance and regulatory information
+en,Контакт с храни,Food contact
+en,Държави на употреба,Countries of use
+en,Рециклирано съдържание,Recycled content
+en,Рециклируемост,Recyclability
+en,Декларации при поискване,Declarations available on request
+en,Сертификати,Certifications
+en,Съхранение и употреба,Storage and handling
+en,Условия за съхранение,Storage conditions
+en,Описание на опаковката,Packaging description
+en,Допълнителни бележки,Additional notes
+en,Технически допуски,Technical tolerances
+en,Отказ от отговорност,Disclaimer
+en,Не е посочено,Not specified
+en,Създаване на техническа спецификация,Create technical data sheet

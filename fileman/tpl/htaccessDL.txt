@@ -18,4 +18,18 @@
 <IfModule mod_headers.c>
     Header set X-Robots-Tag "noindex"
     Header set Content-Disposition attachment
+
+    # Preserve image MIME types only when attachment headers are available.
+    <FilesMatch "(?i)\.jpe?g$">
+        ForceType image/jpeg
+    </FilesMatch>
+    <FilesMatch "(?i)\.png$">
+        ForceType image/png
+    </FilesMatch>
+    <FilesMatch "(?i)\.gif$">
+        ForceType image/gif
+    </FilesMatch>
+    <FilesMatch "(?i)\.webp$">
+        ForceType image/webp
+    </FilesMatch>
 </IfModule>

@@ -317,7 +317,11 @@ class cms_Articles extends core_Master
             cms_Content::setCurrent($menuId);
         }
 
-        if ($rec && !trim((string)$rec->body)) {
+        $expandedArticles = cms_Domains::getNavigationPosition() == 'none'
+            && !strlen((string) Request::get('q', 'varchar'))
+            && (!$rec || ($rec->state ?? null) == 'active');
+
+        if (!$expandedArticles && $rec && !trim((string)$rec->body)) {
             $nextRec = self::getPrevOrNext($rec);
             
             if ($nextRec) {
@@ -339,19 +343,41 @@ class cms_Articles extends core_Master
         
         $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
 
-        if ($navData->showCnt <= 1) {
+        if ($expandedArticles || $navData->showCnt <= 1) {
             Mode::set('cmsLayout', 'cms/themes/default/WideArticles.shtml');
         }
 
         $theme = cms_ProtoTheme::getCurrent();
+        if ($expandedArticles) {
+            $content = new ET('<div class="cms-expanded-articles">[#ARTICLES#]</div>');
+            $query = self::getQuery();
+            $query->where(array("#menuId = '[#1#]' AND #state = 'active'", $menuId));
+            $query->orderBy('#level');
+            while ($article = $query->fetch()) {
+                $body = new ET('[#1#]', self::getVerbal($article, 'body'));
+                $editLink = $theme->getArticleEditLink($this, $article);
+                $edit = $editLink ? new ET('<span class="cms-expanded-article-edit">[#1#]</span>', $editLink) : '';
+                $section = new ET('<section class="cms-expanded-article" id="article-[#ID#]">[#HEADING#][#BODY#]</section>');
+                $section->replace($article->id, 'ID');
+                if (!preg_match('/^\s*(?:<div\b[^>]*>\s*)*<h[12]\b/i', $body->content)) {
+                    $section->replace(new ET('<h2>[#1#][#2#]</h2>', self::getVerbal($article, 'title'), $edit), 'HEADING');
+                } elseif ($editLink) {
+                    $body->content = preg_replace('/(<\/h[12]>)/i', '[#ARTICLE_EDIT#]$1', $body->content, 1);
+                    $body->replace($edit, 'ARTICLE_EDIT');
+                }
+                $section->replace($body, 'BODY');
+                $content->append($section, 'ARTICLES');
+            }
+            $navData->prev = $navData->next = null;
+        }
         Mode::set('cmsLayout', $theme->getTemplate(Mode::get('cmsLayout')));
         $theme->addAssets($content, 'article');
-        $theme->prepareArticleContent($content, $rec);
+        if (!$expandedArticles) $theme->prepareArticleContent($content, $rec);
 
         // Подготвяме SEO елементите
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body ?? null, 'seoTitle' => $rec->title ?? null));
         
-        if ($navData->cnt + Mode::is('screenMode', 'wide') > 1) {
+        if (!$expandedArticles && $navData->cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
         
@@ -536,9 +562,17 @@ class cms_Articles extends core_Master
         $navTpl = new ET("");
         $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
+        $groupNavigation = ($data->searchCtr ?? null) == 'cms_Articles' && cms_Domains::getNavigationPosition() == 'top';
+        $branchOpen = false;
 
         if (is_array($data->links ?? null)) {
+            if ($groupNavigation) $navTpl->append('<div class="cms-navigation-columns">');
             foreach ($data->links as $l) {
+                if ($groupNavigation && (($l->level ?? 1) == 1 || !$branchOpen)) {
+                    if ($branchOpen) $navTpl->append('</div>');
+                    $navTpl->append('<div class="cms-navigation-branch">');
+                    $branchOpen = true;
+                }
                 $selected = ($l->selected ?? null) ? 'sel_page' : '';
                 if (!empty($l->closed)) {
                     $aAttr = array('style' => 'color:#aaa !important;');
@@ -568,6 +602,8 @@ class cms_Articles extends core_Master
                 }
                 $navTpl->append('</div>');
             }
+            if ($branchOpen) $navTpl->append('</div>');
+            if ($groupNavigation) $navTpl->append('</div>');
         }
 
         if (!empty($data->addLink)) {

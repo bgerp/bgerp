@@ -384,6 +384,7 @@ class cat_Products extends embed_Manager
         $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
+        $this->FLD('isBaseMeasureUsed', 'enum(no=Не,yes=Да)', 'input=none,single=none,column=none,notNull,value=no');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
         $this->FNC('price', 'double(minDecimals=2,maxDecimals=6)', 'input=none,caption=Цена,smartCenter');
         
@@ -618,8 +619,7 @@ class cat_Products extends embed_Manager
                 } elseif (!empty($createdOn) && $createdOn <= cat_products_Packagings::getPastHorizon()) {
                     $isUsed = true;
                 } else {
-                    $usedMeasures = core_Permanent::get("productUsedMeasures|{$rec->id}");
-                    $isUsed = is_array($usedMeasures) && isset($rec->measureId) && isset($usedMeasures[$rec->measureId]);
+                    $isUsed = cat_Products::fetchField($rec->id, 'isBaseMeasureUsed', false) == 'yes';
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
@@ -3243,7 +3243,13 @@ class cat_Products extends embed_Manager
                 $data->toolbar->addBtn('Нова партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
             }
         }
-        
+
+        if (core_Packs::isInstalled('dec') && $data->rec->state != 'rejected') {
+            if (dec_Tds::haveRightFor('add', (object) array('originId' => $data->rec->containerId))) {
+                $data->toolbar->addBtn('TDS', array('dec_Tds', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/technical-sheet.png,title=Създаване на техническа спецификация,row=2');
+            }
+        }
+
         if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
             $saleUrlArr =  array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true);
             if(!empty($data->rec->originId)){

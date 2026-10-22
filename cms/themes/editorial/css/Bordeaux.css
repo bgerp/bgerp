@@ -1,0 +1,176 @@
+/* The palette is inherited by the catalogue, forms, blog and forum. */
+body.commerce-theme.bordeaux-theme {
+    --c-accent: #7d2639;
+    --c-accent-dark: #591a29;
+    --c-accent-deep: #651d2b;
+    --c-accent-muted: #864c59;
+    --c-accent-soft: #f8edef;
+    --c-accent-soft-2: #f3e4e7;
+    --c-accent-soft-3: #fcf6f7;
+    --c-accent-line: #e5cbd1;
+    --c-accent-line-strong: #b77f8b;
+    --c-focus: #9b4054;
+    --c-highlight: #eed4ad;
+    --c-ink: #35262a;
+    --c-text: #59464b;
+    --c-text-2: #6b565b;
+    --c-muted: #78656a;
+    --c-dark: #481622;
+    --c-line: #e4d9d2;
+    --c-line-2: #e4d9d2;
+    --c-line-3: #dccbc7;
+    --c-line-4: #eee5de;
+    --c-line-5: #e9ded8;
+    --c-line-6: #e4d9d2;
+    --c-line-strong: #bca5a2;
+    --c-line-strong-2: #cdbab5;
+    --c-bg: #faf7f2;
+    --c-surface: #faf7f2;
+    --c-surface-2: #f2eae2;
+    --c-surface-3: #fdfbf8;
+    --c-accent-rgb: 125, 38, 57;
+    --c-ink-rgb: 53, 38, 42;
+    color: var(--c-ink);
+    background: var(--c-bg);
+}
+body.commerce-theme.bordeaux-theme .externalPage > header {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    background: #651d2b !important;
+}
+/* Paint the decoration across the viewport; keep text aligned with the content. */
+body.commerce-theme.bordeaux-theme .externalPage > header:has(.commerce-default-banner) {
+    background: #651d2b var(--editorial-banner) center / cover no-repeat !important;
+}
+body.commerce-theme.bordeaux-theme header .narrowCenter .commerce-default-banner { visibility: hidden; }
+body.commerce-theme.bordeaux-theme .externalPage > header .narrowCenter {
+    max-width: var(--commerce-page-width);
+    margin: auto;
+}
+body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
+    min-height: 240px;
+    padding: 44px 72px;
+    justify-content: center;
+    gap: 12px;
+}
+body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner)::before { display: none; }
+body.commerce-theme.bordeaux-theme header .commerce-default-banner { opacity: 1; }
+body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner) .app-name {
+    max-width: 65%;
+    color: #fff8ef !important;
+    font: 400 clamp(2rem, 3.5vw, 3.5rem)/1.12 Georgia, 'Times New Roman', serif !important;
+    letter-spacing: -.025em;
+}
+body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner) .app-subtitle {
+    max-width: 65%;
+    margin: 0 !important;
+    color: #eed4ad !important;
+    font-size: 1.0625rem !important;
+}
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow {
+    background: var(--c-dark);
+    border-bottom: 3px solid #c9a779 !important;
+    box-shadow: none;
+}
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a { border-radius: 0; }
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a:is(:hover, :focus-visible) { background: #742b3d; color: #fff !important; }
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a.selected {
+    background: transparent;
+    color: #eed4ad !important;
+    box-shadow: inset 0 -2px #eed4ad;
+}
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow .cms-menu-tools { border-left-color: #8a5660; }
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a.loginIcon { background: #fff8ef; color: var(--c-dark) !important; }
+body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a.loginIcon:hover { background: #eed4ad; }
+body.commerce-theme.bordeaux-theme #cmsMenu a.commerce-cart-link { background: #651d2b !important; border-color: #a76876; }
+body.commerce-theme.bordeaux-theme #cmsMenu a.commerce-cart-link:hover { background: #7d2639 !important; }
+body.commerce-theme.bordeaux-theme .commerce-primary-menu[open] .commerce-primary-links { background: var(--c-dark); }
+body.commerce-theme.bordeaux-theme #cmsMenu .commerce-language-options { background: var(--c-dark); }
+body.commerce-theme.bordeaux-theme :is(.commerce-primary-menu, .commerce-languages) > summary { border-radius: 0; border-color: #a76876; }
+body.commerce-theme.bordeaux-theme .externalPage #maincontent { background: var(--c-bg); }
+body.commerce-theme.bordeaux-theme :is(.cms-article-title, .blogm-browse > h1, .eshop-catalog-title h1, .blogm-article-title) {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 400;
+    color: var(--c-accent-dark);
+    letter-spacing: -.025em;
+}
+body.commerce-theme.bordeaux-theme :is(.eshop-catalog-title, .blogm-browse > h1) {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--c-line-strong);
+    border-radius: 0;
+    box-shadow: none;
+}
+body.commerce-theme.bordeaux-theme :is(#cmsNavigation, .commerce-article-content, .blogm-browse-article, .cart-holder-external, .eshop-product, .eshop-group) {
+    border-radius: 0;
+    box-shadow: none;
+}
+body.commerce-theme.bordeaux-theme :is(.eshop-layout, .commerce-blog-layout) {
+    padding: 32px 0;
+}
+body.commerce-theme.bordeaux-theme:is(.narrow, .commerce-compact) :is(.eshop-layout, .commerce-blog-layout) {
+    padding: 1rem 0;
+}
+body.commerce-theme.bordeaux-theme #cmsNavigation {
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+body.commerce-theme.bordeaux-theme #cmsNavigation :is(.nav_item, #simpleSearch) { border-radius: 0; }
+body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch {
+    border: 1px solid var(--c-accent-line-strong) !important;
+}
+body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch:focus-within {
+    border-color: var(--c-accent) !important;
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+}
+body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch #searchInput {
+    height: 100%;
+    border-radius: 0;
+    outline: none;
+}
+body.commerce-theme.bordeaux-theme #cmsNavigation .sel_page { border-left: 3px solid var(--c-accent); }
+body.commerce-theme.bordeaux-theme :is(form .formTable, #login-form, .productBtn, .commerce-category-menu > summary) { border-radius: 2px; }
+body.commerce-theme.bordeaux-theme .externalPage #cmsBottom {
+    background: var(--c-dark);
+    border-top: 4px double #c9a779;
+    padding-top: 28px;
+}
+body.commerce-theme.bordeaux-theme #cmsBottom :is(p, a, a:hover) { color: #fff8ef !important; text-shadow: none; }
+body.commerce-theme.bordeaux-theme .footer-menus {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 32px;
+    padding: 16px 0 32px;
+    text-align: left;
+}
+body.commerce-theme.bordeaux-theme .footer-menu-column { min-width: 0; }
+body.commerce-theme.bordeaux-theme .footer-menu-title-spacer { visibility: hidden; }
+body.commerce-theme.bordeaux-theme .footer-menus p { margin: 0 0 12px; font: 400 1.25rem Georgia, 'Times New Roman', serif; }
+body.commerce-theme.bordeaux-theme .footer-menus ul { list-style: none; margin: 0; padding: 0; }
+body.commerce-theme.bordeaux-theme .footer-menus li { line-height: 1.6; overflow-wrap: anywhere; }
+body.commerce-theme.bordeaux-theme .footer-menus a { font-size: .875rem; text-decoration: none; }
+body.commerce-theme.bordeaux-theme .footer-menus a:hover { text-decoration: underline; }
+body.commerce-theme.bordeaux-theme .bordeaux-skip-link {
+    position: fixed;
+    top: -100px;
+    left: 16px;
+    z-index: 10000;
+    padding: 12px 20px;
+    background: #fff;
+    color: var(--c-accent);
+    border: 2px solid var(--c-accent);
+}
+body.commerce-theme.bordeaux-theme .bordeaux-skip-link:focus { top: 12px; }
+@media (max-width: 900px) {
+    body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) { min-height: 160px; padding: 24px; }
+    body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) { max-width: 100%; }
+    body.commerce-theme.bordeaux-theme header .narrowCenter:has(.app-name, .app-subtitle) .commerce-default-banner { opacity: .35; }
+    body.commerce-theme.bordeaux-theme .footer-menus { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+}
+@media print {
+    body.commerce-theme.bordeaux-theme .bordeaux-skip-link { display: none; }
+}

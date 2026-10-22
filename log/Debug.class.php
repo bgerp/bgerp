@@ -541,7 +541,7 @@ class log_Debug extends core_Manager
             $form->toolbar->addSbBtn('Дебъг', 'default', array('ef_icon' => 'img/16/debug_bug.png', 'formaction' => toUrl(array($this, 'default'))));
         }
         if ($statistics) {
-            $form->toolbar->addSbBtn('LLM TXT', 'exportLlm', 'ef_icon=fileman/icons/16/txt.png,title=Сваляне на статистиката като текстов файл за LLM');
+            $form->toolbar->addSbBtn('LLM', 'exportLlm', 'ef_icon=fileman/icons/16/txt.png,title=Сваляне на статистиката като текстов файл за LLM');
         }
 
         if ($debugFile) {

@@ -8,7 +8,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -108,6 +108,8 @@ class drdata_ParseAddressBg extends core_Manager
      */
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
         $data = file_get_contents('C:/test/Addresses.txt');
         $arr = explode("\n", $data);

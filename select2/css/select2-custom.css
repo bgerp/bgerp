@@ -54,7 +54,8 @@ select.largeSelect + span.select2-container--default{
     color: #999;
     position: absolute;
     right: 18px;
-    top: 2px;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 10;
 }
 
@@ -104,7 +105,6 @@ select.largeSelect + span.select2-container--default{
 .select2-container--default .select2-selection--multiple .select2-selection__clear {
     margin-top: 0 !important;
     margin-right: -2px ;
-    top: 0 !important;
 }
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
     margin-top: 3px;
@@ -173,7 +173,6 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     bottom: 0;
     width: 16px;
     margin: 0;
-    color: #777;
     font-family: Arial, sans-serif;
     font-size: 14px;
     font-weight: normal;
@@ -189,8 +188,20 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     text-overflow: ellipsis;
 }
 
+/* Заменя фиксирания лимит от темата, който надвишава най-тесните екрани. */
+@media only screen and (max-width: 360px) {
+    .narrow .vFormField select[multiple] + .select2-container {
+        max-width: calc(100vw - 40px) !important;
+    }
+}
+
+/* Дългият път се ограничава и от полето, и от мобилния екран. */
+.narrow .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    max-width: calc(100vw - 60px);
+    max-width: min(100%, calc(100vw - 60px));
+}
+
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #333;
     background: transparent;
 }
 
@@ -237,8 +248,64 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     cursor: pointer;
 }
 
+/* Еднакъв центриран знак за старите span и новите button контроли. */
+.select2-container--default .select2-selection__choice__remove,
+.select2-container--default .select2-selection__clear {
+    color: transparent !important;
+}
+
+.select2-container--default .select2-selection__choice__remove::before,
+.select2-container--default .select2-selection__clear::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    /* Без transform, за да не се размива знакът при дробни координати на етикета. */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Cpath d='M1.5 1.5l6 6m0-6l-6 6' fill='none' stroke='%23333' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 9px 9px no-repeat;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.select2-container--default .select2-selection__choice__remove:hover::before,
+.select2-container--default .select2-selection__clear:hover::before {
+    opacity: 1;
+}
+
 .select2-container--default .select2-selection--multiple .select2-selection__choice__display {
     padding: 0;
+}
+
+/* В 4.1 търсенето е textarea извън списъка, а бутоните - извън текста; подреждаме ги като в 4.0. */
+.select2-container .select2-selection--multiple > .select2-selection__rendered > .select2-selection__choice {
+    float: left;
+}
+
+.select2-container .select2-selection--multiple > .select2-search--inline {
+    float: left;
+    position: relative;
+    top: 2px;
+    margin-bottom: -1px;
+}
+
+.select2-container .select2-selection--multiple::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.select2-container .select2-search--inline textarea.select2-search__field {
+    height: 1.26em;
+    font-family: inherit;
+}
+
+.select2-container--default .select2-selection--single > button.select2-selection__clear {
+    height: 24px;
+}
+
+#all .select2-container--default .select2-selection--single > button.select2-selection__clear {
+    height: 28px;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected],
@@ -317,26 +384,25 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     cursor: pointer;
 }
 .select2-container.s2-to-tree li.select2-results__option.non-leaf > .expand-collapse:before {
-    content: "+";
+    content: "";
     left: 6px;
     top: 6px;
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     box-sizing: border-box;
-    border: 1px solid #aaa;
     border-radius: 2px;
-    color: #666;
-    background: #fff;
-    font: normal 14px/12px Arial, sans-serif;
-    text-align: center;
+    background-color: #fff;
+    /* Знакът и рамката се мащабират заедно, без отделно закръгляне на линиите. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Crect x='.5' y='.5' width='12' height='12' rx='1.5' fill='none' stroke='%23aaa'/%3E%3Cpath d='M3 6.5h7M6.5 3v7' fill='none' stroke='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
 }
 .select2-container.s2-to-tree li.select2-results__option.non-leaf.opened > .expand-collapse:before {
-    content: "\2212";
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Crect x='.5' y='.5' width='12' height='12' rx='1.5' fill='none' stroke='%23aaa'/%3E%3Cpath d='M3 6.5h7' fill='none' stroke='%23666'/%3E%3C/svg%3E");
 }
 .select2-container.s2-to-tree li.select2-results__option.non-leaf > .expand-collapse:hover:before {
-    border-color: #5684b3;
-    color: #35638e;
-    background: #eef4fa;
+    background-color: #eef4fa;
 }
 .s2-to-tree li.select2-results__option > .item-label {
     margin-left: 26px;
@@ -353,6 +419,13 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
 .s2-to-tree li.select2-results__option.l6 { margin-left: 90px; }
 .s2-to-tree li.select2-results__option.l7 { margin-left: 108px; }
 .s2-to-tree li.select2-results__option.l8 { margin-left: 126px; }
+/* При търсене клоновете се виждат според .showme, за да може да се свиват. */
+.s2-to-tree.searching-result li.select2-results__option[data-pup] {
+    display: none;
+}
+.s2-to-tree.searching-result li.select2-results__option[data-pup].showme {
+    display: block;
+}
 .s2-to-tree  .select2-results__option--highlighted,  .s2-to-tree  .select2-results__option--highlighted:hover,.s2-to-tree  .expand-collapse{
     background: none !important;
 }

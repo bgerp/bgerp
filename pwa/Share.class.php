@@ -6,7 +6,7 @@
  * 
  * @package   pwa
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -21,7 +21,7 @@ class pwa_Share extends core_Mvc
     const SHARE_FILE_FIELD_SERVER_KEY = 'HTTP_X_PWA_SHARE_FILE_FIELD';
     const SHARE_WORKER_VERSION_SERVER_KEY = 'HTTP_X_PWA_SHARE_WORKER_VERSION';
 
-    /** Поле в трансформирания multipart POST */
+    /** Поле в JSON метаданните */
     const SHARE_TOKEN_FIELD = 'pwaShareToken';
 
     /** Namespace за краткоживеещия persistent token запис */
@@ -46,6 +46,7 @@ class pwa_Share extends core_Mvc
 
     /** Безопасни machine-readable кодове за грешка при споделяне */
     const SHARE_ERROR_TOKEN = 'token';
+    const SHARE_ERROR_WORKER = 'worker';
     const SHARE_ERROR_QUOTA = 'quota';
     const SHARE_ERROR_SIZE = 'size';
     const SHARE_ERROR_UPLOAD = 'upload';
@@ -103,8 +104,8 @@ class pwa_Share extends core_Mvc
             return new ET('<div class="formError">' . tr($errorMessages[$shareError]) . '</div>'
                 . $diagnostic . '<div style="margin-top:20px">' . $portalLink . '</div>');
         }
-        
-        $tpl = new ET('<div class="loader"></div><input type="file" name="ulfile[]" multiple style="display:none"><input type="text" name="link" style="display:none">');
+
+        $tpl = new ET('<div class="loader"></div><div id="share-progress" style="text-align:center" aria-live="polite"></div>');
         $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
         if ($requestMethod === 'GET') {
@@ -122,279 +123,20 @@ class pwa_Share extends core_Mvc
                 return self::getShareErrorRedirect(self::SHARE_ERROR_QUOTA);
             }
         }
-        
-        if ($requestMethod === 'POST') {
-            // При надвишен post_max_size PHP оставя едновременно $_POST и
-            // $_FILES празни. Разпознаваме това преди token проверката, за да
-            // покажем коректната грешка за размер, а не "изтекла сесия".
-            if (self::isPostBodyTooLarge()) {
 
-                return self::getShareErrorRedirect(self::SHARE_ERROR_SIZE);
-            }
-
-            try {
-                $isDirectShareFallback = !self::validateAndConsumeShareToken();
-            } catch (core_exception_Redirect $t) {
-                throw $t;
-            } catch (Throwable $t) {
-                $shareDiag = self::logShareTokenValidationFailure($t);
-                $shareError = ($shareDiag === 'php_direct_rate_limit')
-                    ? self::SHARE_ERROR_QUOTA
-                    : self::SHARE_ERROR_TOKEN;
-
-                return self::getShareErrorRedirect($shareError, $shareDiag);
-            }
-
-            // Новият manifest подава `file[]`, което PHP представя като
-            // `$_FILES['file']`. Нормализираме го и при валиден token, за да
-            // работи и преходът с вече активен по-стар Service Worker.
-            $uploadDiagnostic = self::getShareUploadDiagnostic();
-            self::normalizeDirectShareFiles();
-            $uploadDiagnostic->normalizedCount = self::countSharedFileEntries($_FILES['ulfile'] ?? array());
-
-            $bucketId = fileman_Buckets::fetchByName('pwa');
-            if (!$bucketId) {
-
-                return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
-            }
-
-            $desc = Request::get('description');
-            $link = Request::get('link');
-            $name = Request::get('name');
-            $desc = is_scalar($desc) ? trim((string) $desc) : '';
-            $link = is_scalar($link) ? trim((string) $link) : '';
-            $name = is_scalar($name) ? trim((string) $name) : '';
-            
-            $res = new ET();
-            
-            $fhArr = array();
-            $haveUploadedFiles = false;
-            if (!empty($_FILES['ulfile']) && isset($_FILES['ulfile']['error'])) {
-                foreach ((array) $_FILES['ulfile']['error'] as $uploadError) {
-                    if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
-                        $haveUploadedFiles = true;
-
-                        break;
-                    }
-                }
-            }
-            if ($haveUploadedFiles) {
-                if ($uploadError = self::getShareUploadError($_FILES['ulfile'])) {
-
-                    return self::getShareErrorRedirect($uploadError);
-                }
-
-                $anonymousQuota = null;
-                $anonymousOwnedFiles = array();
-                $lastFileId = null;
-                if (core_Users::getCurrent() <= 0) {
-                    try {
-                        self::validateAnonymousUploadSize($_FILES['ulfile']);
-                    } catch (core_exception_Redirect $t) {
-                        throw $t;
-                    } catch (Throwable $t) {
-
-                        return self::getShareErrorRedirect(self::SHARE_ERROR_SIZE);
-                    }
-
-                    try {
-                        $anonymousQuota = self::reserveAnonymousUploadSlot();
-                    } catch (core_exception_Redirect $t) {
-                        throw $t;
-                    } catch (Throwable $t) {
-
-                        return self::getShareErrorRedirect(self::SHARE_ERROR_QUOTA);
-                    }
-                }
-
-                $uploadLockId = null;
-                $uploadLockObtained = false;
-                try {
-                    if ($anonymousQuota) {
-                        $uploadLockId = 'pwaShareUpload|' . (int) $bucketId;
-                        $uploadLockObtained = core_Locks::obtain($uploadLockId, 120, 10, 10);
-                        expect($uploadLockObtained, 'Зает PWA share upload');
-                        $lastFileId = self::getLastFileIdInBucket($bucketId);
-                    }
-                    $fhArr = fileman_Upload::makeUpload(array('ulfile' => $_FILES['ulfile']), $bucketId, $res);
-                    if ($anonymousQuota) {
-                        $anonymousOwnedFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
-                    }
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    // makeUpload() може да е създал първите файлове, преди
-                    // следващ файл да хвърли изключение. Докато държим lock-а,
-                    // намираме и махаме само новите анонимни FH записи.
-                    if ($anonymousQuota && $uploadLockObtained && $lastFileId !== null) {
-                        try {
-                            $partialFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
-                            self::deleteUnclaimedSharedFiles($partialFiles);
-                        } catch (core_exception_Redirect $cleanupError) {
-                            throw $cleanupError;
-                        } catch (Throwable $cleanupError) {
-                            reportException($cleanupError);
-                        }
-                    }
-                    self::releaseAnonymousUploadSlot($anonymousQuota);
-                    reportException($t);
-
-                    return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
-                } finally {
-                    if ($uploadLockObtained) {
-                        core_Locks::release($uploadLockId);
-                    }
-                }
-            }
-
-            // Някои native share източници подават само title. При
-            // директния browser-verified fallback го пазим като текст.
-            if ($isDirectShareFallback && !$haveUploadedFiles && !$desc && !$link && $name) {
-                $desc = $name;
-            }
-
-            // Пазим оригиналния споделен текст за fallback бележка, ако URL-ът
-            // не може да бъде свален безопасно след login.
-            $body = $desc . (($desc && $link) ? "\n\n" : '') . $link;
-            
-            $fhArrCnt = countR($fhArr);
-            $uploadDiagnosticSummary = self::reportShareUploadDiagnostic($uploadDiagnostic, $fhArrCnt);
-            if ($fhArrCnt) {
-                $fStr = $fhArrCnt == 1 ? 'Файл' : 'Файлове';
-                // При анонимно share-ване може да има login и безопасно URL
-                // сваляне преди финалния екран. Пазим списъка с всички
-                // качени файлове достатъчно дълго, за да бъде видим там.
-                status_Messages::newStatus(
-                    "|*<div>|{$fStr}|*:</div>" . $res->getContent(),
-                    'notice',
-                    null,
-                    300
-                );
-
-                if (core_Users::getCurrent() > 0) {
-                    foreach ($fhArr as $fh) {
-                        fileman_Log::updateLogInfo($fh, 'upload');
-                    }
-                }
-
-                try {
-                    $fileKey = self::storeSharedFiles(
-                        $fhArr,
-                        $anonymousQuota ?? null,
-                        $anonymousOwnedFiles ?? array(),
-                        $uploadDiagnosticSummary
-                    );
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
-                    reportException($t);
-
-                    return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
-                }
-
-                $key = null;
-                $remoteKey = null;
-                if ($link) {
-                    try {
-                        $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
-                    } catch (core_exception_Redirect $t) {
-                        throw $t;
-                    } catch (Throwable $t) {
-                        self::logWarning('Невалиден URL към споделени PWA файлове');
-                        try {
-                            $key = self::storeSharedUrlAsText($body, $name);
-                            self::showSharedUrlFallbackStatus();
-                        } catch (core_exception_Redirect $fallbackError) {
-                            throw $fallbackError;
-                        } catch (Throwable $fallbackError) {
-                            reportException($fallbackError);
-                            status_Messages::newStatus(tr(self::getShareErrorMessages()[self::SHARE_ERROR_URL]), 'warning');
-                        }
-                    }
-                }
-
-                return new Redirect(array(
-                    'pwa_Share',
-                    'SaveTargetFiles',
-                    'fileKey' => $fileKey,
-                    'key' => $key,
-                    'remoteKey' => $remoteKey
-                ));
-            }
-
-            if ($haveUploadedFiles) {
-                if (!empty($anonymousOwnedFiles)) {
-                    self::deleteUnclaimedSharedFiles($anonymousOwnedFiles);
-                }
-                self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
-
-                return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
-            }
-
-            // Публичният share-target само запомня URL-а. Реалното сваляне
-            // става след login в SaveTargetFiles, с DNS/IP/redirect проверки.
-            if ($link) {
-                try {
-                    $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    try {
-                        $key = self::storeSharedUrlAsText($body, $name);
-                        self::showSharedUrlFallbackStatus();
-
-                        return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
-                    } catch (core_exception_Redirect $fallbackError) {
-                        throw $fallbackError;
-                    } catch (Throwable $fallbackError) {
-                        reportException($t);
-                        reportException($fallbackError);
-                    }
-
-                    return self::getShareErrorRedirect(self::SHARE_ERROR_URL);
-                }
-
-                return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'remoteKey' => $remoteKey));
-            }
-
-            if ($desc && self::isRemoteShareUrl($desc)) {
-                try {
-                    $remoteKey = self::storeSharedRemoteUrl($desc, $name, 'html', $body);
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    reportException($t);
-
-                    return self::getShareErrorRedirect(self::SHARE_ERROR_URL);
-                }
-
-                return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'remoteKey' => $remoteKey));
-            }
-
-            if ($body) {
-                $name = $name ? $name : tr('Споделен текст');
-                try {
-                    $key = self::storeSharedText($body, $name);
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    reportException($t);
-
-                    return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
-                }
-
-                return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
-            }
-
-            return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+        if ($requestMethod !== 'GET') {
+            return self::getShareErrorRedirect(self::SHARE_ERROR_WORKER);
         }
-         
+
         $script = "  navigator.serviceWorker.onmessage = (event) => {
-                        window.location.href = event.data;
+                        if (event.data && event.data.type === 'pwaShareProgress') {
+                            document.getElementById('share-progress').textContent = event.data.percent + '%';
+                        } else if (typeof event.data === 'string') {
+                            window.location.href = event.data;
+                        }
                     };";
         $tpl->append($script, 'SCRIPTS');
-        
+
         $css = " .loader {
                       border: 16px solid #f3f3f3; /* Light grey */
                       border-top: 16px solid #3498db; /* Blue */
@@ -404,14 +146,313 @@ class pwa_Share extends core_Mvc
                       animation: spin 2s linear infinite;
                       margin: 100px auto;
                     }
-                    
+
                     @keyframes spin {
                       0% { transform: rotate(0deg); }
                       100% { transform: rotate(360deg); }
                     }";
         $tpl->append($css, 'STYLES');
-        
+
         return $tpl;
+    }
+
+
+    /** JSON начало и двоични части от контролиращия Service Worker. */
+    public function act_Upload()
+    {
+        $quota = null;
+        $error = self::SHARE_ERROR_UPLOAD;
+        try {
+            expect(core_Packs::isInstalled('pwa'));
+            expect(($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && self::hasAllowedShareRequestOrigin(false) &&
+                ($_SERVER['HTTP_X_PWA_SHARE_WORKER'] ?? '') === '1', 'Невалиден източник на споделянето');
+            $scope = 'pwa|' . (int) cms_Domains::getCurrent('id', false);
+            $finish = function ($files, $context) {
+                return self::shareUploadResult(self::processSharedPayload($files, $context));
+            };
+            if (fileman_ChunkedUpload::getContentType() === 'application/json') {
+                $data = fileman_ChunkedUpload::readJson();
+                $error = self::SHARE_ERROR_TOKEN;
+                self::validateAndConsumeShareToken($data[self::SHARE_TOKEN_FIELD] ?? null);
+                $error = self::SHARE_ERROR_UPLOAD;
+                $bucketId = fileman_Buckets::fetchByName('pwa');
+                expect($bucketId, 'Липсва кофа за споделяне');
+                $metadata = $data['files'] ?? null;
+                expect(is_array($metadata), 'Липсват метаданни за файловете');
+                if ($metadata) {
+                    $metadata = fileman_ChunkedUpload::validateFiles($metadata, $bucketId);
+                }
+                $context = array('diagnostic' => self::getShareUploadDiagnostic());
+                foreach (array('name', 'description', 'link') as $field) {
+                    $value = $data[$field] ?? '';
+                    expect(is_string($value), 'Невалидно поле за споделяне');
+                    $context[$field] = trim($value);
+                }
+                if ($metadata && core_Users::getCurrent() <= 0) {
+                    $error = self::SHARE_ERROR_SIZE;
+                    self::validateAnonymousUploadSize(array('size' => array_column($metadata, 'size')));
+                    $error = self::SHARE_ERROR_QUOTA;
+                    $quota = self::reserveAnonymousUploadSlot();
+                }
+                $error = self::SHARE_ERROR_UPLOAD;
+                $context['quota'] = $quota;
+                $result = $metadata
+                    ? fileman_ChunkedUpload::begin($metadata, $context, $scope)
+                    : $finish(array(), $context);
+            } else {
+                // Worker-ът спира при грешка, затова качването се прекратява и слотът не чака изтичането си
+                $result = fileman_ChunkedUpload::receive($scope, $finish, function ($context) {
+                    if (!empty($context['quota'])) {
+                        self::releaseAnonymousUploadSlot((object) $context['quota']);
+                    }
+                });
+            }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            self::releaseAnonymousUploadSlot($quota);
+            if ($error === self::SHARE_ERROR_TOKEN) {
+                self::logShareTokenValidationFailure($e);
+            } else {
+                reportException($e);
+            }
+            $result = self::shareUploadResult(self::getShareErrorRedirect($error));
+        }
+        core_App::outputJson($result);
+    }
+
+
+    protected static function shareUploadResult($redirect)
+    {
+        $urls = $redirect->getArray('_REDIRECT_');
+        expect(!empty($urls[0]), 'Липсва адрес след споделяне');
+
+        return array('ok' => true, 'redirect' => $urls[0]);
+    }
+
+
+    /** Обработва вече проверените и сглобени файлове от двоичния transport. */
+    protected static function processSharedPayload($files, $context)
+    {
+        $uploadDiagnostic = (object) $context['diagnostic'];
+        $uploadDiagnostic->normalizedCount = self::countSharedFileEntries($files);
+        $uploadDiagnostic->workerCount = $uploadDiagnostic->normalizedCount ?? 0;
+        $bucketId = fileman_Buckets::fetchByName('pwa');
+        if (!$bucketId) {
+
+            return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+        }
+
+        $desc = $context['description'] ?? '';
+        $link = $context['link'] ?? '';
+        $name = $context['name'] ?? '';
+        $desc = is_scalar($desc) ? trim((string) $desc) : '';
+        $link = is_scalar($link) ? trim((string) $link) : '';
+        $name = is_scalar($name) ? trim((string) $name) : '';
+
+        $res = new ET();
+
+        $fhArr = array();
+        $haveUploadedFiles = false;
+        if (!empty($files) && isset($files['error'])) {
+            foreach ((array) $files['error'] as $uploadError) {
+                if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
+                    $haveUploadedFiles = true;
+
+                    break;
+                }
+            }
+        }
+        if ($haveUploadedFiles) {
+            if ($uploadError = self::getShareUploadError($files)) {
+
+                return self::getShareErrorRedirect($uploadError);
+            }
+
+            $anonymousQuota = !empty($context['quota']) ? (object) $context['quota'] : null;
+            $anonymousOwnedFiles = array();
+            $lastFileId = null;
+
+            $uploadLockId = null;
+            $uploadLockObtained = false;
+            try {
+                if ($anonymousQuota) {
+                    $uploadLockId = 'pwaShareUpload|' . (int) $bucketId;
+                    $uploadLockObtained = core_Locks::obtain($uploadLockId, 120, 10, 10);
+                    expect($uploadLockObtained, 'Зает PWA share upload');
+                    $lastFileId = self::getLastFileIdInBucket($bucketId);
+                }
+                $fhArr = fileman_Upload::makeUpload(array('ulfile' => $files), $bucketId, $res);
+                if ($anonymousQuota) {
+                    $anonymousOwnedFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
+                }
+            } catch (core_exception_Redirect $t) {
+                throw $t;
+            } catch (Throwable $t) {
+                // makeUpload() може да е създал първите файлове, преди
+                // следващ файл да хвърли изключение. Докато държим lock-а,
+                // намираме и махаме само новите анонимни FH записи.
+                if ($anonymousQuota && $uploadLockObtained && $lastFileId !== null) {
+                    try {
+                        $partialFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
+                        self::deleteUnclaimedSharedFiles($partialFiles);
+                    } catch (core_exception_Redirect $cleanupError) {
+                        throw $cleanupError;
+                    } catch (Throwable $cleanupError) {
+                        reportException($cleanupError);
+                    }
+                }
+                self::releaseAnonymousUploadSlot($anonymousQuota);
+                reportException($t);
+
+                return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+            } finally {
+                if ($uploadLockObtained) {
+                    core_Locks::release($uploadLockId);
+                }
+            }
+        }
+
+        // Някои native share източници подават само заглавие.
+        if (!$haveUploadedFiles && !$desc && !$link && $name) {
+            $desc = $name;
+        }
+
+        // Пазим оригиналния споделен текст за fallback бележка, ако URL-ът
+        // не може да бъде свален безопасно след login.
+        $body = $desc . (($desc && $link) ? "\n\n" : '') . $link;
+
+        $fhArrCnt = countR($fhArr);
+        $uploadDiagnosticSummary = self::reportShareUploadDiagnostic($uploadDiagnostic, $fhArrCnt);
+        if ($fhArrCnt) {
+            $fStr = $fhArrCnt == 1 ? 'Файл' : 'Файлове';
+            // При анонимно share-ване може да има login и безопасно URL
+            // сваляне преди финалния екран. Пазим списъка с всички
+            // качени файлове достатъчно дълго, за да бъде видим там.
+            status_Messages::newStatus(
+                "|*<div>|{$fStr}|*:</div>" . $res->getContent(),
+                'notice',
+                null,
+                300
+            );
+
+            if (core_Users::getCurrent() > 0) {
+                foreach ($fhArr as $fh) {
+                    fileman_Log::updateLogInfo($fh, 'upload');
+                }
+            }
+
+            try {
+                $fileKey = self::storeSharedFiles(
+                    $fhArr,
+                    $anonymousQuota ?? null,
+                    $anonymousOwnedFiles ?? array(),
+                    $uploadDiagnosticSummary
+                );
+            } catch (core_exception_Redirect $t) {
+                throw $t;
+            } catch (Throwable $t) {
+                self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
+                reportException($t);
+
+                return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+            }
+
+            $key = null;
+            $remoteKey = null;
+            if ($link) {
+                try {
+                    $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
+                } catch (Throwable $t) {
+                    self::logWarning('Невалиден URL към споделени PWA файлове');
+                    try {
+                        $key = self::storeSharedUrlAsText($body, $name);
+                        self::showSharedUrlFallbackStatus();
+                    } catch (core_exception_Redirect $fallbackError) {
+                        throw $fallbackError;
+                    } catch (Throwable $fallbackError) {
+                        reportException($fallbackError);
+                        status_Messages::newStatus(tr(self::getShareErrorMessages()[self::SHARE_ERROR_URL]), 'warning');
+                    }
+                }
+            }
+
+            return new Redirect(array(
+                'pwa_Share',
+                'SaveTargetFiles',
+                'fileKey' => $fileKey,
+                'key' => $key,
+                'remoteKey' => $remoteKey
+            ));
+        }
+
+        if ($haveUploadedFiles) {
+            if (!empty($anonymousOwnedFiles)) {
+                self::deleteUnclaimedSharedFiles($anonymousOwnedFiles);
+            }
+            self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
+
+            return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+        }
+
+        // Публичният share-target само запомня URL-а. Реалното сваляне
+        // става след login в SaveTargetFiles, с DNS/IP/redirect проверки.
+        if ($link) {
+            try {
+                $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
+            } catch (Throwable $t) {
+                try {
+                    $key = self::storeSharedUrlAsText($body, $name);
+                    self::showSharedUrlFallbackStatus();
+
+                    return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
+                } catch (core_exception_Redirect $fallbackError) {
+                    throw $fallbackError;
+                } catch (Throwable $fallbackError) {
+                    reportException($t);
+                    reportException($fallbackError);
+                }
+
+                return self::getShareErrorRedirect(self::SHARE_ERROR_URL);
+            }
+
+            return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'remoteKey' => $remoteKey));
+        }
+
+        if ($desc && self::isRemoteShareUrl($desc)) {
+            try {
+                $remoteKey = self::storeSharedRemoteUrl($desc, $name, 'html', $body);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
+            } catch (Throwable $t) {
+                reportException($t);
+
+                return self::getShareErrorRedirect(self::SHARE_ERROR_URL);
+            }
+
+            return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'remoteKey' => $remoteKey));
+        }
+
+        if ($body) {
+            $name = $name ? $name : tr('Споделен текст');
+            try {
+                $key = self::storeSharedText($body, $name);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
+            } catch (Throwable $t) {
+                reportException($t);
+
+                return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
+            }
+
+            return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
+        }
+
+        return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
     }
 
 
@@ -426,6 +467,7 @@ class pwa_Share extends core_Mvc
     {
         $allowed = array(
             self::SHARE_ERROR_TOKEN,
+            self::SHARE_ERROR_WORKER,
             self::SHARE_ERROR_QUOTA,
             self::SHARE_ERROR_SIZE,
             self::SHARE_ERROR_UPLOAD,
@@ -445,6 +487,7 @@ class pwa_Share extends core_Mvc
     protected static function getShareErrorMessages()
     {
         return array(
+            self::SHARE_ERROR_WORKER => 'Отворете bgERP и изчакайте обновяването на приложението, след което споделете файловете отново.',
             self::SHARE_ERROR_TOKEN => 'Сесията за споделяне е изтекла. Споделете съдържанието отново.',
             self::SHARE_ERROR_QUOTA => 'Има незавършено споделяне от това устройство или са направени твърде много опити. Опитайте по-късно.',
             self::SHARE_ERROR_SIZE => 'Споделените файлове са по-големи от разрешения размер. Намалете размера им и опитайте отново.',
@@ -590,13 +633,7 @@ class pwa_Share extends core_Mvc
 
         $fileField = trim((string) ($_SERVER[self::SHARE_FILE_FIELD_SERVER_KEY] ?? ''));
         if (!$isWorker || !in_array($fileField, array('file', 'file-array', 'both', 'none'), true)) {
-            if (isset($_FILES['file'])) {
-                $fileField = is_array($_FILES['file']['name'] ?? null) ? 'file-array' : 'file';
-            } elseif (isset($_FILES['ulfile'])) {
-                $fileField = 'ulfile';
-            } else {
-                $fileField = 'none';
-            }
+            $fileField = 'none';
         }
 
         $workerVersion = $isWorker
@@ -608,8 +645,8 @@ class pwa_Share extends core_Mvc
             'field' => $fileField,
             'workerVersion' => $workerVersion ?: 'none',
             'expectedCount' => $expectedCount,
-            'nativeCount' => self::countSharedFileEntries($_FILES['file'] ?? array()),
-            'workerCount' => self::countSharedFileEntries($_FILES['ulfile'] ?? array()),
+            'nativeCount' => 0,
+            'workerCount' => 0,
             'normalizedCount' => 0,
             'maxFileUploads' => max(0, (int) ini_get('max_file_uploads'))
         );
@@ -726,20 +763,6 @@ class pwa_Share extends core_Mvc
 
 
     /**
-     * Проверява дали web server-ът е приел POST, по-голям от PHP лимита
-     *
-     * @return bool
-     */
-    protected static function isPostBodyTooLarge()
-    {
-        $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
-        $postMaxSize = (int) core_Os::getBytes(ini_get('post_max_size'));
-
-        return $contentLength > 0 && $postMaxSize > 0 && $contentLength > $postMaxSize;
-    }
-
-
-    /**
      * Издава еднократен, краткоживеещ token за share-target POST
      *
      * @return string
@@ -770,41 +793,8 @@ class pwa_Share extends core_Mvc
     /**
      * Валидира и атомарно консумира token-а преди обработката на upload-а
      */
-    protected static function validateAndConsumeShareToken()
+    protected static function validateAndConsumeShareToken($token)
     {
-        $token = Request::get(self::SHARE_TOKEN_FIELD, 'varchar');
-        if ($token === null || $token === '') {
-            // Подадена, но празна token стойност е невалидна. Fallback-ът
-            // е само за заявки, в които token поле изобщо липсва.
-            expect(!array_key_exists(self::SHARE_TOKEN_FIELD, $_POST) &&
-                !array_key_exists(self::SHARE_TOKEN_FIELD, $_GET), 'Невалиден PWA share token');
-
-            $isWorkerFallback = array_key_exists('HTTP_X_PWA_SHARE_WORKER', $_SERVER);
-            if ($isWorkerFallback) {
-                self::validateWorkerShareFallback();
-            } else {
-                // Rolling-update fallback само за оригиналния POST от
-                // browser/OS share UI. Background POST без точния worker
-                // marker остава забранен.
-                self::validateDirectShareFallback();
-            }
-
-            if (core_Users::getCurrent() <= 0) {
-                try {
-                    self::enforceShareTokenRateLimit();
-                } catch (core_exception_Redirect $t) {
-                    throw $t;
-                } catch (Throwable $t) {
-                    $rateDiagnostic = $isWorkerFallback
-                        ? 'php_worker_rate_limit'
-                        : 'php_direct_rate_limit';
-                    throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . $rateDiagnostic);
-                }
-            }
-
-            return false;
-        }
-
         expect(is_string($token) && preg_match('/^[a-f0-9]{48}$/D', $token), 'Невалиден PWA share token');
 
         $tokenKey = self::getShareTokenPermanentKey($token);
@@ -820,12 +810,12 @@ class pwa_Share extends core_Mvc
 
         expect(is_object($data), 'Изтекъл или вече използван PWA share token');
         $requestStartedOn = (int) ($_SERVER['REQUEST_TIME'] ?? time());
-        expect(!empty($data->issuedOn) && ($requestStartedOn - (int) $data->issuedOn) <= self::SHARE_TOKEN_START_MINUTES * 60,
+        expect(!empty(($data->issuedOn ?? null)) && ($requestStartedOn - (int) ($data->issuedOn ?? null)) <= self::SHARE_TOKEN_START_MINUTES * 60,
             'PWA share token-ът е изтекъл преди началото на upload-а');
-        expect($data->brid === log_Browsers::getBrid(), 'PWA share token-ът е от друго устройство');
-        expect((int) $data->domainId === (int) cms_Domains::getCurrent('id', false), 'PWA share token-ът е от друг домейн');
-        if (!empty($data->userId)) {
-            expect((int) $data->userId === (int) core_Users::getCurrent(), 'PWA share token-ът е от друг потребител');
+        expect(($data->brid ?? null) === log_Browsers::getBrid(), 'PWA share token-ът е от друго устройство');
+        expect((int) ($data->domainId ?? null) === (int) cms_Domains::getCurrent('id', false), 'PWA share token-ът е от друг домейн');
+        if (!empty(($data->userId ?? null))) {
+            expect((int) ($data->userId ?? null) === (int) core_Users::getCurrent(), 'PWA share token-ът е от друг потребител');
         }
 
         return true;
@@ -844,244 +834,6 @@ class pwa_Share extends core_Mvc
         // core_Permanent скъсява дългите ключове, като запазва началото им.
         // Token-ът е пръв, за да не намаляваме излишно entropy-то на ключа.
         return $token . '|' . self::SHARE_TOKEN_PERMANENT_NAMESPACE;
-    }
-
-
-    /**
-     * Допуска tokenless POST само когато е директна browser/OS навигация
-     * по manifest share_target, а не fetch от Service Worker или сайт.
-     */
-    protected static function validateDirectShareFallback()
-    {
-        if (array_key_exists('HTTP_X_PWA_SHARE_WORKER', $_SERVER)) {
-            self::throwShareDiagnostic('php_direct_worker_request');
-        }
-
-        $fetchSite = strtolower(trim($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
-        if ($fetchSite !== 'none') {
-            self::throwShareDiagnostic('php_direct_site');
-        }
-
-        $fetchMode = strtolower(trim($_SERVER['HTTP_SEC_FETCH_MODE'] ?? ''));
-        if ($fetchMode !== 'navigate') {
-            self::throwShareDiagnostic('php_direct_mode');
-        }
-
-        $fetchDestination = strtolower(trim($_SERVER['HTTP_SEC_FETCH_DEST'] ?? ''));
-        if ($fetchDestination !== 'document') {
-            self::throwShareDiagnostic('php_direct_destination');
-        }
-
-        $contentType = trim($_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
-        $contentTypeParts = explode(';', $contentType, 2);
-        $mediaType = strtolower(trim($contentTypeParts[0]));
-        if ($mediaType !== 'multipart/form-data' ||
-            !preg_match('/(?:^|;)\s*boundary\s*=\s*(?:"[^"]+"|[^;\s]+)/i', $contentType)) {
-            self::throwShareDiagnostic('php_direct_content_type');
-        }
-
-        $origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
-        if ($origin !== '' && strtolower($origin) !== 'null' && !self::isExactRequestOrigin($origin)) {
-            self::throwShareDiagnostic('php_direct_origin');
-        }
-
-        $allowedPostFields = array('name' => true, 'description' => true, 'link' => true);
-        foreach (array_keys($_POST) as $field) {
-            if (!isset($allowedPostFields[$field]) || !is_scalar($_POST[$field])) {
-                self::throwShareDiagnostic('php_direct_fields');
-            }
-        }
-
-        foreach (array_keys($_FILES) as $field) {
-            if ($field !== 'file' || !is_array($_FILES[$field])) {
-                self::throwShareDiagnostic('php_direct_fields');
-            }
-        }
-
-        $haveText = false;
-        foreach ($allowedPostFields as $field => $dummy) {
-            if (isset($_POST[$field]) && trim((string) $_POST[$field]) !== '') {
-                $haveText = true;
-
-                break;
-            }
-        }
-
-        if (!$haveText && !self::hasDirectSharedFile()) {
-            self::throwShareDiagnostic('php_direct_empty_payload');
-        }
-    }
-
-
-    /**
-     * Допуска tokenless POST от активния Service Worker само като
-     * browser-verified same-origin fetch. Това покрива proxy/redirect,
-     * който е премахнал token header-а от loader GET отговора.
-     */
-    protected static function validateWorkerShareFallback()
-    {
-        if (trim((string) ($_SERVER['HTTP_X_PWA_SHARE_WORKER'] ?? '')) !== '1') {
-            self::throwShareDiagnostic('php_worker_marker');
-        }
-
-        $fetchSite = strtolower(trim($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
-        if ($fetchSite !== 'same-origin') {
-            self::throwShareDiagnostic('php_worker_site');
-        }
-
-        $fetchMode = strtolower(trim($_SERVER['HTTP_SEC_FETCH_MODE'] ?? ''));
-        if ($fetchMode !== 'cors') {
-            self::throwShareDiagnostic('php_worker_mode');
-        }
-
-        $fetchDestination = strtolower(trim($_SERVER['HTTP_SEC_FETCH_DEST'] ?? ''));
-        if ($fetchDestination !== 'empty') {
-            self::throwShareDiagnostic('php_worker_destination');
-        }
-
-        $contentType = trim($_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
-        $contentTypeParts = explode(';', $contentType, 2);
-        $mediaType = strtolower(trim($contentTypeParts[0]));
-        if ($mediaType !== 'multipart/form-data' ||
-            !preg_match('/(?:^|;)\s*boundary\s*=\s*(?:"[^"]+"|[^;\s]+)/i', $contentType)) {
-            self::throwShareDiagnostic('php_worker_content_type');
-        }
-
-        // Same-origin FormData POST обикновено има Origin. Допускаме
-        // липсващ header за reverse proxy, но никога opaque "null" Origin.
-        $origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
-        if ($origin !== '' && !self::isExactRequestOrigin($origin)) {
-            self::throwShareDiagnostic('php_worker_origin');
-        }
-
-        $allowedPostFields = array('name' => true, 'description' => true, 'link' => true);
-        foreach (array_keys($_POST) as $field) {
-            if (!isset($allowedPostFields[$field]) || !is_scalar($_POST[$field])) {
-                self::throwShareDiagnostic('php_worker_fields');
-            }
-        }
-
-        $workerFileFields = array_keys($_FILES);
-        foreach ($workerFileFields as $field) {
-            if (!in_array($field, array('ulfile', 'file'), true) || !is_array($_FILES[$field])) {
-                self::throwShareDiagnostic('php_worker_fields');
-            }
-        }
-        if (count($workerFileFields) > 1) {
-            self::throwShareDiagnostic('php_worker_fields');
-        }
-
-        $haveText = false;
-        foreach ($allowedPostFields as $field => $dummy) {
-            if (isset($_POST[$field]) && trim((string) $_POST[$field]) !== '') {
-                $haveText = true;
-
-                break;
-            }
-        }
-
-        if (!$haveText && !self::hasWorkerSharedFile() && !self::hasDirectSharedFile()) {
-            self::throwShareDiagnostic('php_worker_empty_payload');
-        }
-    }
-
-
-    /**
-     * Има ли поне един реален файл в нормализираното worker поле
-     *
-     * @return bool
-     */
-    protected static function hasWorkerSharedFile()
-    {
-        if (empty($_FILES['ulfile']) || !array_key_exists('error', $_FILES['ulfile'])) {
-
-            return false;
-        }
-
-        foreach ((array) $_FILES['ulfile']['error'] as $uploadError) {
-            if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * Има ли поне един реално подаден файл в native share полето
-     *
-     * @return bool
-     */
-    protected static function hasDirectSharedFile()
-    {
-        if (empty($_FILES['file']) || !array_key_exists('error', $_FILES['file'])) {
-
-            return false;
-        }
-
-        foreach ((array) $_FILES['file']['error'] as $uploadError) {
-            if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * Превежда native manifest полето `file` към очакваното от fileman
-     * `ulfile[]`. Извиква се след token/fallback проверката и пази прехода
-     * между стар и нов manifest/Service Worker.
-     */
-    protected static function normalizeDirectShareFiles()
-    {
-        if (empty($_FILES['file']) || isset($_FILES['ulfile'])) {
-
-            return;
-        }
-
-        $file = $_FILES['file'];
-        if (!is_array($file)) {
-
-            return;
-        }
-
-        $normalized = array();
-        foreach (array('name', 'full_path', 'type', 'tmp_name', 'error', 'size') as $field) {
-            if (!array_key_exists($field, $file)) {
-                continue;
-            }
-
-            $normalized[$field] = is_array($file[$field]) ? $file[$field] : array($file[$field]);
-        }
-
-        if (!array_key_exists('error', $normalized)) {
-
-            return;
-        }
-
-        $_FILES['ulfile'] = $normalized;
-        unset($_FILES['file']);
-    }
-
-
-    /**
-     * Хвърля exception, съдържащ само allowlisted диагностичен код
-     *
-     * @param string $diagnostic
-     */
-    protected static function throwShareDiagnostic($diagnostic)
-    {
-        $diagnostic = self::normalizeShareDiag($diagnostic);
-        if (!$diagnostic) {
-            $diagnostic = 'php_internal_error';
-        }
-
-        throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . $diagnostic);
     }
 
 

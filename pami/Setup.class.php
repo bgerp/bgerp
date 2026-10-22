@@ -74,7 +74,7 @@ defIfNot('PAMI_LOG_KEY', '');
  * @package   pami
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -341,6 +341,8 @@ class pami_Setup extends core_ProtoSetup
      */
     public function deinstall()
     {
+        $res = '';
+
         // Спираме процеса
         if (true === $this->stop()) {
             $res .= "<li class='debug-new'>Успешно спрян процес.</li>";

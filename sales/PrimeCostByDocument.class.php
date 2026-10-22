@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1329,6 +1329,8 @@ class sales_PrimeCostByDocument extends core_Manager
 
     public function act_Test()
     {
+        requireTestMode();
+
         requireRole('debug');
 
         static::callback_SyncActivatedOn();

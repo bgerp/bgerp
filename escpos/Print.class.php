@@ -8,7 +8,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -176,6 +176,8 @@ class escpos_Print extends core_Manager
      */
     public function act_Test()
     {
+        requireTestMode();
+
         $idFullStr = Request::get('id');
         
         $drvName = 'escpos_driver_Ddp250';

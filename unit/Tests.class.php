@@ -9,7 +9,7 @@
  * @package   unit
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -22,6 +22,8 @@ class unit_Tests extends core_Manager
     
     public function on_BeforeAction($mvc, &$res, $act)
     {
+        requireTestMode();
+
         $act = trim(Request::get('Act', 'identifier'), '_');
         $tests = $classes = $skipped = array();
         

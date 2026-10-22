@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -22,9 +22,16 @@ class type_Identifier extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $value = parent::fromVerbal(trim($value));
+        if (!is_array($value)) {
+            $value = trim($value ?? '');
+        }
+        $value = parent::fromVerbal($value);
+
+        if ($value === false) {
+            return false;
+        }
         
-        if ($value === '') {
+        if ($value === '' || $value === null) {
             
             return;
         }
@@ -50,7 +57,7 @@ class type_Identifier extends type_Varchar
      */
     public function isValid($value)
     {
-        $value = str_replace(' ', '_', $value);
+        $value = str_replace(' ', '_', $value ?? '');
         
         //Проверяваме за грешки
         $res = parent::isValid($value);

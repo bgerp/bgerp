@@ -8,7 +8,7 @@
  * @package   dec
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,12 +49,18 @@ class dec_Statements extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'ceo, dec';
-    
+
+
+    /**
+     * Кой може да активира/деактивира, вкл. създадените от системата
+     */
+    public $canChangestate = 'ceo, dec';
+
     
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    public $listFields = 'id, title, createdOn, createdBy';
+    public $listFields = 'id, title, state, createdOn, createdBy';
     
     
     /**
@@ -69,8 +75,8 @@ class dec_Statements extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(64)', 'caption=Заглавие, width=100%');
+        $this->FLD('shortText', 'text(rows=2)', 'caption=Кратък текст');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
-        
         cls::get('core_Lg');
         
         $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,changable');
@@ -92,6 +98,7 @@ class dec_Statements extends core_Master
             0 => 'title',
             1 => 'text',
             2 => 'lg',
+            3 => 'shortText',
         );
         
         // Импортираме данните от CSV файла.
@@ -104,13 +111,52 @@ class dec_Statements extends core_Master
     
     
     /**
+     * Краткият текст под заглавието в списъка
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (isset($fields['-list']) && !empty($rec->shortText)) {
+            $row->title .= "<div class='small quiet'>" . $mvc->getVerbal($rec, 'shortText') . '</div>';
+        }
+    }
+
+
+    /**
+     * Опции за избор - активните твърдения на езика и вече избраните, дори да са деактивирани
+     *
+     * @param string      $lang     - език
+     * @param string|null $selected - кейлист с избраните твърдения
+     *
+     * @return array
+     */
+    public static function getStatementOptions($lang, $selected = null)
+    {
+        $options = array();
+        $query = self::getQuery();
+        $query->where(array("#lg = '[#1#]' AND #state = 'active'", $lang));
+        $query->show('title');
+        while ($rec = $query->fetch()) {
+            $options[$rec->id] = $rec->title;
+        }
+
+        foreach (keylist::toArray($selected) as $id) {
+            if (!isset($options[$id]) && ($title = self::fetchField((int) $id, 'title'))) {
+                $options[$id] = $title;
+            }
+        }
+
+        return $options;
+    }
+
+
+    /**
      * Добавя след таблицата
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
-    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $mvc->currentTab = 'Декларации->Твърдения';
         $mvc->menuPage = 'Търговия:Продажби';

@@ -2,7 +2,7 @@
 
 var shareTokenHeader = 'X-PWA-Share-Token';
 var shareTokenField = 'pwaShareToken';
-var shareErrorCodes = ['token', 'quota', 'size', 'upload', 'network', 'url'];
+var shareErrorCodes = ['worker', 'token', 'quota', 'size', 'upload', 'network', 'url'];
 var shareDiagnosticParam = 'shareDiag';
 var shareWorkerVersionParam = 'shareSw';
 var shareFileCountHeader = 'X-PWA-Share-File-Count';
@@ -181,98 +181,84 @@ function showShareTargetError(event, error, fallbackCode, fallbackDiagnosticCode
     });
 }
 
-function handleShareTarget(event, shareRequest, shareToken) {
-    return Promise.resolve().then(function () {
-        return shareRequest.formData();
-    }).catch(function (error) {
-        throw createShareTargetError('upload', 'Unable to read the shared payload.', 'sw_form_data');
-    }).then(function (data) {
-        if (shareToken) {
-            data.set(shareTokenField, shareToken);
-        } else {
-            // If a proxy/redirect stripped the loader response header, the
-            // server can still authenticate this as a strict same-origin
-            // worker fetch using Fetch Metadata and the worker marker below.
-            data.delete(shareTokenField);
+async function postShareUpload(body, headers, retry = false) {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            const response = await fetch('/pwa_Share/Upload', {
+                method: 'POST', body, headers, credentials: 'same-origin'
+            });
+            if (!response.ok) {
+                const error = new Error('Share upload HTTP ' + response.status);
+                error.retryable = response.status === 429 || response.status >= 500;
+                throw error;
+            }
+            const result = await response.json();
+            if (!result.ok) throw new Error('Share upload rejected');
+            return result;
+        } catch (error) {
+            if (!retry || error.retryable === false || attempt >= 4) throw error;
+            await new Promise(resolve => setTimeout(resolve, 400 * Math.pow(2, attempt)));
         }
+    }
+}
 
-        // Новият manifest използва PHP array име (`file[]`), за да не
-        // изгуби файлове при директен POST без контролиращ worker. Старите
-        // и custom manifest-и може още да изпращат полето като `file`.
-        var legacyFiles = data.getAll('file');
-        var arrayFiles = data.getAll('file[]');
-        var files = legacyFiles.concat(arrayFiles);
-        var fileField = 'none';
-        if (legacyFiles.length && arrayFiles.length) {
-            fileField = 'both';
-        } else if (arrayFiles.length) {
-            fileField = 'file-array';
-        } else if (legacyFiles.length) {
-            fileField = 'file';
+async function handleShareTarget(event, shareRequest, shareToken) {
+    const preparationStarted = Date.now();
+    try {
+        const data = await shareRequest.formData();
+        const legacyFiles = data.getAll('file');
+        const arrayFiles = data.getAll('file[]');
+        const files = legacyFiles.concat(arrayFiles).filter(file => file instanceof Blob && file.name);
+        const headers = {'X-PWA-Share-Worker': '1'};
+        headers[shareFileCountHeader] = String(files.length);
+        headers[shareFileFieldHeader] = legacyFiles.length && arrayFiles.length ? 'both'
+            : arrayFiles.length ? 'file-array' : legacyFiles.length ? 'file' : 'none';
+        const version = getShareWorkerVersion();
+        if (version) headers[shareWorkerVersionHeader] = version;
+        const metadata = [];
+        for (const file of files) {
+            metadata.push({name: file.name, size: file.size, sha256: await sha256File(file)});
         }
-        var haveFile = false;
-
-        files.forEach(function (file) {
-            data.append('ulfile[]', file);
-            haveFile = true;
-        });
-        if (haveFile) {
-            data.delete('file');
-            data.delete('file[]');
+        // Хеширането на големи файлове може да надхвърли срока на loader token-а.
+        if (Date.now() - preparationStarted > 60000) {
+            const response = await fetch(event.request.url, {method: 'GET', credentials: 'same-origin', cache: 'no-store'});
+            shareToken = response.ok ? response.headers.get(shareTokenHeader) : null;
         }
-
-        if (!haveFile) {
-            // Keep a real shared URL in `link`. Plain shared text must remain a
-            // description so pwa_Share can create the note/cache entry.
-            var link = data.get('link');
-            var description = data.get('description');
-            var name = data.get('name');
-            if (!link && !description && name) {
-                data.set('description', name);
+        if (!shareToken) throw createShareTargetError('token', 'Missing share token', 'sw_token_missing');
+        const init = {files: metadata};
+        init[shareTokenField] = shareToken;
+        for (const field of ['name', 'description', 'link']) {
+            const value = data.get(field);
+            init[field] = typeof value === 'string' ? value : '';
+        }
+        let result = await postShareUpload(JSON.stringify(init), {...headers, 'Content-Type': 'application/json'});
+        if (result.redirect) return redirectShareTargetClient(event, result.redirect);
+        if (!result.uploadId || !Number.isInteger(result.chunkSize) || result.chunkSize <= 0) {
+            throw new Error('Invalid upload initialization');
+        }
+        const uploadId = result.uploadId;
+        const chunkSize = result.chunkSize;
+        const total = files.reduce((sum, file) => sum + file.size, 0);
+        let uploaded = 0;
+        for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+            const file = files[fileIndex];
+            const count = Math.max(1, Math.ceil(file.size / chunkSize));
+            for (let index = 0; index < count; index++) {
+                const chunk = file.slice(index * chunkSize, (index + 1) * chunkSize);
+                result = await postShareUpload(chunk, {...headers,
+                    'Content-Type': 'application/octet-stream',
+                    'X-Upload-Id': uploadId, 'X-File-Index': String(fileIndex), 'X-Chunk-Index': String(index)
+                }, true);
+                uploaded += chunk.size;
+                const client = await getShareTargetClient(event);
+                if (client) client.postMessage({type: 'pwaShareProgress', percent: total ? Math.floor(uploaded * 100 / total) : 100});
+                if (result.redirect) return redirectShareTargetClient(event, result.redirect);
             }
         }
-
-        // This is the only POST that processes the shared payload. The original
-        // navigation is answered with a GET loader response below.
-        var workerHeaders = {
-            'X-PWA-Share-Worker': '1'
-        };
-        workerHeaders[shareFileCountHeader] = String(files.length);
-        workerHeaders[shareFileFieldHeader] = fileField;
-        var workerVersion = getShareWorkerVersion();
-        if (workerVersion) {
-            workerHeaders[shareWorkerVersionHeader] = workerVersion;
-        }
-
-        return fetch('/pwa_Share/Target', {
-            method: 'POST',
-            body: data,
-            credentials: 'same-origin',
-            headers: workerHeaders
-        }).catch(function (error) {
-            throw createShareTargetError('network', 'Share-target POST failed.', 'sw_post_network');
-        });
-    }).then(function (response) {
-        var serverErrorCode = getShareErrorCode(response.url, null);
-        if (response.url && new URL(response.url, self.location.origin).searchParams.get('shareError')) {
-            return redirectShareTargetClient(event, getShareErrorUrl(
-                serverErrorCode,
-                getShareDiagnosticCode(response.url, 'php_error_without_diagnostic')
-            ));
-        }
-
-        if (!response.ok) {
-            throw createShareTargetError(
-                'upload',
-                'Share-target upload failed with HTTP status ' + response.status + '.',
-                'sw_post_http'
-            );
-        }
-
-        return redirectShareTargetClient(event, response.url);
-    }).catch(function (error) {
+        throw new Error('Missing upload result');
+    } catch (error) {
         return showShareTargetError(event, error, 'network', 'sw_handle_failed');
-    });
+    }
 }
 
 function isAllowedShareTargetRequest(request) {
@@ -317,8 +303,12 @@ self.addEventListener('fetch', function (event) {
 
     if (requestUrl.origin !== self.location.origin ||
         requestUrl.pathname !== '/pwa_Share/Target' ||
-        event.request.method !== 'POST' ||
-        !isAllowedShareTargetRequest(event.request)) {
+        event.request.method !== 'POST') {
+        return;
+    }
+
+    if (!isAllowedShareTargetRequest(event.request)) {
+        event.respondWith(Promise.resolve(Response.redirect(new URL(getShareErrorUrl('worker'), self.location.origin), 303)));
         return;
     }
 
@@ -326,7 +316,7 @@ self.addEventListener('fetch', function (event) {
     var loaderResponse = fetch(event.request.url, {method: 'GET', credentials: 'same-origin', cache: 'no-store'});
 
     // Prevent the untransformed navigation POST from reaching PHP. A GET keeps
-    // the existing loader/message UX while the transformed POST runs once.
+    // the existing loader/message UX while the binary chunks are uploaded.
     event.respondWith(loaderResponse);
     event.waitUntil(
         loaderResponse.then(function (response) {

@@ -9,7 +9,7 @@
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -123,11 +123,7 @@ class fileman_DialogWrapper extends core_Plugin
         }
 
         if (strpos($lastUploadTab, 'fileman_Upload') !== false) {
-            if (fileman_Setup::get('USE_CHUNK_UPLOAD') == 'yes') {
-                $lastUploadTab = 'fileman_Upload2';
-            } else {
-                $lastUploadTab = 'fileman_Upload';
-            }
+            $lastUploadTab = 'fileman_Upload';
         }
         
         return $lastUploadTab;
@@ -157,16 +153,8 @@ class fileman_DialogWrapper extends core_Plugin
     {
         $tabs = array();
 
-        if (fileman_Setup::get('USE_CHUNK_UPLOAD') == 'yes') {
-            // Ако има права за добавяне
-            if (fileman_Upload2::haveRightFor('add')) {
-                $tabs['fileman_Upload2'] = 'caption=Качване,Ctr=fileman_Upload2,Act=Dialog';
-            }
-        } else {
-            // Ако има права за добавяне
-            if (fileman_Upload::haveRightFor('add')) {
-                $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
-            }
+        if (fileman_Upload::haveRightFor('add')) {
+            $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
         }
 
         // Ако има права за добавяне

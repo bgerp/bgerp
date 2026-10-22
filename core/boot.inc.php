@@ -896,6 +896,26 @@ function requireRole($roles)
 
 
 /**
+ * Разрешава тестове в dev или с изрична EF_ALLOW_TESTS настройка.
+ * Уеб изпълнението изисква и потребител с роля debug.
+ */
+function requireTestMode()
+{
+    if (PHP_SAPI !== 'cli') {
+        requireRole('debug');
+    }
+
+    $enabled = defined('EF_ALLOW_TESTS')
+        ? EF_ALLOW_TESTS === true
+        : (defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH === 'dev');
+
+    if (!$enabled) {
+        error('403 Тестовете не са разрешени за тази инсталация');
+    }
+}
+
+
+/**
  * Проверява дали потребителя има посочената роля
  */
 function haveRole($roles, $userId = null)

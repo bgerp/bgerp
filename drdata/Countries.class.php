@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -231,6 +231,11 @@ class drdata_Countries extends core_Manager
      */
     public static function getCountryName($mix, $lg = null)
     {
+        if ($mix === null || $mix === false || $mix === '') {
+            return null;
+        }
+
+        $country = null;
         if (!$lg) {
             $lg = core_Lg::getDefaultLang();
         }
@@ -242,19 +247,19 @@ class drdata_Countries extends core_Manager
         
         if (is_numeric($mix)) {
             $cRec = drdata_Countries::fetch($mix);
-            $country = is_object($cRec) ? $cRec->{$field} : null;
+            $country = $cRec->{$field} ?? null;
         } elseif (strlen($mix) == 2) {
             $cRec = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix));
-            $country = is_object($cRec) ? $cRec->{$field} : null;
+            $country = $cRec->{$field} ?? null;
         } elseif(strlen($mix) == 3) {
             $cRec = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix));
-            $country = is_object($cRec) ? $cRec->{$field} : null;
+            $country = $cRec->{$field} ?? null;
         } 
         
         if(!$country) {
             $cId = drdata_Countries::getIdByName($mix);
             if($cId) {
-                $country = drdata_Countries::fetch($cId)->{$field};
+                $country = drdata_Countries::fetch($cId)->{$field} ?? null;
             }
         }
         

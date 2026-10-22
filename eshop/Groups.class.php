@@ -397,6 +397,12 @@ class eshop_Groups extends core_Master
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
+            if (cms_Domains::getNavigationPosition() == 'none') {
+                $menuRec = cms_Content::fetch($data->menuId);
+                $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($menuRec->title ?? '') . '</h1>', 'PAGE_CONTENT');
+                cms_Content::prepareSeo($menuRec);
+                cms_Content::renderSeo($layout, $menuRec);
+            }
             eshop_Products::prepareAllProducts($data);
 
             // Без навигация филтрите по всички е-артикули от менюто са над тях
@@ -438,6 +444,10 @@ class eshop_Groups extends core_Master
      */
     public static function mustShowSideNavigation()
     {
+        if (cms_Domains::getNavigationPosition() == 'none') {
+            return false;
+        }
+
         $menuId = Mode::get('cMenuId');
         
         if (!$menuId) {
@@ -673,6 +683,14 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
+        if (cms_Domains::getNavigationPosition() == 'none') {
+            $expanded = (object) array('links' => array());
+            foreach (($data->recs ?? array()) as $rec) {
+                $expanded->links[] = (object) array('level' => 1, 'title' => $this->getVerbal($rec, 'name'), 'url' => $rec->url);
+            }
+
+            return new ET('<div class="eshop-expanded-groups">[#1#]</div>', self::renderTopNavigation($expanded));
+        }
         $all = new ET('<div class="productHolder">');
         
         if (is_array($data->recs ?? null)) {
@@ -770,6 +788,8 @@ class eshop_Groups extends core_Master
         
         $tpl = new ET();
         cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
+        $tpl->append('eshop-navigation-' . cms_Domains::getNavigationPosition(), 'ESHOP_LAYOUT_CLASS');
+        $tpl->push('eshop/css/layout.css', 'CSS');
 
         // Без навигация търсачката е над съдържанието, иначе я няма никъде
         $menuId = Mode::get('cMenuId');
@@ -794,7 +814,45 @@ class eshop_Groups extends core_Master
         $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
         $layout->append($filtersTpl, 'NAVIGATION_FILTERS');
-        $layout->append(cms_Articles::renderNavigation($navData), 'NAVIGATION');
+        $groups = cms_Domains::getNavigationPosition() == 'top' ? self::renderTopNavigation($navData) : cms_Articles::renderNavigation($navData);
+        $layout->append(new ET('<div class="eshop-group-navigation">[#1#]</div>', $groups), 'NAVIGATION');
+    }
+
+
+    /** Компактни колони с подгрупите непосредствено под основната група. */
+    private static function renderTopNavigation($data)
+    {
+        $searchData = clone $data;
+        $searchData->links = array();
+        unset($searchData->addLink);
+        $tpl = cms_Articles::renderNavigation($searchData);
+        $tpl->append(new ET('<div class="eshop-category-panel">[#OVERVIEW#]<nav class="eshop-category-columns" aria-label="' . ht::escapeAttr(tr('Категории')) . '">'));
+        $rootLevel = !empty($data->hasRootNavigation) ? 2 : 1;
+        $branchOpen = false;
+        foreach (($data->links ?? array()) as $link) {
+            $level = (int) ($link->level ?? $rootLevel);
+            $attr = array('title' => $link->seoTitle ?? null);
+            if (!empty($link->selected)) $attr['aria-current'] = 'page';
+            $item = ht::createLink($link->title ?? '', $link->url ?? null, null, $attr);
+            if (!empty($link->editLink)) $item->append($link->editLink);
+            if ($level < $rootLevel) {
+                $tpl->append(new ET('<div class="eshop-category-overview">[#1#]</div>', $item), 'OVERVIEW');
+                continue;
+            }
+            if ($level == $rootLevel || !$branchOpen) {
+                if ($branchOpen) $tpl->append('</div>');
+                $tpl->append('<div class="eshop-category-section">');
+                $branchOpen = true;
+            }
+            $class = $level == $rootLevel ? 'eshop-category-title' : 'eshop-category-link';
+            $indent = max(0, $level - $rootLevel - 1) * 12;
+            $tpl->append(new ET('<div class="' . $class . '" style="padding-left:' . $indent . 'px">[#1#]</div>', $item));
+        }
+        if ($branchOpen) $tpl->append('</div>');
+        $tpl->append('</nav></div>');
+        if (!empty($data->addLink)) $tpl->append($data->addLink);
+
+        return $tpl;
     }
 
 
@@ -820,7 +878,7 @@ class eshop_Groups extends core_Master
         }
 
 
-        $showAll = eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
+        $showAll = in_array(cms_Domains::getNavigationPosition(), array('top', 'none')) || eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
         if(!$showAll){
             if ($groupId && $groupId > 0) {
                 $fRec = self::fetch($groupId);

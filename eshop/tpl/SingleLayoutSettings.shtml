@@ -154,6 +154,12 @@
                <td>[#showNavigation#]</td>
             </tr>
             <!--ET_END showNavigation-->
+            <!--ET_BEGIN filterPosition-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Положение на филтрите|*:</td>
+               <td>[#filterPosition#]</td>
+            </tr>
+            <!--ET_END filterPosition-->
             <!--ET_BEGIN paramFilterMode-->
             <tr>
                <td class="title-style" style='width:150px'>|Филтри по параметри|*:</td>

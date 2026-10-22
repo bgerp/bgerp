@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="240" viewBox="0 0 1400 240">
+  <rect width="1400" height="240" fill="#087c80"/>
+  <path d="M920 0h480v240H680z" fill="#159da1"/>
+  <path d="M1130 0h270v240H890z" fill="#073d43"/>
+  <g fill="none" stroke="#a5f3df" stroke-width="1" opacity=".65">
+    <path d="M780 240 1020 0M860 240 1100 0M940 240 1180 0M1020 240 1260 0M1100 240 1340 0M1180 240 1420 0"/>
+    <path d="M40 28h1320M40 212h1320"/>
+  </g>
+</svg>
