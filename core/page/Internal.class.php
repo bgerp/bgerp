@@ -193,19 +193,20 @@ class core_page_Internal extends core_page_Active
             // Ако сме в широк формат
             // Отпечатваме менютата
             if (countR($menus)) {
+                $notFirstInFor = array();
                 foreach ($menus as $key => $rec) {
                     $link = bgerp_Menu::createLink($rec->menuTr, $rec, true);
-                    $row = 'MENU_ROW' . $rec->row;
+                    $row = 'MENU_ROW' . ($rec->row ?? '');
                     
-                    if ($notFirstInFor[$rec->row]) {
+                    if (!empty($notFirstInFor[$row])) {
                         $tpl->append("\n . ", $row);
                     } else {
                         $tpl->append("\n»&nbsp;", $row);
                     }
                     
-                    $tpl->append($link, 'MENU_ROW' . $rec->row);
+                    $tpl->append($link, $row);
                     
-                    $notFirstInFor[$rec->row] = true;
+                    $notFirstInFor[$row] = true;
                 }
             }
             
