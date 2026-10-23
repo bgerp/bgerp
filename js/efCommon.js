@@ -137,11 +137,17 @@ window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
     if (opaqueScriptError) return false;
 
+    // Събитие вместо съобщение (error event без описание) - репортът е само `[object Object]`
+    if ((typeof errorMsg == 'object') && !url && !errorObj) return false;
+
     // Безобидно предупреждение на браузъра за ResizeObserver (нищо не се чупи) - иначе заема мястото на реална грешка
     if (/^(Uncaught )?ResizeObserver loop/.test(String(errorMsg))) return false;
 
     // Грешка в кода, който крипто портфейлите (MetaMask и др.) инжектират в страницата - не е наша
     if (/window\.ethereum/.test(String(errorMsg))) return false;
+
+    // Грешка в скрипт на разширение на браузъра - не е наша
+    if (/^(chrome|moz|safari(-web)?)-extension:\/\//.test(String(url))) return false;
 
     // Без стека се вижда само последната рамка - напр. jQuery.each при безкрайна рекурсия
     var stack = (errorObj && errorObj.stack) ? errorObj.stack : null;

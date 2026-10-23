@@ -979,7 +979,7 @@ class sales_PrimeCostByDocument extends core_Manager
     {
         $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид,placeholderType=all');
         $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
-        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ/Контейнер, silent');
         $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка,placeholderType=all');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
