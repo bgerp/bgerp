@@ -2822,6 +2822,9 @@ th:has(.wrapText) {
 .document table.listTable > tbody > tr > td {
   padding: 5px 3px 2px !important; }
 
+.document table.listTable.totalDiscountTable > tbody > tr > td {
+  padding: 5px 3px !important; }
+
   .inlineRichtextCond .richtext,
   .inlineRichtextCond .endTooltip {
     display: inline !important;

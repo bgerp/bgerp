@@ -3280,6 +3280,11 @@ table.signiture{
 	padding: 5px 3px 2px !important;
 }
 
+// Едноредовата таблица с общите отстъпки не е залепена за долната линия
+.document table.listTable.totalDiscountTable > tbody > tr > td {
+	padding: 5px 3px !important;
+}
+
 .inlineRichtextCond {
 	.richtext, .endTooltip {
 		display: inline  !important;

@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -263,7 +263,7 @@ class price_DiscountsPerDocuments extends core_Detail
         if(!countR($data->rows)) return $tpl;
 
         $listTableMvc = clone $this;
-        $table = cls::get('core_TableView', array('mvc' => $listTableMvc, 'thHide' => true));
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc, 'thHide' => true, 'tableClass' => 'listTable totalDiscountTable'));
 
         $listTableMvc->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tableTpl = $table->get($data->rows, $data->listFields);
