@@ -9,6 +9,7 @@ set_error_handler(function ($severity, $message, $file, $line) {
 });
 
 class frame2_driver_Proto extends stdClass {}
+class embed_Manager {}
 class core_App { public static function setTimeLimit($seconds) {} }
 class core_Debug {
     public static function startTimer($name) {}
@@ -53,6 +54,12 @@ class core_ET {
     private $content;
     public function __construct($content) { $this->content = $content; }
     public function getContent() { return $this->content; }
+    public function append($value, $place) {
+        if ($value instanceof self) $value = $value->getContent();
+        $marker = '[#' . $place . '#]';
+        $this->content = str_replace($marker, $value . $marker, $this->content);
+    }
+    public function replace($value, $place) { $this->content = str_replace('[#' . $place . '#]', $value, $this->content); }
     public function removeBlocks() {}
     public function removePlaces() {}
 }
@@ -169,8 +176,12 @@ class doc_Containers {
     }
 }
 class purchase_Invoices extends InvoiceTestModel {}
-class sales_Sales extends InvoiceTestModel {}
-class purchase_Purchases extends InvoiceTestModel {}
+class sales_Sales extends InvoiceTestModel {
+    public static function getHandle($id) { return 'Sal' . $id; }
+}
+class purchase_Purchases extends InvoiceTestModel {
+    public static function getHandle($id) { return 'Pur' . $id; }
+}
 class acc_Items extends InvoiceTestModel {}
 class acc_Articles extends InvoiceTestModel {}
 class acc_Accounts {
@@ -265,6 +276,13 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public function fields($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->fields; }
     public function grouped($recs, &$rows, $fields, $data) { $this->groupRows($recs, $rows, $fields, $data->groupByField, $data); }
     public function canSeePriceFields($rec) { return $this->prices; }
+    public function info($rec, $reportData = null) {
+        $rec = clone $rec;
+        $rec->data = $reportData ?? new stdClass();
+        $tpl = new core_ET('[#DRIVER_FIELDS#]');
+        self::on_AfterRenderSingle($this, new embed_Manager(), $tpl, (object)array('rec' => $rec));
+        return $tpl->getContent();
+    }
     protected function logReportStats(&$data, $startedOn, $count = 0) {}
     public function exportRow($rec, $dRec) {
         $res = clone $dRec;
@@ -786,7 +804,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
         $correctionRows = array_filter($corrected, function ($row) { return !empty($row->isAccountingCorrection); });
         $detail = reset($correctionRows);
         $row = $driver->verbal($rec, $detail);
-        check($row->documentType == 'МО' && strpos($row->invoiceNo, 'Неразпределена') !== false && $row->paidAmount === '', 'Отделен ред, без измислено плащане по фактура');
+        check($row->documentType == 'МО' && $row->invoiceNo == 'Неразпред. по #Pur2' && $row->paidAmount === '', 'Отделен ред, без измислено плащане по фактура');
         check(closeAmount($driver->exportRow($rec, $detail)->invoiceOverSumm, 60), 'Неразпределената корекция влиза в експорта');
     }
 }
@@ -1004,6 +1022,62 @@ foreach (array('out', 'in') as $direction) {
     $rec->accountingCorrections = 'yes';
     $corrected = $driver->run($rec, $data);
     check(count($legacy) == 1 && count($corrected) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, reset($corrected)->invoiceCurrentSumm), 'Без МО няма ново закръгляне на малкия остатък: ' . $direction);
+}
+
+// Пълният разчет присъства и при Всички, с еднакви суми/цветове в инфото и обобщенията.
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        InvoiceTestData::reset();
+        InvoiceTestData::invoice('out', 1, 'Formula', '2026-10-05', 100, 20);
+        InvoiceTestData::invoice('in', 1, 'Formula', '2026-10-05', 200, 50);
+        articleFixture('out', 1, 1500, 10);
+        articleFixture('in', 1, 1501, 30);
+        $rec = reportRec($direction, $payment);
+        $rec->accountingCorrections = 'yes';
+        $data = new stdClass();
+        $rows = $driver->run($rec, $data);
+        $detail = end($rows);
+        $row = $driver->verbal($rec, $detail);
+        $summary = $direction == 'all' ? $row->combinedSummary : $row->invoiceSummary;
+        $info = $driver->info($rec, $data);
+        $plainSummary = strip_tags($summary);
+        $plainInfo = strip_tags($info);
+        $formula = $direction == 'out' ? 'Стойност: 100.00 - Корекции: 10.00 - Платено: 20.00 = Остатък: 70.00 EUR'
+            : ($direction == 'in' ? 'Стойност: 200.00 - Корекции: 30.00 - Платено: 50.00 = Остатък: 120.00 EUR'
+                : 'Стойност: -100.00 - Корекции: (-20.00) - Платено: (-30.00) = Остатък: -50.00 EUR');
+        $case = $direction . '/' . $payment;
+        check(strpos($plainSummary, $formula) !== false && strpos($plainInfo, $formula) !== false, 'Един и същ пълен разчет в инфото и обобщението: ' . $case);
+        $result = $direction == 'out' ? "<span style='color:#080'>70.00</span>" : ($direction == 'in' ? "<span class='red'>120.00</span>" : "<span class='red'>-50.00</span>");
+        check(strpos($summary, $result) !== false && strpos($info, $result) !== false, 'Резултатът е в цвета на вземането/задължението: ' . $case);
+        check(strpos($summary, $direction == 'out' ? "<span class='red'>10.00</span>" : ($direction == 'in' ? "<span style='color:#080'>30.00</span>" : "<span style='color:#080'>-20.00</span>")) !== false, 'Запазен цвят на корекцията: ' . $case);
+        if ($direction == 'all') check(strpos($summary, "<span style='color:#080'>100.00</span> - <span class='red'>200.00</span>") !== false, 'Запазена разбивка изходящи/входящи');
+        Mode::$plain = true;
+        $plainRow = $driver->verbal($rec, $detail);
+        $textSummary = $direction == 'all' ? $plainRow->combinedSummary : $plainRow->invoiceSummary;
+        check(strpos($textSummary, $formula) !== false && strpos($textSummary, 'style=') === false, 'Разчет в текстов режим без цветен HTML: ' . $case);
+        Mode::$plain = false;
+        $driver->prices = false;
+        $hidden = $driver->verbal($rec, $detail);
+        check(strpos($hidden->invoiceSummary, '100.00') === false && strpos($driver->info($rec, $data), '70.00') === false, 'Разчетът спазва правата за цени: ' . $case);
+        $driver->prices = true;
+    }
+}
+
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Short handle', '2026-10-05', 100, 100);
+    InvoiceTestData::invoice($direction, 2, 'Short handle', '2026-10-05', 200, 200);
+    InvoiceTestData::combine($direction, array(1, 2));
+    articleFixture($direction, 1, 1510, 20);
+    $rec = reportRec($direction, 'unpaid');
+    $rec->accountingCorrections = 'yes';
+    $rows = $driver->run($rec, $data);
+    $detail = reset($rows);
+    $expected = 'Неразпред. по #' . ($direction == 'out' ? 'Sal2' : 'Pur2');
+    check($driver->verbal($rec, $detail)->invoiceNo == $expected && $driver->exportRow($rec, $detail)->invoiceNo == $expected, 'Еднакъв кратък хендъл на екрана и в експорта: ' . $direction);
+    Mode::$plain = true;
+    check($driver->verbal($rec, $detail)->invoiceNo == $expected, 'Кратък хендъл и в текстов режим: ' . $direction);
+    Mode::$plain = false;
 }
 
 echo "OK: {$checks} invoice report checks\n";

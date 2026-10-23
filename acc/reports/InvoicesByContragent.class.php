@@ -1999,7 +1999,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Колони за екран — различни според режима all/unpaid.
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
             // Добавяме нова колона "Документ" преди колоната за номера
-            $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId,tdClass=centered');
+            $fld->FLD('documentType', 'varchar', 'caption=Вид,after=contragentId,tdClass=centered');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
 
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата,tdClass=centered');
@@ -2020,7 +2020,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->unpaid != 'all') {
                 $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
 
-                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+                $fld->FLD('currencyId', 'varchar', 'caption=Валу-та,tdClass=centered');
                 //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
                 // }
@@ -2135,6 +2135,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($isCombined && isset($dRec->invoiceTotals['out'], $dRec->invoiceTotals['in'])) {
             $value = $styleAmount($dRec->invoiceTotals['out'], 1) . ' - ' . $styleAmount($dRec->invoiceTotals['in'], -1) . ' = ' . $value;
         }
+        if (($rec->accountingCorrections ?? 'no') == 'yes') {
+            $currency = acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
+            $breakdown = $isCombined ? $value . ' ' . $currency . (Mode::is('text', 'plain') ? "\n" : '<br>') : '';
+
+            return $caption . ': ' . $breakdown . self::getAccountingReconciliation(
+                $dRec->totalInvoiceValue ?? 0, $dRec->totalAccountingCorrection ?? 0, $dRec->totalInvoicePayout ?? 0,
+                ($dRec->totalInvoiceNotPayd ?? 0) + ($dRec->totalInvoiceOverPaid ?? 0), $isCombined ? 1 : $balanceSign, $currency
+            );
+        }
         $caption .= ': ' . $value;
         if (($rec->unpaid ?? 'all') == 'all') {
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
@@ -2145,12 +2154,42 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (abs($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
             $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0);
         }
-        if (($rec->accountingCorrections ?? 'no') == 'yes') {
-            $caption .= ' » <span class="quiet">' . tr('Корекции') . ': </span>' . $styleAmount($dRec->totalAccountingCorrection ?? 0, $isCombined ? -1 : -$balanceSign)
-                . ' » <span class="quiet">' . tr('Остатък') . ': </span>' . $styleAmount(($dRec->totalInvoiceNotPayd ?? 0) + ($dRec->totalInvoiceOverPaid ?? 0));
+        return $caption;
+    }
+
+
+    /**
+     * Пълният разчет с МО е еднакъв в инфото и в обобщенията по контрагент.
+     */
+    private static function getAccountingReconciliation($value, $correction, $paid, $balance, $sign, $currency)
+    {
+        $Double = core_Type::getByName('double(decimals=2)');
+        $plain = Mode::is('text', 'plain');
+        $captions = array('Стойност', 'Корекции', 'Платено', 'Остатък');
+        $amounts = array($value, $correction, $paid, $balance);
+        $signs = array($sign, -$sign, $sign, $sign);
+        $parts = array();
+        foreach ($amounts as $i => $amount) {
+            $verbal = $Double->toVerbal($amount);
+            if (!$plain) $verbal = '<b>' . ht::styleNumber($verbal, round($amount * $signs[$i], 2), '#080') . '</b>';
+            // При нетни входящи суми изваждането на отрицателно число трябва да е еднозначно.
+            if (($i == 1 || $i == 2) && round($amount, 2) < 0) $verbal = '(' . $verbal . ')';
+            $caption = tr($captions[$i]) . ': ';
+            $parts[] = ($plain ? $caption : '<span class="quiet">' . $caption . '</span>') . $verbal;
         }
 
-        return $caption;
+        return $parts[0] . ' - ' . $parts[1] . ' - ' . $parts[2] . ' = ' . $parts[3] . ' ' . $currency;
+    }
+
+
+    /**
+     * Кратко означение на сделката за неразпределена корекция, включително при експорт.
+     */
+    private static function getAccountingDealTitle($dRec)
+    {
+        $className = $dRec->accountingDealClass ?? (($dRec->className ?? '') == purchase_Invoices::class ? purchase_Purchases::class : sales_Sales::class);
+
+        return tr('Неразпред. по') . ' #' . $className::getHandle($dRec->accountingDealId ?? 0);
     }
 
 
@@ -2501,7 +2540,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             $row->accountingDocuments = implode($isPlain ? ', ' : '<br>', $links);
             if (!empty($dRec->isAccountingCorrection)) {
-                $title = tr('Неразпределена по сделка') . ' #' . ($dRec->accountingDealId ?? '');
+                $title = self::getAccountingDealTitle($dRec);
                 $row->documentType = 'МО';
                 $row->invoiceNo = $isPlain ? $title : ht::createLinkRef($title, array($dRec->accountingDealClass ?? '', 'single', $dRec->accountingDealId ?? null));
                 $row->invoiceValue = $row->invoiceValueBaseCurr = $row->paidAmount = $row->paidDates = '';
@@ -2643,18 +2682,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         if (($data->rec->accountingCorrections ?? 'no') == 'yes') {
-            $Double = core_Type::getByName('double(decimals=2)');
-            $correction = $data->rec->totalAccountingCorrectionAll ?? 0;
-            $balance = ($data->rec->totalInvoiceNotPaydAll ?? 0) + ($data->rec->totalInvoiceOverPaidAll ?? 0);
             $sign = $invoiceType == 'in' ? -1 : 1;
-            $correctionVerb = $Double->toVerbal($correction);
-            $balanceVerb = $Double->toVerbal($balance);
-            if (!Mode::is('text', 'plain')) {
-                $correctionVerb = ht::styleNumber($correctionVerb, -$sign * $correction, '#080');
-                $balanceVerb = ht::styleNumber($balanceVerb, $sign * $balance, '#080');
-            }
-            $fieldTpl->append(tr('Общо КОРЕКЦИИ') . ': <b>' . $correctionVerb . ' ' . $baseCurrency . '</b> » '
-                . tr('НЕТЕН ОСТАТЪК') . ': <b>' . $balanceVerb . ' ' . $baseCurrency . '</b>', 'accountingTotals');
+            $fieldTpl->append(self::getAccountingReconciliation(
+                $data->rec->totalInvoiceValueAll ?? 0, $data->rec->totalAccountingCorrectionAll ?? 0, $data->rec->totalInvoicePayoutAll ?? 0,
+                ($data->rec->totalInvoiceNotPaydAll ?? 0) + ($data->rec->totalInvoiceOverPaidAll ?? 0), $sign, $baseCurrency
+            ), 'accountingTotals');
         }
 
         //Всички фактури
@@ -3029,7 +3061,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $res->invoiceCurrentSumm = max(0, $invoiceCurrentSumm * ($dRec->rate ?? 1));
             $res->invoiceOverSumm = max(0, -$invoiceCurrentSumm * ($dRec->rate ?? 1));
             if (!empty($dRec->isAccountingCorrection)) {
-                $res->invoiceNo = tr('Неразпределена по сделка') . ' #' . ($dRec->accountingDealId ?? '');
+                $res->invoiceNo = self::getAccountingDealTitle($dRec);
                 $res->invoiceValue = $res->invoiceValueBaseCurr = $res->paidAmount = '';
             }
         }
