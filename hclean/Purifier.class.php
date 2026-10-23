@@ -4,7 +4,7 @@
 /**
  * Вкарваме файловете необходими за работа с програмата.
  */
-require_once 'purifier4.3.0/HTMLPurifier.standalone.php';
+require_once 'purifier4.19.1/HTMLPurifier.standalone.php';
 
 
 /**
@@ -21,7 +21,7 @@ defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
  * @package   hclean
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
