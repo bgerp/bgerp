@@ -139,6 +139,77 @@ class type_tests_Richtext extends unit_Class
         UT::expectEqual((bool) preg_match("~<div class='clearfix21 richtextHide' id='hide\d+'>текст</div>~", $render('[hide=Покажи]текст[/hide]')), true);
         UT::expectEqual(strpos($render('[img=http://example.com/a.png]Надпис[/img]'), '<div><img src="http://example.com/a.png" alt="Надпис"><br><small>Надпис </small></div>') !== false, true);
     }
+
+
+    /**
+     * [color] и [bg] приемат само допустим CSS цвят
+     */
+    public function test_Colors()
+    {
+        // Цветовете от бутоните и празната стойност се показват както досега
+        $cases = array(
+            '[color]a[/color]' => '<span style="color:black">a</span>',
+            '[bg]a[/bg]' => '<span style="background-color:black">a</span>',
+        );
+        foreach (array('blue', 'red', 'green', '#888') as $color) {
+            $cases["[color={$color}]a[/color]"] = "<span style=\"color:{$color}\">a</span>";
+        }
+        foreach (array('yellow', 'lightgreen') as $color) {
+            $cases["[bg={$color}]a[/bg]"] = "<span style=\"background-color:{$color}\">a</span>";
+        }
+        foreach (array('red', 'black') as $color) {
+            $cases["[bg={$color}][color=white]a[/color][/bg]"] = "<span style=\"background-color:{$color}\"><span style=\"color:white\">a</span></span>";
+        }
+
+        $cases += array(
+            '[color=#3c4043!important]a[/color]' => '<span style="color:#3c4043!important">a</span>',
+            '[color=rgb(10, 20, 30)]a[/color]' => '<span style="color:rgb(10, 20, 30)">a</span>',
+            '[bg=hsla(120,100%,50%,0.3)]a[/bg]' => '<span style="background-color:hsla(120,100%,50%,0.3)">a</span>',
+
+            // Цветът свършва на кавичка или ';', а недопустимата стойност става черна
+            '[color=#73747b"data-x="1]a[/color]' => '<span style="color:#73747b">a</span>',
+            '[color=red" title="x]a[/color]' => '<span style="color:red">a</span>',
+            '[bg=red;width:100px]a[/bg]' => '<span style="background-color:red">a</span>',
+            "[color=red'x]a[/color]" => '<span style="color:black">a</span>',
+            '[bg=url(x.png)]a[/bg]' => '<span style="background-color:black">a</span>',
+        );
+
+        $this->expectRendered($cases);
+    }
+
+
+    /**
+     * [html] показва пречистен HTML
+     */
+    public function test_Html()
+    {
+        $this->expectRendered(array(
+            // Форматирането, картинките и таблиците остават
+            '[html]<div style="color: red;">Текст</div>[/html]' => '<div style="color:#FF0000;">Текст</div>',
+            'Преди [html]<img src="http://example.com/q.png" alt="q" width="87" height="87" class="ticketPdf">[/html] след' => 'Преди <img src="http://example.com/q.png" alt="q" width="87" height="87" class="ticketPdf" /> след',
+            '[html]<table border="1"><tr><td valign="top">a</td></tr></table>[/html]' => '<table border="1"><tr><td valign="top">a</td></tr></table>',
+
+            // Атрибутите за събития и data-*, javascript: връзките и iframe отпадат
+            '[html]<span onclick="f()" data-x="1">a</span><a href="javascript:void(0)">b</a><iframe src="https://example.com/"></iframe>[/html]' => '<span>a</span><a>b</a>',
+
+            // Незатворените тагове се затварят в блока
+            '[html]<div><b>a[/html] b' => '<div><b>a</b></div> b',
+        ));
+    }
+
+
+    /**
+     * Сравнява рендирания текст с очаквания HTML в обвивката на ричтекста
+     */
+    protected function expectRendered($cases)
+    {
+        $rt = cls::get('type_Richtext');
+        foreach ($cases as $text => $res) {
+            $html = $rt->toVerbal($text);
+            $html = ($html instanceof core_ET) ? $html->getContent() : (string) $html;
+            UT::expectEqual($html, "<div class=\"richtext\">{$res}\n\n</div>");
+        }
+    }
     
     
     /**

@@ -8,7 +8,7 @@
  * @package   newsbar
  *
  * @author    Gabriela Petrova <gpetrova@experta.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,7 +69,7 @@ class newsbar_News extends core_Master
     public function description()
     {
         $this->FLD('news', 'richtext(rows=2,bucket=Notes)', 'caption=Новина->Текст');
-        $this->FLD('newsHtml', 'html(rows=2,tinyEditor=no)', 'caption=Новина->HTML');
+        $this->FLD('newsHtml', 'html(rows=2,tinyEditor=no,balance)', 'caption=Новина->HTML');
         $this->FLD('moving', 'enum(yes=Да, no=Не)', 'caption=Новина->Движение,notNull,mandatory');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
@@ -434,7 +434,8 @@ class newsbar_News extends core_Master
         }
         
         if ($rec->newsHtml) {
-            $text .= $rec->newsHtml;
+            // HTML-ът на новината не трябва да засяга страницата около лентата
+            $text .= ht::balanceTags($rec->newsHtml);
         }
         
         $html = new ET("<div class=\"[#class#]\" style=\"padding: [#padding#]px;background-color: rgb([#r#], [#g#], [#b#]);
