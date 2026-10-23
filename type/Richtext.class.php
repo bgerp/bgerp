@@ -1124,7 +1124,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = ht::balanceTags($title);
         }
         
-        if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
+        if (substr($title, 0, 1) != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
             $sDomain = ($urlArr['scheme'] ?? '') . '://' . $domain;
             $thumb = new thumb_Img(array("https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={$sDomain}&size=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly(), 'default' => 'img/16/link.png'));
