@@ -1117,6 +1117,11 @@ class email_Incomings extends core_Master
                     foreach ($vals as $keyD) {
                         $fRec = fileman::fetch($keyD);
 
+                        // Файлът може да липсва, ако е изтрит след получаването на имейла
+                        if (empty($fRec)) {
+                            continue;
+                        }
+
                         if (!empty($ourImgArr[$fRec->dataId])) {
                             continue;
                         }
