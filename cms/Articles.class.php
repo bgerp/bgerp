@@ -467,7 +467,7 @@ class cms_Articles extends core_Master
             $navData->cnt++;
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
             
-            if ($lArr) {
+            if ($lArr && cms_Domains::getNavigationPosition() != 'dropdown') {
                 if (($lArr1[2] ?? null) && (($lArr[0] != $lArr1[0]) || (($lArr[1] ?? null) != $lArr1[1]))) {
                     continue;
                 }
@@ -557,15 +557,65 @@ class cms_Articles extends core_Master
     /**
      * Рендиране на навигацията
      */
+    public static function renderDropdownNavigation($data)
+    {
+        $roots = array();
+        $stack = array();
+        $rootLevel = !empty($data->hasRootNavigation) ? 2 : 1;
+        foreach (($data->links ?? array()) as $link) {
+            $node = (object) array('link' => $link, 'level' => max(1, (int) ($link->level ?? 1) - $rootLevel + 1), 'children' => array());
+            while ($stack && end($stack)->level >= $node->level) array_pop($stack);
+            if ($stack) {
+                $parent = end($stack);
+                $parent->children[] = $node;
+            } else {
+                $roots[] = $node;
+            }
+            $stack[] = $node;
+        }
+
+        $tpl = new ET('<nav data-cms-menu-id="' . (int) ($data->menuId ?? 0) . '" class="cms-dropdown-navigation" aria-label="' . ht::escapeAttr(tr('Категории')) . '"><div class="centerContent">[#LINKS#]</div></nav>');
+        $tpl->replace(self::renderDropdownBranches($roots), 'LINKS');
+        $tpl->push('cms/css/dropdownNavigation.css', 'CSS');
+        $tpl->push('cms/js/dropdownNavigation.js', 'JS');
+        jquery_Jquery::run($tpl, 'initCmsDropdownNavigation();', true);
+
+        return $tpl;
+    }
+
+
+    /** Вложени категории с отделен линк към родителската страница. */
+    private static function renderDropdownBranches($nodes, $parentLink = null)
+    {
+        $tpl = new ET('<ul>[#ITEMS#]</ul>');
+        if ($parentLink) $tpl->append(new ET('<li>[#1#]</li>', $parentLink), 'ITEMS');
+        foreach ($nodes as $node) {
+            $link = $node->link;
+            $attr = array('title' => $link->seoTitle ?? null);
+            if (!empty($link->selected)) $attr['aria-current'] = 'page';
+            $item = ht::createLink($link->title ?? '', $link->url ?? null, null, $attr);
+            if ($node->children) {
+                $children = self::renderDropdownBranches($node->children, !empty($link->url) ? $item : null);
+                $item = new ET('<details><summary>[#1#]</summary>[#2#]</details>', $link->title ?? '', $children);
+            }
+            $tpl->append(new ET('<li>[#1#]</li>', $item), 'ITEMS');
+        }
+
+        return $tpl;
+    }
+
+
+    /** Рендира връзките и полето за търсене. */
     public function renderNavigation_($data)
     {
         $navTpl = new ET("");
+        $dropdown = cms_Domains::getNavigationPosition() == 'dropdown';
         $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
         $groupNavigation = ($data->searchCtr ?? null) == 'cms_Articles' && cms_Domains::getNavigationPosition() == 'top';
         $branchOpen = false;
 
-        if (is_array($data->links ?? null)) {
+        if (!$dropdown && is_array($data->links ?? null)) {
             if ($groupNavigation) $navTpl->append('<div class="cms-navigation-columns">');
             foreach ($data->links as $l) {
                 if ($groupNavigation && (($l->level ?? 1) == 1 || !$branchOpen)) {

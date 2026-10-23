@@ -455,7 +455,14 @@ class cms_Content extends core_Master
                     $loginLink = true;
                 }
                 
+                $attr['data-cms-menu-id'] = $rec->id;
                 $tpl->append(ht::createLink($rec->menu, $url, null, $attr));
+                if (cms_Domains::getNavigationPosition() == 'dropdown') {
+                    $navigation = $this->prepareDropdownMenu($rec);
+                    if (!empty($navigation->links)) {
+                        $tpl->append(cms_Articles::renderDropdownNavigation($navigation));
+                    }
+                }
             }
         }
         
@@ -482,6 +489,50 @@ class cms_Content extends core_Master
     }
     
     
+    /** Подготвя цялото дърво независимо от активния раздел. */
+    private function prepareDropdownMenu($menuRec)
+    {
+        $data = (object) array('menuId' => (int) $menuRec->id, 'links' => array());
+        if (empty($menuRec->source) || !cls::load($menuRec->source, true)) return $data;
+        $source = cls::get($menuRec->source);
+        if ($source instanceof eshop_Groups) {
+            $source->prepareNavigation($data);
+        } elseif ($source instanceof blogm_Articles) {
+            $categories = blogm_Categories::getCategoriesByDomain($menuRec->domainId, $menuRec->id, null, true);
+            foreach ($categories as $id => $title) {
+                $data->links[] = (object) array(
+                    'title' => $title,
+                    'level' => blogm_Categories::fetchField($id, 'saoLevel'),
+                    'url' => array('blogm_Articles', 'Browse', 'cMenuId' => $menuRec->id, 'category' => $id),
+                );
+            }
+        } elseif ($source instanceof cms_Articles) {
+            $query = cms_Articles::getQuery();
+            $query->where(array("#menuId = [#1#] AND #state = 'active'", $menuRec->id));
+            $query->orderBy('level', 'ASC');
+            while ($article = $query->fetch()) {
+                $data->links[] = (object) array(
+                    'title' => cms_Articles::getVerbal($article, 'title'),
+                    'level' => count(explode('.', cms_Articles::getVerbal($article, 'level'))),
+                    'url' => trim((string) ($article->body ?? '')) ? cms_Articles::getUrl($article) : null,
+                );
+            }
+        }
+
+        if (empty($data->links) && cls::existsMethod($source, 'getFooterMenuItems')) {
+            foreach ($source->getFooterMenuItems($menuRec) as $item) {
+                $item->level = 1;
+                $data->links[] = $item;
+            }
+        }
+        if ((int) Mode::get('cMenuId') != $data->menuId) {
+            foreach ($data->links as $link) $link->selected = false;
+        }
+
+        return $data;
+    }
+
+
     /**
      * Връща URL към съдържанието, което отговаря на този запис
      */
