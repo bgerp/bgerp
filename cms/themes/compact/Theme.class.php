@@ -5,6 +5,7 @@
  *
  * @title Компактни панели
  * @package cms
+ * @copyright 2026 - 2026 Experta EOOD
  */
 class cms_themes_compact_Theme extends cms_themes_cards_Theme
 {
@@ -12,6 +13,9 @@ class cms_themes_compact_Theme extends cms_themes_cards_Theme
 
 
     public $oldClassName = 'cms_themes_b2b_Theme';
+
+
+    protected $desktopBannerSize = '1920×180';
 
 
     protected $defaultColors = array(

@@ -70,7 +70,7 @@
     </div>
     <!--ET_END USERLINK-->
     [#TOP_PAGE#]
-    <header role="banner">
+    <header role="banner"<!--ET_BEGIN BANNER_BG_COLOR--> style="background-color: [#BANNER_BG_COLOR#] !important;"<!--ET_END BANNER_BG_COLOR-->>
 
         <div class="narrowCenter">
             <a href="[#HOME_URL#]" title="Към началната страница"> [#HEADER_IMG#]</a>
