@@ -871,13 +871,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         foreach ($fields as $field) $rec->{$field . 'All'} = 0;
         foreach ($recs as $key => $dRec) {
             $rate = ($dRec->rate ?? 1) ?: 1;
-            $paid = self::getPaidAmount($dRec);
-            $value = $dRec->invoiceValue ?? 0;
+            $sourcePaid = self::getPaidAmount($dRec);
+            $sourceValue = $dRec->invoiceValue ?? 0;
+            // Сумираме показаните стотинки по документ, не скрити дробни части след превалутиране.
+            $paid = round($sourcePaid, 2);
+            $value = round($sourceValue, 2);
+            $dRec->accountingCorrection = round($dRec->accountingCorrection, 2);
             // При Неплатени/Просрочени това е остатъкът от общото разпределение, включително КИ/ДИ.
             $balance = $rec->unpaid != 'all' && empty($dRec->isAccountingCorrection)
                 ? ($dRec->invoiceCurrentSumm ?? 0) * $rate
-                : (($dRec->fastMarker ?? 1) ? $value - $paid : 0);
-            if ($dRec->accountingCorrection != 0) $balance = round($balance - $dRec->accountingCorrection, 2);
+                : (($dRec->fastMarker ?? 1) ? $sourceValue - $sourcePaid : 0);
+            // Запазваме разпределението и правилото за бързи сделки; уеднаквяваме само точността.
+            if (($dRec->fastMarker ?? 1) && round($balance - ($sourceValue - $sourcePaid), 2) == 0) {
+                $balance = $value - $paid;
+            }
+            $balance = round($balance - $dRec->accountingCorrection, 2);
             $dRec->invoiceCurrentSumm = $balance / $rate;
             $overdue = !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && round($balance / $rate, 2) > 0;
             if (($rec->unpaid == 'overdue' && !$overdue) || ($rec->unpaid != 'all' && abs($balance / $rate) <= ($rec->sill ?? 0))) {
@@ -889,8 +897,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $overdueAmount = !empty($dRec->dueDate) && $dRec->dueDate < $rec->checkDate && $balance > 0 ? $balance : 0;
             $amounts = array($value, $paid, max(0, $balance), min(0, $balance), $overdueAmount, $dRec->accountingCorrection ?? 0);
             foreach ($fields as $i => $field) {
-                $totals[$name][$field] = ($totals[$name][$field] ?? 0) + $amounts[$i];
-                $rec->{$field . 'All'} += $amounts[$i];
+                $totals[$name][$field] = round(($totals[$name][$field] ?? 0) + $amounts[$i], 2);
+                $rec->{$field . 'All'} = round($rec->{$field . 'All'} + $amounts[$i], 2);
             }
         }
         foreach ($recs as $dRec) {
@@ -2020,7 +2028,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->unpaid != 'all') {
                 $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
 
-                $fld->FLD('currencyId', 'varchar', 'caption=Валу-та,tdClass=centered');
+                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
                 //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
                 // }
@@ -3054,12 +3062,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $res->invoiceValue = self::getInvoiceCurrencyValue($rec, $dRec);
         $res->invoiceValueBaseCurr = $invoiceValue;
         if (($rec->accountingCorrections ?? 'no') == 'yes') {
+            $res->invoiceValueBaseCurr = round($invoiceValue, 2);
+            $res->paidAmount = round(self::getPaidAmount($dRec), 2);
             $res->accountingCorrection = $dRec->accountingCorrection ?? 0;
             $documents = array();
             foreach ($dRec->accountingDocuments ?? array() as $document) $documents[] = 'МО' . ($document->id ?? '') . ' / ' . ($document->date ?? '');
             $res->accountingDocuments = implode(', ', $documents);
-            $res->invoiceCurrentSumm = max(0, $invoiceCurrentSumm * ($dRec->rate ?? 1));
-            $res->invoiceOverSumm = max(0, -$invoiceCurrentSumm * ($dRec->rate ?? 1));
+            $res->invoiceCurrentSumm = round(max(0, $invoiceCurrentSumm * ($dRec->rate ?? 1)), 2);
+            $res->invoiceOverSumm = round(max(0, -$invoiceCurrentSumm * ($dRec->rate ?? 1)), 2);
             if (!empty($dRec->isAccountingCorrection)) {
                 $res->invoiceNo = self::getAccountingDealTitle($dRec);
                 $res->invoiceValue = $res->invoiceValueBaseCurr = $res->paidAmount = '';

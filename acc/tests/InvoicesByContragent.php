@@ -723,6 +723,16 @@ function articleFixture($direction, $dealId, $id, $amount, $date = '2026-10-01',
 }
 function closeAmount($actual, $expected) { return abs($actual - $expected) < 0.00001; }
 
+function checkReconciliation($text, $case) {
+    $text = strip_tags($text);
+    preg_match_all('/(Стойност|Корекции|Платено|Остатък): \(?(-?\d+\.\d{2})\)?/u', $text, $matches, PREG_SET_ORDER);
+    $amounts = array();
+    foreach ($matches as $match) $amounts[$match[1]] = (int)str_replace('.', '', $match[2]);
+    check(isset($amounts['Стойност'], $amounts['Корекции'], $amounts['Платено'], $amounts['Остатък']), 'Пълен разчет: ' . $case);
+    check($amounts['Стойност'] - $amounts['Корекции'] - $amounts['Платено'] === $amounts['Остатък'], 'Точно равенство на изписаните стотинки: ' . $case);
+    check(strpos($text, 'Закръгляне') === false, 'Без допълнителен член в разчета: ' . $case);
+}
+
 check(isset($fieldset->fields['accountingCorrections']) && strpos($fieldset->fields['accountingCorrections'], 'no=Не,yes=Да') !== false, 'Опция Да/Не за счетоводни корекции');
 foreach (array('out', 'in') as $direction) {
     InvoiceTestData::reset();
@@ -1021,7 +1031,8 @@ foreach (array('out', 'in') as $direction) {
     $legacy = $driver->run($rec, $data);
     $rec->accountingCorrections = 'yes';
     $corrected = $driver->run($rec, $data);
-    check(count($legacy) == 1 && count($corrected) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, reset($corrected)->invoiceCurrentSumm), 'Без МО няма ново закръгляне на малкия остатък: ' . $direction);
+    check(count($legacy) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, 0.001), 'Не запазва стария остатък под стотинка: ' . $direction);
+    check(count($corrected) == 0, 'При Да платените до стотинка фактури не остават като неплатени с 0.00: ' . $direction);
 }
 
 // Пълният разчет присъства и при Всички, с еднакви суми/цветове в инфото и обобщенията.
@@ -1078,6 +1089,65 @@ foreach (array('out', 'in') as $direction) {
     Mode::$plain = true;
     check($driver->verbal($rec, $detail)->invoiceNo == $expected, 'Кратък хендъл и в текстов режим: ' . $direction);
     Mode::$plain = false;
+}
+
+// Калкулатор по фактури: същите стотинки в редовете, експорта и всички обобщения.
+foreach (array('out', 'in') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        foreach (array(1, 1.95583) as $rate) {
+            foreach (array(0.004, 0.006) as $fraction) {
+                foreach (array(1, -1) as $polarity) {
+                    foreach (array(1, 101) as $count) {
+                        InvoiceTestData::reset();
+                        $invoiceClass = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+                        for ($i = 1; $i <= $count; $i++) {
+                            InvoiceTestData::invoice($direction, $i, 'Cents ' . ($i % 2), '2026-10-05', $polarity * (100 + $fraction), $polarity * 20.001, '2026-10-01', 'USD', $rate);
+                            if ($polarity < 0) InvoiceTestData::$records[$invoiceClass][$i - 1]->type = 'dc_note';
+                            articleFixture($direction, $i, 2000 + $i, $polarity * 10.009);
+                        }
+                        $opposite = $direction == 'out' ? 'in' : 'out';
+                        foreach (array(1, 2) as $i) {
+                            InvoiceTestData::invoice($opposite, $i, 'Cents ' . ($i % 2), '2026-10-05', 5, 2);
+                            articleFixture($opposite, $i, 3000 + $i, 0.01);
+                        }
+                        foreach (array($direction, 'all') as $reportDirection) {
+                            $rec = reportRec($reportDirection, $payment);
+                            $rec->accountingCorrections = 'yes';
+                            $rows = $driver->run($rec, $data);
+                            $case = implode('/', array($direction, $reportDirection, $payment, $rate, $fraction, $polarity, $count));
+                            checkReconciliation($driver->info($rec, $data), 'инфо ' . $case);
+                            $totals = array_fill(0, 4, 0);
+                            $groups = array();
+                            foreach ($rows as $detail) {
+                                $row = $driver->verbal($rec, $detail);
+                                $export = $driver->exportRow($rec, $detail);
+                                $amounts = array();
+                                foreach (array('invoiceValueBaseCurr', 'accountingCorrection', 'paidAmount') as $field) {
+                                    $amount = (int)str_replace('.', '', strip_tags($row->{$field}));
+                                    check($amount == (int)round($export->{$field} * 100), 'Екран и експорт до стотинка ' . $field . ': ' . $case);
+                                    $amounts[] = $amount;
+                                }
+                                $amounts[] = (int)round(($export->invoiceCurrentSumm - $export->invoiceOverSumm) * 100);
+                                check($amounts[0] - $amounts[1] - $amounts[2] === $amounts[3], 'Остатъкът е разликата от видимите суми по фактура: ' . $case);
+                                $sign = $reportDirection == 'all' && $detail->className == 'purchase_Invoices' ? -1 : 1;
+                                foreach ($amounts as $i => $amount) $totals[$i] += $sign * $amount;
+                                $group = $detail->invoiceGroup ?? $detail->contragent;
+                                if (isset($groups[$group])) continue;
+                                $groups[$group] = true;
+                                checkReconciliation($row->invoiceSummary, 'фирма/вид ' . $case);
+                                if ($reportDirection == 'all') checkReconciliation($row->combinedSummary, 'фирма/нетно ' . $case);
+                            }
+                            $actualTotals = array($rec->totalInvoiceValueAll, $rec->totalAccountingCorrectionAll, $rec->totalInvoicePayoutAll, $rec->totalInvoiceNotPaydAll + $rec->totalInvoiceOverPaidAll);
+                            foreach ($actualTotals as $i => $amount) check((int)round($amount * 100) === $totals[$i], 'Обобщението е точният сбор от изписаните редове: ' . $case);
+                            Mode::$plain = true;
+                            checkReconciliation($driver->info($rec, $data), 'текст ' . $case);
+                            Mode::$plain = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 echo "OK: {$checks} invoice report checks\n";
