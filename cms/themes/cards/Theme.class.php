@@ -5,6 +5,7 @@
  *
  * @title Карти и заоблени панели
  * @package cms
+ * @copyright 2026 - 2026 Experta EOOD
  */
 class cms_themes_cards_Theme extends cms_FancyTheme
 {
@@ -80,6 +81,7 @@ class cms_themes_cards_Theme extends cms_FancyTheme
         $form->setFieldType('menuPosition', 'enum(above=Над хедъра,below=Под хедъра)');
         $form->setField('menuPosition', 'caption=Оформление->Положение на меню лентата');
         $form->FLD('colorPalette', 'enum(default=По подразбиране,bordeaux=Бордо,sky=Светлосиньо,navy=Тъмносиньо,teal=Тюркоазено,purple=Лилаво,sand=Пясъчно)', 'caption=Оформление->Цветова палитра');
+        $form->FLD('bannerBgColor', 'color_Type', 'caption=Оформление->Фон под банера,hint=Цвят зад и около изображението. При празно поле се използва фонът на темата.');
         $form->setField('titleColor,headerColor,baseColor,activeColor,innerColor', 'input=none,column=none,single=none');
         for ($i = 1; $i <= 8; $i++) {
             $form->setField('wImg' . $i, 'caption=Банери за десктоп (' . $this->desktopBannerSize . ' px)->Изображение ' . $i . ',hint=Препоръчителен размер ' . $this->desktopBannerSize . ' px. Допускат се и други пропорции — изображението се побира до 100% от ширината с автоматична височина. Ротиращите се банери трябва да имат еднакви пропорции. Без качена снимка се използва банерът на темата.');
@@ -137,6 +139,10 @@ class cms_themes_cards_Theme extends cms_FancyTheme
             $this->innerForm->menuPosition = $this->defaultMenuPosition;
         }
         parent::prepareWrapper($tpl);
+        $bannerBgColor = $this->innerForm->bannerBgColor ?? '';
+        if (preg_match('/^#[0-9a-f]{6}$/iD', $bannerBgColor)) {
+            $tpl->replace($bannerBgColor, 'BANNER_BG_COLOR');
+        }
         $tpl->appendOnce(' cms-menu-' . $this->innerForm->menuPosition, 'BODY_CLASS_NAME');
         $palette = $this->innerForm->colorPalette ?? 'default';
         if (in_array($palette, array('bordeaux', 'sky', 'navy', 'teal', 'purple', 'sand'))) {

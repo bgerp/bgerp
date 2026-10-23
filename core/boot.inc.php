@@ -896,7 +896,7 @@ function requireRole($roles)
 
 
 /**
- * Разрешава тестове в dev или с изрична EF_ALLOW_TESTS настройка.
+ * Разрешава тестове в dev и test или с изрична EF_ALLOW_TESTS настройка.
  * Уеб изпълнението изисква и потребител с роля debug.
  */
 function requireTestMode()
@@ -907,7 +907,7 @@ function requireTestMode()
 
     $enabled = defined('EF_ALLOW_TESTS')
         ? EF_ALLOW_TESTS === true
-        : (defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH === 'dev');
+        : (defined('BGERP_GIT_BRANCH') && in_array(BGERP_GIT_BRANCH, array('dev', 'test'), true));
 
     if (!$enabled) {
         error('403 Тестовете не са разрешени за тази инсталация');

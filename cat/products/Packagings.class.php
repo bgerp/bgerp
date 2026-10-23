@@ -886,11 +886,13 @@ class cat_products_Packagings extends core_Detail
 
             foreach ($cls->fields as $fName => $field) {
                 if (($field->type instanceof type_Key) || (($field->type instanceof type_Key2))) {
-                    if ($field->type->params['mvc'] == 'cat_Products') {
+                    $keyMvc = $field->type->params['mvc'] ?? null;
+                    if ($keyMvc == 'cat_Products') {
                         $productIdFld = $fName;
                     }
 
-                    if ($field->type->params['mvc'] == 'cat_UoM') {
+                    // Опаковката е с предимство пред други мерки в модела (напр. втора мярка)
+                    if ($keyMvc == 'cat_UoM' && ($packagingIdFld === false || $fName == 'packagingId')) {
                         $packagingIdFld = $fName;
                     }
                 }
@@ -917,8 +919,8 @@ class cat_products_Packagings extends core_Detail
 
         // В мастера
         if ($Master->className == $inClsName) {
-            $productId = $rec->{$productIdFld};
-            $packagingId = $rec->{$packagingIdFld};
+            $productId = $cRec->{$productIdFld} ?? null;
+            $packagingId = $cRec->{$packagingIdFld} ?? null;
 
             if ($productId && $packagingId) {
                 $pArr[] = array('productId' => $productId, 'packagingId' => $packagingId);

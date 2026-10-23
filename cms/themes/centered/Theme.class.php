@@ -5,6 +5,7 @@
  *
  * @title Центриран хедър и изчистени секции
  * @package cms
+ * @copyright 2026 - 2026 Experta EOOD
  */
 class cms_themes_centered_Theme extends cms_themes_compact_Theme
 {
@@ -14,7 +15,7 @@ class cms_themes_centered_Theme extends cms_themes_compact_Theme
     public $oldClassName = 'cms_themes_executive_Theme';
 
 
-    protected $desktopBannerSize = '1400×220';
+    protected $desktopBannerSize = '1920×220';
 
 
     protected $defaultColors = array(

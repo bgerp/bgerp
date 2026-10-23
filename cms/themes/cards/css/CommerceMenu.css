@@ -266,6 +266,7 @@ body.commerce-theme .soc-sharing-holder .commerce-sharing-count {
 }
 
 /* One search control for shop, blog and CMS article navigation (and above the shop without navigation). */
+body.commerce-theme #cmsNavigation .nav_item a { border-bottom: 0 !important; }
 body.commerce-theme :is(#cmsNavigation, .eshop-top-search) form:has(#simpleSearch) {
     display: block;
     float: none;

@@ -13,7 +13,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -434,10 +434,11 @@ class doc_plg_TplManager extends core_Plugin
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $languages = array();
             
-            if (empty($cData->countryId) || $bgId === $cData->countryId) {
+            $countryId = !empty($cData->countryId) ? $cData->countryId : (crm_Companies::fetchOurCompany()->country ?? null);
+            if (empty($countryId) || $bgId == $countryId) {
                 $languages['bg'] = 'bg';
             } else {
-                $cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
+                $cLanguages = drdata_Countries::fetchField($countryId, 'languages');
                 $languages = array_merge(arr::make($cLanguages, true), $languages);
             }
             $languages['en'] = 'en';

@@ -714,7 +714,9 @@ class type_Richtext extends type_Blob
             }
         } else {
             $place = $this->getPlace();
-            $this->_htmlBoard[$place] = $match[1];
+            
+            // Текстът може да идва отвън (имейли, публични форми), затова HTML-ът се пречиства
+            $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
             $res = "[#{$place}#]";
             $this->_htmlBoard['html1'] = true;
         }
@@ -1124,7 +1126,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = ht::balanceTags($title);
         }
         
-        if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
+        if (substr($title, 0, 1) != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
             $sDomain = ($urlArr['scheme'] ?? '') . '://' . $domain;
             $thumb = new thumb_Img(array("https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={$sDomain}&size=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly(), 'default' => 'img/16/link.png'));
@@ -1173,11 +1175,7 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2] ?? '');
-        
-        if (!$color) {
-            $color = 'black';
-        }
+        $color = self::getSafeColor($match[2] ?? '');
         
         return "<span style=\"color:{$color}\">";
     }
@@ -1190,13 +1188,26 @@ class type_Richtext extends type_Blob
     {
         if (Mode::get('text') == 'plain') return '';
         
-        $color = parent::escape($match[2] ?? '');
+        $color = self::getSafeColor($match[2] ?? '');
         
-        if (!$color) {
+        return "<span style=\"background-color:{$color}\">";
+    }
+    
+    
+    /**
+     * Връща цвета от [color=???] и [bg=???] или 'black', ако не е допустим CSS цвят
+     * Допустими са име, #hex, rgb(), rgba(), hsl() и hsla() с незадължително !important
+     */
+    protected static function getSafeColor($value)
+    {
+        // Цветът свършва на първата кавичка или ';' - след тях може да има атрибути от HTML на имейл
+        $color = trim(substr($value, 0, strcspn($value, '";')));
+        
+        if (!preg_match('/^(#[0-9a-f]{3,8}|[a-z-]+|(rgba?|hsla?)\([0-9a-z.,%\/ +-]*\))(\s*!\s*important)?$/i', $color)) {
             $color = 'black';
         }
         
-        return "<span style=\"background-color:{$color}\">";
+        return $color;
     }
     
     
