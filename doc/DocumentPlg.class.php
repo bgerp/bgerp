@@ -2774,7 +2774,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         // Контирането се ограничава от отговорниците на склада/касата/сметката, а не от достъпа до нишката
-        if ($action == 'conto' && $mvc->hasPlugin('acc_plg_Contable')) {
+        if (in_array($action, array('conto', 'reconto')) && $mvc->hasPlugin('acc_plg_Contable')) {
             return;
         }
 
@@ -2785,6 +2785,15 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         $documentRec = $mvc->fetch($id);
+
+        // Оттеглянето/възстановяването на контиран документ също е на отговорниците; черновите и заявките остават към нишката
+        if (in_array($action, array('reject', 'restore')) && $mvc->hasPlugin('acc_plg_Contable')) {
+            $state = ($action == 'reject') ? ($documentRec->state ?? null) : ($documentRec->brState ?? null);
+            if (!in_array($state, array('draft', 'pending'))) {
+                return;
+            }
+        }
+
         $threadId = $documentRec->threadId ?? null;
         $haveThreadAccess = false;
         if (!empty($threadId)) {
