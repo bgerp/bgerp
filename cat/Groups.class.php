@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -288,12 +288,14 @@ class cat_Groups extends core_Master
             $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
             $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
 
+            // Масив, защото запетаите в името разделят атрибутите от низ
+            $linkAttr = array('title' => 'Филтър на|* "' . ($rec->name ?? '') . '"');
             if (isset($fields['-list'])) {
-                $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, $linkAttr);
             }
 
             if (isset($fields['-single'])) {
-                $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, $linkAttr);
             }
         }
 

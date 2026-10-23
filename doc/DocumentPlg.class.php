@@ -2767,8 +2767,8 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_BeforeGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         $id = $rec->id ?? null;
-        if (empty($id) || !in_array($action, array('edit', 'changerec', 'pickup', 'assign', 'reject', 'restore',
-            'activate', 'activateagain', 'pending', 'changestate', 'conto', 'reconto', 'debugreconto',
+        if (empty($id) || !in_array($action, array('edit', 'changerec', 'pickup', 'assign',
+            'activate', 'activateagain', 'pending', 'changestate',
             'stop', 'start', 'close', 'wakeup'))) {
             return;
         }
