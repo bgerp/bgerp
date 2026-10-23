@@ -94,9 +94,11 @@ try {
     $cases = array(
         array(array(), false),
         array(array('branch' => 'dev'), true),
+        array(array('branch' => 'test'), true),
         array(array('branch' => 'master'), false),
         array(array('branch' => 'DC1'), false),
         array(array('branch' => 'dev', 'flag' => 'false'), false),
+        array(array('branch' => 'test', 'flag' => 'false'), false),
         array(array('branch' => 'master', 'flag' => 'true'), true),
         array(array('flag' => 'true'), true),
         array(array('branch' => 'dev', 'flag' => '1'), false),

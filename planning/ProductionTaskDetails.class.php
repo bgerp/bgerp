@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -2440,12 +2440,17 @@ class planning_ProductionTaskDetails extends doc_Detail
         $dRec = (object)array('productId' => $productId,
                               'taskId' => $taskRec->id,
                               'type' => 'production',
-                              'employees' => $currentUserPersonId,
+                              'employees' => keylist::fromArray(array($currentUserPersonId => $currentUserPersonId)),
                               'closeIfCompleted' => 1,
                               'quantity' => $rest);
 
+        // Оборудването на операцията, както е по подразбиране във формата
+        if (!empty($taskRec->assetId)) {
+            $dRec->fixedAsset = $taskRec->assetId;
+        }
+
         // Добавяне и на заработката за прогреса
-        $info = planning_ProductionTaskProducts::getInfo($taskRec->id, $productId, 'production', $taskRec->fixedAsset);
+        $info = planning_ProductionTaskProducts::getInfo($taskRec->id, $productId, 'production', $dRec->fixedAsset ?? null);
         if (!empty($info->indTime)) {
             $dRec->norm = $info->indTime;
         }
