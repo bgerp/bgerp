@@ -1267,7 +1267,9 @@ class blogm_Articles extends core_Master
     public function renderNavigation_($data, $tpl)
     {
         $tpl->append($this->renderSearch($data), 'SEARCH_FORM');
-        $tpl->append(blogm_Categories::renderCategories($data), 'CATEGORIES');
+        if (cms_Domains::getNavigationPosition() != 'dropdown') {
+            $tpl->append(blogm_Categories::renderCategories($data), 'CATEGORIES');
+        }
         
         if ($data->workshop ?? null) {
             $data->workshop['ret_url'] = true;

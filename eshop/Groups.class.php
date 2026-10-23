@@ -444,6 +444,9 @@ class eshop_Groups extends core_Master
      */
     public static function mustShowSideNavigation()
     {
+        if (cms_Domains::getNavigationPosition() == 'dropdown') {
+            return true;
+        }
         if (cms_Domains::getNavigationPosition() == 'none') {
             return false;
         }
@@ -878,7 +881,7 @@ class eshop_Groups extends core_Master
         }
 
 
-        $showAll = in_array(cms_Domains::getNavigationPosition(), array('top', 'none')) || eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
+        $showAll = in_array(cms_Domains::getNavigationPosition(), array('top', 'dropdown', 'none')) || eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
         if(!$showAll){
             if ($groupId && $groupId > 0) {
                 $fRec = self::fetch($groupId);
