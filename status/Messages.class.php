@@ -7,7 +7,7 @@
  * @package   status
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -73,7 +73,7 @@ class status_Messages extends core_Manager
      */
     public function description()
     {
-        $this->FLD('text', 'html', 'caption=Текст');
+        $this->FLD('text', 'html(balance)', 'caption=Текст');
         $this->FLD('type', 'enum(success=Успех, notice=Известие, warning=Предупреждение, error=Грешка)', 'caption=Тип');
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
