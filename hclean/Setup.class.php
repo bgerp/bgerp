@@ -8,6 +8,12 @@ defIfNot('HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE', 'yes');
 
 
 /**
+ * Версия на HTML Purifier
+ */
+defIfNot('HCLEAN_PURIFIER_VERSION', '4.3.0');
+
+
+/**
  * Клас 'hclean_Setup' - Инсталира плъгина за изчистване на HTML полетата и създава директория,
  *
  * необходима за работа на hclean_Purifier
@@ -17,7 +23,7 @@ defIfNot('HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE', 'yes');
  * @package   hclean
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -46,6 +52,14 @@ class hclean_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Почистване на HTML от опасен код';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'HCLEAN_PURIFIER_VERSION' => array('enum(4.3.0, 4.19.1)', 'caption=Версия на HTML Purifier->Версия'),
+    );
     
     
     /**
