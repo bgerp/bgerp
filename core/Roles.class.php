@@ -240,17 +240,19 @@ class core_Roles extends core_Manager
             } elseif (is_numeric($role)) {
                 $rec = static::fetch($role);
             } else {
-                $rec = static::fetch("#role = '{$role}'");
+                $rec = static::fetch(array("#role = '[#1#]'", $role));
             }
             
             // Прескачаме насъсществуващите роли
-            if (!$rec) {
+            $roleId = $rec->id ?? null;
+            if (!$roleId) {
                 continue;
             }
             
-            if ($rec && !isset($current[$rec->id])) {
-                $current[$rec->id] = $rec->id;
-                $current += static::expand($rec->inherit, $current);
+            if (!isset($current[$roleId])) {
+                $current[$roleId] = $roleId;
+                // Зададените връзки са източникът за преизчисляване на наследяването.
+                $current += static::expand($rec->inheritInput ?? null, $current);
             }
         }
         

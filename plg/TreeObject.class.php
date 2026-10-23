@@ -9,7 +9,7 @@
  * @package   plg
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -331,8 +331,9 @@ class plg_TreeObject extends core_Plugin
         // Ако може да се добавя поделемент, показваме бутон за добавяне
         if ($mvc->haveRightFor('add')) {
             $url = array($mvc, 'add', 'parentId' => $data->rec->id);
-            $parentTitle = $mvc->getVerbal($data->rec, 'name');
-            $data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добавяне на ново подниво на|* '{$parentTitle}'");
+            // Масив, защото запетаите в името разделят параметрите от низ
+            $parentTitle = $data->rec->name ?? '';
+            $data->toolbar->addBtn('Подниво||Sublevel', $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на ново подниво на|* '{$parentTitle}'"));
         }
     }
     
@@ -357,14 +358,14 @@ class plg_TreeObject extends core_Plugin
             if ($mvc->haveRightFor('add', (object) array($mvc->parentFieldName => $rec->id))) {
                 $url = array($mvc, 'add', $mvc->parentFieldName => $rec->id);
                 $img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
-                $parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
+                $parentTitle = $rec->{$mvc->nameField} ?? '';
                 
                 if (!$mvc->hasPlugin('plg_RowTools2')) {
-                    $row->_addBtn = ht::createLink($img, $url, false, "title=Добавяне на ново подниво на |*'{$parentTitle}'");
+                    $row->_addBtn = ht::createLink($img, $url, false, array('title' => "Добавяне на ново подниво на |*'{$parentTitle}'"));
                 }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=Добавяне на ново подниво на |*'{$parentTitle}'");
+                $row->_rowTools->addLink('Подниво||Sublevel', $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на ново подниво на |*'{$parentTitle}'"));
             }
             
             // Ако записа е намерен при търсене добавяме му клас
