@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -2488,6 +2488,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
             }
 
+            // При "nogrp" групите на реда не се показват
+            $fieldForGroup = null;
             if ($rec->typeOfGroups == 'art') {
                 $fieldForGroup = 'group';
             } elseif (($rec->typeOfGroups == 'category')) {
@@ -2495,7 +2497,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             } elseif (($rec->typeOfGroups == 'no')) {
                 $fieldForGroup = 'category';
             }
-            if ($rec->$fieldForGroup) {
+            if (isset($fieldForGroup) && !empty($rec->{$fieldForGroup})) {
                 $row->$fieldForGroup = self::getGroups($dRec, true, $rec, doc_plg_HidePrices::canSeePriceFields('frame2_Reports', $rec));
             }
 
