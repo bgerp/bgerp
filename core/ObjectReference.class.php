@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -199,7 +199,7 @@ class core_ObjectReference
         $result = $this->getInstance()->fetchRec($this->that);
         
         if (!empty($field)) {
-            $result = $result->{$field};
+            $result = is_object($result) ? ($result->{$field} ?? null) : null;
         }
         
         return $result;

@@ -7,7 +7,7 @@
  * @category  ef
  * @package   core
  *
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  */
 class core_tests_Html extends unit_Class
@@ -67,6 +67,63 @@ class core_tests_Html extends unit_Class
 
         ut::expectEqual(substr_count($html, 'type="radio"'), 2);
         ut::expectEqual(strpos($html, 'notAllowEmptyRadioHolder') !== false, true);
+    }
+
+
+    /**
+     * Коректният HTML, вкл. пропуснатите незадължителни затварящи тагове, не се променя
+     */
+    public static function test_BalanceTagsKeepsValidHtml(core_Html $Html)
+    {
+        foreach (array(
+            '<b>a</b> <i>b</i> <span style="color:red">c</span> <div class="x">d</div><ul><li> e<br></li><li> f</li></ul>',
+            '<ul><li>a<li>b</ul><dl><dt>a<dd>b</dl><p>a<p>b<div>c</div>',
+            '<table><tr><td>a<td>b<tr><td>c</table><select><option>a<option>b</select>',
+            '<!-- <div> --><script>var s = "</div>";</script><textarea>[b] <div></textarea><b>x</b>',
+            'Текст [beer] <img src="x.png"> <br/> <hr> [#richText1#] <svg><path d="M0"/></svg>',
+        ) as $html) {
+            ut::expectEqual($Html->balanceTags($html), $html);
+        }
+    }
+
+
+    /**
+     * Незатворените елементи се затварят, а затварящите тагове без отворен елемент отпадат
+     */
+    public static function test_BalanceTagsClosesAndDrops(core_Html $Html)
+    {
+        foreach (array(
+            'Текст <b>удебелен' => 'Текст <b>удебелен</b>',
+            '<div class="info">x' => '<div class="info">x</div>',
+            'x</div> y' => 'x y',
+            'a</td><td>b' => 'ab',
+            'a <div class="x' => 'a &lt;div class="x',
+            'x <!-- y' => 'x <!-- y-->',
+        ) as $html => $expected) {
+            ut::expectEqual($Html->balanceTags($html), $expected);
+            ut::expectEqual($Html->balanceTags($expected), $expected);
+        }
+    }
+
+
+    /**
+     * Грешно вложените елементи се затварят в обхвата си, а форматирането продължава като в браузъра
+     */
+    public static function test_BalanceTagsMisnesting(core_Html $Html)
+    {
+        foreach (array(
+            '<i> a <b> b </i> c </b> d' => '<i> a <b> b </b></i><b> c </b> d',
+            '<div class="info"><b>x</div>y</b>' => '<div class="info"><b>x</b></div><b>y</b>',
+            '<b>a <div class="info">b</b> c</div>' => '<b>a <div class="info">b</b> c</div>',
+            '<table><tr><td><div>a</td></tr></table></div> b' => '<table><tr><td><div>a</div></td></tr></table> b',
+            '<table><tr><td><b>a</td><td>b</td></tr></table>c' => '<table><tr><td><b>a</b></td><td>b</td></tr></table>c',
+            '<ul><li><div>a</li><li>b</li></ul></div> c' => '<ul><li><div>a</div></li><li>b</li></ul> c',
+            '<a href="1">x<a href="2">y</a>' => '<a href="1">x</a><a href="2">y</a>',
+            '<table><tr><td>a</td></tr><table>b' => '<table><tr><td>a</td></tr></table><table>b</table>',
+        ) as $html => $expected) {
+            ut::expectEqual($Html->balanceTags($html), $expected);
+            ut::expectEqual($Html->balanceTags($expected), $expected);
+        }
     }
 
 

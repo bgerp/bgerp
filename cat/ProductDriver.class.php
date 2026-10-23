@@ -803,6 +803,33 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getAdditionalNotesToDocument($productId, $documentType)
     {
     }
+
+
+    /**
+     * Групи свързани артикули, през които могат да се добавят артикули в документите
+     *
+     * @param int $productId - ид на артикул
+     *
+     * @return array - [ключ на група] => заглавие на групата
+     */
+    public function getRelatedProductGroups($productId)
+    {
+        return array();
+    }
+
+
+    /**
+     * Свързаните артикули от избраната група
+     *
+     * @param int    $productId - ид на артикул
+     * @param string $groupKey  - ключ на група от getRelatedProductGroups()
+     *
+     * @return array - [ид на артикул] => заглавие
+     */
+    public function getRelatedProductsByGroup($productId, $groupKey)
+    {
+        return array();
+    }
     
     
     /**

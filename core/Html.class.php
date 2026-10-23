@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1707,6 +1707,348 @@ class core_Html
         $text = trim(preg_replace($search, ' ', $html));
         
         return $text;
+    }
+    
+    
+    /**
+     * Балансира таговете на HTML фрагмент, за да не засяга HTML-а около него
+     *
+     * Затварящ таг без отворен елемент в обхвата си се премахва, а незатворените
+     * елементи се затварят в края. При грешна подредба вътрешните елементи се
+     * затварят изрично, а прекъснатото форматиране (b, i, u...) се отваря наново,
+     * както го показва браузърът. Коректният HTML остава непроменен.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    public static function balanceTags($html)
+    {
+        $html = (string) $html;
+        if (strpos($html, '<') === false) {
+            
+            return $html;
+        }
+        
+        static $set = null;
+        if (!isset($set)) {
+            foreach (array(
+                // Елементи без затварящ таг
+                'void' => 'area,base,basefont,bgsound,br,col,embed,frame,hr,image,img,input,keygen,link,meta,param,source,track,wbr',
+                // Съдържанието им е текст до затварящия таг
+                'raw' => 'iframe,noembed,noframes,noscript,script,style,textarea,title,xmp',
+                // Форматиране, което браузърът продължава след прекъсване
+                'format' => 'a,b,big,code,em,font,i,nobr,s,small,strike,strong,tt,u',
+                // Блокови елементи ("special" в HTML5) - спират затварящите тагове на останалите
+                'special' => 'address,applet,area,article,aside,base,basefont,bgsound,blockquote,body,br,button,caption,center,col,colgroup,dd,details,dir,div,dl,dt,embed,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,iframe,img,input,keygen,li,link,listing,main,marquee,menu,meta,nav,noembed,noframes,noscript,object,ol,p,param,plaintext,pre,script,search,section,select,source,style,summary,table,tbody,td,template,textarea,tfoot,th,thead,title,tr,track,ul,wbr,xmp',
+                // Затварящите им тагове търсят елемента в обхвата
+                'block' => 'address,applet,article,aside,blockquote,button,center,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,li,listing,main,marquee,menu,nav,object,ol,pre,search,section,select,summary,template,ul',
+                // Граници на обхвата
+                'scope' => 'applet,caption,html,marquee,object,table,td,template,th',
+                // Форматирането отвътре не продължава след тях
+                'marker' => 'applet,caption,marquee,object,td,template,th',
+                // Браузърът ги затваря и без затварящ таг
+                'optional' => 'caption,colgroup,dd,dt,li,optgroup,option,rb,rp,rt,rtc,tbody,td,tfoot,th,thead,tr',
+                // Части на таблица - извън таблица браузърът ги пропуска
+                'table' => 'caption,col,colgroup,tbody,td,tfoot,th,thead,tr',
+                // Таблица, в която текстът не възстановява форматирането
+                'inTable' => 'table,tbody,tfoot,thead,tr',
+                // Не се следят - браузърът ги затваря или пропуска сам
+                'skip' => 'body,head,html,p',
+                // Блокови, пред които браузърът отваря наново форматирането
+                'reopen' => 'applet,area,br,button,embed,img,input,keygen,marquee,object,select,wbr,xmp',
+                'heading' => 'h1,h2,h3,h4,h5,h6',
+                // Елементи, по които браузърът разбира къде в таблицата е
+                'tablePart' => 'caption,colgroup,table,tbody,td,tfoot,th,thead,tr',
+                // В тях таблицата се влага, а не затваря отворената
+                'cell' => 'caption,td,th',
+                // Тагове, които браузърът чете в <select>, и такива, които го затварят
+                'inSelect' => 'hr,optgroup,option,template',
+                'endSelect' => 'input,keygen,textarea',
+            ) as $key => $list) {
+                $set[$key] = array_flip(explode(',', $list));
+            }
+        }
+        
+        $stack = $pending = array();
+        $out = '';
+        $markers = $seq = 0;
+        
+        // Намира отворен елемент с някое от имената, без да излиза от обхвата
+        $find = function ($names, $stop, $stopAtSpecial = false) use (&$stack, $set) {
+            for ($j = countR($stack) - 1; $j >= 0; $j--) {
+                $name = $stack[$j]['name'];
+                if (isset($names[$name])) {
+                    
+                    return $j;
+                }
+                if (isset($stop[$name]) || ($stopAtSpecial && isset($set['special'][$name]))) {
+                    break;
+                }
+            }
+        };
+        
+        // Затваря елементите над $k, а при $self и самия $k (със затварящ таг при $emit).
+        // Прекъснатото форматиране се отваря наново по-късно
+        $popTo = function ($k, $self = false, $emit = false) use (&$stack, &$pending, &$out, &$markers, $set) {
+            // Незадължителен затварящ таг се пропуска, само ако под елемента няма изрично затварящи се
+            $silent = array();
+            $explicit = false;
+            for ($j = $k + 1; $j < countR($stack); $j++) {
+                $silent[$j] = !$explicit && isset($set['optional'][$stack[$j]['name']]);
+                $explicit = !$silent[$j];
+            }
+            $reopen = array();
+            while (countR($stack) > ($self ? $k : $k + 1)) {
+                $j = countR($stack) - 1;
+                $e = array_pop($stack);
+                $isTarget = ($j == $k);
+                if (isset($set['marker'][$e['name']])) {
+                    $markers--;
+                    $reopen = array();
+                    foreach ($pending as $i => $p) {
+                        if ($p['level'] > $markers) {
+                            unset($pending[$i]);
+                        }
+                    }
+                }
+                if ($isTarget ? $emit : !$silent[$j]) {
+                    $out .= '</' . $e['name'] . '>';
+                }
+                if (!$isTarget && isset($set['format'][$e['name']])) {
+                    $reopen[] = $e;
+                }
+            }
+            foreach ($reopen as $e) {
+                $e['level'] = $markers;
+                $pending[] = $e;
+            }
+        };
+        
+        // Затваря форматиране. Блоковете над него браузърът оставя отворени и затваря
+        // само форматирането (adoption agency), затова тагът остава на мястото си
+        $adopt = function ($k, $tok) use (&$stack, &$out, $set, $popTo) {
+            for ($s = countR($stack) - 1; $s > $k && !isset($set['special'][$stack[$s]['name']]); $s--) {
+            }
+            $popTo($s, $s == $k);
+            $out .= $tok;
+            for ($j = $s - 1; $j >= $k; $j--) {
+                $e = $stack[$j]['name'];
+                if ($j == $k || !(isset($set['format'][$e]) || isset($set['special'][$e]))) {
+                    array_splice($stack, $j, 1);
+                }
+            }
+        };
+        
+        // Отваря наново прекъснатото форматиране преди новото съдържание
+        $flush = function () use (&$stack, &$pending, &$out, &$markers) {
+            usort($pending, function ($a, $b) {
+                
+                return $a['seq'] - $b['seq'];
+            });
+            foreach ($pending as $i => $e) {
+                if ($e['level'] == $markers) {
+                    $out .= $e['tag'];
+                    $stack[] = $e;
+                    unset($pending[$i]);
+                }
+            }
+        };
+        
+        // Текст преди следващия таг
+        $text = function ($str) use (&$stack, &$pending, &$out, $set, $flush) {
+            if ($str === '') {
+                
+                return;
+            }
+            if ($pending && !isset($set['inTable'][$stack ? $stack[countR($stack) - 1]['name'] : ''])) {
+                $flush();
+            }
+            $out .= $str;
+        };
+        
+        // Атрибутите се разпознават като в браузъра, включително незатворените кавички
+        $attrs = '(?:[\s/]++|[^\s/>][^\s/>=]*+(?(?=\s*+=)\s*+=\s*+(?:"[^"]*+"|\'[^\']*+\'|(?![\'"])[^\s>]*+)))*+';
+        $pattern = '~<!--(?:-?>|.*?(?:--!?>|\z))|<[!?][^>]*+>?|</(?![a-zA-Z])[^>]*+>?|<(/?)([a-zA-Z][^\s/>]*+)(' . $attrs . ')>|<(?=/?[a-zA-Z])~s';
+        
+        $pos = 0;
+        $len = strlen($html);
+        while ($pos < $len && preg_match($pattern, $html, $m, PREG_OFFSET_CAPTURE, $pos)) {
+            $tok = $m[0][0];
+            $text(substr($html, $pos, $m[0][1] - $pos));
+            $pos = $m[0][1] + strlen($tok);
+            
+            if (!isset($m[2]) || $m[2][1] < 0) {
+                if ($tok == '<') {
+                    // Незавършен таг би погълнал HTML-а след фрагмента
+                    $out .= '&lt;';
+                } elseif (strpos($tok, '<!--') === 0) {
+                    $out .= $tok . (preg_match('/^<!---?>$|--!?>$/', $tok) ? '' : '-->');
+                } else {
+                    $out .= $tok . (substr($tok, -1) == '>' ? '' : '>');
+                }
+                continue;
+            }
+            
+            $name = strtolower($m[2][0]);
+            
+            // В <select> браузърът пропуска почти всички тагове
+            for ($j = countR($stack) - 1; $j >= 0 && ($stack[$j]['name'] == 'option' || $stack[$j]['name'] == 'optgroup'); $j--) {
+            }
+            if ($j >= 0 && $stack[$j]['name'] == 'select' && !isset($set['inSelect'][$name]) && $name != 'script' && $m[1][0] . $name != '/select') {
+                if ($m[1][0] != '' || ($name != 'select' && !isset($set['endSelect'][$name]))) {
+                    continue;
+                }
+                
+                // Нов <select> или поле за въвеждане затварят отворения
+                $popTo($j, true, true);
+                if ($name == 'select') {
+                    continue;
+                }
+            }
+            
+            if ($m[1][0] == '') {
+                // Отварящ таг
+                if ($name == 'plaintext') {
+                    // Превръща в текст всичко след себе си, затова се показва като текст
+                    $out .= '&lt;' . substr($tok, 1);
+                    continue;
+                }
+                if (isset($set['skip'][$name])) {
+                    $out .= $tok;
+                    continue;
+                }
+                
+                // Елементите, които браузърът затваря сам при новия таг
+                $k = null;
+                $t = (isset($set['table'][$name]) || $name == 'table') ? $find(array('table' => 1), array('html' => 1, 'template' => 1)) : null;
+                if (isset($t)) {
+                    // Най-близкият табличен елемент определя как браузърът чете тага
+                    $c = $find($set['tablePart'], array());
+                    $mode = $stack[$c]['name'];
+                    if ($name == 'table') {
+                        // Таблица извън клетка затваря отворената
+                        $k = isset($set['cell'][$mode]) ? null : $t;
+                    } elseif ($name == 'td' || $name == 'th') {
+                        $k = (isset($set['cell'][$mode]) || $mode == 'colgroup') ? $c : $c + 1;
+                    } elseif ($name == 'tr') {
+                        $k = $find(array('table' => 1, 'tbody' => 1, 'tfoot' => 1, 'thead' => 1), array()) + 1;
+                    } elseif ($name != 'col' || $mode != 'colgroup') {
+                        $k = $t + 1;
+                    }
+                } elseif (isset($set['table'][$name])) {
+                    // Извън таблица браузърът пропуска тага, а в чужда клетка би я затворил
+                    continue;
+                } elseif ($name == 'li' || $name == 'dd' || $name == 'dt') {
+                    for ($j = countR($stack) - 1; $j >= 0; $j--) {
+                        $e = $stack[$j]['name'];
+                        if ($e == $name || ($name != 'li' && ($e == 'dd' || $e == 'dt'))) {
+                            $k = $j;
+                            break;
+                        }
+                        if (isset($set['special'][$e]) && $e != 'address' && $e != 'div' && $e != 'p') {
+                            break;
+                        }
+                    }
+                } elseif ($name == 'a' || $name == 'nobr' || $name == 'button') {
+                    $k = $find(array($name => 1), $set['scope']);
+                    foreach ($pending as $i => $p) {
+                        if ($p['name'] == $name) {
+                            unset($pending[$i]);
+                        }
+                    }
+                } elseif ($stack && (isset($set['heading'][$name]) || $name == 'option' || $name == 'optgroup')) {
+                    $top = $stack[countR($stack) - 1]['name'];
+                    if (isset($set['heading'][$name]) ? isset($set['heading'][$top]) : ($top == 'option')) {
+                        $k = countR($stack) - 1;
+                    }
+                }
+                if (isset($k) && $k < countR($stack)) {
+                    if ($name == 'a' || $name == 'nobr') {
+                        $adopt($k, "</{$name}>");
+                    } else {
+                        $popTo($k, true, !isset($set['optional'][$stack[$k]['name']]));
+                    }
+                }
+                
+                if ($pending && (isset($set['format'][$name]) || isset($set['reopen'][$name]) || !(isset($set['special'][$name]) || isset($set['block'][$name])))) {
+                    $flush();
+                }
+                
+                $out .= $tok;
+                
+                // Самозатварящ се таг има само в SVG и MathML
+                if (isset($set['void'][$name]) || (substr($m[3][0], -1) == '/' && $find(array('svg' => 1, 'math' => 1), array()) !== null)) {
+                    continue;
+                }
+                
+                if (isset($set['raw'][$name])) {
+                    if (preg_match('~</' . $name . '(?=[\s/>])' . $attrs . '>~i', $html, $em, PREG_OFFSET_CAPTURE, $pos)) {
+                        $end = $em[0][1] + strlen($em[0][0]);
+                        $out .= substr($html, $pos, $end - $pos);
+                        $pos = $end;
+                    } else {
+                        $out .= substr($html, $pos) . "</{$name}>";
+                        $pos = $len;
+                    }
+                    continue;
+                }
+                
+                $stack[] = array('name' => $name, 'tag' => $tok, 'seq' => $seq++);
+                if (isset($set['marker'][$name])) {
+                    $markers++;
+                }
+                continue;
+            }
+            
+            // Затварящ таг
+            if ($name == 'br' || isset($set['void'][$name]) || isset($set['skip'][$name])) {
+                if ($name == 'br' && $pending) {
+                    $flush();
+                }
+                $out .= $tok;
+                continue;
+            }
+            
+            if (isset($set['table'][$name]) || $name == 'table') {
+                $k = $find(array($name => 1), array('html' => 1, 'table' => 1, 'template' => 1));
+            } else {
+                $stop = ($name == 'li') ? $set['scope'] + array('ol' => 1, 'ul' => 1) : $set['scope'];
+                $k = $find(isset($set['heading'][$name]) ? $set['heading'] : array($name => 1), $stop, !isset($set['format'][$name]) && !isset($set['block'][$name]));
+            }
+            
+            // Затварящият таг може да се отнася за прекъснато форматиране, което още не е отворено наново
+            $p = null;
+            foreach ($pending as $i => $e) {
+                if ($e['name'] == $name && $e['level'] == $markers && (!isset($p) || $e['seq'] > $pending[$p]['seq'])) {
+                    $p = $i;
+                }
+            }
+            if (isset($p) && (!isset($k) || $pending[$p]['seq'] > $stack[$k]['seq'])) {
+                unset($pending[$p]);
+                continue;
+            }
+            
+            // Без отворен елемент в обхвата браузърът би затворил външен елемент
+            if (!isset($k)) {
+                continue;
+            }
+            
+            if (isset($set['format'][$name])) {
+                $adopt($k, $tok);
+            } else {
+                $popTo($k, true);
+                $out .= $tok;
+            }
+        }
+        
+        $text(substr($html, $pos));
+        
+        for ($j = countR($stack) - 1; $j >= 0; $j--) {
+            $out .= '</' . $stack[$j]['name'] . '>';
+        }
+        
+        return $out;
     }
     
     
