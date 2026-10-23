@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -912,7 +912,8 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         $conf = core_Packs::getConfig('sales');
-        $def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_INVOICE_DEF_TPL_BG : $conf->SALE_INVOICE_DEF_TPL_EN;
+        $countryId = !empty($cData->countryId) ? $cData->countryId : (crm_Companies::fetchOurCompany()->country ?? null);
+        $def = ($bgId == $countryId) ? $conf->SALE_INVOICE_DEF_TPL_BG : $conf->SALE_INVOICE_DEF_TPL_EN;
         
         return $def;
     }

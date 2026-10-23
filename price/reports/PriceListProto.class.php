@@ -14,7 +14,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -310,7 +310,8 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $cData = doc_Folders::getContragentData($form->rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-            $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
+            $countryId = !empty($cData->countryId) ? $cData->countryId : (crm_Companies::fetchOurCompany()->country ?? null);
+            $lang = (!empty($countryId) && $countryId != $bgId) ? 'en' : 'bg';
             $form->setDefault('lang', $lang);
         }
 

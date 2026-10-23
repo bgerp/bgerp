@@ -1663,12 +1663,6 @@ class crm_Companies extends core_Master
         $rec = static::fetch($id);
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
 
-        // Ако не е посочена държава, вингаи начисляваме ДДС
-        if (empty($rec->country)) {
-            
-            return true;
-        }
-        
         // Ако не е в Еропейския съюз, не начисляваме ДДС
         if (!drdata_Countries::isEu($rec->country)) {
             
@@ -1699,8 +1693,8 @@ class crm_Companies extends core_Master
     {
         $rec = self::fetch($id);
         
-        // Ако контрагента няма държава, то дефолт валутата е BGN
-        if (empty($rec->country) || $rec->country == drdata_Countries::getIdByName('Bulgaria')) {
+        // Ако контрагента е от България, то дефолт валутата е основната
+        if (($rec->country ?? null) == drdata_Countries::getIdByName('Bulgaria')) {
             
             return acc_Periods::getBaseCurrencyCode();
         }
