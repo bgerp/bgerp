@@ -47,14 +47,11 @@
     <table class="tdsSignatureTable">
         <tr>
             <th>За производителя</th>
-            <td>[#MANUFACTURER_SIGN_PAD#]</td>
-        </tr>
-        <tr>
-            <th>Подпис</th>
             <td class="tdsSignatureValue">
                 [#MANUFACTURER_SIGN#]
                 <!--ET_BEGIN signerName--><div class="tdsSignerName">/[#signerName#]/</div><!--ET_END signerName-->
             </td>
+            <td class="tdsSignatureAction">[#MANUFACTURER_SIGN_PAD#]</td>
         </tr>
     </table>
 </section>

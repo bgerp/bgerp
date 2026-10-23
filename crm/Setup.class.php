@@ -393,17 +393,20 @@ class crm_Setup extends core_ProtoSetup
 
 
     /**
-     * Задава България на фирмите и лицата без държава
+     * Задава държавата на моята фирма на фирмите и лицата без държава
      */
     public function setEmptyCountryToBg2643()
     {
-        $bgId = (int) drdata_Countries::getIdByName('Bulgaria');
-        expect($bgId);
+        $ownCountryId = (int) (crm_Companies::fetchOurCompany('country')->country ?? null);
+        if (empty($ownCountryId)) {
+            $ownCountryId = (int) drdata_Countries::getIdByName(BGERP_OWN_COMPANY_COUNTRY);
+        }
+        expect($ownCountryId);
 
         $countryColName = str::phpToMysqlName('country');
         foreach (array('crm_Companies', 'crm_Persons') as $class) {
             $Mvc = cls::get($class);
-            $Mvc->db->query("UPDATE `{$Mvc->dbTableName}` SET `{$countryColName}` = {$bgId} WHERE `{$countryColName}` IS NULL OR `{$countryColName}` = ''");
+            $Mvc->db->query("UPDATE `{$Mvc->dbTableName}` SET `{$countryColName}` = {$ownCountryId} WHERE `{$countryColName}` IS NULL OR `{$countryColName}` = ''");
         }
     }
 }

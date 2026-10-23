@@ -1523,18 +1523,26 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
 
 /* Without the side navigation the filters are a bar above the products, values open as dropdowns. */
 .eshop-public #eshopParamFilterTop .eshop-param-filter {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    align-items: start;
     gap: 8px;
     margin: 0 0 20px;
     padding: 10px 12px;
     overflow: visible;
 }
+@media (max-width: 1100px) {
+    .eshop-public #eshopParamFilterTop .eshop-param-filter {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+    }
+}
 /* The legend sits in the frame above the filter buttons. */
 .eshop-public #eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
     display: inline-flex;
-    width: auto;
+    width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     margin: 0;
@@ -1546,6 +1554,8 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
 }
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param,
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param:last-child {
+    box-sizing: border-box;
+    width: 100%;
     position: relative;
     border: 1px solid var(--shop-line);
     border-radius: 8px;
@@ -1554,7 +1564,8 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
     border-color: var(--shop-accent);
 }
 .eshop-public #eshopParamFilterTop details.eshop-param-filter-param > summary {
-    padding: 7px 30px 7px 12px;
+    padding: 6px 26px 6px 10px;
+    overflow-wrap: anywhere;
     border-radius: 8px;
 }
 .eshop-public #eshopParamFilterTop .eshop-param-filter-values {
