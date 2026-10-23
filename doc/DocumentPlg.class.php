@@ -2773,6 +2773,11 @@ class doc_DocumentPlg extends core_Plugin
             return;
         }
 
+        // Контирането се ограничава от отговорниците на склада/касата/сметката, а не от достъпа до нишката
+        if ($action == 'conto' && $mvc->hasPlugin('acc_plg_Contable')) {
+            return;
+        }
+
         $userId = $userId ?? core_Users::getCurrent();
         // Служебните операции запазват собствените си проверки и жизнен цикъл.
         if ($userId == core_Users::SYSTEM_USER) {
