@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -567,6 +567,24 @@ abstract class deals_Helper
             $productRow->append(new core_ET("<div class='small'>[#NOTES#]</div>"));
             $productRow->replace($notes, 'NOTES');
         }
+    }
+
+
+
+    /**
+     * Текстът, с който ред от документ се показва като свързан с артикул от сделката
+     * (напр. устройство и сериен номер на сервизна услуга)
+     *
+     * @param int $productId - ид на артикул от сделката
+     *
+     * @return string
+     */
+    public static function getRelatedProductNote($productId)
+    {
+        $Driver = cat_Products::getDriver($productId);
+        $note = $Driver ? trim((string) $Driver->getAdditionalNotesToDocument($productId, 'plain')) : '';
+
+        return ($note !== '') ? $note : cat_Products::getTitleById($productId, false);
     }
     
     

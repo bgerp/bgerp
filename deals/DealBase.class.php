@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -150,8 +150,9 @@ abstract class deals_DealBase extends core_Master
         }
 
         foreach ($dealDocuments as $d) {
+            // Документ без запис (изтрит) не участва в агрегирането
             $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') continue;
+            if (empty($dState) || $dState == 'draft' || $dState == 'rejected') continue;
 
             if ($d->haveInterface('bgerp_DealIntf')) {
                 try {

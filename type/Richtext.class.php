@@ -23,7 +23,7 @@ defIfNot('RICHTEXT_BOLD_TEXT', 'За,Отн,Относно,回复,转发,SV,VS,V
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -421,6 +421,9 @@ class type_Richtext extends type_Blob
             
             $html = str_replace('<nbsp>', '&nbsp;', $html);
             Debug::stopTimer('RichtextReplaceIntervals');
+            
+            // Незатворен или разместен BB таг не трябва да засяга HTML-а след текста
+            $html = ht::balanceTags($html);
         }
         
         if (!Mode::is('text', 'plain')) {
@@ -807,9 +810,10 @@ class type_Richtext extends type_Blob
             $title = tr('Невалиден идентификатор на картинка');
         }
         
-        $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" alt=\"{$title}\"><br><small>";
+        // Обвиващите тагове остават в текста, за да се балансират заедно със съдържанието
+        $this->_htmlBoard[$place] = "<img src=\"{$url}\" alt=\"{$title}\">";
         
-        return "[#{$place}#]{$title} </small></div>";
+        return "<div>[#{$place}#]<br><small>{$title} </small></div>";
     }
     
     
@@ -823,9 +827,9 @@ class type_Richtext extends type_Blob
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
-        $this->_htmlBoard[$place] = "<div><iframe src=\"//docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe><br><small>";
+        $this->_htmlBoard[$place] = "<iframe src=\"//docs.google.com/gview?url={$url}&embedded=true\" style=\"width:600px; height:500px;\" frameborder=\"0\"></iframe>";
         
-        return "[#{$place}#]{$title}</small></div>";
+        return "<div>[#{$place}#]<br><small>{$title}</small></div>";
     }
     
     
@@ -1117,7 +1121,7 @@ class type_Richtext extends type_Blob
             // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
             $title = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $title);
             
-            $this->_htmlBoard[$titlePlace] = $title;
+            $this->_htmlBoard[$titlePlace] = ht::balanceTags($title);
         }
         
         if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
@@ -1153,11 +1157,12 @@ class type_Richtext extends type_Blob
         $id = 'hide' . rand(1, 1000000);
         
         $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
-                   >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
+                   >{$title}</a>";
         
         $this->_htmlBoard[$place] = $html;
         
-        return "[#{$place}#]{$text}</div>";
+        // Блокът остава в текста, за да се балансират таговете в него
+        return "[#{$place}#]<div class='clearfix21 richtextHide' id='{$id}'>{$text}</div>";
     }
     
     

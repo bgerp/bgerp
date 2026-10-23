@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -105,6 +105,39 @@ class type_tests_Richtext extends unit_Class
         } finally {
             Mode::pop('text');
         }
+    }
+
+
+    /**
+     * Незатворен или разместен BB таг не засяга HTML-а след текста
+     */
+    public function test_UnbalancedTags()
+    {
+        $rt = cls::get('type_Richtext');
+        $render = function ($text) use ($rt) {
+            $html = $rt->toVerbal($text);
+
+            return ($html instanceof core_ET) ? $html->getContent() : (string) $html;
+        };
+
+        // Коректният текст не се променя
+        UT::expectEqual($render('[b]a[/b] [bInfo]b[/bInfo]'), "<div class=\"richtext\"><b>a</b> <div class=\"richtext-message richtext-info\">b</div>\n\n</div>");
+
+        UT::expectEqual($render('[b]удебелен'), "<div class=\"richtext\"><b>удебелен\n\n</b></div>");
+        UT::expectEqual($render('текст[/bInfo] след'), "<div class=\"richtext\">текст след\n\n</div>");
+        UT::expectEqual($render('[i]а [b]б[/i] в[/b]'), "<div class=\"richtext\"><i>а <b>б</b></i><b> в</b>\n\n</div>");
+
+        // Блокът в клетката се затваря в нея, а затварящият таг след таблицата отпада
+        $html = $render("|[bInfo]a|b|\n[/bInfo] след");
+        UT::expectEqual(strpos($html, '<td><div class="richtext-message richtext-info">a</div></td>') !== false, true);
+        UT::expectEqual(substr_count($html, '<div'), substr_count($html, '</div>'));
+
+        // Затварящ таг в цитат може да затваря форматиране отвън - оставя се на браузъра
+        UT::expectEqual($render('[b]Важно: [bQuote]цитат[/b][/bQuote] край'), "<div class=\"richtext\"><b>Важно: <div class='richtext-quote no-spell-check'>цитат</b></div> край\n\n</div>");
+
+        // Скритият текст и картинката запазват HTML-а си
+        UT::expectEqual((bool) preg_match("~<div class='clearfix21 richtextHide' id='hide\d+'>текст</div>~", $render('[hide=Покажи]текст[/hide]')), true);
+        UT::expectEqual(strpos($render('[img=http://example.com/a.png]Надпис[/img]'), '<div><img src="http://example.com/a.png" alt="Надпис"><br><small>Надпис </small></div>') !== false, true);
     }
     
     
