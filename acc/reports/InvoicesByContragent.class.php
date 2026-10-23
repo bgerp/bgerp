@@ -629,13 +629,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if (($rec->accountingCorrections ?? 'no') == 'yes') {
                 $startedOn = microtime(true);
-                // Корекция може да остави остатък и по фактура, която иначе е платена.
+                // Запазва избрания алгоритъм и обединените сделки; остатъкът се филтрира след МО.
                 $sourceRec = clone $rec;
-                $sourceRec->accountingPaymentFilter = $rec->unpaid ?? 'all';
-                $sourceRec->unpaid = 'all';
-                $sourceRec->accountingOnlyOpen = ($rec->unpaid ?? 'all') != 'all';
-                if ($sourceRec->accountingOnlyOpen) $sourceRec->{'seeProformаs'} = null;
-                $recs = $this->prepareInvoiceRecs($sourceRec, $data);
+                $recs = $this->prepareInvoiceRecs($sourceRec, $data, true);
 
                 $recs = $this->prepareAccountingCorrections($rec, $recs, $sourceRec->accountingThreadGroups ?? array());
                 self::addReportStat($data, 'rows', 0, countR($recs));
@@ -877,16 +873,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rate = ($dRec->rate ?? 1) ?: 1;
             $paid = self::getPaidAmount($dRec);
             $value = $dRec->invoiceValue ?? 0;
-            $balance = round((($dRec->fastMarker ?? 1) ? $value - $paid : 0) - ($dRec->accountingCorrection ?? 0), 2);
+            // При Неплатени/Просрочени това е остатъкът от общото разпределение, включително КИ/ДИ.
+            $balance = $rec->unpaid != 'all' && empty($dRec->isAccountingCorrection)
+                ? ($dRec->invoiceCurrentSumm ?? 0) * $rate
+                : (($dRec->fastMarker ?? 1) ? $value - $paid : 0);
+            if ($dRec->accountingCorrection != 0) $balance = round($balance - $dRec->accountingCorrection, 2);
             $dRec->invoiceCurrentSumm = $balance / $rate;
-            $overdue = !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && $balance > 0;
+            $overdue = !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && round($balance / $rate, 2) > 0;
             if (($rec->unpaid == 'overdue' && !$overdue) || ($rec->unpaid != 'all' && abs($balance / $rate) <= ($rec->sill ?? 0))) {
                 unset($recs[$key]);
                 continue;
             }
             if (($dRec->className ?? null) == sales_Proformas::class) continue;
             $name = $dRec->contragent ?? '';
-            $amounts = array($value, $paid, max(0, $balance), min(0, $balance), $overdue && $dRec->dueDate < $rec->checkDate ? $balance : 0, $dRec->accountingCorrection ?? 0);
+            $overdueAmount = !empty($dRec->dueDate) && $dRec->dueDate < $rec->checkDate && $balance > 0 ? $balance : 0;
+            $amounts = array($value, $paid, max(0, $balance), min(0, $balance), $overdueAmount, $dRec->accountingCorrection ?? 0);
             foreach ($fields as $i => $field) {
                 $totals[$name][$field] = ($totals[$name][$field] ?? 0) + $amounts[$i];
                 $rec->{$field . 'All'} += $amounts[$i];
@@ -910,10 +911,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      *
      * @param stdClass $rec
      * @param stdClass $data
+     * @param bool $deferBalanceFilter - при МО задържа и платените фактури до прилагането на корекциите
      *
      * @return array
      */
-    private function prepareInvoiceRecs($rec, &$data = null)
+    private function prepareInvoiceRecs($rec, &$data = null, $deferBalanceFilter = false)
     {
         // Стари записи на справката може да нямат полетата, добавени по-късно
         $rec->unpaid = $rec->unpaid ?? 'all';
@@ -1032,8 +1034,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $groupFolders = self::getFoldersInGroups($rec);
             $folderIds = isset($folderIds) ? array_intersect($folderIds, $groupFolders) : $groupFolders;
         }
-        $paymentFilter = $rec->accountingPaymentFilter ?? $rec->unpaid;
-        $params = "{$rec->typeOfInvoice}, {$paymentFilter}, " . ($rec->fromDate ?? '') . " - {$checkDate}, sill={$rec->sill}";
+        $params = "{$rec->typeOfInvoice}, {$rec->unpaid}, " . ($rec->fromDate ?? '') . " - {$checkDate}, sill={$rec->sill}";
         if (($rec->accountingCorrections ?? 'no') == 'yes') $params .= ', accountingCorrections=yes';
         if (!empty($rec->paymentType)) {
             $params .= ", paymentType={$rec->paymentType}";
@@ -1151,7 +1152,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     unset($fields['type']);
                 }
                 $invQuery->show($fields);
-                if (($rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen)) && $InvDoc == sales_Invoices::class) {
+                if ($rec->unpaid != 'all' && $InvDoc == sales_Invoices::class) {
                     self::excludeClosedDealThreads($invQuery, sales_Sales::class, $checkDate, $salesUN);
                 }
 
@@ -1163,7 +1164,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $fetched = 0;
                 self::selectReportQuery($invQuery, 10);
                 $invoices = $invQuery->fetchAll();
-                self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen));
+                self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');
                 self::addReportStat($data, "{$InvDoc}Fetch", microtime(true) - $timer, countR($invoices));
                 if ($rec->unpaid == 'all' && $InvDoc == sales_Invoices::class) {
                     $invoiceThreads = arr::extractValuesFromArray($invoices, 'threadId');
@@ -1186,7 +1187,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastMarker = isset($fastSales[$firstDocumentArr[$salesInvoice->threadId]]) ? 0 : 1;
 
                     // При „неплатени“: пропуска фактури от приключени (не обединени) сделки.
-                    if ($rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen)) {
+                    if ($rec->unpaid != 'all') {
                         $unitedCheck = false;
 
                         if (is_array($salesUN)) {
@@ -1384,7 +1385,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 continue;
                             }
 
-                            if ($onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
+                            if (!$deferBalanceFilter && $onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
                                 $skipped['notOverdue'][] = $iRec->number ?? $inv;
                                 continue;
                             }
@@ -1392,7 +1393,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if (($rec->unpaid ?? null) != 'all') {
-                                if (($invDiff >= (-1) * $rec->sill) &&
+                                if (!$deferBalanceFilter && ($invDiff >= (-1) * $rec->sill) &&
                                     ($invDiff <= $rec->sill)) {
                                     $skipped['belowSill'][] = $iRec->number;
                                     continue;
@@ -1557,12 +1558,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $timer = microtime(true);
             $fetched = 0;
-            if ($rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen)) {
+            if ($rec->unpaid != 'all') {
                 self::excludeClosedDealThreads($pQuery, purchase_Purchases::class, $checkDate, $purchasesUN);
             }
             self::selectReportQuery($pQuery, 5);
             $invoices = $pQuery->fetchAll();
-            self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen));
+            self::prefetchFirstDocuments($invoices, $firstDocuments, $dealStates, $rec->unpaid != 'all');
             self::addReportStat($data, 'purchase_InvoicesFetch', microtime(true) - $timer, countR($invoices));
             if ($rec->unpaid == 'all') {
                 $invoiceThreads = arr::extractValuesFromArray($invoices, 'threadId');
@@ -1592,7 +1593,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $fastMarker = isset($fastPur[$firstDocumentArr[$purchaseInvoices->threadId] ?? 0]) ? 0 : 1;
                 }
 
-                if ($rec->unpaid != 'all' || !empty($rec->accountingOnlyOpen)) {
+                if ($rec->unpaid != 'all') {
                     $purUnitedCheck = is_array($purchasesUN) && isset($purchasesUN[$firstDocument->that]);
                     $dealRec = $getDealState($firstDocument);
                     if (($dealRec->state ?? null) == 'closed' && ($dealRec->closedOn ?? null) <= $checkDate && !$purUnitedCheck) {
@@ -1728,7 +1729,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if ($rec->unpaid != 'all') {
-                                if (($invDiff >= (-1) * $rec->sill) &&
+                                if (!$deferBalanceFilter && ($invDiff >= (-1) * $rec->sill) &&
                                     ($invDiff <= $rec->sill)) {
                                     $skipped['belowSill'][] = $invoiceRecords[$pInv]->number ?? $pInv;
                                     continue;
@@ -1745,7 +1746,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 continue;
                             }
 
-                            if ($onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
+                            if (!$deferBalanceFilter && $onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
                                 $skipped['notOverdue'][] = $iRec->number ?? $pInv;
                                 continue;
                             }
@@ -2054,7 +2055,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (($rec->accountingCorrections ?? 'no') == 'yes') {
             $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
             $fld->FLD('accountingCorrection', 'double(decimals=2)', "caption=Корекции->Сума $baseCurrency,after=paidDates");
-            $fld->FLD('accountingDocuments', 'varchar', 'caption=Корекции->Документи,after=accountingCorrection');
+            $fld->FLD('accountingDocuments', 'varchar', 'caption=Корекции->МО,after=accountingCorrection');
             if (($rec->unpaid ?? 'all') == 'all') {
                 $fld->FLD('invoiceCurrentSumm', 'double(decimals=2)', "caption=Остатък->Неплатено $baseCurrency");
                 $fld->FLD('invoiceOverSumm', 'double(decimals=2)', "caption=Остатък->Надплатено $baseCurrency");

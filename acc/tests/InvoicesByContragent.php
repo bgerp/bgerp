@@ -356,7 +356,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $rows = array();
     foreach ($recs as $key => $detail) $rows[$key] = $driver->verbal($rec, $detail);
     check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>250.00</span>") !== false, 'Положителна нетна стойност в зелено: ' . $payment);
-    check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>300.00</span> − <span class='red'>50.00</span> = <span style='color:#080'>250.00</span>") !== false, 'Цветна разбивка за фирмата: ' . $payment);
+    check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>300.00</span> - <span class='red'>50.00</span> = <span style='color:#080'>250.00</span>") !== false, 'Цветна разбивка за фирмата: ' . $payment);
     if ($payment != 'all') check(strpos(end($rows)->combinedSummary, "<span style='color:#080'>200.00</span>") !== false, 'Нетно вземане в зелено: ' . $payment);
     $driver->grouped($recs, $rows, $fields, $data);
     check(count($rows) == 8, 'Разделител, едно име, две отделни и трето нетно обобщение: ' . $payment);
@@ -382,13 +382,13 @@ check(deals_Helper::$combined === null, 'Освободен кеш за обед
 Mode::$plain = true;
 $detail = end($recs);
 $row = $driver->verbal($rec, $detail);
-check(strpos(strip_tags($row->combinedSummary), '300.00 − 50.00 = 250.00') !== false && strpos($row->combinedSummary, 'style=') === false, 'Фирмена разбивка без оцветяване в обикновен текст');
+check(strpos(strip_tags($row->combinedSummary), '300.00 - 50.00 = 250.00') !== false && strpos($row->combinedSummary, 'style=') === false, 'Фирмена разбивка без оцветяване в обикновен текст');
 Mode::$plain = false;
 $legacyDetail = clone $detail;
 $legacyDetail->combinedSummary = clone $detail->combinedSummary;
 unset($legacyDetail->combinedSummary->invoiceTotals);
 $row = $driver->verbal($rec, $legacyDetail);
-check(strpos($row->combinedSummary, '250.00') !== false && strpos($row->combinedSummary, ' − ') === false, 'Старите запазени резултати показват нетната сума до обновяване');
+check(strpos($row->combinedSummary, '250.00') !== false && strpos($row->combinedSummary, ' - ') === false, 'Старите запазени резултати показват нетната сума до обновяване');
 
 InvoiceTestData::reset();
 $rec = reportRec('all', 'overdue');
@@ -443,7 +443,7 @@ $row = $driver->verbal($rec, $detail);
 check($rec->totalInvoiceValueAll == -50 && $rec->totalInvoicePayoutAll == -70, 'Покупките могат да надвишават продажбите');
 check($rec->totalInvoiceNotPaydAll == 20 && strpos($row->combinedSummary, '-50.00') !== false, 'Отрицателна стойност с положителен нетен остатък');
 check(strpos($row->combinedSummary, "<span class='red'>-50.00</span>") !== false && strpos($row->combinedSummary, "<span style='color:#080'>20.00</span>") !== false, 'Цветът на нетния остатък е независим от общата стойност');
-check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>150.00</span> = <span class='red'>-50.00</span>") !== false, 'Разбивка с покупки над продажбите и отрицателен резултат');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> - <span class='red'>150.00</span> = <span class='red'>-50.00</span>") !== false, 'Разбивка с покупки над продажбите и отрицателен резултат');
 check($detail->invoiceValue == 150 && $row->paidAmount == '110.00', 'Редовете за покупки запазват собствените суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
@@ -453,7 +453,7 @@ $recs = $driver->run($rec, $data);
 check($rec->totalInvoiceValueAll == 0 && $rec->totalInvoiceNotPaydAll == 0, 'Равните суми се компенсират');
 $detail = end($recs);
 $row = $driver->verbal($rec, $detail);
-check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> − <span class='red'>100.00</span> = <span class='quiet'>0.00</span>") !== false, 'Нулевият резултат остава неутрален при цветни отделни суми');
+check(strpos($row->combinedSummary, "<span style='color:#080'>100.00</span> - <span class='red'>100.00</span> = <span class='quiet'>0.00</span>") !== false, 'Нулевият резултат остава неутрален при цветни отделни суми');
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
 InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 200, 50);
@@ -877,5 +877,133 @@ $rec->accountingCorrections = 'yes';
 $corrected = $driver->run($rec, $data);
 check(count($corrected) == 501 && closeAmount($rec->totalAccountingCorrectionAll, 0), 'Прехвърлянето между партиди не се дублира');
 check(closeAmount($corrected[1]->accountingCorrection, 60) && closeAmount($corrected[501]->accountingCorrection, -60), 'Дебитът и кредитът са при правилните сделки');
+
+// Приключената обединяваща сделка участва чрез общото разпределение на групата.
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Closed combined', '2026-10-05', 100, 40);
+    InvoiceTestData::invoice($direction, 2, 'Closed combined', '2026-10-05', 200, 150);
+    InvoiceTestData::invoice($direction, 3, 'Closed combined', '2026-10-05', -25, 0);
+    InvoiceTestData::invoice($direction, 4, 'Closed combined', '2026-10-05', 25, 0);
+    $invoiceClass = $direction == 'in' ? 'purchase_Invoices' : 'sales_Invoices';
+    $dealClass = $direction == 'in' ? 'purchase_Purchases' : 'sales_Sales';
+    InvoiceTestData::$records[$invoiceClass][2]->type = InvoiceTestData::$records[$invoiceClass][3]->type = 'dc_note';
+    InvoiceTestData::combine($direction, array(2, 3, 4, 1));
+    InvoiceTestData::$records[$dealClass][0]->state = 'closed';
+    InvoiceTestData::$records[$dealClass][0]->closedOn = '2026-10-02';
+
+    foreach (array($direction, 'all') as $reportDirection) {
+        foreach (array('all', 'unpaid', 'overdue') as $payment) {
+            $rec = reportRec($reportDirection, $payment);
+            $rec->checkDate = '2026-10-08';
+            $rec->accountingCorrections = 'no';
+            $legacy = $driver->run($rec, $data);
+            $legacyTotals = clone $rec;
+            $legacyValues = array();
+            foreach ($legacy as $key => $row) {
+                $legacyValues[$row->invoiceId] = array($row->invoiceValue, $row->invoicePayout, $driver->exportRow($rec, $row)->paidAmount ?? null, $row->invoiceCurrentSumm);
+            }
+            ksort($legacyValues);
+            $rec->accountingCorrections = 'yes';
+            $corrected = $driver->run($rec, $data);
+            $values = array();
+            foreach ($corrected as $row) {
+                $values[$row->invoiceId] = array($row->invoiceValue, $row->invoicePayout, $driver->exportRow($rec, $row)->paidAmount ?? null, $payment == 'all' ? 0 : $row->invoiceCurrentSumm);
+            }
+            ksort($values);
+            $case = $direction . '/' . $reportDirection . '/' . $payment;
+            check($legacyValues == $values, 'Без МО: същите фактури, КИ/ДИ, плащания и остатъци от приключено обединение: ' . $case);
+            check(count($corrected) == ($payment == 'overdue' ? 3 : 4), 'Обединяващата фактура не отпада: ' . $case);
+            if ($payment != 'all') {
+                foreach (array('totalInvoiceValueAll', 'totalInvoicePayoutAll', 'totalInvoiceNotPaydAll', 'totalInvoiceOverPaidAll', 'totalInvoiceOverDueAll') as $field) {
+                    check(closeAmount($rec->{$field}, $legacyTotals->{$field}), 'Без МО: запазени обобщения ' . $field . ': ' . $case);
+                }
+            }
+        }
+    }
+
+    articleFixture($direction, 1, 1388, 60, '2026-10-01');
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        $rec = reportRec($direction, $payment);
+        $rec->checkDate = '2026-10-08';
+        $rec->accountingCorrections = 'yes';
+        $corrected = $driver->run($rec, $data);
+        check(count($corrected) == ($payment == 'overdue' ? 3 : 5), 'МО по цялата приключена обединена група: ' . $direction . '/' . $payment);
+        check(closeAmount($rec->totalAccountingCorrectionAll, $payment == 'overdue' ? 0 : 60), 'Груповата корекция участва само веднъж: ' . $direction . '/' . $payment);
+        if ($payment != 'overdue') {
+            check($rec->accountingIncompleteGroups == 0 && $rec->accountingUnallocatedGroups == 1, 'Цялата група е налична за МО: ' . $direction . '/' . $payment);
+            check(closeAmount($rec->totalInvoiceNotPaydAll + $rec->totalInvoiceOverPaidAll, 50), 'Точен нетен остатък след груповото МО: ' . $direction . '/' . $payment);
+            check(closeAmount($rec->totalInvoicePayoutAll, 190), 'Груповото МО не променя реалните плащания: ' . $direction . '/' . $payment);
+        }
+    }
+}
+
+// МО1387 се прилага към текущата фактура, без да променя старите позиции и техния остатък 0.10.
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Energo history', '2021-05-20', 100, 40, '2021-05-12');
+    InvoiceTestData::invoice($direction, 2, 'Energo history', '2021-05-20', 100, 100.10, '2021-05-12');
+    InvoiceTestData::invoice($direction, 3, 'Energo history', '2021-05-20', -60, 0, '2021-05-12');
+    InvoiceTestData::invoice($direction, 4, 'Energo history', '2021-05-20', 0.20, 0, '2021-05-12');
+    $invoiceClass = $direction == 'in' ? 'purchase_Invoices' : 'sales_Invoices';
+    $dealClass = $direction == 'in' ? 'purchase_Purchases' : 'sales_Sales';
+    InvoiceTestData::$records[$invoiceClass][2]->type = InvoiceTestData::$records[$invoiceClass][3]->type = 'dc_note';
+    InvoiceTestData::combine($direction, array(2, 3, 4, 1));
+    InvoiceTestData::$records[$dealClass][0]->state = 'closed';
+    InvoiceTestData::$records[$dealClass][0]->closedOn = '2021-06-01';
+    InvoiceTestData::invoice($direction, 5, 'Energo history', '2026-09-26', 219112.78, 0, '2026-09-16');
+    articleFixture($direction, 5, 1387, 352689.13, '2026-09-16');
+    foreach (array('all', 'unpaid') as $payment) {
+        $rec = reportRec('all', $payment);
+        $rec->checkDate = '2026-10-08';
+        $rec->accountingCorrections = 'yes';
+        $corrected = $driver->run($rec, $data);
+        $sign = $direction == 'in' ? -1 : 1;
+        check(count($corrected) == 5 && closeAmount($rec->totalAccountingCorrectionAll, $sign * 352689.13), 'МО1387 и цялата приключена историческа група: ' . $direction . '/' . $payment);
+        check(closeAmount($rec->totalInvoiceNotPaydAll + $rec->totalInvoiceOverPaidAll, $sign * -133576.25), 'Историческите 0.10 остават извън корекцията с МО1387: ' . $direction . '/' . $payment);
+        foreach ($corrected as $row) {
+            if ($row->invoiceId == 5) check(closeAmount($row->invoiceCurrentSumm, -133576.35) && count($row->accountingDocuments) == 1, 'Само текущата фактура се коригира от МО1387');
+            else check(closeAmount($row->accountingCorrection, 0) && empty($row->accountingDocuments), 'Старите позиции не получават чужда корекция');
+        }
+    }
+}
+
+// Филтрирането по остатък/просрочие се извършва след МО, включително за платени фактури.
+foreach (array('out', 'in') as $direction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Paid then corrected', '2026-10-05', 100, 100);
+    articleFixture($direction, 1, 1390, -20, '2026-10-01');
+    foreach (array('unpaid', 'overdue') as $payment) {
+        $rec = reportRec($direction, $payment);
+        $rec->checkDate = '2026-10-08';
+        $rec->accountingCorrections = 'no';
+        check(count($driver->run($rec, $data)) == 0, 'Без МО платената фактура е скрита: ' . $direction . '/' . $payment);
+        $rec->accountingCorrections = 'yes';
+        $corrected = $driver->run($rec, $data);
+        check(count($corrected) == 1 && closeAmount(reset($corrected)->invoiceCurrentSumm, 20), 'МО възстановява неплатен/просрочен остатък: ' . $direction . '/' . $payment);
+        check(closeAmount($rec->totalInvoicePayoutAll, 100), 'Платената сума остава 100 след МО: ' . $direction . '/' . $payment);
+    }
+
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Threshold', '2026-10-05', 100, 95);
+    InvoiceTestData::invoice($direction, 2, 'Threshold', '2026-10-05', 100, 75);
+    articleFixture($direction, 1, 1391, -20, '2026-10-01');
+    articleFixture($direction, 2, 1392, 20, '2026-10-01');
+    $rec = reportRec($direction, 'unpaid');
+    $rec->checkDate = '2026-10-08';
+    $rec->accountingCorrections = 'yes';
+    $rec->sill = 10;
+    $corrected = $driver->run($rec, $data);
+    check(count($corrected) == 1 && reset($corrected)->invoiceId == 1 && closeAmount(reset($corrected)->invoiceCurrentSumm, 25), 'Прагът се прилага към коригирания остатък: ' . $direction);
+
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice($direction, 1, 'Precision', '2026-10-05', 100, 99.999);
+    $rec = reportRec($direction, 'unpaid');
+    $rec->checkDate = '2026-10-08';
+    $legacy = $driver->run($rec, $data);
+    $rec->accountingCorrections = 'yes';
+    $corrected = $driver->run($rec, $data);
+    check(count($legacy) == 1 && count($corrected) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, reset($corrected)->invoiceCurrentSumm), 'Без МО няма ново закръгляне на малкия остатък: ' . $direction);
+}
 
 echo "OK: {$checks} invoice report checks\n";
