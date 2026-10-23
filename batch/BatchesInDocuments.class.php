@@ -323,10 +323,10 @@ class batch_BatchesInDocuments extends core_Manager
                     }
 
                     if ($inStoreId && !$outStoreId) {
-                        $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
-                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
+                        $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch)[$rec->batch] ?? 0;
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores / $quantityInPack);
 
-                        if($batchQuantityInAllStores[$rec->batch] >= 1 && !($Class instanceof store_TransfersDetails)) {
+                        if($batchQuantityInAllStores >= 1 && !($Class instanceof store_TransfersDetails)) {
                             $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|*: {$batchQuantityInStoreVerbal}!", 'warning');
                         } else{
                             $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
