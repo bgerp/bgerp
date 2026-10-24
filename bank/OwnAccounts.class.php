@@ -693,6 +693,31 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
+     * Сметката на папката, ако е на наша банкова сметка и потребителят може да я избира
+     *
+     * @param int|null $folderId
+     * @param int|null $userId
+     *
+     * @return int|null
+     */
+    public static function getSelectableByFolder($folderId, $userId = null)
+    {
+        if (empty($folderId)) {
+            
+            return null;
+        }
+        
+        $Cover = doc_Folders::getCover($folderId);
+        if (!$Cover->isInstanceOf('bank_OwnAccounts') || !bgerp_plg_FLB::canUse('bank_OwnAccounts', $Cover->fetch(), $userId, 'select')) {
+            
+            return null;
+        }
+        
+        return $Cover->that;
+    }
+    
+    
+    /**
      * Подготвя и осъществява търсене по банка, използва се
      * в банковите документи
      *
