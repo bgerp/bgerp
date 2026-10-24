@@ -2004,7 +2004,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
-            // Колони за екран — различни според режима all/unpaid.
+            // Еднакви заглавия за всички режими на екрана.
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
             // Добавяме нова колона "Документ" преди колоната за номера
             $fld->FLD('documentType', 'varchar', 'caption=Вид,after=contragentId,tdClass=centered');
@@ -2013,30 +2013,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата,tdClass=centered');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок,tdClass=centered');
 
-            if ($rec->unpaid == 'all') {
-                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
-                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-                // }
-
-                $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', "caption=Стойност $baseCurrency");
-                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', "caption=Платено->Сума->$baseCurrency,smartCenter");
-                $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
-            }
-
-            if ($rec->unpaid != 'all') {
-                $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-
-                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
-                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
-                // }
-                $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', "caption=Стойност-> Сума-> $baseCurrency,smartCenter");
-                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', "caption=Платено->Сума->$baseCurrency,smartCenter");
-                $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
-                $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', "caption=Състояние->Неплатено->$baseCurrency,smartCenter");
-                $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', "caption=Състояние->Надплатено-> $baseCurrency,smartCenter");
+            $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', "caption=|Стойност|*<br>$baseCurrency,tdClass=invoice-report-base-value");
+            $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', "caption=Платено->|Сума|*<br>$baseCurrency,smartCenter");
+            $fld->FLD('paidDates', 'varchar', 'caption=Платено->|Плащания|*<br>|дата|*,smartCenter');
+            if ($rec->unpaid != 'all' || ($rec->accountingCorrections ?? 'no') == 'yes') {
+                $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', "caption=Състояние->|Неплатено|*<br>$baseCurrency,smartCenter");
+                $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', "caption=Състояние->|Надплатено|*<br>$baseCurrency,smartCenter");
             }
         } else {
             // Колони за CSV/Excel експорт.
@@ -2064,7 +2049,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
             $fld->FLD('accountingCorrection', 'double(decimals=2)', "caption=Корекции->Сума $baseCurrency,after=paidDates");
             $fld->FLD('accountingDocuments', 'varchar', 'caption=Корекции->МО,after=accountingCorrection');
-            if (($rec->unpaid ?? 'all') == 'all') {
+            if ($export && ($rec->unpaid ?? 'all') == 'all') {
                 $fld->FLD('invoiceCurrentSumm', 'double(decimals=2)', "caption=Остатък->Неплатено $baseCurrency");
                 $fld->FLD('invoiceOverSumm', 'double(decimals=2)', "caption=Остатък->Надплатено $baseCurrency");
             }
@@ -2157,7 +2142,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $caption .= ' ' . acc_Periods::getBaseCurrencyCode($rec->checkDate ?? null);
         } else {
             $caption .= ' » <span class="quiet">' . tr('Платено') . ': </span>' . $styleAmount($dRec->totalInvoicePayout ?? 0)
-                . ' » <span class="quiet">' . tr('Недоплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0);
+                . ' » <span class="quiet">' . tr('Неплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceNotPayd ?? 0);
         }
         if (abs($dRec->totalInvoiceOverPaid ?? 0) > 0.01) {
             $caption .= ' » <span class="quiet">' . tr('Надплатено') . ': </span>' . $styleAmount($dRec->totalInvoiceOverPaid ?? 0);
@@ -2193,11 +2178,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Кратко означение на сделката за неразпределена корекция, включително при експорт.
      */
-    private static function getAccountingDealTitle($dRec)
+    private static function getAccountingDealTitle($dRec, $short = false)
     {
         $className = $dRec->accountingDealClass ?? (($dRec->className ?? '') == purchase_Invoices::class ? purchase_Purchases::class : sales_Sales::class);
 
-        return tr('Неразпред. по') . ' #' . $className::getHandle($dRec->accountingDealId ?? 0);
+        return tr($short ? 'по' : 'Неразпред. по') . ' #' . $className::getHandle($dRec->accountingDealId ?? 0);
     }
 
 
@@ -2543,12 +2528,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $row->accountingCorrection = $isPlain ? $verbal : ht::styleNumber($verbal, $correction * $sign, '#080');
             $links = array();
             foreach ($dRec->accountingDocuments ?? array() as $document) {
-                $title = 'МО' . ($document->id ?? '') . ' / ' . ($document->date ?? '');
-                $links[] = $isPlain ? $title : ht::createLinkRef($title, array('acc_Articles', 'single', $document->id ?? null));
+                $handle = '#' . acc_Articles::getHandle($document->id ?? 0);
+                $links[] = $isPlain ? $handle . ' / ' . ($document->date ?? '')
+                    : ht::createLink($handle, array('acc_Articles', 'single', $document->id ?? null), false, array('class' => 'nowrap'))
+                        . '<br><span class="small nowrap">' . $Date->toVerbal($document->date ?? null) . '</span>';
             }
             $row->accountingDocuments = implode($isPlain ? ', ' : '<br>', $links);
             if (!empty($dRec->isAccountingCorrection)) {
-                $title = self::getAccountingDealTitle($dRec);
+                $title = self::getAccountingDealTitle($dRec, true);
                 $row->documentType = 'МО';
                 $row->invoiceNo = $isPlain ? $title : ht::createLinkRef($title, array($dRec->accountingDealClass ?? '', 'single', $dRec->accountingDealId ?? null));
                 $row->invoiceValue = $row->invoiceValueBaseCurr = $row->paidAmount = $row->paidDates = '';
@@ -2588,6 +2575,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Периодът се показва само в сивата антетка, включително липсваща начална дата.
+     */
+    public static function on_AfterGetFieldForLetterHead(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$resArr, $rec, $row)
+    {
+        parent::on_AfterGetFieldForLetterHead($Driver, $Embedder, $resArr, $rec, $row);
+        if (!countR($resArr)) return;
+
+        $Date = cls::get('type_Date');
+        unset($resArr['fromDate'], $resArr['checkDate']);
+        $resArr['fromDate'] = array('name' => tr('От дата'), 'val' => !empty($rec->fromDate) ? $Date->toVerbal($rec->fromDate) : tr('от началото'));
+        $resArr['checkDate'] = array('name' => tr('До дата'), 'val' => $Date->toVerbal(!empty($rec->checkDate) ? $rec->checkDate : dt::today(false)));
+    }
+
+
+    /**
      * След рендиране на единичния изглед
      *
      * @param frame2_driver_Proto $Driver
@@ -2598,80 +2600,57 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
 
-        $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
-
+        $tpl->push('acc/css/InvoicesByContragent.css', 'CSS');
         $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
         $invoiceType = $data->rec->typeOfInvoice ?? 'out';
         $valueCaption = $invoiceType == 'all'
             ? tr('Стойност') . ' (' . self::getCombinedInvoiceCaption() . ')'
             : tr('Стойност');
 
-        // Блок „Филтър“ над таблицата: избрани критерии и обобщени суми.
-        $fieldTpl = new core_ET(
-            tr(
-                "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                    <div class='small'>
-                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END contragent-->
-                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
-                                        <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
-                                        <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
-                                        <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
-                                        <!--ET_BEGIN accountingCorrections--><div>|Компенсации и счетоводни корекции|*: <b>[#accountingCorrections#]</b></div><!--ET_END accountingCorrections-->
-                                        <!--ET_BEGIN accountingNotice--><div>[#accountingNotice#]</div><!--ET_END accountingNotice-->
-                                        <!--ET_BEGIN totalInvoiceValueAll--><div>[#valueCaption#]: <b>[#totalInvoiceValueAll#]</b></div><!--ET_END totalInvoiceValueAll-->
-                                        <!--ET_BEGIN accountingTotals--><div>[#accountingTotals#]</div><!--ET_END accountingTotals-->
-                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
-                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
-                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
-                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
-                                    </div>
-                                </fieldset><!--ET_END BLOCK-->"
-            )
-        );
-        if (isset($data->rec->typeOfInvoice)) {
-            $inv = array('out' => 'ИЗХОДЯЩИ', 'in' => 'ВХОДЯЩИ', 'all' => 'ВСИЧКИ')[$data->rec->typeOfInvoice] ?? '';
+        $fieldTpl = new core_ET(tr("|*<div class='invoicesByContragentInfo'>
+            <!--ET_BEGIN reportResults--><fieldset class='detail-info invoice-report-results'>
+                <legend class='groupTitle'><small><b>|Обобщени резултати|*</b></small></legend>
+                <div class='small'>
+                    <!--ET_BEGIN totalInvoiceValueAll--><div>[#valueCaption#]: <b>[#totalInvoiceValueAll#]</b></div><!--ET_END totalInvoiceValueAll-->
+                    <!--ET_BEGIN accountingTotals--><div>[#accountingTotals#]</div><!--ET_END accountingTotals-->
+                    <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
+                    <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
+                    <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
+                    <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
+                    <!--ET_BEGIN accountingNotice--><div>[#accountingNotice#]</div><!--ET_END accountingNotice-->
+                </div>
+            </fieldset><!--ET_END reportResults-->
+            <fieldset class='detail-info invoice-report-filter'>
+                <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                <div class='small'>[#filterRows#]</div>
+            </fieldset>
+        </div>"));
 
-            $fieldTpl->append(
-                $inv,
-                'typeOfInvoice'
-            );
-        }
-
-        if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
-            $marker = 0;
-            $groupVerb = '';
-            if (isset($data->rec->crmGroup)) {
-                foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
-                    $marker++;
-
-                    $groupVerb .= (crm_Groups::getTitleById($group));
-
-                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
-                        $groupVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
+        // Само приложимите седем полета, в реда на формата; датите остават в антетката.
+        $filterFields = cls::get('core_FieldSet');
+        $Driver->addFields($filterFields);
+        $names = array('contragent', 'crmGroup', 'typeOfInvoice', 'unpaid', 'paymentType',
+            ($data->rec->unpaid ?? 'all') == 'all' ? 'seeProformаs' : 'sill', 'accountingCorrections');
+        $defaults = array('typeOfInvoice' => 'out', 'unpaid' => 'all', 'accountingCorrections' => 'no');
+        foreach ($names as $name) {
+            $field = $filterFields->getField($name);
+            $captions = explode('->', $field->caption);
+            $caption = $name == 'accountingCorrections' ? 'Корекции с МО' : end($captions);
+            $value = $data->rec->{$name} ?? ($defaults[$name] ?? null);
+            if ($name == 'seeProformаs') {
+                $verbal = tr(!empty($value) ? 'Да' : 'Не');
+            } elseif ($name == 'sill') {
+                $verbal = core_Type::getByName('double(decimals=2)')->toVerbal($value ?? 0) . ' €';
+            } else {
+                $verbal = isset($value) && $value !== '' ? $field->type->toVerbal($value) : tr('Всички');
+                if ($verbal === '') $verbal = tr('Всички');
             }
-        }
-
-        if (isset($data->rec->unpaid)) {
-            $paid = array('all' => 'ВСИЧКИ', 'unpaid' => 'НЕПЛАТЕНИ', 'overdue' => 'ПРОСРОЧЕНИ')[$data->rec->unpaid] ?? '';
-            $fieldTpl->append(
-                $paid,
-                'unpaid'
-            );
-        }
-
-        if (isset($data->rec->paymentType)) {
-
-            $fieldTpl->append($Enum->toVerbal($data->rec->paymentType), 'paymentType');
-
+            $attr = array('class' => 'invoice-report-filter-row');
+            if ($name == 'sill') $attr['title'] = tr($captions[0]);
+            $fieldTpl->append(ht::createElement('div', $attr, '<span class="quiet">' . tr($caption) . ': </span><b>' . $verbal . '</b>'), 'filterRows');
         }
 
         if (($data->rec->accountingCorrections ?? 'no') == 'yes') {
-            $fieldTpl->append(tr('ДА'), 'accountingCorrections');
             $notices = array();
             if (!empty($data->rec->accountingUnallocatedGroups)) {
                 $notices[] = tr('Неразпределените корекции са по цяла сделка и не погасяват конкретна фактура; не участват в просрочените суми');
@@ -2684,6 +2663,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         // Без права за цени общите суми не се показват
         if (!$Driver->canSeePriceFields($data->rec)) {
+            $fieldTpl->removeBlock('reportResults');
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
 
             return;

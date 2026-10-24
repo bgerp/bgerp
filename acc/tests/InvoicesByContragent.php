@@ -8,7 +8,9 @@ set_error_handler(function ($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
-class frame2_driver_Proto extends stdClass {}
+class frame2_driver_Proto extends stdClass {
+    public static function on_AfterGetFieldForLetterHead(frame2_driver_Proto $driver, embed_Manager $embedder, &$head, $rec, $row) {}
+}
 class embed_Manager {}
 class core_App { public static function setTimeLimit($seconds) {} }
 class core_Debug {
@@ -35,13 +37,32 @@ class InvoiceTestType {
     private $name;
     public function __construct($name) { $this->name = $name; }
     public function toVerbal($value) {
+        if (strpos($this->name, 'enum(') === 0) {
+            foreach (explode(',', rtrim(substr($this->name, 5), ')')) as $option) {
+                $parts = explode('=', trim($option), 2);
+                if ($parts[0] === (string)$value) return $parts[1] ?? $parts[0];
+            }
+        }
+        if (strpos($this->name, 'keylist') === 0 && preg_match('/mvc=(\w+)/', $this->name, $match)) {
+            $names = array();
+            foreach (keylist::toArray($value) as $id) {
+                $record = InvoiceTestData::$records[$match[1]][$id] ?? new stdClass();
+                $names[] = htmlspecialchars($record->title ?? $record->name ?? $id, ENT_QUOTES, 'UTF-8');
+            }
+            return implode(', ', $names);
+        }
         return strpos($this->name, 'double') === 0 ? number_format($value, 2, '.', '') : htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
     }
 }
 class core_FieldSet {
     public $fields = array();
-    public function FLD($name, $type, $params) { $this->fields[$name] = $type; }
+    public $params = array();
+    public function FLD($name, $type, $params) { $this->fields[$name] = $type; $this->params[$name] = $params; }
     public function FNC($name, $type, $params) { $this->FLD($name, $type, $params); }
+    public function getField($name) {
+        preg_match('/(?:^|,)caption=([^,]*)/', $this->params[$name], $caption);
+        return (object)array('caption' => $caption[1] ?? '', 'type' => new InvoiceTestType($this->fields[$name]));
+    }
 }
 class cls {
     public static function load($name, $silent = false) { return true; }
@@ -52,6 +73,7 @@ class cls {
 }
 class core_ET {
     private $content;
+    public $assets = array();
     public function __construct($content) { $this->content = $content; }
     public function getContent() { return $this->content; }
     public function append($value, $place) {
@@ -60,6 +82,8 @@ class core_ET {
         $this->content = str_replace($marker, $value . $marker, $this->content);
     }
     public function replace($value, $place) { $this->content = str_replace('[#' . $place . '#]', $value, $this->content); }
+    public function push($value, $place) { $this->assets[$place][] = $value; }
+    public function removeBlock($name) { $this->content = preg_replace('/<!--ET_BEGIN ' . preg_quote($name, '/') . '-->.*?<!--ET_END ' . preg_quote($name, '/') . '-->/s', '', $this->content); }
     public function removeBlocks() {}
     public function removePlaces() {}
 }
@@ -70,6 +94,7 @@ class ht {
         return isset($colorIfPositive) ? "<span style='color:{$colorIfPositive}'>{$verbal}</span>" : $verbal;
     }
     public static function createLinkRef($title, $url) { return $title; }
+    public static function createLink($title, $url, $warning = false, $attr = array()) { return '<a href="/' . $url[0] . '/single/' . $url[2] . '">' . $title . '</a>'; }
     public static function createHint($title, $hint, $type) { return $title; }
     public static function createElement($tag, $attr, $content) {
         return new core_ET('<' . $tag . ' class="' . ($attr['class'] ?? '') . '">' . $content . '</' . $tag . '>');
@@ -183,7 +208,9 @@ class purchase_Purchases extends InvoiceTestModel {
     public static function getHandle($id) { return 'Pur' . $id; }
 }
 class acc_Items extends InvoiceTestModel {}
-class acc_Articles extends InvoiceTestModel {}
+class acc_Articles extends InvoiceTestModel {
+    public static function getHandle($id) { return 'Mo' . $id; }
+}
 class acc_Accounts {
     public static function getRecBySystemId($id) { return (object)array('id' => (int)$id); }
 }
@@ -274,6 +301,7 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public function run($rec, &$data) { return $this->prepareRecs($rec, $data); }
     public function verbal($rec, &$dRec) { return $this->detailRecToVerbal($rec, $dRec); }
     public function fields($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->fields; }
+    public function fieldParams($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->params; }
     public function grouped($recs, &$rows, $fields, $data) { $this->groupRows($recs, $rows, $fields, $data->groupByField, $data); }
     public function canSeePriceFields($rec) { return $this->prices; }
     public function info($rec, $reportData = null) {
@@ -760,7 +788,7 @@ foreach (array('out', 'in') as $direction) {
             check(closeAmount($detail->accountingCorrection, 352689.13) && count($detail->accountingDocuments) == 1, 'Само контирани корекции до датата');
             check(closeAmount($rec->totalInvoicePayoutAll, 0) && closeAmount($rec->totalInvoiceOverPaidAll, -133576.35), 'Компенсацията не става парично плащане');
             $row = $driver->verbal($rec, $detail);
-            check(strpos($row->accountingDocuments, 'МО1387') !== false, 'Корекцията сочи към МО1387');
+            check(strpos($row->accountingDocuments, '#Mo1387') !== false, 'Корекцията сочи към МО1387');
             $export = $driver->exportRow($rec, $detail);
             check(closeAmount($export->invoiceOverSumm, 133576.35) && closeAmount($export->accountingCorrection, 352689.13), 'Експортът съвпада с коригирания остатък');
         }
@@ -814,7 +842,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
         $correctionRows = array_filter($corrected, function ($row) { return !empty($row->isAccountingCorrection); });
         $detail = reset($correctionRows);
         $row = $driver->verbal($rec, $detail);
-        check($row->documentType == 'МО' && $row->invoiceNo == 'Неразпред. по #Pur2' && $row->paidAmount === '', 'Отделен ред, без измислено плащане по фактура');
+        check($row->documentType == 'МО' && $row->invoiceNo == 'по #Pur2' && $row->paidAmount === '', 'Отделен ред, без измислено плащане по фактура');
         check(closeAmount($driver->exportRow($rec, $detail)->invoiceOverSumm, 60), 'Неразпределената корекция влиза в експорта');
     }
 }
@@ -1084,8 +1112,8 @@ foreach (array('out', 'in') as $direction) {
     $rec->accountingCorrections = 'yes';
     $rows = $driver->run($rec, $data);
     $detail = reset($rows);
-    $expected = 'Неразпред. по #' . ($direction == 'out' ? 'Sal2' : 'Pur2');
-    check($driver->verbal($rec, $detail)->invoiceNo == $expected && $driver->exportRow($rec, $detail)->invoiceNo == $expected, 'Еднакъв кратък хендъл на екрана и в експорта: ' . $direction);
+    $expected = 'по #' . ($direction == 'out' ? 'Sal2' : 'Pur2');
+    check($driver->verbal($rec, $detail)->invoiceNo == $expected && $driver->exportRow($rec, $detail)->invoiceNo == 'Неразпред. ' . $expected, 'По-кратък екранен хендъл при непроменен експорт: ' . $direction);
     Mode::$plain = true;
     check($driver->verbal($rec, $detail)->invoiceNo == $expected, 'Кратък хендъл и в текстов режим: ' . $direction);
     Mode::$plain = false;
@@ -1149,5 +1177,84 @@ foreach (array('out', 'in') as $direction) {
         }
     }
 }
+
+// Еднаква екранна антетка и седем настройки в реда на формата за всеки режим.
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all' => 'Всички', 'unpaid' => 'Неплатени', 'overdue' => 'Просрочени') as $payment => $paymentLabel) {
+        foreach (array('no' => 'Не', 'yes' => 'Да') as $flag => $flagLabel) {
+            InvoiceTestData::reset();
+            InvoiceTestData::invoice($direction == 'in' ? 'in' : 'out', 1, 'Layout', '2026-10-05', 100, 20);
+            $rec = reportRec($direction, $payment);
+            $rec->accountingCorrections = $flag;
+            $rec->sill = 2.5;
+            $rec->seeProformаs = 'yes';
+            $rows = $driver->run($rec, $data);
+            $case = $direction . '/' . $payment . '/' . $flag;
+            $params = $driver->fieldParams($rec);
+            check($params['invoiceValue'] == 'caption=Стойност' && $params['invoiceValueBaseCurr'] == 'caption=|Стойност|*<br>EUR,tdClass=invoice-report-base-value', 'Общи заглавия и клас за помощната стойност: ' . $case);
+            if ($payment != 'all' || $flag == 'yes') check(strpos($params['invoiceCurrentSumm'], 'caption=Състояние->|Неплатено|*<br>EUR') === 0, 'Общо заглавие за остатъка: ' . $case);
+            $info = $driver->info($rec, $data);
+            check(strpos($info, 'Обобщени резултати') < strpos($info, '>Филтър<'), 'Обобщението е преди филтъра: ' . $case);
+            preg_match_all('/class="invoice-report-filter-row"[^>]*>(.*?)<\/div>/s', $info, $matches);
+            $filters = array_map('strip_tags', $matches[1]);
+            $expected = array('Конкретни: Всички', 'Групи: Всички', 'Фактури: ' . array('out' => 'Изходящи', 'in' => 'Входящи', 'all' => 'Всички')[$direction], 'Платено: ' . $paymentLabel,
+                'Плащане: Всички', $payment == 'all' ? 'Разширена: Да' : 'По-малко от: 2.50 €', 'Корекции с МО: ' . $flagLabel);
+            check($filters === $expected, 'Седем настройки, правилни стойности и ред: ' . $case);
+            check(strpos($info, 'От дата') === false && strpos($info, 'До дата') === false, 'Датите не се повтарят във филтъра: ' . $case);
+        }
+    }
+}
+
+InvoiceTestData::reset();
+InvoiceTestData::$records['doc_Folders'][42] = (object)array('id' => 42, 'title' => 'Тест & фирма');
+InvoiceTestData::$records['crm_Groups'][7] = (object)array('id' => 7, 'name' => 'Доставчици');
+$rec = reportRec('all', 'all');
+$rec->contragent = '|42|';
+$rec->crmGroup = '|7|';
+$rec->paymentType = 'bank';
+$info = $driver->info($rec);
+check(strpos($info, 'Тест &amp; фирма') !== false && strpos($info, 'Доставчици') !== false && strpos($info, 'По банков път') !== false, 'Избрани контрагент, група и начин на плащане се вербализират чрез типовете');
+check(strpos(strip_tags($info), 'Разширена: Не') !== false && strpos(strip_tags($info), 'Корекции с МО: Не') !== false, 'Старите записи показват Не по подразбиране');
+$rec->contragent = '|';
+check(strpos(strip_tags($driver->info($rec)), 'Конкретни: Всички') !== false, 'Празен keylist се изписва като Всички');
+$rec->checkDate = '2025-12-31';
+check(strpos($driver->fieldParams($rec)['invoiceValueBaseCurr'], 'Стойност|*<br>BGN') !== false, 'Заглавието следва основната валута за периода');
+$driver->prices = false;
+$info = $driver->info($rec);
+check(strpos($info, 'invoice-report-results') === false && strpos($info, 'invoice-report-filter') !== false, 'Без права за цени остават само настройките');
+$driver->prices = true;
+
+// Датите са след общите полета в сивото каре; скритата антетка се уважава.
+foreach (array(null, '2026-01-01') as $from) {
+    $rec = reportRec('all', 'all');
+    $rec->fromDate = $from;
+    $head = array('title' => array('val' => 'AI'), 'lastRefreshed' => array('val' => 'сега'), 'checkDate' => array('val' => 'старо'));
+    InvoiceReportTest::on_AfterGetFieldForLetterHead($driver, new embed_Manager(), $head, $rec, new stdClass());
+    check(array_keys($head) === array('title', 'lastRefreshed', 'fromDate', 'checkDate'), 'Ред на датите и запазени общи полета в антетката');
+    check($head['fromDate']['val'] == ($from ?? 'от началото') && $head['checkDate']['val'] == '2026-10-15', 'Верни дати или от началото');
+}
+$head = array();
+InvoiceReportTest::on_AfterGetFieldForLetterHead($driver, new embed_Manager(), $head, $rec, new stdClass());
+check($head === array(), 'Скритата антетка не се възстановява');
+$head = array('title' => array('val' => 'AI'));
+unset($rec->checkDate);
+InvoiceReportTest::on_AfterGetFieldForLetterHead($driver, new embed_Manager(), $head, $rec, new stdClass());
+check($head['checkDate']['val'] == dt::today(false), 'Липсващата крайна дата означава текуща дата');
+
+// Нативен хендъл на МО като самия линк, при непроменено CSV означение.
+InvoiceTestData::reset();
+InvoiceTestData::invoice('in', 1, 'MO link', '2026-10-05', 100, 0);
+articleFixture('in', 1, 1387, 20);
+$rec = reportRec('in', 'unpaid');
+$rec->accountingCorrections = 'yes';
+$rows = $driver->run($rec, $data);
+$detail = reset($rows);
+$row = $driver->verbal($rec, $detail);
+check(strpos($row->accountingDocuments, '<a href="/acc_Articles/single/1387">#Mo1387</a>') !== false, 'МО е директен линк с нативен хендъл');
+check(strpos($row->accountingDocuments, 'anchor-arrow') === false, 'МО няма допълнителна стрелка');
+check(strpos($driver->exportRow($rec, $detail)->accountingDocuments, 'МО1387 / 2026-10-01') !== false, 'CSV запазва старото означение на МО');
+Mode::$plain = true;
+check($driver->verbal($rec, $detail)->accountingDocuments == '#Mo1387 / 2026-10-01', 'МО в текстов режим без HTML');
+Mode::$plain = false;
 
 echo "OK: {$checks} invoice report checks\n";
