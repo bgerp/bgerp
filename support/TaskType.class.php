@@ -8,7 +8,7 @@
  * @package   support
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,10 +44,6 @@ class support_TaskType extends core_Mvc
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');
-
-        if ($this->Embedder) {
-            $this->Embedder->getContragentDataFromLastDoc = false;
-        }
     }
     
     
@@ -203,9 +199,12 @@ class support_TaskType extends core_Mvc
      */
     public function prepareContragentData($rec, $contrData)
     {
-        if ($rec->createdBy < 1) {
-            $contrData->email = $rec->email;
-            $contrData->person = $rec->name;
+        // Сигналите в една папка могат да са от различни податели.
+        $contrData->_getContragentDataFromLastDoc = false;
+
+        if (($rec->createdBy ?? null) < 1) {
+            $contrData->email = $rec->email ?? null;
+            $contrData->person = $rec->name ?? null;
         }
     }
     

@@ -8,7 +8,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -701,6 +701,13 @@ class deals_InvoicesToDocuments extends core_Manager
      */
     public function prepareInvoicesToDocuments($data)
     {
+        // В линията фактурите се показват в реда, а краткият шаблон няма място за детайла
+        if (Mode::is('renderHtmlInLine')) {
+            $data->Order = -1;
+
+            return;
+        }
+
         $masterRec = $data->masterData->rec;
         $paymentData = $data->masterMvc->getPaymentData($data->masterId);
         $data->recs = static::getInvoiceArr($masterRec->containerId);

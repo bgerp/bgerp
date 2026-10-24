@@ -1448,9 +1448,7 @@ class crm_Persons extends core_Master
             if (empty($rec->vatId)) return false;
         }
 
-        // Ако няма държава или е в ЕС ще се начислява
-        if (empty($rec->country)) return true;
-
+        // Ако е в ЕС ще се начислява
         return drdata_Countries::isEu($rec->country);
     }
 
@@ -2858,8 +2856,8 @@ class crm_Persons extends core_Master
     {
         expect($rec = self::fetch($id));
 
-        // Ако контрагента няма държава, то дефолт валутата е BGN
-        if (empty($rec->country) || $rec->country == drdata_Countries::getIdByName('Bulgaria')) {
+        // Ако контрагента е от България, то дефолт валутата е основната
+        if (($rec->country ?? null) == drdata_Countries::getIdByName('Bulgaria')) {
 
             return acc_Periods::getBaseCurrencyCode();
         }

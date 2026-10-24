@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -412,8 +412,10 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderDetail($data)
     {
-        if (is_array($data->params)) {
-            foreach ($data->params as &$row) {
+        // При експорт (sync_plg_ProductExport) описанието се рендира без подготвени параметри
+        $params = $data->params ?? null;
+        if (is_array($params)) {
+            foreach ($params as &$row) {
                 
                 // Ревербализиране на файловете да се покажат с подходящите права
                 if(!empty($row->_paramId)){
@@ -435,7 +437,7 @@ class cat_products_Params extends doc_Detail
 
         $paramCaption = $data->paramCaption ?? null;
 
-        $tpl = cat_Params::renderParamBlock($data->params, $paramCaption);
+        $tpl = cat_Params::renderParamBlock($params, $paramCaption);
         $tpl->replace(get_called_class(), 'DetailName');
         
         if (($data->noChange ?? null) !== true) {

@@ -8,7 +8,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -171,7 +171,8 @@ class price_ListDocs extends core_Master
             if($Cover->haveInterface('doc_ContragentDataIntf')){
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-                if(!empty($cData->countryId) && $cData->countryId != $bgId){
+                $countryId = !empty($cData->countryId) ? $cData->countryId : (crm_Companies::fetchOurCompany()->country ?? null);
+                if(!empty($countryId) && $countryId != $bgId){
                     $enTemplates = doc_TplManager::getTemplates($this, 'en');
                     $defaultTemplateId = key($enTemplates);
                 }

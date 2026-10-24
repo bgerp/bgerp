@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Импортиран артикул
@@ -66,8 +66,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     public function addFields(core_Fieldset &$form)
     {
         $form->FLD('importedFromDomain', 'url', 'caption=Импортиран от,input=none');
-        $form->FLD('html', 'html', 'caption=Изглед,before=measureId,input=none');
-        $form->FLD('htmlEn', 'html', 'caption=Изглед EN,before=measureId,input=none');
+        $form->FLD('html', 'html(balance)', 'caption=Изглед,before=measureId,input=none');
+        $form->FLD('htmlEn', 'html(balance)', 'caption=Изглед EN,before=measureId,input=none');
         $form->FLD('quotations', 'blob', 'caption=Данни на оферта,input=none');
         $form->FLD('params', 'blob', 'caption=Параметри,input=none');
         $form->FLD('moq', 'double(smartRound)', 'caption=МКП,input=none');

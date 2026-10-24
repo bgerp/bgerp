@@ -275,8 +275,8 @@ class docarch2_Movements extends core_Master
         $data->toolbar->removeBtn('btnAdd');
         $data->toolbar->removeBtn('btnPrint');
 
-        if ($data->filterCheck) {
-            $documentContainerId = ($data->listFilter->rec->objectId);
+        if (!empty($data->filterCheck)) {
+            $documentContainerId = $data->listFilter->rec->filterObjectId ?? null;
 
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle . '-' . $Document->getHandle();
@@ -312,7 +312,7 @@ class docarch2_Movements extends core_Master
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholderType=all');
+        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch2_Volumes,allowEmpty)', 'caption=Входящ том,placeholderType=all');
 
         $data->listFilter->showFields = 'filterVolumeId';
 
@@ -322,13 +322,16 @@ class docarch2_Movements extends core_Master
 
         $data->listFilter->input(null, true);
 
-        if ($data->listFilter->isSubmitted() || $data->listFilter->rec->objectId) {
-            if ($data->listFilter->rec->volumeId) {
-                $data->query->where(array("#volumeId = '[#1#]'", $data->listFilter->rec->volumeId));
+        $filterRec = $data->listFilter->rec;
+        $objectId = $filterRec->filterObjectId ?? null;
+        $volumeId = $filterRec->filterVolumeId ?? null;
+        if ($data->listFilter->isSubmitted() || $objectId) {
+            if ($volumeId) {
+                $data->query->where(array("#volumeId = '[#1#]'", $volumeId));
             }
 
-            if ($data->listFilter->rec->objectId) {
-                $data->query->where(array("#objectId = '[#1#]'", $data->listFilter->rec->objectId));
+            if ($objectId) {
+                $data->query->where(array("#objectId = '[#1#]'", $objectId));
 
                 $data->filterCheck = true;
             }

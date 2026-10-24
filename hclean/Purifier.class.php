@@ -2,12 +2,6 @@
 
 
 /**
- * Вкарваме файловете необходими за работа с програмата.
- */
-require_once 'purifier4.3.0/HTMLPurifier.standalone.php';
-
-
-/**
  * Папка за съхранение на временните файлове
  */
 defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
@@ -21,7 +15,7 @@ defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
  * @package   hclean
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -36,6 +30,15 @@ class hclean_Purifier
     //    {
     //        $this->mkdir();
     //    }
+    
+    
+    /**
+     * Вкарваме файловете на избраната в настройките версия на HTML Purifier
+     */
+    public static function loadCode()
+    {
+        require_once 'purifier' . hclean_Setup::get('PURIFIER_VERSION') . '/HTMLPurifier.standalone.php';
+    }
     
     
     
@@ -65,6 +68,7 @@ class hclean_Purifier
         }
         
         //Настройваме purifier' а
+        self::loadCode();
         $config = HTMLPurifier_Config::createDefault();
 
         // Подсигуряваме, че кеш директорията съществува (напр. /tmp може да е изчистена)

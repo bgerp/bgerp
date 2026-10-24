@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -369,7 +369,8 @@ class cash_Cases extends core_Master
 
         $remainingCols = 5;
         $colspan = countR($data->listFields) - $remainingCols;
-        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp; <b>[#total#]</b> </td><td colspan='{$remainingCols}'>&nbsp;</td></tr>");
+        $captionColspan = $colspan - 1;
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$captionColspan}'>[#caption#]:</td><td><b>[#total#]</b></td><td colspan='{$remainingCols}'>&nbsp;</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
         $lastRow->replace($total, 'total');
         $tpl->append($lastRow, 'ROW_AFTER');

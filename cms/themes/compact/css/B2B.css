@@ -38,13 +38,20 @@ body.commerce-theme.b2b-theme {
 body.commerce-theme.b2b-theme .externalPage > header {
     width: 100%;
     max-width: none;
-    margin: 0;
+    margin: 0 auto;
     border-radius: 0;
     background: var(--c-dark) !important;
 }
 body.commerce-theme.b2b-theme .externalPage > header .narrowCenter {
-    max-width: 1400px;
+    width: calc(100% - 64px);
+    max-width: var(--commerce-page-width);
     margin: 0 auto;
+}
+body.commerce-theme.b2b-theme:is(.narrow, .commerce-compact) .externalPage > header {
+    width: 100%;
+}
+body.commerce-theme.b2b-theme:is(.narrow, .commerce-compact) .externalPage > header .narrowCenter {
+    width: calc(100% - 1.5rem);
 }
 body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
     min-height: 180px;

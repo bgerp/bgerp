@@ -165,6 +165,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::calcExpand36Field2445v3',
         'migrate::forceGatherCron2451v3',
         'migrate::clearForeignVatUic2643',
+        'migrate::setEmptyCountryToBg2643',
     );
     
     
@@ -387,6 +388,25 @@ class crm_Setup extends core_ProtoSetup
         while ($rec = $query->fetch()) {
             $rec->uicId = null;
             $Companies->save_($rec, 'uicId');
+        }
+    }
+
+
+    /**
+     * Задава държавата на моята фирма на фирмите и лицата без държава
+     */
+    public function setEmptyCountryToBg2643()
+    {
+        $ownCountryId = (int) (crm_Companies::fetchOurCompany('country')->country ?? null);
+        if (empty($ownCountryId)) {
+            $ownCountryId = (int) drdata_Countries::getIdByName(BGERP_OWN_COMPANY_COUNTRY);
+        }
+        expect($ownCountryId);
+
+        $countryColName = str::phpToMysqlName('country');
+        foreach (array('crm_Companies', 'crm_Persons') as $class) {
+            $Mvc = cls::get($class);
+            $Mvc->db->query("UPDATE `{$Mvc->dbTableName}` SET `{$countryColName}` = {$ownCountryId} WHERE `{$countryColName}` IS NULL OR `{$countryColName}` = ''");
         }
     }
 }

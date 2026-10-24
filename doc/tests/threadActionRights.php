@@ -114,7 +114,7 @@ class ThreadActionDocumentFixture extends core_BaseClass
 }
 
 $mvc = new ThreadActionDocumentFixture();
-$actions = array('edit', 'changerec', 'pickup', 'assign', 'activate',
+$actions = array('pickup', 'assign', 'activate',
     'activateagain', 'pending', 'changestate',
     'stop', 'start', 'close', 'wakeup');
 
@@ -128,7 +128,7 @@ foreach (array('draft', 'pending', 'active', 'rejected', 'closed', 'stopped') as
 }
 
 foreach (array('single', 'psingle', 'viewpsingle', 'read', 'exportdoc', 'like', 'dislike', 'tag', 'link',
-    'reject', 'restore', 'conto', 'reconto', 'debugreconto') as $action) {
+    'reject', 'restore', 'conto', 'reconto', 'debugreconto', 'edit', 'changerec') as $action) {
     check($mvc->getRequiredRoles($action, $mvc->record, 11) === 'powerUser', "{$action} retains its existing checks");
 }
 check($mvc->getRequiredRoles('activate', null, 11) === 'powerUser', 'General action rights remain unchanged');
@@ -140,10 +140,10 @@ foreach ($actions as $action) {
     check($mvc->getRequiredRoles($action, $mvc->record, 12) === 'powerUser', "{$action} retains its checks with thread access");
 }
 check(end(doc_Threads::$checkedUsers) === 12, 'The requested user is checked, not the session user');
-check($mvc->getRequiredRoles('edit', (object) array('id' => 1, 'threadId' => 99), 11) === 'no_one', 'Caller-supplied thread does not replace the stored thread');
-check($mvc->getRequiredRoles('edit', (object) array('id' => 1), 12) === 'powerUser', 'Partial records resolve the stored thread');
+check($mvc->getRequiredRoles('activate', (object) array('id' => 1, 'threadId' => 99), 11) === 'no_one', 'Caller-supplied thread does not replace the stored thread');
+check($mvc->getRequiredRoles('activate', (object) array('id' => 1), 12) === 'powerUser', 'Partial records resolve the stored thread');
 unset($mvc->record->threadId);
-check($mvc->getRequiredRoles('edit', $mvc->record, 12) === 'no_one', 'Missing thread does not become a general rights check');
+check($mvc->getRequiredRoles('activate', $mvc->record, 12) === 'no_one', 'Missing thread does not become a general rights check');
 $mvc->record->threadId = 10;
 
 core_Packs::$colab = true;
@@ -159,16 +159,16 @@ doc_Threads::$records[10]->visibleForPartners = 'no';
 check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'no_one', 'A thread hidden from partners cannot be activated');
 doc_Threads::$records[10]->visibleForPartners = 'yes';
 doc_Threads::$records[10]->createdBy = 14;
-check($mvc->getRequiredRoles('edit', $mvc->record, 13) === 'no_one', 'An ordinary partner cannot modify an unshared foreign thread');
+check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'no_one', 'An ordinary partner cannot activate in an unshared foreign thread');
 doc_Threads::$records[10]->shared = '|13|';
-check($mvc->getRequiredRoles('edit', $mvc->record, 13) === 'powerUser', 'A shared thread retains the existing document checks');
+check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'powerUser', 'A shared thread retains the existing document checks');
 doc_Threads::$records[10]->shared = '';
 core_Users::$powerPartners[13] = true;
-check($mvc->getRequiredRoles('edit', $mvc->record, 13) === 'powerUser', 'A power partner retains access to visible threads in shared folders');
+check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'powerUser', 'A power partner retains access to visible threads in shared folders');
 colab_Folders::$shared[13] = array();
-check($mvc->getRequiredRoles('edit', $mvc->record, 13) === 'no_one', 'A power partner still needs a shared folder');
+check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'no_one', 'A power partner still needs a shared folder');
 doc_Threads::$rights[13][10] = true;
-check($mvc->getRequiredRoles('edit', $mvc->record, 13) === 'powerUser', 'A user with both internal and partner roles retains authorized internal access');
+check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'powerUser', 'A user with both internal and partner roles retains authorized internal access');
 doc_Threads::$rights[13][10] = false;
 unset(doc_Threads::$records[10]);
 check($mvc->getRequiredRoles('activate', $mvc->record, 13) === 'no_one', 'A missing partner thread is denied');
@@ -193,6 +193,6 @@ check($reader->getRequiredRoles('viewpsingle', $reader->record, 11) === 'storeAl
 Mode::$allowed['allowedContainers'][30] = 30;
 check($reader->getRequiredRoles('psingle', $reader->record, 11) === 'powerUser', 'An allowed pSingle remains readable');
 check($reader->getRequiredRoles('single', $reader->record, 11) === 'powerUser', 'pSingle access continues to permit the restricted single');
-check($reader->getRequiredRoles('changerec', $reader->record, 11) === 'no_one', 'pSingle access does not authorize document changes');
+check($reader->getRequiredRoles('changerec', $reader->record, 11) === 'powerUser', 'Document changes retain their existing checks without thread access');
 
 echo "OK: {$checks} checks\n";

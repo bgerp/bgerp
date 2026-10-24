@@ -221,18 +221,22 @@
 }
 
 .tds-document .tdsSignatureTable {
-    width: 100% !important;
+    width: auto !important;
     margin: 0 !important;
     border-collapse: collapse !important;
-    min-height:15em;
 }
 
 .tds-document .tdsSignatureTable th,
 .tds-document .tdsSignatureTable td {
     padding: 1.2mm 2.2mm !important;
     border: 0 !important;
-    vertical-align: middle;
+    vertical-align: bottom !important;
     text-align: left !important;
+}
+
+.tds-document .tdsSignatureTable th,
+.tds-document .tdsSignatureTable .tdsSignatureAction {
+    padding-bottom: 8mm !important;
 }
 
 .tds-document .tdsSignatureTable th {
@@ -242,14 +246,27 @@
     font-weight: normal;
 }
 
+.tds-document .tdsSignatureAction {
+    width: 18mm;
+    white-space: nowrap;
+    text-align: center !important;
+}
+
+.tds-document .tdsSignatureAction .signBtnHolder {
+    position: static;
+}
+
+.tds-document .tdsSignatureAction .signBtn {
+    top: 3px;
+}
+
 .tds-document .tdsSignatureValue {
     height: 22mm;
-    border-bottom: 0.25mm solid #aaa !important;
 }
 
 .tds-document .tdsSignatureValue .documentSignatureHolder {
-    margin-right: 0 !important;
-    margin-left: 0 !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
 }
 
 .tdsSignerName {
