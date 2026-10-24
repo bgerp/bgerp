@@ -1393,11 +1393,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 continue;
                             }
 
+                            if (!empty($rec->fromDate) && ($iRec->date ?? '') < ($rec->fromDate ?? '')) {
+                                $skipped['beforeFromDate'][] = $iRec->number ?? $inv;
+                                continue;
+                            }
+
                             if (!$deferBalanceFilter && $onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
                                 $skipped['notOverdue'][] = $iRec->number ?? $inv;
                                 continue;
                             }
-                            if ($onlyOverdue && !empty($rec->fromDate) && ($iRec->date ?? '') < $rec->fromDate) continue;
 
                             // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if (($rec->unpaid ?? null) != 'all') {
@@ -1453,16 +1457,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid * $iRec->rate;
                                     $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid * $iRec->rate;
                                     $obj->totalInvoiceOverDue += $salesInvoiceOverDue * $iRec->rate;
-                                }
-                            }
-
-                            //Ако са избрани само НЕплатени и има посочена начална дата,
-                            // то тези преди тази дата не ги записва в масива
-                            if ($rec->unpaid != 'all' && !is_null($rec->fromDate)) {
-
-                                if ($rec->fromDate > $iRec->date) {
-                                    $skipped['beforeFromDate'][] = $iRec->number;
-                                    continue;
                                 }
                             }
 
@@ -1754,11 +1748,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 continue;
                             }
 
+                            if (!empty($rec->fromDate) && ($iRec->date ?? '') < ($rec->fromDate ?? '')) {
+                                $skipped['beforeFromDate'][] = $iRec->number ?? $pInv;
+                                continue;
+                            }
+
                             if (!$deferBalanceFilter && $onlyOverdue && (empty($iRec->dueDate) || $iRec->dueDate >= $today || round($invDiff, 2) <= 0)) {
                                 $skipped['notOverdue'][] = $iRec->number ?? $pInv;
                                 continue;
                             }
-                            if ($onlyOverdue && !empty($rec->fromDate) && ($iRec->date ?? '') < $rec->fromDate) continue;
 
                             //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
                             if ($checkDate < $iRec->date) {
@@ -1796,16 +1794,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid * $iRec->rate;
                                 $obj->totalInvoiceOverPaid += $purchaseInvoiceOverPaid * $iRec->rate;
                                 $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue * $iRec->rate;
-                            }
-
-                            //Ако са избрани само НЕплатени и има посочена начална дата,
-                            // то тези преди тази дата не ги записва в масива
-                            if ($rec->unpaid != 'all' && !is_null($rec->fromDate)) {
-
-                                if ($rec->fromDate > $iRec->date) {
-                                    $skipped['beforeFromDate'][] = $iRec->number;
-                                    continue;
-                                }
                             }
 
 

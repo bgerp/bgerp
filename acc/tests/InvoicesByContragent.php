@@ -640,17 +640,56 @@ foreach (array('out', 'all') as $direction) {
     }
 }
 
-foreach (array('out', 'in') as $direction) {
-    InvoiceTestData::reset();
-    InvoiceTestData::invoice($direction, 1, 'Acme', '2026-10-14', 100, 40);
-    InvoiceTestData::invoice($direction, 2, 'Acme', '2026-10-14', 200, 0, '2026-09-01');
-    $thread = $direction == 'out' ? 1001 : 2001;
-    InvoiceTestData::$payments[$thread] += InvoiceTestData::$payments[$thread + 1];
-    $rec = reportRec($direction, 'overdue');
-    $rec->fromDate = '2026-10-01';
-    $data = new stdClass();
-    $recs = $driver->run($rec, $data);
-    check(count($recs) == 1 && $rec->totalInvoiceValueAll == 100, 'Без суми от обединена фактура преди периода: ' . $direction);
+// Старите фактури участват в разпределението на плащанията, но не и в сумите за избрания период.
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        foreach (array('no', 'yes') as $corrections) {
+            foreach (array(null, '2026-10-01', '2026-10-02') as $from) {
+                InvoiceTestData::reset();
+                $expectedIds = $expectedGroups = array();
+                $expectedTotals = array_fill(0, 5, 0);
+                foreach ($direction == 'all' ? array('out', 'in') : array($direction) as $kind) {
+                    $class = $kind == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+                    $sign = $direction == 'all' && $kind == 'in' ? -1 : 1;
+                    $factor = $kind == 'out' ? 1 : 0.5;
+                    foreach (array(array(1, '2026-10-01', 100, 40), array(2, '2026-09-30', 200, 50)) as $invoice) {
+                        list($id, $date, $amount, $paid) = $invoice;
+                        InvoiceTestData::invoice($kind, $id, 'Acme', '2026-10-14', $amount * $factor, $paid * $factor, $date);
+                        if (isset($from) && $date < $from) continue;
+                        $expectedIds[] = $class . '|' . $id;
+                        $amounts = array($amount, $paid, $amount - $paid, 0, $amount - $paid);
+                        foreach ($amounts as $i => $value) {
+                            $expectedTotals[$i] += $sign * $value * $factor;
+                            $expectedGroups[$class][$i] = ($expectedGroups[$class][$i] ?? 0) + $value * $factor;
+                        }
+                    }
+                    InvoiceTestData::combine($kind, array(2, 1));
+                }
+                $rec = reportRec($direction, $payment);
+                $rec->accountingCorrections = $corrections;
+                $rec->fromDate = $from;
+                $data = new stdClass();
+                $recs = $driver->run($rec, $data);
+                $case = $direction . '/' . $payment . '/' . $corrections . '/' . ($from ?? 'от началото');
+                $actualIds = array();
+                foreach ($recs as $detail) {
+                    $detailClass = $detail->className ?? '';
+                    $actualIds[] = $detailClass . '|' . ($detail->invoiceId ?? null);
+                    foreach (array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue') as $i => $field) {
+                        if ($payment == 'all' && $i > 0 && $corrections == 'no') continue;
+                        check(isset($detail->{$field}) && abs(($detail->{$field} ?? 0) - ($expectedGroups[$detailClass][$i] ?? 0)) < 0.00001, 'Обобщение на контрагента само за периода: ' . $field . '/' . $case);
+                    }
+                }
+                sort($actualIds);
+                sort($expectedIds);
+                check($actualIds === $expectedIds, 'Точните фактури, включително на началната дата: ' . $case);
+                foreach (array('totalInvoiceValueAll', 'totalInvoicePayoutAll', 'totalInvoiceNotPaydAll', 'totalInvoiceOverPaidAll', 'totalInvoiceOverDueAll') as $i => $field) {
+                    if ($payment == 'all' && $i > 0 && $corrections == 'no') continue;
+                    check(isset($rec->{$field}) && abs(($rec->{$field} ?? 0) - $expectedTotals[$i]) < 0.00001, 'Обща сума само на показаните фактури: ' . $field . '/' . $case);
+                }
+            }
+        }
+    }
 }
 
 foreach (array('out', 'in', 'all') as $direction) {
@@ -772,6 +811,7 @@ foreach (array('out', 'in') as $direction) {
     foreach (array('all', 'unpaid', 'overdue') as $payment) {
         $rec = reportRec($direction, $payment);
         $rec->checkDate = '2026-10-08';
+        $rec->fromDate = '2026-09-16';
         $data = new stdClass();
         $legacy = $driver->run($rec, $data);
         $rec->accountingCorrections = 'no';
