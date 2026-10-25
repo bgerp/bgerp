@@ -640,6 +640,74 @@ foreach (array('out', 'all') as $direction) {
     }
 }
 
+// Плащането по проформа и последващата фактура се показва отделно, но се сумира само веднъж.
+foreach (array('cash_Pko', 'bank_IncomeDocuments') as $paymentClass) {
+    foreach (array('out', 'in', 'all') as $direction) {
+        foreach (array('no', 'yes') as $corrections) {
+            foreach (array('2026-10-07', '2026-10-08') as $cutoff) {
+                InvoiceTestData::reset();
+                $paid = $cutoff == '2026-10-08' ? 1000 : 0;
+                InvoiceTestData::invoice('out', 1, 'Proforma client', '2026-10-10', 1000, $paid, '2026-10-06');
+                InvoiceTestData::invoice('in', 1, 'Proforma client', '2026-10-10', 300, 60, '2026-10-06');
+                $invoice = reset(InvoiceTestData::$records['sales_Invoices']);
+                foreach (array(1 => 1000, 2 => 200, 3 => 500) as $id => $amount) {
+                    $proforma = clone $invoice;
+                    $proforma->id = $proforma->number = $id;
+                    $proforma->containerId = 20000 + $id;
+                    $proforma->dealValue = $amount;
+                    InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+                }
+                foreach (array(
+                    array(1, 1, 1000, '2026-10-08', 'active'),
+                    array(2, 2, 70, '2026-10-05', 'active'),
+                    array(3, 2, 130, '2026-10-08', 'active'),
+                    array(4, 2, 500, '2026-10-06', 'rejected'),
+                    array(5, 2, 500, '2026-10-09', 'active'),
+                ) as $payment) {
+                    list($id, $proformaId, $amount, $date, $state) = $payment;
+                    InvoiceTestData::$records[$paymentClass][] = (object)array('id' => $id, 'containerId' => 30000 + $id, 'threadId' => $invoice->threadId ?? null, 'state' => $state, 'amount' => $amount, 'valior' => $date);
+                    InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => $id, 'documentContainerId' => 30000 + $id, 'containerId' => 20000 + $proformaId);
+                }
+                $rec = reportRec($direction, 'all');
+                $rec->checkDate = $cutoff;
+                $rec->fromDate = '2026-10-06';
+                $rec->accountingCorrections = $corrections;
+                $data = new stdClass();
+                $withoutProformas = $driver->run($rec, $data);
+                $baseline = clone $rec;
+                $rec->{'seeProformаs'} = 'yes';
+                InvoiceTestData::$queries = array();
+                $recs = $driver->run($rec, $data);
+                $case = $paymentClass . '/' . $direction . '/' . $corrections . '/' . $cutoff;
+                $expectedProformas = $direction == 'in' ? array() : ($cutoff == '2026-10-07' ? array(2 => 70) : array(1 => 1000, 2 => 200));
+                $actualProformas = $actualInvoices = array();
+                foreach ($recs as $detail) {
+                    if (($detail->className ?? null) == 'sales_Proformas') {
+                        $id = $detail->invoiceId ?? null;
+                        check(isset($expectedProformas[$id]), 'Само проформи с плащане до датата: ' . $case);
+                        check(($detail->invoicePayout ?? null) == $expectedProformas[$id], 'Пълна или частична платена сума към датата: ' . $case);
+                        $expectedPayments = $id == 1 ? array(30001) : ($cutoff == '2026-10-07' ? array(30002) : array(30002, 30003));
+                        check(array_column($detail->payDocuments ?? array(), 'containerId') === $expectedPayments, 'Без бъдещи и отхвърлени плащания, включително на самата дата: ' . $case);
+                        $export = $driver->exportRow($rec, $detail);
+                        check(($export->paidAmount ?? null) == $expectedProformas[$id], 'Същото платено в експорта: ' . $case);
+                        $actualProformas[$id] = true;
+                    } else {
+                        $actualInvoices[$detail->className ?? ''][$detail->invoiceId ?? 0] = array($detail->invoiceValue ?? null, $detail->invoicePayout ?? null);
+                    }
+                }
+                check(count($actualProformas) == count($expectedProformas), 'Без липсващи проформи, платени до датата: ' . $case);
+                foreach ($withoutProformas as $detail) {
+                    check(($actualInvoices[$detail->className ?? ''][$detail->invoiceId ?? 0] ?? null) === array($detail->invoiceValue ?? null, $detail->invoicePayout ?? null), 'Непроменени суми и плащания по истинските фактури: ' . $case);
+                }
+                foreach (array('totalInvoiceValueAll', 'totalInvoicePayoutAll', 'totalInvoiceNotPaydAll', 'totalInvoiceOverPaidAll', 'totalInvoiceOverDueAll', 'totalAccountingCorrectionAll') as $field) {
+                    check(($rec->{$field} ?? 0) === ($baseline->{$field} ?? 0), 'Без повторно сумиране заради проформите: ' . $field . '/' . $case);
+                }
+                check((InvoiceTestData::$queries['deals_InvoicesToDocuments'] ?? 0) == ($direction == 'in' ? 0 : 1), 'Връзките за всички плащания се четат с една заявка: ' . $case);
+            }
+        }
+    }
+}
+
 // Старите фактури участват в разпределението на плащанията, но не и в сумите за избрания период.
 foreach (array('out', 'in', 'all') as $direction) {
     foreach (array('all', 'unpaid', 'overdue') as $payment) {

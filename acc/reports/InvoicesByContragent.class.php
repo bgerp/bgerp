@@ -1262,7 +1262,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                                     $pDocRec = $payDocClass->fetch($pDocId);
 
-                                    if (!$pDocRec || $pDocRec->state != 'active') {
+                                    if (!$pDocRec || ($pDocRec->state ?? null) != 'active' || ($pDocRec->valior ?? '') > $checkDate) {
                                         continue;
                                     }
 
@@ -2791,6 +2791,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public static function getProformsWithPaymant($rec, $folderIds = null)
     {
+        $checkDate = $rec->checkDate ?? dt::today();
 
         // Избират се активните проформи според зададените филтри.
         /** @var core_Query $proformInvQuery */
@@ -2819,6 +2820,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $payDocQuery = $payDocs::getQuery();
             $payDocQuery->in('threadId', $profomInvArr);
             $payDocQuery->where("#state = 'active'");
+            $payDocQuery->where(array("#valior <= '[#1#]'", $checkDate));
             $payDocQuery->show('id,containerId,valior');
             $payRecords = $payDocQuery->fetchAll();
             $linksByPayment = array();
