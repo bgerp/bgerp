@@ -57,7 +57,7 @@ class dec_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Декларации за съответствия';
+    public $info = 'Декларации за съответствие, твърденията в тях, материали и технически спецификации (TDS) на артикулите';
     
     
     /**
@@ -71,6 +71,8 @@ class dec_Setup extends core_ProtoSetup
         'migrate::fixDuplicateTitle2116',
         'migrate::updateStatementLang2521',
         'migrate::migrateTdsDeclarations2643',
+        'migrate::migrateTdsProductData2644',
+        'migrate::setTdsProductDataOn2644',
     );
     
     
@@ -205,10 +207,15 @@ class dec_Setup extends core_ProtoSetup
             ),
         );
 
-        $oldValues = array();
-        $dbRes = $Tds->db->query("SELECT `id`, `{$oldCol}` AS `old` FROM `{$tbl}` WHERE `{$oldCol}` IS NOT NULL AND `{$oldCol}` != ''");
+        // Производителят вече е в productData, а тук е още в старата колона
+        $manufacturerCol = str::phpToMysqlName('manufacturerSnapshot');
+        $manufacturerSelect = $Tds->db->isFieldExists($tbl, $manufacturerCol) ? "`{$manufacturerCol}`" : 'NULL';
+
+        $oldValues = $manufacturers = array();
+        $dbRes = $Tds->db->query("SELECT `id`, `{$oldCol}` AS `old`, {$manufacturerSelect} AS `manufacturer` FROM `{$tbl}` WHERE `{$oldCol}` IS NOT NULL AND `{$oldCol}` != ''");
         while ($dbRec = $Tds->db->fetchObject($dbRes)) {
             $oldValues[$dbRec->id] = $dbRec->old;
+            $manufacturers[$dbRec->id] = $dbRec->manufacturer;
         }
 
         foreach ($oldValues as $id => $old) {
@@ -223,7 +230,7 @@ class dec_Setup extends core_ProtoSetup
             // Активираните (и след това затворени или оттеглени) пазят досегашния вид на декларациите
             $state = ($rec->state == 'rejected') ? ($rec->brState ?? null) : $rec->state;
             if (!isset($rec->declarationSnapshot) && in_array($state, array('active', 'closed'))) {
-                $manufacturer = dec_Tds::getManufacturer($lang, $rec->manufacturerSnapshot ?? null);
+                $manufacturer = dec_Tds::getManufacturer($lang, $manufacturers[$id] ?? null);
                 $rec->declarationSnapshot = static::getOldTdsDeclarationsHtml($keys, $lang, $manufacturer);
                 $Tds->save_($rec, 'declarationSnapshot');
             }
@@ -257,6 +264,73 @@ class dec_Setup extends core_ProtoSetup
             if (countR($statementIds)) {
                 $rec->complianceDeclarationIds = keylist::fromArray($statementIds);
                 $Tds->save_($rec, 'complianceDeclarationIds');
+            }
+        }
+    }
+
+
+    /**
+     * Снимката на артикула в TDS отива в едно поле, а черновите остават без снимка; кешът на документите се чисти
+     */
+    public function migrateTdsProductData2644()
+    {
+        $Tds = cls::get('dec_Tds');
+        $Tds->setupMvc();
+        if (!$Tds->db->isFieldExists($Tds->dbTableName, str::phpToMysqlName('productSnapshot'))) {
+
+            return;
+        }
+
+        $query = $Tds->getQuery();
+        $query->FLD('productNameSnapshot', 'varchar(255)');
+        $query->FLD('productCodeSnapshot', 'varchar(64)');
+        $query->FLD('manufacturerSnapshot', 'varchar(255)');
+        $query->FLD('productSnapshot', 'blob(1000000)');
+        $query->where('#productData IS NULL');
+        while ($rec = $query->fetch()) {
+
+            // Черновите вече са на живо, затова кешът се чисти на всички
+            if (!empty($rec->containerId)) {
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
+            }
+
+            // Снимка пазят само активираните (и след това затворени или оттеглени)
+            $state = ($rec->state == 'rejected') ? ($rec->brState ?? null) : $rec->state;
+            if (!in_array($state, array('active', 'closed')) || (empty($rec->productSnapshot) && empty($rec->productNameSnapshot))) {
+                continue;
+            }
+
+            $productData = new stdClass();
+            $productData->name = !empty($rec->productNameSnapshot) ? $rec->productNameSnapshot : cat_Products::getTitleById($rec->productId);
+            $productData->code = !empty($rec->productCodeSnapshot) ? $rec->productCodeSnapshot : 'Art' . $rec->productId;
+            $lang = (!empty($rec->template) && doc_TplManager::fetchField($rec->template, 'lang') == 'bg') ? 'bg' : 'en';
+            $productData->manufacturer = dec_Tds::getManufacturer($lang, $rec->manufacturerSnapshot);
+            $productData->description = $rec->productSnapshot;
+
+            $rec->productData = $productData;
+            $Tds->save_($rec, 'productData');
+        }
+    }
+
+
+    /**
+     * Датата на снимката на артикула в съществуващите TDS е датата на активирането им; кешът им се чисти
+     */
+    public function setTdsProductDataOn2644()
+    {
+        $Tds = cls::get('dec_Tds');
+        $Tds->setupMvc();
+
+        $query = $Tds->getQuery();
+        $query->where('#productData IS NOT NULL AND #productDataOn IS NULL');
+        $query->show('id,containerId,activatedOn,createdOn');
+        while ($rec = $query->fetch()) {
+            $rec->productDataOn = !empty($rec->activatedOn) ? $rec->activatedOn : $rec->createdOn;
+            $Tds->save_($rec, 'productDataOn');
+
+            // Датата се показва в документа
+            if (!empty($rec->containerId)) {
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
             }
         }
     }

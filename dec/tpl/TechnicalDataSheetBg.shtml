@@ -5,7 +5,7 @@
 </section>
 
 <section class="tdsSection">
-    <h2 class="tdsSectionTitle">Идентификация на продукта</h2>
+    <h2 class="tdsSectionTitle">Идентификация на продукта[#liveDataHint#]</h2>
     <table class="tdsDataTable">
         <tr>
             <th>Продукт</th>
@@ -32,7 +32,7 @@
 
 <!--ET_BEGIN productDescription-->
 <section class="tdsSection">
-    <h2 class="tdsSectionTitle">Описание и технически характеристики</h2>
+    <h2 class="tdsSectionTitle">Описание и технически характеристики[#liveDataHint#][#PRODUCT_DATA_ON#]</h2>
     <div class="tdsProductDescription">[#productDescription#]</div>
 </section>
 <!--ET_END productDescription-->
