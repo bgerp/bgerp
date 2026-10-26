@@ -2804,6 +2804,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         } elseif (!empty($rec->contragent)) {
             $proformInvQuery->in('folderId', keylist::toArray($rec->contragent));
         }
+
+        // Ограничават се проформите, а не датата или нишката на авансовото плащане.
+        $periodQuery = clone $proformInvQuery;
+        $periodQuery->where("#number IS NOT NULL");
+        if (!empty($rec->fromDate)) {
+            $periodQuery->where(array("#date >= '[#1#]'", $rec->fromDate));
+        }
+        $periodQuery->where(array("#date <= '[#1#]'", $checkDate));
+        $periodQuery->show('containerId');
+        $proformaContainers = arr::extractValuesFromArray($periodQuery->fetchAll(), 'containerId');
+        if (!countR($proformaContainers)) return array();
+
         $proformInvQuery->show('threadId');
         $proformInvQuery->groupBy('threadId');
 
@@ -2829,6 +2841,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 /** @var core_Query $linkQuery */
                 $linkQuery = deals_InvoicesToDocuments::getQuery();
                 $linkQuery->in('documentContainerId', $ids);
+                $linkQuery->in('containerId', $proformaContainers);
                 $linkQuery->orderBy('id', 'ASC');
                 $linkQuery->show('id,documentContainerId,containerId');
                 while ($link = $linkQuery->fetch()) {

@@ -194,6 +194,7 @@ class bank_IncomeDocuments extends InvoiceTestModel {}
 class deals_InvoicesToDocuments extends InvoiceTestModel {}
 class doc_Containers {
     public static function getDocument($container) {
+        InvoiceTestData::$documentReads++;
         foreach (InvoiceTestData::$records['sales_Proformas'] ?? array() as $rec) {
             if ($rec->containerId == $container) return (object)array('className' => 'sales_Proformas', 'that' => $rec->id);
         }
@@ -254,8 +255,10 @@ class InvoiceTestData {
     public static $payments = array();
     public static $sqlConditions = array();
     public static $queries = array();
+    public static $documentReads = 0;
     public static function reset() {
         self::$records = self::$payments = self::$sqlConditions = self::$queries = array();
+        self::$documentReads = 0;
         deals_Helper::$baseConversions = array();
     }
     public static function invoice($direction, $id, $name, $due, $amount, $paid, $date = '2026-10-01', $currency = 'EUR', $rate = 1) {
@@ -705,6 +708,58 @@ foreach (array('cash_Pko', 'bank_IncomeDocuments') as $paymentClass) {
                 check((InvoiceTestData::$queries['deals_InvoicesToDocuments'] ?? 0) == ($direction == 'in' ? 0 : 1), 'Връзките за всички плащания се четат с една заявка: ' . $case);
             }
         }
+    }
+}
+
+// Извънпериодните проформи не се обработват, но авансите и плащанията от друга нишка остават.
+foreach (array('cash_Pko', 'bank_IncomeDocuments') as $paymentClass) {
+    foreach (array('no', 'yes') as $corrections) {
+        InvoiceTestData::reset();
+        foreach (array(1 => '2026-10-01', 2 => '2026-10-08', 3 => '2026-09-30', 4 => '2026-10-09') as $id => $date) {
+            InvoiceTestData::invoice('out', $id, 'Proforma period', '2026-10-10', 100, 0, $date);
+            $proforma = array_pop(InvoiceTestData::$records['sales_Invoices']);
+            $proforma->folderId = 1;
+            InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+            InvoiceTestData::$records[$paymentClass][] = (object)array('id' => $id, 'containerId' => 30000 + $id,
+                'threadId' => $proforma->threadId ?? null, 'state' => 'active', 'amount' => 20 * $id, 'valior' => '2026-09-20');
+            InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => $id,
+                'documentContainerId' => 30000 + $id, 'containerId' => $proforma->containerId ?? null);
+        }
+        // Плащане от старата обединена нишка към проформата на горната граница.
+        InvoiceTestData::$records[$paymentClass][1]->threadId = 1003;
+        InvoiceTestData::combine('out', array(2, 3));
+        foreach (array(5 => null, 6 => 6, 7 => 7) as $id => $number) {
+            $proforma = clone InvoiceTestData::$records['sales_Proformas'][0];
+            $proforma->id = $id;
+            $proforma->number = $number;
+            $proforma->containerId = 11000 + $id;
+            $proforma->state = $id == 6 ? 'rejected' : 'active';
+            $proforma->folderId = $id == 7 ? 2 : 1;
+            InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+            InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => $id,
+                'documentContainerId' => 30001, 'containerId' => $proforma->containerId ?? null);
+        }
+        $rec = reportRec('out', 'all');
+        $rec->fromDate = '2026-10-01';
+        $rec->checkDate = '2026-10-08';
+        $rec->contragent = '|1|';
+        $rec->accountingCorrections = $corrections;
+        $rec->{'seeProformаs'} = 'yes';
+        $rows = $driver->run($rec, $data);
+        $paid = array();
+        foreach ($rows as $detail) $paid[$detail->invoiceId ?? 0] = $detail->invoicePayout ?? 0;
+        ksort($paid);
+        check($paid === array(1 => 20, 2 => 40), 'Аванс преди началото и плащане от обединена нишка: ' . $paymentClass . '/' . $corrections);
+        check(InvoiceTestData::$documentReads == 2, 'Само двете проформи от периода и избрания контрагент се разпознават');
+        check(($rec->totalInvoiceValueAll ?? null) === 0 && ($rec->totalInvoicePayoutAll ?? null) === 0, 'Проформите не удвояват сумите');
+
+        InvoiceTestData::$queries = array();
+        InvoiceTestData::$documentReads = 0;
+        $rec->fromDate = '2026-10-10';
+        $rec->checkDate = '2026-10-11';
+        check(acc_reports_InvoicesByContragent::getProformsWithPaymant($rec) === array(), 'Празен период без проформи');
+        check(empty(InvoiceTestData::$queries[$paymentClass]) && empty(InvoiceTestData::$queries['deals_InvoicesToDocuments']) && InvoiceTestData::$documentReads == 0,
+            'Без заявки за плащания и връзки, когато няма проформи от периода');
     }
 }
 
