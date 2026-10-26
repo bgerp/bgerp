@@ -22,3 +22,42 @@
     width: auto !important;
     max-width: 100%;
 }
+
+.invoicesByContragentInfo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.invoicesByContragentInfo .detail-info {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.invoicesByContragentInfo .invoice-report-results {
+    flex: 2 1 320px;
+}
+
+.invoicesByContragentInfo .invoice-report-filter {
+    flex: 1 1 260px;
+}
+
+.invoicesByContragentInfo .invoice-report-filter-row {
+    margin-bottom: 0;
+    line-height: 1.35;
+    overflow-wrap: break-word;
+}
+
+.acc_reports_InvoicesByContragent td.invoice-report-base-value {
+    color: #555;
+    font-size: 85%;
+}
+
+.acc_reports_InvoicesByContragent td.invoice-report-base-value span {
+    color: inherit;
+}
+
+.narrow .invoicesByContragentInfo {
+    display: block;
+}

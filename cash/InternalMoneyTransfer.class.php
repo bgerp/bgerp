@@ -318,7 +318,7 @@ class cash_InternalMoneyTransfer extends core_Master
         if(isset($cFolderId)){
             $Cover = doc_Folders::getCover($cFolderId);
             if($Cover->isInstanceOf('cash_Cases')){
-                if (doc_Folders::haveRightToObject($cFolderId)) {
+                if (doc_Folders::haveRightToObject(doc_Folders::fetch($cFolderId))) {
                     $folderId = $cFolderId;
                 }
             }
@@ -353,25 +353,33 @@ class cash_InternalMoneyTransfer extends core_Master
             $operationSysId = $form->rec->operationSysId;
         }
 
-        $Cover = doc_Folders::getCover($form->rec->folderId);
-        if($Cover->isInstanceOf('cash_Cases')){
-            if(bgerp_plg_FLB::canUse($Cover->getInstance(), $Cover->fetch(), null, 'select')){
-                $form->setDefault('creditCase', $Cover->that);
+        // "От" е текущата каса; без нея - копираната при клониране (папката на клонинга е на получателя)
+        // или касата на папката. Изпратената или подадената изрично (напр. от "Инкасиране") остава
+        $currentCaseId = cash_Cases::getCurrent('id', false);
+        $isClone = (($data->action ?? null) == 'clone');
+        if ($postedCreditCase = Request::get('creditCase', 'int')) {
+            $form->rec->creditCase = $postedCreditCase;
+        } elseif (empty($form->rec->creditCase) || $isClone) {
+            $creditCase = $currentCaseId
+                ?: ($isClone ? ($form->rec->creditCase ?? null) : null)
+                ?: cash_Cases::getSelectableByFolder($form->rec->folderId ?? null);
+            if ($creditCase) {
+                $form->rec->creditCase = $creditCase;
             }
         }
 
         switch ($operationSysId) {
             case 'case2case':
-                $form->setField('debitCase', 'input');
-                $form->setDefault('debitCase', cash_Cases::getCurrent());
+                // "Към" не предлага касата от "От" и се преизчислява при смяната ѝ
+                $form->setField('creditCase', 'removeAndRefreshForm=debitCase');
+                self::prepareDebitCase($form, $currentCaseId, true);
 
                 break;
             case 'nonecash2case':
                 $form->setField('paymentId', 'input');
                 $form->setFieldTypeParams('paymentId', array('allowEmpty' => 'allowEmpty'));
                 $form->setField('paymentId', 'mandatory');
-                $form->setField('debitCase', 'input');
-                $form->setDefault('debitCase', cash_Cases::getCurrent());
+                self::prepareDebitCase($form, $currentCaseId);
 
                 break;
             case 'case2bank':
@@ -399,15 +407,43 @@ class cash_InternalMoneyTransfer extends core_Master
                 $form->setField('amount', 'mandatory');
                 $form->setField('paymentId', 'input');
                 $form->setField('currencyId', 'input=hidden');
-                $form->setField('debitCase', 'input');
                 $form->setField('paymentDebitId', 'input');
-                $form->setDefault('debitCase', cash_Cases::getCurrent());
+                self::prepareDebitCase($form, $currentCaseId);
 
                 break;
         }
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
+    }
+
+
+    /**
+     * Каса "Към": текущата по подразбиране, а без нея се избира изрично от празна опция
+     *
+     * @param core_Form $form
+     * @param int|null  $currentCaseId
+     * @param bool      $excludeCreditCase дали да не се предлага касата от "От"
+     */
+    private static function prepareDebitCase($form, $currentCaseId, $excludeCreditCase = false)
+    {
+        $form->setField('debitCase', 'input,mandatory');
+        $options = $form->fields['debitCase']->type->prepareOptions();
+        if ($excludeCreditCase) {
+            unset($options[$form->rec->creditCase ?? '']);
+
+            // Копираната при клониране "Към", съвпадаща с новото "От", се избира наново
+            if (($form->rec->debitCase ?? null) == ($form->rec->creditCase ?? null)) {
+                unset($form->rec->debitCase);
+            }
+        }
+        if (isset($currentCaseId) && isset($options[$currentCaseId])) {
+            $form->setDefault('debitCase', $currentCaseId);
+        }
+        if (empty($form->rec->debitCase)) {
+            $options = array('' => '') + $options;
+        }
+        $form->setOptions('debitCase', $options);
     }
     
     

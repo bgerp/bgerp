@@ -285,6 +285,31 @@ class cash_Cases extends core_Master
 
 
     /**
+     * Касата на папката, ако е на каса и потребителят може да я избира
+     *
+     * @param int|null $folderId
+     * @param int|null $userId
+     *
+     * @return int|null
+     */
+    public static function getSelectableByFolder($folderId, $userId = null)
+    {
+        if (empty($folderId)) {
+
+            return null;
+        }
+
+        $Cover = doc_Folders::getCover($folderId);
+        if (!$Cover->isInstanceOf('cash_Cases') || !bgerp_plg_FLB::canUse('cash_Cases', $Cover->fetch(), $userId, 'select')) {
+
+            return null;
+        }
+
+        return $Cover->that;
+    }
+
+
+    /**
      * Подготвя и осъществява търсене по каса, изпозлва се в касовите документи
      *
      * @param stdClass $data

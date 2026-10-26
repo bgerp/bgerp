@@ -314,7 +314,8 @@ class email_Incomings extends core_Master
         $memoryLimit = $FileSize->fromVerbal(ini_get('memory_limit'));
         if ($conf->EMAIL_MAX_ALLOWED_MEMORY > $memoryLimit) {
             // Задаваме максималната използваема памет
-            ini_set('memory_limit', $conf->EMAIL_MAX_ALLOWED_MEMORY);
+            // Вече записани дробни стойности дават E_WARNING в PHP 8.2
+            ini_set('memory_limit', (int) $conf->EMAIL_MAX_ALLOWED_MEMORY);
         }
         
         // Максималната продължителност за теглене на писма

@@ -1574,8 +1574,10 @@ class blast_Emails extends core_Master
                     }
                 }
                 
-                if (empty($redirectUrl) && $perClsInst->haveRightFor('list')) {
-                    $redirectUrl = array($perClsInst, 'list');
+                // Правата и URL-ът са на модела зад адаптера на интерфейса
+                $perSrcMvc = $perClsInst->class;
+                if (empty($redirectUrl) && $perSrcMvc->haveRightFor('list')) {
+                    $redirectUrl = array($perSrcMvc, 'list');
                 }
                 
                 if (empty($redirectUrl)) {

@@ -240,17 +240,22 @@ class bank_InternalMoneyTransfer extends core_Master
         $form = cls::get('core_Form');
         $form->method = 'GET';
         $form->FNC('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'input,caption=Операция');
-        $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
+        $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка,silent');
+        $form->input(null, 'silent');
         $form->title = 'Нов вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class' => 'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close-red.png');
         
-        $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
-        $folderRec = doc_Folders::fetch($folderId);
-        if (!doc_Folders::haveRightToObject($folderRec)) {
-            $folderId = static::getDefaultFolder(null, false);
+        // Папката на наша сметка остава - от нея излизат парите; иначе тази на текущата сметка
+        $folderId = $form->rec->folderId ?? null;
+        if (!isset($folderId) || !doc_Folders::getCover($folderId)->isInstanceOf('bank_OwnAccounts') || !doc_Folders::haveRightToObject(doc_Folders::fetch($folderId))) {
+            $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
+            $folderRec = doc_Folders::fetch($folderId);
+            if (!doc_Folders::haveRightToObject($folderRec)) {
+                $folderId = static::getDefaultFolder(null, false);
+            }
         }
-        $form->setDefault('folderId', $folderId);
+        $form->rec->folderId = $folderId;
         
         return $form;
     }
@@ -270,10 +275,28 @@ class bank_InternalMoneyTransfer extends core_Master
             $operationSysId = $form->rec->operationSysId;
         }
         
+        // Парите излизат от текущата сметка; без нея - от копираната при клониране
+        // (папката на клонинга е на получателя) или от сметката на папката
+        $isClone = (($data->action ?? null) == 'clone');
+        if (empty($form->rec->id) || $isClone) {
+            $form->rec->creditBank = bank_OwnAccounts::getCurrent('id', false)
+                ?: ($isClone ? ($form->rec->creditBank ?? null) : null)
+                ?: bank_OwnAccounts::getSelectableByFolder($form->rec->folderId ?? null)
+                ?: bank_OwnAccounts::getCurrent();
+        }
+        $form->setReadOnly('creditBank');
+        
         switch ($operationSysId) {
             case 'bank2bank':
-                $form->setField('debitBank', 'input');
-                $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
+                $form->setField('debitBank', 'input,mandatory');
+                $debitBanks = array_diff_key(bank_OwnAccounts::getOwnAccounts(), array($form->rec->creditBank => true));
+
+                // Копираната при клониране "Към", съвпадаща с новото "От", се избира наново
+                if (!empty($form->rec->debitBank) && $form->rec->debitBank == $form->rec->creditBank) {
+                    unset($form->rec->debitBank);
+                    $debitBanks = array('' => '') + $debitBanks;
+                }
+                $form->setOptions('debitBank', $debitBanks);
                 break;
             case 'bank2case':
                 $form->setField('debitCase', 'input,mandatory');
@@ -283,7 +306,6 @@ class bank_InternalMoneyTransfer extends core_Master
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        $form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
     }
     
     

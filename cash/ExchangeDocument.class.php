@@ -191,36 +191,21 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
-     *  Добавяме помощник за избиране на сч. операция
-     */
-    public static function on_BeforeAction($mvc, &$tpl, $action)
-    {
-        if ($action != 'add') {
-            
-            return;
-        }
-        
-        if ($folderId = Request::get('folderId', 'int')) {
-            if ($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')) {
-                
-                return redirect(array('cash_Cases', 'list'), false, '|Документът не може да се създаде в папката на неактивна каса');
-            }
-        }
-    }
-    
-    
-    /**
      * Подготовка на формата за добавяне
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
-        $cCase = cash_Cases::getCurrent();
-        $form->rec->folderId = cash_Cases::forceCoverAndFolder($cCase);
+        
+        // Парите излизат от касата на папката, ако може да се избира, иначе от текущата
+        if (empty($form->rec->peroFrom)) {
+            $form->rec->peroFrom = cash_Cases::getSelectableByFolder($form->rec->folderId ?? null) ?? cash_Cases::getCurrent();
+        }
+        $form->rec->folderId = cash_Cases::forceCoverAndFolder($form->rec->peroFrom);
         $today = dt::verbal2mysql();
         $currencyId = acc_Periods::getBaseCurrencyId($today);
         
-        $form->setReadOnly('peroFrom', $cCase);
+        $form->setReadOnly('peroFrom');
         $form->setDefault('creditCurrency', $currencyId);
         $form->setDefault('debitCurrency', $currencyId);
         $form->setDefault('valior', $today);
