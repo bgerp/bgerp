@@ -676,7 +676,7 @@ en,Заявка,Request
 en,Заявки за покупки,Purchase orders
 en,Заявки за прод_7423e,Request for sale
 en,Заявки за това_2f537,Request for loading
-en,Заявки,Applications
+en,Заявки,Requests
 en,Звук,Sound
 en,Звуков сигнал _e1185,Notification sound
 en,Здравейте колеги,Hello colleagues
@@ -2210,12 +2210,12 @@ en,Циркулярни,Circular
 en,Циркулярно писмо,Circular Letter
 en,Цитат,Quote
 en,Цял ден,All day
-en,Чакащ,Pending
-en,Чакащи сделки,Pending deals
+en,Чакащ,Waiting
+en,Чакащи сделки,Waiting deals
 en,Чакащи бележки,Waiting notes
-en,Чакащи,Pending
-en,Чакащите,Pending
-en,Чакащо,Pending
+en,Чакащи,Waiting
+en,Чакащите,Waiting
+en,Чакащо,Waiting
 en,Час,Hour
 en,Часове,Hours
 en,Частен,Private
