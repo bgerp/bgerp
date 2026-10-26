@@ -305,7 +305,7 @@ abstract class deals_ClosedDeals extends core_Master
         $skipClasses = array(acc_RatesDifferences::getClassId());
         $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
 
-        $displayValior = !empty($rec->valior) ? $rec->valior : (($rec->valiorStrategy ?? null) == 'createdOn' ? $rec->createdOn : $biggestValior);
+        $displayValior = !empty($rec->valior) ? $rec->valior : (($rec->valiorStrategy ?? null) == 'createdOn' ? ($rec->createdOn ?? dt::now()) : $biggestValior);
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
             $form->info = tr('Извънреден приход|*: <b class="blueText">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
@@ -805,18 +805,21 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function getValiorDate($rec)
     {
+        // Новият документ още няма дата на създаване
+        $createdOn = $rec->createdOn ?? dt::now();
+
         // При ръчен вальор е с приоритет
         if(($rec->valiorStrategy ?? null) == 'manual' && !empty($rec->valior)) {
             $date = $rec->valior;
         } elseif(($rec->valiorStrategy ?? null) == 'createdOn'){
-            $date = $rec->createdOn;
+            $date = $createdOn;
         } else {
             $skipClasses = array(acc_RatesDifferences::getClassId());
             $date = $this->getBiggestValiorInDeal($rec, $skipClasses);
         }
 
         if(empty($date)){
-            $date = $rec->createdOn;
+            $date = $createdOn;
         }
 
         // Ако датата не е свободна, взима се първата свободна
