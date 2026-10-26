@@ -485,6 +485,23 @@ class cms_Content extends core_Master
         $theme->renderMenuLangs($tools, cms_Domains::getCmsLangs());
         $tpl->append($theme->wrapMenuTools($tools));
         if ((cms_Domains::getPublicDomain()->searchPosition ?? 'content') == 'menu') {
+            // Страници като входа нямат собствена форма, която да преместим в менюто.
+            $searchMenu = null;
+            foreach (($data->items ?? array()) as $item) {
+                if (empty($item->source) || !cls::load($item->source, true)) continue;
+                $source = cls::get($item->source);
+                if (!($source instanceof cms_Articles) && !($source instanceof eshop_Groups) && !($source instanceof blogm_Articles)) continue;
+                if (!$searchMenu || $item->id == $cMenuId) $searchMenu = $item;
+                if ($item->id == $cMenuId) break;
+            }
+            if ($searchMenu) {
+                $source = cls::get($searchMenu->source);
+                $searchCtr = $source instanceof eshop_Groups ? 'eshop_Groups' : ($source instanceof blogm_Articles ? 'blogm_Articles' : 'cms_Articles');
+                $searchAct = $searchCtr == 'eshop_Groups' ? 'ShowAll' : ($searchCtr == 'blogm_Articles' ? 'Browse' : 'Article');
+                $fallback = new ET('<template id="cms-menu-search-fallback">[#FORM#]</template>');
+                $fallback->replace(cms_Articles::renderSearchForm($searchMenu->id, $searchCtr, $searchAct, '', $searchCtr == 'cms_Articles' ? 'menuId' : 'cMenuId'), 'FORM');
+                $tpl->append($fallback);
+            }
             $tpl->push('cms/css/menuSearch.css', 'CSS');
             $tpl->push('cms/js/menuSearch.js', 'JS');
             jquery_Jquery::run($tpl, 'initCmsMenuSearch();', true);
