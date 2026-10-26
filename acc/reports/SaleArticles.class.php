@@ -10,7 +10,7 @@
  * @package   acc
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -264,7 +264,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         
         $data->summary->colspan = countR($data->listFields);
         
-        if ($data->bShowQuantities) {
+        if (!empty($data->bShowQuantities)) {
             $data->summary->colspan -= 4;
             if ($data->summary->colspan != 0 && countR($data->rows)) {
                 $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");

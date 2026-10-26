@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -183,7 +183,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl && $data->data) {
+        if (empty($data->tpl) && !empty($data->data)) {
             $data->tpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#folderTitle#]</div>
                                 [#PortalTable#]

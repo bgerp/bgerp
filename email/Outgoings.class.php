@@ -8,7 +8,7 @@
  * @package   email
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1519,7 +1519,7 @@ class email_Outgoings extends core_Master
      */
     public function on_BeforeRenderSingle($mvc, &$tpl, $data)
     {
-        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+        if (!empty($data->lg) && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::push($data->lg);
         }
     }
@@ -1534,7 +1534,7 @@ class email_Outgoings extends core_Master
      */
     public function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+        if (!empty($data->lg) && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop($data->lg);
         }
     }
@@ -2756,7 +2756,7 @@ class email_Outgoings extends core_Master
      */
     public function renderSingleLayout_(&$data)
     {
-        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+        if (!empty($data->lg) && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::push($data->lg);
         }
         
@@ -2838,7 +2838,7 @@ class email_Outgoings extends core_Master
         
         $tpl = getTplFromFile($tpl);
 
-        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+        if (!empty($data->lg) && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }
         

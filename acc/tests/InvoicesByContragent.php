@@ -194,6 +194,7 @@ class bank_IncomeDocuments extends InvoiceTestModel {}
 class deals_InvoicesToDocuments extends InvoiceTestModel {}
 class doc_Containers {
     public static function getDocument($container) {
+        InvoiceTestData::$documentReads++;
         foreach (InvoiceTestData::$records['sales_Proformas'] ?? array() as $rec) {
             if ($rec->containerId == $container) return (object)array('className' => 'sales_Proformas', 'that' => $rec->id);
         }
@@ -254,8 +255,10 @@ class InvoiceTestData {
     public static $payments = array();
     public static $sqlConditions = array();
     public static $queries = array();
+    public static $documentReads = 0;
     public static function reset() {
         self::$records = self::$payments = self::$sqlConditions = self::$queries = array();
+        self::$documentReads = 0;
         deals_Helper::$baseConversions = array();
     }
     public static function invoice($direction, $id, $name, $due, $amount, $paid, $date = '2026-10-01', $currency = 'EUR', $rate = 1) {
@@ -705,6 +708,58 @@ foreach (array('cash_Pko', 'bank_IncomeDocuments') as $paymentClass) {
                 check((InvoiceTestData::$queries['deals_InvoicesToDocuments'] ?? 0) == ($direction == 'in' ? 0 : 1), 'Връзките за всички плащания се четат с една заявка: ' . $case);
             }
         }
+    }
+}
+
+// Извънпериодните проформи не се обработват, но авансите и плащанията от друга нишка остават.
+foreach (array('cash_Pko', 'bank_IncomeDocuments') as $paymentClass) {
+    foreach (array('no', 'yes') as $corrections) {
+        InvoiceTestData::reset();
+        foreach (array(1 => '2026-10-01', 2 => '2026-10-08', 3 => '2026-09-30', 4 => '2026-10-09') as $id => $date) {
+            InvoiceTestData::invoice('out', $id, 'Proforma period', '2026-10-10', 100, 0, $date);
+            $proforma = array_pop(InvoiceTestData::$records['sales_Invoices']);
+            $proforma->folderId = 1;
+            InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+            InvoiceTestData::$records[$paymentClass][] = (object)array('id' => $id, 'containerId' => 30000 + $id,
+                'threadId' => $proforma->threadId ?? null, 'state' => 'active', 'amount' => 20 * $id, 'valior' => '2026-09-20');
+            InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => $id,
+                'documentContainerId' => 30000 + $id, 'containerId' => $proforma->containerId ?? null);
+        }
+        // Плащане от старата обединена нишка към проформата на горната граница.
+        InvoiceTestData::$records[$paymentClass][1]->threadId = 1003;
+        InvoiceTestData::combine('out', array(2, 3));
+        foreach (array(5 => null, 6 => 6, 7 => 7) as $id => $number) {
+            $proforma = clone InvoiceTestData::$records['sales_Proformas'][0];
+            $proforma->id = $id;
+            $proforma->number = $number;
+            $proforma->containerId = 11000 + $id;
+            $proforma->state = $id == 6 ? 'rejected' : 'active';
+            $proforma->folderId = $id == 7 ? 2 : 1;
+            InvoiceTestData::$records['sales_Proformas'][] = $proforma;
+            InvoiceTestData::$records['deals_InvoicesToDocuments'][] = (object)array('id' => $id,
+                'documentContainerId' => 30001, 'containerId' => $proforma->containerId ?? null);
+        }
+        $rec = reportRec('out', 'all');
+        $rec->fromDate = '2026-10-01';
+        $rec->checkDate = '2026-10-08';
+        $rec->contragent = '|1|';
+        $rec->accountingCorrections = $corrections;
+        $rec->{'seeProformаs'} = 'yes';
+        $rows = $driver->run($rec, $data);
+        $paid = array();
+        foreach ($rows as $detail) $paid[$detail->invoiceId ?? 0] = $detail->invoicePayout ?? 0;
+        ksort($paid);
+        check($paid === array(1 => 20, 2 => 40), 'Аванс преди началото и плащане от обединена нишка: ' . $paymentClass . '/' . $corrections);
+        check(InvoiceTestData::$documentReads == 2, 'Само двете проформи от периода и избрания контрагент се разпознават');
+        check(($rec->totalInvoiceValueAll ?? null) === 0 && ($rec->totalInvoicePayoutAll ?? null) === 0, 'Проформите не удвояват сумите');
+
+        InvoiceTestData::$queries = array();
+        InvoiceTestData::$documentReads = 0;
+        $rec->fromDate = '2026-10-10';
+        $rec->checkDate = '2026-10-11';
+        check(acc_reports_InvoicesByContragent::getProformsWithPaymant($rec) === array(), 'Празен период без проформи');
+        check(empty(InvoiceTestData::$queries[$paymentClass]) && empty(InvoiceTestData::$queries['deals_InvoicesToDocuments']) && InvoiceTestData::$documentReads == 0,
+            'Без заявки за плащания и връзки, когато няма проформи от периода');
     }
 }
 
@@ -1167,7 +1222,7 @@ foreach (array('out', 'in') as $direction) {
     $legacy = $driver->run($rec, $data);
     $rec->accountingCorrections = 'yes';
     $corrected = $driver->run($rec, $data);
-    check(count($legacy) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, 0.001), 'Не запазва стария остатък под стотинка: ' . $direction);
+    check(count($legacy) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, 0), 'При Не остатъкът е до стотинка при запазен състав на редовете: ' . $direction);
     check(count($corrected) == 0, 'При Да платените до стотинка фактури не остават като неплатени с 0.00: ' . $direction);
 }
 
@@ -1282,6 +1337,76 @@ foreach (array('out', 'in') as $direction) {
                     }
                 }
             }
+        }
+    }
+}
+
+// И при Не обобщенията са сбор на показаните стотинки, без промяна във филтрите.
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $payment) {
+        foreach (array(1, 1.95583) as $rate) {
+            foreach (array(1, 101) as $count) {
+                InvoiceTestData::reset();
+                foreach (array('out', 'in') as $kind) {
+                    for ($id = 1; $id <= $count; $id++) {
+                        $values = array(100.004, 100.006, 100.006, 100.004, -30.006);
+                        $payments = array(20.001, 20.004, 120.006, 100.001, 0.004);
+                        $index = ($id - 1) % count($values);
+                        InvoiceTestData::invoice($kind, $id, 'No cents ' . ($id % 2), '2026-10-05', $values[$index], $payments[$index], '2026-10-01', 'USD', $rate);
+                    }
+                }
+                $rec = reportRec($direction, $payment);
+                $rec->accountingCorrections = 'no';
+                $rows = $driver->run($rec, $data);
+                $totals = array_fill(0, 5, 0);
+                $groups = array();
+                $fields = array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue');
+                $case = implode('/', array($direction, $payment, $rate, $count));
+                foreach ($rows as $detail) {
+                    $row = $driver->verbal($rec, $detail);
+                    $cents = function ($value) { return (int)round((float)strip_tags($value ?? '0') * 100); };
+                    $value = $cents($row->invoiceValueBaseCurr ?? '');
+                    $paid = $cents($row->paidAmount ?? '');
+                    $unpaid = $cents($row->invoiceCurrentSumm ?? '');
+                    $overpaid = -$cents($row->invoiceOverSumm ?? '');
+                    if ($payment != 'all') check($value - $paid === $unpaid + $overpaid, 'При Не остатъкът следва показаните стойност и платено: ' . $case);
+                    $overdue = !empty($detail->dueDate) && $detail->dueDate < ($rec->checkDate ?? '') ? $unpaid : 0;
+                    $amounts = $payment == 'all' ? array($value, 0, 0, 0, 0) : array($value, $paid, $unpaid, $overpaid, $overdue);
+                    $sign = $direction == 'all' && ($detail->className ?? '') == 'purchase_Invoices' ? -1 : 1;
+                    $group = $detail->invoiceGroup ?? $detail->contragent ?? '';
+                    foreach ($amounts as $i => $amount) {
+                        $totals[$i] += $sign * $amount;
+                        $groups[$group][$i] = ($groups[$group][$i] ?? 0) + $amount;
+                    }
+                    $export = $driver->exportRow($rec, $detail);
+                    check($value === (int)round(($export->invoiceValueBaseCurr ?? 0) * 100) && $paid === (int)round(($export->paidAmount ?? 0) * 100), 'При Не стойността и платеното в експорта са същите стотинки: ' . $case);
+                }
+                foreach ($rows as $detail) {
+                    $group = $detail->invoiceGroup ?? $detail->contragent ?? '';
+                    foreach ($fields as $i => $field) check((int)round(($detail->{$field} ?? 0) * 100) === $groups[$group][$i], 'При Не фирменото обобщение е сбор на редовете: ' . $field . '/' . $case);
+                }
+                foreach ($fields as $i => $field) check((int)round(($rec->{$field . 'All'} ?? 0) * 100) === $totals[$i], 'При Не общото обобщение е сбор на редовете: ' . $field . '/' . $case);
+                check(empty(InvoiceTestData::$queries['acc_Items']) && empty(InvoiceTestData::$queries['acc_JournalDetails']), 'Закръгляването при Не не чете МО: ' . $case);
+            }
+        }
+    }
+}
+
+// Стойността след отстъпка включва начисления ДДС; нулев ДДС не се добавя служебно.
+foreach (array('out', 'in') as $direction) {
+    foreach (array('no', 'yes') as $corrections) {
+        foreach (array(0, 19) as $vat) {
+            InvoiceTestData::reset();
+            InvoiceTestData::invoice($direction, 1, 'VAT', '2026-10-05', 95 + $vat, 0);
+            $class = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+            InvoiceTestData::$records[$class][0]->dealValue = 100;
+            InvoiceTestData::$records[$class][0]->discountAmount = 5;
+            InvoiceTestData::$records[$class][0]->vatAmount = $vat;
+            $rec = reportRec($direction, 'all');
+            $rec->accountingCorrections = $corrections;
+            $rows = $driver->run($rec, $data);
+            check(closeAmount($rec->totalInvoiceValueAll ?? 0, 95 + $vat), 'Стойност минус отстъпка плюс действителния ДДС: ' . $direction . '/' . $corrections . '/' . $vat);
+            check(strpos($driver->info($rec, $data), 'Стойностите на фактурите са с ДДС.') !== false, 'Изрично уточнение за ДДС в обобщението');
         }
     }
 }

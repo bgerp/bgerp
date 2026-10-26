@@ -136,8 +136,8 @@ body.commerce-theme.bordeaux-theme #cmsNavigation .sel_page { border-left: 3px s
 body.commerce-theme.bordeaux-theme :is(form .formTable, #login-form, .productBtn, .commerce-category-menu > summary) { border-radius: 2px; }
 body.commerce-theme.bordeaux-theme .externalPage #cmsBottom {
     background: var(--c-dark);
-    border-top: 4px double #c9a779;
-    padding-top: 28px;
+    border-top: 4px double #c9a779 !important;
+    padding-top: 10px !important;
 }
 body.commerce-theme.bordeaux-theme #cmsBottom :is(p, a, a:hover) { color: #fff8ef !important; text-shadow: none; }
 body.commerce-theme.bordeaux-theme .footer-menus {

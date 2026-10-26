@@ -797,7 +797,7 @@ class acc_BalanceDetails extends core_Detail
     public static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($mvc->isDetailed()) {
-            if ($data->groupingForm) {
+            if (!empty($data->groupingForm)) {
                 if (!$tpl) {
                     $tpl = new ET('');
                 }

@@ -11,7 +11,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -712,7 +712,7 @@ class findeals_Deals extends deals_DealBase
         }
 
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
-            if($data->canSeePrices){
+            if(!empty($data->canSeePrices)){
                 if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                     @$data->rec->{$fld} /= $rate;
                 }

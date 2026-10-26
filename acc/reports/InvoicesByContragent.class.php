@@ -866,8 +866,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $rec->accountingIncompleteGroups++;
             }
         }
+
+        return self::prepareInvoiceTotals($rec, $recs);
+    }
+
+
+    /**
+     * Обобщенията сумират стотинките от показаните редове и в двата режима за МО.
+     */
+    private static function prepareInvoiceTotals($rec, $recs)
+    {
+        $withCorrections = ($rec->accountingCorrections ?? 'no') == 'yes';
+        $unpaid = $rec->unpaid ?? 'all';
+        $checkDate = $rec->checkDate ?? dt::today();
         $totals = array();
-        $fields = array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue', 'totalAccountingCorrection');
+        $fields = array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue');
+        if ($withCorrections) $fields[] = 'totalAccountingCorrection';
         foreach ($fields as $field) $rec->{$field . 'All'} = 0;
         foreach ($recs as $key => $dRec) {
             $rate = ($dRec->rate ?? 1) ?: 1;
@@ -876,26 +890,28 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Сумираме показаните стотинки по документ, не скрити дробни части след превалутиране.
             $paid = round($sourcePaid, 2);
             $value = round($sourceValue, 2);
-            $dRec->accountingCorrection = round($dRec->accountingCorrection, 2);
+            $correction = $withCorrections ? round($dRec->accountingCorrection ?? 0, 2) : 0;
+            if ($withCorrections) $dRec->accountingCorrection = $correction;
             // При Неплатени/Просрочени това е остатъкът от общото разпределение, включително КИ/ДИ.
-            $balance = $rec->unpaid != 'all' && empty($dRec->isAccountingCorrection)
+            $balance = $unpaid != 'all' && empty($dRec->isAccountingCorrection)
                 ? ($dRec->invoiceCurrentSumm ?? 0) * $rate
                 : (($dRec->fastMarker ?? 1) ? $sourceValue - $sourcePaid : 0);
             // Запазваме разпределението и правилото за бързи сделки; уеднаквяваме само точността.
             if (($dRec->fastMarker ?? 1) && round($balance - ($sourceValue - $sourcePaid), 2) == 0) {
                 $balance = $value - $paid;
             }
-            $balance = round($balance - $dRec->accountingCorrection, 2);
-            $dRec->invoiceCurrentSumm = $balance / $rate;
-            $overdue = !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && round($balance / $rate, 2) > 0;
-            if (($rec->unpaid == 'overdue' && !$overdue) || ($rec->unpaid != 'all' && abs($balance / $rate) <= ($rec->sill ?? 0))) {
+            $balance = round($balance - $correction, 2);
+            if ($withCorrections || $unpaid != 'all') $dRec->invoiceCurrentSumm = $balance / $rate;
+            $overdue = $withCorrections && !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && round($balance / $rate, 2) > 0;
+            if ($withCorrections && (($unpaid == 'overdue' && !$overdue) || ($unpaid != 'all' && abs($balance / $rate) <= ($rec->sill ?? 0)))) {
                 unset($recs[$key]);
                 continue;
             }
             if (($dRec->className ?? null) == sales_Proformas::class) continue;
             $name = $dRec->contragent ?? '';
-            $overdueAmount = !empty($dRec->dueDate) && $dRec->dueDate < $rec->checkDate && $balance > 0 ? $balance : 0;
-            $amounts = array($value, $paid, max(0, $balance), min(0, $balance), $overdueAmount, $dRec->accountingCorrection ?? 0);
+            $overdueAmount = !empty($dRec->dueDate) && $dRec->dueDate < $checkDate && $balance > 0 ? $balance : 0;
+            $amounts = !$withCorrections && $unpaid == 'all' ? array($value, 0, 0, 0, 0)
+                : array($value, $paid, max(0, $balance), min(0, $balance), $overdueAmount, $correction);
             foreach ($fields as $i => $field) {
                 $totals[$name][$field] = round(($totals[$name][$field] ?? 0) + $amounts[$i], 2);
                 $rec->{$field . 'All'} = round($rec->{$field . 'All'} + $amounts[$i], 2);
@@ -904,6 +920,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         foreach ($recs as $dRec) {
             foreach ($fields as $field) $dRec->{$field} = $totals[$dRec->contragent ?? ''][$field] ?? 0;
         }
+        if (!$withCorrections) return $recs;
+
         uasort($recs, function ($a, $b) {
             $name = strnatcasecmp($a->contragent ?? '', $b->contragent ?? '');
 
@@ -1970,7 +1988,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 return strnatcasecmp(ltrim((string) ($a->invoiceNo ?? ''), '0'), ltrim((string) ($b->invoiceNo ?? ''), '0'));
             });
         }
-        if (($rec->accountingCorrections ?? 'no') != 'yes') $this->logReportStats($data, $startedOn);
+        if (($rec->accountingCorrections ?? 'no') != 'yes') {
+            $recs = self::prepareInvoiceTotals($rec, $recs);
+            $this->logReportStats($data, $startedOn);
+        }
 
         return $recs;
     }
@@ -2605,6 +2626,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
                     <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
                     <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
+                    <div class='quiet'>|Стойностите на фактурите са с ДДС.|*</div>
                     <!--ET_BEGIN accountingNotice--><div>[#accountingNotice#]</div><!--ET_END accountingNotice-->
                 </div>
             </fieldset><!--ET_END reportResults-->
@@ -2804,6 +2826,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         } elseif (!empty($rec->contragent)) {
             $proformInvQuery->in('folderId', keylist::toArray($rec->contragent));
         }
+
+        // Ограничават се проформите, а не датата или нишката на авансовото плащане.
+        $periodQuery = clone $proformInvQuery;
+        $periodQuery->where("#number IS NOT NULL");
+        if (!empty($rec->fromDate)) {
+            $periodQuery->where(array("#date >= '[#1#]'", $rec->fromDate));
+        }
+        $periodQuery->where(array("#date <= '[#1#]'", $checkDate));
+        $periodQuery->show('containerId');
+        $proformaContainers = arr::extractValuesFromArray($periodQuery->fetchAll(), 'containerId');
+        if (!countR($proformaContainers)) return array();
+
         $proformInvQuery->show('threadId');
         $proformInvQuery->groupBy('threadId');
 
@@ -2829,6 +2863,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 /** @var core_Query $linkQuery */
                 $linkQuery = deals_InvoicesToDocuments::getQuery();
                 $linkQuery->in('documentContainerId', $ids);
+                $linkQuery->in('containerId', $proformaContainers);
                 $linkQuery->orderBy('id', 'ASC');
                 $linkQuery->show('id,documentContainerId,containerId');
                 while ($link = $linkQuery->fetch()) {

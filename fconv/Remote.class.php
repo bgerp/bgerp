@@ -9,7 +9,7 @@
  * @package   fconv
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -237,8 +237,8 @@ class fconv_Remote extends core_Manager
      */
     protected static function prepareRemoteCmdParams($scriptObj, $nScriptObj)
     {
-        foreach ($scriptObj->cmdParamsOrig as $place => $val) {
-            $nScriptObj->setParam($place, $val);
+        foreach (($scriptObj->cmdParamsOrig ?? array()) as $place => $val) {
+            $nScriptObj->setParam($place, $val, true, !empty($scriptObj->sensitiveParams[$place]));
         }
     }
     

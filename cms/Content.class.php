@@ -484,6 +484,12 @@ class cms_Content extends core_Master
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $theme->renderMenuLangs($tools, cms_Domains::getCmsLangs());
         $tpl->append($theme->wrapMenuTools($tools));
+        if ((cms_Domains::getPublicDomain()->searchPosition ?? 'content') == 'menu') {
+            $tpl->push('cms/css/menuSearch.css', 'CSS');
+            $tpl->push('cms/js/menuSearch.js', 'JS');
+            jquery_Jquery::run($tpl, 'initCmsMenuSearch();', true);
+        }
+
 
         return $tpl;
     }
