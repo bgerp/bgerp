@@ -927,6 +927,28 @@ class price_ListRules extends core_Detail
     
     
     /**
+     * Вариантите за добавяне на правило, както бутоните над таблиците
+     *
+     * @param int $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array('value' => array('title' => 'Стойност', 'params' => array('type' => 'value', 'priority' => 1)));
+
+        // Маржовете се смятат спрямо наследената политика
+        $parentId = price_Lists::fetchField((int) $masterId, 'parent');
+        if (!empty($parentId)) {
+            $res['discount'] = array('title' => 'Продуктов марж', 'params' => array('type' => 'discount', 'priority' => 1));
+            $res['groupDiscount'] = array('title' => 'Групов марж - среден приоритет', 'params' => array('type' => 'groupDiscount', 'priority' => 2));
+            $res['groupDiscountLow'] = array('title' => 'Групов марж - нисък приоритет', 'params' => array('type' => 'groupDiscount', 'priority' => 3));
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
