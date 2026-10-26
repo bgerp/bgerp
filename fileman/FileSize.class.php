@@ -106,7 +106,8 @@ class fileman_FileSize extends type_Bigint
             
             return false;
         }
-        
-        return $res;
+
+        // Дробни стойности (напр. "1.17 GB") се закръглят до цели байтове
+        return (int) round($res);
     }
 }

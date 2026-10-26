@@ -101,6 +101,14 @@ class dec_Tds extends core_Master
 
 
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'productNameSnapshot,productCodeSnapshot,manufacturerSnapshot,originCountrySnapshot,productSnapshot,declarationSnapshot';
+
+
+    /**
      * Полета в списъчния изглед
      */
     public $listFields = 'id,documentNumber,date,revision,productId,folderId,state,createdOn,createdBy';
