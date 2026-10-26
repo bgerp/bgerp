@@ -26,11 +26,12 @@ class FixtureQuery {
     public function show($fields) {}
     public function EXT($name, $class, $params) {}
     public function groupBy($field) {}
+    public function orderBy($field, $direction) {}
     public function fetchAll() { return $this->rows; }
     public function fetch() { $rows = array_values($this->rows); return $rows[$this->index++] ?? false; }
 }
 class core_App { public static function setTimeLimit($seconds, $reset, $minimum) {} }
-class planning_Setup { public static function get($key) { return $key == 'MIN_TASK_DURATION' ? 60 : null; } }
+class planning_Setup { public static function get($key) { return $key == 'MIN_TASK_DURATION' ? 60 : ($key == 'MANUAL_ORDER_IN_ASSET' ? 'no' : null); } }
 class planning_AssetResources { public static function getQuery() { return new FixtureQuery(array(1 => (object)array('id' => 1, 'simultaneity' => 2))); } }
 class planning_Jobs { public static function getQuery() { return new FixtureQuery(array()); } }
 class cat_products_Packagings { public static function getQuery() { return new FixtureQuery(array()); } }
@@ -43,13 +44,19 @@ class planning_Tasks {
     public static $records = array();
     public static $saved = array();
     public static $reorderAllowed = true;
+    public static $editDenied = array();
+    public static $logs = array();
     public static function fetch($id) { return isset(self::$records[$id]) ? clone self::$records[$id] : null; }
     public static function getQuery() { return new FixtureQuery(self::$records); }
-    public static function haveRightFor($action, $rec, $userId = 7) { return $action == 'savereordertasks' ? self::$reorderAllowed : $userId > 0; }
+    public static function haveRightFor($action, $rec, $userId = 7) {
+        if ($action == 'edit' && isset(self::$editDenied[$rec->id ?? null])) return false;
+        return $action == 'savereordertasks' ? self::$reorderAllowed : $userId > 0;
+    }
+    public static function logWrite($message, $id) { self::$logs[] = array($message, $id); }
     public static function getTargetTimesPreviewReport($tasks, $scheduled, $now, $assetId, $baseline) { return array(); }
     public function save_(&$rec, $fields = null, $mode = null) {
         self::$saved[] = array(clone $rec, $fields);
-        self::$records[$rec->id ?? null]->targetStartConflict = $rec->targetStartConflict ?? null;
+        foreach (arr::make($fields, true) as $field => $dummy) self::$records[$rec->id ?? null]->{$field} = $rec->{$field} ?? null;
     }
 }
 class Request { public static function get($name) { return null; } }
@@ -57,6 +64,7 @@ class cls { public static function get($name) { return new $name(); } }
 class core_Users {
     public static $systemDepth = 0;
     public static $inactive = array();
+    public static function getCurrent() { return 7; }
     public static function getByRole($role) { return array(7 => 7); }
     public static function isActiveUserId($id) { return !in_array($id, self::$inactive); }
     public static function forceSystemUser() { self::$systemDepth++; }
@@ -102,7 +110,7 @@ require dirname(__DIR__) . '/TaskConstraints.class.php';
 class FixtureTargetTimes extends planning_TargetTimes {
     public static $simulation;
     public static $calls = 0;
-    public static function simulate($rec, $policy = 'keep') { self::$calls++; return self::$simulation; }
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null) { self::$calls++; return self::$simulation; }
 }
 class FixtureForm extends stdClass {
     public $errors = array();

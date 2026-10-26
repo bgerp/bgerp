@@ -167,51 +167,66 @@ class planning_TargetTimes extends core_BaseClass
     /**
      * Изчислява предложението изцяло в паметта, включително при създаване.
      */
-    public static function simulate($rec, $policy = 'keep')
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null)
     {
-        $baseline = planning_TaskConstraints::getDefaultArr();
-        $tasks = array();
-        foreach ($baseline as $id => $task) $tasks[$id] = clone $task;
-        $id = $rec->id ?? -1;
-        $task = isset($tasks[$id]) ? clone $tasks[$id] : clone $rec;
-        foreach (get_object_vars($rec) as $name => $value) $task->{$name} = $value;
-        $task->id = $id;
-        $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $task->originId ?? 0));
-        $task->dueDate = $job->dueDate ?? null;
-        $task->jobProductId = $job->productId ?? null;
-        if (empty($task->saoOrder)) {
-            $query = planning_Tasks::getQuery();
-            $query->where(array("#originId = '[#1#]'", $task->originId ?? 0));
-            $query->XPR('lastOrder', 'int', 'MAX(#saoOrder)');
-            $query->show('lastOrder');
-            $order = $query->fetch()->lastOrder ?? 0;
-            $task->saoOrder = $order + 1;
-        }
-        $task->progress = $task->progress ?? 0;
-        $old = !empty($rec->id) ? planning_Tasks::fetch($rec->id) : null;
-        if (!empty($task->plannedQuantity) && is_object($old) && ($task->plannedQuantity ?? null) != ($old->plannedQuantity ?? null)) {
-            $task->progress = round((($old->totalQuantity ?? 0) - ($old->scrappedQuantity ?? 0)) / $task->plannedQuantity, 2);
-        }
-        $task->state = in_array($task->state ?? null, array('active', 'wakeup', 'stopped')) ? $task->state : 'pending';
-        $task->simultaneity = $task->simultaneity ?? null;
-        $task->indTime = $task->indTime ?? null;
-        $task->indPackagingId = $task->indPackagingId ?? ($task->measureId ?? null);
-        $task->labelPackagingId = $task->labelPackagingId ?? null;
-        $task->labelQuantityInPack = $task->labelQuantityInPack ?? null;
-        $task->isFinal = $task->isFinal ?? 'no';
-        $task->actualStart = $task->actualStart ?? null;
-        $task->previousTask = $task->previousTask ?? null;
-        $task->offsetAfter = $task->offsetAfter ?? 0;
-        $task->_newPlanningActions = static::getNewPlanningActions($task, $old);
-        $durationTasks = array($id => $task);
-        planning_TaskConstraints::calculateTaskDurations($durationTasks);
-        $tasks[$id] = $task;
-        $previous = array();
-        foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
-            if (($constraint->type ?? null) == 'prevId') $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
-        }
+        if ($context === null) {
+            $baseline = planning_TaskConstraints::getDefaultArr();
+            $tasks = array();
+            foreach ($baseline as $id => $task) $tasks[$id] = clone $task;
+            $id = $rec->id ?? -1;
+            $task = isset($tasks[$id]) ? clone $tasks[$id] : clone $rec;
+            foreach (get_object_vars($rec) as $name => $value) $task->{$name} = $value;
+            $task->id = $id;
+            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $task->originId ?? 0));
+            $task->dueDate = $job->dueDate ?? null;
+            $task->jobProductId = $job->productId ?? null;
+            if (empty($task->saoOrder)) {
+                $query = planning_Tasks::getQuery();
+                $query->where(array("#originId = '[#1#]'", $task->originId ?? 0));
+                $query->XPR('lastOrder', 'int', 'MAX(#saoOrder)');
+                $query->show('lastOrder');
+                $order = $query->fetch()->lastOrder ?? 0;
+                $task->saoOrder = $order + 1;
+            }
+            $task->progress = $task->progress ?? 0;
+            $old = !empty($rec->id) ? planning_Tasks::fetch($rec->id) : null;
+            if (!empty($task->plannedQuantity) && is_object($old) && ($task->plannedQuantity ?? null) != ($old->plannedQuantity ?? null)) {
+                $task->progress = round((($old->totalQuantity ?? 0) - ($old->scrappedQuantity ?? 0)) / $task->plannedQuantity, 2);
+            }
+            $task->state = in_array($task->state ?? null, array('active', 'wakeup', 'stopped')) ? $task->state : 'pending';
+            $task->simultaneity = $task->simultaneity ?? null;
+            $task->indTime = $task->indTime ?? null;
+            $task->indPackagingId = $task->indPackagingId ?? ($task->measureId ?? null);
+            $task->labelPackagingId = $task->labelPackagingId ?? null;
+            $task->labelQuantityInPack = $task->labelQuantityInPack ?? null;
+            $task->isFinal = $task->isFinal ?? 'no';
+            $task->actualStart = $task->actualStart ?? null;
+            $task->previousTask = $task->previousTask ?? null;
+            $task->offsetAfter = $task->offsetAfter ?? 0;
+            $task->_newPlanningActions = static::getNewPlanningActions($task, $old);
+            $durationTasks = array($id => $task);
+            planning_TaskConstraints::calculateTaskDurations($durationTasks);
+            $tasks[$id] = $task;
+            $previous = array();
+            foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
+                if (($constraint->type ?? null) == 'prevId') $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
+            }
 
-        $manualRecords = planning_TaskManualOrderPerAssets::getQuery()->fetchAll();
+            $manualRecords = planning_TaskManualOrderPerAssets::getQuery()->fetchAll();
+            $now = dt::now();
+            $prepared = planning_TaskConstraints::calcScheduledTimes($tasks, $previous, $now);
+            $previous = $prepared->previousTasks ?? $previous;
+            $context = (object)array('tasks' => $tasks, 'previous' => $previous, 'baseline' => $baseline,
+                'manualRecords' => $manualRecords, 'prepared' => $prepared, 'now' => $now);
+        }
+        $tasks = array();
+        foreach ($context->tasks ?? array() as $taskId => $stored) $tasks[$taskId] = clone $stored;
+        $baseline = $context->baseline ?? array();
+        $previous = $context->previous ?? array();
+        $manualRecords = $context->manualRecords ?? array();
+        $now = $context->now ?? dt::now();
+        $id = $rec->id ?? -1;
+        $task = $tasks[$id];
         $options = $changes = array();
         $required = planning_TaskConstraints::getSameResourceJobPackageLinks($tasks);
         foreach ($manualRecords as $manual) {
@@ -256,7 +271,21 @@ class planning_TargetTimes extends core_BaseClass
                 $options['excludedAutoGroupTaskOverrides'][$assetId] = $excluded;
             }
         }
-        $now = dt::now();
+        $proposal = planning_TargetTimePlan::propose($tasks, $previous, $baseline, $context->prepared ?? (object)array(), $options, $id, $resolution, $now);
+        if (!empty($proposal->error)) {
+            $proposal->context = $context;
+            return $proposal;
+        }
+        $options = $proposal->options ?? $options;
+        foreach ((array)($options['manualOrderOverrides'] ?? array()) as $assetId => $order) {
+            $asset = $context->prepared->assets[$assetId] ?? (object)array();
+            $links = $options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array());
+            $anchors = $options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array());
+            $excluded = $options['excludedAutoGroupTaskOverrides'][$assetId] ?? ($asset->excludedAutoGroupTasks ?? array());
+            if ($order != array_values((array)($asset->manualOrder ?? array())) || isset($changes[$assetId])) {
+                $changes[$assetId] = array('order' => $order, 'links' => $links, 'anchors' => $anchors, 'excluded' => $excluded);
+            }
+        }
         $source = array();
         foreach ($baseline as $taskId => $stored) {
             $source[$taskId] = get_object_vars($stored);
@@ -264,15 +293,18 @@ class planning_TargetTimes extends core_BaseClass
         }
         $input = get_object_vars($rec);
         foreach (array('expectedTimeStart', 'expectedTimeEnd', 'gapData', 'planningError', 'targetStartConflict', 'orderByAssetId') as $field) unset($input[$field]);
-        $snapshot = sha1(serialize(array($source, $input, $manualRecords, $policy)));
-        $scheduled = planning_TaskConstraints::calcScheduledTimes($tasks, $previous, $now, $options);
-        $conflicts = static::collectNewConflicts($scheduled, $baseline, array($id));
-
-        return (object)array(
-            'scheduled' => $scheduled, 'baseline' => $baseline, 'tasks' => $tasks,
-            'changes' => $changes, 'conflicts' => $conflicts, 'now' => $now,
-            'hash' => $snapshot,
-        );
+        $times = array();
+        foreach ((array)($proposal->scheduled->tasks ?? array()) as $rows) foreach ($rows as $taskId => $row) {
+            $times[$taskId] = array($row->expectedTimeStart ?? null, $row->expectedTimeEnd ?? null);
+        }
+        ksort($times);
+        $proposal->hash = sha1(serialize(array($source, $input, $manualRecords, $policy, $resolution,
+            $changes, $proposal->pinChanges ?? array(), $proposal->proposedStart ?? null, $times)));
+        $proposal->baseline = $baseline;
+        $proposal->changes = $changes;
+        $proposal->now = $now;
+        $proposal->context = $context;
+        return $proposal;
     }
 
     /**
@@ -322,48 +354,208 @@ class planning_TargetTimes extends core_BaseClass
             return;
         }
         $policy = $rec->targetPackagePolicy ?? 'keep';
+        if (!in_array($policy, array('keep', 'detach', 'split', 'release'))) {
+            $form->setError('targetPackagePolicy', 'Непознат вариант за пакетните връзки');
+            return;
+        }
         $canChangePackages = $mvc->haveRightFor('savereordertasks', (object)array('assetId' => $rec->assetId));
         if ($policy != 'keep' && !$canChangePackages) {
             $form->setError('targetPackagePolicy', 'Промяната на пакетните връзки изисква право за подреждане на операции');
             return;
         }
+        $resolution = $rec->targetResolution ?? 'keep';
+        if (!in_array($resolution, array('keep', 'move', 'nearest')) || ($resolution == 'move' && !$canChangePackages)) {
+            $form->setError('timeStart', 'Нямате право за избрания вариант на подреждане');
+            return;
+        }
         $input = clone $rec;
-        unset($input->targetPreviewHash, $input->targetPreviewAccepted, $input->targetPackagePolicy, $input->_fromForm);
-        $simulation = static::simulate($input, $policy);
+        unset($input->targetPreviewHash, $input->targetPreviewAccepted, $input->targetPackagePolicy, $input->targetResolution, $input->_fromForm);
+        $simulation = static::simulate($input, $policy, $resolution);
+        $rightsError = static::proposalRightsError($simulation, $canChangePackages);
         $conflicts = $simulation->conflicts ?? array();
-        if (!empty($simulation->error) || $conflicts) {
+        if (!empty($simulation->error) || $conflicts || $rightsError) {
             $messages = array();
             if (!empty($simulation->error)) $messages[] = $simulation->error;
             if ($conflicts) $messages[] = static::formatConflicts($conflicts);
+            if ($rightsError) $messages[] = $rightsError;
             if ($canChangePackages) $form->setField('targetPackagePolicy', 'input');
-            $form->setError('timeStart,timeDuration', implode('<br>', $messages));
+            $form->setError('timeStart,timeDuration', str_replace('<br>', '; ', implode('; ', $messages)));
+            if (!empty($rec->timeStart)) {
+                $report = array('alternatives' => array(), 'conflictText' => str_replace('<br>', "\n", implode("\n", $messages)),
+                    'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore));
+                $choices = array(
+                    array('mode' => 'move', 'policy' => $policy, 'title' => 'Запази желания час и промени конфликтните фиксирани начала'),
+                    array('mode' => 'nearest', 'policy' => $policy, 'title' => 'Запази чуждите фиксирани начала и предложи близко допустимо начало'),
+                );
+                $asset = $simulation->context->prepared->assets[$rec->assetId ?? null] ?? (object)array();
+                $links = (array)($asset->packageLinks ?? array()) + (array)($asset->anchorLinks ?? array());
+                $recId = $rec->id ?? -1;
+                if ($canChangePackages && $policy == 'keep' && (isset($links[$recId]) || in_array($recId, $links))) {
+                    $choices[] = array('mode' => 'keep', 'policy' => 'detach', 'title' => 'Извади операцията от пакета и запази желания час');
+                }
+                foreach ($choices as $choice) {
+                    $candidate = static::simulate($input, $choice['policy'], $choice['mode'], $simulation->context ?? null);
+                    $error = static::proposalRightsError($candidate, $canChangePackages);
+                    $candidateConflicts = $candidate->conflicts ?? array();
+                    if (!empty($candidate->error)) $error = $candidate->error;
+                    if ($candidateConflicts) $error = str_replace('<br>', "\n", static::formatConflicts($candidateConflicts));
+                    $choice['available'] = !$error;
+                    $choice['reason'] = $error;
+                    if (!$error) $choice['report'] = static::proposalReport($candidate, $rec, $form);
+                    $report['alternatives'][] = $choice;
+                }
+                $form->_targetTimesReport = $report;
+            }
             $rec->targetPreviewAccepted = 'no';
             return;
         }
-        if (!$changed && !$simulation->changes) return;
-        if (($rec->targetPreviewAccepted ?? null) == 'yes' && ($rec->targetPreviewHash ?? null) == $simulation->hash) {
+        if (!$changed && empty($simulation->changes) && empty($simulation->pinChanges)
+            && ($simulation->proposedStart ?? ($rec->timeStart ?? null)) == ($rec->timeStart ?? null)) return;
+        if (($rec->targetPreviewAccepted ?? null) == 'yes' && ($rec->targetPreviewHash ?? null) == ($simulation->hash ?? null)) {
             $rec->_targetTimesChanged = true;
-            $rec->_targetPackageChanges = $simulation->changes;
+            $rec->_targetPackageChanges = $simulation->changes ?? array();
+            $rec->_targetStartChanges = $simulation->pinChanges ?? array();
+            $rec->timeStart = $simulation->proposedStart ?? ($rec->timeStart ?? null);
             return;
         }
-        $rec->targetPreviewHash = $simulation->hash;
+        $rec->targetPreviewHash = $simulation->hash ?? null;
         $rec->targetPreviewAccepted = 'no';
-        $report = planning_Tasks::getTargetTimesPreviewReport($simulation->tasks, $simulation->scheduled, $simulation->now, $rec->assetId, $simulation->baseline);
-        $report['command'] = $form->cmd ?? 'save';
-        $report['cancelUrl'] = toUrl(getRetUrl());
-        $report['ignoreWarnings'] = !empty($form->ignore);
-        foreach ((array)($simulation->scheduled->tasks[$rec->assetId] ?? array()) as $planned) {
-            if (($planned->id ?? null) != ($rec->id ?? -1)) continue;
-            $report['operationText'] = 'Предложение за операцията: начало ' . dt::mysql2verbal($planned->expectedTimeStart, 'd.m.Y H:i')
-                . ', край ' . dt::mysql2verbal($planned->expectedTimeEnd, 'd.m.Y H:i');
-            break;
-        }
-        $form->_targetTimesReport = $report;
+        $form->_targetTimesReport = static::proposalReport($simulation, $rec, $form);
         $form->setError('timeStart,timeDuration', 'Въведени/променени са целевите начало и/или продължителност на операцията! Промяната им е с най-висок приоритет и ще промени подредбата както на текущата, така и на операциите около нея. Прегледайте резултата (новата подредба) и при необходимост нанесете необходимите корекции!');
+    }
+
+    private static function proposalRightsError($simulation, $canReorder)
+    {
+        if (!$canReorder && (!empty($simulation->changes) || !empty($simulation->pinChanges))) {
+            return 'Промяната на подредбата изисква роля planning или ceo';
+        }
+        foreach ((array)($simulation->pinChanges ?? array()) as $taskId => $date) {
+            $old = $simulation->baseline[$taskId] ?? null;
+            if (!is_object($old) || !in_array($old->state ?? null, array('draft', 'waiting', 'pending', 'stopped'))
+                || (!empty($old->actualStart) && ($old->state ?? null) != 'stopped')
+                || !planning_Tasks::haveRightFor('edit', $old)) {
+                return "Фиксираното начало на Opr{$taskId} не може да бъде променено с Вашите права или в текущото състояние";
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Показва всяка промяна на час, фиксация, място или връзка преди потвърждение.
+     */
+    private static function proposalReport($simulation, $rec, $form)
+    {
+        $tasks = $simulation->tasks ?? array();
+        $baseline = $simulation->baseline ?? array();
+        $scheduled = $simulation->scheduled ?? (object)array();
+        $report = planning_Tasks::getTargetTimesPreviewReport($tasks, $scheduled, $simulation->now ?? null, $rec->assetId ?? null, $baseline);
+        $report['command'] = $form->cmd ?? 'save';
+        $report['ignoreWarnings'] = !empty($form->ignore);
+        $report['hash'] = $simulation->hash ?? '';
+        $report['requestedStart'] = static::verbalTime($rec->timeStart ?? null);
+        $report['proposedStart'] = static::verbalTime($simulation->proposedStart ?? ($rec->timeStart ?? null));
+        $report['operationChanges'] = array();
+        $report['operationOrder'] = array();
+        $oldRequired = planning_TaskConstraints::getSameResourceJobPackageLinks($baseline);
+        $newRequired = planning_TaskConstraints::getSameResourceJobPackageLinks($tasks);
+        $storedManuals = array();
+        foreach ((array)($simulation->context->manualRecords ?? array()) as $manual) $storedManuals[$manual->assetId ?? null] = $manual;
+        $beforeByAsset = array();
+        foreach ($baseline as $taskId => $old) $beforeByAsset[$old->assetId ?? 0][$taskId] = $old;
+        foreach ((array)($scheduled->tasks ?? array()) + $beforeByAsset as $assetId => $unused) {
+            $rows = $scheduled->tasks[$assetId] ?? array();
+            $asset = $simulation->context->prepared->assets[$assetId] ?? (object)array();
+            $storedManual = $storedManuals[$assetId] ?? (object)array();
+            $oldOrder = array_values((array)($storedManual->data ?? array()));
+            $newOrder = array_values((array)($simulation->options['manualOrderOverrides'][$assetId] ?? $oldOrder));
+            $oldPositions = array_flip($oldOrder);
+            $newPositions = array_flip($newOrder);
+            $oldLinks = $oldRequired + (array)($storedManual->anchorLinks ?? array()) + (array)($storedManual->packageLinks ?? array());
+            $newLinks = $newRequired + (array)($simulation->options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array()))
+                + (array)($simulation->options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array()));
+            $orderRows = array();
+            $assetChanged = $assetId == ($rec->assetId ?? null);
+            foreach (($beforeByAsset[$assetId] ?? array()) + $rows as $taskId => $unusedRow) {
+                $row = $rows[$taskId] ?? (object)array();
+                $old = $baseline[$taskId] ?? (object)array();
+                $presentBefore = isset($beforeByAsset[$assetId][$taskId]);
+                $presentAfter = isset($rows[$taskId]);
+                $pinBefore = $old->timeStart ?? null;
+                $pinAfter = $tasks[$taskId]->timeStart ?? null;
+                $before = array(static::verbalTime($old->expectedTimeStart ?? null), static::verbalTime($old->expectedTimeEnd ?? null));
+                $after = array(static::verbalTime($row->expectedTimeStart ?? null), static::verbalTime($row->expectedTimeEnd ?? null));
+                $oldPosition = isset($oldPositions[$taskId]) ? $oldPositions[$taskId] + 1 : null;
+                $newPosition = isset($newPositions[$taskId]) ? $newPositions[$taskId] + 1 : null;
+                $entry = array('operation' => $taskId < 0 ? 'Новата операция' : "Opr{$taskId}",
+                    'asset' => $asset->code ?? (string)$assetId, 'before' => $before, 'after' => $after,
+                    'pinBefore' => static::verbalTime($pinBefore), 'pinAfter' => static::verbalTime($pinAfter),
+                    'pinChanged' => $pinBefore != $pinAfter, 'positionBefore' => $oldPosition, 'positionAfter' => $newPosition,
+                    'linkBefore' => isset($oldLinks[$taskId]) ? 'Opr' . $oldLinks[$taskId] : '—',
+                    'linkAfter' => isset($newLinks[$taskId]) ? 'Opr' . $newLinks[$taskId] : '—');
+                $changed = $presentBefore != $presentAfter || $before != $after || $pinBefore != $pinAfter
+                    || $oldPosition != $newPosition || ($oldLinks[$taskId] ?? null) != ($newLinks[$taskId] ?? null);
+                if ($changed || $taskId == ($rec->id ?? -1)) {
+                    $report['operationChanges'][] = $entry;
+                    $assetChanged = true;
+                }
+                foreach (array('before', 'after') as $side) {
+                    if ($side == 'before' ? !$presentBefore : !$presentAfter) continue;
+                    $source = $side == 'before' ? $old : $row;
+                    $links = $side == 'before' ? $oldLinks : $newLinks;
+                    $pin = $side == 'before' ? $pinBefore : $pinAfter;
+                    $orderRows[$side][] = array('id' => (int)$taskId, 'operation' => $entry['operation'],
+                        'state' => ($side == 'before' ? ($old->state ?? null) : ($tasks[$taskId]->state ?? null)),
+                        'start' => $entry[$side][0], 'end' => $entry[$side][1],
+                        'sortStart' => $source->expectedTimeStart ?? planning_TaskConstraints::NOT_FOUND_DATE,
+                        'position' => ($side == 'before' ? $oldPosition : $newPosition) ?? PHP_INT_MAX,
+                        'pin' => static::verbalTime($pin), 'pinBefore' => $entry['pinBefore'], 'pinChanged' => $entry['pinChanged'],
+                        'previous' => isset($links[$taskId]) ? (int)$links[$taskId] : null,
+                        'startChange' => static::timeDirection($old->expectedTimeStart ?? null, $row->expectedTimeStart ?? null),
+                        'endChange' => static::timeDirection($old->expectedTimeEnd ?? null, $row->expectedTimeEnd ?? null));
+                }
+            }
+            if (!$assetChanged) continue;
+            foreach (array('before', 'after') as $side) {
+                $orderRows[$side] = $orderRows[$side] ?? array();
+                usort($orderRows[$side], function ($a, $b) {
+                    return strcmp($a['sortStart'], $b['sortStart']) ?: ($a['position'] <=> $b['position']) ?: ($a['id'] <=> $b['id']);
+                });
+            }
+            $report['operationOrder'][] = array('asset' => trim(($asset->code ?? (string)$assetId) . ' ' . ($asset->name ?? '')),
+                'before' => $orderRows['before'], 'after' => $orderRows['after']);
+        }
+        // Един и същ номер следва операцията и при смяна на машина.
+        $numbers = array();
+        foreach (array('before', 'after') as $side) foreach ($report['operationOrder'] as &$group) {
+            foreach ($group[$side] as &$item) {
+                if (!isset($numbers[$item['id']])) $numbers[$item['id']] = count($numbers) + 1;
+                $item['number'] = $numbers[$item['id']];
+                unset($item['sortStart'], $item['position']);
+            }
+            unset($item);
+        }
+        unset($group);
+        return $report;
+    }
+
+    private static function timeDirection($before, $after)
+    {
+        if (!$before || !$after || max($before, $after) >= planning_TaskConstraints::NOT_FOUND_DATE) return null;
+        return strcmp(substr($after, 0, 16), substr($before, 0, 16)) <=> 0;
+    }
+
+    private static function verbalTime($date)
+    {
+        return $date && $date < planning_TaskConstraints::NOT_FOUND_DATE ? dt::mysql2verbal($date, 'd.m.Y H:i') : '—';
     }
 
     public static function applyPackageChanges($rec)
     {
+        foreach ((array)($rec->_targetStartChanges ?? array()) as $taskId => $date) {
+            $saveRec = (object)array('id' => $taskId, 'timeStart' => $date, 'targetStartBy' => core_Users::getCurrent());
+            cls::get('planning_Tasks')->save_($saveRec, 'timeStart,targetStartBy');
+            planning_Tasks::logWrite('Промяна на целево начало след потвърден преглед', $taskId);
+        }
         foreach ((array)($rec->_targetPackageChanges ?? array()) as $assetId => $change) {
             foreach ($change['order'] as &$taskId) if ($taskId == -1) $taskId = $rec->id;
             unset($taskId);

@@ -927,6 +927,27 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        $result = static::calcPreparedTimes($tasks, $previousTasks, $now,
+            (object)array('assets' => $assets, 'calendarIntervals' => $calendarIntervals), $options);
+        $result->debug = $debugRes . ($result->debug ?? '');
+
+        return $result;
+    }
+
+
+    /**
+     * Вариантите използват един прочетен график и отделни копия, без записи.
+     */
+    public static function calcPreparedTimes($tasks, $previousTasks, $now, $prepared, $options = array())
+    {
+        $assets = $intervals = $calendarIntervals = array();
+        foreach ((array)($prepared->assets ?? array()) as $id => $asset) $assets[$id] = clone $asset;
+        foreach ((array)($prepared->calendarIntervals ?? array()) as $id => $interval) {
+            $calendarIntervals[$id] = clone $interval;
+            $intervals[$id] = clone $interval;
+        }
+        foreach ($tasks as $id => $task) $tasks[$id] = clone $task;
+        $debugRes = '';
         $optimizeAssetIds = array_fill_keys(array_map('intval', (array)($options['optimizeAssetIds'] ?? array())), true);
         $regroupAssetIds = array_fill_keys(array_map('intval', (array)($options['regroupAssetIds'] ?? array())), true);
         foreach ($assets as $assetId => $assetRec) {
@@ -1002,7 +1023,8 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         }
 
-        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'calendarIntervals' => $calendarIntervals, 'debug' => $debugRes);
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals,
+            'calendarIntervals' => $calendarIntervals, 'previousTasks' => $previousTasks, 'debug' => $debugRes);
     }
 
     /**

@@ -1613,8 +1613,9 @@ class planning_Tasks extends core_Master
         $form->setField('state', 'input=hidden');
         $form->FNC('targetPreviewHash', 'varchar(40)', 'input=hidden,silent');
         $form->FNC('targetPreviewAccepted', 'enum(no=Не,yes=Да)', 'input=hidden,silent,value=no');
+        $form->FNC('targetResolution', 'enum(keep=Без промяна на чужди начала,move=Промени конфликтните начала,nearest=Близко свободно начало)', 'input=hidden,silent,value=keep');
         $form->FNC('targetPackagePolicy', 'enum(keep=Запази пакетите,detach=Извади операцията от пакета,split=Раздели конфликтните пакети,release=Извади операцията и раздели конфликтните пакети)', 'caption=Целеви времена->Пакети при конфликт,input=hidden,silent,value=keep');
-        $form->input('targetPreviewHash,targetPreviewAccepted,targetPackagePolicy', 'silent');
+        $form->input('targetPreviewHash,targetPreviewAccepted,targetPackagePolicy,targetResolution', 'silent');
         if (($data->action ?? null) != 'clone' && in_array($rec->state ?? null, array('active', 'wakeup', 'closed'))) {
             $form->setReadOnly('timeDuration');
             $form->setReadOnly('timeStart');
@@ -5288,7 +5289,10 @@ class planning_Tasks extends core_Master
         if (empty($form->_targetTimesReport)) return;
         $tpl->push('planning/js/TaskOrderReport.js', 'JS');
         $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
-        $data = json_encode($form->_targetTimesReport, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $report = $form->_targetTimesReport;
+        $report['legendHint'] = ht::createHint('', 'Номерата следват операциите; ↑/↓ показват преместването в реда. Получер: променено време; зелено: по-рано; червено: по-късно. Синята рамка свързва операциите в пакет. Габърчето показва фиксирано начало — посочете го за подробности.',
+            'notice', true, array('iconAttr' => array('width' => 16, 'height' => 16, 'alt' => tr('Пояснение на прегледа'))), array('class' => 'targetTimeLegend'))->getContent();
+        $data = json_encode($report, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         jquery_Jquery::run($tpl, "showTargetTimesPreview({$data});");
     }
 

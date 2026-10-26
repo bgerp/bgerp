@@ -1,6 +1,8 @@
 <?php
 namespace Pelago;
 
+require_once dirname(__DIR__, 2) . '/SelectorFilter.class.php';
+
 /**
  * This class provides functions for converting CSS styles into inline style attributes in your HTML code.
  *
@@ -313,7 +315,10 @@ class Emogrifier {
             $this->caches[self::CACHE_KEY_CSS][$cssKey] = $allSelectors;
         }
 
+        $selectorFilter = new \csstoinline_SelectorFilter($xpath);
         foreach ($this->caches[self::CACHE_KEY_CSS][$cssKey] as $value) {
+            if (!$selectorFilter->mayMatch($value['selector'])) continue;
+
             // query the body for the xpath selector
             $prevLibxmlErrors = libxml_use_internal_errors(true);
             $nodesMatchingCssSelectors = $xpath->query($this->translateCssToXpath($value['selector']));
