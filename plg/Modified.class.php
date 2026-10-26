@@ -9,7 +9,7 @@
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,6 +48,10 @@ class plg_Modified extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        if (!is_object($rec)) {
+            return;
+        }
+
         if (property_exists($rec, 'modifiedBy')) {
             if ($rec->modifiedBy == -1) {
                 $row->modifiedBy = core_Setup::get('SYSTEM_NICK');

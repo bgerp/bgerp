@@ -289,8 +289,12 @@ class drdata_Vats extends core_Manager
 
 		try {
 			$client = @new SoapClient(
-				'http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl',
-				array('connection_timeout' => 4)
+				'https://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl',
+				array(
+					'connection_timeout' => 4,
+					// WSDL все още посочва HTTP адрес за SOAP заявките.
+					'location' => 'https://ec.europa.eu/taxation_customs/vies/services/checkVatService'
+				)
 			);
 
 			$params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);

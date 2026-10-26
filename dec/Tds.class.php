@@ -105,7 +105,7 @@ class dec_Tds extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'productNameSnapshot,productCodeSnapshot,manufacturerSnapshot,originCountrySnapshot,productSnapshot,declarationSnapshot';
+    public $fieldsNotToClone = 'productData,productDataOn,originCountrySnapshot,declarationSnapshot';
 
 
     /**
@@ -191,11 +191,9 @@ class dec_Tds extends core_Master
         $this->FLD('notes', 'richtext(rows=2)', 'caption=Допълнителна информация||Additional information->Бележки||Notes');
         $this->FLD('disclaimer', 'richtext(rows=2)', 'caption=Допълнителна информация||Additional information->Отказ от отговорност||Disclaimer');
 
-        $this->FLD('productNameSnapshot', 'varchar(255)', 'caption=Snapshot->Product name,input=none');
-        $this->FLD('productCodeSnapshot', 'varchar(64)', 'caption=Snapshot->Product code,input=none');
-        $this->FLD('manufacturerSnapshot', 'varchar(255)', 'caption=Snapshot->Manufacturer,input=none');
+        $this->FLD('productData', 'blob(serialize, compress)', 'caption=Snapshot->Product data,input=none');
+        $this->FLD('productDataOn', 'datetime(format=smartTime)', 'caption=Snapshot->Product data on,input=none');
         $this->FLD('originCountrySnapshot', 'varchar(128)', 'caption=Snapshot->Origin,input=none');
-        $this->FLD('productSnapshot', 'blob(1000000)', 'caption=Snapshot->Product description,input=none');
         $this->FLD('declarationSnapshot', 'blob(1000000)', 'caption=Snapshot->Declarations,input=none');
 
         $this->setDbIndex('productId');
@@ -261,7 +259,41 @@ class dec_Tds extends core_Master
 
 
     /**
-     * Записва моментна снимка на публичното описание на артикула преди първия запис
+     * При промяна на активен документ - предупреждение, ако артикулът е променен след снимката
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if (!$form->isSubmitted() || empty($rec->__isBeingChanged)) {
+
+            return;
+        }
+
+        $storedRec = $mvc->fetch($rec->id);
+        if (!self::isProductDataChanged($storedRec)) {
+
+            return;
+        }
+
+        $form->setWarning('revision', 'Данните на артикула са променени междувременно. Те ще бъдат опреснени, а версията - увеличена с 1|*!');
+        if (!$form->isSubmitted()) {
+
+            return;
+        }
+
+        // Ръчно сменената версия не се пипа
+        if ($rec->revision == $storedRec->revision && ctype_digit((string) $storedRec->revision)) {
+            $rec->revision = (string) ($storedRec->revision + 1);
+        }
+
+        // Опресняването е промяна, дори да не е сменено друго поле
+        $rec->_refreshProductData = true;
+        $rec->__noChange = false;
+    }
+
+
+    /**
+     * Записва моментна снимка на данните на артикула при активиране и опресняване
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
@@ -296,13 +328,14 @@ class dec_Tds extends core_Master
         $rec->date = $rec->date ?: dt::today();
         $language = self::getRecordLanguage($rec);
 
-        if (empty($rec->productSnapshot)) {
-            $snapshot = self::createProductSnapshot($rec->productId, $language);
-            $rec->productNameSnapshot = $snapshot->name;
-            $rec->productCodeSnapshot = $snapshot->code;
-            $rec->manufacturerSnapshot = $snapshot->manufacturer;
-            $rec->originCountrySnapshot = $snapshot->originCountry;
-            $rec->productSnapshot = $snapshot->description;
+        if (!$storedRec) {
+            $rec->originCountrySnapshot = self::getDriverTdsData(cat_Products::fetch($rec->productId), $language)['originCountry'] ?? null;
+        }
+
+        // Черновата е на живо, а активираният документ пази данните на артикула
+        if (($rec->state ?? null) == 'active' && (empty($rec->productData) || !empty($rec->_refreshProductData))) {
+            $rec->productData = self::createProductSnapshot($rec->productId, $language);
+            $rec->productDataOn = dt::now();
         }
 
         // Активираният документ пази декларациите си, докато не се сменят
@@ -325,15 +358,27 @@ class dec_Tds extends core_Master
 
         $row->documentTitle = $labels['documentTitle'];
         $row->documentSubtitle = $labels['documentSubtitle'];
-        $productName = !empty($rec->productNameSnapshot) ? $mvc->getVerbal($rec, 'productNameSnapshot') : cat_Products::getTitleById($rec->productId);
+        $productData = self::getProductData($rec);
+        $productName = core_Type::getByName('varchar')->toVerbal($productData->name ?? '');
 
         // При печат, PDF и имейл е без линк, както в core_Master::getHyperlink()
         $productUrl = (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) ? array() : cat_Products::getSingleUrlArray($rec->productId);
         $row->productName = ht::createLinkRef($productName, $productUrl);
-        $row->productCode = !empty($rec->productCodeSnapshot) ? $mvc->getVerbal($rec, 'productCodeSnapshot') : 'Art' . $rec->productId;
-        $row->manufacturer = core_Type::getByName('varchar')->toVerbal(self::getManufacturer($language, $rec->manufacturerSnapshot ?? null));
+        $row->productCode = core_Type::getByName('varchar')->toVerbal($productData->code ?? '');
+        $row->manufacturer = core_Type::getByName('varchar')->toVerbal(self::getManufacturer($language, $productData->manufacturer ?? null));
         $row->originCountry = $mvc->getVerbal($rec, 'originCountrySnapshot');
-        $row->productDescription = self::removeInternalLinks($rec->productSnapshot);
+        $row->productDescription = self::removeInternalLinks($productData->description ?? '');
+
+        // В черновата данните на артикула са текущите и се записват чак при активиране
+        if (($rec->state ?? null) == 'draft' && !Mode::isReadOnly()) {
+            $row->liveDataHint = ht::createHint('', 'Данните на артикула са текущите и ще бъдат записани при активиране|*!');
+        }
+
+        // Кога са записани данните на артикула - само на екрана
+        if (!empty($rec->productDataOn) && !Mode::isReadOnly()) {
+            $row->PRODUCT_DATA_ON = " <span class='quiet small'>(" . tr('данни към') . ' ' . $mvc->getVerbal($rec, 'productDataOn') . ')</span>';
+        }
+
         $row->date = dt::mysql2verbal($rec->date ?: $rec->createdOn, 'd.m.Y');
         $row->ESHOP_LINKS = self::renderEshopLinks($rec->productId);
         $unitWeight = $mvc->getVerbal($rec, 'unitWeight');
@@ -459,7 +504,7 @@ class dec_Tds extends core_Master
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
-        $productTitle = $rec->productNameSnapshot ?: cat_Products::getTitleById($rec->productId);
+        $productTitle = !empty($rec->productData) ? (((object) $rec->productData)->name ?? '') : cat_Products::getTitleById($rec->productId);
 
         $row->title = "TDS {$rec->documentNumber} - {$productTitle}";
         $row->authorId = $rec->createdBy;
@@ -777,7 +822,53 @@ class dec_Tds extends core_Master
 
 
     /**
-     * Моментна снимка на публичното описание на артикула
+     * Записва в лога опресняването на данните на артикула
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if (!empty($rec->_refreshProductData)) {
+            $mvc->logWrite('Опресняване на данните на артикула', $rec->id);
+        }
+    }
+
+
+    /**
+     * Данните на артикула - от снимката, а без нея на живо
+     */
+    protected static function getProductData($rec)
+    {
+        if (!empty($rec->productData)) {
+
+            return (object) $rec->productData;
+        }
+
+        return self::createProductSnapshot($rec->productId, self::getRecordLanguage($rec));
+    }
+
+
+    /**
+     * Дали артикулът или производителят са променени след снимката
+     */
+    protected static function isProductDataChanged($rec)
+    {
+        if (empty($rec->productData)) {
+
+            return false;
+        }
+
+        // Артикулът е редактиран след снимката, както в cat_ProductTplCache
+        $productData = (object) $rec->productData;
+        if (!empty($rec->productDataOn) && cat_Products::fetchField($rec->productId, 'modifiedOn') > $rec->productDataOn) {
+
+            return true;
+        }
+
+        return ($productData->manufacturer ?? null) != self::getManufacturer(self::getRecordLanguage($rec));
+    }
+
+
+    /**
+     * Моментна снимка на данните на артикула
      */
     protected static function createProductSnapshot($productId, $lang)
     {
@@ -798,7 +889,6 @@ class dec_Tds extends core_Master
         $snapshot->name = $name;
         $snapshot->code = self::getProductCode($productRec);
         $snapshot->manufacturer = self::getManufacturer($lang);
-        $snapshot->originCountry = self::getDriverTdsData($productRec, $lang)['originCountry'] ?? null;
         $snapshot->description = self::removeInternalLinks($description);
 
         return $snapshot;
