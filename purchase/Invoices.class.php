@@ -446,11 +446,11 @@ class purchase_Invoices extends deals_InvoiceMaster
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
         if (isset($fields['-single'])) {
-            if (!empty($rec->accountId)) {
+            // Сметката може да е изтрита след издаването на фактурата
+            if (!empty($rec->accountId) && ($ownAcc = bank_Accounts::fetch($rec->accountId))) {
                 $Varchar = cls::get('type_Varchar');
-                $ownAcc = bank_Accounts::fetch($rec->accountId);
-                $row->bank = $Varchar->toVerbal($ownAcc->bank);
-                $row->bic = $Varchar->toVerbal($ownAcc->bic);
+                $row->bank = $Varchar->toVerbal($ownAcc->bank ?? '');
+                $row->bic = $Varchar->toVerbal($ownAcc->bic ?? '');
             }
             
             if (isset($rec->journalDate) && $rec->journalDate != $rec->date) {

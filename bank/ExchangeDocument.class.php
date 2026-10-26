@@ -194,24 +194,6 @@ class bank_ExchangeDocument extends core_Master
     
     
     /**
-     * Добавяме помощник за избиране на сч. операция
-     */
-    public static function on_BeforeAction($mvc, &$tpl, $action)
-    {
-        if ($action != 'add') {
-            
-            return;
-        }
-        
-        if ($folderId = Request::get('folderId', 'int')) {
-            if ($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')) {
-                redirect(array('bank_OwnAccounts', 'list'), false, '|Документът не може да се създаде в папката на неактивна сметка');
-            }
-        }
-    }
-    
-    
-    /**
      * Подготовка на формата за добавяне
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
@@ -219,9 +201,12 @@ class bank_ExchangeDocument extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         $today = dt::verbal2mysql();
-        $cBank = bank_OwnAccounts::getCurrent();
-        $form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($cBank);
-        $form->setDefault('peroFrom', $cBank);
+        
+        // Парите излизат от сметката на папката, ако може да се избира, иначе от текущата
+        if (empty($rec->peroFrom)) {
+            $rec->peroFrom = bank_OwnAccounts::getSelectableByFolder($rec->folderId ?? null) ?? bank_OwnAccounts::getCurrent();
+        }
+        $form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($rec->peroFrom);
         $form->setDefault('valior', $today);
         $form->setReadOnly('peroFrom');
         $form->setOptions('peroTo', array('' => '') + bank_OwnAccounts::getOwnAccounts());

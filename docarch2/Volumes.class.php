@@ -423,7 +423,7 @@ class docarch2_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-
+        $register = '';
          if($rec->registerId == '0'){
         $register ='Сборен';
     } elseif ($rec->registerId){

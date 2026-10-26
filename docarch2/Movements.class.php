@@ -8,7 +8,7 @@
  * @package   docarch2
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -312,7 +312,7 @@ class docarch2_Movements extends core_Master
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch2_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholderType=all');
+        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch2_Volumes,allowEmpty)', 'caption=Входящ том,placeholderType=all');
 
         $data->listFilter->showFields = 'filterVolumeId';
 
@@ -469,8 +469,11 @@ class docarch2_Movements extends core_Master
 
         $balanceDocMove = self::getBalanceOfDocumentMovies($containerId);
 
-        if ($balanceDocMove[$containerId]->countMovie > 0) {
-            $count = cls::get('type_Int')->toVerbal($balanceDocMove[$containerId]->countMovie);
+        // Ако документът никога не е архивиран, балансът е null
+        $countMovie = $balanceDocMove[$containerId]->countMovie ?? 0;
+        if ($countMovie > 0) {
+            $count = cls::get('type_Int')->toVerbal($countMovie);
+            $linkArr = array();
             $actionVerbal = tr('архиви2');
             $Document = doc_Containers::getDocument($containerId);
 
@@ -876,7 +879,7 @@ bp($options);
                     );
                 } else {
                     $obj = &$balanceOfDocumentMovies[$movie->objectId];
-                    $obj->isInArchive += $counter;
+                    $obj->isArchive += $counter;
                     $obj->countMovie++;
                 }
             }
