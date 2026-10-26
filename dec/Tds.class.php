@@ -424,7 +424,7 @@ class dec_Tds extends core_Master
         ));
 
         if (isset($fields['-list'])) {
-            $row->productId = cat_Products::getLink($rec->productId, 0);
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
         }
     }
 
