@@ -670,3 +670,43 @@ td.dependantProgress {
   .optimizationPlanMetricDetail {
     grid-column: auto; } }
 
+#optimizationIdleReport.targetTimeReport { width: 780px; }
+.targetTimeProposal { padding: 10px 12px; }
+.targetTimeConflict { color: #a83220; white-space: pre-line; margin: 6px 0; }
+.targetTimeChoice { margin: 8px 0; padding: 8px; border: 1px solid #cccccc; }
+.targetTimeChoice.isSelected { border: 2px solid #386f54; background: #f0f8f2; }
+.targetTimeChoice button { white-space: normal; text-align: left; padding: 6px; cursor: pointer; margin-bottom: 5px; }
+.targetTimeLegend { margin-left: 4px; font-weight: normal; cursor: help; }
+.targetTimePreviewOpen .fuiHintLayer,
+.targetTimePreviewOpen .tooltip { z-index: 100002; }
+.targetTimePreviewOpen .fuiHintLayer { max-width: min(480px, calc(100vw - 24px)) !important; }
+.targetTimeMachine { margin: 14px 0; }
+.targetTimeMachine h3 { margin: 8px 0; font-size: 14px; }
+.targetTimeComparisonHolder { overflow: auto; max-height: 420px; }
+.targetTimeComparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 620px; }
+.targetTimeSide { min-width: 0; }
+.targetTimeSide h4 { margin: 0; padding: 6px; text-align: center; background: #eeeeee; }
+#optimizationIdleReport .targetTimeOrderTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#optimizationIdleReport .targetTimeOrderTable th,
+#optimizationIdleReport .targetTimeOrderTable td { padding: 5px 4px !important; text-align: center; vertical-align: middle; }
+#optimizationIdleReport .targetTimeOrderTable th { position: static; font-weight: 600 !important; }
+#optimizationIdleReport .targetTimeOrderTable th:first-child { width: 36px; }
+#optimizationIdleReport .targetTimeOrderTable th:nth-child(3) { width: 25%; }
+#optimizationIdleReport .targetTimeOrderTable .state-pending td,
+#optimizationIdleReport .targetTimeOrderTable .state-waiting td { background: #efdcfa; }
+#optimizationIdleReport .targetTimeOrderTable .state-active td { background: #e0e0e0; }
+#optimizationIdleReport .targetTimeOrderTable .state-wakeup td { background: #d6efd9; }
+#optimizationIdleReport .targetTimeOrderTable .state-stopped td { background: #ffd77d; }
+#optimizationIdleReport .targetTimeOrderTable .targetTimeNumber { font-weight: 700; white-space: nowrap; }
+.targetTimeMove { color: #444444; cursor: help; }
+#optimizationIdleReport .targetTimeOrderTable .targetTimePackage .targetTimeNumber { box-shadow: inset 4px 0 #2474b5; background: #d6e9f6; }
+#optimizationIdleReport .targetTimeOrderTable .targetTimePackageStart td { border-top: 2px solid #2474b5 !important; }
+#optimizationIdleReport .targetTimeOrderTable .targetTimePackageEnd td { border-bottom: 2px solid #2474b5 !important; }
+.targetTimeValue { display: inline-block; white-space: nowrap; }
+.targetTimeValue > span { display: block; }
+.targetTimePin { display: inline-block; margin-right: 3px; vertical-align: top; cursor: help; }
+.targetTimeOperation { overflow-wrap: anywhere; }
+#optimizationIdleReport .targetTimeEarlier { color: #176b2c; font-weight: 700; }
+#optimizationIdleReport .targetTimeLater { color: #b3261e; font-weight: 700; }
+#optimizationIdleReport .targetTimeNew { font-weight: 700; }
+

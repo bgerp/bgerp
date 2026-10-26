@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier;
 
+require_once dirname(__DIR__, 2) . '/SelectorFilter.class.php';
+
+
 use Pelago\Emogrifier\HtmlProcessor\AbstractHtmlProcessor;
 use Pelago\Emogrifier\Utilities\CssConcatenator;
 use Symfony\Component\CssSelector\CssSelectorConverter;
-use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
+use Symfony\Component\CssSelector\Exception\ExceptionInterface;
 
 /**
  * This class provides functions for converting CSS styles into inline style attributes in your HTML code.
@@ -154,7 +157,7 @@ class CssInliner extends AbstractHtmlProcessor
      *
      * @return self fluent interface
      *
-     * @throws SyntaxErrorException
+     * @throws ExceptionInterface
      */
     public function inlineCss(string $css = ''): self
     {
@@ -177,10 +180,12 @@ class CssInliner extends AbstractHtmlProcessor
         $excludedNodes = $this->getNodesToExclude();
         $cssRules = $this->parseCssRules($cssWithoutCommentsCharsetOrImport);
         $cssSelectorConverter = $this->getCssSelectorConverter();
+        $selectorFilter = new \csstoinline_SelectorFilter($this->xPath);
         foreach ($cssRules['inlinable'] as $cssRule) {
+            if (!$selectorFilter->mayMatch($cssRule['selector'])) continue;
             try {
                 $nodesMatchingCssSelectors = $this->xPath->query($cssSelectorConverter->toXPath($cssRule['selector']));
-            } catch (SyntaxErrorException $e) {
+            } catch (ExceptionInterface $e) {
                 if ($this->debug) {
                     throw $e;
                 }
@@ -517,7 +522,7 @@ class CssInliner extends AbstractHtmlProcessor
      *
      * @return \DOMElement[]
      *
-     * @throws SyntaxErrorException
+     * @throws ExceptionInterface
      */
     private function getNodesToExclude(): array
     {
@@ -525,7 +530,7 @@ class CssInliner extends AbstractHtmlProcessor
         foreach (\array_keys($this->excludedSelectors) as $selectorToExclude) {
             try {
                 $matchingNodes = $this->xPath->query($this->getCssSelectorConverter()->toXPath($selectorToExclude));
-            } catch (SyntaxErrorException $e) {
+            } catch (ExceptionInterface $e) {
                 if ($this->debug) {
                     throw $e;
                 }
@@ -966,7 +971,7 @@ class CssInliner extends AbstractHtmlProcessor
      *
      * @return bool
      *
-     * @throws SyntaxErrorException
+     * @throws ExceptionInterface
      */
     private function existsMatchForSelectorInCssRule(array $cssRule): bool
     {
@@ -986,13 +991,13 @@ class CssInliner extends AbstractHtmlProcessor
      *
      * @return bool
      *
-     * @throws SyntaxErrorException
+     * @throws ExceptionInterface
      */
     private function existsMatchForCssSelector(string $cssSelector): bool
     {
         try {
             $nodesMatchingSelector = $this->xPath->query($this->getCssSelectorConverter()->toXPath($cssSelector));
-        } catch (SyntaxErrorException $e) {
+        } catch (ExceptionInterface $e) {
             if ($this->debug) {
                 throw $e;
             }
