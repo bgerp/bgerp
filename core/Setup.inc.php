@@ -540,7 +540,7 @@ if ($step == 2) {
     // Минимална версия на PHP, при която е позволено обновяване / превключване към бранч (dev)
     // Заб.: При по-стар PHP НЕ позволяваме превключване от release tag (detached HEAD) към бранч,
     // защото така може да се изтегли по-нов код с несъвместим синтаксис.
-    $minPhpForUpdate = '7.4.33';
+    $minPhpForUpdate = '7.4.3';
     $phpVersionOkForUpdate = version_compare(PHP_VERSION, $minPhpForUpdate, '>=');
 
     $doUpdate = isset($_GET['update']);
@@ -1221,7 +1221,7 @@ if ($step == 'setup') {
 
     // При стар PHP не позволяваме превключване от release tag (detached HEAD) към бранч,
     // защото така може да се изтегли по-нов код с несъвместим синтаксис.
-    $minPhpForBranchSwitch = '7.4.33';
+    $minPhpForBranchSwitch = '7.4';
     $phpOkForBranchSwitch = version_compare(PHP_VERSION, $minPhpForBranchSwitch, '>=');
 
     if ($needSwitchBranch && !$phpOkForBranchSwitch) {
