@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -906,9 +906,13 @@ class store_ShipmentOrders extends store_DocumentMaster
             // Кой е първия документ в нишката
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
-            if ($firstDoc->isInstanceOf('sales_Sales')) {
-
+            $firstRec = null;
+            if (is_object($firstDoc) && $firstDoc->isInstanceOf('sales_Sales')) {
                 $firstRec = $firstDoc->fetch('deliveryTermId,deliveryCalcTransport,deliveryData,deliveryTermTime,valior,deliveryTime');
+            }
+
+            // Записът на продажбата може да липсва (изтрит)
+            if (is_object($firstRec)) {
                 if (empty($deliveryDate)) {
                     $deliveryDate = !empty($firstRec->deliveryTermTime) ? dt::addSecs($firstRec->deliveryTermTime, $firstRec->valior) : $firstRec->deliveryTime;
                 }

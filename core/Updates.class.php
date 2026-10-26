@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -327,13 +327,28 @@ class core_Updates extends core_Manager
     {
         $headJson = git_Lib::gitHubApiCall("https://api.github.com/repos/{$owner}/{$repo}/git/refs/heads/{$branch}");
         
-        $head = json_decode($headJson);
+        $head = json_decode($headJson ?: '');
         
-        $lastJson = git_Lib::gitHubApiCall($head->object->url);
+        // При грешка (лимит на API, липсващ бранч или достъп) GitHub връща само съобщение
+        $headObject = is_object($head) ? ($head->object ?? null) : null;
+        $url = is_object($headObject) ? ($headObject->url ?? null) : null;
+        if (empty($url)) {
+            
+            return;
+        }
         
-        $last = json_decode($lastJson);
+        $lastJson = git_Lib::gitHubApiCall($url);
         
-        $date = date('Y-m-d H:i:s', strtotime($last->author->date));
+        $last = json_decode($lastJson ?: '');
+        
+        $author = is_object($last) ? ($last->author ?? null) : null;
+        $authorDate = is_object($author) ? ($author->date ?? null) : null;
+        if (empty($authorDate)) {
+            
+            return;
+        }
+        
+        $date = date('Y-m-d H:i:s', strtotime($authorDate));
         
         return $date;
     }
