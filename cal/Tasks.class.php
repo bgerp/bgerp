@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1853,7 +1853,7 @@ class cal_Tasks extends embed_Manager
         $currUrl = getCurrentUrl();
         $needOneOnly = 0;
         
-        if ($currUrl['Ctr'] == 'cal_Tasks') {
+        if (($currUrl['Ctr'] ?? null) == 'cal_Tasks') {
             $chartType = Request::get('Chart');
             
             $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
