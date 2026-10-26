@@ -1540,7 +1540,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         // Ако е в кг и всички тегла са равни на нетото, скрива се дублиращата се колонка
-        if($data->isMeasureKg){
+        if(!empty($data->isMeasureKg)){
             $unsetNetWeight = true;
             array_walk($data->recs, function($a) use (&$unsetNetWeight){if(isset($a->netWeight) && $a->quantity != $a->netWeight) {$unsetNetWeight = false;}});
             if($unsetNetWeight){

@@ -786,7 +786,7 @@ class core_Manager extends core_Mvc
         if ($data && ($data->listFields ?? null)) {
             $data->listFields = arr::make($data->listFields);
 
-            if ($data->query && $data->listFields && isset($data->listFields['id'])) {
+            if (!empty($data->query) && !empty($data->listFields) && isset($data->listFields['id'])) {
                 $data->query->orderBy('id', 'ASC');
             }
         }
@@ -935,7 +935,7 @@ class core_Manager extends core_Mvc
     public function prepareListSummary_(&$data)
     {
         // Ако има заявка
-        if ($data->query) {
+        if (!empty($data->query)) {
             
             // Ако няма обощени
             if (!($data->listSummary ?? null)) {

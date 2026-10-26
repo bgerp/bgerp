@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -449,7 +449,8 @@ class acc_ArticleDetails extends doc_Detail
             /**
              * Проверка дали debitAmount == debitAmount
              */
-            if (abs($rec->debitAmount - $rec->creditAmount) > 0.0001) {
+            // При липсващи обороти сумите не са сметнати и грешката вече е сложена
+            if (isset($rec->debitAmount, $rec->creditAmount) && abs($rec->debitAmount - $rec->creditAmount) > 0.0001) {
                 $form->setError('debitQuantity, debitPrice, creditQuantity, creditPrice, amount', 'Дебит и кредит страните са различни');
             }
         }

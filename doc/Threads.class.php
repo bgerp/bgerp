@@ -2307,7 +2307,7 @@ class doc_Threads extends core_Manager
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        if ($data->query) {
+        if (!empty($data->query)) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {

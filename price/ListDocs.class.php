@@ -644,7 +644,7 @@ class price_ListDocs extends core_Master
                         $rowTpl = $groupTpl->getBlock('ROW');
                         $rowTpl->placeObject($row);
                         
-                        if ($data->showEan) {
+                        if (!empty($data->showEan)) {
                             $rowTpl->replace(' ', 'eanCode');
                         }
                         
@@ -655,7 +655,7 @@ class price_ListDocs extends core_Master
                     $groupTpl->removeBlocks();
                     $tpl->append($groupTpl, 'GROUP');
                     
-                    if ($data->showEan) {
+                    if (!empty($data->showEan)) {
                         $tpl->replace(' ', 'showEAN');
                     }
                 }

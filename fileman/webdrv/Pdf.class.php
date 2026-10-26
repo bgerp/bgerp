@@ -8,13 +8,41 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class fileman_webdrv_Pdf extends fileman_webdrv_Office
 {
+    protected $canAddpassword = 'user';
+
+
+    /**
+     * Не сменяме паролата, докато конвертиране с предишната още работи.
+     */
+    public static function on_BeforeSavePassword($mvc, $form, $fRec)
+    {
+        $dataId = $fRec->dataId ?? null;
+        foreach (array('text', 'jpg') as $type) {
+            if (core_Locks::isLocked(static::getLockId($type, $dataId))) {
+                $form->setError('pass', 'Файлът се обработва в момента. Опитайте отново след малко');
+            }
+        }
+    }
+
+
+    /**
+     * Повтаряме извличането на текст и прегледа с новата парола.
+     */
+    public static function on_AfterSavePassword($mvc, $fRec)
+    {
+        $dataId = $fRec->dataId ?? null;
+        fileman_Indexes::delete(array("#dataId = '[#1#]' AND #type IN ('text', 'jpg')", $dataId));
+        fileman_Data::resetProcess($dataId);
+    }
+
+
     /**
      * Преобразува цветовия модел на подадения PDF файл от RGB в CMYK
      *

@@ -8,7 +8,7 @@
  * @package   docoffice
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,8 +43,14 @@ class docoffice_Pdf
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
         
+        $passwordArg = '';
+        if (!$params['isPath'] && ($password = fileman_webdrv_Generic::getPassword($fileHnd)) !== null) {
+            $Script->setParam('PDF_PASSWORD', $password, true, true);
+            $passwordArg = ' -upw [#PDF_PASSWORD#]';
+        }
+
         // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
+        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk' . $passwordArg . ' [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);

@@ -12,7 +12,7 @@
  * @package   blast
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -521,7 +521,7 @@ class blast_ListDetails extends doc_Detail
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => true), null, array('ef_icon' => 'img/16/table-import-icon.png', 'title' => 'Внасяне на допълнителни данни'));
         
-        if ($data->recs) {
+        if (!empty($data->recs)) {
             foreach ($data->recs as $rec) {
                 if ($mvc->haveRightFor('export', $rec)) {
                     $data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), null, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');

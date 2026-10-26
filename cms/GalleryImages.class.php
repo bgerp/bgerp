@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -535,7 +535,7 @@ class cms_GalleryImages extends core_Manager
         Request::setProtected('callback');
         
         // Ако има записи
-        if ($data->recs && countR($data->recs)) {
+        if (!empty($data->recs) && countR($data->recs)) {
             
             // Обхождаме записите
             foreach ($data->recs as $id => $rec) {

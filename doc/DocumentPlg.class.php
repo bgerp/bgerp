@@ -736,7 +736,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        if ($data->query) {
+        if (!empty($data->query)) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } elseif (empty($data->showRejectedRows)) {
@@ -2768,7 +2768,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $id = $rec->id ?? null;
         if (empty($id) || !in_array($action, array('pickup', 'assign',
-            'activate', 'activateagain', 'pending', 'changestate',
+            'activate', 'activateagain', 'changestate',
             'stop', 'start', 'close', 'wakeup'))) {
             return;
         }

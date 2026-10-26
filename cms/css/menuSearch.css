@@ -1,0 +1,91 @@
+body #cmsMenu.menuRow form.cms-menu-search {
+    display: block;
+    flex: 0 1 260px;
+    width: 260px;
+    min-width: 160px;
+    margin: 0 0 0 auto !important;
+    padding: 0;
+    float: none;
+}
+body #cmsMenu.menuRow .cms-menu-search #simpleSearch {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    margin: 0 !important;
+    padding: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--c-line, #c7d0d5);
+    border-radius: 4px;
+    background: #fff;
+}
+body #cmsMenu.menuRow .cms-menu-search #searchInput {
+    position: static;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    padding: 7px 38px 7px 10px;
+    margin: 0;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #243746;
+    font: 14px/20px Arial, sans-serif;
+}
+body #cmsMenu.menuRow .cms-menu-search #searchButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+body #cmsMenu.menuRow .cms-menu-search #searchButton img { width: 13px; height: 13px; }
+body #cmsMenu.menuRow .cms-menu-search:focus-within { outline: 2px solid var(--c-accent, #496678); outline-offset: 2px; }
+body #cmsMenu.menuRow .cms-menu-search + .cms-menu-tools { margin-left: 0; }
+body #cmsMenu.menuRow .cms-menu-search + .cms-menu-tools #cart-external-status:not(:has(*)) { display: none; }
+@media (min-width: 701px) {
+    body #cmsMenu.menuRow > .centerContent:has(.cms-menu-search) { column-gap: 24px; }
+    body #cmsMenu.menuRow .cms-menu-search + .cms-menu-tools { padding-left: 24px; }
+}
+@media (max-width: 700px) {
+    body #cmsMenu.menuRow > .centerContent:has(.cms-menu-search) { flex-wrap: wrap !important; }
+    body #cmsMenu.menuRow form.cms-menu-search { flex: 1 1 100%; width: 100%; order: 3; margin: 6px 0 0 !important; }
+}
+
+body #cmsMenu.menuRow .cms-menu-search .commerce-search-clear {
+    position: absolute;
+    top: 0;
+    right: 36px;
+    width: 28px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6b7785;
+    font: 20px/1 Arial, sans-serif;
+    cursor: pointer;
+}
+body #cmsMenu.menuRow .cms-menu-search .commerce-search-clear[hidden] { display: none; }
+body #cmsMenu.menuRow .cms-menu-search:has(.commerce-search-clear:not([hidden])) #searchInput { padding-right: 66px; }
+
+/* Match the adjacent search control in every commerce theme. */
+body.commerce-theme #cmsMenu.menuRow .cms-menu-search + .cms-menu-tools a.loginIcon {
+    box-sizing: border-box;
+    height: 36px;
+    min-height: 36px;
+    padding-top: 0;
+    padding-bottom: 0;
+    align-items: center;
+}

@@ -824,6 +824,9 @@ a.button {
   margin-top: 0;
   margin-bottom: 0; }
 
+.narrow a.button {
+  line-height: normal; }
+
 a.button.fright,
 input[type="button"].fright,
 input[type="submit"].fright,

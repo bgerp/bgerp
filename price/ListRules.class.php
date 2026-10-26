@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -861,6 +861,7 @@ class price_ListRules extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $rec->type ??= null;
         
         $masterRec = price_Lists::fetch($rec->listId);
         $productFieldParams = array('listId' => $masterRec->id);
@@ -926,12 +927,34 @@ class price_ListRules extends core_Detail
     
     
     /**
+     * Вариантите за добавяне на правило, както бутоните над таблиците
+     *
+     * @param int $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array('value' => array('title' => 'Стойност', 'params' => array('type' => 'value', 'priority' => 1)));
+
+        // Маржовете се смятат спрямо наследената политика
+        $parentId = price_Lists::fetchField((int) $masterId, 'parent');
+        if (!empty($parentId)) {
+            $res['discount'] = array('title' => 'Продуктов марж', 'params' => array('type' => 'discount', 'priority' => 1));
+            $res['groupDiscount'] = array('title' => 'Групов марж - среден приоритет', 'params' => array('type' => 'groupDiscount', 'priority' => 2));
+            $res['groupDiscountLow'] = array('title' => 'Групов марж - нисък приоритет', 'params' => array('type' => 'groupDiscount', 'priority' => 3));
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $form = &$data->form;
-        if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
+        if (Request::get('productId') && ($form->rec->type ?? null) == 'value' && $form->cmd != 'refresh') {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }

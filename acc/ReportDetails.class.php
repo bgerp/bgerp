@@ -399,7 +399,7 @@ class acc_ReportDetails extends core_Manager
         $count = $limitCount = 0;
 
         // Ако има какво да се показва
-        if ($data->balanceRows) {
+        if (!empty($data->balanceRows)) {
             $Double = cls::get('type_Double');
             $Double->params['decimals'] = 2;
 

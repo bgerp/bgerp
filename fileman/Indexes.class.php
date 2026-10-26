@@ -8,7 +8,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -653,8 +653,8 @@ class fileman_Indexes extends core_Manager
             return ;
         }
         
-        // Изтриваме всички записи със съответното dataId
-        fileman_Indexes::delete(array('#dataId = [#1#]', $dataId));
+        // Паролата е вход за обработката, а не генериран индекс.
+        fileman_Indexes::delete(array("#dataId = '[#1#]' AND #type != 'password'", $dataId));
         
         fileman_Data::resetProcess($dataId);
     }
@@ -690,6 +690,7 @@ class fileman_Indexes extends core_Manager
             // Изтриваме индексите
             if ($type == 'all' || $type == 'indexes') {
                 $iQuery = self::getQuery();
+                $iQuery->where("#type != 'password'");
                 $iQuery->orderBy('createdOn', 'DESC');
                 if ($limit) {
                     $iQuery->limit($limit);

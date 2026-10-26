@@ -101,6 +101,9 @@ class chromephp_Setup extends core_ProtoSetup
             }
         }
 
+        // Дефинира EF_VENDOR_PATH, ако core_Composer още не е зареждан
+        cls::load('core_Composer');
+
         $vendorBin = rtrim(EF_VENDOR_PATH, '/') . '/chrome/chrome-headless-shell-linux64/chrome-headless-shell';
         if (is_executable($vendorBin)) {
             $paths[$vendorBin] = $vendorBin;
@@ -159,6 +162,9 @@ class chromephp_Setup extends core_ProtoSetup
 
             return "<li class='debug-error'>Chrome не е намерен и не може да се инсталира автоматично за тази платформа. Задайте ръчно CHROMEPHP_BIN_PATH</li>";
         }
+
+        // Дефинира EF_VENDOR_PATH, ако core_Composer още не е зареждан
+        cls::load('core_Composer');
 
         $vPath = rtrim(EF_VENDOR_PATH, '/');
         $binFile = $vPath . '/chrome/chrome-headless-shell-linux64/chrome-headless-shell';

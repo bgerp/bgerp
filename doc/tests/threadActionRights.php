@@ -115,7 +115,7 @@ class ThreadActionDocumentFixture extends core_BaseClass
 
 $mvc = new ThreadActionDocumentFixture();
 $actions = array('pickup', 'assign', 'activate',
-    'activateagain', 'pending', 'changestate',
+    'activateagain', 'changestate',
     'stop', 'start', 'close', 'wakeup');
 
 foreach (array('draft', 'pending', 'active', 'rejected', 'closed', 'stopped') as $state) {
@@ -128,7 +128,7 @@ foreach (array('draft', 'pending', 'active', 'rejected', 'closed', 'stopped') as
 }
 
 foreach (array('single', 'psingle', 'viewpsingle', 'read', 'exportdoc', 'like', 'dislike', 'tag', 'link',
-    'reject', 'restore', 'conto', 'reconto', 'debugreconto', 'edit', 'changerec') as $action) {
+    'reject', 'restore', 'conto', 'reconto', 'debugreconto', 'edit', 'changerec', 'pending') as $action) {
     check($mvc->getRequiredRoles($action, $mvc->record, 11) === 'powerUser', "{$action} retains its existing checks");
 }
 check($mvc->getRequiredRoles('activate', null, 11) === 'powerUser', 'General action rights remain unchanged');

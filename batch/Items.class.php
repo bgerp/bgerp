@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -664,7 +664,7 @@ class batch_Items extends core_Master
             }
 
             $tpl->append($title, 'definition');
-        } elseif ($data->addBatchUrl) {
+        } elseif (!empty($data->addBatchUrl)) {
             $ht = ht::createLink('', $data->addBatchUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова партидна дефиниция,style=vertical-align: middle;');
             $tpl->append($ht, 'definition');
         }

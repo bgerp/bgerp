@@ -9,7 +9,7 @@
  * @package   cal
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -563,7 +563,7 @@ class cal_Reminders extends core_Master
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if ($data->recs) {
+        if (!empty($data->recs)) {
             foreach ((array) $data->recs as $id => $rec) {
                 $row = $mvc->recToVerbal($rec);
 
