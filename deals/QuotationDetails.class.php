@@ -903,7 +903,7 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         $dTpl = getTplFromFile($templateFile);
-        if ($data->countNotOptional) {
+        if (!empty($data->countNotOptional)) {
             $dTpl->replace(1, 'DATA_COL_ATTR');
             $dTpl->replace(2, 'DATA_COL_ATTR_AMOUNT');
         }
@@ -922,7 +922,7 @@ class deals_QuotationDetails extends doc_Detail
         $optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
 
         $oTpl = getTplFromFile($optionalTemplateFile);
-        if ($data->countOptional) {
+        if (!empty($data->countOptional)) {
             $oTpl->replace(3, 'DATA_COL_ATTR');
             $oTpl->replace(4, 'DATA_COL_ATTR_AMOUNT');
         }
@@ -933,7 +933,7 @@ class deals_QuotationDetails extends doc_Detail
 
         // Променливи за определяне да се скриват ли някои колони
         $hasQuantityColOpt = false;
-        if ($data->rows) {
+        if (!empty($data->rows)) {
             foreach ($data->rows as $index => $arr) {
                 list(, $optional) = explode('|', $index);
                 foreach ($arr as $row) {

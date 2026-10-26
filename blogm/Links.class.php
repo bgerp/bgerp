@@ -9,7 +9,7 @@
  * @package   blogm
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -98,7 +98,7 @@ class blogm_Links extends core_Manager
     {
         $tpl = new ET("");
         
-        if ($data->links) {
+        if (!empty($data->links)) {
             foreach ($data->links as $link) {
                 // Създаваме линк от заглавието и урл-то
                 $name = ht::createLink($link->name, $link->url, null, 'target=_blank,class=out');

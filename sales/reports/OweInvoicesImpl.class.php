@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -439,7 +439,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         }
         
         // правим един служебен ред за нефактурирано
-        if ($data->notInv && $mvc->innerForm->notInv == 'no') {
+        if (!empty($data->notInv) && $mvc->innerForm->notInv == 'no') {
             $row = new stdClass();
             $row->contragent = '--------';
             $row->eic = '--------';

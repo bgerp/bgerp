@@ -9,7 +9,7 @@
  * @package   catering
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -227,7 +227,7 @@ class catering_Orders extends core_Master
         $tpl->prepend('<div><b>Поръчка за храна</b>
                        <br/>№ ' . $orderId . ' / Дата: ' . $orderDate . ' към фирма "' . $orderCompanyName . '"</div><br/>');
         
-        if ($data->priceTotalSum) {
+        if (!empty($data->priceTotalSum)) {
             $tpl->append("<br/>
                           <div style='float: left; border: solid 1px #999999; padding: 3px; width: 300px;'>
                              <p style='float: left; width: 150px; margin: 0;'>Обща сума: </p>

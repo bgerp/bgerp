@@ -2364,11 +2364,14 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if (isset($data->addJobUrls)) {
             $addLinks = '';
+
+            // Линкове с вид на бутон, за да могат да се отварят в нов таб
+            $btnAttr = Mode::is('screenMode', 'narrow') ? 'class=button' : 'ef_icon=img/16/add.png,class=button';
             if (isset($data->addJobUrls['manifacture'])) {
-                $addLinks .= ht::createBtn('Производство', $data->addJobUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство');
+                $addLinks .= ht::createLink('Производство', $data->addJobUrls['manifacture'], false, "{$btnAttr},title=Създаване на ново задание за производство");
             }
             if (isset($data->addJobUrls['disassembly'])) {
-                $addLinks .= ht::createBtn('Разпад', $data->addJobUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за разпад');
+                $addLinks .= ht::createLink('Разпад', $data->addJobUrls['disassembly'], false, "{$btnAttr},title=Създаване на ново задание за разпад");
             }
             $tpl->replace($addLinks, 'JOB_ADD_BTN');
         }

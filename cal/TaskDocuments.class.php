@@ -8,7 +8,7 @@
  * @package   cal
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -439,7 +439,7 @@ class cal_TaskDocuments extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if ($data->disabled) {
+        if (!empty($data->disabled)) {
             
             return ;
         }

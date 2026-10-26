@@ -825,6 +825,11 @@ a.button {
     margin-bottom: 0;
 }
 
+// Линковете-бутони да са с височината на input бутоните
+.narrow a.button {
+	line-height: normal;
+}
+
 a.button.fright, input[type="button"].fright, input[type="submit"].fright, button.fright {
 	margin: 1px 0 0 0.5em;
 }

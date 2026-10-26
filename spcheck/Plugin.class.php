@@ -9,7 +9,7 @@
  * @package   spcheck
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,14 +49,14 @@ class spcheck_Plugin extends core_Plugin
         // Чернова документите и документите, които са променяни последните 10 мин може да се проверяват
         $date = ($data->rec->modifiedOn) ? $data->rec->modifiedOn : $data->rec->createdOn;
         $spcheckInterval = !empty($mvc->spcheckInterval) ? $mvc->spcheckInterval : 600; // 10 мин
-        if ($data->rec && (($data->rec->state != 'draft') && (dt::secsBetween(dt::now(), $date) >= $spcheckInterval))) {
+        if (!empty($data->rec) && (($data->rec->state != 'draft') && (dt::secsBetween(dt::now(), $date) >= $spcheckInterval))) {
             
             return ;
         }
         
         // Документите създадени/редактирани от текущия потребител мога да се проверяват
         $cu = core_Users::getCurrent();
-        if ($data->rec && ($data->rec->createdBy != $cu && ($data->rec->modifiedBy != $cu))) {
+        if (!empty($data->rec) && ($data->rec->createdBy != $cu && ($data->rec->modifiedBy != $cu))) {
             
             return ;
         }

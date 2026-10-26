@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -470,7 +470,7 @@ class rack_Zones extends core_Master
         $hasProblems = false;
         $tpl->append("<table class='listTable' {$tableStyle}><tr><th {$thAttr}>Проверка</th><th {$thAttr}>Резултат</th><th {$thAttr}>Действие</th></tr>");
 
-        if($data->missingArchive){
+        if(!empty($data->missingArchive)){
             $hasProblems = true;
             $btn = ht::createBtn('Възстановяване', array('rack_Movements', 'restoremissing', 'containerId' => $rec->containerId, 'ret_url' => true), "Ще бъдат възстановени липсващи движения от историята|*: {$data->missingArchive}. |Сигурни ли сте|*?", false, 'ef_icon=img/16/arrow_refresh.png,title=Възстановяване на липсващи движения от историята');
             $tpl->append("<tr><td {$tdAttr}>Липсващи движения с архив</td><td {$tdAttr}>{$data->missingArchive}</td><td {$tdAttr}>{$btn}</td></tr>");

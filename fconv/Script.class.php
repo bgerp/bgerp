@@ -9,7 +9,7 @@
  * @package   fconv
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -62,6 +62,18 @@ class fconv_Script
      * @param array - Масив за параметрите на скрипта
      */
     public $cmdParamsOrig = array();
+
+
+    /**
+     * Параметри, които не трябва да попадат в лога.
+     */
+    public $sensitiveParams = array();
+
+
+    /**
+     * Стойности, които се поставят след всички останали замествания.
+     */
+    protected $sensitiveValues = array();
     
     
     /**
@@ -261,9 +273,10 @@ class fconv_Script
     /**
      * Задаване на друго общи за целия скрипт параметри
      */
-    public function setParam($placeHolder, $value = null, $escape = true)
+    public function setParam($placeHolder, $value = null, $escape = true, $sensitive = false)
     {
         $this->cmdParamsOrig[$placeHolder] = $value;
+        $this->sensitiveParams[$placeHolder] = $sensitive;
         
         if ($escape) {
 //            $this->cmdParams[$placeHolder] = escapeshellcmd($value);
@@ -355,6 +368,11 @@ class fconv_Script
         
         if (countR($this->cmdParams)) {
             foreach ($this->cmdParams as $placeHolder => $value) {
+                if (!empty($this->sensitiveParams[$placeHolder])) {
+                    $token = '__FCONV_SECRET_' . $this->id . '_' . count($this->sensitiveValues) . '__';
+                    $this->sensitiveValues[$token] = $value;
+                    $value = $token;
+                }
                 $cmdLine = str_replace("[#{$placeHolder}#]", $value, $cmdLine);
             }
         }
@@ -548,6 +566,10 @@ class fconv_Script
         }
  
         core_Os::requireDir($this->tempDir);
+        $hasSensitiveParams = in_array(true, $this->sensitiveParams, true);
+        if ($hasSensitiveParams) {
+            chmod($this->tempDir, 0700);
+        }
         
         $foldersArr = $this->getFolders();
         
@@ -580,6 +602,10 @@ class fconv_Script
             }
         }
         
+        // Самото съдържание на паролата не трябва да се обработва като шаблон.
+        $logScript = strtr($this->script, array_fill_keys(array_keys($this->sensitiveValues), "'***'"));
+        $this->script = strtr($this->script, $this->sensitiveValues);
+
         $shellName = $this->tempDir . $this->id . $this->addExtensionScript();
         
         $this->skipOnRemote[$shellName] = $shellName;
@@ -592,7 +618,7 @@ class fconv_Script
         
         fconv_Processes::add($this->id, serialize($this), $time, $timeoutCallback);
         
-        chmod($shellName, 0777);
+        chmod($shellName, $hasSensitiveParams ? 0700 : 0777);
         
         // Ако е зададено да се стартира асинхронно
         if ($asynch) {
@@ -601,7 +627,7 @@ class fconv_Script
             $shell = $shellName;
         }
         
-        log_System::add('fconv_Script', 'Стартиран скрипт: ' . $this->script);
+        log_System::add('fconv_Script', 'Стартиран скрипт: ' . $logScript);
 
         pclose(popen($shell, 'r'));
     }

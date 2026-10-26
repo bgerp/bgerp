@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -304,7 +304,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         $data->summary->colspan = countR($data->listFields);
         
-        if (!$data->bShowQuantities || $data->rec->action === 'group') {
+        if (empty($data->bShowQuantities) || $data->rec->action === 'group') {
             $data->summary->colspan -= 4;
             if ($data->summary->colspan != 0 && countR($data->rows)) {
                 $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
@@ -357,7 +357,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             );
         }
         
-        if ($data->bShowQuantities) {
+        if (!empty($data->bShowQuantities)) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
                 'baseAmount' => 'Начално салдо->ДК->Сума',

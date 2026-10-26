@@ -31,7 +31,7 @@ function initCommerceSearch(clearLabel) {
     document.body.dataset.commerceSearch = 'true';
 
     // The × button empties the field; on a results page it also drops the search
-    document.querySelectorAll('#cmsNavigation #searchInput, .eshop-top-search #searchInput').forEach(function (input) {
+    document.querySelectorAll('#cmsNavigation #searchInput, .eshop-top-search #searchInput, .cms-menu-search #searchInput').forEach(function (input) {
         var clear = document.createElement('button');
         clear.type = 'button';
         clear.className = 'commerce-search-clear';

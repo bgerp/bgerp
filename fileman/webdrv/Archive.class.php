@@ -8,13 +8,16 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class fileman_webdrv_Archive extends fileman_webdrv_Generic
 {
+    protected $canAddpassword = 'user';
+
+
     /**
      * Кой таб да е избран по подразбиране
      *
@@ -49,7 +52,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             $contentStr = static::getArchiveContent($fRec, $path);
         } catch (ErrorException $e) {
             $contentStr = tr('Възникна грешка при показване на съдържанието на архива');
-            if (($e->getCode() == 2) && ($archiveAddPassUrl = self::getArchiveAddPassUrl($fRec->fileHnd, false, true))) {
+            if (in_array($e->getCode(), array(2, 255)) && ($archiveAddPassUrl = static::getAddPasswordUrl($fRec->fileHnd ?? null, false, true))) {
                 $contentStr .= ' - ' . ht::createLink(tr('добавете парола'), $archiveAddPassUrl, false, 'ef_icon=img/16/archive.png');
             }
         }
@@ -103,7 +106,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         }
         
         // Добавяме паролата, ако е зададена
-        $password = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'password');
+        $password = static::getPassword($fRec->fileHnd ?? null);
         if (isset($password) && ($password !== false)) {
             $inst->setPassword($password);
         }
@@ -136,7 +139,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         $inst = static::getArchiveInst($fRec);
         
         // Добавяме паролата, ако е зададена
-        $password = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'password');
+        $password = static::getPassword($fRec->fileHnd ?? null);
         if (isset($password) && ($password !== false)) {
             $inst->setPassword($password);
         }

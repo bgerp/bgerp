@@ -424,7 +424,7 @@ class eshop_Groups extends core_Master
         
         // Записваме в посетителския лог
         if (core_Packs::fetch("#name = 'vislog'")) {
-            if ($data->menuId) {
+            if (!empty($data->menuId)) {
                 $cRec = cms_Content::fetch($data->menuId);
             }
             vislog_History::add("Всички групи «{$cRec->menu}»");

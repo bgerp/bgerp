@@ -357,7 +357,7 @@ class ograph_Factory extends core_Master
             $ogp->addImage($image);
         }
         $meta .= "\n{$ogp->toHTML()}";
-        if ($data->recInfo) {
+        if (!empty($data->recInfo)) {
             
             // Ако има допълнителен обект то ние го генерираме и него
             $type = $data->siteInfo['Type'];

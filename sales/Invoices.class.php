@@ -373,7 +373,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $form->setField('contragentAddress', 'mandatory');
 
         $defaultAccountId = null;
-        if ($data->aggregateInfo) {
+        if (!empty($data->aggregateInfo)) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $defaultAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
             } else {

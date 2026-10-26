@@ -9,7 +9,7 @@
  * @package   sens2
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1101,7 +1101,7 @@ class draw_Designs extends core_Master
             $tpl->append($data->form->renderHtml(), 'DETAILS');
         }
         
-        if (!$data->error && !$data->canvas->errorMsg) {
+        if (empty($data->error) && empty($data->canvas->errorMsg)) {
             $tpl->append($data->canvas->render(), 'SVG');
         } else {
             $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'SVG');

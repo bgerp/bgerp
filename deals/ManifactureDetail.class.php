@@ -8,7 +8,7 @@
  * @package   mp
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -139,7 +139,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         setPartIfNot($data, 'defaultMeta', $mvc->defaultMeta);
         setPartIfNot($data, 'defaultNotHaveMeta', $mvc->defaultNotHaveMeta);
 
-        if (!$data->defaultMeta && !$data->defaultNotHaveMeta) return;
+        if (empty($data->defaultMeta) && empty($data->defaultNotHaveMeta)) return;
 
         $params = array();
         if(isset($data->defaultMeta)){
