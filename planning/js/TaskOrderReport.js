@@ -169,27 +169,40 @@ function removeOptimizationIdleReport()
 {
     $('#optimizationIdleReport').remove();
     $('#savedOrderReportBackdrop').remove();
+    $('body').removeClass('targetTimePreviewOpen');
 }
 
 
-function showTargetTimesPreview(data)
+function showTargetTimesPreview(data, selectedIndex)
 {
     const accepted = $('input[name="targetPreviewAccepted"]');
     const form = accepted.closest('form');
+    const alternatives = data.alternatives || [];
+    const choice = alternatives[selectedIndex];
+    const preview = choice && choice.available ? choice.report : data;
+    const canApply = !alternatives.length || Boolean(choice && choice.available);
     const correct = function () {
         removeOptimizationIdleReport();
         $('body').css('overflow', '');
         accepted.val('no');
+        form.find('input[name="targetResolution"]').val('keep');
+        form.find('input[name="targetPreviewHash"]').val('');
     };
-    renderOptimizationIdleReport(data.idleChanges, data.idleTotals, data.optimizationMetrics, {}, Boolean(data.hasNetIdleIncrease), {
+    renderOptimizationIdleReport(preview.idleChanges, preview.idleTotals, preview.optimizationMetrics, {}, Boolean(preview.hasNetIdleIncrease), {
         mode: 'savePreview',
         title: 'Предварителен резултат от целевите времена',
         hint: 'Промените още не са записани. Прегледайте новата подредба, сроковете и престоите по всички машини.',
         close: correct,
-        cancelLabel: 'Корекция',
+        cancelLabel: 'Отказ',
         cancel: correct,
-        confirmLabel: 'Приложи',
+        confirmLabel: canApply ? 'Приложи' : null,
         confirm: function () {
+            if (!canApply) return;
+            if (choice) {
+                form.find('input[name="targetResolution"]').val(choice.mode);
+                form.find('[name="targetPackagePolicy"]').val(choice.policy);
+            }
+            form.find('input[name="targetPreviewHash"]').val(preview.hash || '');
             accepted.val('yes');
             if (data.ignoreWarnings) {
                 const ignore = form.find('input[name="Ignore"]');
@@ -200,18 +213,110 @@ function showTargetTimesPreview(data)
             form.trigger('submit');
         }
     });
-    if (data.operationText) {
-        $('#optimizationIdleReport .optimizationIdleReportHint').after(
-            $('<div>', {class: 'optimizationIdleReportHint'}).append($('<strong>').text(data.operationText))
-        );
+    $('#optimizationIdleReport').addClass('targetTimeReport');
+    const details = $('<div>', {class: 'targetTimeProposal'});
+    const firstAvailable = alternatives.find(function (variant) { return variant.available; });
+    const referenceGroups = preview.operationOrder || (firstAvailable ? firstAvailable.report.operationOrder : []) || [];
+    const referenceNumbers = {};
+    referenceGroups.forEach(function (group) {
+        (group.before || []).concat(group.after || []).forEach(function (row) {
+            referenceNumbers[row.operation.toLowerCase()] = row.number;
+        });
+    });
+    if (data.conflictText) {
+        const conflict = data.conflictText.replace(/\bOpr\d+\b/gi, function (operation) {
+            const number = referenceNumbers[operation.toLowerCase()];
+            return number == null ? operation : operation + ' (' + number + ')';
+        });
+        details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
     }
+    if (alternatives.length) {
+        details.append($('<strong>').text('Изберете вариант, прегледайте всички промени и едва тогава натиснете „Приложи“.'));
+        alternatives.forEach(function (variant, index) {
+            const box = $('<div>', {class: 'targetTimeChoice' + (index === selectedIndex ? ' isSelected' : '')});
+            box.append($('<button>', {type: 'button', disabled: !variant.available})
+                .text(variant.title).on('click', function () { showTargetTimesPreview(data, index); }));
+            if (!variant.available) box.append($('<div>', {class: 'targetTimeConflict'}).text(variant.reason || 'Няма допустим вариант.'));
+            else {
+                const rows = variant.report.operationChanges || [];
+                const pins = rows.filter(function (row) { return row.pinChanged; }).length;
+                box.append($('<div>').text('Променени фиксирани начала: ' + pins + '; операции в подробния преглед: ' + rows.length + '.'));
+            }
+            details.append(box);
+        });
+        if (!canApply) $('#optimizationIdleReport .optimizationIdleNoChanges').remove();
+    }
+    if (canApply) {
+        details.append($('<p>').append($('<strong>').text('Въведено начало: ' + (preview.requestedStart || '—')
+            + '; предложено за запис: ' + (preview.proposedStart || '—') + '.')));
+        if ((preview.operationOrder || []).length) {
+            preview.operationOrder.forEach(function (group) {
+                const section = $('<section>', {class: 'targetTimeMachine'})
+                    .append($('<h3>').text(group.asset).append(data.legendHint || ''));
+                const comparison = $('<div>', {class: 'targetTimeComparison'});
+                const oldPositions = {};
+                (group.before || []).forEach(function (row, index) { oldPositions[row.id] = index; });
+                ['before', 'after'].forEach(function (side) {
+                    const rows = group[side] || [];
+                    const panel = $('<div>', {class: 'targetTimeSide targetTimeSide-' + side});
+                    panel.append($('<h4>').text(side === 'before' ? 'Преди' : 'След'));
+                    const table = $('<table>', {class: 'targetTimeOrderTable'});
+                    const head = $('<tr>');
+                    ['№', 'Начало', 'Операция', 'Край'].forEach(function (title) { head.append($('<th>').text(title)); });
+                    table.append($('<thead>').append(head));
+                    const body = $('<tbody>');
+                    rows.forEach(function (row, index) {
+                        const previous = rows[index - 1];
+                        const next = rows[index + 1];
+                        const linkedBefore = previous && row.previous === previous.id;
+                        const linkedAfter = next && next.previous === row.id;
+                        const state = ['draft', 'waiting', 'pending', 'active', 'wakeup', 'stopped', 'closed'].includes(row.state) ? row.state : '';
+                        const tr = $('<tr>', {class: 'state-' + state, 'data-operation': row.operation});
+                        if (linkedBefore || linkedAfter) tr.addClass('targetTimePackage');
+                        if (linkedAfter && !linkedBefore) tr.addClass('targetTimePackageStart');
+                        if (linkedBefore && !linkedAfter) tr.addClass('targetTimePackageEnd');
+                        const number = $('<td>', {class: 'targetTimeNumber', title: row.previous == null ? '' : 'В пакет след Opr' + row.previous}).text(row.number);
+                        const oldPosition = oldPositions[row.id];
+                        if (side === 'after' && oldPosition != null && oldPosition !== index) {
+                            const direction = index < oldPosition ? 'нагоре' : 'надолу';
+                            number.append($('<span>', {class: 'targetTimeMove',
+                                title: 'Преместена ' + direction + ': място ' + (oldPosition + 1) + ' → ' + (index + 1),
+                                'aria-label': 'Преместена ' + direction}).text(index < oldPosition ? ' ↑' : ' ↓'));
+                        }
+                        tr.append(number);
+                        const timeCell = function (field, direction, title) {
+                            const cell = $('<td>', {class: 'targetTimeDate', title: title});
+                            const value = $('<span>', {class: 'targetTimeValue'});
+                            const parts = String(row[field] || '—').split(' ');
+                            parts.forEach(function (part) { value.append($('<span>').text(part)); });
+                            if (side === 'after' && direction !== 0 && direction != null) {
+                                value.addClass(direction < 0 ? 'targetTimeEarlier' : 'targetTimeLater');
+                            } else if (side === 'after' && direction == null && row[field] !== '—') {
+                                value.addClass('targetTimeNew');
+                            }
+                            if (field === 'start' && row.pin && row.pin !== '—') {
+                                cell.attr('title', side === 'after' && row.pinChanged
+                                    ? 'Фиксирано начало: ' + row.pinBefore + ' → ' + row.pin
+                                    : 'Фиксирано начало: ' + row.pin);
+                                cell.append($('<span>', {class: 'targetTimePin', 'aria-label': 'Фиксирано начало'}).text('📌'));
+                            }
+                            return cell.append(value);
+                        };
+                        tr.append(timeCell('start', row.startChange, 'Планирано начало'));
+                        tr.append($('<td>', {class: 'targetTimeOperation', title: row.operation}).text(row.operation));
+                        tr.append(timeCell('end', row.endChange, 'Планиран край'));
+                        body.append(tr);
+                    });
+                    table.append(body);
+                    panel.append(table);
+                    comparison.append(panel);
+                });
+                section.append($('<div>', {class: 'targetTimeComparisonHolder'}).append(comparison));
+                details.append(section);
+            });
+        }
+    }
+    $('#optimizationIdleReport .optimizationIdleReportHint').after(details);
     $('body').append($('<div>', {id: 'savedOrderReportBackdrop'}));
-    $('body').css('overflow', 'hidden');
-    // Отказът от редакцията е отделен от връщането към корекция.
-    $('#optimizationIdleReport .optimizationIdleReportActions').prepend(
-        $('<button>', {type: 'button', class: 'optimizationIdleReportCancel'}).text('Отказ').on('click', function () {
-            if (data.cancelUrl) window.location.href = data.cancelUrl;
-            else correct();
-        })
-    );
+    $('body').addClass('targetTimePreviewOpen').css('overflow', 'hidden');
 }
