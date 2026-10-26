@@ -402,8 +402,8 @@ class eshop_Carts extends core_Master
             core_Statuses::newStatus($msg, ($success === true) ? 'notice' : 'error');
             
             // Ще се реплейсне статуса на кошницата
+            $resObj = new stdClass();
             if(isset($cartId)){
-                $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => true);
             }

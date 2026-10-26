@@ -8,7 +8,7 @@
  * @package   bnav
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -420,7 +420,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             // Редовете на КИ и ДИ , коитпо неямат промяна се прескачат
             if ($invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE ||
                 $invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE) {
-                if (!$dRec->changedQuantity && !$dRec->changedPrice) {
+                if (empty($dRec->changedQuantity) && empty($dRec->changedPrice)) {
                     continue;
                 }
             }
