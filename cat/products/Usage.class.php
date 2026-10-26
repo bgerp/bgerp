@@ -8,7 +8,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -318,12 +318,14 @@ class cat_products_Usage extends core_Manager
 
         $addBtns = '';
         if (isset($data->addUrls)) {
+            // Линкове с вид на бутон, за да могат да се отварят в нов таб
+            $btnAttr = Mode::is('screenMode', 'narrow') ? 'class=button' : 'ef_icon=img/16/add.png,class=button';
             if (isset($data->addUrls['manifacture'])) {
-                $addBtns .= ht::createBtn('Производство', $data->addUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
+                $addBtns .= ht::createLink('Производство', $data->addUrls['manifacture'], false, "{$btnAttr},title=Добавяне на ново задание за производство");
             }
 
             if (isset($data->addUrls['disassembly'])) {
-                $addBtns .= ht::createBtn('Разпад', $data->addUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за разпад');
+                $addBtns .= ht::createLink('Разпад', $data->addUrls['disassembly'], false, "{$btnAttr},title=Добавяне на ново задание за разпад");
             }
         }
         
