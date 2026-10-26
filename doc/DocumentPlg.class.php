@@ -2768,7 +2768,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $id = $rec->id ?? null;
         if (empty($id) || !in_array($action, array('pickup', 'assign',
-            'activate', 'activateagain', 'pending', 'changestate',
+            'activate', 'activateagain', 'changestate',
             'stop', 'start', 'close', 'wakeup'))) {
             return;
         }
