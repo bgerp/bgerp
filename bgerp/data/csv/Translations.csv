@@ -4187,3 +4187,5 @@ en,"Данните на артикула са променени междувр�
 en,данни към,data as of
 en,"Локацията се добавя към фирма или лице: липсва собственикът (contragentCls, contragentId)","A location is added to a company or a person: the owner is missing (contragentCls, contragentId)"
 en,Няма такъв собственик на локацията,The owner of the location does not exist
+en,Групов марж - среден приоритет,Group margin - medium priority
+en,Групов марж - нисък приоритет,Group margin - low priority
