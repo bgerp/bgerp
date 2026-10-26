@@ -7,7 +7,7 @@
  * @package   callcenter
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1553,7 +1553,7 @@ class callcenter_Talks extends core_Master
                     $name = callcenter_Numbers::getCallerName($data->id, $userId);
                     
                     // Ако има име
-                    if ($data->classId && $data->contragentId && $name) {
+                    if (!empty($data->classId) && !empty($data->contragentId) && $name) {
                         $extClass = cls::get($data->classId);
                         
                         // Ако имаме права за сингъл до името

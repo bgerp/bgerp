@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -443,7 +443,7 @@ class acc_ClosePeriods extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if ($data->info) {
+        if (!empty($data->info)) {
             
             // Показваме таблица със състоянието на сметките
             $table = cls::get('core_TableView', array('mvc' => cls::get('acc_BalanceDetails')));

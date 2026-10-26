@@ -9,7 +9,7 @@
  * @package   survey
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -272,7 +272,7 @@ class survey_Votes extends core_Manager
     {
         // За коя анкета филтрираме гласовете
         $surveyId = Request::get('surveyId', 'int');
-        if ($data->recs && $surveyId) {
+        if (!empty($data->recs) && $surveyId) {
             foreach ($data->recs as $rec) {
                 
                 // За всеки въпрос на който е отговорено, проверяваме дали

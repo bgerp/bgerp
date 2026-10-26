@@ -736,7 +736,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        if ($data->query) {
+        if (!empty($data->query)) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } elseif (empty($data->showRejectedRows)) {

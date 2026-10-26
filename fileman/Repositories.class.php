@@ -14,7 +14,7 @@ defIfNot('EF_REPOSITORIES_PATHS', EF_UPLOADS_PATH . '/repositories');
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1286,7 +1286,7 @@ class fileman_Repositories extends core_Master
             } else {
                 
                 // Ако е зададено да се показват и празните папки
-                if ($data->useEmptyFolders) {
+                if (!empty($data->useEmptyFolders)) {
                     
                     // Добавяме масива
                     $data->fileTreeArr[$path] = $filesArr;
@@ -1334,7 +1334,7 @@ class fileman_Repositories extends core_Master
             if (!countR($filesArr)) {
                 
                 // Ако е зададено да се показват и празните директории
-                if ($data->useEmptyFolders) {
+                if (!empty($data->useEmptyFolders)) {
                     
                     // Добавяме директорията
                     $tableInst->addNode($pathEntry, false, true);
@@ -1425,7 +1425,7 @@ class fileman_Repositories extends core_Master
     public function on_AfterRenderFileTree($mvc, &$res, $data)
     {
         // Ако няма файлове
-        if ($data->fileTree) {
+        if (!empty($data->fileTree)) {
             
             // Рендираме изгледа
             $res = $data->fileTree->renderHtml(null);
@@ -1876,7 +1876,7 @@ class fileman_Repositories extends core_Master
     public function renderSinglePager_($data)
     {
         // Ако има странициране
-        if ($data->singlePager) {
+        if (!empty($data->singlePager)) {
             
             // Рендираме
             return $data->singlePager->getHtml();
