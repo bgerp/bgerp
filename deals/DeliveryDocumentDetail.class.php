@@ -106,6 +106,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
         $relatedId = $form->rec->relatedTo ?? null;
         if (!isset($groups[$relatedId])) {
+            // Докато няма избрано устройство, се отваря неговото поле вместо артикула
+            $form->setFieldTypeParams('relatedTo', array('forceOpen' => 'forceOpen'));
+            $form->setFieldTypeParams('productId', array('forceOpen' => null));
+
             return;
         }
 
