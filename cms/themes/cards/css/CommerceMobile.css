@@ -33,6 +33,10 @@ body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .centerConte
     gap: 0.5em;
     padding: 0.5em 0;
 }
+body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow > .centerContent:has(.cms-menu-search) {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
 body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .cms-menu-tools {
     padding: 0;
     border: 0;
@@ -179,9 +183,7 @@ body.commerce-theme:is(.narrow, .commerce-compact) .additionalFooter .footer-lin
 body.commerce-theme:is(.narrow, .commerce-compact) .additionalFooter .footer-links a {
     display: inline-flex;
     align-items: center;
-    min-height: 2.75rem;
     margin: 0;
-    padding: 0.25em 0;
     color: var(--c-text);
     font-size: inherit;
     text-decoration: underline;
@@ -210,4 +212,91 @@ body.commerce-theme:is(.narrow, .commerce-compact) .singleEvent .poster img { ma
 @media (max-width: 380px) {
     body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu .loginIcon .cms-menu-label { display: none; }
     body.commerce-theme:is(.narrow, .commerce-compact) .footer-menus { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Keep these adjustments confined to the mobile layout. */
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form {
+    width: 85%;
+    max-width: none !important;
+    margin: 30px auto;
+    box-sizing: border-box;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form :is(form, .formTable, .formSection) {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form .formSection { padding: 0 8px 12px; }
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form .formFieldCaption { width: auto; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom .foorterAdd {
+    position: static;
+    display: block;
+    float: none;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 4px 8px;
+    text-align: right;
+    font-size: 11px;
+    line-height: 13px;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom .footer-menus a {
+    min-height: 0;
+    padding: 2px 0;
+    line-height: 1.4;
+}
+body.commerce-theme[class][class]:is(.narrow, .commerce-compact) .externalPage #cmsBottom { padding-top: 0 !important; padding-bottom: 0 !important; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 34px;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom > :is(.centerContent, .footer-links) { grid-column: 1 / -1; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom > .socialBtns {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto;
+    padding: 10px 8px;
+    margin: 0;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom > .socialBtns > * { position: static; float: none; margin: 0; padding: 0; line-height: 0; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage #cmsBottom > .foorterAdd { grid-column: 2; text-align: right; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header {
+    width: 100% !important;
+    max-width: none;
+    margin-inline: 0;
+    border-radius: 0;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header .narrowCenter {
+    width: 100% !important;
+    max-width: none;
+    padding: 0;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header .fadein:has(.headerImg) { height: auto !important; }
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage > header .headerImg {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    object-fit: contain;
+}
+
+body.commerce-theme:is(.narrow, .commerce-compact) .externalPage .centerContent:has(#login-form) {
+    width: calc(100% - 8px) !important;
+    max-width: none;
+}
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form .formTitle { padding-inline: 8px; }
+body.commerce-theme:is(.narrow, .commerce-compact) #login-form .toolbar { padding-inline: 8px; }
+@media (max-width: 700px) and (orientation: portrait) {
+    body.commerce-theme:is(.narrow, .commerce-compact) .externalPage .centerContent:has(#login-form) {
+        width: 90% !important;
+    }
+    body.commerce-theme:is(.narrow, .commerce-compact) #login-form .toolbar {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
 }
