@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -861,6 +861,7 @@ class price_ListRules extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $rec->type ??= null;
         
         $masterRec = price_Lists::fetch($rec->listId);
         $productFieldParams = array('listId' => $masterRec->id);
@@ -931,7 +932,7 @@ class price_ListRules extends core_Detail
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $form = &$data->form;
-        if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
+        if (Request::get('productId') && ($form->rec->type ?? null) == 'value' && $form->cmd != 'refresh') {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
