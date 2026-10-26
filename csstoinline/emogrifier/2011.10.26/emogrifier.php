@@ -1,4 +1,7 @@
 <?php
+
+require_once dirname(__DIR__, 2) . '/SelectorFilter.class.php';
+
 /*
 UPDATES
 
@@ -56,6 +59,7 @@ class Emogrifier {
     // 2. it translates any illegal XML characters that DOMDocument cannot work with
     // if you would like to preserve your original encoding, set this attribute to true.
     public $preserveEncoding = false;
+    public $encoding = null;
 
     public function __construct($html = '', $css = '') {
         $this->html = $html;
@@ -121,7 +125,9 @@ class Emogrifier {
         $vistedNodes = $vistedNodeRef = array();
         $nodes = @$xpath->query('//*[@style]');
         foreach ($nodes as $node) {
-            $normalizedOrigStyle = preg_replace('/[A-z\-]+(?=\:)/Se',"strtolower('\\0')", $node->getAttribute('style'));
+            $normalizedOrigStyle = preg_replace_callback('/[A-z\-]+(?=\:)/S', function ($match) {
+                return strtolower($match[0]);
+            }, $node->getAttribute('style'));
 
             // in order to not overwrite existing style attributes in the HTML, we have to save the original HTML styles
             $nodeKey = md5($node->getNodePath());
@@ -194,12 +200,14 @@ class Emogrifier {
             $this->caches[CACHE_CSS][$csskey] = $all_selectors;
         }
 
+        $selectorFilter = new csstoinline_SelectorFilter($xpath);
         foreach ($this->caches[CACHE_CSS][$csskey] as $value) {
+            if (!$selectorFilter->mayMatch($value['selector'])) continue;
 
             // query the body for the xpath selector
             $nodes = $xpath->query($this->translateCSStoXpath(trim($value['selector'])));
 
-            foreach($nodes as $node) {
+            foreach($nodes ?: array() as $node) {
                 // if it has a style attribute, get it, process it, and append (overwrite) new stuff
                 if ($node->hasAttribute('style')) {
                     // break it up into an associative array
@@ -288,8 +296,6 @@ class Emogrifier {
                                '/([^\/]+):last-child/i', // last-child pseudo-selector
                                '/(\w)\[(\w+)\]/', // Matches element with attribute
                                '/(\w)\[(\w+)\=[\'"]?(\w+)[\'"]?\]/', // Matches element with EXACT attribute
-                               '/(\w+)?\#([\w\-]+)/e', // Matches id attributes
-                               '/(\w+|[\*\]])?((\.[\w\-]+)+)/e', // Matches class attributes
 
             );
             $replace = array(
@@ -300,11 +306,18 @@ class Emogrifier {
                                '*[last()]/self::\\1',
                                '\\1[@\\2]',
                                '\\1[@\\2="\\3"]',
-                               "(strlen('\\1') ? '\\1' : '*').'[@id=\"\\2\"]'",
-                               "(strlen('\\1') ? '\\1' : '*').'[contains(concat(\" \",@class,\" \"),concat(\" \",\"'.implode('\",\" \"))][contains(concat(\" \",@class,\" \"),concat(\" \",\"',explode('.',substr('\\2',1))).'\",\" \"))]'",
             );
 
             $css_selector = '//'.preg_replace($search, $replace, $css_selector);
+            $css_selector = preg_replace_callback('/(\w+)?\#([\w\-]+)/', function ($match) {
+                return (strlen($match[1]) ? $match[1] : '*') . '[@id="' . $match[2] . '"]';
+            }, $css_selector);
+            $css_selector = preg_replace_callback('/(\w+|[\*\]])?((\.[\w\-]+)+)/', function ($match) {
+                return (strlen($match[1]) ? $match[1] : '*') . '[contains(concat(" ",@class," "),concat(" ","'
+                    . implode('"," "))][contains(concat(" ",@class," "),concat(" ","', explode('.', substr($match[2], 1)))
+                    . '"," "))]';
+            }, $css_selector);
+
 
             // advanced selectors are going to require a bit more advanced emogrification
             // if we required PHP 5.3 we could do this with closures

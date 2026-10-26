@@ -2,6 +2,9 @@
 
 namespace TijsVerkoyen\CssToInlineStyles;
 
+require_once dirname(__DIR__, 2) . '/SelectorFilter.class.php';
+
+
 use Symfony\Component\CssSelector\CssSelector;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 use Symfony\Component\CssSelector\Exception\ExceptionInterface;
@@ -164,7 +167,9 @@ class CssToInlineStyles
 
         usort($rules, array(RuleProcessor::class, 'sortOnSpecificity'));
 
+        $selectorFilter = new \csstoinline_SelectorFilter($xPath);
         foreach ($rules as $rule) {
+            if (!$selectorFilter->mayMatch($rule->getSelector())) continue;
             try {
                 if (null !== $this->cssConverter) {
                     $expression = $this->cssConverter->toXPath($rule->getSelector());

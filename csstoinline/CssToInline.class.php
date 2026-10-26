@@ -8,7 +8,7 @@
  * @package   csstoinline
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,14 +31,22 @@ class csstoinline_CssToInline extends core_Manager
      */
     public function convert($html, $css)
     {
+        $conf = core_Packs::getConfig('csstoinline');
+        $version = $conf->CSSTOINLINE_CSSTOINLINE_VERSION ?? '1.0.3';
+        expect(in_array($version, array('1.0.3', '2.2.2'), true), 'Неподдържана версия на CssToInline');
+        if ($version === '2.2.2') {
+            csstoinline_Setup::loadCssSelector();
+            foreach (array('Css/Property/Property', 'Css/Property/Processor', 'Css/Rule/Rule', 'Css/Rule/Processor', 'Css/Processor', 'CssToInlineStyles') as $file) {
+                require_once getFullPath('csstoinline/csstoinline/2.2.2/' . $file . '.php');
+            }
+            return (new \TijsVerkoyen\CssToInlineStyles\CssToInlineStyles())->convert($html, $css);
+        }
+
         // За да не се разваля кирилицата
         $html = mb_encode_numericentity($html, array(0x80, 0x10FFFF, 0, 0x1FFFFF), 'UTF-8');
         
-        // Вземаме конфигурационните константи
-        $conf = core_Packs::getConfig('csstoinline');
-        
         // Пътя до кода
-        $path = 'csstoinline/csstoinline/'. $conf->CSSTOINLINE_CSSTOINLINE_VERSION . '/css_to_inline_styles.php';
+        $path = 'csstoinline/csstoinline/' . $version . '/css_to_inline_styles.php';
         
         // Вкарваме пакета
         require_once getFullPath($path);
