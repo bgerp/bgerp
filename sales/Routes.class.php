@@ -219,6 +219,7 @@ class sales_Routes extends core_Manager
         $data->listFilter->showFields = 'search,user,type,date';
         $data->listFilter->input();
         $data->query->orderBy('#nextVisit', 'ASC');
+        $data->query->orderBy('#id', 'ASC');
         
         // Филтриране по дата
         $filterRec = $data->listFilter->rec;
