@@ -33,6 +33,10 @@ body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .centerConte
     gap: 0.5em;
     padding: 0.5em 0;
 }
+body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow > .centerContent:has(.cms-menu-search) {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
 body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .cms-menu-tools {
     padding: 0;
     border: 0;
