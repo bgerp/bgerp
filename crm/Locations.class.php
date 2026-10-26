@@ -288,12 +288,17 @@ class crm_Locations extends core_Master
     {
         $rec = $data->form->rec;
         
-        expect($rec->contragentCls);
+        if (empty($rec->contragentCls) || empty($rec->contragentId)) {
+            error('Локацията се добавя към фирма или лице: липсва собственикът (contragentCls, contragentId)');
+        }
         
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
+        if (!$contragentRec) {
+            error('Няма такъв собственик на локацията');
+        }
         $Contragents->requireRightFor('edit', $contragentRec);
         
         $data->form->setDefault('countryId', $contragentRec->country);

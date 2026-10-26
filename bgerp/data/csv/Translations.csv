@@ -4185,3 +4185,5 @@ en,Създаване на техническа спецификация,Create 
 en,Данните на артикула са текущите и ще бъдат записани при активиране,The product data are current and will be saved on activation
 en,"Данните на артикула са променени междувременно. Те ще бъдат опреснени, а версията - увеличена с 1","The product data have changed in the meantime. They will be refreshed and the revision increased by 1"
 en,данни към,data as of
+en,"Локацията се добавя към фирма или лице: липсва собственикът (contragentCls, contragentId)","A location is added to a company or a person: the owner is missing (contragentCls, contragentId)"
+en,Няма такъв собственик на локацията,The owner of the location does not exist
