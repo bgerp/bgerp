@@ -8,7 +8,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,6 +43,12 @@ class fileman_webdrv_Generic extends core_Manager
      * Кой може да разглежда драйвер
      */
     protected $canView = 'every_one';
+
+
+    /**
+     * Добавянето на парола изисква и достъп до конкретния файл.
+     */
+    protected $canAddpassword = 'no_one';
     
     public static function getArrows($fRec){
         $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
@@ -349,13 +355,13 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Ако е обект и има съобщение за грешка
-        if (is_object($content) && $content->errorProc) {
+        if (is_object($content) && !empty($content->errorProc)) {
             
             // Сменяме мода
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return tr($content->errorProc);
+            return static::getProcessingError($content->errorProc ?? '', $fileHnd);
         }
         
         // Сменяма wrapper'а да е празна страница
@@ -462,13 +468,13 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Ако е обект и има съобщение за грешка
-        if (is_object($jpgArr) && $jpgArr->errorProc) {
+        if (is_object($jpgArr) && !empty($jpgArr->errorProc)) {
             
             // Сменяме мода
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return tr($jpgArr->errorProc);
+            return static::getProcessingError($jpgArr->errorProc ?? '', $fileHnd);
         }
         
         // Сменяма wrapper'а да е празна страница
@@ -1251,6 +1257,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
+        expect($fRec);
         
         // Очакваме да има права за разглеждане на записа
         $this->requireRightFor('view', $fRec);
@@ -1264,9 +1271,10 @@ class fileman_webdrv_Generic extends core_Manager
             // Опитваме се да вземем манипулатора на файла
             $fileHnd = static::uploadFileFromArchive($fRec, $index);
         } catch (ErrorException $e) {
-            if (($e->getCode() == 2) && ($archiveAddPassUrl = self::getArchiveAddPassUrl($fileHnd))) {
+            // 7z връща и 255, когато няма откъде да прочете парола интерактивно.
+            if (in_array($e->getCode(), array(2, 255)) && ($archiveAddPassUrl = static::getAddPasswordUrl($fileHnd))) {
                 
-                return new Redirect($archiveAddPassUrl, '|Добавете парола за отклюяване на архива', 'warning');
+                return new Redirect($archiveAddPassUrl, '|Добавете парола за отключване на архива', 'warning');
             } else {
                 wp('Грешка при качване на файла от архива', $e->getMessage(), $fRec, $index, $e);
 
@@ -1283,19 +1291,19 @@ class fileman_webdrv_Generic extends core_Manager
      * Връща URL за добавяне на парола към файла
      * 
      * @param string $fh
-     * @param boolean $chekcExist
+     * @param boolean $checkExist
      * @param boolean $retUrl
      * @return null|array
      */
-    public static function getArchiveAddPassUrl($fh, $chekcExist = false, $retUrl = false)
+    public static function getAddPasswordUrl($fh, $checkExist = false, $retUrl = false)
     {
         $fRec = fileman::fetchByFh($fh);
         
-        if (!$fRec || !$fRec->dataId || !fileman::haveRightFor('single', $fRec)) {
+        if (!$fRec || empty($fRec->dataId) || !cls::get(get_called_class())->haveRightFor('addpassword', $fRec)) {
             return ;
         }
         
-        if ($chekcExist && fileman_Indexes::fetchField(array("#dataId = '[#1#]' AND #type = 'password'", $fRec->dataId))) {
+        if ($checkExist && fileman_Indexes::fetchField(array("#dataId = '[#1#]' AND #type = 'password'", $fRec->dataId ?? null))) {
             
             return ;
         }
@@ -1308,10 +1316,50 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $resArr;
     }
+
+
+    /**
+     * Съвместимост със съществуващите драйвери за архиви.
+     */
+    public static function getArchiveAddPassUrl($fh, $chekcExist = false, $retUrl = false)
+    {
+        return static::getAddPasswordUrl($fh, $chekcExist, $retUrl);
+    }
+
+
+    /**
+     * Запазената парола е обща за всички обработки на качения файл.
+     */
+    public static function getPassword($fileHnd)
+    {
+        if (!fileman_Files::isFileHnd($fileHnd)) {
+            return null;
+        }
+
+        $password = fileman_Indexes::getInfoContentByFh($fileHnd, 'password');
+
+        return is_string($password) && $password !== '' ? $password : null;
+    }
+
+
+    /**
+     * При грешка предлагаме парола само за драйверите, които я поддържат.
+     */
+    protected static function getProcessingError($message, $fileHnd)
+    {
+        $result = type_Varchar::escape(tr($message));
+        $retUrl = array('fileman_Files', 'single', $fileHnd);
+        if ($url = static::getAddPasswordUrl($fileHnd, false, $retUrl)) {
+            $result .= '<br>' . tr('Ако файлът е защитен') . ' - ';
+            $result .= ht::createLink(tr('добавете парола'), $url, false, 'target=_top,ef_icon=img/16/key.png');
+        }
+
+        return $result;
+    }
     
     
     /**
-     * Екшън за добавяне на парола за архива
+     * Екшън за добавяне на парола за файла
      */
     function act_AddPassword()
     {
@@ -1320,14 +1368,15 @@ class fileman_webdrv_Generic extends core_Manager
         expect($fh);
         
         $fRec = fileman::fetchByFh($fh);
+        expect($fRec && !empty($fRec->dataId));
         
-        fileman::requireRightFor('single', $fRec);
+        $this->requireRightFor('addpassword', $fRec);
         
         $form = cls::get('core_Form');
         
         $form->title = 'Добавяне на парола за отключване на файла';
         
-        $form->FLD('pass', 'password', 'caption=Парола');
+        $form->FLD('pass', 'password', 'caption=Парола,mandatory');
         
         $form->input();
         
@@ -1337,7 +1386,19 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            fileman_Indexes::saveContent(array('dataId' => $fRec->dataId, 'type' => 'password', 'createdBy' => core_Users::getCurrent(), 'content' => $form->rec->pass));
+            $this->invoke('BeforeSavePassword', array($form, $fRec));
+        }
+
+        if ($form->isSubmitted()) {
+            $passwordRec = (object) array(
+                'dataId' => $fRec->dataId ?? null,
+                'type' => 'password',
+                'createdBy' => core_Users::getCurrent(),
+                'content' => fileman_Indexes::prepareContent($form->rec->pass ?? ''),
+            );
+            fileman_Indexes::save($passwordRec, null, 'REPLACE');
+            $this->invoke('AfterSavePassword', array($fRec));
+            fileman_Files::logWrite('Добавяне на парола за файл', $fRec->id ?? null);
             
             return new Redirect($retUrl);
         }
@@ -1361,7 +1422,7 @@ class fileman_webdrv_Generic extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако ще разглежда файла трябва да има права до сингъла му
-        if ($rec && ($action == 'view')) {
+        if ($rec && in_array($action, array('view', 'addpassword'))) {
             if (!fileman_Files::haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'no_one';
             }

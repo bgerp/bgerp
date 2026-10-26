@@ -8,7 +8,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,7 +42,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array('fileman_webdrv_Office', 'preview', $fRec->fileHnd));
+        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd ?? null));
 
         // Подготвяме стрелките
         $resArray = self::getArrows($fRec);
@@ -58,7 +58,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             );
         
         // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd));
+        $textPart = toUrl(array(get_called_class(), 'text', $fRec->fileHnd ?? null));
         
         if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // Таб за текстовата част
@@ -392,8 +392,14 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
+        $passwordArg = '';
+        if (($password = static::getPassword($fileHnd)) !== null) {
+            $Script->setParam('PDF_PASSWORD', $password, true, true);
+            $passwordArg = ' -sPDFPassword=[#PDF_PASSWORD#]';
+        }
+
         // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('gs -dSAFER -dNOPAUSE -dNOCACHE -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 [#INPUTF#]', array('errFilePath' => $errFilePath));
+        $Script->lineExec('gs -dSAFER -dNOPAUSE -dNOCACHE -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200' . $passwordArg . ' [#INPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
