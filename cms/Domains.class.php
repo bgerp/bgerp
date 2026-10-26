@@ -204,6 +204,7 @@ class cms_Domains extends core_Embedder
         $this->FNC('themePalette', 'varchar', 'caption=Цветова палитра,input=none,single=none');
 
         $this->FLD('navigationPosition', 'enum(left=Лява лента,right=Дясна лента,top=Над съдържанието,dropdown=Падащи менюта под основното меню,none=Без навигация — разгърнат списък с подгрупи)', 'caption=Оформление->Положение на навигацията,allowEmpty');
+        $this->FLD('searchPosition', 'enum(content=В съдържанието,menu=В основното меню)', 'caption=Оформление->Позиция на търсачката,value=content');
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('form', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
