@@ -186,6 +186,19 @@ class cms_themes_cards_Theme extends cms_FancyTheme
     /** Банер по подразбиране, когато няма изображение за текущия екран. */
     public function getHeaderImg()
     {
+        if (Mode::is('screenMode', 'narrow') && empty($this->innerForm->nImg)) {
+            for ($i = 1; $i <= 8; $i++) {
+                $wideImage = $this->innerForm->{'wImg' . $i} ?? null;
+                if (!$wideImage) continue;
+                $mobileImage = $this->innerForm->nImg ?? null;
+                $this->innerForm->nImg = $wideImage;
+                try {
+                    return parent::getHeaderImg();
+                } finally {
+                    $this->innerForm->nImg = $mobileImage;
+                }
+            }
+        }
         $fields = Mode::is('screenMode', 'narrow') ? array('nImg') : array('wImg1', 'wImg2', 'wImg3', 'wImg4', 'wImg5', 'wImg6', 'wImg7', 'wImg8');
         foreach ($fields as $field) {
             if (!empty($this->innerForm->{$field})) {
