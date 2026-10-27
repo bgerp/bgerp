@@ -22,9 +22,11 @@ class payment_ImportFiles
     public static function getRecs($fh, $password = null, $servicePrefix = 'Import', $includeUnicredit = true)
     {
         $res = (object) array('recs' => array(), 'batches' => array(), 'warnings' => array(),
-            'errors' => array(), 'recognized' => 0, 'passwordError' => false, 'status' => 'unsupported');
+            'errors' => array(), 'recognized' => 0, 'passwordError' => false, 'status' => 'unsupported',
+            'previewRows' => array(), 'skippedEntries' => 0);
         try {
-            $contents = self::readContents($fh, $password);
+            $names = array();
+            $contents = self::readContents($fh, $password, $names);
         } catch (fileman_Exception $e) {
             $res->errors[] = $e->getMessage();
             $res->passwordError = $e->getCode() == self::PASSWORD_ERROR;
@@ -46,7 +48,8 @@ class payment_ImportFiles
                 continue;
             }
             $res->recognized++;
-            $prefix = count($contents) > 1 ? 'Извлечение №' . ($index + 1) . ': ' : '';
+            $name = $names[$index] ?? ('Извлечение №' . ($index + 1));
+            $prefix = 'Файл "' . $name . '": ';
             $parsed = $parser::getRecs($xml, $servicePrefix . ' ' . $service);
             if (!$parsed) {
                 $res->errors[] = $prefix . 'Неподдържан формат на банковото извлечение';
@@ -60,7 +63,16 @@ class payment_ImportFiles
             if (!empty($parsed->recs)) {
                 $res->batches[] = $parsed->recs;
                 $res->recs = array_merge($res->recs, $parsed->recs);
+                foreach ($parsed->recs as $i => $rec) {
+                    $row = clone $rec;
+                    $row->sourceFile = $name;
+                    $row->sourceEntry = $parsed->recordSources[$i]['entry'] ?? null;
+                    $row->ownIban = $parsed->recordSources[$i]['iban'] ?? '';
+                    $row->currency = $parsed->recordCurrencies[$i] ?? '';
+                    $res->previewRows[] = $row;
+                }
             }
+            $res->skippedEntries += $parsed->skippedEntries ?? 0;
         }
 
         if ($res->errors || $res->warnings) {
@@ -76,8 +88,9 @@ class payment_ImportFiles
     /**
      * Чете съдържанието без извличане на пътища от архива върху диска.
      */
-    public static function readContents($fh, $password = null)
+    public static function readContents($fh, $password = null, &$names = null)
     {
+        $names = array();
         $path = fileman_Files::fetchByFh($fh, 'path');
         $size = $path && is_readable($path) ? filesize($path) : false;
         if ($size === false) {
@@ -105,6 +118,8 @@ class payment_ImportFiles
             if ($content === false || strlen($content) > self::MAX_XML_BYTES) {
                 throw new fileman_Exception('Не може да се прочете извлечението');
             }
+
+            $names[] = $name;
 
             return array($content);
         }
@@ -157,6 +172,7 @@ class payment_ImportFiles
                     throw new fileman_Exception('Размерът на прочетения файл не съвпада с този в ZIP архива');
                 }
                 $contents[] = $content;
+                $names[] = $stat['name'] ?? ('Запис №' . ($i + 1));
             }
 
             return $contents;

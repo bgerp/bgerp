@@ -79,6 +79,8 @@ class payment_ParserIso20022 extends core_BaseClass
         // Обект за върнатия резултат
         $res = new stdClass();
         $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
+        $res->recordSources = array();
+        $res->skippedEntries = 0;
 
         $error = null;
         $transactions = payment_XmlParser::load($xml, $error);
@@ -109,6 +111,7 @@ class payment_ParserIso20022 extends core_BaseClass
 
         // Циклим по частите за различните IBAN-ове
         foreach ($array as $stmt) {
+            $res->skippedEntries += count($stmt->Ntry);
             $iban = (string) $stmt->Acct->Id->IBAN;
             $iban = strtoupper(preg_replace('/[^a-z0-9]/i', '', $iban));
             
@@ -138,14 +141,27 @@ class payment_ParserIso20022 extends core_BaseClass
             $entryNumber = 0;
             foreach ($stmt->Ntry as $node) {
                 $entryNumber++;
+                $entryLabel = "IBAN {$iban}, операция №{$entryNumber}: ";
+                if (isset($node->Sts)) {
+                    $status = trim(payment_XmlParser::getText($node, isset($node->Sts->Cd) ? 'Sts/Cd' : 'Sts'));
+                    $children = count($node->Sts->children($namespace));
+                    if (count($node->Sts) != 1 || ($children && ($children != 1 || !isset($node->Sts->Cd)))
+                        || (isset($node->Sts->Cd) && trim((string) $node->Sts) !== '')) {
+                        $status = '';
+                    }
+                    if ($status !== 'BOOK') {
+                        $res->warnings[] = $entryLabel . 'пропусната операция със статус ' . ($status !== '' ? $status : '(невалиден)') . '; импортират се само осчетоводени операции (BOOK)';
+                        continue;
+                    }
+                }
                 $direction = trim(payment_XmlParser::getText($node, 'CdtDbtInd'));
                 if (!in_array($direction, array('CRDT', 'DBIT'), true)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалиден видът на превода";
+                    $res->warnings[] = $entryLabel . "липсва или е невалиден видът на превода";
                     continue;
                 }
                 $amount = trim(payment_XmlParser::getText($node, 'Amt'));
                 if (!payment_XmlParser::isValidAmount($amount)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна сумата";
+                    $res->warnings[] = $entryLabel . "липсва или е невалидна сумата";
                     continue;
                 }
                 $rec = new stdClass();
@@ -163,7 +179,7 @@ class payment_ParserIso20022 extends core_BaseClass
                     $rec->valior = substr((string) $node->BookgDt->DtTm, 0, 10);
                 }
                 if (!payment_XmlParser::isValidDate($rec->valior)) {
-                    $res->warnings[] = "Липсва или е невалидна датата на операция за IBAN {$iban}";
+                    $res->warnings[] = $entryLabel . "липсва или е невалидна датата";
                     continue;
                 }
 
@@ -172,14 +188,14 @@ class payment_ParserIso20022 extends core_BaseClass
                 $amountCurrency = strtoupper(trim((string) ($node->Amt->attributes()['Ccy'] ?? '')));
                 $recordCurrency = $amountCurrency !== '' ? $amountCurrency : ($currency !== '' ? $currency : $expectedCurrency);
                 if (($currency !== '' && $currency != $expectedCurrency) || $recordCurrency != $expectedCurrency) {
-                    $res->warnings[] = "Валутата за IBAN {$iban} към {$rec->valior} се различава от очакваната {$expectedCurrency}";
+                    $res->warnings[] = $entryLabel . "валутата към {$rec->valior} се различава от очакваната {$expectedCurrency}";
                     continue;
                 }
                 $rec->amount = (float) $amount;
                 
                 $reversal = strtolower(trim(payment_XmlParser::getText($node, 'RvslInd')));
                 if (!in_array($reversal, array('', 'false', '0', 'true', '1'), true)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: невалиден признак за сторниране";
+                    $res->warnings[] = $entryLabel . "невалиден признак за сторниране";
                     continue;
                 }
                 $isReversal = in_array($reversal, array('true', '1'), true);
@@ -202,7 +218,7 @@ class payment_ParserIso20022 extends core_BaseClass
                     }
                 }
                 if (!$complete) {
-                    $res->warnings[] = "Операция №{$entryNumber}: непълни детайли или невалидна посока на групирания превод";
+                    $res->warnings[] = $entryLabel . "непълни детайли или невалидна посока на групирания превод";
                     continue;
                 }
                 $grouped = count($entryTransactions) > 1;
@@ -238,19 +254,21 @@ class payment_ParserIso20022 extends core_BaseClass
                 }
                 $entryTotal = (int) round((float) $amount * 100) * ($direction === 'DBIT' ? -1 : 1);
                 if (!$complete || ($grouped && ($total != $entryTotal || abs((float) $amount - round((float) $amount, 2)) > 0.000001))) {
-                    $res->warnings[] = "Операция №{$entryNumber}: непълни или несъответстващи суми, валути или посоки в групирания превод";
+                    $res->warnings[] = $entryLabel . "непълни или несъответстващи суми, валути или посоки в групирания превод";
                     continue;
                 }
                 // Старият импорт е записвал цялата група към първата страна; не добавяме втори комплект записи.
                 if (($grouped || ($isReversal && ($legacy->contragentIban ?? '') !== ($entryRecs[0]->contragentIban ?? '')))
                     && self::hasLegacyEntry($legacy)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: има възможен запис от стария импорт; проверете банковия регистър преди повторна обработка";
+                    $res->warnings[] = $entryLabel . "има възможен запис от стария импорт; проверете банковия регистър преди повторна обработка";
                     continue;
                 }
                 foreach ($entryRecs as $part) {
                     $res->recs[] = $part;
                     $res->recordCurrencies[] = $recordCurrency;
+                    $res->recordSources[] = array('iban' => $iban, 'entry' => $entryNumber);
                 }
+                $res->skippedEntries--;
             }
         }
         

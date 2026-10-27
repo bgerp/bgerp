@@ -23,7 +23,9 @@ class keylist {
 class fileman_Files {
     public static $files = array();
     public static $logs = array();
-    public static function fetchByFh($fh, $field) { return self::$files[$fh][$field] ?? null; }
+    public static $canView = true;
+    public static function haveRightFor($action, $rec) { return self::$canView; }
+    public static function fetchByFh($fh, $field = null) { return $field === null ? (isset(self::$files[$fh]) ? (object) self::$files[$fh] : null) : (self::$files[$fh][$field] ?? null); }
     public static function fetchField($id, $field) { return $id; }
     public static function getExt($name) { return pathinfo($name, PATHINFO_EXTENSION); }
     public static function logWarning($msg, $id) { self::$logs[] = $msg; }

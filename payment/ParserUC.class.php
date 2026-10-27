@@ -31,6 +31,8 @@ class payment_ParserUC
         // Обект за върнатия резултат
         $res = new stdClass();
         $res->warnings = $res->errors = $res->recs = array();
+        $res->recordCurrencies = $res->recordSources = array();
+        $res->skippedEntries = 0;
         
         $error = null;
         $transactions = payment_XmlParser::load($xml, $error);
@@ -47,6 +49,8 @@ class payment_ParserUC
 
         // Циклим по частите за различните IBAN-ове
         foreach ($transactions->ArrayOfAPAccounts->APAccount as $stmt) {
+            $movements = $stmt->BankAccount->BankAccountMovements->ArrayOfBankAccountMovements ?? null;
+            $res->skippedEntries += count($movements->BankAccountMovement ?? array());
             $iban = payment_XmlParser::getText($stmt, 'BankAccount/IBAN');
             $iban = strtoupper(preg_replace('/[^a-z0-9]/i', '', $iban));
             
@@ -70,28 +74,28 @@ class payment_ParserUC
             $bic = payment_XmlParser::getText($stmt, 'BankAccount/BIC-Code');
 
             $currency = strtoupper(trim(payment_XmlParser::getText($stmt, 'BankAccount/CCY/SWIFTCode')));
-            $movements = $stmt->BankAccount->BankAccountMovements->ArrayOfBankAccountMovements ?? null;
             $entryNumber = 0;
             foreach ($movements->BankAccountMovement ?? array() as $node) {
                 $entryNumber++;
+                $entryLabel = "IBAN {$iban}, операция №{$entryNumber}: ";
                 $direction = trim(payment_XmlParser::getText($node, 'MovementType'));
                 $amount = trim(payment_XmlParser::getText($node, 'MovementAmount'));
                 $valior = explode('T', trim(payment_XmlParser::getText($node, 'ValDate')))[0];
                 if (!in_array($direction, array('1', '2'), true)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалиден видът на превода";
+                    $res->warnings[] = $entryLabel . "липсва или е невалиден видът на превода";
                     continue;
                 }
                 if (!payment_XmlParser::isValidAmount($amount)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна сумата";
+                    $res->warnings[] = $entryLabel . "липсва или е невалидна сумата";
                     continue;
                 }
                 if (!payment_XmlParser::isValidDate($valior)) {
-                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна датата";
+                    $res->warnings[] = $entryLabel . "липсва или е невалидна датата";
                     continue;
                 }
                 $expectedCurrency = bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id ?? null, $valior, true);
                 if ($currency !== '' && $currency != $expectedCurrency) {
-                    $res->warnings[] = "Валутата за IBAN {$iban} към {$valior} се различава от очакваната {$expectedCurrency}";
+                    $res->warnings[] = $entryLabel . "валутата към {$valior} се различава от очакваната {$expectedCurrency}";
                     continue;
                 }
                 $rec = new stdClass();
@@ -107,6 +111,9 @@ class payment_ParserUC
                 
                 // Добавяме реда в резултата
                 $res->recs[] = $rec;
+                $res->recordCurrencies[] = $expectedCurrency;
+                $res->recordSources[] = array('iban' => $iban, 'entry' => $entryNumber);
+                $res->skippedEntries--;
             }
         }
         

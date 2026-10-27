@@ -66,12 +66,38 @@ check($result->status === 'partial' && count($result->recs) === 1 && !empty($res
 
 class core_FieldSet {
     public $rec;
+    public $cmd = 'save';
+    public $info;
+    public $ignore = false;
+    public $importButtonCaption;
+    public $styles = array();
     public $errors = array();
     public $warnings = array();
     public function setError($field, $message) { $this->errors[$field] = $message; }
     public function setWarning($field, $message) { $this->warnings[$field] = $message; }
+    public function isSubmitted() { return $this->cmd !== 'refresh' && !$this->errors && (!$this->warnings || $this->ignore); }
 }
 class core_Manager {}
+class core_Users {
+    public static $id = 1;
+    public static function getCurrent() { return self::$id; }
+}
+define('EF_SALT', 'synthetic-test-salt');
+function tr($text) { return $text; }
+class core_Type {
+    public static function getByName($name) { return new self(); }
+    public function toVerbal($value) { return (string) $value; }
+}
+class cls {
+    public static function get($name) { return new $name(); }
+}
+class core_TableView {
+    public function get($rows, $fields) {
+        $html = '<table>';
+        foreach ($rows as $row) $html .= '<tr><td>' . implode('</td><td>', (array) $row) . '</td></tr>';
+        return $html . '</table>';
+    }
+}
 require dirname(__DIR__, 2) . '/import2/AbstractDriver.class.php';
 require dirname(__DIR__) . '/ImportDriver.class.php';
 $driver = new payment_ImportDriver();
