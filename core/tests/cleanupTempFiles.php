@@ -35,6 +35,20 @@ class core_Packs
     }
 }
 
+class core_Manager
+{
+}
+
+class fconv_Setup
+{
+    public static function get($name)
+    {
+        return FCONV_TEMP_PATH;
+    }
+}
+
+require dirname(__DIR__, 2) . '/fconv/Remote.class.php';
+
 function cleanupCheck($condition, $message)
 {
     global $checks;
@@ -82,7 +96,7 @@ mkdir($base, 0700);
 define('EF_TEMP_PATH', $base . '/temp & <fixture>');
 define('EF_SBF_PATH', $base . '/sbf "fixture"');
 define('FILEMAN_TEMP_PATH', $base . '/fileman');
-define('FCONV_TEMP_PATH', $base . '/fconv');
+define('FCONV_TEMP_PATH', $base . '/fconv & <fixture>');
 define('THUMB_IMG_PATH', $base . '/thumb');
 foreach (array(EF_TEMP_PATH, EF_SBF_PATH, FILEMAN_TEMP_PATH, FCONV_TEMP_PATH, THUMB_IMG_PATH) as $path) {
     mkdir($path);
@@ -332,6 +346,65 @@ try {
     unlink(EF_SBF_PATH);
     cleanupCheck(core_Os::cron_clearOldFiles() === '', 'A missing sbf directory is harmless');
     cleanupCheck(file_exists($base . '/unrelated/old') && file_exists(EF_TEMP_PATH . '-sibling/old'), 'Cron preserves unrelated directories');
+
+    foreach (array(FILEMAN_TEMP_PATH, FCONV_TEMP_PATH) as $path) {
+        cleanupFile($path . '/expired', $old, $old);
+        cleanupFile($path . '/recent', $recent, $recent);
+    }
+    $report = core_Os::cron_clearOldFiles();
+    foreach (array(FILEMAN_TEMP_PATH, FCONV_TEMP_PATH) as $path) {
+        cleanupCheck(!file_exists($path . '/expired'), 'Cron cleans configured package temp roots outside the common temp directory');
+        cleanupCheck(file_exists($path . '/recent'), 'Cron retains recent files in custom package temp roots');
+        cleanupCheck(strpos($report, '1 файл от ' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8')) !== false, 'Report each custom package temp root separately');
+    }
+    cleanupCheck(core_Os::cron_clearOldFiles() === '', 'A second run does not count earlier package deletions');
+
+    $remoteRoot = FCONV_TEMP_PATH . '/remoteDownloadedFiles';
+    mkdir($remoteRoot);
+    mkdir($remoteRoot . '/fresh');
+    mkdir($remoteRoot . '/old-empty');
+    touch($remoteRoot . '/old-empty', $old, $old);
+    mkdir($base . '/remote-outside/empty', 0700, true);
+    cleanupFile($base . '/remote-outside/source', $old, $old);
+    cleanupFile($remoteRoot . '/old', time() - 10800, time() - 10800);
+    cleanupFile($remoteRoot . '/recent', $recent, $recent);
+    cleanupLink($base . '/remote-outside', $remoteRoot . '/fresh-directory-link', $recent);
+    cleanupLink($base . '/remote-outside/source', $remoteRoot . '/fresh-input-link', $recent);
+    $remote = new fconv_Remote();
+    $report = $remote->cron_DeleteOldDir();
+    cleanupCheck(!file_exists($remoteRoot . '/old'), 'Remote cleanup retains its two-hour lifetime');
+    cleanupCheck(file_exists($remoteRoot . '/recent'), 'Remote cleanup preserves recent files');
+    cleanupCheck(is_dir($remoteRoot . '/fresh'), 'Remote cleanup preserves recent empty work directories');
+    cleanupCheck(!is_dir($remoteRoot . '/old-empty'), 'Remote cleanup removes old empty work directories');
+    cleanupCheck(is_dir($base . '/remote-outside/empty'), 'Remote cleanup preserves directories behind a link');
+    cleanupCheck(file_exists($base . '/remote-outside/source'), 'Remote cleanup preserves original input files');
+    cleanupCheck(is_link($remoteRoot . '/fresh-directory-link') && is_link($remoteRoot . '/fresh-input-link'), 'Remote cleanup preserves recent links');
+    cleanupCheck(strpos($report, '1 файла в ' . htmlspecialchars($remoteRoot, ENT_QUOTES, 'UTF-8')) !== false, 'Remote cleanup escapes the reported path');
+    mkdir($remoteRoot . '/another-old-empty');
+    touch($remoteRoot . '/another-old-empty', $old, $old);
+    cleanupCheck($remote->cron_DeleteOldDir() === null, 'Removing only directories does not report file deletions');
+    cleanupCheck(!is_dir($remoteRoot . '/another-old-empty'), 'Remove old empty remote directories even without expired files');
+
+    define('EF_UPLOADS_PATH', $base . '/uploads/application');
+    mkdir(EF_UPLOADS_PATH, 0700, true);
+    mkdir($base . '/uploads/fileman/bucket', 0700, true);
+    cleanupFile($base . '/uploads/fileman/bucket/original', $old, $old);
+    foreach (array(EF_UPLOADS_PATH, $base . '/uploads/fileman', $base . '/uploads/fileman/bucket', $base . '/uploads') as $path) {
+        cleanupCheck($validatePath->invoke(null, $path, $path) === false, 'Protect permanent uploads and their ancestors even with an explicit root');
+    }
+    cleanupCheck(core_Os::deleteOldFiles($base . '/uploads/fileman', $age, null, null, $base . '/uploads/fileman') === 0, 'Reject permanent file storage as a cleanup root');
+    cleanupCheck(file_exists($base . '/uploads/fileman/bucket/original'), 'Preserve original uploaded content');
+    define('FILEMAN_UPLOADS_PATH', $base . '/custom-permanent-files');
+    mkdir(FILEMAN_UPLOADS_PATH . '/bucket', 0700, true);
+    cleanupFile(FILEMAN_UPLOADS_PATH . '/bucket/original', $old, $old);
+    cleanupCheck($validatePath->invoke(null, FILEMAN_UPLOADS_PATH . '/bucket', FILEMAN_UPLOADS_PATH . '/bucket') === false, 'Protect a custom permanent file store');
+    cleanupCheck(core_Os::deleteOldFiles(FILEMAN_UPLOADS_PATH, $age, null, null, FILEMAN_UPLOADS_PATH) === 0, 'Reject custom permanent storage as a cleanup root');
+    cleanupCheck(file_exists(FILEMAN_UPLOADS_PATH . '/bucket/original'), 'Preserve custom original uploaded content');
+    cleanupFile(FILEMAN_TEMP_PATH . '/expired', $old, $old);
+    cleanupFile(FCONV_TEMP_PATH . '/expired', $old, $old);
+    core_Os::cron_clearOldFiles();
+    cleanupCheck(!file_exists(FILEMAN_TEMP_PATH . '/expired') && !file_exists(FCONV_TEMP_PATH . '/expired'), 'Permanent upload protection does not block package temp cleanup');
+    cleanupCheck(file_exists(FILEMAN_UPLOADS_PATH . '/bucket/original'), 'Cron preserves permanent uploads');
 
     echo "OK: {$checks} filesystem cleanup checks on PHP " . PHP_VERSION . ".\n";
 } finally {

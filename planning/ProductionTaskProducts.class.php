@@ -813,6 +813,8 @@ class planning_ProductionTaskProducts extends core_Detail
         $jobId = null;
         $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if(!$firstDoc) return $res;
+
         if($firstDoc->isInstanceOf('planning_Jobs')){
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
             $jobId = $firstDoc->that;
@@ -906,6 +908,8 @@ class planning_ProductionTaskProducts extends core_Detail
         $producedNetWeight = null;
         $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if(!$firstDoc) return $res;
+
         $firstRec = $firstDoc->fetch();
         if($firstDoc->isInstanceOf('planning_Jobs')){
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));

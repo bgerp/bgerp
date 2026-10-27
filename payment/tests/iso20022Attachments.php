@@ -23,7 +23,9 @@ class keylist {
 class fileman_Files {
     public static $files = array();
     public static $logs = array();
-    public static function fetchByFh($fh, $field) { return self::$files[$fh][$field] ?? null; }
+    public static $canView = true;
+    public static function haveRightFor($action, $rec) { return self::$canView; }
+    public static function fetchByFh($fh, $field = null) { return $field === null ? (isset(self::$files[$fh]) ? (object) self::$files[$fh] : null) : (self::$files[$fh][$field] ?? null); }
     public static function fetchField($id, $field) { return $id; }
     public static function getExt($name) { return pathinfo($name, PATHINFO_EXTENSION); }
     public static function logWarning($msg, $id) { self::$logs[] = $msg; }
@@ -39,14 +41,18 @@ class bank_Accounts {
 }
 class bank_OwnAccounts {
     public static function fetch($where) { return (object) array('id' => 2); }
-    public static function getDefaultCurrency($id, $date, $code) { return 'EUR'; }
+    public static $historicalCurrency = false;
+    public static function getDefaultCurrency($id, $date, $code) { return self::$historicalCurrency && $date < '2026-01-01' ? 'BGN' : 'EUR'; }
 }
 class bank_Register {
+    public static $legacy = false;
+    public static function fetch($where) { return self::$legacy; }
     public static $imports = array();
     public static $batches = array();
     public static function importRecs($recs) { self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
     public static function findMatches() { return 0; }
 }
+require dirname(__DIR__) . '/XmlParser.class.php';
 require dirname(__DIR__) . '/ImportFiles.class.php';
 require dirname(__DIR__) . '/ParserIso20022.class.php';
 class attachment_TestParser extends payment_ParserIso20022 {
@@ -106,7 +112,7 @@ check(count(payment_ParserIso20022::getRecs($prefixed)->recs ?? array()) === 1, 
 $longHeader = "\xEF\xBB\xBF" . str_replace('?><Document', '?><!--' . str_repeat('header ', 40) . '--><Document', $xml);
 check(count(payment_ParserIso20022::getRecs($longHeader)->recs ?? array()) === 1, 'BOM and long header');
 check(payment_ParserIso20022::getRecs('<other/>') === null, 'unrelated XML ignored');
-check(!empty(payment_ParserIso20022::getRecs('<broken>')->warnings), 'invalid XML reported');
+check(!empty(payment_ParserIso20022::getRecs('<broken>')->errors), 'invalid XML reported');
 check(!empty(payment_ParserIso20022::getRecs('<!DOCTYPE Document [<!ENTITY test "value">]>' . $xml)->errors), 'DTD rejected');
 $plain = fixture('statement.camt', $longHeader);
 check(attachment_TestParser::read($plain) === array($longHeader), 'plain CAMT read');
