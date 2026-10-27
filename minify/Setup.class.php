@@ -49,8 +49,8 @@ class minify_Setup extends core_ProtoSetup
      * Избираеми библиотеки, без промяна на досегашното поведение по подразбиране.
      */
     public $configDescription = array(
-        'MINIFY_CSS_VERSION' => array('enum(legacy=Досегашна 2.4.8-2,4.1.1)', 'mandatory, caption=CSSMin->Версия'),
-        'MINIFY_JS_VERSION' => array('enum(legacy=Досегашна,jshrink-1.8.1=JShrink 1.8.1)', 'mandatory, caption=JavaScript->Минификатор'),
+        'MINIFY_CSS_VERSION' => array('enum(legacy=2.4.8-2,4.1.1)', 'mandatory, caption=CSSMin->Версия'),
+        'MINIFY_JS_VERSION' => array('enum(legacy=JSMin,jshrink-1.8.1=JShrink 1.8.1)', 'mandatory, caption=JavaScript->Минификатор'),
     );
 
 
