@@ -16,7 +16,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -432,7 +432,7 @@ class core_Form extends core_FieldSet
             $type = $field->type;
             
             // Предаваме някои свойства на полето на типа
-            $options = $field->options;
+            $options = $field->options ?? null;
             
             // Ако във формата има опции, те отиват в типа
             if (countR($options)) {
