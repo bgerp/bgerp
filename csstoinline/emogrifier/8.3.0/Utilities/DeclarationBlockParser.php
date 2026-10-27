@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Pelago\EmogrifierV830\Utilities;
+
+/**
+ * Provides a common method for parsing CSS declaration blocks.
+ * These might be from actual CSS, or from the `style` attribute of an HTML DOM element.
+ *
+ * Caches results globally.
+ *
+ * @internal
+ */
+final class DeclarationBlockParser
+{
+    /**
+     * @var array<non-empty-string, array<non-empty-string, string>>
+     */
+    private static $cache = [];
+
+    /**
+     * Clears the static cache of parsed declaration blocks.
+     *
+     * This is called by {@see CssInliner::inlineCss} to prevent unbounded memory growth
+     * when processing multiple HTML documents in a single PHP process.
+     */
+    public static function clearCache(): void
+    {
+        self::$cache = [];
+    }
+
+    /**
+     * CSS custom properties (variables) have case-sensitive names, so their case must be preserved.
+     * Standard CSS properties have case-insensitive names, which are converted to lowercase.
+     *
+     * @param non-empty-string $name
+     *
+     * @return non-empty-string
+     */
+    public static function normalizePropertyName(string $name): string
+    {
+        if (\substr($name, 0, 2) === '--') {
+            return $name;
+        }
+
+        return \strtolower($name);
+    }
+
+    /**
+     * Parses a CSS declaration block into property name/value pairs.
+     *
+     * Example:
+     *
+     * The declaration block
+     *
+     * ```css
+     *   color: #000; font-weight: bold;
+     * ```
+     *
+     * will be parsed into the following array:
+     *
+     * ```php
+     *   [
+     *     'color' => '#000',
+     *     'font-weight' => 'bold',
+     *   ]
+     * ```
+     *
+     * @param string $declarationBlock the CSS declarations block (without the curly braces)
+     *
+     * @return array<non-empty-string, string>
+     *         the CSS declarations with the property names as array keys and the property values as array values
+     *
+     * @throws \UnexpectedValueException if an empty property name is encountered (which cannot happen)
+     */
+    public static function parse(string $declarationBlock): array
+    {
+        $trimmedDeclarationBlock = \trim($declarationBlock, "; \n\r\t\v\x00");
+        if ($trimmedDeclarationBlock === '') {
+            return [];
+        }
+
+        if (isset(self::$cache[$trimmedDeclarationBlock])) {
+            return self::$cache[$trimmedDeclarationBlock];
+        }
+
+        $preg = new Preg();
+
+        $declarations = $preg->split('/;(?!base64|charset)/', $trimmedDeclarationBlock);
+        $properties = [];
+        foreach ($declarations as $declaration) {
+            $matches = [];
+            if ($preg->match(
+                '/^(-?+[a-zA-Z_][a-zA-Z_0-9\\-]*+|--[a-zA-Z_0-9\\-]++)\\s*+:\\s*+(.++)$/s',
+                \trim($declaration),
+                $matches,
+            ) === 0) {
+                continue;
+            }
+
+            \assert(\count($matches) >= 3);
+            $propertyName = $matches[1];
+            \assert($propertyName !== '');
+            $propertyValue = $matches[2];
+            $properties[self::normalizePropertyName($propertyName)] = $propertyValue;
+        }
+        self::$cache[$trimmedDeclarationBlock] = $properties;
+
+        return $properties;
+    }
+}

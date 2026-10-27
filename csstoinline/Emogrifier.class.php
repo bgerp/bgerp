@@ -35,14 +35,21 @@ class csstoinline_Emogrifier extends core_Manager
         $conf = core_Packs::getConfig('csstoinline');
 
         $version = $conf->CSSTOINLINE_EMOGRIFIER_VERSION ?? '2014.11.10';
-        expect(in_array($version, array('2011.10.26', '2014.11.10', '3.0.0'), true), 'Неподдържана версия на Emogrifier');
-        if ($version === '3.0.0') {
-            csstoinline_Setup::loadCssSelector();
-            foreach (array('HtmlProcessor/AbstractHtmlProcessor', 'Utilities/CssConcatenator', 'CssInliner', 'HtmlProcessor/HtmlPruner') as $file) {
-                require_once getFullPath('csstoinline/emogrifier/3.0.0/' . $file . '.php');
+        expect(in_array($version, array('2011.10.26', '2014.11.10', '3.0.0', '8.3.0'), true), 'Неподдържана версия на Emogrifier');
+        if ($version === '3.0.0' || $version === '8.3.0') {
+            if ($version === '8.3.0') {
+                $prefix = csstoinline_Setup::loadBundledLibrary('emogrifier');
+            } else {
+                csstoinline_Setup::loadCssSelector();
+                foreach (array('HtmlProcessor/AbstractHtmlProcessor', 'Utilities/CssConcatenator', 'CssInliner', 'HtmlProcessor/HtmlPruner') as $file) {
+                    require_once getFullPath('csstoinline/emogrifier/3.0.0/' . $file . '.php');
+                }
+                $prefix = 'Pelago\\Emogrifier\\';
             }
-            $inliner = \Pelago\Emogrifier\CssInliner::fromHtml($html)->inlineCss($css);
-            return \Pelago\Emogrifier\HtmlProcessor\HtmlPruner::fromDomDocument($inliner->getDomDocument())
+            $inlinerClass = $prefix . 'CssInliner';
+            $prunerClass = $prefix . 'HtmlProcessor\\HtmlPruner';
+            $inliner = $inlinerClass::fromHtml($html)->inlineCss($css);
+            return $prunerClass::fromDomDocument($inliner->getDomDocument())
                 ->removeElementsWithDisplayNone()->render();
         }
 
