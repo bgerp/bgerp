@@ -7,6 +7,12 @@
 if (PHP_SAPI !== 'cli') exit("CLI only.\n");
 
 class core_BaseClass {}
+class core_App {
+    public static function setTimeLimit($seconds) {}
+}
+class log_System {
+    public static function add($class, $message, $id = null, $type = null, $life = null) { fileman_Files::$logs[] = $message; }
+}
 class fileman_Exception extends Exception {}
 class email_Spam {
     public static function getSpamScore($headers, $force, $mime) { return 0; }
@@ -29,7 +35,7 @@ class fileman_webdrv_Generic {
     public static function getPassword($fh) { return self::$passwords[$fh] ?? null; }
 }
 class bank_Accounts {
-    public static function fetch($where) { return (object) array('id' => 1); }
+    public static function fetch($where) { return (object) array('id' => 1, 'currencyId' => 1); }
 }
 class bank_OwnAccounts {
     public static function fetch($where) { return (object) array('id' => 2); }
@@ -37,9 +43,11 @@ class bank_OwnAccounts {
 }
 class bank_Register {
     public static $imports = array();
-    public static function importRecs($recs) { self::$imports = array_merge(self::$imports, $recs); return 'test'; }
+    public static $batches = array();
+    public static function importRecs($recs) { self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
     public static function findMatches() { return 0; }
 }
+require dirname(__DIR__) . '/ImportFiles.class.php';
 require dirname(__DIR__) . '/ParserIso20022.class.php';
 class attachment_TestParser extends payment_ParserIso20022 {
     public static function read($fh, $password = null) { return parent::getAttachmentContents($fh, $password); }
@@ -133,6 +141,7 @@ class type_Varchar {
     public $params = array();
     public $maxFieldSize;
     public function renderInput_($name, $value = '', &$attr = array()) { return array('value' => $value, 'attr' => $attr); }
+    public static function escape($value) { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
 }
 class core_Setup {
     public static function get($name) { return 'yes'; }
