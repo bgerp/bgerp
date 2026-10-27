@@ -170,6 +170,8 @@ $savedBefore = count(planning_Tasks::$saved);
 ScenarioTargetTimes::validateForm(new planning_Tasks(), $form);
 $choices = $form->_targetTimesReport['alternatives'] ?? array();
 check(count($choices) === 3 && $choices[0]['available'] && $choices[1]['available'] && $choices[2]['available'], 'Conflict dialog offers move, nearest, and voluntary detachment');
+check(($form->_targetTimesReport['editedOperation'] ?? null) === 'Opr1', 'Conflict preview identifies the edited operation before choosing an alternative');
+check(array_column(array_column($choices, 'report'), 'editedOperation') === array('Opr1', 'Opr1', 'Opr1'), 'Every alternative identifies the edited operation');
 check(count(planning_Tasks::$saved) === $savedBefore && empty($form->rec->_targetTimesChanged), 'Opening alternatives does not save any operation');
 $foreignRow = array_values(array_filter($choices[0]['report']['operationChanges'], function($row) { return $row['operation'] === 'Opr2'; }))[0];
 check($foreignRow['pinBefore'] === '08.10.2026 10:00' && $foreignRow['pinAfter'] === '08.10.2026 16:00' && $foreignRow['pinChanged'], 'Dialog explicitly lists foreign fixed start before and after');

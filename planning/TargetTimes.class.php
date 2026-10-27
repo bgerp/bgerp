@@ -403,7 +403,8 @@ class planning_TargetTimes extends core_BaseClass
             $form->setError('timeStart,timeDuration', str_replace('<br>', '; ', implode('; ', $messages)));
             if (!empty($rec->timeStart)) {
                 $report = array('alternatives' => array(), 'conflictText' => str_replace('<br>', "\n", implode("\n", $messages)),
-                    'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore), 'approvalChanges' => $approvalChanges);
+                    'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore), 'approvalChanges' => $approvalChanges,
+                    'editedOperation' => ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1));
                 $choices = array(
                     array('mode' => 'move', 'policy' => $policy, 'title' => 'Запази желания час и промени конфликтните фиксирани начала'),
                     array('mode' => 'nearest', 'policy' => $policy, 'title' => 'Запази чуждите фиксирани начала и предложи близко допустимо начало'),
@@ -483,6 +484,7 @@ class planning_TargetTimes extends core_BaseClass
         }
         $report['requestedStart'] = static::verbalTime($rec->timeStart ?? null);
         $report['proposedStart'] = static::verbalTime($simulation->proposedStart ?? ($rec->timeStart ?? null));
+        $report['editedOperation'] = ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1);
         $report['operationChanges'] = array();
         $report['operationOrder'] = array();
         $oldRequired = planning_TaskConstraints::getSameResourceJobPackageLinks($baseline);

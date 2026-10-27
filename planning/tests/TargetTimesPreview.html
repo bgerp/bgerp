@@ -2,6 +2,7 @@
 <html lang="bg">
 <meta charset="utf-8">
 <title>Тест на предварителния преглед на целеви времена</title>
+<link rel="stylesheet" href="/css/common.css">
 <link rel="stylesheet" href="/planning/tpl/TaskOrderReport.css">
 <link rel="stylesheet" href="/floatingui/css/Hints.css">
 <style>body {font: 14px Arial; padding: 20px;} #result {white-space: pre-wrap;}</style>
@@ -37,7 +38,7 @@ function sampleReport(mode, free) {
     const requested = free ? '10:00' : '14:00';
     const next = free ? '12:00' : '16:00';
     const report = {
-        hash: 'hash-' + mode, requestedStart: '30.10.2026 ' + requested, proposedStart: moving ? '30.10.2026 ' + requested : '30.10.2026 08:00',
+        hash: 'hash-' + mode, editedOperation: 'Opr6396', requestedStart: '30.10.2026 ' + requested, proposedStart: moving ? '30.10.2026 ' + requested : '30.10.2026 08:00',
         operationChanges: [
             {operation: 'Opr6396', asset: 'П10', before: ['30.10.2026 08:00', '30.10.2026 09:59'],
                 after: moving ? ['30.10.2026 ' + requested, '30.10.2026 ' + (free ? '11:59' : '15:59')] : ['30.10.2026 08:00', '30.10.2026 09:59'],
@@ -67,8 +68,8 @@ function sampleReport(mode, free) {
     return report;
 }
 function showSample(withPackage) {
-    showTargetTimesPreview({command: 'save', legendHint: legendHint, conflictText: withPackage
-        ? 'Желаното начало на Opr6396 противоречи на фиксираното начало на Opr6397 в същия пакет.'
+    showTargetTimesPreview({command: 'save', editedOperation: 'Opr6396', legendHint: legendHint, conflictText: withPackage
+        ? 'Opr6396: Желаният час противоречи на фиксираното начало на Opr6397 в същия пакет.'
         : 'Свободната операция застъпва фиксирани операции на машината.',
         alternatives: [
             {mode: 'move', policy: 'keep', title: 'Запази желания час и промени конфликтните фиксирани начала', available: true, report: sampleReport('move', !withPackage)},
@@ -93,10 +94,26 @@ $('#checks').on('click', function () {
     check($('#editFormTable td').first().css('border-top-width') === '0px', 'Прегледът не добавя рамки на едит формата');
     check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ', 'Преди избор има само Отказ');
     check($('.targetTimeConflict strong').text().includes('Opr6396 (1)') && $('.targetTimeConflict strong').text().includes('Opr6397 (2)'), 'Проблемът е получер и включва номерата от прегледа още преди избор');
+    check($('.targetTimeConflict strong').text() === 'Opr6396 (1) | Желаното начало противоречи на фиксираното начало на Opr6397 (2) в същия пакет.', 'Червеният ред използва същия надпис и разделител като обобщението');
     check($('#optimizationIdleReport').hasClass('targetTimeReport'), 'Компактната ширина е ограничена до този преглед');
     choose(0);
     check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ|Приложи', 'След избор има точно два бутона');
     check($('.targetTimeSide-before tbody tr').length === 2 && $('.targetTimeSide-after tbody tr').length === 2, 'Две пълни подредби');
+    check($('.targetTimeSide-before h4').text() === 'Преди (към момента)', 'Заглавието пояснява, че старият план е преизчислен към момента');
+    check($('.targetTimeProposal > p strong').text().startsWith('Opr6396 (1) | Въведено начало:'), 'Обобщението назовава редактираната операция със същия номер като в таблиците');
+    check($('.targetTimeEditedOperation').length === 2 && $('.targetTimeEditedOperation').first().attr('data-operation') === 'Opr6396', 'Редактираната операция е обозначена от двете страни');
+    check($('.targetTimeEditedOperation .targetTimeOperation').css('font-weight') === '700'
+        && $('.targetTimeEditedOperation .targetTimeNumber').css('font-weight') === '700', 'Номерът и обозначението на редактираната операция са получер');
+    check($('.targetTimeOrderTable tr:not(.targetTimeEditedOperation) .targetTimeOperation').css('color') === 'rgb(85, 85, 85)'
+        && $('.targetTimeOrderTable tr:not(.targetTimeEditedOperation) .targetTimeOperation').css('font-weight') === '400', 'Останалите операции са в тъмно сиво без получер');
+    const closeButton = $('.optimizationIdleReportClose');
+    check(closeButton.css('display') === 'flex' && closeButton.css('align-items') === 'center'
+        && closeButton.css('justify-content') === 'center' && closeButton.css('padding') === '0px'
+        && Math.abs(closeButton.outerWidth() - 26) < 0.1 && Math.abs(closeButton.outerHeight() - 26) < 0.1, 'Хиксът е центриран в квадрат 26 на 26 пиксела с приложени общите стилове');
+    $('body').addClass('narrow');
+    check(closeButton.css('display') === 'flex' && closeButton.css('padding') === '0px'
+        && Math.abs(closeButton.outerWidth() - 26) < 0.1 && Math.abs(closeButton.outerHeight() - 26) < 0.1, 'Тесният режим не измества хикса с общите стилове за бутони');
+    $('body').removeClass('narrow');
     check(!$('.targetTimeProposal > p.targetTimeLegend').length && $('.targetTimeMachine h3 .targetTimeLegend img').length === 1, 'Пояснението е иконка след името на машината, а не постоянен абзац');
     check($('.targetTimeLegend .fuiHint').attr('data-hint') === legend, 'Стандартният хинт съдържа цялото пояснение');
     check(parseInt($('.fuiHintLayer').css('z-index'), 10) > parseInt($('#optimizationIdleReport').css('z-index'), 10), 'Хинтът е над диалога, не зад него');
@@ -114,6 +131,8 @@ $('#checks').on('click', function () {
         && $('.targetTimeSide-after .targetTimeMove').eq(1).attr('title') === 'Преместена надолу: място 1 → 2', 'Стрелките имат пояснения за старото и новото място');
     check(!$('.targetTimeSide-before .targetTimeMove').length, 'Стрелки има само вдясно');
     check(!$('.targetTimeSide-after .targetTimePackage').length, 'Разкаченият пакет няма рамка вдясно');
+    check($('.targetTimeSide-after .targetTimeEditedOperation').index() === 1
+        && $('.targetTimeSide-after .targetTimeEditedOperation .targetTimeOperation').text() === 'Opr6396', 'Получерът следва редактираната операция след преместване, а не позицията');
     const original = $('[name="timeStart"]').val();
     $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     check(!$('#optimizationIdleReport').length && $('[name="timeStart"]').val() === original, 'Отказ оставя въведените данни в редакцията');
@@ -127,6 +146,14 @@ $('#checks').on('click', function () {
     check($('.targetTimeSide-after .targetTimeEarlier').length === 1, 'По-ранното време е отбелязано в зелено');
     $('#optimizationIdleReport .optimizationIdleReportClose').trigger('click');
     check(!$('#optimizationIdleReport').length && !$('[name="Cmd[save]"]').length, 'Затваряне без изпращане');
+    const newOperation = sampleReport('move');
+    newOperation.editedOperation = 'Новата операция';
+    newOperation.operationOrder[0].before = newOperation.operationOrder[0].before.slice(1);
+    newOperation.operationOrder[0].after[0].operation = 'Новата операция';
+    showTargetTimesPreview(newOperation);
+    check($('.targetTimeProposal > p strong').text().startsWith('Новата операция (1) | Въведено начало:')
+        && $('.targetTimeEditedOperation').length === 1, 'Нова операция се обозначава и номерира без да присъства в стария план');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     const stale = sampleReport('move');
     stale.approvalChanges = ['Opr6397: променени данни: прогрес, оставаща продължителност.', '<b>Проверка на безопасен текст</b>'];
     showTargetTimesPreview(stale);
@@ -136,6 +163,7 @@ $('#checks').on('click', function () {
     $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     check(!$('.targetTimeApprovalChanges').length && $('[name="timeStart"]').val() === original, 'Отказ от обновения преглед запазва въведеното начало');
     showSample(false);
+    check($('.targetTimeConflict strong').text().startsWith('Opr6396 (1) | Свободната операция'), 'Съобщение без собствен номер получава номера на редактираната операция');
     check($('#optimizationIdleReport .targetTimeChoice button').eq(2).prop('disabled'), 'Свободна операция не предлага разкачване');
     choose(0);
     $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
