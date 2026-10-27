@@ -52,7 +52,8 @@ class compactor_Plugin extends core_Plugin
         if (is_array($filesArr)) {
             foreach ($filesArr as $fKey => $fVal) {
                 if (is_object($fVal)) {
-                    unset($filesArr[$fKey]);
+                    // Script атрибутите и CDN fallback-ът изискват оригиналния ред.
+                    return $filesArr;
                 }
             }
         }
@@ -79,8 +80,9 @@ class compactor_Plugin extends core_Plugin
             return $filesArr;
         }
         
-        // Акумолатор за конкатиниране времената на последна модификация на файловете
-        $times = '';
+        // Имената и редът също участват, защото различни файлове могат да имат еднакво mtime.
+        $cacheFiles = array();
+        $originalFiles = $filesArr;
         
         // Масив с пътищата до файловете за обединение
         $contentFilePathsArr = array();
@@ -112,15 +114,18 @@ class compactor_Plugin extends core_Plugin
                 continue;
             }
             
-            $times .= @filemtime($sbfFilePath);
+            $cacheFiles[] = array($sbfFilePath, filemtime($sbfFilePath), filesize($sbfFilePath));
             if (isset($filesArr[$file])) {
                 unset($filesArr[$file]);
             }
             $contentFilePathsArr[] = $sbfFilePath;
         }
-        $sbfFilePathArr = pathinfo($sbfFilePath);
+        if (!$contentFilePathsArr) {
+            return $originalFiles;
+        }
+        $extension = pathinfo($contentFilePathsArr[0], PATHINFO_EXTENSION);
         
-        $compactFilePath = $baseDir . '/' . md5($times) . '.' . $sbfFilePathArr['extension'];
+        $compactFilePath = $baseDir . '/' . md5(serialize($cacheFiles)) . '.' . $extension;
         
         $compactFile = str_replace(EF_SBF_PATH . '/', '', $compactFilePath);
         array_unshift($filesArr, $compactFile);
@@ -141,15 +146,20 @@ class compactor_Plugin extends core_Plugin
         if ($force || !file_exists($compactFilePath)) {
             // Подготвяме сбора на съдържанието на всички файлове
             $compacted = '';
-            foreach ($contentFilePathsArr as $filePath) {
-                $content = file_get_contents($filePath);
+            foreach ($contentFilePathsArr as $index => $filePath) {
+                $content = @file_get_contents($filePath);
+                if ($content === false) return $originalFiles;
                 if ($callback) {
                     $content = call_user_func($callback, $content, $filePath);
                 }
-                $compacted .= "\n" . $content;
+                // Нов ред сам по себе си не разделя JS израз и следващ IIFE.
+                $compacted .= ($extension === 'js' && $index > 0 ? "\n;\n" : "\n") . $content;
             }
             
-            file_put_contents($compactFilePath, $compacted);
+            if ((!is_dir($baseDir) && !core_Os::forceDir($baseDir))
+                || @file_put_contents($compactFilePath, $compacted) === false) {
+                return $originalFiles;
+            }
         }
         
         return $filesArr;
@@ -201,13 +211,20 @@ class compactor_Plugin extends core_Plugin
         }
         
         // Открития файла
-        $trimFile = $file = trim($matches['file'], "'\"");
+        $trimFile = $file = trim(trim($matches['file'] ?? ''), "'\"");
+        if ($file === '' || preg_match('~^(?:[a-z][a-z0-9+.-]*:|/|#)~i', $file)) {
+            return $matches[0];
+        }
+        $suffix = strpbrk($file, '?#');
+        if ($suffix !== false) {
+            $file = substr($file, 0, strlen($file) - strlen($suffix));
+        }
         
         // Директорията
         $dir = dirname($path);
         
         // Докато има файл за връщане назад
-        while (strpos($file, '../') !== false) {
+        while (strpos($file, '../') === 0) {
             
             // Изрязваме началото
             $file = (str::crop($file, '../'));
@@ -228,7 +245,7 @@ class compactor_Plugin extends core_Plugin
         if (getFullPath($file)) {
             
             // Вземаме целия път
-            $filePath = sbf($file, '', false);
+            $filePath = sbf($file, '', false) . ($suffix !== false ? $suffix : '');
         } else {
             
             // Ако няма файла, не се правят промени
