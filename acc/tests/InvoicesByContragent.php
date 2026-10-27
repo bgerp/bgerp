@@ -494,8 +494,8 @@ foreach (array('out', 'in') as $direction) {
 
 InvoiceTestData::reset();
 InvoiceTestData::invoice('out', 1, 'Acme', '2026-10-14', 100, 40);
-InvoiceTestData::invoice('out', 2, 'Acme', '2026-10-14', 200, 20);
-InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 50, 10);
+InvoiceTestData::invoice('out', 2, 'Acme', '2026-10-14', 200, 20, '2026-10-02');
+InvoiceTestData::invoice('in', 1, 'Acme', '2026-10-14', 50, 10, '2026-10-03');
 foreach (array('all', 'unpaid', 'overdue') as $payment) {
     $rec = reportRec('all', $payment);
     $data = new stdClass();
@@ -506,7 +506,7 @@ foreach (array('all', 'unpaid', 'overdue') as $payment) {
     check(($payment == 'all') == ($closedConds === ''), 'Приключените сделки се изключват в заявката само при остатъци: ' . $payment);
     check($payment == 'all' || (substr_count($closedConds, "`state` = 'closed' AND `closed_on` < '2026-10-15'") >= 2
         && substr_count($closedConds, '#threadId NOT IN (SELECT `thread_id` FROM') == substr_count($closedConds, '`thread_id` IS NOT NULL')), 'Изключване и за продажби, и за покупки: ' . $payment);
-    check(array_keys($recs) == ($payment == 'all' ? array('out|1S', 'out|2S', 'in|1') : array('out|1', 'out|2', 'in|1')), 'Последователни списъци: ' . $payment);
+    check(array_keys($recs) == ($payment == 'all' ? array('out|2S', 'out|1S', 'in|1') : array('out|2', 'out|1', 'in|1')), 'Отделни списъци с най-новите фактури първи: ' . $payment);
     check($rec->totalInvoiceValueAll == 250, 'Нетна стойност без повторение: ' . $payment);
     check($data->invoiceTotals == array('out' => 300, 'in' => 50), 'Отделни суми за разбивката без повторение: ' . $payment);
     $detail = end($recs);
@@ -1523,7 +1523,7 @@ foreach (array('out', 'in') as $direction) {
             $rec->accountingCorrections = $corrections;
             $rows = $driver->run($rec, $data);
             check(closeAmount($rec->totalInvoiceValueAll ?? 0, 95 + $vat), 'Стойност минус отстъпка плюс действителния ДДС: ' . $direction . '/' . $corrections . '/' . $vat);
-            check(strpos($driver->info($rec, $data), 'Стойностите на фактурите са с ДДС.') !== false, 'Изрично уточнение за ДДС в обобщението');
+            check(strpos($driver->info($rec, $data), 'Стойностите на фактурите са с ДДС (когато има начислено).') !== false, 'Изрично уточнение за ДДС в обобщението');
         }
     }
 }
