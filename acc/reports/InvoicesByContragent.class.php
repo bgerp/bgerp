@@ -119,6 +119,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=днес,silent');
         $fieldset->FLD('useTodayAsCheckDate', 'enum(no=Не,yes=Да)', 'input=none,single=none');
         $fieldset->FLD('resultFilterHash', 'varchar(32)', 'input=none,single=none');
+        $fieldset->FLD('resultGeneration', 'varchar(32)', 'input=none,single=none');
 
         $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,single=none');
 
@@ -149,6 +150,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (in_array(strtolower($action), array('edit', 'save', 'manage', 'refresh'))) {
             Mode::set(frame2_Reports::LIGHT_FETCH_MODE, true);
         }
+        if (strtolower($action) !== 'refresh' || !($id = Request::get('id', 'int'))) return;
+        $Embedder->requireRightFor('refresh');
+        expect($rec = $Embedder->fetch($id, '*', false));
+        $Embedder->requireRightFor('refresh', $rec);
+        if (!self::prepareBackgroundResult($rec)) return;
+        $Embedder->save_($rec, 'data');
+        frame2_ReportVersions::unSelectVersion($id);
+        $Embedder->logWrite('Ръчно обновяване на справката във фонов режим', $id);
+        $res = followRetUrl();
+
+        return false;
     }
 
 
@@ -269,6 +281,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if (!empty($fromDate) && $fromDate > $checkDate) {
                 $form->setError('fromDate,checkDate', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
+            if (!$form->gotErrors()) $form->rec->_invoiceResultEdit = true;
 
             if (!$form->gotErrors() && ($form->rec->resultFilterHash ?? null) !== self::getResultFilterHash($form->rec)) {
                 // Записва се с новите настройки преди изчислението. При прекъсване старите
@@ -284,7 +297,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Отпечатък само на настройките, които определят резултата, без обхождане на фактурите.
      */
-    private static function getResultFilterHash($rec)
+    public static function getResultFilterHash($rec)
     {
         $filter = array();
         foreach (array('contragent', 'crmGroup') as $name) {
@@ -312,16 +325,60 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public function prepareData($rec)
     {
+        // lightFetch пропуска и лога; пазим кратката диагностика и при фоновото завършване.
+        if (!empty($rec->id) && !property_exists($rec, 'log')) {
+            $rec->log = frame2_Reports::fetchField($rec->id, 'log');
+        }
+        if (isset($rec->_invoiceResultReady)) {
+            $job = $rec->_invoiceResultReady;
+            $data = acc_reports_InvoiceResult::completedData($rec);
+            $this->logWhilePreparing('Завършено порционно изчисление: ' . $data->invoiceRowCount . ' реда; '
+                . 'изчисление ' . round($job->calculationSeconds ?? 0, 3) . ' сек.; запис ' . round($job->storageSeconds ?? 0, 3)
+                . ' сек.; от заявяването ' . round(microtime(true) - $job->started, 3) . ' сек.');
+
+            return $data;
+        }
+        if (!empty($rec->id)) {
+            expect(core_Locks::obtain(acc_reports_InvoiceResult::lockKey($rec->id), 1800, 3, 1),
+                'Справката се записва в момента. Опитайте отново след малко.');
+        }
+        self::resolveCheckDate($rec);
+
+        if (acc_reports_InvoiceResult::needsBackground($rec)) {
+            return acc_reports_InvoiceResult::start($rec, self::getResultFilterHash($rec));
+        }
+        $rec->resultGeneration = null;
+
+        return $this->calculateResult($rec);
+    }
+
+
+    private static function resolveCheckDate($rec)
+    {
         if (empty($rec->checkDate) || ($rec->useTodayAsCheckDate ?? 'no') == 'yes') {
             $rec->useTodayAsCheckDate = 'yes';
             $rec->checkDate = dt::today(false);
         }
+    }
 
-        // lightFetch пропуска и лога; запазваме предишните кратки диагностични записи.
-        if (!empty($rec->id) && !property_exists($rec, 'log')) {
-            $rec->log = frame2_Reports::fetchField($rec->id, 'log');
-        }
 
+    private static function prepareBackgroundResult($rec)
+    {
+        self::resolveCheckDate($rec);
+        if (!acc_reports_InvoiceResult::needsBackground($rec)) return false;
+        expect(core_Locks::obtain(acc_reports_InvoiceResult::lockKey($rec->id), 180, 3, 1),
+            'Справката се записва в момента. Опитайте отново след малко.');
+        $rec->data = acc_reports_InvoiceResult::start($rec, self::getResultFilterHash($rec));
+
+        return true;
+    }
+
+
+    /**
+     * Същият финансов алгоритъм за малка справка или за цяла порция контрагенти.
+     */
+    public function calculateResult($rec)
+    {
         $data = parent::prepareData($rec);
         $rec->resultFilterHash = $data->resultFilterHash = self::getResultFilterHash($rec);
 
@@ -348,6 +405,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
     public function renderData($rec)
     {
+        if (($rec->data->invoiceResultState ?? null) === 'pending') {
+            $progress = acc_reports_InvoiceResult::progress($rec->data);
+            $message = !empty($progress->error)
+                ? tr('Изчислението е прекъснато. „Обновяване“ повтаря незавършената порция.')
+                : tr('Справката се изчислява във фонов режим. Отворете я отново след малко.');
+            if (isset($progress->done, $progress->total)) $message .= ' ' . tr('Готови порции') . ': ' . $progress->done . ' / ' . $progress->total . '.';
+
+            return new core_ET("<fieldset class='detail-info'><span class='red'>{$message}</span></fieldset>");
+        }
         if (!self::isResultForCurrentFilter($rec)) {
             return new core_ET("<fieldset class='detail-info'><span class='red'>" . tr(self::RESULT_FILTER_WARNING) . '</span></fieldset>');
         }
@@ -359,8 +425,95 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected function getRecsForExport($rec, $ExportClass)
     {
         expect(self::isResultForCurrentFilter($rec), self::RESULT_FILTER_WARNING);
+        if (isset($rec->data->invoiceBlocks)) {
+            return acc_reports_InvoiceResult::readRange($rec->data, 0, $rec->data->invoiceRowCount);
+        }
 
         return parent::getRecsForExport($rec, $ExportClass);
+    }
+
+
+    /**
+     * Общото заключване сериализира само записите на настройки/готов резултат,
+     * а не бавното изчисление. Стар фонов процес не може да върне стар филтър.
+     */
+    protected static function on_BeforeSave($Driver, $Embedder, $res, $rec)
+    {
+        if (!empty($rec->id)) {
+            expect(core_Locks::obtain(acc_reports_InvoiceResult::lockKey($rec->id), 180, 3, 1),
+                'Справката се записва в момента. Опитайте отново след малко.');
+            // Първият запис от бързата редакция преобразува и стар тежък резултат,
+            // без потребителят да се налага да променя филтъра или да го отваря.
+            if (($rec->refreshData ?? false) === true || (!empty($rec->_invoiceResultEdit) && empty($rec->resultGeneration))) {
+                if (self::prepareBackgroundResult($rec)) $rec->refreshData = false;
+            }
+        }
+    }
+
+
+    public function canSendNotificationOnRefresh($rec)
+    {
+        return ($rec->data->invoiceResultState ?? null) !== 'pending' && parent::canSendNotificationOnRefresh($rec);
+    }
+
+
+    public function tryToAutoRefresh($rec)
+    {
+        if (!parent::tryToAutoRefresh($rec)) return false;
+        if (!self::prepareBackgroundResult($rec)) return true;
+        cls::get('frame2_Reports')->save_($rec, 'data');
+
+        return false;
+    }
+
+
+    public function canCloseAfterRefresh($rec)
+    {
+        return ($rec->data->invoiceResultState ?? null) !== 'pending' && parent::canCloseAfterRefresh($rec);
+    }
+
+
+    /**
+     * Използва стандартните Pager/TableView и вербализация, но чете само страницата.
+     * Печатът запазва досегашното поведение за целия резултат.
+     */
+    protected function renderTable($rec, &$data)
+    {
+        if (!isset($data->invoiceBlocks)) return parent::renderTable($rec, $data);
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf') || $this->getReportLayoutTpl($rec)) {
+            $data->recs = acc_reports_InvoiceResult::readRange($data, 0, $data->invoiceRowCount);
+            unset($data->invoiceGroupEnds);
+
+            return parent::renderTable($rec, $data);
+        }
+        $pager = cls::get('core_Pager', array('itemsPerPage' => $rec->listItemsPerPage ?? $this->listItemsPerPage));
+        $pager->setPageVar('frame2_Reports', $rec->id);
+        $pager->itemsCount = $data->invoiceRowCount;
+        $pager->calc();
+        $data->recs = acc_reports_InvoiceResult::readRange($data, $pager->rangeStart,
+            $pager->rangeEnd - $pager->rangeStart, $data->invoiceGroupEnds);
+        $hidden = $this->getHiddenPriceFields($rec);
+        foreach ($data->recs as $key => $dRec) {
+            $row = $this->detailRecToVerbal($rec, $dRec);
+            foreach ($hidden as $field) {
+                if (isset($row->{$field}) && $row->{$field} !== '') $row->{$field} = doc_plg_HidePrices::getBuriedElement(false);
+            }
+            $data->rows[$key] = $row;
+        }
+        $tpl = new core_ET('[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
+        $fld = $this->getTableFieldSet($rec);
+        if (core_Packs::isInstalled('uiext') && $this->showUiextRowLabelsIfExist($rec)) {
+            uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
+        }
+        $this->groupRows($data->recs, $data->rows, $data->listFields, 'contragent', $data);
+        $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'contragent,_tagField');
+        $table = cls::get('core_TableView', array('mvc' => $fld));
+        $table->tableClass = 'listTable frame2Table ' . cls::getClassName($this);
+        $tpl->replace($table->get($data->rows, $fields), 'TABLE');
+        $tpl->replace($pager->getHtml(), 'PAGER_TOP');
+        $tpl->replace($pager->getHtml(), 'PAGER_BOTTOM');
+
+        return $tpl;
     }
 
 
@@ -1017,7 +1170,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             $balance = round($balance - $correction, 2);
             if ($withCorrections || $unpaid != 'all') $dRec->invoiceCurrentSumm = $balance / $rate;
-            $overdue = $withCorrections && !empty($dRec->dueDate) && $dRec->dueDate < dt::today() && round($balance / $rate, 2) > 0;
+            $overdue = $withCorrections && !empty($dRec->dueDate) && $dRec->dueDate < ($rec->_invoiceResultToday ?? dt::today()) && round($balance / $rate, 2) > 0;
             if ($withCorrections && (($unpaid == 'overdue' && !$overdue) || ($unpaid != 'all' && abs($balance / $rate) <= ($rec->sill ?? 0)))) {
                 unset($recs[$key]);
                 continue;
@@ -1069,7 +1222,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $rec->sill = $rec->sill ?? 0;
         $rec->{'seeProformаs'} = $rec->{'seeProformаs'} ?? null;
         $onlyOverdue = $rec->unpaid == 'overdue';
-        $today = dt::today();
+        $today = $rec->_invoiceResultToday ?? dt::today();
         $matchesPaymentType = function ($invoice) use ($rec) {
             return empty($rec->paymentType) || $rec->paymentType == (($invoice->paymentType ?? null) ?: ($invoice->autoPaymentType ?? null));
         };
@@ -1226,6 +1379,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $salesUN = $fastSales = $salesCombiners = array();
             /** @var core_Query $salesQuery */
             $salesQuery = sales_Sales::getQuery();
+            if (!empty($rec->_invoiceResultFolders) && isset($folderIds)) $salesQuery->in('folderId', $folderIds);
             $salesQuery->where("#closedDocuments != '' OR #contoActions LIKE '%pay%'");
             $salesQuery->show('id,threadId,folderId,closedDocuments,contoActions');
             $salesQuery->selectOnReplica();
@@ -1664,6 +1818,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $timer = microtime(true);
             /** @var core_Query $purchasesQuery */
             $purchasesQuery = purchase_Purchases::getQuery();
+            if (!empty($rec->_invoiceResultFolders) && isset($folderIds)) $purchasesQuery->in('folderId', $folderIds);
 
             $purchasesQuery->where("#closedDocuments != '' OR #contoActions LIKE '%pay%'");
             $purchasesQuery->show('id,threadId,folderId,closedDocuments,contoActions');
@@ -2212,8 +2367,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $previousGroup = $group;
             }
             $newRows[$index] = $row;
-            if (!$dRec || ($last[$dRec->contragent ?? ''] ?? null) !== $index || !isset($row->combinedSummary)
-                || countR($types[$dRec->contragent ?? ''] ?? array()) < 2) continue;
+            $lastInGroup = isset($data->invoiceGroupEnds) ? isset($data->invoiceGroupEnds[$index])
+                : ($last[$dRec->contragent ?? ''] ?? null) === $index;
+            $typeCount = isset($data->invoiceGroupEnds) ? ($data->invoiceGroupEnds[$index] ?? 0)
+                : countR($types[$dRec->contragent ?? ''] ?? array());
+            if (!$dRec || !$lastInGroup || !isset($row->combinedSummary) || $typeCount < 2) continue;
 
             $newRows['combined|' . $index] = $this->getSummaryRow($columns, $row->combinedSummary, $data);
         }

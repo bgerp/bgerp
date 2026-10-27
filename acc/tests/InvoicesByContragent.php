@@ -8,8 +8,11 @@ set_error_handler(function ($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
+class core_BaseClass extends stdClass {}
 class frame2_driver_Proto extends stdClass {
     public static function on_AfterGetFieldForLetterHead(frame2_driver_Proto $driver, embed_Manager $embedder, &$head, $rec, $row) {}
+    protected function logWhilePreparing($message) {}
+    public function tryToAutoRefresh($rec) { return true; }
 }
 class embed_Manager {}
 class frame2_Reports extends embed_Manager {
@@ -17,6 +20,26 @@ class frame2_Reports extends embed_Manager {
     public static $selectedVersion = null;
     public static $logs = array();
     public static $logReads = 0;
+    public static $records = array();
+    public static $rightsChecks = array(), $writes = array();
+    public function requireRightFor($action, $rec = null) { self::$rightsChecks[] = array($action, $rec->id ?? null); }
+    public function save_(&$rec, $fields) {
+        $stored = clone (self::$records[$rec->id] ?? new stdClass());
+        foreach (get_object_vars($rec) as $name => $value) $stored->{$name} = $value;
+        self::$records[$rec->id] = unserialize(serialize($stored));
+    }
+    public function logWrite($message, $id) { self::$writes[] = array($message, $id); }
+    public static function fetch($id, $fields = '*', $cache = false) {
+        $rec = isset(self::$records[$id]) ? clone self::$records[$id] : null;
+        if ($rec && Mode::is(self::LIGHT_FETCH_MODE)) unset($rec->data, $rec->log);
+        return $rec ? unserialize(serialize($rec)) : null;
+    }
+    public static function refresh($rec) {
+        $rec->data = (new InvoiceReportTest())->prepareData($rec);
+        self::$records[$rec->id] = unserialize(serialize($rec));
+        InvoiceTestData::$records['frame2_ReportVersions'][] = (object) array('id' => ++frame2_ReportVersions::$lastId,
+            'reportId' => $rec->id, 'oldRec' => unserialize(serialize($rec)));
+    }
     public static function getSelectedVersionId($id) { return self::$selectedVersion; }
     public static function fetchField($id, $field) {
         if ($field !== 'log') throw new RuntimeException('Не се допуска четене на резултата');
@@ -33,14 +56,43 @@ class dt {
     public static $date = '2026-10-15';
     public static function today($unused = true) { return self::$date; }
     public static function now() { return self::$date . ' 12:00:00'; }
+    public static function addSecs($seconds) { return date('Y-m-d H:i:s', strtotime(self::now()) + $seconds); }
     public static function mysql2verbal($date, $mask) { return date($mask, strtotime($date)); }
 }
 class Mode {
     public static $plain = false;
     public static $values = array();
     public static function set($name, $value = true) { self::$values[$name] = $value; }
-    public static function is($name, $value = null) { return self::$plain && $name == 'text' && $value == 'plain'; }
+    private static $stack = array();
+    public static function push($name, $value) { self::$stack[$name][] = self::$values[$name] ?? null; self::$values[$name] = $value; }
+    public static function pop($name) { self::$values[$name] = array_pop(self::$stack[$name]); }
+    public static function is($name, $value = null) {
+        return (self::$plain && $name == 'text' && $value == 'plain') || ($value === null && !empty(self::$values[$name]));
+    }
 }
+class Request {
+    public static $values = array();
+    public static function get($name, $type = null) { return self::$values[$name] ?? null; }
+}
+class core_Permanent {
+    const FOREVER_VALUE = 0;
+    public static $values = array(), $reads = array();
+    public static function get($key) { self::$reads[] = $key; return isset(self::$values[$key]) ? unserialize(serialize(self::$values[$key])) : null; }
+    public static function set($key, $value, $lifetime = 1) { self::$values[$key] = unserialize(serialize($value)); }
+    public static function remove($key) { unset(self::$values[$key]); }
+}
+class core_Locks {
+    public static $blocked = array();
+    public static function obtain($key, ...$args) { return empty(self::$blocked[$key]); }
+    public static function release($key) {}
+}
+class core_CallOnTime {
+    public static $calls = array();
+    public static function setOnce($class, $method, $data, $date) { self::$calls[] = array($class, $method, $data, $date); }
+}
+class core_Cron { public static function getTimeLeft() { return 50; } }
+function reportException($exception) { throw $exception; }
+function followRetUrl() { return (object) array('url' => 'return'); }
 class acc_Setup { public static function getEurozoneDate() { return '2026-01-01'; } }
 class acc_Periods {
     public static function getBaseCurrencyCode($date) { return $date < '2026-01-01' ? 'BGN' : 'EUR'; }
@@ -80,9 +132,16 @@ class core_FieldSet {
     }
 }
 class cls {
+    public static $invoiceCallsUntilFailure = null;
     public static function load($name, $silent = false) { return true; }
     public static function get($name) {
+        if ($name == 'frame2_Reports') return new frame2_Reports();
         if (is_subclass_of($name, 'InvoiceTestModel')) return new $name();
+        if ($name == 'acc_reports_InvoicesByContragent') {
+            if (self::$invoiceCallsUntilFailure === 0) throw new RuntimeException('Тестово прекъсване между две порции');
+            if (isset(self::$invoiceCallsUntilFailure)) self::$invoiceCallsUntilFailure--;
+            return new InvoiceReportTest();
+        }
         return $name == 'core_FieldSet' ? new core_FieldSet() : new InvoiceTestType($name);
     }
 }
@@ -146,6 +205,7 @@ if (!function_exists('mb_strtolower')) {
 }
 
 class InvoiceTestQuery {
+    public $onReplica = false;
     private $recs;
     public function __construct($recs) { $this->recs = array_values($recs); }
     public function show($fields) {}
@@ -153,6 +213,8 @@ class InvoiceTestQuery {
     public function orderBy($field, $direction) {}
     public function selectOnReplica() {}
     public function numRec() { return count($this->recs); }
+    public function count($condition = null, $limit = 0) { return $limit ? min($limit, count($this->recs)) : count($this->recs); }
+    public function limit($count) { $this->recs = array_slice($this->recs, 0, $count); }
     public function fetch() { return array_shift($this->recs); }
     public function fetchAll() { return array_map(function ($rec) { return clone $rec; }, $this->recs); }
     public function filter($callback) { $this->recs = array_values(array_filter($this->recs, $callback)); }
@@ -175,6 +237,8 @@ class InvoiceTestQuery {
                 if (strpos($condition[0], '#date <=') === 0) return $rec->date <= $condition[1];
                 if (strpos($condition[0], '#valior <=') === 0) return ($rec->valior ?? '') <= $condition[1];
                 if (strpos($condition[0], '#classId =') === 0) return ($rec->classId ?? null) == $condition[1];
+                if (strpos($condition[0], '#reportId =') === 0) return ($rec->reportId ?? null) == $condition[1];
+                if (strpos($condition[0], '#id >=') === 0) return $rec->id >= $condition[1];
                 if (strpos($condition[0], 'IF(#paymentType') === 0) return (($rec->paymentType ?? null) ?: ($rec->autoPaymentType ?? null)) == $condition[1];
             }
             if ($condition == "#type = 'invoice'") return ($rec->type ?? '') == 'invoice';
@@ -204,6 +268,11 @@ class InvoiceTestModel {
     }
 }
 class sales_Invoices extends InvoiceTestModel {}
+class frame2_ReportVersions extends InvoiceTestModel {
+    public static $lastId = 100;
+    public static function getLatestVersionId($reportId) { return self::$lastId; }
+    public static function unSelectVersion($reportId) { frame2_Reports::$selectedVersion = null; }
+}
 class sales_Proformas extends InvoiceTestModel {}
 class cash_Pko extends InvoiceTestModel {}
 class bank_IncomeDocuments extends InvoiceTestModel {}
@@ -283,7 +352,7 @@ class InvoiceTestData {
         $thread = ($direction == 'out' ? 1000 : 2000) + $id;
         $container = $thread + 10000;
         self::$records[$invoiceClass][] = (object)array(
-            'id' => $id, 'threadId' => $thread, 'containerId' => $container, 'number' => $id,
+            'id' => $id, 'threadId' => $thread, 'containerId' => $container, 'number' => $id, 'folderId' => 1,
             'date' => $date, 'dueDate' => $due, 'currencyId' => $currency, 'rate' => $rate,
             'dealValue' => $amount * $rate, 'discountAmount' => 0, 'vatAmount' => 0,
             'contragentName' => $name, 'type' => 'invoice', 'state' => 'active',
@@ -314,6 +383,7 @@ class InvoiceTestData {
 
 require dirname(__DIR__, 2) . '/frame2/driver/TableData.class.php';
 require dirname(__DIR__) . '/reports/InvoicesByContragent.class.php';
+require dirname(__DIR__) . '/reports/InvoiceResult.class.php';
 
 class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public $prices = true;
@@ -328,8 +398,10 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public function inputForm($form) { self::on_AfterInputEditForm($this, new embed_Manager(), $form); }
     public function beforeAction($action) {
         $res = null;
-        self::on_BeforeAction($this, new frame2_Reports(), $res, $action);
+        $status = self::on_BeforeAction($this, new frame2_Reports(), $res, $action);
+        return array($status, $res);
     }
+    public function beforeSave($rec) { self::on_BeforeSave($this, new frame2_Reports(), null, $rec); }
     public function exportRows($rec) { return $this->getRecsForExport($rec, null); }
     public function grouped($recs, &$rows, $fields, $data) { $this->groupRows($recs, $rows, $fields, $data->groupByField, $data); }
     public function canSeePriceFields($rec) { return $this->prices; }
