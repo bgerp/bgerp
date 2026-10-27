@@ -8,7 +8,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,7 +60,7 @@ class epay_plg_CheckForPayments extends core_Plugin
                 
                 // Ако е намерен инциатор, информира се за постъпилото плащане
                 if(cls::haveInterface('eshop_InitiatorPaymentIntf', $tokenData['initiatorClassId'])){
-                    $explained['ACTIONS'] = cls::get($tokenData['initiatorClassId'])->receivePayment($tokenData['initiatorId'], $paymentData['reason'], $paymentData['payerName'], $paymentData['amount'], 'BGN', $accountId, $rec->containerId);
+                    $explained['ACTIONS'] = cls::get($tokenData['initiatorClassId'])->receivePayment($tokenData['initiatorId'], $paymentData['reason'], $paymentData['payerName'] ?? null, $paymentData['amount'] ?? null, $paymentData['currency'] ?? 'BGN', $accountId, $rec->containerId);
                 } else {
                     $explained['ACTIONS'] = 'NONE';
                 }
@@ -91,8 +91,9 @@ class epay_plg_CheckForPayments extends core_Plugin
      * 
      * @param stdClass $rec
      * @return array $res
-     *            ['amount'] - сума в BGN
-     *            ['payer']  - име на платеца
+     *            ['amount']   - сума
+     *            ['currency'] - валута (BGN, EUR или USD)
+     *            ['payer']    - име на платеца
      *            ['reason'] - основание
      */ 
     private static function getPaymentData($rec)
@@ -102,9 +103,10 @@ class epay_plg_CheckForPayments extends core_Plugin
         
         // Извличане на сумата за плащане
         $amountMatches = array();
-        if(preg_match('/Amount:\s*([0-9]+\.[0-9]+)\s*BGN\s*/', $text, $amountMatches)){
+        if(preg_match('/Amount:\s*([0-9]+\.[0-9]+)\s*(BGN|EUR|USD)\s*/', $text, $amountMatches)){
             if(isset($amountMatches[1])){
                 $res['amount'] = trim(core_Type::getByName('double')->fromVerbal($amountMatches[1]));
+                $res['currency'] = $amountMatches[2];
             }
         }
         
