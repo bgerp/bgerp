@@ -30,6 +30,11 @@ class payment_ParserIso20022 extends core_BaseClass
     protected $maxSpamScore = 3;
 
 
+    /**
+     * Ограничения за автоматична обработка на прикачените извлечения.
+     */
+    const MAX_XML_BYTES = 20971520;
+    const MAX_ZIP_ENTRIES = 100;
 
 
     /**
@@ -37,6 +42,24 @@ class payment_ParserIso20022 extends core_BaseClass
      */
     public static function addFields(&$mvc)
     {
+        $mvc->FLD('archivePassword', 'password', 'caption=ZIP архиви->Парола,before=note,single=none');
+    }
+
+
+    /**
+     * Запазва паролата при редакция без промяна на полето.
+     */
+    public static function on_AfterInputEditForm($Driver, $Embedder, &$form)
+    {
+        if ($form->isSubmitted()) {
+            if (!isset($form->rec->archivePassword) && !empty($form->rec->id)) {
+                $oldRec = $Embedder->fetch((int) $form->rec->id);
+                $form->rec->archivePassword = $oldRec->archivePassword ?? null;
+            }
+            if (strpos($form->rec->archivePassword ?? '', "\0") !== false) {
+                $form->setError('archivePassword', 'Паролата съдържа недопустим нулев байт');
+            }
+        }
     }
 
     
@@ -56,6 +79,13 @@ class payment_ParserIso20022 extends core_BaseClass
         // Обект за върнатия резултат
         $res = new stdClass();
         $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
+
+        $xml = ltrim($xml, "\xEF\xBB\xBF \t\r\n");
+        if (stripos($xml, '<!DOCTYPE') !== false) {
+            $res->errors[] = 'XML извлечението не трябва да съдържа DTD';
+
+            return $res;
+        }
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
         $previous = libxml_use_internal_errors(true);
@@ -73,15 +103,18 @@ class payment_ParserIso20022 extends core_BaseClass
             return $res;
         }
 
-        if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
-            $array = $transactions->BkToCstmrAcctRpt->Rpt;
-        } else {
-            $array = $transactions->BkToCstmrStmt->Stmt;
+        $array = null;
+        foreach ($transactions->getDocNamespaces() as $namespace) {
+            if (preg_match('/^urn:iso:std:iso:20022:tech:xsd:camt\.(052|053)\.[0-9]+\.[0-9]+$/D', $namespace, $format)) {
+                $document = $transactions->children($namespace);
+                $array = $format[1] == '052' ? $document->BkToCstmrAcctRpt->Rpt : $document->BkToCstmrStmt->Stmt;
+                break;
+            }
         }
         
         if (!$array) {
-            if (strpos(implode('|', $transactions->getNamespaces()), 'camt.053') !== false) {
-                $res->warnings[] = "Друг формата - camt.053";
+            if (isset($document)) {
+                $res->warnings[] = 'Липсва съдържание на CAMT извлечението';
                 
                 return $res;
             }
@@ -105,15 +138,15 @@ class payment_ParserIso20022 extends core_BaseClass
                 continue;
             }
             
-            $ownBankAccRec = bank_OwnAccounts::fetch("#bankAccountId = {$bankAccRec->id}");
+            $ownBankAccRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $bankAccRec->id ?? null));
             if (!$ownBankAccRec) {
                 $res->warnings[] = "Сметката с IBAN {$iban} не е собствена";
                 continue;
             }
             
-            $owrName = (string) $stmt->Acct->Ownr->Nm;
-            $bank = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
-            $bic = (string) $stmt->Acct->Svcr->FinInstnId->BIC;
+            $owrName = self::getXmlText($stmt, 'Acct/Ownr/Nm');
+            $bank = self::getXmlText($stmt, 'Acct/Svcr/FinInstnId/Nm');
+            $bic = self::getXmlText($stmt, 'Acct/Svcr/FinInstnId/BIC');
             
             $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
 
@@ -204,6 +237,80 @@ class payment_ParserIso20022 extends core_BaseClass
 
 
     /**
+     * Чете файл или съдържанието на ZIP, без да разпакетира пътища на диска.
+     * Паролата на конкретния файл има предимство пред тази на правилото.
+     */
+    protected static function getAttachmentContents($fh, $password = null)
+    {
+        $path = fileman_Files::fetchByFh($fh, 'path');
+        $size = $path && is_readable($path) ? filesize($path) : false;
+        if ($size === false || $size > self::MAX_XML_BYTES) {
+            throw new fileman_Exception('Извлечението липсва или надвишава 20 MB');
+        }
+
+        $signature = file_get_contents($path, false, null, 0, 4);
+        $name = fileman_Files::fetchByFh($fh, 'name');
+        if (strtolower(fileman::getExt($name)) != 'zip' && !in_array($signature, array("PK\x03\x04", "PK\x05\x06"), true)) {
+            $content = file_get_contents($path, false, null, 0, self::MAX_XML_BYTES + 1);
+            if ($content === false || strlen($content) > self::MAX_XML_BYTES) {
+                throw new fileman_Exception('Не може да се прочете извлечението');
+            }
+
+            return array($content);
+        }
+
+        if (!class_exists('ZipArchive')) {
+            throw new fileman_Exception('За ZIP извлечения е необходимо PHP разширението zip');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($path, ZipArchive::CHECKCONS) !== true) {
+            throw new fileman_Exception('Не може да се отвори ZIP извлечението');
+        }
+
+        try {
+            $filePassword = fileman_webdrv_Generic::getPassword($fh);
+            if ($filePassword !== null) {
+                $password = $filePassword;
+            }
+            if (isset($password) && $password !== '') {
+                if (strpos($password, "\0") !== false || !$zip->setPassword($password)) {
+                    throw new fileman_Exception('Невалидна парола за ZIP извлечението');
+                }
+            }
+            if ($zip->numFiles > self::MAX_ZIP_ENTRIES) {
+                throw new fileman_Exception('ZIP извлечението съдържа повече от 100 записа');
+            }
+
+            $contents = array();
+            $totalSize = 0;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if ($stat === false || !isset($stat['size'])) {
+                    throw new fileman_Exception('Не може да се прочете съдържанието на ZIP извлечението');
+                }
+                $entrySize = $stat['size'];
+                $totalSize += $entrySize;
+                if ($entrySize < 0 || $totalSize > self::MAX_XML_BYTES) {
+                    throw new fileman_Exception('Разархивираното извлечение надвишава 20 MB');
+                }
+                if (!$entrySize) {
+                    continue;
+                }
+                $content = @$zip->getFromIndex($i, self::MAX_XML_BYTES + 1);
+                if ($content === false || strlen($content) != $entrySize) {
+                    throw new fileman_Exception('Не може да се прочете ZIP извлечението. Проверете паролата на файла или на правилото');
+                }
+                $contents[] = $content;
+            }
+
+            return $contents;
+        } finally {
+            $zip->close();
+        }
+    }
+
+
+    /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел
      *
@@ -216,7 +323,7 @@ class payment_ParserIso20022 extends core_BaseClass
      */
     public function process($mime, $serviceRec)
     {
-        $sScore = email_Spam::getSpamScore($mime->parts[1]->headersArr, true, $mime);
+        $sScore = email_Spam::getSpamScore($mime->parts[1]->headersArr ?? array(), true, $mime);
         
         if ($sScore >= $this->maxSpamScore) {
             
@@ -238,21 +345,21 @@ class payment_ParserIso20022 extends core_BaseClass
         }
 
         $res = false;
+        $failed = false;
         
         foreach ($filesArr as $fId) {
-            $fName = fileman::fetchField($fId, 'name');
-            $fExt = fileman::getExt($fName);
+            $fh = fileman::fetchField($fId, 'fileHnd');
+            try {
+                $contents = static::getAttachmentContents($fh, $serviceRec->archivePassword ?? null);
+            } catch (fileman_Exception $e) {
+                fileman::logWarning('ISO20022: ' . $e->getMessage(), $fId);
+                $failed = true;
+                continue;
+            }
 
-            if ($fExt == 'xml') {
-                $fh = fileman::fetchField($fId, 'fileHnd');
-                $xml = fileman::extractStr($fh);
-
-                $isoPos = strpos($xml, 'iso:20022');
-
-                if (($isoPos === false) || ($isoPos > 100)) {
-
-                    fileman::logWarning('ISO20022 стринга е много назад', $fId);
-
+            foreach ($contents as $xml) {
+                // Форматът се разпознава по съдържанието, включително при .camt.
+                if (strpos($xml, 'urn:iso:std:iso:20022:tech:xsd:camt.') === false) {
                     continue;
                 }
                 
@@ -260,22 +367,25 @@ class payment_ParserIso20022 extends core_BaseClass
                 
                 if (!$parsed) {
                     fileman::logWarning('Не може да се извлекат данни за ISO20022', $fId);
+                    $failed = true;
                     
                     continue;
                 }
                 
-                if (countR($parsed->warnings)) {
-                    fileman::logWarning('ISO20022 предупреждения: ' . implode(' ', $parsed->warnings), $fId);
+                if (!empty($parsed->warnings)) {
+                    fileman::logWarning('ISO20022 предупреждения: ' . implode(' ', $parsed->warnings ?? array()), $fId);
+                    $failed = true;
                 }
                 
-                if (countR($parsed->errors)) {
-                    fileman::logWarning('ISO20022 грешки: ' . implode(' ', $parsed->errors), $fId);
+                if (!empty($parsed->errors)) {
+                    fileman::logWarning('ISO20022 грешки: ' . implode(' ', $parsed->errors ?? array()), $fId);
+                    $failed = true;
                 }
                 
-                if (!countR($parsed->recs)) {
+                if (empty($parsed->recs)) {
                     fileman::logNotice('ISO20022: Няма записи', $fId);
                 } else {
-                    $status = bank_Register::importRecs($parsed->recs);
+                    $status = bank_Register::importRecs($parsed->recs ?? array());
                     fileman::logNotice('ISO20022: ' . $status, $fId);
                     
                     $matches = bank_Register::findMatches();
@@ -286,6 +396,6 @@ class payment_ParserIso20022 extends core_BaseClass
             }
         }
         
-        return $res;
+        return $failed ? false : $res;
     }
 }
