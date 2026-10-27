@@ -105,6 +105,20 @@ try {
             cleanupCheck($validatePath->invoke(null, $work, $path) === false, 'An explicit root does not bypass path protection');
         }
     }
+    if (DIRECTORY_SEPARATOR === '/') {
+        foreach (array('/etc', '/var', '/usr', '/home', '/opt', '/srv') as $path) {
+            if (!is_dir($path)) {
+                continue;
+            }
+            foreach (array($path, $path . '/', $path . '/.', $path . '/../' . basename($path)) as $alias) {
+                cleanupCheck($normalizePath->invoke(null, $alias) === false, 'Reject top-level directories and their aliases');
+                cleanupCheck($validatePath->invoke(null, $alias, $alias) === false, 'An explicit root cannot authorize a top-level directory');
+            }
+        }
+        if (is_dir('/var/cache')) {
+            cleanupCheck($validatePath->invoke(null, '/var/cache', '/var') === false, 'Reject a top-level allowed root even when the selected directory is deeper');
+        }
+    }
     $appPath = realpath(dirname(__DIR__, 2));
     for ($path = $appPath; ; $path = $parent) {
         cleanupCheck($normalizePath->invoke(null, $path) === false, 'Preserve application roots and their ancestors');
@@ -134,6 +148,7 @@ try {
     }
 
     $moduleRoot = $base . '/module-generated';
+    cleanupCheck($validatePath->invoke(null, $base, $base) === realpath($base), 'A dedicated directory directly inside system temp remains usable');
     mkdir($moduleRoot . '/finished/nested', 0700, true);
     cleanupFile($moduleRoot . '/finished/nested/old', $old, $old);
     cleanupFile($moduleRoot . '/finished/nested/recent', $recent, $recent);

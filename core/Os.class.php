@@ -240,7 +240,7 @@ class core_Os
 
 
     /**
-     * Проверява реалния път, без да допуска системния корен или символни връзки.
+     * Проверява реалния път, без системния корен, директните му деца или символни връзки.
      *
      * @return string|false
      */
@@ -252,7 +252,13 @@ class core_Os
 
         clearstatcache(true);
         $path = realpath($dir);
-        if ($path === false || dirname($path) === $path || !is_dir($path)) {
+        if ($path === false || !is_dir($path)) {
+            return false;
+        }
+
+        // Изискваме конкретна папка, а не цял системен раздел като /etc или /var.
+        $parent = dirname($path);
+        if ($parent === $path || dirname($parent) === $parent) {
             return false;
         }
 
