@@ -169,11 +169,14 @@ class core_Composer extends core_Mvc
     /**
      * Инсталира зададения пакет и версия
      *
+     * @param string $pack
+     * @param string $version
+     * @param bool   $exactVersion - позволява връщане към избрана по-стара версия
      * @return string
      */
-    public static function install($pack, $version = '')
+    public static function install($pack, $version = '', $exactVersion = false)
     {
-        if(self::isInstalled($pack, $version)) {
+        if(self::isInstalled($pack, $version, $exactVersion)) {
 
             return "<li><strong>Composer require</strong>: пакета `{$pack} {$version}` е бил инсталиран от по-рано</li>";
         }
@@ -220,8 +223,13 @@ class core_Composer extends core_Mvc
 
     /**
      * Проверява дали даден пакет е инсталиран
+     *
+     * @param string      $pack
+     * @param string|null $version
+     * @param bool        $exactVersion - иначе се приема и по-нова версия
+     * @return bool
      */
-    public static function isInstalled($pack, $version = null)
+    public static function isInstalled($pack, $version = null, $exactVersion = false)
     {
         if(!countR(self::$packs)) {
             self::$packs = core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
@@ -258,7 +266,7 @@ class core_Composer extends core_Mvc
         
         if(isset(self::$packs[$pack])) {
             $res = true;
-            if ($version !== null && $version !== '' && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
+            if ($version !== null && $version !== '' && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), $exactVersion ? '==' : '>=')) {
 
                 $res = false;
             }
