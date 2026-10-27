@@ -14,6 +14,22 @@ class PreviewClockTargetTimes extends ScenarioTargetTimes {
         return parent::simulate($rec, $policy, $resolution, $context, $now);
     }
 }
+class planning_StepConditions {
+    public static $rows = array();
+    public static function getQuery() { return new FixtureQuery(self::$rows); }
+}
+class RebuiltConstraintsTargetTimes extends PreviewClockTargetTimes {
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null, $now = null) {
+        $context = clone ($context ?? self::$context);
+        $context->previous = array();
+        foreach (planning_TaskConstraints::calculateTaskConstraints($context->tasks ?? array()) as $constraint) {
+            if (($constraint->type ?? null) === 'prevId') {
+                $context->previous[$constraint->taskId ?? 0][$constraint->previousTaskId ?? 0] = $constraint;
+            }
+        }
+        return parent::simulate($rec, $policy, $resolution, $context, $now);
+    }
+}
 function clockContext() {
     dt::$now = '2026-10-08 08:00:00';
     core_Users::$current = 7;
@@ -21,17 +37,64 @@ function clockContext() {
     PreviewClockTargetTimes::$context = planContext(array(1 => task(1), 2 => task(2), 3 => task(3, 3600, null, 2)));
     planning_Tasks::$records = PreviewClockTargetTimes::$context->baseline;
 }
-function clockPreview($start = '2026-10-08 15:00:00') {
+function clockPreview($start = '2026-10-08 15:00:00', $controller = 'PreviewClockTargetTimes') {
     $form = scenarioForm((object)array('id' => 2, 'assetId' => 1, 'timeStart' => $start));
-    PreviewClockTargetTimes::validateForm(new planning_Tasks(), $form);
+    $controller::validateForm(new planning_Tasks(), $form);
     check($form->gotErrors() && !empty($form->_targetTimesReport['hash']), 'Clock preview requires confirmation');
     return $form;
 }
-function clockApply($preview) {
+function clockApply($preview, $controller = 'PreviewClockTargetTimes') {
     $form = scenarioForm($preview->rec);
     $form->rec->targetPreviewAccepted = 'yes';
-    PreviewClockTargetTimes::validateForm(new planning_Tasks(), $form);
+    $controller::validateForm(new planning_Tasks(), $form);
     return $form;
+}
+function rebuiltConstraintsContext() {
+    clockContext();
+    $rows = array(1 => task(1, 3600, null, 2), 2 => task(2));
+    foreach ($rows as $id => $row) {
+        $row->originId = 100;
+        $row->saoOrder = $id;
+        $row->folderId = 1;
+        $row->offsetAfter = 0;
+    }
+    PreviewClockTargetTimes::$context = planContext($rows);
+    planning_Tasks::$records = PreviewClockTargetTimes::$context->baseline;
+    planning_StepConditions::$rows = array((object)array('stepId' => 2, 'prevStepId' => 1, 'delay' => 0, 'intersect' => 'no'));
+}
+
+// Истинското изчисляване добавя нов updatedOn при всяка заявка, дори с непроменен план.
+rebuiltConstraintsContext();
+$preview = clockPreview('2026-10-08 15:00:00', 'RebuiltConstraintsTargetTimes');
+for ($attempt = 1; $attempt <= 10; $attempt++) {
+    dt::$now = dt::addSecs($attempt * 30, '2026-10-08 08:00:00');
+    $accepted = clockApply($preview, 'RebuiltConstraintsTargetTimes');
+    check(!$accepted->gotErrors() && !empty($accepted->rec->_targetTimesChanged),
+        'Rebuilt production constraints accept the same approval on attempt ' . $attempt . ': '
+        . implode(' ', $accepted->_targetTimesReport['approvalChanges'] ?? array()));
+}
+$simulation = RebuiltConstraintsTargetTimes::simulate($preview->rec);
+$constraint = $simulation->scheduled->previousTasks[2][1] ?? null;
+$expected = (array)$constraint;
+unset($expected['updatedOn']);
+check(($constraint->updatedOn ?? null) === dt::now()
+    && ($simulation->approval['operations'][2]['previous'][1] ?? null) == $expected,
+    'Approval omits only updatedOn and leaves the full original dependency unchanged');
+
+foreach (array('delay' => 1800, 'intersect' => 'yes') as $field => $value) {
+    rebuiltConstraintsContext();
+    $preview = clockPreview('2026-10-08 15:00:00', 'RebuiltConstraintsTargetTimes');
+    planning_StepConditions::$rows[0]->{$field} = $value;
+    dt::$now = '2026-10-08 08:00:01';
+    $stale = clockApply($preview, 'RebuiltConstraintsTargetTimes');
+    check($stale->gotErrors() && empty($stale->rec->_targetTimesChanged)
+        && strpos(implode(' ', $stale->_targetTimesReport['approvalChanges'] ?? array()), 'Opr2: променени са технологичните зависимости') !== false,
+        'A real rebuilt constraint ' . $field . ' change still requires a new approval');
+    dt::$now = '2026-10-08 08:00:02';
+    $accepted = clockApply($stale, 'RebuiltConstraintsTargetTimes');
+    check(!$accepted->gotErrors() && !empty($accepted->rec->_targetTimesChanged),
+        'The refreshed ' . $field . ' proposal can be confirmed without another metadata-only loop: '
+        . implode(' ', $accepted->errors ?? array()) . ' ' . implode(' ', $accepted->_targetTimesReport['approvalChanges'] ?? array()));
 }
 
 clockContext();

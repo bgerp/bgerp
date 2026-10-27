@@ -113,10 +113,16 @@ class planning_TargetTimeApproval extends core_BaseClass
         $newLinks = static::links($scheduled->assets ?? array(), $tasks);
         $snapshot = array('policy' => $policy, 'resolution' => $resolution, 'operations' => array(), 'orders' => array());
         foreach ($scope as $id => $unused) {
+            $constraints = array();
+            foreach ($previous[$id] ?? array() as $previousId => $constraint) {
+                $constraints[$previousId] = (array)$constraint;
+                // Часът на преизчисляване не е промяна в технологичното ограничение.
+                unset($constraints[$previousId]['updatedOn']);
+            }
             $snapshot['operations'][$id] = array(
                 'dataBefore' => static::data($baseline[$id] ?? null), 'dataAfter' => static::data($tasks[$id] ?? null),
                 'before' => static::placement($before[$id] ?? null), 'after' => static::placement($after[$id] ?? null),
-                'previous' => $previous[$id] ?? array(), 'links' => array($oldLinks[$id] ?? null, $newLinks[$id] ?? null),
+                'previous' => $constraints, 'links' => array($oldLinks[$id] ?? null, $newLinks[$id] ?? null),
             );
         }
         foreach (array_unique(array_filter(array($baseline[$rec->id ?? -1]->assetId ?? null, $rec->assetId ?? null))) as $assetId) {
