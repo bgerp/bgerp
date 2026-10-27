@@ -2586,9 +2586,10 @@ class core_Users extends core_Manager
     public static function filterUserForMigrateFolders($type)
     {
         foreach ($type->options as $id => $opt) {
-            $value = is_object($opt) ? $opt->value : $opt;
+            // Заглавията на групи в опциите са обекти без value
+            $value = is_object($opt) ? ($opt->value ?? null) : $opt;
             
-            if ($value == $type->params['preventId']) {
+            if (isset($value) && $value == ($type->params['preventId'] ?? null)) {
                 unset($type->options[$id]);
             }
         }
