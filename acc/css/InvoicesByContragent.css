@@ -49,6 +49,21 @@
     overflow-wrap: break-word;
 }
 
+.invoicesByContragentInfo .invoice-report-filter-options {
+    display: flex;
+    column-gap: 16px;
+}
+
+.invoicesByContragentInfo .invoice-report-filter-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.invoicesByContragentInfo .invoice-report-filter-flags {
+    flex: 0 0 auto;
+    max-width: 50%;
+}
+
 .acc_reports_InvoicesByContragent td.invoice-report-base-value {
     color: #555;
     font-size: 85%;

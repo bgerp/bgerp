@@ -70,6 +70,17 @@ foreach (array('out', 'in', 'all') as $kind) {
                     check($foldersToBatch[3] === $foldersToBatch[4], 'Еднаквите имена запазват старото общо обобщение');
                     $snapshot = acc_reports_InvoiceResult::finish($job);
                     $rows = acc_reports_InvoiceResult::readRange($snapshot, 0, $snapshot->invoiceRowCount);
+                    check(array_keys($rows) === array_keys($full->recs), 'Еднакъв ред на фирмите и фактурите при порции и малка справка');
+                    $dates = array();
+                    $lastGroup = null;
+                    foreach ($rows as $row) {
+                        $group = $row->invoiceGroup ?? $row->contragent ?? '';
+                        check($group === $lastGroup || !isset($dates[$group]), 'Изходящи и входящи остават в отделни последователни групи');
+                        $date = $row->invoiceDate ?? '';
+                        check(!isset($dates[$group]) || $dates[$group] >= $date, 'Най-новите фактури са първи във всяка група, включително с МО1387');
+                        $dates[$group] = $date;
+                        $lastGroup = $group;
+                    }
                     $fullRows = $full->recs;
                     ksort($rows);
                     ksort($fullRows);
