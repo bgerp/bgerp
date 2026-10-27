@@ -1,0 +1,45 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "0946f10eb172d24ac2017fd64cb318f5",
+    "packages": [
+        {
+            "name": "bgerp/tika-app-3",
+            "version": "3.3.3",
+            "dist": {
+                "type": "file",
+                "url": "https://archive.apache.org/dist/tika/3.3.3/tika-app-3.3.3.jar",
+                "shasum": "7a23f5b43f6cdf6ec1839b4cc282743e81747dfb"
+            },
+            "type": "library",
+            "license": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "name": "bgerp/tika-app-4",
+            "version": "4.1.0",
+            "dist": {
+                "type": "zip",
+                "url": "https://archive.apache.org/dist/tika/4.1.0/tika-app-4.1.0.zip",
+                "shasum": "b6a6f37720f82537f0ba8f9e75dda5dca518f1bb"
+            },
+            "type": "library",
+            "license": [
+                "Apache-2.0"
+            ]
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}
