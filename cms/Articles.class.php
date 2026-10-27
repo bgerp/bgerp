@@ -700,7 +700,7 @@ class cms_Articles extends core_Master
         $searchForm->layout->replace(ht::escapeAttr($q), 'VALUE');
         $searchForm->setHidden($menuVar, $menuId);
 
-        return $searchForm->renderHtml();
+        return $searchForm->renderHtml(null, array($menuVar => $menuId));
     }
     
     

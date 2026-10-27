@@ -1,5 +1,8 @@
 <?php
 
+require_once dirname(__DIR__, 2) . '/SelectorFilter.class.php';
+
+
 /**
  * CSS to Inline Styles class
  *
@@ -239,12 +242,16 @@ class CSSToInlineStyles
 		// create new XPath
 		$xPath = new DOMXPath($document);
 
+		$selectorFilter = new csstoinline_SelectorFilter($xPath);
+
 		// any rules?
 		if(!empty($this->cssRules))
 		{
 			// loop rules
 			foreach($this->cssRules as $rule)
 			{
+				if (!$selectorFilter->mayMatch($rule['selector'])) continue;
+
 				// init var
 				$query = $this->buildXPathQuery($rule['selector']);
 

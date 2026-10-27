@@ -294,9 +294,9 @@ class store_ConsignmentProtocols extends core_Master
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
 
         if (isset($fields['-single'])) {
-            if($rec->protocolType == 'protocol'){
+            if(($rec->protocolType ?? null) == 'protocol'){
                 unset($row->protocolType);
-            } else {
+            } elseif(isset($row->protocolType)) {
                 $row->protocolType = mb_strtoupper(tr($row->protocolType));
             }
 

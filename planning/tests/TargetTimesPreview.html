@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<title>Тест на предварителния преглед на целеви времена</title>
+<link rel="stylesheet" href="/planning/tpl/TaskReordering.css">
+<link rel="stylesheet" href="/floatingui/css/Hints.css">
+<style>body {font: 14px Arial; padding: 20px;} #result {white-space: pre-wrap;}</style>
+<h1>Изолиран тест — без приложение и база данни</h1>
+<p>Проверява подредбата преди/след, отказа и потвърждението. Формата не изпраща заявка.</p>
+<button type="button" id="package">Пример: конфликт в пакет</button>
+<button type="button" id="free">Пример: свободна операция</button>
+<button type="button" id="checks">Автоматични UI проверки</button>
+<form>
+    <input name="timeStart" value="30.10.2026 14:00">
+    <input type="hidden" name="targetPreviewAccepted" value="no">
+    <input type="hidden" name="targetPreviewHash" value="">
+    <input type="hidden" name="targetResolution" value="keep">
+    <select name="targetPackagePolicy"><option value="keep">Запази пакетите</option><option value="detach">Извади от пакета</option></select>
+</form>
+<pre id="result">Няма изпратен вариант.</pre>
+<script src="/jquery/3.7.1/jquery.min.js"></script>
+<script src="/planning/js/TaskOrderReport.js"></script>
+<script src="/floatingui/1.8.0/floating-ui.core.umd.min.js"></script>
+<script src="/floatingui/1.8.0/floating-ui.dom.umd.min.js"></script>
+<script src="/floatingui/js/Hints.js"></script>
+<script>
+// Демонстрационните данни никога не се изпращат към bgERP.
+const legend = 'Номерата следват операциите; ↑/↓ показват преместването в реда. Получер: променено време; зелено: по-рано; червено: по-късно. Синята рамка свързва операциите в пакет. Габърчето показва фиксирано начало — посочете го за подробности.';
+const legendHint = $('<span>', {class: 'targetTimeLegend'}).append($('<span>', {class: 'endTooltip fuiHint', 'data-hint': legend})
+    .append($('<img>', {src: '/img/32/info-gray.png', width: 16, height: 16, alt: 'Пояснение на прегледа'})))[0].outerHTML;
+function sampleReport(mode, free) {
+    const moving = mode !== 'nearest';
+    const detached = mode === 'detach';
+    const changedOther = moving && !detached;
+    const requested = free ? '10:00' : '14:00';
+    const next = free ? '12:00' : '16:00';
+    const report = {
+        hash: 'hash-' + mode, requestedStart: '30.10.2026 ' + requested, proposedStart: moving ? '30.10.2026 ' + requested : '30.10.2026 08:00',
+        operationChanges: [
+            {operation: 'Opr6396', asset: 'П10', before: ['30.10.2026 08:00', '30.10.2026 09:59'],
+                after: moving ? ['30.10.2026 ' + requested, '30.10.2026 ' + (free ? '11:59' : '15:59')] : ['30.10.2026 08:00', '30.10.2026 09:59'],
+                pinBefore: '—', pinAfter: moving ? '30.10.2026 ' + requested : '30.10.2026 08:00', pinChanged: true,
+                positionBefore: 1, positionAfter: detached ? 2 : 1, linkBefore: '—', linkAfter: '—'},
+            {operation: 'Opr6397', asset: 'П10', before: ['30.10.2026 10:00', '30.10.2026 10:59'],
+                after: changedOther ? ['30.10.2026 ' + next, '30.10.2026 ' + (free ? '12:59' : '16:59')] : ['30.10.2026 10:00', '30.10.2026 10:59'],
+                pinBefore: '30.10.2026 10:00', pinAfter: changedOther ? '30.10.2026 ' + next : '30.10.2026 10:00', pinChanged: changedOther,
+                positionBefore: 2, positionAfter: detached ? 1 : 2, linkBefore: free ? '—' : 'Opr6396', linkAfter: detached || free ? '—' : 'Opr6396'}
+        ],
+        idleChanges: [], idleTotals: {}, optimizationMetrics: {}, legendHint: legendHint
+    };
+    const asDate = function (value) { return value.replace(/(\d{2})\.(\d{2})\.(\d{4}) (\d{2}:\d{2})/, '$3-$2-$1 $4'); };
+    const group = {asset: '[П10] Тестова машина', before: [], after: []};
+    report.operationChanges.forEach(function (row, index) {
+        ['before', 'after'].forEach(function (side) {
+            group[side].push({id: 6396 + index, operation: row.operation, number: index + 1, state: index ? 'stopped' : 'pending',
+                start: row[side][0], end: row[side][1], pin: side === 'before' ? row.pinBefore : row.pinAfter,
+                pinBefore: row.pinBefore, pinChanged: row.pinChanged,
+                previous: row[side === 'before' ? 'linkBefore' : 'linkAfter'] === 'Opr6396' ? 6396 : null,
+                startChange: Math.sign(asDate(row.after[0]).localeCompare(asDate(row.before[0]))),
+                endChange: Math.sign(asDate(row.after[1]).localeCompare(asDate(row.before[1])))});
+        });
+    });
+    if (detached) group.after.reverse();
+    report.operationOrder = [group];
+    return report;
+}
+function showSample(withPackage) {
+    showTargetTimesPreview({command: 'save', legendHint: legendHint, conflictText: withPackage
+        ? 'Желаното начало на Opr6396 противоречи на фиксираното начало на Opr6397 в същия пакет.'
+        : 'Свободната операция застъпва фиксирани операции на машината.',
+        alternatives: [
+            {mode: 'move', policy: 'keep', title: 'Запази желания час и промени конфликтните фиксирани начала', available: true, report: sampleReport('move', !withPackage)},
+            {mode: 'nearest', policy: 'keep', title: 'Запази чуждите фиксирани начала и предложи близко допустимо начало', available: true, report: sampleReport('nearest', !withPackage)},
+            {mode: 'keep', policy: 'detach', title: 'Извади операцията от пакета и запази желания час', available: withPackage,
+                reason: 'Операцията не е в пакет.', report: sampleReport('detach')}
+        ]});
+}
+$('#package').on('click', function () { showSample(true); });
+$('#free').on('click', function () { showSample(false); });
+$('#checks').on('click', function () {
+    $('[name="Cmd[save]"]').remove();
+    let count = 0;
+    const check = function (condition, message) { if (!condition) throw new Error(message); count++; };
+    const choose = function (index) { $('#optimizationIdleReport .targetTimeChoice button').eq(index).trigger('click'); };
+    showSample(true);
+    check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ', 'Преди избор има само Отказ');
+    check($('.targetTimeConflict strong').text().includes('Opr6396 (1)') && $('.targetTimeConflict strong').text().includes('Opr6397 (2)'), 'Проблемът е получер и включва номерата от прегледа още преди избор');
+    check($('#optimizationIdleReport').hasClass('targetTimeReport'), 'Компактната ширина е ограничена до този преглед');
+    choose(0);
+    check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ|Приложи', 'След избор има точно два бутона');
+    check($('.targetTimeSide-before tbody tr').length === 2 && $('.targetTimeSide-after tbody tr').length === 2, 'Две пълни подредби');
+    check(!$('.targetTimeProposal > p.targetTimeLegend').length && $('.targetTimeMachine h3 .targetTimeLegend img').length === 1, 'Пояснението е иконка след името на машината, а не постоянен абзац');
+    check($('.targetTimeLegend .fuiHint').attr('data-hint') === legend, 'Стандартният хинт съдържа цялото пояснение');
+    check(parseInt($('.fuiHintLayer').css('z-index'), 10) > parseInt($('#optimizationIdleReport').css('z-index'), 10), 'Хинтът е над диалога, не зад него');
+    check(parseFloat($('.fuiHintLayer').css('max-width')) <= 480, 'Пояснението е в компактно балонче');
+    check(parseFloat($('.targetTimeChoice button').first().css('margin-bottom')) >= 5, 'Има отстояние между бутона и пояснителния ред');
+    check($('.targetTimeSide-after th').map(function () { return $(this).text(); }).get().join('|') === '№|Начало|Операция|Край', 'Кратки заглавия на колоните');
+    check(!$('.targetTimeMove').length, 'Промяна само на час не показва стрелка за преместване в реда');
+    check($('.targetTimeSide-after .targetTimeLater').length === 4 && !$('.targetTimeSide-before .targetTimeLater').length, 'По-късните времена са отбелязани само вдясно');
+    check($('.targetTimeSide-after .targetTimePin').first().parent().attr('title').includes('→'), 'Променената фиксация има подсказка преди/след');
+    check($('.targetTimePackageStart').length === 2 && $('.targetTimePackageEnd').length === 2, 'Пакетът е показан и от двете страни');
+    choose(2);
+    check($('.targetTimeSide-before .targetTimeNumber').map(function () { return $(this).text(); }).get().join(',') === '1,2', 'Оригиналната номерация е запазена');
+    check($('.targetTimeSide-after .targetTimeNumber').map(function () { return $(this).text(); }).get().join(',') === '2 ↑,1 ↓', 'Номерата следват разместването и показват посоката');
+    check($('.targetTimeSide-after .targetTimeMove').eq(0).attr('title') === 'Преместена нагоре: място 2 → 1'
+        && $('.targetTimeSide-after .targetTimeMove').eq(1).attr('title') === 'Преместена надолу: място 1 → 2', 'Стрелките имат пояснения за старото и новото място');
+    check(!$('.targetTimeSide-before .targetTimeMove').length, 'Стрелки има само вдясно');
+    check(!$('.targetTimeSide-after .targetTimePackage').length, 'Разкаченият пакет няма рамка вдясно');
+    const original = $('[name="timeStart"]').val();
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    check(!$('#optimizationIdleReport').length && $('[name="timeStart"]').val() === original, 'Отказ оставя въведените данни в редакцията');
+    check(!$('body').hasClass('targetTimePreviewOpen'), 'Затварянето премахва локалния режим за хинтове');
+    check($('[name="targetPreviewAccepted"]').val() === 'no' && $('[name="targetPreviewHash"]').val() === '', 'Отказ изчиства потвърждението');
+    const earlier = sampleReport('nearest');
+    earlier.operationOrder[0].after[0].startChange = -1;
+    showTargetTimesPreview(earlier);
+    check($('.targetTimeSide-after .targetTimeEarlier').length === 1, 'По-ранното време е отбелязано в зелено');
+    $('#optimizationIdleReport .optimizationIdleReportClose').trigger('click');
+    check(!$('#optimizationIdleReport').length && !$('[name="Cmd[save]"]').length, 'Затваряне без изпращане');
+    showSample(false);
+    check($('#optimizationIdleReport .targetTimeChoice button').eq(2).prop('disabled'), 'Свободна операция не предлага разкачване');
+    choose(0);
+    $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
+    check($('[name="targetResolution"]').val() === 'move' && $('[name="targetPreviewAccepted"]').val() === 'yes' && $('[name="targetPreviewHash"]').val() === 'hash-move', 'Приложи изпраща избрания вариант');
+    renderOptimizationIdleReport([], {}, {}, {hasImprovement: true, testedCandidates: 4, duration: 0.1}, false);
+    check($('#optimizationIdleReport .optimizationSearchResult').text().includes('Намерен е по-добър вариант'), 'Старият отчет от оптимизацията запазва резултата и статистиката');
+    check(!$('#optimizationIdleReport').hasClass('targetTimeReport') && !$('body').hasClass('targetTimePreviewOpen'), 'Стиловете на целевите времена не остават в стария отчет');
+    renderOptimizationIdleReport([], {}, {}, {}, false, {mode: 'savePreview', cancelLabel: 'Отказ', confirmLabel: 'Приложи',
+        cancel: removeOptimizationIdleReport, confirm: function () { $('#result').attr('data-manual-applied', 'yes'); removeOptimizationIdleReport(); }});
+    check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ|Приложи', 'Старият предварителен преглед запазва двата си бутона');
+    $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
+    check($('#result').attr('data-manual-applied') === 'yes' && !$('#optimizationIdleReport').length, 'Прилагането в стария диалог извиква неговото действие');
+    $('#result').text('OK: ' + count + ' UI проверки — без заявка и без база данни.');
+});
+$('form').on('submit', function (event) {
+    event.preventDefault();
+    $('#result').text('Изпратен вариант: ' + $('[name="targetResolution"]').val()
+        + '; политика: ' + $('[name="targetPackagePolicy"]').val()
+        + '; потвърден: ' + $('[name="targetPreviewAccepted"]').val()
+        + '; хеш: ' + $('[name="targetPreviewHash"]').val());
+    removeOptimizationIdleReport();
+    $('body').css('overflow', '');
+});
+</script>
+</html>

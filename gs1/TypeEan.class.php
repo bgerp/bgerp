@@ -14,7 +14,7 @@ cls::load('type_Varchar');
  * @package   gs1
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -113,7 +113,7 @@ class gs1_TypeEan extends type_Varchar
         $newEan = str::increment($maxEan);
         $newEan = $this->eanCheckDigit($newEan);
         while ($mvc::fetchField(array("#{$field} = '[#1#]'", $newEan))) {
-            $newEan = substr($newEan, 0, -1);
+            $maxEan = substr($newEan, 0, -1);
             $newEan = str::increment($maxEan);
             $newEan = $this->eanCheckDigit($newEan);
         }

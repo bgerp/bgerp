@@ -8,7 +8,7 @@
  * @package   epay
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title     Плащане чрез ePay.bg
  * 
@@ -58,8 +58,11 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         //@TODO тестово
         //$amount = 0.01;
-        $amount = round($amount, 2);
-        
+
+        // Сумата идва в основна валута, а ePay без CURRENCY я приема за BGN
+        $currency = in_array($currency, array('BGN', 'EUR', 'USD')) ? $currency : 'EUR';
+        $amount = round(currency_CurrencyRates::convertAmount($amount, null, null, $currency), 2);
+
         $action = self::EPAY_DOMAIN;
         $reason = epay_Tokens::getPaymentReason($initiatorClass, $initiatorId);
         $okUrl['description'] = $reason;
@@ -77,6 +80,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
         
         $data = (object)array('action' => $action,
                               'total' => $amount,
+                              'currency' => $currency,
                               'description' => $reason,
                               'min' => epay_Setup::get('MIN'),
                               'checksum' => epay_Setup::get('CHECKSUM'),

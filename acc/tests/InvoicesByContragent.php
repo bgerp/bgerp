@@ -18,8 +18,9 @@ class core_Debug {
     public static function stopTimer($name) {}
 }
 class dt {
-    public static function today($unused = true) { return '2026-10-15'; }
-    public static function now() { return '2026-10-15 12:00:00'; }
+    public static $date = '2026-10-15';
+    public static function today($unused = true) { return self::$date; }
+    public static function now() { return self::$date . ' 12:00:00'; }
     public static function mysql2verbal($date, $mask) { return date($mask, strtotime($date)); }
 }
 class Mode {
@@ -305,6 +306,11 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public function verbal($rec, &$dRec) { return $this->detailRecToVerbal($rec, $dRec); }
     public function fields($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->fields; }
     public function fieldParams($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->params; }
+    public function prepareForm($form) {
+        $data = (object)array('form' => $form);
+        self::on_AfterPrepareEditForm($this, new embed_Manager(), $data);
+    }
+    public function inputForm($form) { self::on_AfterInputEditForm($this, new embed_Manager(), $form); }
     public function grouped($recs, &$rows, $fields, $data) { $this->groupRows($recs, $rows, $fields, $data->groupByField, $data); }
     public function canSeePriceFields($rec) { return $this->prices; }
     public function info($rec, $reportData = null) {
@@ -320,6 +326,24 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
         self::on_AfterGetExportRec($this, $res, $rec, $dRec, null);
         return $res;
     }
+}
+
+class InvoiceDateForm {
+    public $rec, $layout;
+    public $errors = array();
+    public $values = array();
+    public $submitted = false;
+    public function __construct($rec) { $this->rec = $rec; }
+    public function renderLayout() { return new core_ET(''); }
+    public function setDefault($name, $value) { if (!isset($this->rec->{$name})) $this->rec->{$name} = $value; }
+    public function setField($name, $value) {}
+    public function input($names = null, $mode = null) {
+        foreach ($this->values as $name => $value) {
+            if ($names === null || $names === $name) $this->rec->{$name} = $value;
+        }
+    }
+    public function isSubmitted() { return $this->submitted; }
+    public function setError($names, $message) { $this->errors[$names] = $message; }
 }
 
 $checks = 0;
@@ -1489,5 +1513,99 @@ check(strpos($driver->exportRow($rec, $detail)->accountingDocuments, 'МО1387 /
 Mode::$plain = true;
 check($driver->verbal($rec, $detail)->accountingDocuments == '#Mo1387 / 2026-10-01', 'МО в текстов режим без HTML');
 Mode::$plain = false;
+
+// „Днес“ се запазва като избор, а конкретна въведена дата остава фиксирана.
+check(strpos($fieldset->params['checkDate'], 'placeholder=днес') !== false, 'Празната крайна дата се изписва като днес');
+check(strpos($fieldset->params['useTodayAsCheckDate'], 'input=none,single=none') !== false, 'Служебният избор за днес не е отделно поле във формата');
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('all', 'unpaid', 'overdue') as $status) {
+        foreach (array('no', 'yes') as $corrections) {
+            foreach (array(null, '') as $blank) {
+                dt::$date = '2026-10-26';
+                InvoiceTestData::reset();
+                foreach (array('out', 'in') as $kind) {
+                    InvoiceTestData::invoice($kind, 1, 'Today', '2026-10-25', 100, 0, '2026-10-26');
+                    InvoiceTestData::invoice($kind, 2, 'Today', '2026-10-25', 200, 0, '2026-10-27');
+                    articleFixture($kind, 1, 1387, 10, '2026-10-26');
+                    articleFixture($kind, 1, 1388, 20, '2026-10-27');
+                }
+                $rec = reportRec($direction, $status);
+                $rec->checkDate = $blank;
+                $rec->accountingCorrections = $corrections;
+                $case = $direction . '/' . $status . '/' . $corrections . '/' . var_export($blank, true);
+                $form = new InvoiceDateForm($rec);
+                $driver->prepareForm($form);
+                check(empty($rec->checkDate), 'Подготовката не попълва конкретна дата: ' . $case);
+                $form->submitted = true;
+                $driver->inputForm($form);
+                check(($rec->useTodayAsCheckDate ?? null) == 'yes' && !$form->errors, 'Записва се изборът днес: ' . $case);
+                $firstData = $driver->prepareData($rec);
+                check(($rec->checkDate ?? null) == '2026-10-26', 'Първо изчисление към днес: ' . $case);
+                $oldCount = count($firstData->recs ?? array());
+                check($oldCount == ($direction == 'all' ? 2 : 1), 'Показват се само фактурите до първия ден: ' . $case);
+                if ($corrections == 'yes') {
+                    foreach ($firstData->recs ?? array() as $row) check(closeAmount($row->accountingCorrection ?? 0, 10), 'МО след първия ден не участва: ' . $case);
+                }
+                $saved = unserialize(serialize($rec));
+                dt::$date = '2026-10-27';
+                // Самото отваряне не преизчислява и не сменя датата на стария резултат.
+                $head = array('title' => array('val' => 'AI'));
+                InvoiceReportTest::on_AfterGetFieldForLetterHead($driver, new embed_Manager(), $head, $saved, new stdClass());
+                check($head['checkDate']['val'] == '2026-10-26', 'Антетката пази датата на показвания резултат: ' . $case);
+                $secondData = $driver->prepareData($saved);
+                check(($saved->checkDate ?? null) == '2026-10-27' && ($saved->useTodayAsCheckDate ?? null) == 'yes', 'Обновяване на следващия ден без редакция: ' . $case);
+                check(count($secondData->recs ?? array()) == 2 * $oldCount, 'Включват се и фактурите от новия ден: ' . $case);
+                if ($corrections == 'yes') {
+                    foreach ($secondData->recs ?? array() as $row) check(closeAmount($row->accountingCorrection ?? 0, ($row->invoiceId ?? 0) == 1 ? 30 : 0), 'МО от новия ден участва след обновяване: ' . $case);
+                }
+                $edit = new InvoiceDateForm(unserialize(serialize($saved)));
+                $driver->prepareForm($edit);
+                check(empty($edit->rec->checkDate), 'При повторна редакция остава днес: ' . $case);
+                $fixed = clone $saved;
+                $fixed->useTodayAsCheckDate = 'no';
+                $fixed->checkDate = '2026-10-26';
+                $fixedForm = new InvoiceDateForm($fixed);
+                $driver->prepareForm($fixedForm);
+                $fixedForm->submitted = true;
+                $driver->inputForm($fixedForm);
+                $fixedData = $driver->prepareData($fixed);
+                check(($fixed->checkDate ?? null) == '2026-10-26' && ($fixed->useTodayAsCheckDate ?? null) == 'no' && count($fixedData->recs ?? array()) == $oldCount,
+                    'Изрично въведената дата остава фиксирана: ' . $case);
+            }
+        }
+    }
+}
+
+dt::$date = '2026-10-27';
+$form = new InvoiceDateForm((object)array('fromDate' => '2026-10-28', 'checkDate' => null));
+$form->submitted = true;
+$driver->inputForm($form);
+check(isset($form->errors['fromDate,checkDate']), 'Началната дата не може да е след днес при празна крайна дата');
+$rec = reportRec('all', 'all');
+$rec->checkDate = '2026-10-26';
+$form = new InvoiceDateForm($rec);
+$driver->prepareForm($form);
+$driver->prepareData($rec);
+check(($rec->checkDate ?? null) == '2026-10-26' && !isset($rec->useTodayAsCheckDate), 'Стара справка с конкретна дата не става автоматично динамична');
+$rec->useTodayAsCheckDate = 'yes';
+$form = new InvoiceDateForm($rec);
+$form->values['checkDate'] = '2026-10-27';
+$form->input(); // Тихото въвеждане преди prepare hook, както в embed_Manager.
+$driver->prepareForm($form);
+$form->input(); // Пълното въвеждане след prepare hook, както в core_Manager.
+$form->submitted = true;
+$driver->inputForm($form);
+dt::$date = '2026-10-28';
+$driver->prepareData($rec);
+check(($rec->checkDate ?? null) == '2026-10-27' && ($rec->useTodayAsCheckDate ?? null) == 'no', 'Въведената днешна дата става фиксирана и след предишен избор днес');
+$form = new InvoiceDateForm($rec);
+$form->values['checkDate'] = null;
+$driver->prepareForm($form);
+$form->input();
+$form->submitted = true;
+$driver->inputForm($form);
+$driver->prepareData($rec);
+check(($rec->checkDate ?? null) == '2026-10-28' && ($rec->useTodayAsCheckDate ?? null) == 'yes', 'Изчистването на фиксирана дата отново включва днес');
+dt::$date = '2026-10-15';
 
 echo "OK: {$checks} invoice report checks\n";

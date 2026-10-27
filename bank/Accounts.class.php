@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -513,7 +513,9 @@ class bank_Accounts extends core_Master
         $IbanType = cls::get('iban_Type');
         expect($IbanType->fromVerbal($iban));
 
-        if (static::fetch(array("#iban = '[#1#]'", $iban)))  return null;
+        // Сравнява се без интервали и тирета, иначе същият IBAN в друг формат става нова сметка
+        $canonicalIban = $IbanType->canonize($iban);
+        if (static::fetch(array("REPLACE(REPLACE(#iban, ' ', ''), '-', '') = '[#1#]'", $canonicalIban)))  return null;
 
         $rec = (object) array('iban'          => $iban,
                               'contragentCls' => $contragentClsId,

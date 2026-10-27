@@ -44,7 +44,7 @@ defIfNot('EPAY_MANDATORY_BEFORE_FINALIZATION', 'yes');
  * @package   epay
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -103,8 +103,8 @@ class epay_Setup extends core_ProtoSetup
      */
     public static function getOwnAccountsArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        // Само нашите сметки в BGN
-        $res = bank_OwnAccounts::getOwnAccounts(true, 'BGN', $onlyIds);
+        // Само нашите сметки във валутите, които ePay.bg поддържа
+        $res = bank_OwnAccounts::getOwnAccounts(true, 'EUR', $onlyIds) + bank_OwnAccounts::getOwnAccounts(true, 'BGN', $onlyIds) + bank_OwnAccounts::getOwnAccounts(true, 'USD', $onlyIds);
         
         return $res;
     }
