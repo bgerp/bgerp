@@ -1,7 +1,7 @@
 <?php
 
 
-include(dirname(__FILE__) . '/' . 'tcpdf.php');
+tcpdf_Setup::loadLibrary();
 
 
 /**
@@ -11,13 +11,14 @@ include(dirname(__FILE__) . '/' . 'tcpdf.php');
  * @package   tcpdf
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class tcpdf_Instance extends tcpdf
 {
+    /** Изчертава CAD път чрез избраната TCPDF библиотека. */
     public function drawPath($commands, $style = '', $line_style = array(), $fill_color = array())
     {
         if ($this->state != 2) {
@@ -52,10 +53,9 @@ class tcpdf_Instance extends tcpdf
     }
     
     
+    /** Генерира шрифт с вече заредения TCPDF_FONTS от същата версия. */
     public function addTTFfont($fontfile, $fonttype = '', $enc = '', $flags = 32, $outpath = '', $platid = 3, $encid = 1, $addcbbox = false, $link = false)
     {
-        include_once(dirname(__FILE__) . '/' . 'include/tcpdf_fonts.php');
-        
         return TCPDF_FONTS::addTTFfont($fontfile, $fonttype, $enc, $flags, $outpath, $platid, $encid, $addcbbox, $link);
     }
 }
