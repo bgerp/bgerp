@@ -10,7 +10,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Xls;
  * @category  bgerp
  * @package   phpspreadsheet
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -163,6 +163,78 @@ class phpspreadsheet_tests_Adapter extends unit_Class
     }
 
 
+    /**
+     * Проверява голям XLS и сумиране на прочетените числови клетки.
+     */
+    public static function test_largeDocument()
+    {
+        $fields = new core_FieldSet();
+        $fields->FLD('code', 'varchar', 'caption=Код');
+        $fields->FLD('title', 'varchar', 'caption=Артикул');
+        $fields->FLD('quantity', 'double', 'caption=Количество');
+        $fields->FLD('amount', 'varchar', 'caption=Сума,exportNumeric');
+        $recs = array();
+        for ($i = 1; $i <= 5000; $i++) {
+            $recs[] = (object) array('code' => sprintf('%08d', $i), 'title' => 'Тестов артикул ' . $i,
+                'quantity' => 2.5, 'amount' => '12.50');
+        }
+        $book = self::roundTrip($recs, $fields, null, array('delimiter' => ';', 'decPoint' => ',', 'thousandsSep' => ' '));
+        try {
+            $sheet = $book->getActiveSheet();
+            expect($sheet->getHighestRow() == 5001);
+            self::checkCell($sheet, 'A5001', '00005000', DataType::TYPE_STRING);
+            self::checkCell($sheet, 'B5001', 'Тестов артикул 5000', DataType::TYPE_STRING);
+            self::checkCell($sheet, 'C5001', 2.5, DataType::TYPE_NUMERIC);
+            $sheet->setCellValue('F1', '=SUM(D2:D5001)');
+            expect($sheet->getCell('F1')->getCalculatedValue() == 62500, 'Грешна сума след XLS round-trip');
+        } finally {
+            $book->disconnectWorksheets();
+        }
+    }
+
+
+    /**
+     * Проверява библиотеката за стилове, дати, формули и скрити редове в XLS/XLSX.
+     */
+    public static function test_workbookFormats()
+    {
+        foreach (array('Xls', 'Xlsx') as $format) {
+            $path = tempnam(sys_get_temp_dir(), 'spreadsheet-test-');
+            $book = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $loaded = null;
+            try {
+                $sheet = $book->getActiveSheet();
+                $sheet->setTitle('Проверка');
+                $sheet->fromArray(array(array('Описание', 'Сума'), array('Първи ред', 12.5), array('Втори ред', 7.5)));
+                $sheet->setCellValue('B4', '=SUM(B2:B3)');
+                $sheet->setCellValue('C2', \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(new DateTime('2026-01-02')));
+                $sheet->getStyle('C2')->getNumberFormat()->setFormatCode('yyyy-mm-dd');
+                $sheet->getStyle('A1:B1')->getFont()->setBold(true);
+                $sheet->getStyle('B2:B4')->getNumberFormat()->setFormatCode('0.00');
+                $sheet->getRowDimension(3)->setVisible(false);
+                $sheet->getColumnDimension('D')->setVisible(false);
+                \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($book, $format)->save($path);
+                $loaded = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+                $sheet = $loaded->getActiveSheet();
+                self::checkCell($sheet, 'A2', 'Първи ред', DataType::TYPE_STRING);
+                expect($sheet->getTitle() === 'Проверка');
+                expect($sheet->getCell('B4')->getValue() === '=SUM(B2:B3)');
+                expect($sheet->getCell('B4')->getCalculatedValue() == 20);
+                expect($sheet->getCell('C2')->getFormattedValue() === '2026-01-02');
+                expect($sheet->getStyle('A1')->getFont()->getBold());
+                expect($sheet->getStyle('B2')->getNumberFormat()->getFormatCode() === '0.00');
+                expect(!$sheet->getRowDimension(3)->getVisible());
+                expect(!$sheet->getColumnDimension('D')->getVisible());
+            } finally {
+                $book->disconnectWorksheets();
+                if ($loaded) $loaded->disconnectWorksheets();
+                unlink($path);
+            }
+        }
+    }
+
+
+    /** Записва синтетични CSV данни през адаптера и прочита получения XLS. */
     private static function roundTrip($recs, $fields, $selected, $params)
     {
         $params['dateFormat'] = 'd.m.Y';
@@ -196,6 +268,8 @@ class phpspreadsheet_tests_Adapter extends unit_Class
                     echo $method . ": OK\n";
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             echo $method . ': FAILED - ' . $e->getMessage() . "\n";
 
