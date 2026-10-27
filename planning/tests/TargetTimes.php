@@ -31,7 +31,10 @@ class FixtureQuery {
     public function fetch() { $rows = array_values($this->rows); return $rows[$this->index++] ?? false; }
 }
 class core_App { public static function setTimeLimit($seconds, $reset, $minimum) {} }
-class planning_Setup { public static function get($key) { return $key == 'MIN_TASK_DURATION' ? 60 : ($key == 'MANUAL_ORDER_IN_ASSET' ? 'no' : null); } }
+class planning_Setup {
+    public static $values = array();
+    public static function get($key) { return self::$values[$key] ?? ($key == 'MIN_TASK_DURATION' ? 60 : ($key == 'MANUAL_ORDER_IN_ASSET' ? 'no' : null)); }
+}
 class planning_AssetResources { public static function getQuery() { return new FixtureQuery(array(1 => (object)array('id' => 1, 'simultaneity' => 2))); } }
 class planning_Jobs { public static function getQuery() { return new FixtureQuery(array()); } }
 class cat_products_Packagings { public static function getQuery() { return new FixtureQuery(array()); } }
@@ -97,6 +100,11 @@ class arr {
         return $result;
     }
     public static function sumValuesArray($rows, $field) { return array_sum(array_column($rows, $field)); }
+    public static function reorderArrayByOrderedKeys($rows, $order) {
+        $result = array();
+        foreach ($order as $id) if (isset($rows[$id])) $result[$id] = $rows[$id];
+        return $result + $rows;
+    }
 }
 function countR($value) { return is_countable($value) ? count($value) : 0; }
 function expect($condition, ...$values) { if (!$condition) throw new RuntimeException('expect failed'); }
