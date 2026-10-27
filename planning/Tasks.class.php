@@ -5121,10 +5121,10 @@ class planning_Tasks extends core_Master
     /**
      * Формата за целеви времена използва същите показатели като подреждането.
      */
-    public static function getTargetTimesPreviewReport($tasks, $scheduledData, $now, $assetId, $baselineTasks = null)
+    public static function getTargetTimesPreviewReport($tasks, $scheduledData, $now, $assetId, $baselineTasks = null, $baselineScheduledData = null)
     {
         $baselineTasks = $baselineTasks ?? $tasks;
-        $before = static::getStoredScheduledData($baselineTasks, $scheduledData);
+        $before = $baselineScheduledData ?? static::getStoredScheduledData($baselineTasks, $scheduledData);
         return static::buildSchedulePreviewReport(
             static::getOptimizationMetrics($before, $now, $baselineTasks, $assetId),
             static::getOptimizationMetrics($scheduledData, $now, $tasks, $assetId)
@@ -5244,6 +5244,7 @@ class planning_Tasks extends core_Master
                 $tpl->push('planning/js/TaskOrderReport.js', 'JS');
                 $tpl->push('planning/js/Tasks.js', 'JS');
                 $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
+                $tpl->push('planning/tpl/TaskOrderReport.css', 'CSS');
 
                 jqueryui_Ui::enable($tpl);
                 $modalTpl = getTplFromFile('planning/tpl/DatePickerModal.shtml');
@@ -5288,9 +5289,9 @@ class planning_Tasks extends core_Master
     {
         if (empty($form->_targetTimesReport)) return;
         $tpl->push('planning/js/TaskOrderReport.js', 'JS');
-        $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
+        $tpl->push('planning/tpl/TaskOrderReport.css', 'CSS');
         $report = $form->_targetTimesReport;
-        $report['legendHint'] = ht::createHint('', 'Номерата следват операциите; ↑/↓ показват преместването в реда. Получер: променено време; зелено: по-рано; червено: по-късно. Синята рамка свързва операциите в пакет. Габърчето показва фиксирано начало — посочете го за подробности.',
+        $report['legendHint'] = ht::createHint('', 'Двата плана са преизчислени към един и същ момент, за да се вижда само ефектът от редакцията. Номерата следват операциите; ↑/↓ показват преместването в реда. Получер: променено време; зелено: по-рано; червено: по-късно. Синята рамка свързва операциите в пакет. Габърчето показва фиксирано начало — посочете го за подробности.',
             'notice', true, array('iconAttr' => array('width' => 16, 'height' => 16, 'alt' => tr('Пояснение на прегледа'))), array('class' => 'targetTimeLegend'))->getContent();
         $data = json_encode($report, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         jquery_Jquery::run($tpl, "showTargetTimesPreview({$data});");

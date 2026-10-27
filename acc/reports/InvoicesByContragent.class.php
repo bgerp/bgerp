@@ -380,6 +380,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public function calculateResult($rec)
     {
         $data = parent::prepareData($rec);
+
+        // Сметките вече са готови: обръщаме само хронологията във всяка група.
+        // Редът на фирмите и отделните групи за продажби/покупки се запазва.
+        $groups = array();
+        foreach ($data->recs ?? array() as $key => $row) {
+            $groups[$row->invoiceGroup ?? $row->contragent ?? ''][$key] = $row;
+        }
+        $data->recs = array();
+        foreach ($groups as $rows) {
+            $data->recs += array_reverse($rows, true);
+        }
         $rec->resultFilterHash = $data->resultFilterHash = self::getResultFilterHash($rec);
 
         return $data;
@@ -2899,17 +2910,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
                     <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
                     <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
-                    <div class='quiet'>|Стойностите на фактурите са с ДДС.|*</div>
+                    <div class='quiet'>|Стойностите на фактурите са с ДДС (когато има начислено).|*</div>
                     <!--ET_BEGIN accountingNotice--><div>[#accountingNotice#]</div><!--ET_END accountingNotice-->
                 </div>
             </fieldset><!--ET_END reportResults-->
             <fieldset class='detail-info invoice-report-filter'>
                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                <div class='small'>[#filterRows#]</div>
+                <div class='small'>
+                    [#filterRows#]
+                    <div class='invoice-report-filter-options'>
+                        <div class='invoice-report-filter-main'>[#filterOptions#]</div>
+                        <div class='invoice-report-filter-flags'>[#filterFlags#]</div>
+                    </div>
+                </div>
             </fieldset>
         </div>"));
 
-        // Само приложимите седем полета, в реда на формата; датите остават в антетката.
+        // Първите две полета са на цял ред, а опциите Да/Не и прагът са във втора колона.
         $filterFields = cls::get('core_FieldSet');
         $Driver->addFields($filterFields);
         $names = array('contragent', 'crmGroup', 'typeOfInvoice', 'unpaid', 'paymentType',
@@ -2930,7 +2947,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             $attr = array('class' => 'invoice-report-filter-row');
             if ($name == 'sill') $attr['title'] = tr($captions[0]);
-            $fieldTpl->append(ht::createElement('div', $attr, '<span class="quiet">' . tr($caption) . ': </span><b>' . $verbal . '</b>'), 'filterRows');
+            $place = in_array($name, array('contragent', 'crmGroup')) ? 'filterRows'
+                : (in_array($name, array('seeProformаs', 'sill', 'accountingCorrections')) ? 'filterFlags' : 'filterOptions');
+            $fieldTpl->append(ht::createElement('div', $attr, '<span class="quiet">' . tr($caption) . ': </span><b>' . $verbal . '</b>'), $place);
         }
 
         if (($data->rec->accountingCorrections ?? 'no') == 'yes') {

@@ -218,16 +218,36 @@ function showTargetTimesPreview(data, selectedIndex)
     const firstAvailable = alternatives.find(function (variant) { return variant.available; });
     const referenceGroups = preview.operationOrder || (firstAvailable ? firstAvailable.report.operationOrder : []) || [];
     const referenceNumbers = {};
+    const editedOperation = preview.editedOperation || data.editedOperation || '';
     referenceGroups.forEach(function (group) {
         (group.before || []).concat(group.after || []).forEach(function (row) {
             referenceNumbers[row.operation.toLowerCase()] = row.number;
         });
     });
-    if (data.conflictText) {
-        const conflict = data.conflictText.replace(/\bOpr\d+\b/gi, function (operation) {
+    const withReferenceNumbers = function (text) {
+        return text.replace(/\bOpr\d+\b/gi, function (operation) {
             const number = referenceNumbers[operation.toLowerCase()];
             return number == null ? operation : operation + ' (' + number + ')';
         });
+    };
+    const operationLabel = function (operation) {
+        const number = referenceNumbers[operation.toLowerCase()];
+        return operation + (number == null ? '' : ' (' + number + ')') + ' | ';
+    };
+    if ((data.approvalChanges || []).length) {
+        const changed = $('<div>', {class: 'targetTimeConflict targetTimeApprovalChanges'});
+        changed.append($('<strong>').text('Записът не е извършен. Необходимо е ново потвърждение:'));
+        const list = $('<ul>');
+        data.approvalChanges.forEach(function (reason) { list.append($('<li>').text(withReferenceNumbers(reason))); });
+        details.append(changed.append(list));
+    }
+    if (data.conflictText) {
+        const conflict = data.conflictText.split('\n').map(function (message) {
+            const labelled = message.match(/^(Opr\d+|Новата операция):\s*(.*)$/i);
+            const operation = labelled ? labelled[1] : editedOperation;
+            const reason = (labelled ? labelled[2] : message).replace(/^Желаният час/, 'Желаното начало');
+            return (operation ? operationLabel(operation) : '') + withReferenceNumbers(reason);
+        }).join('\n');
         details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
     }
     if (alternatives.length) {
@@ -247,7 +267,8 @@ function showTargetTimesPreview(data, selectedIndex)
         if (!canApply) $('#optimizationIdleReport .optimizationIdleNoChanges').remove();
     }
     if (canApply) {
-        details.append($('<p>').append($('<strong>').text('Въведено начало: ' + (preview.requestedStart || '—')
+        const editedLabel = editedOperation ? operationLabel(editedOperation) : '';
+        details.append($('<p>').append($('<strong>').text(editedLabel + 'Въведено начало: ' + (preview.requestedStart || '—')
             + '; предложено за запис: ' + (preview.proposedStart || '—') + '.')));
         if ((preview.operationOrder || []).length) {
             preview.operationOrder.forEach(function (group) {
@@ -259,7 +280,7 @@ function showTargetTimesPreview(data, selectedIndex)
                 ['before', 'after'].forEach(function (side) {
                     const rows = group[side] || [];
                     const panel = $('<div>', {class: 'targetTimeSide targetTimeSide-' + side});
-                    panel.append($('<h4>').text(side === 'before' ? 'Преди' : 'След'));
+                    panel.append($('<h4>').text(side === 'before' ? 'Преди (към момента)' : 'След'));
                     const table = $('<table>', {class: 'targetTimeOrderTable'});
                     const head = $('<tr>');
                     ['№', 'Начало', 'Операция', 'Край'].forEach(function (title) { head.append($('<th>').text(title)); });
@@ -272,6 +293,7 @@ function showTargetTimesPreview(data, selectedIndex)
                         const linkedAfter = next && next.previous === row.id;
                         const state = ['draft', 'waiting', 'pending', 'active', 'wakeup', 'stopped', 'closed'].includes(row.state) ? row.state : '';
                         const tr = $('<tr>', {class: 'state-' + state, 'data-operation': row.operation});
+                        if (row.operation === editedOperation) tr.addClass('targetTimeEditedOperation');
                         if (linkedBefore || linkedAfter) tr.addClass('targetTimePackage');
                         if (linkedAfter && !linkedBefore) tr.addClass('targetTimePackageStart');
                         if (linkedBefore && !linkedAfter) tr.addClass('targetTimePackageEnd');
