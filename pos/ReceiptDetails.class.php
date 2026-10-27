@@ -441,6 +441,7 @@ class pos_ReceiptDetails extends core_Detail
                     if(!empty($warningQuantity)){
                         core_Statuses::newStatus($warningQuantity, 'warning');
                     }
+                    $successMsg = 'Партидата на реда е променена|*!';
                     break;
                 case 'setstore':
                     if($productRec->canStore != 'yes'){
@@ -461,6 +462,7 @@ class pos_ReceiptDetails extends core_Detail
                         core_Statuses::newStatus($warningQuantity, 'warning');
                     }
 
+                    $successMsg = 'Складът на реда е променен|*!';
                     break;
             }
 
