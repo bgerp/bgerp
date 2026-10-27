@@ -12,6 +12,18 @@ class frame2_driver_Proto extends stdClass {
     public static function on_AfterGetFieldForLetterHead(frame2_driver_Proto $driver, embed_Manager $embedder, &$head, $rec, $row) {}
 }
 class embed_Manager {}
+class frame2_Reports extends embed_Manager {
+    const LIGHT_FETCH_MODE = 'lightFetch';
+    public static $selectedVersion = null;
+    public static $logs = array();
+    public static $logReads = 0;
+    public static function getSelectedVersionId($id) { return self::$selectedVersion; }
+    public static function fetchField($id, $field) {
+        if ($field !== 'log') throw new RuntimeException('Не се допуска четене на резултата');
+        self::$logReads++;
+        return self::$logs[$id] ?? null;
+    }
+}
 class core_App { public static function setTimeLimit($seconds) {} }
 class core_Debug {
     public static function startTimer($name) {}
@@ -25,6 +37,8 @@ class dt {
 }
 class Mode {
     public static $plain = false;
+    public static $values = array();
+    public static function set($name, $value = true) { self::$values[$name] = $value; }
     public static function is($name, $value = null) { return self::$plain && $name == 'text' && $value == 'plain'; }
 }
 class acc_Setup { public static function getEurozoneDate() { return '2026-01-01'; } }
@@ -126,6 +140,7 @@ class arr {
 }
 function tr($value) { return str_replace(array('|*', '|'), '', $value); }
 function countR($value) { return is_countable($value) ? count($value) : 0; }
+function expect($condition, ...$args) { if (!$condition) throw new RuntimeException($args[0] ?? 'Expectation failed'); }
 if (!function_exists('mb_strtolower')) {
     function mb_strtolower($value, $encoding) { return strtolower($value); }
 }
@@ -302,7 +317,7 @@ require dirname(__DIR__) . '/reports/InvoicesByContragent.class.php';
 
 class InvoiceReportTest extends acc_reports_InvoicesByContragent {
     public $prices = true;
-    public function run($rec, &$data) { return $this->prepareRecs($rec, $data); }
+    public function run($rec, &$data) { $data = $this->prepareData($rec); return $data->recs; }
     public function verbal($rec, &$dRec) { return $this->detailRecToVerbal($rec, $dRec); }
     public function fields($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->fields; }
     public function fieldParams($rec, $export = false) { return $this->getTableFieldSet($rec, $export)->params; }
@@ -311,6 +326,11 @@ class InvoiceReportTest extends acc_reports_InvoicesByContragent {
         self::on_AfterPrepareEditForm($this, new embed_Manager(), $data);
     }
     public function inputForm($form) { self::on_AfterInputEditForm($this, new embed_Manager(), $form); }
+    public function beforeAction($action) {
+        $res = null;
+        self::on_BeforeAction($this, new frame2_Reports(), $res, $action);
+    }
+    public function exportRows($rec) { return $this->getRecsForExport($rec, null); }
     public function grouped($recs, &$rows, $fields, $data) { $this->groupRows($recs, $rows, $fields, $data->groupByField, $data); }
     public function canSeePriceFields($rec) { return $this->prices; }
     public function info($rec, $reportData = null) {
@@ -344,6 +364,7 @@ class InvoiceDateForm {
     }
     public function isSubmitted() { return $this->submitted; }
     public function setError($names, $message) { $this->errors[$names] = $message; }
+    public function gotErrors() { return count($this->errors) > 0; }
 }
 
 $checks = 0;
@@ -1607,5 +1628,115 @@ $driver->inputForm($form);
 $driver->prepareData($rec);
 check(($rec->checkDate ?? null) == '2026-10-28' && ($rec->useTodayAsCheckDate ?? null) == 'yes', 'Изчистването на фиксирана дата отново включва днес');
 dt::$date = '2026-10-15';
+
+// Настройките се четат без стария резултат; не променяме режима на други действия.
+foreach (array('edit', 'save', 'manage', 'refresh', 'EDIT', 'single', 'list', 'clonerec') as $action) {
+    Mode::$values = array();
+    $driver->beforeAction($action);
+    check(!empty(Mode::$values[frame2_Reports::LIGHT_FETCH_MODE]) === in_array(strtolower($action), array('edit', 'save', 'manage', 'refresh')),
+        'Леко четене само за настройките и обновяването: ' . $action);
+}
+Mode::$values = array();
+check(strpos($fieldset->params['resultFilterHash'], 'input=none,single=none') !== false, 'Отпечатъкът не е потребителска настройка');
+
+class InvoiceFailingReportTest extends InvoiceReportTest {
+    protected function prepareRecs($rec, &$data = null) { throw new RuntimeException('Прекъснато изчисление'); }
+}
+foreach (array('no', 'yes') as $corrections) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice('out', 1, 'Guard out', '2026-10-03', 100, 20);
+    InvoiceTestData::invoice('in', 1, 'Guard in', '2026-10-03', 80, 10);
+    articleFixture('out', 1, 1387, 15);
+    articleFixture('in', 1, 1388, 5);
+    $complete = reportRec('all', 'all');
+    $complete->accountingCorrections = $corrections;
+    $complete->data = $driver->prepareData($complete);
+    $expectedRows = serialize($complete->data->recs);
+    $expectedValue = $complete->totalInvoiceValueAll;
+    check(serialize($driver->exportRows($complete)) === $expectedRows, 'Потвърденият резултат се експортира непроменен: ' . $corrections);
+    check(strpos($driver->info($complete, $complete->data), 'invoice-report-results') !== false, 'Потвърдените обобщения са видими: ' . $corrections);
+
+    $changes = array('contragent' => '|999|', 'crmGroup' => '|999|', 'typeOfInvoice' => 'in', 'unpaid' => 'unpaid',
+        'fromDate' => '2026-10-02', 'checkDate' => '2026-10-14', 'paymentType' => 'bank', 'sill' => 2.5,
+        'seeProformаs' => 'yes', 'accountingCorrections' => $corrections == 'yes' ? 'no' : 'yes', 'useTodayAsCheckDate' => 'yes');
+    foreach ($changes as $name => $value) {
+        $changed = unserialize(serialize($complete));
+        $changed->{$name} = $value;
+        if ($name === 'useTodayAsCheckDate') $changed->checkDate = null;
+        $case = $corrections . '/' . $name;
+        check(strpos($driver->renderData($changed)->getContent(), acc_reports_InvoicesByContragent::RESULT_FILTER_WARNING) !== false,
+            'Чуждият филтър не показва старата таблица: ' . $case);
+        check(strpos($driver->info($changed, $changed->data), 'invoice-report-results') === false, 'Чуждият филтър не показва стари суми: ' . $case);
+        $rejectedExport = false;
+        try { $driver->exportRows($changed); } catch (RuntimeException $e) { $rejectedExport = $e->getMessage() === acc_reports_InvoicesByContragent::RESULT_FILTER_WARNING; }
+        check($rejectedExport, 'Не се експортират данни за друг филтър: ' . $case);
+
+        $form = new InvoiceDateForm($changed);
+        $form->submitted = true;
+        $driver->inputForm($form);
+        $persisted = unserialize(serialize($form->rec)); // Записът на настройките преди frame2_Reports::refresh().
+        check(empty($persisted->data->recs) && empty($persisted->resultFilterHash) && !empty($persisted->refreshData),
+            'Преди изчислението новият филтър се записва без старите редове: ' . $case);
+        $failed = new InvoiceFailingReportTest();
+        try { $failed->prepareData(unserialize(serialize($persisted))); } catch (RuntimeException $e) {}
+        check(strpos($driver->renderData($persisted)->getContent(), acc_reports_InvoicesByContragent::RESULT_FILTER_WARNING) !== false,
+            'Прекъсването не връща стария резултат: ' . $case);
+    }
+
+    $form = new InvoiceDateForm(unserialize(serialize($complete)));
+    $form->rec->title = 'Само ново заглавие';
+    $form->rec->listItemsPerPage = 50;
+    $form->submitted = true;
+    $driver->inputForm($form);
+    check(serialize($form->rec->data->recs) === $expectedRows && empty($form->rec->refreshData), 'Заглавието и размерът на страницата не обезсилват резултата: ' . $corrections);
+    $form->rec->fromDate = '2026-10-16';
+    $driver->inputForm($form);
+    check($form->errors && serialize($form->rec->data->recs) === $expectedRows, 'Невалидна форма не премахва резултата: ' . $corrections);
+
+    $normal = clone $complete;
+    $normal->contragent = '|2|1|';
+    $normal->crmGroup = null;
+    $normal->sill = null;
+    $normal->paymentType = null;
+    $normal->data = $driver->prepareData($normal);
+    $form = new InvoiceDateForm($normal);
+    $form->rec->contragent = '|1|2|';
+    $form->rec->crmGroup = '|';
+    $form->rec->sill = '0.00';
+    $form->rec->paymentType = ' ';
+    $form->submitted = true;
+    $driver->inputForm($form);
+    check(empty($form->rec->refreshData) && isset($form->rec->data->resultFilterHash), 'Еквивалентните настройки имат един отпечатък: ' . $corrections);
+
+    $legacy = unserialize(serialize($complete));
+    $legacy->id = 700;
+    unset($legacy->resultFilterHash, $legacy->data->resultFilterHash);
+    check(strpos($driver->renderData($legacy)->getContent(), acc_reports_InvoicesByContragent::RESULT_FILTER_WARNING) !== false,
+        'Непотвърден стар текущ резултат изисква обновяване: ' . $corrections);
+    frame2_Reports::$selectedVersion = 1;
+    check(serialize($driver->exportRows($legacy)) === $expectedRows, 'Избраната стара версия остава достъпна: ' . $corrections);
+    check(strpos($driver->info($legacy, $legacy->data), 'invoice-report-results') !== false, 'Сумите на старата версия остават достъпни: ' . $corrections);
+    frame2_Reports::$selectedVersion = null;
+    $form = new InvoiceDateForm($legacy);
+    $form->submitted = true;
+    $driver->inputForm($form);
+    check(!empty($form->rec->refreshData) && empty($form->rec->data->recs), 'Записът на стар текущ резултат го потвърждава чрез ново изчисление: ' . $corrections);
+
+    // Грешка от нормалния обработчик на frame2 също не трябва да оставя стари обобщения.
+    $error = clone $complete;
+    $error->data = 'ERROR';
+    check(strpos($driver->info($error, $error->data), 'invoice-report-results') === false, 'Грешката не показва стари суми: ' . $corrections);
+    check($complete->totalInvoiceValueAll === $expectedValue && serialize($complete->data->recs) === $expectedRows,
+        'Проверките не променят завършения резултат: ' . $corrections);
+
+    $complete->id = 701;
+    unset($complete->log);
+    frame2_Reports::$logs[701] = array(array('time' => '2026-10-14 12:00:00', 'msg' => 'Предишен лог'));
+    frame2_Reports::$logReads = 0;
+    $complete->data = $driver->prepareData($complete);
+    check($complete->log === frame2_Reports::$logs[701] && frame2_Reports::$logReads === 1, 'Лекото обновяване запазва предишния лог: ' . $corrections);
+    $complete->data = $driver->prepareData($complete);
+    check(frame2_Reports::$logReads === 1, 'Вече зареденият лог не се чете повторно: ' . $corrections);
+}
 
 echo "OK: {$checks} invoice report checks\n";

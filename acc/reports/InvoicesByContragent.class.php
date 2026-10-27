@@ -41,6 +41,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected $listItemsPerPage = 30;
 
 
+    const RESULT_FILTER_WARNING = 'Запазеният резултат не е потвърден за текущия филтър. Натиснете „Обновяване“.';
+
+
     /**
      * По-кое поле да се групират листовите данни
      */
@@ -115,6 +118,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=днес,silent');
         $fieldset->FLD('useTodayAsCheckDate', 'enum(no=Не,yes=Да)', 'input=none,single=none');
+        $fieldset->FLD('resultFilterHash', 'varchar(32)', 'input=none,single=none');
 
         $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,single=none');
 
@@ -133,6 +137,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FNC('totalAccountingCorrectionAll', 'double', 'input=none,single=none');
         $fieldset->FNC('accountingIncompleteGroups', 'int', 'input=none,single=none');
         $fieldset->FNC('accountingUnallocatedGroups', 'int', 'input=none,single=none');
+    }
+
+
+    /**
+     * Настройките и обновяването не се нуждаят от стария резултат.
+     * Режимът важи само за текущата заявка към този драйвер.
+     */
+    protected static function on_BeforeAction(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$res, $action)
+    {
+        if (in_array(strtolower($action), array('edit', 'save', 'manage', 'refresh'))) {
+            Mode::set(frame2_Reports::LIGHT_FETCH_MODE, true);
+        }
     }
 
 
@@ -253,7 +269,40 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if (!empty($fromDate) && $fromDate > $checkDate) {
                 $form->setError('fromDate,checkDate', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
+
+            if (!$form->gotErrors() && ($form->rec->resultFilterHash ?? null) !== self::getResultFilterHash($form->rec)) {
+                // Записва се с новите настройки преди изчислението. При прекъсване старите
+                // редове и суми няма да изглеждат като резултат от новия филтър.
+                $form->rec->data = (object) array('resultFilterHash' => null, 'recs' => array());
+                $form->rec->resultFilterHash = null;
+                $form->rec->refreshData = true;
+            }
         }
+    }
+
+
+    /**
+     * Отпечатък само на настройките, които определят резултата, без обхождане на фактурите.
+     */
+    private static function getResultFilterHash($rec)
+    {
+        $filter = array();
+        foreach (array('contragent', 'crmGroup') as $name) {
+            $ids = array_values(keylist::toArray($rec->{$name} ?? null));
+            sort($ids, SORT_NUMERIC);
+            $filter[$name] = implode('|', $ids);
+        }
+        $filter['typeOfInvoice'] = $rec->typeOfInvoice ?? 'out';
+        $filter['unpaid'] = $rec->unpaid ?? 'all';
+        $filter['fromDate'] = (string) ($rec->fromDate ?? '');
+        $filter['checkDate'] = ($rec->checkDate ?? null) ?: dt::today(false);
+        $filter['useTodayAsCheckDate'] = $rec->useTodayAsCheckDate ?? 'no';
+        $filter['paymentType'] = trim($rec->paymentType ?? '');
+        $filter['sill'] = (float) ($rec->sill ?? 0);
+        $filter['seeProformаs'] = !empty($rec->seeProformаs);
+        $filter['accountingCorrections'] = $rec->accountingCorrections ?? 'no';
+
+        return md5(serialize($filter));
     }
 
 
@@ -268,7 +317,50 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rec->checkDate = dt::today(false);
         }
 
-        return parent::prepareData($rec);
+        // lightFetch пропуска и лога; запазваме предишните кратки диагностични записи.
+        if (!empty($rec->id) && !property_exists($rec, 'log')) {
+            $rec->log = frame2_Reports::fetchField($rec->id, 'log');
+        }
+
+        $data = parent::prepareData($rec);
+        $rec->resultFilterHash = $data->resultFilterHash = self::getResultFilterHash($rec);
+
+        return $data;
+    }
+
+
+    /**
+     * Старите избрани версии са завършени снимки и остават достъпни без преизчисляване.
+     * Текущ резултат без отпечатък трябва да се обнови еднократно.
+     */
+    private static function isResultForCurrentFilter($rec)
+    {
+        if (!is_object($rec->data ?? null)) return false;
+        if (!property_exists($rec->data, 'resultFilterHash')) {
+            return !empty($rec->id) && frame2_Reports::getSelectedVersionId($rec->id);
+        }
+
+        return !empty($rec->data->resultFilterHash)
+            && $rec->data->resultFilterHash === ($rec->resultFilterHash ?? null)
+            && $rec->data->resultFilterHash === self::getResultFilterHash($rec);
+    }
+
+
+    public function renderData($rec)
+    {
+        if (!self::isResultForCurrentFilter($rec)) {
+            return new core_ET("<fieldset class='detail-info'><span class='red'>" . tr(self::RESULT_FILTER_WARNING) . '</span></fieldset>');
+        }
+
+        return parent::renderData($rec);
+    }
+
+
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        expect(self::isResultForCurrentFilter($rec), self::RESULT_FILTER_WARNING);
+
+        return parent::getRecsForExport($rec, $ExportClass);
     }
 
 
@@ -2695,7 +2787,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         // Без права за цени общите суми не се показват
-        if (!$Driver->canSeePriceFields($data->rec)) {
+        if (!self::isResultForCurrentFilter($data->rec) || !$Driver->canSeePriceFields($data->rec)) {
             $fieldTpl->removeBlock('reportResults');
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
 
