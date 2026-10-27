@@ -8,7 +8,7 @@
  * @package   payment
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -61,7 +61,7 @@ class payment_ParserUC
             $owrName = (string) $stmt->BankClient->NAME;
             
             // $bank    = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
-            $bic = (string) $stmt->BankAccount->BIC - Code;
+            $bic = (string) ($stmt->BankAccount->{'BIC-Code'} ?? '');
             
             // Проверка дали валутата на блока, отговаря на валутата на нашата сметка
             $currency = strtoupper($stmt->BankAccount->CCY->SWIFTCode);

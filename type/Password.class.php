@@ -7,7 +7,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,14 +37,14 @@ class type_Password extends type_Varchar
         if (!empty($this->params['show'])) {
             $attr['type'] = 'text';
             $attr['style'] = ';color:#999; font-size:0.8em;padding:1em 0.3em;letter-spacing:0.05em; text-shadow: 3px 0px 5px #888, -3px 0px 5px #888, 0px 3px 5px #888, 0px -3px 5px #888, 2px 2px 5px #888, -2px 2px 5px #888, -2px 2px 5px #888, -2px -2px 5px #888, 0px 0px 5px #888';
-        } elseif ($value && empty($this->params['allowEmpty'])) {
+        } elseif (strlen($value ?? '') && empty($this->params['allowEmpty'])) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
             if (($attr['type'] ?? null) === 'text') {
                 $attr['onfocus'] = "this.type='password';";
             }
-            if ($value) {
+            if (strlen($value ?? '')) {
                 $attr['placeholder'] = html_entity_decode('&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;');
             }
             $value = '';
@@ -93,6 +93,6 @@ class type_Password extends type_Varchar
      */
     public function toVerbal($value)
     {
-        return $value ? '********' : '';
+        return strlen($value ?? '') ? '********' : '';
     }
 }

@@ -8,7 +8,7 @@
  * @package   payment
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -40,7 +40,8 @@ class payment_ImportDriver extends import2_AbstractDriver
      */
     public function addImportFields($mvc, core_FieldSet $form)
     {
-        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML файл,mandatory');
+        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML или ZIP файл,mandatory');
+        $form->FLD('archivePassword', 'password(allowEmpty)', 'caption=ZIP архив->Парола,hint=При повторно изпращане на формата въведете паролата отново');
     }
     
     
@@ -54,36 +55,29 @@ class payment_ImportDriver extends import2_AbstractDriver
      */
     public function checkImportForm($mvc, core_FieldSet $form)
     {
-        $xml = fileman::extractStr($form->rec->xmlFile);
-        
-        // Махаме BOM, ако има
-        $bom = pack('H*', 'EFBBBF');
-        $xml = preg_replace("/^{$bom}/", '', $xml);
+        $form->rec->recs = $form->rec->importBatches = array();
+        $password = $form->rec->archivePassword ?? null;
+        if (strpos($password ?? '', "\0") !== false) {
+            $form->setError('archivePassword', 'Паролата съдържа недопустим нулев байт');
 
-        core_App::setTimeLimit(30 + round(strlen($xml) / 100000));
-
-        $res = null;
-        if (strpos($xml, 'iso:20022') !== false && strpos($xml, 'iso:20022') < 90) {
-            $res = payment_ParserIso20022::getRecs($xml, 'Import ISO20022');
-        } elseif (strpos($xml, 'APAccounts') !== false && strpos($xml, 'APAccounts') < 90) {
-            $res = payment_ParserUC::getRecs($xml, 'Import Unicredit');
-        } else {
+            return;
+        }
+        $res = payment_ImportFiles::getRecs($form->rec->xmlFile ?? null, $password);
+        if (($res->status ?? null) == 'unsupported') {
             $form->setError('xmlFile', 'Непознат файлов формат');
         }
-        
-        if ($res) {
-            if (countR($res->warnings)) {
-                $form->setWarning('xmlFile', '|*' . implode('<br>', $res->warnings));
-            }
-            
-            if (countR($res->errors)) {
-                $form->setError('xmlFile', '|*' . implode('<br>', $res->errors));
-            }
-            
-            $form->rec->recs = $res->recs;
-        } else {
-            $form->setWarning('xmlFile', 'Не може да се извлекат данни');
+        if (!empty($res->warnings)) {
+            $form->setWarning('xmlFile', '|*' . type_Varchar::escape(implode("\n", $res->warnings)));
         }
+        if (!empty($res->errors)) {
+            $fields = !empty($res->passwordError) ? 'xmlFile,archivePassword' : 'xmlFile';
+            $form->setError($fields, '|*' . type_Varchar::escape(implode("\n", $res->errors)));
+        }
+        if (!empty($res->recognized) && empty($res->recs) && empty($res->warnings) && empty($res->errors)) {
+            $form->setWarning('xmlFile', 'Извлечението не съдържа операции за импорт');
+        }
+        $form->rec->recs = $res->recs ?? array();
+        $form->rec->importBatches = $res->batches ?? array();
     }
     
     
@@ -99,8 +93,11 @@ class payment_ImportDriver extends import2_AbstractDriver
      */
     public function doImport(core_Manager $mvc, $rec)
     {
-        $status = bank_Register::importRecs($rec->recs);
-        
-        return $status;
+        $statuses = array();
+        foreach ($rec->importBatches ?? array($rec->recs ?? array()) as $batch) {
+            $statuses[] = bank_Register::importRecs($batch);
+        }
+
+        return implode('; ', $statuses);
     }
 }

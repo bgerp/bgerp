@@ -59,6 +59,12 @@ class minify_Css
      */
     public static function process($css)
     {
+        $version = minify_Setup::get('CSS_VERSION') ?: 'legacy';
+        expect(in_array($version, array('legacy', '4.1.1'), true), 'Неподдържана CSSMin версия');
+        if ($version === '4.1.1') {
+            $class = minify_Setup::loadLibrary('css');
+            return (new $class(false))->run($css);
+        }
         $me = new minify_Css();
         
         $res = $me->make($css);

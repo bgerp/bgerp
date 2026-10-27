@@ -3018,7 +3018,10 @@ class cat_Products extends embed_Manager
             $descriptionTpl = cat_Products::renderDescription($data);
         }
         $title = "<span class='productName'>{$title}</span>";
-        if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+        if (Mode::is('renderForLlm')) {
+            // Линкът се губи в LLM експорта, а хендлърът може да се цитира
+            $title .= ' #' . static::getHandle($rec->id);
+        } elseif (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $singleUrl = static::getSingleUrlArray($rec->id);
             $title = ht::createLinkRef($title, $singleUrl);
         }

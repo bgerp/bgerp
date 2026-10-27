@@ -11,7 +11,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -117,34 +117,168 @@ class core_Os
     
     
     /**
-     * Изтрива файловете в посочената директория и нейните под-директории,
-     * които не са прочитани в последните скудни указани от $maxAge
+     * Изтрива старите файлове и връзки, без да следва символни връзки.
+     * По подразбиране работи във временните и кеш директориите на инсталацията.
+     * Премахва и старите празни поддиректории, но запазва началната директория.
      *
-     * @param string $dir
-     * @param int    $maxAge
+     * @param string      $dir
+     * @param int         $maxAge          Срок в секунди
+     * @param string|null $negativePattern Регулярен израз за изключване
+     * @param string|null $positivePattern Регулярен израз за включване
+     * @param string|null $allowedRoot     Друга разрешена база от настройките на модула, не от Request
      *
      * @return int - Броя на изтритите файлове
      */
-    public static function deleteOldFiles($dir, $maxAge = 86400, $negativePattern = null, $positivePattern = null)
+    public static function deleteOldFiles($dir, $maxAge = 86400, $negativePattern = null, $positivePattern = null, $allowedRoot = null)
     {
-        $allFiles = self::listFiles($dir);
-        
+        $dir = self::getCleanupPath($dir, $allowedRoot);
+        if ($dir === false || !is_numeric($maxAge) || !is_finite((float) $maxAge) || $maxAge <= 0) {
+            return 0;
+        }
+
+        // Грешен филтър не трябва да превръща почистването в неограничено изтриване.
+        foreach (array($negativePattern, $positivePattern) as $pattern) {
+            if ($pattern !== null && $pattern !== '' && $pattern !== false &&
+                (!is_string($pattern) || @preg_match($pattern, '') === false)) {
+                return 0;
+            }
+        }
+
+        $handle = @opendir($dir);
+        if (!$handle) {
+            return 0;
+        }
+
         $delCnt = 0;
-        $maxOldFileAccessTime = time() - $maxAge;
-        if (is_array($allFiles['files'])) {
-            foreach ($allFiles['files'] as $fPath) {
-                if (file_exists($fPath)) {
-                    if (($maxOldFileAccessTime > self::getFileLastAccessTime($fPath)) && 
-                        str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
-                        if (@unlink($fPath)) {
-                            $delCnt++;
-                        }
-                    }
+        $before = time() - $maxAge;
+        try {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry == '.' || $entry == '..') {
+                    continue;
+                }
+
+                $path = $dir . DIRECTORY_SEPARATOR . $entry;
+                clearstatcache(true, $path);
+                $stat = @lstat($path);
+                if ($stat === false) {
+                    continue;
+                }
+
+                // lstat() използва времената на самата връзка, включително при липсваща цел.
+                $type = $stat['mode'] & 0170000;
+                if ($type === 0040000) {
+                    $delCnt += self::deleteOldFiles($path, $maxAge, $negativePattern, $positivePattern, $allowedRoot);
+
+                    // Обхождането променя atime, а изтриването на децата - mtime.
+                    $lastUse = $stat['mtime'];
+                } elseif ($type === 0100000 || $type === 0120000) {
+                    $lastUse = max($stat['atime'], $stat['mtime']);
+                } else {
+                    continue;
+                }
+
+                // При грешка по време на съпоставянето също запазваме файла.
+                if ($lastUse >= $before ||
+                    ($negativePattern && @preg_match($negativePattern, $path) !== 0) ||
+                    ($positivePattern && @preg_match($positivePattern, $path) !== 1)) {
+                    continue;
+                }
+
+                // Проверяваме отново пътя и записа след обхождането на децата.
+                if (self::getCleanupPath($dir, $allowedRoot) !== $dir) {
+                    break;
+                }
+                $current = @lstat($path);
+                if ($current === false || $current['dev'] !== $stat['dev'] ||
+                    $current['ino'] !== $stat['ino'] || ($current['mode'] & 0170000) !== $type) {
+                    continue;
+                }
+                if ($type === 0040000) {
+                    @rmdir($path);
+                } elseif (max($current['atime'], $current['mtime']) < $before && @unlink($path)) {
+                    $delCnt++;
                 }
             }
+        } finally {
+            closedir($handle);
         }
         
         return $delCnt;
+    }
+
+
+    /**
+     * Ограничава почистването до изричната база или стандартните временни и кеш директории.
+     *
+     * @return string|false
+     */
+    private static function getCleanupPath($dir, $allowedRoot = null)
+    {
+        $path = self::normalizeCleanupPath($dir);
+        if ($path === false) {
+            return false;
+        }
+
+        $roots = array($allowedRoot);
+        if ($allowedRoot === null) {
+            $roots = array();
+            foreach (array('EF_TEMP_PATH', 'EF_SBF_PATH', 'FILEMAN_TEMP_PATH', 'FCONV_TEMP_PATH', 'THUMB_IMG_PATH') as $name) {
+                if (defined($name)) {
+                    $roots[] = constant($name);
+                }
+            }
+        }
+        foreach ($roots as $root) {
+            $root = self::normalizeCleanupPath($root);
+            if ($root !== false && ($path === $root || strpos($path, $root . DIRECTORY_SEPARATOR) === 0)) {
+                return $path;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Проверява реалния път, без системния корен, директните му деца или символни връзки.
+     *
+     * @return string|false
+     */
+    private static function normalizeCleanupPath($dir)
+    {
+        if (!is_string($dir) || $dir === '' || strpos($dir, "\0") !== false) {
+            return false;
+        }
+
+        clearstatcache(true);
+        $path = realpath($dir);
+        if ($path === false || !is_dir($path)) {
+            return false;
+        }
+
+        // Изискваме конкретна папка, а не цял системен раздел като /etc или /var.
+        $parent = dirname($path);
+        if ($parent === $path || dirname($parent) === $parent) {
+            return false;
+        }
+
+        // Не допускаме обхождане на цялата инсталация или на неин родител.
+        $appPath = realpath(dirname(__DIR__));
+        if ($path === $appPath || strpos($appPath, $path . DIRECTORY_SEPARATOR) === 0 || $path === realpath(sys_get_temp_dir())) {
+            return false;
+        }
+
+        for ($part = rtrim($dir, DIRECTORY_SEPARATOR === '\\' ? '/\\' : '/'); ; $part = $parent) {
+            if (is_link($part)) {
+                return false;
+            }
+            $parent = dirname($part);
+            if ($parent === $part) {
+                break;
+            }
+        }
+
+        return $path;
     }
 
 
@@ -175,6 +309,7 @@ class core_Os
     {
         // Конфигурацията на пакета core
         $conf = core_Packs::getConfig('core');
+        $maxAge = $conf->CORE_TEMP_PATH_MAX_AGE ?? 864000;
         
         // Резултат във вербален вид
         $resText = '';
@@ -183,28 +318,28 @@ class core_Os
         $delCnt = 0;
         
         // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
-        if (defined('EF_TEMP_PATH')) {
-            if (!is_dir(EF_TEMP_PATH)) {
-                mkdir(EF_TEMP_PATH);
-            }
-            $delCnt = self::deleteOldFiles(EF_TEMP_PATH, $conf->CORE_TEMP_PATH_MAX_AGE);
+        $tempPath = defined('EF_TEMP_PATH') ? self::getCleanupPath(EF_TEMP_PATH) : false;
+        if ($tempPath !== false) {
+            $delCnt = self::deleteOldFiles($tempPath, $maxAge);
             if ($delCnt > 0) {
-                $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . EF_TEMP_PATH;
+                $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($tempPath, ENT_QUOTES, 'UTF-8');
             }
         }
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
-        if (defined('EF_SBF_PATH')) {
-            if ($handle = opendir(EF_SBF_PATH)) {
+        $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
+        if ($sbfPath !== false) {
+            $delCnt = 0;
+            if ($handle = @opendir($sbfPath)) {
                 while (false !== ($entry = readdir($handle))) {
-                    if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
-                        $delCnt = self::deleteOldFiles(EF_SBF_PATH . "/{$entry}", $conf->CORE_TEMP_PATH_MAX_AGE);
+                    if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir($sbfPath . "/{$entry}")) {
+                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge);
                     }
                 }
                 closedir($handle);
             }
             if ($delCnt > 0) {
-                $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . EF_SBF_PATH;
+                $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($sbfPath, ENT_QUOTES, 'UTF-8');
             }
         }
         

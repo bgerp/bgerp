@@ -11,7 +11,7 @@
  * @package   page
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -287,8 +287,8 @@ class core_page_Internal extends core_page_Active
             }
             list($user, $domain) = explode('@', $email);
             $currUrl = getCurrentUrl();
-            $ctr = $currUrl['Ctr'];
-            $act = $currUrl['Act'];
+            $ctr = $currUrl['Ctr'] ?? '';
+            $act = $currUrl['Act'] ?? 'default';
             $sysDomain = $_SERVER['HTTP_HOST'];
             $name = core_Users::getCurrent('names');
             $img = sbf('img/supportmale-20.png', '');
