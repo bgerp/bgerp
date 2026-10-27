@@ -11,7 +11,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -117,8 +117,8 @@ class core_Os
     
     
     /**
-     * Изтрива файловете в посочената директория и нейните под-директории,
-     * които не са прочитани в последните скудни указани от $maxAge
+     * Изтрива старите файлове и връзки, без да следва символни връзки.
+     * Премахва и старите празни поддиректории, но запазва началната директория.
      *
      * @param string $dir
      * @param int    $maxAge
@@ -127,21 +127,51 @@ class core_Os
      */
     public static function deleteOldFiles($dir, $maxAge = 86400, $negativePattern = null, $positivePattern = null)
     {
-        $allFiles = self::listFiles($dir);
-        
+        $dir = rtrim($dir ?? '', '/\\');
+        clearstatcache(true, $dir);
+        if (!$dir || is_link($dir) || !is_dir($dir)) {
+            return 0;
+        }
+
+        $handle = @opendir($dir);
+        if (!$handle) {
+            return 0;
+        }
+
         $delCnt = 0;
-        $maxOldFileAccessTime = time() - $maxAge;
-        if (is_array($allFiles['files'])) {
-            foreach ($allFiles['files'] as $fPath) {
-                if (file_exists($fPath)) {
-                    if (($maxOldFileAccessTime > self::getFileLastAccessTime($fPath)) && 
-                        str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
-                        if (@unlink($fPath)) {
-                            $delCnt++;
-                        }
+        $before = time() - $maxAge;
+        try {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry == '.' || $entry == '..') {
+                    continue;
+                }
+
+                $path = $dir . DIRECTORY_SEPARATOR . $entry;
+                clearstatcache(true, $path);
+                $stat = @lstat($path);
+                if ($stat === false) {
+                    continue;
+                }
+
+                // lstat() използва времената на самата връзка, включително при липсваща цел.
+                $type = $stat['mode'] & 0170000;
+                if ($type === 0040000) {
+                    $delCnt += self::deleteOldFiles($path, $maxAge, $negativePattern, $positivePattern);
+
+                    // Обхождането променя atime, а изтриването на децата - mtime.
+                    if ($stat['mtime'] < $before && str::matchPatterns($path, $negativePattern, $positivePattern)) {
+                        @rmdir($path);
+                    }
+                } elseif (($type === 0100000 || $type === 0120000) &&
+                    max($stat['atime'], $stat['mtime']) < $before &&
+                    str::matchPatterns($path, $negativePattern, $positivePattern)) {
+                    if (@unlink($path)) {
+                        $delCnt++;
                     }
                 }
             }
+        } finally {
+            closedir($handle);
         }
         
         return $delCnt;
@@ -175,6 +205,7 @@ class core_Os
     {
         // Конфигурацията на пакета core
         $conf = core_Packs::getConfig('core');
+        $maxAge = $conf->CORE_TEMP_PATH_MAX_AGE ?? 864000;
         
         // Резултат във вербален вид
         $resText = '';
@@ -187,18 +218,19 @@ class core_Os
             if (!is_dir(EF_TEMP_PATH)) {
                 mkdir(EF_TEMP_PATH);
             }
-            $delCnt = self::deleteOldFiles(EF_TEMP_PATH, $conf->CORE_TEMP_PATH_MAX_AGE);
+            $delCnt = self::deleteOldFiles(EF_TEMP_PATH, $maxAge);
             if ($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . EF_TEMP_PATH;
             }
         }
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
-        if (defined('EF_SBF_PATH')) {
-            if ($handle = opendir(EF_SBF_PATH)) {
+        if (defined('EF_SBF_PATH') && !is_link(rtrim(EF_SBF_PATH, '/\\')) && is_dir(EF_SBF_PATH)) {
+            $delCnt = 0;
+            if ($handle = @opendir(EF_SBF_PATH)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir(EF_SBF_PATH . "/{$entry}")) {
-                        $delCnt = self::deleteOldFiles(EF_SBF_PATH . "/{$entry}", $conf->CORE_TEMP_PATH_MAX_AGE);
+                        $delCnt += self::deleteOldFiles(EF_SBF_PATH . "/{$entry}", $maxAge);
                     }
                 }
                 closedir($handle);
