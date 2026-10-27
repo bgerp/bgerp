@@ -80,25 +80,10 @@ class payment_ParserIso20022 extends core_BaseClass
         $res = new stdClass();
         $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
 
-        $xml = ltrim($xml, "\xEF\xBB\xBF \t\r\n");
-        if (stripos($xml, '<!DOCTYPE') !== false) {
-            $res->errors[] = 'XML извлечението не трябва да съдържа DTD';
-
-            return $res;
-        }
-        
-        // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $previous = libxml_use_internal_errors(true);
-        try {
-            $transactions = simplexml_load_string(trim($xml), 'SimpleXMLElement', LIBXML_NONET);
-        } finally {
-            libxml_clear_errors();
-            libxml_use_internal_errors($previous);
-        }
-
+        $error = null;
+        $transactions = payment_XmlParser::load($xml, $error);
         if ($transactions === false) {
-
-            $res->warnings[] = "Грешка при парсиране на XML";
+            $res->errors[] = $error;
 
             return $res;
         }
@@ -144,23 +129,22 @@ class payment_ParserIso20022 extends core_BaseClass
                 continue;
             }
             
-            $owrName = self::getXmlText($stmt, 'Acct/Ownr/Nm');
-            $bank = self::getXmlText($stmt, 'Acct/Svcr/FinInstnId/Nm');
-            $bic = self::getXmlText($stmt, 'Acct/Svcr/FinInstnId/BIC');
+            $owrName = payment_XmlParser::getText($stmt, 'Acct/Ownr/Nm');
+            $bank = payment_XmlParser::getText($stmt, 'Acct/Svcr/FinInstnId/Nm');
+            $bic = payment_XmlParser::getText($stmt, 'Acct/Svcr/FinInstnId/BIC');
             
             $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
 
             $entryNumber = 0;
             foreach ($stmt->Ntry as $node) {
                 $entryNumber++;
-                $direction = trim(self::getXmlText($node, 'CdtDbtInd'));
+                $direction = trim(payment_XmlParser::getText($node, 'CdtDbtInd'));
                 if (!in_array($direction, array('CRDT', 'DBIT'), true)) {
                     $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалиден видът на превода";
                     continue;
                 }
-                $amount = trim(self::getXmlText($node, 'Amt'));
-                if (!preg_match('/^\+?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/D', $amount)
-                    || !is_finite((float) $amount) || (float) $amount > 2000000000) {
+                $amount = trim(payment_XmlParser::getText($node, 'Amt'));
+                if (!payment_XmlParser::isValidAmount($amount)) {
                     $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна сумата";
                     continue;
                 }
@@ -178,45 +162,95 @@ class payment_ParserIso20022 extends core_BaseClass
                 if (!$rec->valior) {
                     $rec->valior = substr((string) $node->BookgDt->DtTm, 0, 10);
                 }
-                if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $rec->valior, $dateParts)
-                    || !checkdate((int) $dateParts[2], (int) $dateParts[3], (int) $dateParts[1])) {
+                if (!payment_XmlParser::isValidDate($rec->valior)) {
                     $res->warnings[] = "Липсва или е невалидна датата на операция за IBAN {$iban}";
                     continue;
                 }
 
                 // BGN сметките преминават в EUR според датата на операцията.
                 $expectedCurrency = bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id, $rec->valior, true);
-                $amountCurrency = strtoupper(trim((string) $node->Amt['Ccy']));
-                $recordCurrency = $amountCurrency ?: ($currency ?: $expectedCurrency);
-                if (($currency && $currency != $expectedCurrency) || $recordCurrency != $expectedCurrency) {
+                $amountCurrency = strtoupper(trim((string) ($node->Amt->attributes()['Ccy'] ?? '')));
+                $recordCurrency = $amountCurrency !== '' ? $amountCurrency : ($currency !== '' ? $currency : $expectedCurrency);
+                if (($currency !== '' && $currency != $expectedCurrency) || $recordCurrency != $expectedCurrency) {
                     $res->warnings[] = "Валутата за IBAN {$iban} към {$rec->valior} се различава от очакваната {$expectedCurrency}";
                     continue;
                 }
                 $rec->amount = (float) $amount;
                 
-                if ($direction == 'DBIT') {
-                    $rec->type = 'outgoing';
-                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
-                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
-                    if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
-                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
+                $reversal = strtolower(trim(payment_XmlParser::getText($node, 'RvslInd')));
+                if (!in_array($reversal, array('', 'false', '0', 'true', '1'), true)) {
+                    $res->warnings[] = "Операция №{$entryNumber}: невалиден признак за сторниране";
+                    continue;
+                }
+                $isReversal = in_array($reversal, array('true', '1'), true);
+                $entryTransactions = $transactionDirections = array();
+                $complete = true;
+                foreach ($node->NtryDtls ?? array() as $details) {
+                    $batchDirection = trim(payment_XmlParser::getText($details, 'Btch/CdtDbtInd'));
+                    $batchDirection = $batchDirection !== '' ? $batchDirection : $direction;
+                    if (!in_array($batchDirection, array('CRDT', 'DBIT'), true)) {
+                        $complete = false;
                     }
-                } else {
-                    $rec->type = 'incoming';
-                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
-                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
-                    if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
-                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
+                    $count = trim(payment_XmlParser::getText($details, 'Btch/NbOfTxs'));
+                    $detailTransactions = $details->TxDtls ?? array();
+                    if ($count !== '' && (!ctype_digit($count) || (int) $count != count($detailTransactions))) {
+                        $complete = false;
+                    }
+                    foreach ($detailTransactions as $transaction) {
+                        $entryTransactions[] = $transaction;
+                        $transactionDirections[] = $batchDirection;
                     }
                 }
-                
-                $rec->reason = self::getPaymentReason($node);
-                
-                // Добавяме реда в резултата
-                $res->recs[] = $rec;
-                $res->recordCurrencies[] = $recordCurrency;
+                if (!$complete) {
+                    $res->warnings[] = "Операция №{$entryNumber}: непълни детайли или невалидна посока на групирания превод";
+                    continue;
+                }
+                $grouped = count($entryTransactions) > 1;
+                $entryTransactions = $entryTransactions ?: array(null);
+                $rec->type = $direction === 'DBIT' ? 'outgoing' : 'incoming';
+                $legacy = clone $rec;
+                self::setCounterparty($legacy, $entryTransactions[0], $direction, false, $iban);
+                $entryRecs = array();
+                $total = 0;
+                foreach ($entryTransactions as $transactionIndex => $transaction) {
+                    $part = clone $rec;
+                    $partDirection = $direction;
+                    if ($grouped) {
+                        $partDirection = trim(payment_XmlParser::getText($transaction, 'CdtDbtInd'));
+                        $partDirection = $partDirection !== '' ? $partDirection : ($transactionDirections[$transactionIndex] ?? $direction);
+                        $partAmount = $transaction->Amt ?? $transaction->AmtDtls->TxAmt->Amt ?? null;
+                        $partValue = trim((string) $partAmount);
+                        $partCurrency = isset($partAmount) ? strtoupper(trim((string) ($partAmount->attributes()['Ccy'] ?? ''))) : '';
+                        if (!in_array($partDirection, array('CRDT', 'DBIT'), true)
+                            || !payment_XmlParser::isValidAmount($partValue) || $partCurrency !== $recordCurrency
+                            || abs((float) $partValue - round((float) $partValue, 2)) > 0.000001) {
+                            $complete = false;
+                            break;
+                        }
+                        $part->amount = (float) $partValue;
+                    }
+                    // При сторно CdtDbtInd е реалното движение, а страните са от първоначалния превод.
+                    $part->type = $partDirection === 'DBIT' ? 'outgoing' : 'incoming';
+                    self::setCounterparty($part, $transaction, $partDirection, $isReversal, $iban);
+                    $part->reason = ($isReversal ? '[Сторно] ' : '') . self::getPaymentReason($node, $transaction);
+                    $entryRecs[] = $part;
+                    $total += (int) round($part->amount * 100) * ($partDirection === 'DBIT' ? -1 : 1);
+                }
+                $entryTotal = (int) round((float) $amount * 100) * ($direction === 'DBIT' ? -1 : 1);
+                if (!$complete || ($grouped && ($total != $entryTotal || abs((float) $amount - round((float) $amount, 2)) > 0.000001))) {
+                    $res->warnings[] = "Операция №{$entryNumber}: непълни или несъответстващи суми, валути или посоки в групирания превод";
+                    continue;
+                }
+                // Старият импорт е записвал цялата група към първата страна; не добавяме втори комплект записи.
+                if (($grouped || ($isReversal && ($legacy->contragentIban ?? '') !== ($entryRecs[0]->contragentIban ?? '')))
+                    && self::hasLegacyEntry($legacy)) {
+                    $res->warnings[] = "Операция №{$entryNumber}: има възможен запис от стария импорт; проверете банковия регистър преди повторна обработка";
+                    continue;
+                }
+                foreach ($entryRecs as $part) {
+                    $res->recs[] = $part;
+                    $res->recordCurrencies[] = $recordCurrency;
+                }
             }
         }
         
@@ -225,46 +259,55 @@ class payment_ParserIso20022 extends core_BaseClass
     
     
     /**
-     * Текстът на вложен XML възел; празен низ, ако някой възел по пътя липсва
-     *
-     * @param SimpleXMLElement $node
-     * @param string           $path  Имена на възлите, разделени с /
-     *
-     * @return string
+     * Страните при сторно запазват ролите от първоначалния превод.
      */
-    private static function getXmlText($node, $path)
+    private static function setCounterparty($rec, $transaction, $direction, $reversal, $ownIban)
     {
-        foreach (explode('/', $path) as $name) {
-            if (!isset($node->{$name})) {
-
-                return '';
-            }
-            $node = $node->{$name};
+        $creditor = ($direction === 'DBIT') !== $reversal;
+        $party = $creditor ? 'Cdtr' : 'Dbtr';
+        $rec->contragentIban = payment_XmlParser::getText($transaction, "RltdPties/{$party}Acct/Id/IBAN");
+        if ($rec->contragentIban === $ownIban) {
+            $party = $creditor ? 'Dbtr' : 'Cdtr';
+            $rec->contragentIban = payment_XmlParser::getText($transaction, "RltdPties/{$party}Acct/Id/IBAN");
         }
+        $rec->contragentName = payment_XmlParser::getText($transaction, "RltdPties/{$party}/Nm");
+        if ($rec->contragentName === '') {
+            $rec->contragentName = payment_XmlParser::getText($transaction, "RltdPties/{$party}/Pty/Nm");
+        }
+    }
 
-        return (string) $node;
+
+    /**
+     * Без банков идентификатор съвпадение със стар общ запис изисква човешка проверка.
+     */
+    private static function hasLegacyEntry($rec)
+    {
+        return (bool) bank_Register::fetch(array(
+            "#ownAccountId = '[#1#]' AND #valior = '[#2#]' AND #type = '[#3#]' AND #amount = '[#4#]' AND #contragentIban = '[#5#]' AND #serviceId LIKE '%ISO20022%'",
+            $rec->ownAccountId ?? null, $rec->valior ?? null, $rec->type ?? null, $rec->amount ?? null, $rec->contragentIban ?? ''
+        ));
     }
 
 
     /**
      * Допълва досегашното основание с платежния текст и референциите към документи.
      */
-    private static function getPaymentReason($node)
+    private static function getPaymentReason($node, $transaction)
     {
-        $reason = self::getXmlText($node, 'NtryDtls/TxDtls/AddtlTxInf');
+        $reason = payment_XmlParser::getText($transaction, 'AddtlTxInf');
         if ($reason === '') {
-            $reason = self::getXmlText($node, 'AddtlNtryInf');
+            $reason = payment_XmlParser::getText($node, 'AddtlNtryInf');
         }
         $parts = $reason !== '' ? array($reason) : array();
-        $remittance = $node->NtryDtls->TxDtls->RmtInf ?? null;
+        $remittance = $transaction->RmtInf ?? null;
         if ($remittance !== null) {
             foreach ($remittance->Ustrd ?? array() as $text) {
                 $parts[] = trim((string) $text);
             }
             foreach ($remittance->Strd ?? array() as $structured) {
-                $parts[] = trim(self::getXmlText($structured, 'CdtrRefInf/Ref'));
+                $parts[] = trim(payment_XmlParser::getText($structured, 'CdtrRefInf/Ref'));
                 foreach ($structured->RfrdDocInf ?? array() as $document) {
-                    $parts[] = trim(self::getXmlText($document, 'Nb'));
+                    $parts[] = trim(payment_XmlParser::getText($document, 'Nb'));
                 }
                 foreach ($structured->AddtlRmtInf ?? array() as $text) {
                     $parts[] = trim((string) $text);

@@ -47,24 +47,6 @@ class payment_ImportFiles
             }
             $res->recognized++;
             $prefix = count($contents) > 1 ? 'Извлечение №' . ($index + 1) . ': ' : '';
-            if (stripos($xml, '<!DOCTYPE') !== false) {
-                $res->errors[] = $prefix . 'XML извлечението не трябва да съдържа DTD';
-                continue;
-            }
-            // Старият Unicredit парсер очаква вече валиден XML.
-            if ($parser == 'payment_ParserUC') {
-                $previous = libxml_use_internal_errors(true);
-                try {
-                    $valid = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NONET) !== false;
-                } finally {
-                    libxml_clear_errors();
-                    libxml_use_internal_errors($previous);
-                }
-                if (!$valid) {
-                    $res->errors[] = $prefix . 'Невалидно XML извлечение';
-                    continue;
-                }
-            }
             $parsed = $parser::getRecs($xml, $servicePrefix . ' ' . $service);
             if (!$parsed) {
                 $res->errors[] = $prefix . 'Неподдържан формат на банковото извлечение';

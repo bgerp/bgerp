@@ -32,63 +32,78 @@ class payment_ParserUC
         $res = new stdClass();
         $res->warnings = $res->errors = $res->recs = array();
         
-        // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $transactions = @ new SimpleXMLElement(trim($xml));
+        $error = null;
+        $transactions = payment_XmlParser::load($xml, $error);
+        if ($transactions === false) {
+            $res->errors[] = $error;
 
-        if (!$transactions) {
-            $res->warnings[] = "Грешка при парсиране на XML";
+            return $res;
+        }
+        if (!isset($transactions->ArrayOfAPAccounts)) {
+            $res->errors[] = 'Липсва съдържание на Unicredit извлечението';
 
             return $res;
         }
 
         // Циклим по частите за различните IBAN-ове
         foreach ($transactions->ArrayOfAPAccounts->APAccount as $stmt) {
-            $iban = (string) $stmt->BankAccount->IBAN;
+            $iban = payment_XmlParser::getText($stmt, 'BankAccount/IBAN');
             $iban = strtoupper(preg_replace('/[^a-z0-9]/i', '', $iban));
             
+            if ($iban === '') {
+                $res->warnings[] = 'Празен IBAN';
+                continue;
+            }
             $bankAccRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban));
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
                 continue;
             }
             
-            $ownBankAccRec = bank_OwnAccounts::fetch("#bankAccountId = {$bankAccRec->id}");
+            $ownBankAccRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $bankAccRec->id ?? null));
             if (!$ownBankAccRec) {
                 $res->warnings[] = "Сметката с IBAN {$iban} не е собствена";
                 continue;
             }
-            
-            $owrName = (string) $stmt->BankClient->NAME;
-            
-            // $bank    = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
-            $bic = (string) ($stmt->BankAccount->{'BIC-Code'} ?? '');
-            
-            // Проверка дали валутата на блока, отговаря на валутата на нашата сметка
-            $currency = strtoupper($stmt->BankAccount->CCY->SWIFTCode);
-            if ($currency && $currency != currency_Currencies::getCodeById($bankAccRec->currencyId)) {
-                $res->warnings[] = "Валутата за IBAN {$iban} се различава от тази в сметката";
-                continue;
-            }
-            
-            foreach ($stmt->BankAccount->BankAccountMovements->ArrayOfBankAccountMovements->BankAccountMovement as $node) {
-                $rec = new stdClass();
-                
-                $rec->serviceId = $serviceId;
-                $rec->ownAccountId = $ownBankAccRec->id;
-                list($rec->valior, ) = explode('T', (string) $node->ValDate);
-                $rec->amount = (float) $node->MovementAmount;
-                
-                if ($node->MovementType != 2) {
-                    $rec->type = 'outgoing';
-                    $rec->contragentIban = (string) $node->PayeeIBAN;
-                    $rec->contragentName = (string) $node->PayeeName;
-                } else {
-                    $rec->type = 'incoming';
-                    $rec->contragentIban = (string) $node->PayeeIBAN;
-                    $rec->contragentName = (string) $node->PayeeName;
+
+            $owrName = payment_XmlParser::getText($stmt, 'BankClient/NAME');
+            $bic = payment_XmlParser::getText($stmt, 'BankAccount/BIC-Code');
+
+            $currency = strtoupper(trim(payment_XmlParser::getText($stmt, 'BankAccount/CCY/SWIFTCode')));
+            $movements = $stmt->BankAccount->BankAccountMovements->ArrayOfBankAccountMovements ?? null;
+            $entryNumber = 0;
+            foreach ($movements->BankAccountMovement ?? array() as $node) {
+                $entryNumber++;
+                $direction = trim(payment_XmlParser::getText($node, 'MovementType'));
+                $amount = trim(payment_XmlParser::getText($node, 'MovementAmount'));
+                $valior = explode('T', trim(payment_XmlParser::getText($node, 'ValDate')))[0];
+                if (!in_array($direction, array('1', '2'), true)) {
+                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалиден видът на превода";
+                    continue;
                 }
-                
-                $rec->reason = (string) $node->Reason . ' ' . $node->Reason2 . ' ' . $node->Narrative . ' ' . $node->NarrativeI02;
+                if (!payment_XmlParser::isValidAmount($amount)) {
+                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна сумата";
+                    continue;
+                }
+                if (!payment_XmlParser::isValidDate($valior)) {
+                    $res->warnings[] = "Операция №{$entryNumber}: липсва или е невалидна датата";
+                    continue;
+                }
+                $expectedCurrency = bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id ?? null, $valior, true);
+                if ($currency !== '' && $currency != $expectedCurrency) {
+                    $res->warnings[] = "Валутата за IBAN {$iban} към {$valior} се различава от очакваната {$expectedCurrency}";
+                    continue;
+                }
+                $rec = new stdClass();
+                $rec->serviceId = $serviceId;
+                $rec->ownAccountId = $ownBankAccRec->id ?? null;
+                $rec->valior = $valior;
+                $rec->amount = (float) $amount;
+                $rec->type = $direction === '2' ? 'incoming' : 'outgoing';
+                $rec->contragentIban = payment_XmlParser::getText($node, 'PayeeIBAN');
+                $rec->contragentName = payment_XmlParser::getText($node, 'PayeeName');
+
+                $rec->reason = payment_XmlParser::getText($node, 'Reason') . ' ' . payment_XmlParser::getText($node, 'Reason2') . ' ' . payment_XmlParser::getText($node, 'Narrative') . ' ' . payment_XmlParser::getText($node, 'NarrativeI02');
                 
                 // Добавяме реда в резултата
                 $res->recs[] = $rec;
