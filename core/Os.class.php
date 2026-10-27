@@ -268,6 +268,27 @@ class core_Os
             return false;
         }
 
+        // Постоянните оригинали не са временни файлове, независимо от разрешената база.
+        $uploadsPaths = array();
+        if (defined('EF_UPLOADS_PATH') && is_string(EF_UPLOADS_PATH) && EF_UPLOADS_PATH !== '') {
+            $uploadsPaths[] = EF_UPLOADS_PATH;
+            // fileman_Data може още да не е зареден в този крон процес.
+            $uploadsPaths[] = defined('FILEMAN_UPLOADS_PATH') ? FILEMAN_UPLOADS_PATH : substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_PATH, '/')) . '/fileman';
+        } elseif (defined('FILEMAN_UPLOADS_PATH')) {
+            $uploadsPaths[] = FILEMAN_UPLOADS_PATH;
+        }
+        foreach ($uploadsPaths as $uploadsPath) {
+            if (!is_string($uploadsPath) || $uploadsPath === '' || strpos($uploadsPath, "\0") !== false) {
+                continue;
+            }
+            $uploadsPath = realpath($uploadsPath);
+            if ($uploadsPath !== false && ($path === $uploadsPath ||
+                strpos($path, rtrim($uploadsPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) === 0 ||
+                strpos($uploadsPath, $path . DIRECTORY_SEPARATOR) === 0)) {
+                return false;
+            }
+        }
+
         for ($part = rtrim($dir, DIRECTORY_SEPARATOR === '\\' ? '/\\' : '/'); ; $part = $parent) {
             if (is_link($part)) {
                 return false;
@@ -303,7 +324,7 @@ class core_Os
     
     
     /**
-     * Изтрива всички файлове от EF_TEMP_PATH по крон
+     * Почиства старите временни файлове и статичния кеш по крон.
      */
     public static function cron_clearOldFiles()
     {
@@ -314,13 +335,20 @@ class core_Os
         // Резултат във вербален вид
         $resText = '';
         
-        // Брояч за изтриванията
-        $delCnt = 0;
-        
-        // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
-        $tempPath = defined('EF_TEMP_PATH') ? self::getCleanupPath(EF_TEMP_PATH) : false;
-        if ($tempPath !== false) {
+        // Пакетите може да използват временни папки извън общата EF_TEMP_PATH.
+        $cleanedPaths = array();
+        foreach (array('EF_TEMP_PATH', 'FILEMAN_TEMP_PATH', 'FCONV_TEMP_PATH') as $name) {
+            $tempPath = defined($name) ? self::getCleanupPath(constant($name)) : false;
+            if ($tempPath === false) {
+                continue;
+            }
+            foreach ($cleanedPaths as $cleanedPath) {
+                if ($tempPath === $cleanedPath || strpos($tempPath, $cleanedPath . DIRECTORY_SEPARATOR) === 0) {
+                    continue 2;
+                }
+            }
             $delCnt = self::deleteOldFiles($tempPath, $maxAge);
+            $cleanedPaths[] = $tempPath;
             if ($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($tempPath, ENT_QUOTES, 'UTF-8');
             }

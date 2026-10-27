@@ -9,7 +9,7 @@
  * @package   apachetika
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -30,8 +30,10 @@ class apachetika_Detect
      */
     public static function extract($fileHnd, $params = array())
     {
+        $params['type'] = strtolower($params['type'] ?? '');
+        $params['asynch'] = $params['asynch'] ?? true;
         // В зависимост от типа на изходния файл
-        switch (strtolower($params['type'])) {
+        switch ($params['type']) {
             
             // Ако искаме да извлечем текста
             case 'text':
@@ -73,10 +75,8 @@ class apachetika_Detect
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $textPath);
         
-        $conf = core_Packs::getConfig('apachetika');
-        
         // Вземаме целия път до apachetika
-        $apacheTikaPath = getFullPath('apachetika/' . $conf->APACHE_TIKA_VERSION . '/tika-app.jar');
+        $apacheTikaPath = apachetika_Setup::getJarPath();
         
         // Задаваме пътя, като параметър
         $Script->setParam('APACHETIKA', $apacheTikaPath, true);
@@ -86,8 +86,8 @@ class apachetika_Detect
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
         
-        // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+        // C.UTF-8 работи и без инсталиран en_US locale, включително за кирилски файлови имена.
+        $Script->lineExec($lineExecStr, array('LANG' => 'C.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('apachetika_Detect::afterExtract');
@@ -106,7 +106,7 @@ class apachetika_Detect
         
         // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
-            if (strtolower($params['type']) == 'metadata') {
+            if ($params['type'] == 'metadata') {
                 $params['content'] = '';
                 fileman_Indexes::saveContent($params);
             } else {
@@ -117,9 +117,12 @@ class apachetika_Detect
         $text = '';
         if (!$params['asynch']) {
             $text = @file_get_contents($textPath);
+            $text = $text === false ? '' : $text;
             $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
             
-            core_Locks::release($params['lockId']);
+            if (!empty($params['lockId'])) {
+                core_Locks::release($params['lockId']);
+            }
         }
         
         return $text;
@@ -139,7 +142,7 @@ class apachetika_Detect
         $params = unserialize($script->params);
         
         // Ако има callBack функция
-        if ($params['callBack']) {
+        if (!empty($params['callBack'])) {
             
             // Разделяме класа от метода
             $funcArr = explode('::', $params['callBack']);
