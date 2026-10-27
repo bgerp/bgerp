@@ -2,6 +2,7 @@
 <input type=hidden name=PAGE value="paylogin">
 	<input type="hidden" name="MIN" value="[#min#]">
 	<input type="hidden" name="TOTAL" value="[#total#]">
+	<input type="hidden" name="CURRENCY" value="[#currency#]">
 	<input type="hidden" name="DESCR" value="[#description#]">
 	<input type="hidden" name="URL_OK" value="[#urlOk#]">
 	<input type="hidden" name="URL_CANCEL" value="[#cancelUrl#]">

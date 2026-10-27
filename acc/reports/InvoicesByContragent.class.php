@@ -113,7 +113,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         // --- Период и допълнителни филтри ---
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
-        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща,silent');
+        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=днес,silent');
+        $fieldset->FLD('useTodayAsCheckDate', 'enum(no=Не,yes=Да)', 'input=none,single=none');
 
         $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане, placeholderType=all,after=checkDate,single=none');
 
@@ -148,6 +149,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        // Показва избора „днес“, а не датата на последното изчисление.
+        if (($rec->useTodayAsCheckDate ?? 'no') == 'yes') {
+            $rec->checkDate = null;
+        }
+
         $form->layout = $form->renderLayout();
         $form->layout->append(' invoicesByContragentForm', 'CLASS');
         $form->layout->push('acc/css/InvoicesByContragent.css', 'CSS');
@@ -167,11 +173,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
 
-        // При „всички“ крайната дата по подразбиране е днес.
+        // Празната крайна дата означава „днес“; не се заменя с фиксирана дата във формата.
         if (($rec->unpaid ?? 'all') == 'all') {
             $form->setDefault('fromDate', null);
-            $checkDate = dt::today(false);
-            $form->setDefault('checkDate', $checkDate);
         }
 
 
@@ -241,11 +245,30 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
+            $form->rec->useTodayAsCheckDate = empty($form->rec->checkDate) ? 'yes' : 'no';
+            $checkDate = ($form->rec->checkDate ?? null) ?: dt::today(false);
+            $fromDate = $form->rec->fromDate ?? null;
+
             // Валидира се избраният период.
-            if (isset($form->rec->fromDate, $form->rec->checkDate) && ($form->rec->fromDate > $form->rec->checkDate)) {
-                $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
+            if (!empty($fromDate) && $fromDate > $checkDate) {
+                $form->setError('fromDate,checkDate', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
         }
+    }
+
+
+    /**
+     * Определя „днес“ веднъж за цялото обновяване, включително двата вида фактури.
+     * Конкретната дата остава към резултата; служебният флаг запазва избора за следващия път.
+     */
+    public function prepareData($rec)
+    {
+        if (empty($rec->checkDate) || ($rec->useTodayAsCheckDate ?? 'no') == 'yes') {
+            $rec->useTodayAsCheckDate = 'yes';
+            $rec->checkDate = dt::today(false);
+        }
+
+        return parent::prepareData($rec);
     }
 
 
