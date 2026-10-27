@@ -122,6 +122,14 @@ $('#checks').on('click', function () {
     choose(0);
     $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
     check($('[name="targetResolution"]').val() === 'move' && $('[name="targetPreviewAccepted"]').val() === 'yes' && $('[name="targetPreviewHash"]').val() === 'hash-move', 'Приложи изпраща избрания вариант');
+    renderOptimizationIdleReport([], {}, {}, {hasImprovement: true, testedCandidates: 4, duration: 0.1}, false);
+    check($('#optimizationIdleReport .optimizationSearchResult').text().includes('Намерен е по-добър вариант'), 'Старият отчет от оптимизацията запазва резултата и статистиката');
+    check(!$('#optimizationIdleReport').hasClass('targetTimeReport') && !$('body').hasClass('targetTimePreviewOpen'), 'Стиловете на целевите времена не остават в стария отчет');
+    renderOptimizationIdleReport([], {}, {}, {}, false, {mode: 'savePreview', cancelLabel: 'Отказ', confirmLabel: 'Приложи',
+        cancel: removeOptimizationIdleReport, confirm: function () { $('#result').attr('data-manual-applied', 'yes'); removeOptimizationIdleReport(); }});
+    check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ|Приложи', 'Старият предварителен преглед запазва двата си бутона');
+    $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
+    check($('#result').attr('data-manual-applied') === 'yes' && !$('#optimizationIdleReport').length, 'Прилагането в стария диалог извиква неговото действие');
     $('#result').text('OK: ' + count + ' UI проверки — без заявка и без база данни.');
 });
 $('form').on('submit', function (event) {
