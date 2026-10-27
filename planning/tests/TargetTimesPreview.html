@@ -2,15 +2,17 @@
 <html lang="bg">
 <meta charset="utf-8">
 <title>Тест на предварителния преглед на целеви времена</title>
-<link rel="stylesheet" href="/planning/tpl/TaskReordering.css">
+<link rel="stylesheet" href="/planning/tpl/TaskOrderReport.css">
 <link rel="stylesheet" href="/floatingui/css/Hints.css">
 <style>body {font: 14px Arial; padding: 20px;} #result {white-space: pre-wrap;}</style>
 <h1>Изолиран тест — без приложение и база данни</h1>
 <p>Проверява подредбата преди/след, отказа и потвърждението. Формата не изпраща заявка.</p>
 <button type="button" id="package">Пример: конфликт в пакет</button>
 <button type="button" id="free">Пример: свободна операция</button>
+<button type="button" id="changed">Пример: променен план</button>
 <button type="button" id="checks">Автоматични UI проверки</button>
 <form>
+    <table id="editFormTable"><tr><td>Начало:</td><td>Контролна клетка на едит формата</td></tr></table>
     <input name="timeStart" value="30.10.2026 14:00">
     <input type="hidden" name="targetPreviewAccepted" value="no">
     <input type="hidden" name="targetPreviewHash" value="">
@@ -77,12 +79,18 @@ function showSample(withPackage) {
 }
 $('#package').on('click', function () { showSample(true); });
 $('#free').on('click', function () { showSample(false); });
+$('#changed').on('click', function () {
+    const report = sampleReport('move');
+    report.approvalChanges = ['Opr6397: променени данни: прогрес, оставаща продължителност.'];
+    showTargetTimesPreview(report);
+});
 $('#checks').on('click', function () {
     $('[name="Cmd[save]"]').remove();
     let count = 0;
     const check = function (condition, message) { if (!condition) throw new Error(message); count++; };
     const choose = function (index) { $('#optimizationIdleReport .targetTimeChoice button').eq(index).trigger('click'); };
     showSample(true);
+    check($('#editFormTable td').first().css('border-top-width') === '0px', 'Прегледът не добавя рамки на едит формата');
     check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ', 'Преди избор има само Отказ');
     check($('.targetTimeConflict strong').text().includes('Opr6396 (1)') && $('.targetTimeConflict strong').text().includes('Opr6397 (2)'), 'Проблемът е получер и включва номерата от прегледа още преди избор');
     check($('#optimizationIdleReport').hasClass('targetTimeReport'), 'Компактната ширина е ограничена до този преглед');
@@ -110,6 +118,8 @@ $('#checks').on('click', function () {
     $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     check(!$('#optimizationIdleReport').length && $('[name="timeStart"]').val() === original, 'Отказ оставя въведените данни в редакцията');
     check(!$('body').hasClass('targetTimePreviewOpen'), 'Затварянето премахва локалния режим за хинтове');
+    check($('#editFormTable td').first().css('border-top-width') === '0px', 'След Отказ едит формата остава без чужди рамки');
+    check($('.formError').length === 0, 'Отказ не добавя грешки в редакцията');
     check($('[name="targetPreviewAccepted"]').val() === 'no' && $('[name="targetPreviewHash"]').val() === '', 'Отказ изчиства потвърждението');
     const earlier = sampleReport('nearest');
     earlier.operationOrder[0].after[0].startChange = -1;
@@ -117,6 +127,14 @@ $('#checks').on('click', function () {
     check($('.targetTimeSide-after .targetTimeEarlier').length === 1, 'По-ранното време е отбелязано в зелено');
     $('#optimizationIdleReport .optimizationIdleReportClose').trigger('click');
     check(!$('#optimizationIdleReport').length && !$('[name="Cmd[save]"]').length, 'Затваряне без изпращане');
+    const stale = sampleReport('move');
+    stale.approvalChanges = ['Opr6397: променени данни: прогрес, оставаща продължителност.', '<b>Проверка на безопасен текст</b>'];
+    showTargetTimesPreview(stale);
+    check($('.targetTimeApprovalChanges strong').text().includes('Записът не е извършен'), 'Обновен преглед ясно казва, че още няма запис');
+    check($('.targetTimeApprovalChanges li').first().text().includes('Opr6397 (2): променени данни: прогрес'), 'Причината за повторното потвърждение показва операцията, номера от прегледа и параметъра');
+    check($('.targetTimeApprovalChanges li').eq(1).text().includes('<b>') && !$('.targetTimeApprovalChanges li b').length, 'Причините се показват като безопасен текст, а не HTML');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    check(!$('.targetTimeApprovalChanges').length && $('[name="timeStart"]').val() === original, 'Отказ от обновения преглед запазва въведеното начало');
     showSample(false);
     check($('#optimizationIdleReport .targetTimeChoice button').eq(2).prop('disabled'), 'Свободна операция не предлага разкачване');
     choose(0);

@@ -136,7 +136,7 @@ class planning_TargetTimes extends core_BaseClass
         return $result;
     }
 
-    public static function collectNewConflicts($scheduled, $baseline, $changedIds = array())
+    public static function collectNewConflicts($scheduled, $baseline, $changedIds = array(), $scope = null)
     {
         $conflicts = array();
         $changedIds = array_fill_keys($changedIds, true);
@@ -144,6 +144,7 @@ class planning_TargetTimes extends core_BaseClass
             foreach ($plannedTasks as $planned) {
                 if (empty($planned->targetStartConflict)) continue;
                 $id = $planned->id ?? null;
+                if (is_array($scope) && !isset($scope[$id])) continue;
                 $old = $baseline[$id] ?? null;
                 $wasConflict = !empty($old->timeStart) && ($old->expectedTimeStart ?? null) != $old->timeStart;
                 if (isset($changedIds[$id]) || !$wasConflict) $conflicts[$id] = $planned->targetStartConflict;
@@ -167,7 +168,7 @@ class planning_TargetTimes extends core_BaseClass
     /**
      * Изчислява предложението изцяло в паметта, включително при създаване.
      */
-    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null)
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null, $now = null)
     {
         if ($context === null) {
             $baseline = planning_TaskConstraints::getDefaultArr();
@@ -207,17 +208,17 @@ class planning_TargetTimes extends core_BaseClass
             $durationTasks = array($id => $task);
             planning_TaskConstraints::calculateTaskDurations($durationTasks);
             $tasks[$id] = $task;
-            $previous = array();
-            foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
-                if (($constraint->type ?? null) == 'prevId') $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
-            }
-
+            $previous = static::getPredecessors($tasks);
             $manualRecords = planning_TaskManualOrderPerAssets::getQuery()->fetchAll();
-            $now = dt::now();
+            $now = $now ?? dt::now();
+            // Двата плана имат общ часовник: изтичането на време не е последица от редакцията.
+            $comparison = $baseline
+                ? planning_TaskConstraints::calcScheduledTimes($baseline, static::getPredecessors($baseline), $now)
+                : (object)array('tasks' => array());
             $prepared = planning_TaskConstraints::calcScheduledTimes($tasks, $previous, $now);
             $previous = $prepared->previousTasks ?? $previous;
             $context = (object)array('tasks' => $tasks, 'previous' => $previous, 'baseline' => $baseline,
-                'manualRecords' => $manualRecords, 'prepared' => $prepared, 'now' => $now);
+                'manualRecords' => $manualRecords, 'prepared' => $prepared, 'comparison' => $comparison, 'now' => $now);
         }
         $tasks = array();
         foreach ($context->tasks ?? array() as $taskId => $stored) $tasks[$taskId] = clone $stored;
@@ -271,7 +272,9 @@ class planning_TargetTimes extends core_BaseClass
                 $options['excludedAutoGroupTaskOverrides'][$assetId] = $excluded;
             }
         }
-        $proposal = planning_TargetTimePlan::propose($tasks, $previous, $baseline, $context->prepared ?? (object)array(), $options, $id, $resolution, $now);
+        $prepared = clone ($context->prepared ?? (object)array());
+        $prepared->targetTimeBaseline = $context->comparison ?? null;
+        $proposal = planning_TargetTimePlan::propose($tasks, $previous, $baseline, $prepared, $options, $id, $resolution, $now);
         if (!empty($proposal->error)) {
             $proposal->context = $context;
             return $proposal;
@@ -286,25 +289,24 @@ class planning_TargetTimes extends core_BaseClass
                 $changes[$assetId] = array('order' => $order, 'links' => $links, 'anchors' => $anchors, 'excluded' => $excluded);
             }
         }
-        $source = array();
-        foreach ($baseline as $taskId => $stored) {
-            $source[$taskId] = get_object_vars($stored);
-            foreach (array('expectedTimeStart', 'expectedTimeEnd', 'gapData', 'planningError', 'targetStartConflict', 'orderByAssetId') as $field) unset($source[$taskId][$field]);
-        }
-        $input = get_object_vars($rec);
-        foreach (array('expectedTimeStart', 'expectedTimeEnd', 'gapData', 'planningError', 'targetStartConflict', 'orderByAssetId') as $field) unset($input[$field]);
-        $times = array();
-        foreach ((array)($proposal->scheduled->tasks ?? array()) as $rows) foreach ($rows as $taskId => $row) {
-            $times[$taskId] = array($row->expectedTimeStart ?? null, $row->expectedTimeEnd ?? null);
-        }
-        ksort($times);
-        $proposal->hash = sha1(serialize(array($source, $input, $manualRecords, $policy, $resolution,
-            $changes, $proposal->pinChanges ?? array(), $proposal->proposedStart ?? null, $times)));
         $proposal->baseline = $baseline;
         $proposal->changes = $changes;
         $proposal->now = $now;
         $proposal->context = $context;
+        $proposal->approval = planning_TargetTimeApproval::snapshot($proposal, $rec, $policy, $resolution);
+        $proposal->hash = sha1(serialize($proposal->approval));
         return $proposal;
+    }
+
+    private static function getPredecessors($tasks)
+    {
+        $previous = array();
+        foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
+            if (($constraint->type ?? null) == 'prevId' && isset($constraint->taskId, $constraint->previousTaskId)) {
+                $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
+            }
+        }
+        return $previous;
     }
 
     /**
@@ -370,7 +372,26 @@ class planning_TargetTimes extends core_BaseClass
         }
         $input = clone $rec;
         unset($input->targetPreviewHash, $input->targetPreviewAccepted, $input->targetPackagePolicy, $input->targetResolution, $input->_fromForm);
-        $simulation = static::simulate($input, $policy, $resolution);
+        $acceptedAttempt = ($rec->targetPreviewAccepted ?? null) == 'yes';
+        $cached = $acceptedAttempt && !empty($rec->targetPreviewHash)
+            ? core_Cache::get('TargetTimePreview', core_Users::getCurrent() . ':' . $rec->targetPreviewHash) : false;
+        $previewNow = is_array($cached) ? ($cached['now'] ?? false) : false;
+        $approvalChanges = array();
+        $currentNow = dt::now();
+        if ($previewNow && ($previewNow > $currentNow || strtotime($currentNow) - strtotime($previewNow) > 900)) $previewNow = false;
+        $simulation = static::simulate($input, $policy, $resolution, null, $previewNow ?: null);
+        // Потвърждението не може да резервира вече отминал час.
+        if ($previewNow && !empty($simulation->proposedStart) && $simulation->proposedStart < $currentNow) {
+            $previewNow = false;
+            $simulation = static::simulate($input, $policy, $resolution);
+            $approvalChanges[] = 'Предложеното начало вече е в миналото. Изберете актуално допустимо начало.';
+        }
+        if ($acceptedAttempt && !$previewNow && !$approvalChanges) $approvalChanges[] = 'Предишният преглед е изтекъл или вече не е наличен (валидност 15 минути). Прегледайте актуалния резултат.';
+        if ($previewNow && ($rec->targetPreviewHash ?? null) != ($simulation->hash ?? null)) {
+            $approvalChanges = isset($simulation->approval)
+                ? planning_TargetTimeApproval::describeChanges($cached['snapshot'] ?? array(), $simulation->approval)
+                : array('Предишният вариант вече не е допустим. Вижте конкретния конфликт по-долу.');
+        }
         $rightsError = static::proposalRightsError($simulation, $canChangePackages);
         $conflicts = $simulation->conflicts ?? array();
         if (!empty($simulation->error) || $conflicts || $rightsError) {
@@ -382,7 +403,7 @@ class planning_TargetTimes extends core_BaseClass
             $form->setError('timeStart,timeDuration', str_replace('<br>', '; ', implode('; ', $messages)));
             if (!empty($rec->timeStart)) {
                 $report = array('alternatives' => array(), 'conflictText' => str_replace('<br>', "\n", implode("\n", $messages)),
-                    'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore));
+                    'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore), 'approvalChanges' => $approvalChanges);
                 $choices = array(
                     array('mode' => 'move', 'policy' => $policy, 'title' => 'Запази желания час и промени конфликтните фиксирани начала'),
                     array('mode' => 'nearest', 'policy' => $policy, 'title' => 'Запази чуждите фиксирани начала и предложи близко допустимо начало'),
@@ -411,7 +432,7 @@ class planning_TargetTimes extends core_BaseClass
         }
         if (!$changed && empty($simulation->changes) && empty($simulation->pinChanges)
             && ($simulation->proposedStart ?? ($rec->timeStart ?? null)) == ($rec->timeStart ?? null)) return;
-        if (($rec->targetPreviewAccepted ?? null) == 'yes' && ($rec->targetPreviewHash ?? null) == ($simulation->hash ?? null)) {
+        if ($previewNow && ($rec->targetPreviewAccepted ?? null) == 'yes' && ($rec->targetPreviewHash ?? null) == ($simulation->hash ?? null)) {
             $rec->_targetTimesChanged = true;
             $rec->_targetPackageChanges = $simulation->changes ?? array();
             $rec->_targetStartChanges = $simulation->pinChanges ?? array();
@@ -421,7 +442,10 @@ class planning_TargetTimes extends core_BaseClass
         $rec->targetPreviewHash = $simulation->hash ?? null;
         $rec->targetPreviewAccepted = 'no';
         $form->_targetTimesReport = static::proposalReport($simulation, $rec, $form);
-        $form->setError('timeStart,timeDuration', 'Въведени/променени са целевите начало и/или продължителност на операцията! Промяната им е с най-висок приоритет и ще промени подредбата както на текущата, така и на операциите около нея. Прегледайте резултата (новата подредба) и при необходимост нанесете необходимите корекции!');
+        $form->_targetTimesReport['approvalChanges'] = $approvalChanges;
+        $form->setError('timeStart,timeDuration', $approvalChanges
+            ? 'Записът не е извършен. Необходимо е ново потвърждение: ' . implode(' ', $approvalChanges)
+            : 'Въведени/променени са целевите начало и/или продължителност на операцията! Промяната им е с най-висок приоритет и ще промени подредбата както на текущата, така и на операциите около нея. Прегледайте резултата (новата подредба) и при необходимост нанесете необходимите корекции!');
     }
 
     private static function proposalRightsError($simulation, $canReorder)
@@ -446,12 +470,17 @@ class planning_TargetTimes extends core_BaseClass
     private static function proposalReport($simulation, $rec, $form)
     {
         $tasks = $simulation->tasks ?? array();
-        $baseline = $simulation->baseline ?? array();
+        $comparison = $simulation->context->comparison ?? null;
+        $baseline = planning_TargetTimeApproval::baseline($simulation->baseline ?? array(), $comparison);
         $scheduled = $simulation->scheduled ?? (object)array();
-        $report = planning_Tasks::getTargetTimesPreviewReport($tasks, $scheduled, $simulation->now ?? null, $rec->assetId ?? null, $baseline);
+        $report = planning_Tasks::getTargetTimesPreviewReport($tasks, $scheduled, $simulation->now ?? null, $rec->assetId ?? null, $baseline, $comparison);
         $report['command'] = $form->cmd ?? 'save';
         $report['ignoreWarnings'] = !empty($form->ignore);
         $report['hash'] = $simulation->hash ?? '';
+        if (!empty($report['hash']) && !empty($simulation->now)) {
+            core_Cache::set('TargetTimePreview', core_Users::getCurrent() . ':' . $report['hash'],
+                array('now' => $simulation->now, 'snapshot' => $simulation->approval ?? array()), 15);
+        }
         $report['requestedStart'] = static::verbalTime($rec->timeStart ?? null);
         $report['proposedStart'] = static::verbalTime($simulation->proposedStart ?? ($rec->timeStart ?? null));
         $report['operationChanges'] = array();

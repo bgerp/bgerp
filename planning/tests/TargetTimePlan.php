@@ -148,9 +148,11 @@ check($result->proposedStart === '2026-10-08 09:00:00' && !$result->pinChanges, 
 
 class ScenarioTargetTimes extends planning_TargetTimes {
     public static $context;
-    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null) {
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null, $now = null) {
         $context = clone ($context ?? self::$context);
+        $context->now = $now ?? dt::now();
         $context->tasks = array_map(function($row) { return clone $row; }, $context->tasks);
+        foreach (get_object_vars($rec) as $field => $value) $context->tasks[$rec->id ?? -1]->{$field} = $value;
         $context->tasks[$rec->id ?? -1]->timeStart = $rec->timeStart ?? null;
         return parent::simulate($rec, $policy, $resolution, $context);
     }

@@ -56,7 +56,7 @@ class planning_Tasks {
         return $action == 'savereordertasks' ? self::$reorderAllowed : $userId > 0;
     }
     public static function logWrite($message, $id) { self::$logs[] = array($message, $id); }
-    public static function getTargetTimesPreviewReport($tasks, $scheduled, $now, $assetId, $baseline) { return array(); }
+    public static function getTargetTimesPreviewReport($tasks, $scheduled, $now, $assetId, $baseline, $baselineScheduledData = null) { return array(); }
     public function save_(&$rec, $fields = null, $mode = null) {
         self::$saved[] = array(clone $rec, $fields);
         foreach (arr::make($fields, true) as $field => $dummy) self::$records[$rec->id ?? null]->{$field} = $rec->{$field} ?? null;
@@ -65,13 +65,25 @@ class planning_Tasks {
 class Request { public static function get($name) { return null; } }
 class cls { public static function get($name) { return new $name(); } }
 class core_Users {
+    public static $current = 7;
     public static $systemDepth = 0;
     public static $inactive = array();
-    public static function getCurrent() { return 7; }
+    public static function getCurrent() { return self::$current; }
     public static function getByRole($role) { return array(7 => 7); }
     public static function isActiveUserId($id) { return !in_array($id, self::$inactive); }
     public static function forceSystemUser() { self::$systemDepth++; }
     public static function cancelSystemUser() { self::$systemDepth--; }
+}
+class core_Cache {
+    public static $values = array();
+    public static function get($type, $handler, $keepMinutes = null, $depends = array()) {
+        $entry = self::$values[$type . ':' . $handler] ?? null;
+        return $entry && $entry[1] > dt::now() ? $entry[0] : false;
+    }
+    public static function set($type, $handler, $value, $keepMinutes = 1, $depends = array()) {
+        self::$values[$type . ':' . $handler] = array($value, dt::addSecs($keepMinutes * 60, dt::now()));
+        return $handler;
+    }
 }
 class bgerp_Notifications {
     public static $added = array();
@@ -80,6 +92,8 @@ class bgerp_Notifications {
     public static function clear($url, $user) { self::$cleared++; }
 }
 class dt {
+    public static $now = '2026-10-08 08:00:00';
+    public static function now() { return self::$now; }
     public static function addSecs($secs, $date = null) { return date('Y-m-d H:i:s', strtotime($date) + $secs); }
     public static function mysql2UnixDays($date) { return (int)(strtotime($date) / 86400); }
     public static function mysql2verbal($date, $format) { return date($format, strtotime($date)); }
@@ -112,13 +126,14 @@ function getRetUrl() { return array(); }
 function toUrl($url) { return '/'; }
 require dirname(__DIR__, 2) . '/core/Intervals.class.php';
 require dirname(__DIR__) . '/TargetTimes.class.php';
+require dirname(__DIR__) . '/TargetTimeApproval.class.php';
 require dirname(__DIR__) . '/TaskManualOrderPerAssets.class.php';
 require dirname(__DIR__) . '/TaskConstraints.class.php';
 
 class FixtureTargetTimes extends planning_TargetTimes {
     public static $simulation;
     public static $calls = 0;
-    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null) { self::$calls++; return self::$simulation; }
+    public static function simulate($rec, $policy = 'keep', $resolution = 'keep', $context = null, $now = null) { self::$calls++; return self::$simulation; }
 }
 class FixtureForm extends stdClass {
     public $errors = array();

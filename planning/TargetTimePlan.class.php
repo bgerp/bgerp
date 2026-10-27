@@ -310,7 +310,9 @@ class planning_TargetTimePlan extends core_BaseClass
             if ($taskId != $id && ($task->timeStart ?? null) != ($baseline[$taskId]->timeStart ?? null)) $pinChanges[$taskId] = $task->timeStart ?? null;
         }
         $changedIds = array_merge(array($id), array_keys($pinChanges));
-        $conflicts = planning_TargetTimes::collectNewConflicts($scheduled, $baseline, $changedIds);
+        $scope = planning_TargetTimeApproval::scope($tasks, $baseline, $scheduled, $prepared, $previous, $id);
+        $conflictBaseline = planning_TargetTimeApproval::baseline($baseline, $prepared->targetTimeBaseline ?? null);
+        $conflicts = planning_TargetTimes::collectNewConflicts($scheduled, $conflictBaseline, $changedIds, $scope);
         return (object)array('scheduled' => $scheduled, 'tasks' => $tasks, 'options' => $options,
             'pinChanges' => $pinChanges, 'proposedStart' => $tasks[$id]->timeStart ?? null, 'conflicts' => $conflicts);
     }

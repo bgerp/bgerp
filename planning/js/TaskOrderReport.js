@@ -223,11 +223,21 @@ function showTargetTimesPreview(data, selectedIndex)
             referenceNumbers[row.operation.toLowerCase()] = row.number;
         });
     });
-    if (data.conflictText) {
-        const conflict = data.conflictText.replace(/\bOpr\d+\b/gi, function (operation) {
+    const withReferenceNumbers = function (text) {
+        return text.replace(/\bOpr\d+\b/gi, function (operation) {
             const number = referenceNumbers[operation.toLowerCase()];
             return number == null ? operation : operation + ' (' + number + ')';
         });
+    };
+    if ((data.approvalChanges || []).length) {
+        const changed = $('<div>', {class: 'targetTimeConflict targetTimeApprovalChanges'});
+        changed.append($('<strong>').text('Записът не е извършен. Необходимо е ново потвърждение:'));
+        const list = $('<ul>');
+        data.approvalChanges.forEach(function (reason) { list.append($('<li>').text(withReferenceNumbers(reason))); });
+        details.append(changed.append(list));
+    }
+    if (data.conflictText) {
+        const conflict = withReferenceNumbers(data.conflictText);
         details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
     }
     if (alternatives.length) {
