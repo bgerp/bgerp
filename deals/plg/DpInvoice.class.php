@@ -10,7 +10,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -540,7 +540,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = countR($data->listFields) - 1;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmountVerbal#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' ' . $reason . "</td><td style='text-align:right'>[#dpAmountVerbal#]</td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
 
@@ -553,7 +553,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . "</td><td style='text-align:right'>[#dpAmount#]</td></tr>");
         }
 
         // Начисляването показва вербалната сума, приспадането - оцветената, затова се заличават и двете

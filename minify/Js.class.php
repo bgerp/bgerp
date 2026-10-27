@@ -83,6 +83,12 @@ class minify_Js
      */
     public static function process($js)
     {
+        $version = minify_Setup::get('JS_VERSION') ?: 'legacy';
+        expect(in_array($version, array('legacy', 'jshrink-1.8.1'), true), 'Неподдържана JS minify версия');
+        if ($version === 'jshrink-1.8.1') {
+            $class = minify_Setup::loadLibrary('jshrink');
+            return $class::minify($js);
+        }
         $jsmin = new minify_Js($js);
         
         return $jsmin->min();
@@ -391,6 +397,7 @@ class minify_Js
      */
     protected function isAlphaNum($c)
     {
+        if ($c === null) return false;
         return (preg_match('/^[a-z0-9A-Z_\\$\\\\]$/', $c) || ord($c) > 126);
     }
     

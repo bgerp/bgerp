@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1029,6 +1029,21 @@ class core_Master extends core_Manager
         $id = is_object($id) ? $id->id : $id;
         unset($this->updateQueue[$id]);
         $this->updateMaster($id);
+    }
+
+    
+    /**
+     * Дали мастърът чака обновяване на shutdown
+     *
+     * @param mixed $id
+     *
+     * @return bool
+     */
+    public function isInUpdateQueue($id)
+    {
+        $id = is_object($id) ? $id->id : $id;
+
+        return isset($this->updateQueue[$id]);
     }
     
     
