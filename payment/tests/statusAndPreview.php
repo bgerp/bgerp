@@ -38,11 +38,12 @@ check($parser->process(new attachment_TestMime(array($mixedFile)), (object) arra
 $before = count(bank_Register::$imports);
 check($parser->process(new attachment_TestMime(array(fixture('pending.camt', $pendingXml))), (object) array()) === false && count(bank_Register::$imports) === $before, 'pending-only email writes nothing');
 
-function previewForm($file, $hash = null, $ignore = false, $password = null, $filter = 'all', $page = 1, $cmd = 'save') {
+function previewForm($file, $hash = null, $ignore = false, $password = null, $filter = 'all', $page = 1, $cmd = 'save', $confirmedRows = '') {
     $form = new core_FieldSet();
     $form->ignore = $ignore;
     $form->cmd = $cmd;
-    $form->rec = (object) array('xmlFile' => $file, 'previewHash' => $hash, 'archivePassword' => $password, 'recs' => array('untrusted'), 'previewFilter' => $filter, 'previewPage' => $page);
+    $form->rec = (object) array('xmlFile' => $file, 'previewHash' => $hash, 'archivePassword' => $password, 'recs' => array('untrusted'), 'previewFilter' => $filter, 'previewPage' => $page,
+        'confirmedCrossFormatRows' => $confirmedRows, 'confirmedCrossFormats' => array('untrusted' => 'untrusted'));
     (new payment_ImportDriver())->checkImportForm(new core_Manager(), $form);
     return $form;
 }
