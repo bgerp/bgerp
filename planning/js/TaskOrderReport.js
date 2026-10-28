@@ -251,7 +251,9 @@ function showTargetTimesPreview(data, selectedIndex)
         details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
     }
     if (alternatives.length) {
-        details.append($('<strong>').text('Изберете вариант, прегледайте всички промени и едва тогава натиснете „Приложи“.'));
+        details.append($('<strong>', {class: 'targetTimeChoiceHelp'}).text(firstAvailable
+            ? 'Изберете вариант, прегледайте всички промени и едва тогава натиснете „Приложи“.'
+            : 'Няма допустим вариант при текущите ограничения. Върнете се с „Отказ“ и проверете посочените предходни операции, пакетни връзки и фиксирани начала.'));
         alternatives.forEach(function (variant, index) {
             const box = $('<div>', {class: 'targetTimeChoice' + (index === selectedIndex ? ' isSelected' : '')});
             box.append($('<button>', {type: 'button', disabled: !variant.available})
