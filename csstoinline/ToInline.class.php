@@ -8,7 +8,7 @@
  * @package   csstoinlin
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,15 +17,15 @@ class csstoinline_ToInline
 {
     /**
      * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
-     * <style type=text/css> ... </style>
+     * <style> или <style type="text/css"> ... </style>
      */
     public static function inlineCssFromHtml($html)
     {
-        //Шаблона за намиране на CSS '<stle type=text/css> ... </style>' в html документа
-        $pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
+        // В HTML5 type="text/css" не е задължителен.
+        $pattern = '~<style(?:\s+type\s*=\s*"*\'*\s*text/css"*\'*)?\s*>(.*?)</style\s*>~is';
         preg_match_all($pattern, $html, $match);
         
-        //Ако иам намерени съвпадения от CSS в style type="text/css"
+        // Събираме блоковете в реда им в документа.
         if (countR($match[1])) {
             $valueAllCss = '';
             
@@ -33,7 +33,7 @@ class csstoinline_ToInline
                 $valueAllCss .= $value . "\r\n";
             }
             
-            //Заместваме CSS от <style type=text/css в inline стилове
+            // Вграждаме CSS преди пречистването да премахне style таговете.
             $html = static::cssToInline($html, $valueAllCss);
         }
         
