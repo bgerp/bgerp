@@ -511,7 +511,7 @@ class core_Form extends core_FieldSet
                 
                 // Ако имаме нова стойност след валидацията - присвояваме я.
                 // По този начин стойността се 'нормализира'
-                if ($result['value']) {
+                if (!empty($result['value'])) {
                     $value = $result['value'];
                 }
                 
