@@ -59,8 +59,11 @@ class pdfform_Overlay
             self::addPage($pdf, $p);
             $no = $i + 1;
             foreach ($fields as $f) {
-                if ((int) ($f['field']['page'] ?? 0) === $no) {
-                    self::drawField($pdf, $p, $f['field'], $f['value']);
+                // Стойността се повтаря във всеки видим widget, с неговите позиция и настройки
+                $common = array_diff_key($f['field'], array_flip(array('page', 'rect', 'fontSize', 'align', 'rotation', 'hidden', 'widgets')));
+                foreach (pdfform_Api::fieldWidgets($f['field']) as $w) {
+                    if ((int) ($w['page'] ?? 0) !== $no || !empty($w['hidden'])) continue;
+                    self::drawField($pdf, $p, $w + $common, $f['value']);
                 }
             }
             foreach ($items as $item) {

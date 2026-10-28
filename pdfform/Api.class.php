@@ -90,19 +90,28 @@ class pdfform_Api
             }
 
             // Текстът с позиции; за сканове и снимки - чрез OCR
-            $text = $work['isImage'] ? array() : self::extractText($dir, $work['pdf'], min($pageCount, self::MAX_TEXT_PAGES));
+            $text = $work['isImage'] ? array() : self::extractText($dir, $work['pdf'], array_slice($info['pages'], 0, self::MAX_TEXT_PAGES));
             $fieldPages = array();
             foreach ($info['fields'] as $f) {
                 $fieldPages[(int) ($f['page'] ?? 0)] = true;
+                foreach ((array) ($f['widgets'] ?? array()) as $w) {
+                    $fieldPages[(int) ($w['page'] ?? 0)] = true;
+                }
             }
 
             $pages = array();
+            $cropped = false;
             foreach ($info['pages'] as $i => $p) {
                 $no = $i + 1;
                 if ($no > self::MAX_TEXT_PAGES) break;
                 $words = $text[$no]['words'] ?? 0;
-                $pages[] = array('page' => $no, 'widthMm' => round($p['width'] * 25.4 / 72, 1), 'heightMm' => round($p['height'] * 25.4 / 72, 1),
+                $row = array('page' => $no, 'widthMm' => round($p['width'] * 25.4 / 72, 1), 'heightMm' => round($p['height'] * 25.4 / 72, 1),
                     'kind' => isset($fieldPages[$no]) ? 'fields' : ($words >= 3 ? 'text' : 'scan'));
+                if (!empty($p['cropped'])) {
+                    $row['cropped'] = true;
+                    $cropped = true;
+                }
+                $pages[] = $row;
             }
 
             $lines = $text[$page]['lines'] ?? array();
@@ -123,10 +132,13 @@ class pdfform_Api
             if ($pageCount > self::MAX_TEXT_PAGES) {
                 $res['pagesNote'] = 'Only the first ' . self::MAX_TEXT_PAGES . ' pages are listed.';
             }
+            if ($cropped) {
+                $res['croppedNote'] = 'Positions are relative to the visible (cropped) page. get_image may show the full uncropped sheet of pages marked cropped, so take positions there from fields and lines.';
+            }
             if (!empty($info['xfa'])) {
                 $res['xfa'] = $info['xfa'];
             }
-            $res['fields'] = array_slice($info['fields'], 0, self::MAX_FIELDS);
+            $res['fields'] = self::publicFields(array_slice($info['fields'], 0, self::MAX_FIELDS));
             if (countR($info['fields']) > self::MAX_FIELDS) {
                 $res['fieldsNote'] = 'Only the first ' . self::MAX_FIELDS . ' of ' . countR($info['fields']) . ' fields are listed.';
             }
@@ -194,17 +206,7 @@ class pdfform_Api
                 return array('error' => 'Nothing was filled; fix these and repeat the call: ' . implode(' ', $errors), 'reason' => 'invalid_input', 'errors' => $errors);
             }
 
-            // При заключване стойностите на текстовите полета се рисуват с шрифт с кирилица
-            $drawnFields = array();
-            if ($flatten) {
-                foreach ($info['fields'] as $f) {
-                    if (!in_array($f['type'], array('text', 'dropdown', 'listbox'), true)) continue;
-                    $value = array_key_exists($f['name'], $values) ? $values[$f['name']] : $f['value'];
-                    $value = self::displayValue($f, $value);
-                    if ($value === '') continue;
-                    $drawnFields[] = array('field' => $f, 'value' => $value);
-                }
-            }
+            $drawnFields = $flatten ? self::flattenFields($info['fields'], $values) : array();
 
             $overlay = null;
             if (countR($draw) || countR($drawnFields)) {
@@ -231,6 +233,74 @@ class pdfform_Api
         } finally {
             core_Os::deleteDir($dir);
         }
+    }
+
+
+    /**
+     * Полетата с видимия им текст, който при заключване се рисува с шрифт с кирилица
+     *
+     * @param array $defs   - полетата от четенето
+     * @param array $values - новите стойности [име => стойност]
+     *
+     * @return array - [['field' => полето, 'value' => текст], ...]
+     */
+    protected static function flattenFields($defs, $values)
+    {
+        $res = array();
+        foreach ($defs as $f) {
+            if (!in_array($f['type'], array('text', 'dropdown', 'listbox'), true)) continue;
+
+            // Само скрити повторения: стойността не се вижда и след заключване
+            $visible = array_filter(self::fieldWidgets($f), function ($w) { return empty($w['hidden']); });
+            if (!countR($visible)) continue;
+            $value = array_key_exists($f['name'], $values) ? $values[$f['name']] : $f['value'];
+            $value = self::displayValue($f, $value);
+            if ($value === '') continue;
+            $res[] = array('field' => $f, 'value' => $value);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Повторенията (widgets) на поле; за стари данни без тях - самото поле
+     *
+     * @param array $f
+     *
+     * @return array
+     */
+    public static function fieldWidgets($f)
+    {
+        return countR($f['widgets'] ?? null) ? $f['widgets'] : array($f);
+    }
+
+
+    /**
+     * Полетата за резултата от четенето - във вида отпреди повторенията на текстовите полета
+     *
+     * @param array $fields
+     *
+     * @return array
+     */
+    protected static function publicFields($fields)
+    {
+        foreach ($fields as &$f) {
+            if (!in_array($f['type'] ?? '', array('text', 'dropdown', 'listbox'), true) || !isset($f['widgets'])) continue;
+            if (countR($f['widgets']) === 1) {
+                if (!empty($f['widgets'][0]['hidden'])) {
+                    $f['hidden'] = true;
+                }
+                unset($f['widgets']);
+                continue;
+            }
+            foreach ($f['widgets'] as $i => $w) {
+                $f['widgets'][$i] = array_intersect_key($w, array_flip(array('page', 'rect', 'hidden')));
+            }
+        }
+        unset($f);
+
+        return $fields;
     }
 
 
@@ -600,25 +670,43 @@ class pdfform_Api
      *
      * @param string $dir
      * @param string $pdf
-     * @param int    $lastPage
+     * @param array  $pages - показаните размери на страниците от pdfform.py
      *
      * @return array - [страница => ['words' => брой, 'lines' => [...]]]
      */
-    protected static function extractText($dir, $pdf, $lastPage)
+    protected static function extractText($dir, $pdf, $pages)
     {
+        // -cropbox: координатите са спрямо видимата страница, както при полетата и наслагването
         $Script = self::script($dir);
         $Script->setParam('IN', $pdf);
         $Script->setParam('OUT', $dir . 'text.html');
-        $Script->lineExec('pdftotext -bbox-layout -enc UTF-8 -f 1 -l ' . (int) $lastPage . ' [#IN#] [#OUT#]', array('errFilePath' => $dir . 'text.err'));
+        $Script->lineExec('pdftotext -cropbox -bbox-layout -enc UTF-8 -f 1 -l ' . countR($pages) . ' [#IN#] [#OUT#]', array('errFilePath' => $dir . 'text.err'));
         $Script->setCheckProgramsArr('pdftotext');
         if ($Script->run(false) === false || !is_file($dir . 'text.html')) {
 
             return array();
         }
 
+        return self::parseBboxLayout((string) file_get_contents($dir . 'text.html'), $pages);
+    }
+
+
+    /**
+     * Редовете от изхода на pdftotext -bbox-layout
+     *
+     * pdftotext дава думите в посоката на показаната страница, но width/height на страницата
+     * остават незавъртени, затова процентите се смятат по показания размер от pdfform.py.
+     *
+     * @param string $xml
+     * @param array  $pages - [['width' => pt, 'height' => pt], ...]
+     *
+     * @return array - [страница => ['words' => брой, 'lines' => [...]]]
+     */
+    public static function parseBboxLayout($xml, $pages)
+    {
         $doc = new DOMDocument();
         $prev = libxml_use_internal_errors(true);
-        $loaded = $doc->loadXML((string) file_get_contents($dir . 'text.html'));
+        $loaded = $doc->loadXML($xml);
         libxml_clear_errors();
         libxml_use_internal_errors($prev);
         if (!$loaded) {
@@ -628,8 +716,8 @@ class pdfform_Api
 
         $res = array();
         foreach ($doc->getElementsByTagName('page') as $i => $pageEl) {
-            $w = (float) $pageEl->getAttribute('width');
-            $h = (float) $pageEl->getAttribute('height');
+            $w = (float) ($pages[$i]['width'] ?? $pageEl->getAttribute('width'));
+            $h = (float) ($pages[$i]['height'] ?? $pageEl->getAttribute('height'));
             $words = 0;
             $lines = array();
             foreach ($pageEl->getElementsByTagName('line') as $lineEl) {
@@ -677,7 +765,7 @@ class pdfform_Api
             $Script->setParam('IN', $work['pdf']);
             $Script->setParam('PAGEIMG', $dir . 'page');
             $Script->setParam('IMG', $dir . 'page.png');
-            $Script->lineExec('pdftocairo -png -r ' . self::OCR_RESOLUTION . ' -f ' . (int) $page . ' -l ' . (int) $page . ' -singlefile [#IN#] [#PAGEIMG#]', array('errFilePath' => $dir . 'render.err'));
+            $Script->lineExec('pdftocairo -cropbox -png -r ' . self::OCR_RESOLUTION . ' -f ' . (int) $page . ' -l ' . (int) $page . ' -singlefile [#IN#] [#PAGEIMG#]', array('errFilePath' => $dir . 'render.err'));
             $check[] = 'pdftocairo';
         }
         $Script->lineExec('tesseract [#IMG#] [#OCROUT#] -l [#LANGUAGE#] tsv', array('LANG' => 'en_US.UTF-8', 'HOME' => $dir, 'errFilePath' => $dir . 'ocr.err'));

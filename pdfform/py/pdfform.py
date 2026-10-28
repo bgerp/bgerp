@@ -26,6 +26,10 @@ FF_EDIT = 1 << 18
 FF_MULTISELECT = 1 << 21
 FF_COMB = 1 << 24
 
+# Annotation flags that hide a widget; Invisible (1) applies only to unknown annotation types
+ANNOT_HIDDEN = 1 << 1
+ANNOT_NOVIEW = 1 << 5
+
 
 class FormError(Exception):
     pass
@@ -182,6 +186,34 @@ def parse_da(da):
     return 0.0
 
 
+def widget_hidden(widget):
+    try:
+        flags = int(obj(widget.get('/F')) or 0)
+    except (TypeError, ValueError):
+        flags = 0
+
+    return bool(flags & (ANNOT_HIDDEN | ANNOT_NOVIEW))
+
+
+def text_widget(field, w):
+    """Page, rect and the text settings of one widget of a text or choice field."""
+    widget = w['widget']
+    res = {'page': w['page'], 'rect': rect_percent(w['geo'], widget.get('/Rect')),
+           'fontSize': parse_da(inherited(widget, '/DA') or inherited(field, '/DA'))}
+    quadding = inherited(widget, '/Q')
+    res['align'] = {1: 'center', 2: 'right'}.get(int(quadding or 0), 'left')
+    # Text direction against the displayed page: page rotation minus the widget's /MK /R
+    mk = obj(widget.get('/MK'))
+    own = int(obj(mk.get('/R')) or 0) if hasattr(mk, 'get') else 0
+    turn = (w['geo']['rotate'] - own) % 360
+    if turn in (90, 180, 270):
+        res['rotation'] = turn
+    if widget_hidden(widget):
+        res['hidden'] = True
+
+    return res
+
+
 def collect(pdf_pages):
     """Fields by full name with their widgets, in page order."""
     fields = {}
@@ -253,15 +285,11 @@ def describe(name, entry):
                 res['widgets'].append({'value': state, 'page': w['page'],
                                        'rect': rect_percent(w['geo'], w['widget'].get('/Rect'))})
     if ftype in ('text', 'dropdown', 'listbox'):
-        res['fontSize'] = parse_da(inherited(first['widget'], '/DA') or inherited(field, '/DA'))
-        quadding = inherited(first['widget'], '/Q')
-        res['align'] = {1: 'center', 2: 'right'}.get(int(quadding or 0), 'left')
-        # Text direction against the displayed page: page rotation minus the widget's /MK /R
-        mk = obj(first['widget'].get('/MK'))
-        own = int(obj(mk.get('/R')) or 0) if hasattr(mk, 'get') else 0
-        turn = (first['geo']['rotate'] - own) % 360
-        if turn in (90, 180, 270):
-            res['rotation'] = turn
+        # Every widget repeats the value; the first one also fills the top-level keys as before
+        res['widgets'] = [text_widget(field, w) for w in entry['widgets']]
+        for key in ('fontSize', 'align', 'rotation'):
+            if key in res['widgets'][0]:
+                res[key] = res['widgets'][0][key]
 
     return res
 
@@ -295,7 +323,12 @@ def cmd_info(src, out):
     pages = []
     for page in reader.pages:
         geo = page_geometry(page)
-        pages.append({'width': round(geo['dw'], 2), 'height': round(geo['dh'], 2), 'rotate': geo['rotate']})
+        info = {'width': round(geo['dw'], 2), 'height': round(geo['dh'], 2), 'rotate': geo['rotate']}
+        media = page.mediabox
+        if [round(float(v), 2) for v in (media.left, media.bottom, media.right, media.top)] != \
+                [round(geo[k], 2) for k in ('x0', 'y0', 'x1', 'y1')]:
+            info['cropped'] = True
+        pages.append(info)
     fields, order = collect(reader.pages)
     res = {'pages': pages,
            'fields': [describe(n, fields[n]) for n in order if field_type(fields[n]['field']) != 'button'],
@@ -349,7 +382,7 @@ def stamp_widgets(writer, page, skip):
     xobjects = None
     for idx, annot in enumerate(obj(page.get('/Annots')) or []):
         widget = obj(annot)
-        if widget.get('/Subtype') != '/Widget' or int(widget.get('/F') or 0) & 2:
+        if widget.get('/Subtype') != '/Widget' or widget_hidden(widget):
             continue
         field = terminal_field(widget)
         if field is None or full_name(field) in skip:

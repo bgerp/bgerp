@@ -28,6 +28,8 @@ class FormsApiFixture extends pdfform_Api {
     public static function fields($fields, $defs, &$errors) { return self::normalizeFields($fields, $defs, $errors); }
     public static function items($items, $pages, &$errors) { return self::normalizeItems($items, $pages, $errors); }
     public static function display($def, $value) { return self::displayValue($def, $value); }
+    public static function flatten($defs, $values) { return self::flattenFields($defs, $values); }
+    public static function publish($fields) { return self::publicFields($fields); }
 }
 
 $defs = array(
@@ -147,6 +149,67 @@ if ($python !== '' && is_executable($python)) {
     $rot = $run(array('info', $dir . 'rot.pdf', $dir . 'rot.json'));
     check($rot['pages'][0]['rotate'] === 90 && $rot['pages'][0]['width'] > $rot['pages'][0]['height'], 'Rotated page reports its displayed size');
     check(($rot['fields'][0]['rotation'] ?? 0) === 90 && $rot['fields'][0]['rect'][2] < $rot['fields'][0]['rect'][3], 'Field on a rotated page is tall and turned');
+
+    $fixture = function ($kind) use ($python, $dir) {
+        exec(escapeshellarg($python) . ' -I ' . escapeshellarg(__DIR__ . '/fixtures.py') . ' ' . $kind . ' ' . escapeshellarg($dir . $kind . '.pdf'), $out, $code);
+        check($code === 0 && is_file($dir . $kind . '.pdf'), "Fixture {$kind} is generated");
+    };
+    $pdftotext = (bool) trim((string) shell_exec('command -v pdftotext'));
+    $pageText = function ($pdf, $page) { return (string) shell_exec("pdftotext -f {$page} -l {$page} " . escapeshellarg($pdf) . ' -'); };
+
+    // Едно поле с два widgets на различни страници, скрити (Hidden, NoView) и само с флаг Invisible
+    $fixture('fields');
+    $info = $run(array('info', $dir . 'fields.pdf', $dir . 'fields.json'));
+    $byName = array_column($info['fields'], null, 'name');
+    check(array_column($byName['shared']['widgets'], 'page') === array(1, 2), 'Every widget of a repeated field is read with its page');
+    check(!empty($byName['hidden']['widgets'][0]['hidden']) && !empty($byName['noview']['widgets'][0]['hidden']) && empty($byName['invisible']['widgets'][0]['hidden']), 'Hidden and NoView widgets are marked, Invisible is not');
+    $public = array_column(FormsApiFixture::publish($info['fields']), null, 'name');
+    check(countR($public['shared']['widgets']) === 2 && array_keys($public['shared']['widgets'][1]) === array('page', 'rect'), 'Read result lists repeated widgets by page and rect');
+    check(!isset($public['invisible']['widgets']) && empty($public['invisible']['hidden']) && !empty($public['hidden']['hidden']) && !isset($public['hidden']['widgets']), 'Single widgets keep the previous read format');
+
+    $values = array('shared' => 'SHARED_VALUE');
+    $drawn = FormsApiFixture::flatten($info['fields'], $values);
+    check(array_column(array_column($drawn, 'field'), 'name') === array('shared', 'invisible'), 'Hidden fields are not drawn when flattening');
+    check(!pdfform_Overlay::create($dir . 'fov.pdf', $info['pages'], array(), $drawn), 'Overlay with repeated fields is created');
+    file_put_contents($dir . 'fspec.json', json_encode(array('fields' => $values, 'overlay' => $dir . 'fov.pdf', 'flatten' => true,
+        'drawn' => array_column(array_column($drawn, 'field'), 'name'))));
+    $res = $run(array('fill', $dir . 'fields.pdf', $dir . 'fspec.json', $dir . 'fout.pdf', $dir . 'ffill.json'));
+    check(!empty($res['ok']), 'Form with repeated and hidden fields is filled');
+    if ($pdftotext) {
+        check(strpos($pageText($dir . 'fout.pdf', 1), 'SHARED_VALUE') !== false && strpos($pageText($dir . 'fout.pdf', 2), 'SHARED_VALUE') !== false, 'Repeated field value is on both pages after flatten');
+        $all = $pageText($dir . 'fout.pdf', 1) . $pageText($dir . 'fout.pdf', 2);
+        check(strpos($all, 'HIDDEN_') === false && strpos($all, 'NOVIEW_') === false, 'Hidden values and appearances stay hidden after flatten');
+        check(strpos($all, 'INVISIBLE_VALUE') !== false, 'Widget with only the Invisible flag stays visible');
+    }
+
+    // CropBox != MediaBox, вкл. завъртяна страница: текст, полета, OCR картинка и наслагване в една система
+    $fixture('crop');
+    $crop = $run(array('info', $dir . 'crop.pdf', $dir . 'crop.json'));
+    check($crop['pages'][0]['width'] == 400 && $crop['pages'][0]['height'] == 600 && !empty($crop['pages'][0]['cropped']), 'Cropped page reports the visible size');
+    check($crop['pages'][1]['width'] == 600 && $crop['pages'][1]['height'] == 400 && $crop['pages'][1]['rotate'] === 90, 'Cropped rotated page reports the displayed size');
+    if ($pdftotext) {
+        $layout = function ($pdf) use ($crop) { return pdfform_Api::parseBboxLayout((string) shell_exec('pdftotext -cropbox -bbox-layout ' . escapeshellarg($pdf) . ' -'), $crop['pages']); };
+        $text = $layout($dir . 'crop.pdf');
+        check($text[1]['lines'][0]['text'] === 'CROPFIELD' && $text[1]['lines'][0]['x'] == 12.5, 'Text x is relative to the CropBox');
+        foreach (array(1, 2) as $no) {
+            $line = $text[$no]['lines'][0];
+            $rect = $crop['fields'][$no - 1]['rect'];
+            check(abs($line['x'] - $rect[0]) < 1 && abs($line['y'] - $rect[1]) < 2, "Text and field share coordinates on page {$no}");
+        }
+        exec('pdftocairo -cropbox -png -r 72 -f 2 -l 2 -singlefile ' . escapeshellarg($dir . 'crop.pdf') . ' ' . escapeshellarg($dir . 'crop2') . ' 2>&1', $o, $code);
+        $size = $code === 0 ? @getimagesize($dir . 'crop2.png') : null;
+        check($size && $size[0] == 600 && $size[1] == 400, 'OCR image of a cropped rotated page has the displayed size');
+
+        $items = array(array('kind' => 'text', 'page' => 2, 'x' => $text[2]['lines'][0]['x'], 'y' => $text[2]['lines'][0]['y'], 'text' => 'MARK', 'fontSize' => 10, 'align' => 'left'));
+        check(!pdfform_Overlay::create($dir . 'cov.pdf', $crop['pages'], $items, array()), 'Overlay for the cropped pages is created');
+        file_put_contents($dir . 'cspec.json', json_encode(array('fields' => (object) array(), 'overlay' => $dir . 'cov.pdf', 'flatten' => false)));
+        $res = $run(array('fill', $dir . 'crop.pdf', $dir . 'cspec.json', $dir . 'cout.pdf', $dir . 'cfill.json'));
+        $mark = null;
+        foreach ($layout($dir . 'cout.pdf')[2]['lines'] ?? array() as $line) {
+            if ($line['text'] === 'MARK') $mark = $line;
+        }
+        check(!empty($res['ok']) && $mark && abs($mark['x'] - $items[0]['x']) < 1 && abs($mark['y'] - $items[0]['y']) < 2, 'Item is drawn at the position read from the cropped rotated page');
+    }
 
     array_map('unlink', glob($dir . '*'));
     rmdir($dir);
