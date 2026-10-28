@@ -43,6 +43,7 @@ class payment_ParserIso20022 extends core_BaseClass
     public static function addFields(&$mvc)
     {
         $mvc->FLD('archivePassword', 'password', 'caption=ZIP архиви->Парола,before=note,single=none');
+        $mvc->FLD('notifyUserId', 'user(roles=bank|ceo,showClosedUsers=no,allowEmpty)', 'caption=При проблем->Известяване на,before=note,hint=При празно поле не се изпращат известия');
     }
 
 
@@ -52,6 +53,10 @@ class payment_ParserIso20022 extends core_BaseClass
     public static function on_AfterInputEditForm($Driver, $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+            $notifyUserId = (int) ($form->rec->notifyUserId ?? 0);
+            if ($notifyUserId && (!core_Users::isActiveUserId($notifyUserId) || !bank_Register::haveRightFor('import2', null, $notifyUserId))) {
+                $form->setError('notifyUserId', 'Изберете активен потребител с права за банков импорт');
+            }
             if (!isset($form->rec->archivePassword) && !empty($form->rec->id)) {
                 $oldRec = $Embedder->fetch((int) $form->rec->id);
                 $form->rec->archivePassword = $oldRec->archivePassword ?? null;
@@ -584,7 +589,9 @@ class payment_ParserIso20022 extends core_BaseClass
             $fh = fileman::fetchField($fId, 'fileHnd');
             // Правилото остава само за CAMT; ръчният импорт поддържа и Unicredit XML.
             $parsed = payment_ImportFiles::getRecs($fh, $serviceRec->archivePassword ?? null, 'EMAIL', false);
-            foreach (array_merge($parsed->errors ?? array(), $parsed->warnings ?? array()) as $message) {
+            $fileErrors = $parsed->errors ?? array();
+            $fileWarnings = $parsed->warnings ?? array();
+            foreach (array_merge($fileErrors, $fileWarnings) as $message) {
                 fileman::logWarning('ISO20022: ' . $message, $fId);
             }
             if (($parsed->status ?? null) == 'unsupported') {
@@ -606,6 +613,7 @@ class payment_ParserIso20022 extends core_BaseClass
                     $importWarnings = array();
                     $status = bank_Register::importRecs($batch, null, $importWarnings);
                     if ($importWarnings) {
+                        $fileWarnings = array_merge($fileWarnings, $importWarnings);
                         $failed = true;
                         foreach ($importWarnings as $message) {
                             fileman::logWarning('ISO20022: ' . $message, $fId);
@@ -621,6 +629,7 @@ class payment_ParserIso20022 extends core_BaseClass
             if (!empty($parsed->recognized)) {
                 $res = 'ISO20022';
             }
+            self::notifyImportProblems($fh, (int) ($serviceRec->notifyUserId ?? 0), $fileErrors, $fileWarnings);
             if (($parsed->status ?? null) == 'partial') {
                 fileman::logWarning('ISO20022: Частичен импорт - валидните операции са обработени; проверете останалите', $fId);
             }
@@ -632,4 +641,32 @@ class payment_ParserIso20022 extends core_BaseClass
 
         return $failed ? false : $res;
     }
+
+    /**
+     * Едно известие за проблемния файл; грешка в известяването не прекъсва банковия импорт.
+     */
+    private static function notifyImportProblems($fh, $userId, $errors, $warnings)
+    {
+        if ($userId <= 0 || (!$errors && !$warnings)) {
+            return;
+        }
+        try {
+            $file = fileman_Files::fetchByFh($fh);
+            if (!$file || !bank_Register::haveRightFor('import2', null, $userId)
+                || !fileman_Files::haveRightFor('single', $file, $userId)) {
+                return;
+            }
+            $errorCount = count(array_unique($errors));
+            $warningCount = count(array_unique($warnings));
+            $message = "Банково извлечение изисква проверка|*: {$errorCount} |грешки и|* {$warningCount} |предупреждения";
+            bgerp_Notifications::add($message, payment_ImportDriver::getImportUrl($fh), $userId, 'warning', null, true);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $e) {
+            reportException($e);
+        }
+    }
+
 }

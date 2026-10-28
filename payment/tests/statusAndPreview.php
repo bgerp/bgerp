@@ -38,10 +38,11 @@ check($parser->process(new attachment_TestMime(array($mixedFile)), (object) arra
 $before = count(bank_Register::$imports);
 check($parser->process(new attachment_TestMime(array(fixture('pending.camt', $pendingXml))), (object) array()) === false && count(bank_Register::$imports) === $before, 'pending-only email writes nothing');
 
-function previewForm($file, $hash = null, $ignore = false, $password = null) {
+function previewForm($file, $hash = null, $ignore = false, $password = null, $filter = 'all', $page = 1, $cmd = 'save') {
     $form = new core_FieldSet();
     $form->ignore = $ignore;
-    $form->rec = (object) array('xmlFile' => $file, 'previewHash' => $hash, 'archivePassword' => $password, 'recs' => array('untrusted'));
+    $form->cmd = $cmd;
+    $form->rec = (object) array('xmlFile' => $file, 'previewHash' => $hash, 'archivePassword' => $password, 'recs' => array('untrusted'), 'previewFilter' => $filter, 'previewPage' => $page);
     (new payment_ImportDriver())->checkImportForm(new core_Manager(), $form);
     return $form;
 }
@@ -85,6 +86,6 @@ check($result->batches[0][0]->reason === $unsafe && !isset($result->batches[0][0
 preg_match('~<Ntry>.*?</Ntry>~', $xml, $oneEntry);
 $manyFile = fixture('many-entries.camt', str_replace($oneEntry[0], str_repeat($oneEntry[0], 201), $xml));
 $manyPreview = previewForm($manyFile);
-check(count($manyPreview->rec->recs) === 201 && substr_count($manyPreview->info, '<tr>') === 200 && strpos($manyPreview->info, 'първите 200') !== false, 'preview limit does not truncate import records');
+check(count($manyPreview->rec->recs) === 201 && substr_count($manyPreview->info, '<tr>') === 200 && strpos($manyPreview->info, 'Страница 1 от 2') !== false, 'preview limit does not truncate import records');
 check(count(previewForm($manyFile, $manyPreview->rec->previewHash)->rec->recs) === 201, 'confirmation retains records beyond preview limit');
 echo "Status and preview checks passed\n";
