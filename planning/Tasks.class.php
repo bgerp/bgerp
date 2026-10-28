@@ -312,6 +312,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кеш на заглавията на етапите за текущия хит
+     */
+    protected $stepTitles = array();
+
+
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
@@ -541,12 +547,21 @@ class planning_Tasks extends core_Master
      */
     private function getStepTitle($productId)
     {
-        if ($Driver = cat_Products::getDriver($productId)) {
-            $pData = $Driver->getProductionData($productId);
-            if (!empty($pData['name'])) return $pData['name'];
+        // Етапите в списъка се повтарят, а данните за производство правят заявки
+        $key = $productId . '|' . core_Lg::getCurrent();
+        if (!array_key_exists($key, $this->stepTitles)) {
+            $title = null;
+            if ($Driver = cat_Products::getDriver($productId)) {
+                $pData = $Driver->getProductionData($productId);
+                if (!empty($pData['name'])) {
+                    $title = $pData['name'];
+                }
+            }
+
+            $this->stepTitles[$key] = $title ?? cat_Products::getTitleById($productId, false);
         }
 
-        return cat_Products::getTitleById($productId, false);
+        return $this->stepTitles[$key];
     }
 
 
