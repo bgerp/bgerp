@@ -3227,7 +3227,7 @@ function replaceFormData(frm, data) {
     $.each(newParams, function () {
         if (this.name.indexOf('[') == -1 && this.name.indexOf('_') == -1) {
             var matchVisibleElements = ($('*[name="' + this.name + '"]').attr('type') != 'hidden');
-            var matchSmartSelects = $('input[name="' + this.name + '"]').attr('type') == 'hidden' && $('select[data-hiddenname=' + this.name + ']').length;
+            var matchSmartSelects = $('input[name="' + this.name + '"]').attr('type') == 'hidden' && $('select[data-hiddenname="' + this.name + '"]').length;
             var prevElem = frm.find('input[name="' + this.name + '"][type="hidden"]')
             var newElem = $('form').find('input[name="' + this.name + '"]');
             // елементи, които са със същата стойност, но от скрити стават видими
@@ -3237,7 +3237,7 @@ function replaceFormData(frm, data) {
                 if ((typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name] || matchPrevHidden)) {
                     // добавяме класа, който използваме за пресветване и transition
                     $('*[name="' + this.name + '"]').addClass('flashElem');
-                    $('select[data-hiddenname=' + this.name + ']').addClass('flashElem');
+                    $('select[data-hiddenname="' + this.name + '"]').addClass('flashElem');
                     $('*[name="' + this.name + '"]').siblings().addClass('flashElem');
                     $('.flashElem, .flashElem.select2 > .selection > .select2-selection').css('transition', 'background-color linear 500ms');
                     // махаме класа след 1сек
