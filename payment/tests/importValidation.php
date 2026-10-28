@@ -64,7 +64,15 @@ $partial = archiveFixture('partial.zip', array('valid.xml' => $xml, 'invalid.xml
 $result = payment_ImportFiles::getRecs($partial);
 check($result->status === 'partial' && count($result->recs) === 1 && !empty($result->warnings), 'partial result retains only valid operations');
 
+class core_Toolbar {
+    public $buttons = array();
+    public function addSbBtn($title, $cmd, $attrs = array()) { $this->buttons[$cmd] = $title; }
+}
 class core_FieldSet {
+    public $toolbar;
+    public $fields = array();
+    public function __construct() { $this->toolbar = new core_Toolbar(); }
+    public function FLD($name, $type, $params) { $this->fields[$name] = array($type, $params); }
     public $rec;
     public $cmd = 'save';
     public $info;
@@ -80,6 +88,8 @@ class core_FieldSet {
 class core_Manager {}
 class core_Users {
     public static $id = 1;
+    public static $active = true;
+    public static function isActiveUserId($id) { return self::$active; }
     public static function getCurrent() { return self::$id; }
 }
 define('EF_SALT', 'synthetic-test-salt');

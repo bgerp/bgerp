@@ -470,7 +470,8 @@ class bank_Register extends core_Manager
                     $existing = ($virtual['bankReferenceId'][$rec->bankReferenceId] ?? self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false));
                     if ($existing) {
                         $diagnostic->status = 'duplicate';
-                        if (!self::sameImportedPayment($existing, $rec)) {
+                        $diagnostic->differences = self::getImportedPaymentDifferences($existing, $rec);
+                        if ($diagnostic->differences) {
                             $diagnostic->status = 'conflict';
                             $warnings[] = 'Банков запис №' . (int) ($existing->id ?? 0) . ': една банкова референция е с различна сума, вальор или насрещна сметка; записът е оставен за проверка';
                         }
@@ -569,11 +570,21 @@ class bank_Register extends core_Manager
     /**
      * При повторена банкова референция не заместваме различни финансови данни.
      */
-    private static function sameImportedPayment($a, $b)
+    private static function getImportedPaymentDifferences($a, $b)
     {
-        return ($a->valior ?? null) === ($b->valior ?? null)
-            && abs((float) ($a->amount ?? 0) - (float) ($b->amount ?? 0)) < 0.000001
-            && strtoupper(preg_replace('/\s+/', '', $a->contragentIban ?? '')) === strtoupper(preg_replace('/\s+/', '', $b->contragentIban ?? ''));
+        $different = array(
+            'valior' => ($a->valior ?? null) !== ($b->valior ?? null),
+            'amount' => !(abs((float) ($a->amount ?? 0) - (float) ($b->amount ?? 0)) < 0.000001),
+            'contragentIban' => strtoupper(preg_replace('/\s+/', '', $a->contragentIban ?? '')) !== strtoupper(preg_replace('/\s+/', '', $b->contragentIban ?? '')),
+        );
+        $res = array();
+        foreach ($different as $field => $changed) {
+            if ($changed) {
+                $res[$field] = array('existing' => $a->{$field} ?? null, 'incoming' => $b->{$field} ?? null);
+            }
+        }
+
+        return $res;
     }
 
 

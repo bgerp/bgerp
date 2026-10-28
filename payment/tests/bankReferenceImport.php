@@ -143,3 +143,12 @@ $html = bank_Register::renderImportSource($source);
 check(strpos($html, '<a ') === false && strpos($html, 'nested/') === false && strpos($html, 'TOKEN') === false, 'source names and links respect file rights');
 fileman_Files::$allowed = true;
 check(bank_Register::renderImportSource((object) array()) === '' && bank_Register::renderImportSource((object) array('sourceFileHnd' => 'missing')) === 'Недостъпен източник', 'legacy rows and missing sources render safely');
+
+bank_Register::$rows = array();
+bank_Register::importRecs(array($a));
+$changed = clone $a;$changed->amount = 999;$changed->valior = '2026-10-28';$changed->contragentIban = 'BG00OTHER';
+$preview = bank_Register::previewImport(array(array($changed)));
+check(array_keys($preview[0]->differences) === array('valior', 'amount', 'contragentIban') && $preview[0]->differences['amount'] === array('existing' => 15.25, 'incoming' => 999), 'preview reports exactly the conflicting fields with both values');
+$equivalent = clone $a;$equivalent->contragentIban = strtolower('BG00 TEST00000000000001');$equivalent->amount += 0.0000001;
+$preview = bank_Register::previewImport(array(array($equivalent)));
+check($preview[0]->status === 'duplicate' && !$preview[0]->differences, 'difference diagnostics preserve original amount tolerance and IBAN normalization');

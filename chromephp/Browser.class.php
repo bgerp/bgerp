@@ -14,7 +14,7 @@ defIfNot('CHROMEPHP_TEMP_DIR', EF_TEMP_PATH . '/chromephp');
  * @package   chromephp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -46,13 +46,11 @@ class chromephp_Browser
     {
         expect($this->isEnabled());
 
-        core_Composer::isInUse();
-
         // Зареждаме опаковката
         $wrapperTpl = cls::get('page_Print');
 
         // Обхождаме масива с JS файловете
-        foreach ((array) $jsArr['JS'] as $js) {
+        foreach ((array) ($jsArr['JS'] ?? array()) as $js) {
 
             // Добавяме в шаблона
             $wrapperTpl->push($js, 'JS');
@@ -93,6 +91,19 @@ class chromephp_Browser
             $browser = $browserFactory->createBrowser();
         }
 
+        try {
+            $pdf = $this->renderPdf($browser, $html);
+
+            return fileman::absorbStr($pdf, $bucketName, $fileName);
+        } finally {
+            $browser->close();
+        }
+    }
+
+
+    /** Генерира PDF със съществуващите правила за A4 и широки справки. */
+    protected function renderPdf($browser, $html)
+    {
         $page = $browser->createPage();
 
         // A4 размери и използваема ширина при зададените по-долу PDF полета
@@ -214,11 +225,11 @@ class chromephp_Browser
             $optArr['headerTemplate'] = '<span></span>';
         }
         core_Debug::startTimer('CHROMEPHP_CONVERT_TO_PDF');
-        $x = base64_decode($page->pdf($optArr)->getBase64());
-        core_Debug::stopTimer('CHROMEPHP_CONVERT_TO_PDF');
-        $fh = fileman::absorbStr($x, $bucketName, $fileName);
-
-        return $fh;
+        try {
+            return base64_decode($page->pdf($optArr)->getBase64());
+        } finally {
+            core_Debug::stopTimer('CHROMEPHP_CONVERT_TO_PDF');
+        }
     }
 
 
@@ -237,12 +248,7 @@ class chromephp_Browser
             return false;
         }
 
-        if (!core_Composer::isInUse()) {
-
-            return false;
-        }
-
-        if (!core_Composer::isInstalled('chrome-php/chrome')) {
+        if (!chromephp_Setup::loadLibrary()) {
 
             return false;
         }

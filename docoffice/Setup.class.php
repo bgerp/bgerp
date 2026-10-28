@@ -130,20 +130,34 @@ class docoffice_Setup extends core_ProtoSetup
             if ($error = $this->checkConfig()) {
                 return $html . "<li class='debug-error'>" . $error . '</li>';
             }
-            $label = $unoserver ? 'Unoserver 3.7' : 'JODConverter 5.1.1';
-            $result = core_ComposerProject::install(__DIR__ . ($unoserver ? '/composer-unoserver' : '/composer'), self::getComposerDir($unoserver));
-            if ($result === false) {
-                return $html . "<li class='debug-error'>{$label} Composer: " . core_Type::escape(core_Composer::$error ?? '') . '</li>';
+            core_App::setTimeLimit(600);
+            $package = $unoserver ? 'bgerp/unoserver' : 'bgerp/jodconverter-cli';
+            $version = $unoserver ? '3.7' : '5.1.1';
+            $repository = json_decode(file_get_contents(__DIR__ . ($unoserver ? '/unoserver-package.json' : '/jodconverter-package.json')), true);
+            $html .= core_Composer::install($package, $version, true, $repository);
+            if (!core_Composer::isInstalled($package, $version, true)) {
+                return $html;
             }
             if ($unoserver) {
                 self::getUnoserverPath();
             } else {
                 self::getJodconverterPath();
             }
+            $unused = $unoserver ? 'bgerp/jodconverter-cli' : 'bgerp/unoserver';
+            if (core_Composer::isInstalled($unused)) {
+                $html .= core_Composer::remove($unused);
+            }
 
-            return $html . "<li class='debug-new'>Composer: {$label} е инсталиран</li>";
+            return $html;
         }
-        
+        if (is_file(core_Composer::getAutoloadPath())) {
+            foreach (array('bgerp/jodconverter-cli', 'bgerp/unoserver') as $unused) {
+                if (core_Composer::isInstalled($unused)) {
+                    $html .= core_Composer::remove($unused);
+                }
+            }
+        }
+
         // Проверяваме дали офис пакета е инсталиран и работи коректно
         if (docoffice_Office::startOffice()) {
             $html .= '<li>Офис пакета работи коректно.';
@@ -153,7 +167,7 @@ class docoffice_Setup extends core_ProtoSetup
         
         // Конфигурационните константи
         $conf = core_Packs::getConfig('docoffice');
-        $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
+        $unoconv = $conf->OFFICE_CONVERTER_UNOCONV ?? 'unoconv';
         @exec($unoconv, $dummy, $errorCode);
         
         // Ако програмата не е инсталирана
@@ -213,12 +227,12 @@ class docoffice_Setup extends core_ProtoSetup
     }
 
 
-    /** Връща отделния Composer проект на конвертора; досегашният път остава по подразбиране. */
+    /** Връща общия Composer проект; параметърът е запазен за съвместимост. */
     public static function getComposerDir($unoserver = false)
     {
         cls::load('core_Composer');
 
-        return rtrim(EF_VENDOR_PATH, '/') . ($unoserver ? '/docoffice-unoserver' : '/docoffice');
+        return rtrim(EF_VENDOR_PATH, '/');
     }
 
 
