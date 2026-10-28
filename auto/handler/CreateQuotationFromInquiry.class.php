@@ -76,7 +76,7 @@ class auto_handler_CreateQuotationFromInquiry
         // Имали подадени количества
         $quantities = array();
         foreach (range(1, 3) as $i) {
-            $q = $marketingRec->{"quantity{$i}"};
+            $q = $marketingRec->{"quantity{$i}"} ?? null;
             if (empty($q)) {
                 continue;
             }
@@ -205,11 +205,11 @@ class auto_handler_CreateQuotationFromInquiry
         
         $form->rec->originId = $marketingRec->containerId;
         $form->rec->threadId = $marketingRec->threadId;
-        $form->rec->proto = $marketingRec->proto;
-        if(strpos($marketingRec->title, '||') !== false){
+        $form->rec->proto = $marketingRec->proto ?? null;
+        if(strpos($marketingRec->title ?? '', '||') !== false){
             list($form->rec->name, $form->rec->nameEn) = explode('||', $marketingRec->title);
         } else {
-            $form->rec->name = $marketingRec->title;
+            $form->rec->name = $marketingRec->title ?? null;
         }
         
         $Driver->addFields($form);
