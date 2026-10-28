@@ -992,6 +992,12 @@ class core_Debug
             $debugPage = core_Debug::getDebugPage($state);
         }
         
+        // В CLI няма HTTP отговор - грешката отива и в STDERR, за да е видима в лога на процеса
+        if (!$supressShowing && PHP_SAPI === 'cli' && defined('STDERR')) {
+            fwrite(STDERR, ($state['errType'] ?? 'PHP ERROR') . ': ' . ltrim($state['errTitle'] ?? '', '@')
+                . ' in ' . ($state['breakFile'] ?? '') . ':' . ($state['breakLine'] ?? '') . "\n");
+        }
+
         // Ако не трябва да подтиснем показването на глешката и хедърите все още не са изпратени, показваме
         if (!$supressShowing && !headers_sent()) {
             header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
@@ -1024,7 +1030,7 @@ class core_Debug
             // а останалите - при спазване на локална дедупликация и лимит на честотата
             if (self::mustReportRemotely($state) && self::passRemoteReportLimit("{$ctr}|{$act}|{$errTitle}|{$httpStatusCode}")) {
                 $data = array('data' => gzcompress($debugPage),
-                    'domain' => $_SERVER['SERVER_NAME'],
+                    'domain' => $_SERVER['SERVER_NAME'] ?? '',
                     'errCtr' => $ctr,
                     'errAct' => $act,
                     'dbName' => defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown',
