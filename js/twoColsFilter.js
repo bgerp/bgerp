@@ -8,7 +8,7 @@ var twoColsFilterEventsBound = false;
 
 
 /**
- * При промяна на прозореца превключва режима само с вече измерените размери.
+ * Избира броя колони по запазените размери, без клониране на полетата.
  */
 function scheduleTwoColsFilterModeUpdate() {
     if (twoColsFilterResizeFrame !== null) {
@@ -50,14 +50,17 @@ function scheduleTwoColsFilterWidthUpdate() {
  * Връща свободната видима ширина вдясно от началото на филтъра.
  */
 function getTwoColsFilterVisibleWidth(filter) {
-    var visibleRight = document.documentElement.clientWidth;
+    var visibleLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+    var visibleRight = window.visualViewport ?
+        Math.min(document.documentElement.clientWidth, visibleLeft + window.visualViewport.width) :
+        document.documentElement.clientWidth;
     var metrics = filter.twoColsFilterMetrics;
 
     if (metrics && metrics.content) {
         visibleRight = Math.min(visibleRight, metrics.content.getBoundingClientRect().right);
     }
 
-    return visibleRight - Math.max(0, filter.getBoundingClientRect().left);
+    return visibleRight - Math.max(visibleLeft, filter.getBoundingClientRect().left);
 }
 
 
@@ -185,7 +188,10 @@ function render_setTwoColsFilterWidth() {
 
     if (!twoColsFilterResizeBound) {
         twoColsFilterResizeBound = true;
-        window.addEventListener('resize', scheduleTwoColsFilterModeUpdate);
+        window.addEventListener('resize', scheduleTwoColsFilterWidthUpdate);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleTwoColsFilterWidthUpdate);
+        }
     }
 
     if (!twoColsFilterEventsBound) {
@@ -239,7 +245,7 @@ function render_setTwoColsFilterWidth() {
             }
         });
 
-        if (rowIndexes.length <= 5) {
+        if (!rowIndexes.length) {
             return;
         }
 
@@ -348,13 +354,17 @@ function render_setTwoColsFilterWidth() {
         $singleColumnCopy.remove();
 
         var rowsInFirstColumn = Math.ceil(rowIndexes.length / 2);
-        var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn));
-        var leftSize = getCopySize($leftColumnCopy, true);
-        $leftColumnCopy.remove();
+        var leftSize = singleSize;
+        var rightSize = singleSize;
+        if (rowIndexes.length > 5) {
+            var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn));
+            leftSize = getCopySize($leftColumnCopy, true);
+            $leftColumnCopy.remove();
 
-        var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn));
-        var rightSize = getCopySize($rightColumnCopy, true);
-        $rightColumnCopy.remove();
+            var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn));
+            rightSize = getCopySize($rightColumnCopy, true);
+            $rightColumnCopy.remove();
+        }
 
         var $summary = $filter.children('.summary-block').first();
         var summaryWidth = 0;
@@ -400,7 +410,8 @@ function render_setTwoColsFilterWidth() {
         var summarySafetySpace = $summary.length ? 40 : 0;
         var singleColumnMinWidth = summaryWidth ?
             singleSize.total + summaryGap + summaryWidth + summarySafetySpace : 0;
-        var twoColumnsMinWidth = twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace;
+        var twoColumnsMinWidth = rowIndexes.length > 5 ?
+            twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace : Infinity;
 
         $.each(rowIndexes, function (position, rowIndex) {
             var $row = $allRows.eq(rowIndex);
