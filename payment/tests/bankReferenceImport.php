@@ -91,3 +91,55 @@ bank_Register::$rows = array();
 bank_Register::$race = function ($rec) { $copy = clone $rec; $copy->id = 1; $copy->amount = 999; bank_Register::$rows[] = $copy; };
 bank_Register::importRecs(array($a), null, $warnings);
 check(count(bank_Register::$rows) === 1 && $warnings, 'concurrent conflicting reference is reported');
+
+// Прегледът следва същите партиди като реалния импорт, но не записва нищо.
+bank_Register::$rows = array();
+$legacy = payment(null, 44);
+bank_Register::importRecs(array($a, $legacy));
+$before = serialize(bank_Register::$rows);
+$conflict = payment('CAMT:EUR:N:A', 999);
+$ambiguous = payment('CAMT:EUR:N:OLD', 44);
+$batches = array(array($b, $b, $a, $conflict, $ambiguous), array($b, $c));
+$inputBefore = serialize($batches);
+$preview = bank_Register::previewImport($batches);
+check(array_column($preview, 'status') === array('new', 'duplicate', 'duplicate', 'conflict', 'legacy', 'duplicate', 'new'), 'preview classifies existing and within/across-batch payments');
+check($preview[1]->duplicateRow === 1 && $preview[2]->existingId === 1 && $preview[3]->existingId === 1 && $preview[4]->existingId === 2 && $preview[5]->duplicateRow === 1, 'preview identifies stored or input row for each skipped payment');
+check(serialize(bank_Register::$rows) === $before && serialize($batches) === $inputBefore, 'preview changes neither storage nor inputs');
+foreach ($batches as $batch) bank_Register::importRecs($batch);
+check(count(bank_Register::$rows) === 4, 'real import adds exactly previewed new rows');
+check(!in_array('new', array_column(bank_Register::previewImport($batches), 'status'), true), 'second preview reflects newly imported records');
+
+bank_Register::$rows = array();
+$batches = array(array(payment(), payment()), array(payment(), payment(), payment()));
+check(array_column(bank_Register::previewImport($batches), 'status') === array('new', 'new', 'duplicate', 'duplicate', 'new'), 'legacy repeated equal payments retain per-file ordinal semantics in preview');
+foreach ($batches as $batch) bank_Register::importRecs($batch);
+check(count(bank_Register::$rows) === 3, 'legacy preview and import agree across file boundaries');
+
+bank_Register::$rows = array();
+$source = clone $a;
+$source->sourceFileHnd = 'testArchive'; $source->sourceFileName = 'nested/test.camt'; $source->sourceEntry = 3; $source->sourceEmailHnd = 'testMail';
+bank_Register::previewImport(array(array($source)));
+check(!bank_Register::$rows, 'source-bearing preview never saves');
+bank_Register::importRecs(array($source));
+check(bank_Register::$rows[0]->sourceFileName === 'nested/test.camt' && bank_Register::$rows[0]->sourceEmailHnd === 'testMail' && bank_Register::$rows[0]->sourceEntry === 3, 'new row persists source metadata');
+$before = serialize(bank_Register::$rows);
+$source->sourceFileHnd = 'otherArchive'; $source->sourceEmailHnd = 'otherMail';
+bank_Register::importRecs(array($source));
+check(serialize(bank_Register::$rows) === $before, 'reimport preserves original source');
+
+class fileman_Files {
+    public static $allowed = true;
+    public static function fetchByFh($fh) { return $fh === 'missing' ? false : (object) array('name' => '<file>[#TOKEN#].zip'); }
+    public static function haveRightFor($action, $rec) { return self::$allowed; }
+}
+class type_Varchar { public static function escape($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); } }
+class ht { public static function createLink($title, $url) { return '<a href="' . htmlspecialchars(implode('/', $url), ENT_QUOTES, 'UTF-8') . '">' . $title . '</a>'; } }
+function tr($s) { return $s; }
+$source->sourceFileName = 'nested/<script>[#TOKEN#].camt';
+$html = bank_Register::renderImportSource($source);
+check(strpos($html, '<script>') === false && strpos($html, '[#TOKEN#]') === false && strpos($html, '&lt;script&gt;') !== false && substr_count($html, '<a ') === 2, 'source links escape file and ZIP member names');
+fileman_Files::$allowed = false;
+$html = bank_Register::renderImportSource($source);
+check(strpos($html, '<a ') === false && strpos($html, 'nested/') === false && strpos($html, 'TOKEN') === false, 'source names and links respect file rights');
+fileman_Files::$allowed = true;
+check(bank_Register::renderImportSource((object) array()) === '' && bank_Register::renderImportSource((object) array('sourceFileHnd' => 'missing')) === 'Недостъпен източник', 'legacy rows and missing sources render safely');

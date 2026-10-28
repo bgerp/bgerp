@@ -578,6 +578,7 @@ class payment_ParserIso20022 extends core_BaseClass
 
         $res = false;
         $failed = false;
+        $emailFileHnd = null;
         
         foreach ($filesArr as $fId) {
             $fh = fileman::fetchField($fId, 'fileHnd');
@@ -594,6 +595,13 @@ class payment_ParserIso20022 extends core_BaseClass
                 $failed = true;
             }
             if (!empty($parsed->recs)) {
+                // Правилата се изпълняват преди създаването на входящия/сервизния имейл.
+                if ($emailFileHnd === null) {
+                    $emailFileHnd = fileman::fetchField((int) $mime->getEmlFile(), 'fileHnd');
+                }
+                foreach ($parsed->recs as $rec) {
+                    $rec->sourceEmailHnd = $emailFileHnd;
+                }
                 foreach ($parsed->batches ?? array() as $batch) {
                     $importWarnings = array();
                     $status = bank_Register::importRecs($batch, null, $importWarnings);

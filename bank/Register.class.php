@@ -41,7 +41,7 @@ class bank_Register extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valiorAndIban, amount, contragentName=Контрагент, info=Осчетоводяване';
+    public $listFields = 'valiorAndIban, amount, contragentName=Контрагент, info=Осчетоводяване, source=Източник';
 
 
     /**
@@ -93,6 +93,11 @@ class bank_Register extends core_Manager
         $this->FLD('transactionId', 'varchar(32)', 'caption=Услуга');
         $this->FLD('bankReference', 'varchar(128)', 'caption=Банкова референция,input=none');
         $this->FLD('bankReferenceId', 'varchar(32)', 'input=none,column=none,single=none');
+
+        $this->FLD('sourceFileHnd', 'fileman_FileType', 'caption=Източник->Файл,input=none,column=none,single=none');
+        $this->FLD('sourceFileName', 'varchar(1024)', 'caption=Източник->Име в архива,input=none,column=none,single=none');
+        $this->FLD('sourceEntry', 'int', 'caption=Източник->Операция,input=none,column=none,single=none');
+        $this->FLD('sourceEmailHnd', 'fileman_FileType', 'caption=Източник->Имейл,input=none,column=none,single=none');
 
         $this->FLD('type', 'enum(incoming=Входящ,outgoing=Изходящ)', 'caption=Вид');
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума');
@@ -153,6 +158,8 @@ class bank_Register extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->source = self::renderImportSource($rec);
+
         if (!empty($rec->contragentIban)) {
             $row->contragentName = ($row->contragentName ?? '') . (!empty($row->contragentName) ? '<br>' : '') . $mvc->getVerbal($rec, 'contragentIban');
         }
@@ -407,10 +414,44 @@ class bank_Register extends core_Manager
      */
     public static function importRecs($recs, $serviceId = null, &$warnings = null)
     {
+        $virtual = $rows = array();
+        list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows);
+        $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
+        if ($warnings) {
+            $status .= '; ' . implode('; ', array_unique($warnings));
+        }
+
+        return $status;
+    }
+
+
+    /**
+     * Същите проверки като при запис, включително между файловете в ZIP, без промени в базата.
+     *
+     * @return array Диагностика в реда на операциите във всички партиди.
+     */
+    public static function previewImport($batches)
+    {
+        $virtual = $rows = array();
+        foreach ($batches as $batch) {
+            self::processImportRecs($batch, null, true, $virtual, $rows);
+        }
+
+        return $rows;
+    }
+
+
+    /**
+     * В прегледа новите записи се пазят само в паметта; идентификаторите следват реалния импорт.
+     */
+    private static function processImportRecs($recs, $serviceId, $preview, &$virtual, &$rows)
+    {
         $usedIds = $warnings = array();
         $ins = $skip = 0;
 
         foreach ($recs as $input) {
+            $diagnostic = (object) array('status' => 'new', 'existingId' => null, 'duplicateRow' => null);
+            $existing = false;
             $rec = clone $input;
             unset($rec->id);
             if ($serviceId) {
@@ -426,9 +467,11 @@ class bank_Register extends core_Manager
             while (true) {
                 if ($checkReference) {
                     $checkReference = false;
-                    $existing = self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false);
+                    $existing = ($virtual['bankReferenceId'][$rec->bankReferenceId] ?? self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false));
                     if ($existing) {
+                        $diagnostic->status = 'duplicate';
                         if (!self::sameImportedPayment($existing, $rec)) {
+                            $diagnostic->status = 'conflict';
                             $warnings[] = 'Банков запис №' . (int) ($existing->id ?? 0) . ': една банкова референция е с различна сума, вальор или насрещна сметка; записът е оставен за проверка';
                         }
                         $usedIds[$existing->transactionId ?? ''] = true;
@@ -441,21 +484,30 @@ class bank_Register extends core_Manager
                 if (isset($usedIds[$rec->transactionId])) {
                     continue;
                 }
-                $existing = self::fetch(array("#transactionId = '[#1#]'", $rec->transactionId), '*', false);
+                $existing = ($virtual['transactionId'][$rec->transactionId] ?? self::fetch(array("#transactionId = '[#1#]'", $rec->transactionId), '*', false));
                 if ($existing && $reference !== '' && !empty($existing->bankReferenceId)) {
                     // Две еднакви по сума операции с различни банкови референции са отделни преводи.
                     continue;
                 }
                 $usedIds[$rec->transactionId] = true;
                 if ($existing) {
+                    $diagnostic->status = 'duplicate';
                     if ($reference !== '') {
+                        $diagnostic->status = 'legacy';
                         $warnings[] = 'Възможен дубликат на банков запис №' . (int) ($existing->id ?? 0) . ' без референция; не е добавен нов запис и е нужна проверка';
                     }
                     $skip++;
                     break;
                 }
                 unset($rec->id);
-                if (self::save($rec, null, 'IGNORE')) {
+                if ($preview || self::save($rec, null, 'IGNORE')) {
+                    if ($preview) {
+                        $virtual['transactionId'][$rec->transactionId] = clone $rec;
+                        if ($reference !== '') {
+                            $virtual['bankReferenceId'][$rec->bankReferenceId] = clone $rec;
+                        }
+                        $virtual['row'][$rec->transactionId] = count($rows) + 1;
+                    }
                     $ins++;
                     break;
                 }
@@ -463,6 +515,7 @@ class bank_Register extends core_Manager
                 unset($usedIds[$rec->transactionId]);
                 $collision = self::fetch(array("#transactionId = '[#1#]'", $rec->transactionId), '*', false);
                 if (!$collision && ($reference === '' || !self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false))) {
+                    $diagnostic->status = 'error';
                     $warnings[] = 'Банкова операция не е записана; проверете входните данни и банковия регистър';
                     $skip++;
                     break;
@@ -470,14 +523,46 @@ class bank_Register extends core_Manager
                 $ind--;
                 $checkReference = $reference !== '';
             }
+            if ($existing) {
+                $diagnostic->existingId = isset($existing->id) ? (int) $existing->id : null;
+                $diagnostic->duplicateRow = $virtual['row'][$existing->transactionId ?? ''] ?? null;
+            }
+            $rows[] = $diagnostic;
         }
 
-        $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
-        if ($warnings) {
-            $status .= '; ' . implode('; ', array_unique($warnings));
+        return array($ins, $skip, $warnings);
+    }
+
+
+    /**
+     * Източникът ползва обичайните файлови права; повторният импорт не го подменя.
+     */
+    public static function renderImportSource($rec)
+    {
+        $parts = array();
+        foreach (array('sourceFileHnd', 'sourceEmailHnd') as $field) {
+            $fh = $rec->{$field} ?? null;
+            if (!$fh) {
+                continue;
+            }
+            $file = fileman_Files::fetchByFh($fh);
+            if (!$file || !fileman_Files::haveRightFor('single', $file)) {
+                $parts[] = tr('Недостъпен източник');
+                continue;
+            }
+            $name = $field == 'sourceEmailHnd' ? tr('Оригинален имейл') : ($file->name ?? '');
+            $parts[] = ht::createLink(str_replace('[', '&#91;', type_Varchar::escape($name)), array('fileman_Files', 'single', $fh));
+            if ($field == 'sourceFileHnd') {
+                if (!empty($rec->sourceFileName) && $rec->sourceFileName !== ($file->name ?? '')) {
+                    $parts[] = str_replace('[', '&#91;', type_Varchar::escape($rec->sourceFileName));
+                }
+                if (!empty($rec->sourceEntry)) {
+                    $parts[] = tr('Операция') . ' №' . (int) $rec->sourceEntry;
+                }
+            }
         }
 
-        return $status;
+        return implode('<br>', $parts);
     }
 
 

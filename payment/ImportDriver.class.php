@@ -73,6 +73,12 @@ class payment_ImportDriver extends import2_AbstractDriver
             return;
         }
         $res = payment_ImportFiles::getRecs($form->rec->xmlFile ?? null, $password);
+        $res->importPreview = bank_Register::previewImport($res->batches ?? array());
+        foreach ($res->importPreview as $i => $diagnostic) {
+            if (in_array($diagnostic->status ?? null, array('conflict', 'legacy'), true)) {
+                $res->warnings[] = 'Ред №' . ($i + 1) . ': ' . self::getPreviewStatus($diagnostic->status ?? '') . '; няма да бъде добавен';
+            }
+        }
         if (($res->status ?? null) == 'unsupported') {
             $form->setError('xmlFile', 'Непознат файлов формат');
         }
@@ -118,14 +124,31 @@ class payment_ImportDriver extends import2_AbstractDriver
         $warnings = count($result->warnings ?? array());
         $errors = count($result->errors ?? array());
         $html = '<h3>' . tr('Преглед преди импорт') . '</h3><p><b>' . tr('Нищо не е записано') . '</b></p>';
-        $html .= '<p>' . tr('Валидни редове за импорт') . ": <b>{$count}</b>; " . tr('Пропуснати записи от извлеченията') . ": <b>{$skipped}</b>; " .
+        $html .= '<p>' . tr('Разчетени редове') . ": <b>{$count}</b>; " . tr('Пропуснати записи от извлеченията') . ": <b>{$skipped}</b>; " .
             tr('Предупреждения') . ": {$warnings}; " . tr('Грешки') . ": {$errors}.</p>";
-        $html .= '<p>' . tr('Групираните операции са разделени на редове. Вече импортираните записи ще бъдат пропуснати при запис') . '.</p>';
+        $counts = array_count_values(array_map(function ($row) { return $row->status ?? 'new'; }, $result->importPreview ?? array()));
+        $summary = array();
+        foreach (array('new', 'duplicate', 'conflict', 'legacy') as $status) {
+            $summary[] = tr(self::getPreviewStatus($status)) . ': <b>' . ($counts[$status] ?? 0) . '</b>';
+        }
+        $html .= '<p>' . implode('; ', $summary) . '.</p>';
+        $html .= '<p>' . tr('Групираните операции са разделени на редове. Ще се добавят само новите операции; дубликатите и конфликтите се пропускат. Проверява се отново при запис') . '.</p>';
         $rows = array();
         $amountType = core_Type::getByName('double(decimals=2)');
         $dateType = core_Type::getByName('date');
-        foreach (array_slice($result->previewRows ?? array(), 0, 200) as $rec) {
+        foreach (array_slice($result->previewRows ?? array(), 0, 200) as $i => $rec) {
             $row = new stdClass();
+            $row->number = $i + 1;
+            $diagnostic = $result->importPreview[$i] ?? null;
+            $row->importStatus = tr(self::getPreviewStatus($diagnostic->status ?? 'new'));
+            if (!empty($diagnostic->existingId)) {
+                $id = (int) $diagnostic->existingId;
+                $row->importStatus .= '<br>' . (bank_Register::haveRightFor('list')
+                    ? ht::createLink(tr('Банков запис') . ' №' . $id, array('bank_Register', 'list', $id))
+                    : tr('Банков запис') . ' №' . $id);
+            } elseif (!empty($diagnostic->duplicateRow)) {
+                $row->importStatus .= '<br>' . tr('Към ред от този импорт') . ' №' . (int) $diagnostic->duplicateRow;
+            }
             foreach (array('sourceFile', 'ownIban', 'contragentName', 'contragentIban', 'reason', 'currency') as $field) {
                 $row->{$field} = self::escapeText($rec->{$field} ?? '');
             }
@@ -141,10 +164,18 @@ class payment_ImportDriver extends import2_AbstractDriver
         }
         if ($rows) {
             $table = cls::get('core_TableView');
-            $html .= '<div style="overflow-x:auto">' . $table->get($rows, 'sourceFile=Файл,ownIban=Наша сметка,valior=Вальор,type=Вид,amount=Сума,contragentName=Контрагент,reason=Основание') . '</div>';
+            $html .= '<div style="overflow-x:auto">' . $table->get($rows, 'number=№,importStatus=Резултат,sourceFile=Файл,ownIban=Наша сметка,valior=Вальор,type=Вид,amount=Сума,contragentName=Контрагент,reason=Основание') . '</div>';
         }
 
         return $html;
+    }
+
+
+    private static function getPreviewStatus($status)
+    {
+        $labels = array('new' => 'Нова', 'duplicate' => 'Дубликат', 'conflict' => 'Конфликт на банкова референция', 'legacy' => 'Възможен дубликат без референция');
+
+        return $labels[$status] ?? $status;
     }
 
 
