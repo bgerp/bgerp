@@ -1,5 +1,10 @@
 <?php
 
+/** Досегашният CSS minifier остава избран по подразбиране. */
+defIfNot('MINIFY_CSS_VERSION', 'legacy');
+
+/** Досегашният JS minifier остава избран по подразбиране. */
+defIfNot('MINIFY_JS_VERSION', 'legacy');
 
 /**
  * Клас 'minify_Setup'
@@ -9,7 +14,7 @@
  * @package   minify
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,6 +43,35 @@ class minify_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Минифициране на CSS и JS файловете за ускорено зареждане';
+
+
+    /**
+     * Избираеми библиотеки, без промяна на досегашното поведение по подразбиране.
+     */
+    public $configDescription = array(
+        'MINIFY_CSS_VERSION' => array('enum(legacy=2.4.8-2,4.1.1)', 'mandatory, caption=CSSMin->Версия'),
+        'MINIFY_JS_VERSION' => array('enum(legacy=JSMin,jshrink-1.8.1=JShrink 1.8.1)', 'mandatory, caption=JavaScript->Минификатор'),
+    );
+
+
+    /**
+     * Зарежда вградената нова библиотека с отделни имена на класовете.
+     *
+     * @param string $library css или jshrink
+     * @return string Име на основния клас
+     */
+    public static function loadLibrary($library)
+    {
+        expect(in_array($library, array('css', 'jshrink'), true), 'Неподдържана minify библиотека');
+        if ($library === 'jshrink') {
+            require_once getFullPath('minify/jshrink/1.8.1/Minifier.php');
+            return 'JShrinkV181\\Minifier';
+        }
+        foreach (array('Colors', 'Utils', 'Minifier') as $file) {
+            require_once getFullPath('minify/cssmin/4.1.1/' . $file . '.php');
+        }
+        return 'tubalmartin\\CssMinV411\\Minifier';
+    }
     
     
     /**

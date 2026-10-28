@@ -1146,6 +1146,14 @@ class sales_Sales extends deals_DealMaster
         if (!empty($note)) {
             $text .= "\n\n" . $note;
         }
+
+        // Количката е само в таблицата със статистиката, където конверторът разбърква колоните
+        if (core_Packs::isInstalled('eshop')) {
+            $cartId = eshop_Carts::fetchField("#saleId = {$rec->id}", 'id');
+            if (!empty($cartId)) {
+                $text .= "\n\n" . doc_plg_LlmExportable::systemNote("E-shop order: cart {$cartId} eshop_Carts");
+            }
+        }
     }
     
     

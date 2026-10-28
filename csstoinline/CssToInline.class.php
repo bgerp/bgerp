@@ -33,7 +33,11 @@ class csstoinline_CssToInline extends core_Manager
     {
         $conf = core_Packs::getConfig('csstoinline');
         $version = $conf->CSSTOINLINE_CSSTOINLINE_VERSION ?? '1.0.3';
-        expect(in_array($version, array('1.0.3', '2.2.2'), true), 'Неподдържана версия на CssToInline');
+        expect(in_array($version, array('1.0.3', '2.2.2', '2.4.0'), true), 'Неподдържана версия на CssToInline');
+        if ($version === '2.4.0') {
+            $class = csstoinline_Setup::loadBundledLibrary('csstoinline') . 'CssToInlineStyles';
+            return (new $class())->convert($html, $css);
+        }
         if ($version === '2.2.2') {
             csstoinline_Setup::loadCssSelector();
             foreach (array('Css/Property/Property', 'Css/Property/Processor', 'Css/Rule/Rule', 'Css/Rule/Processor', 'Css/Processor', 'CssToInlineStyles') as $file) {
@@ -56,9 +60,6 @@ class csstoinline_CssToInline extends core_Manager
         
         //Вкарва CSS във html, като inline
         $processedHTML = $cssToInlineStyles->convert();
-        
-        // Връщаме към UTF-8
-        $html = mb_convert_encoding($html, 'UTF-8', 'html-entities');
         
         return $processedHTML;
     }

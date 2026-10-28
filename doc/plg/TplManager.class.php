@@ -478,6 +478,20 @@ class doc_plg_TplManager extends core_Plugin
         $res = $lang;
     }
     
+
+    /**
+     * Добавя шаблона на документа към LLM експорта
+     */
+    public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text) || empty($rec->template)) return;
+
+        $tplRec = doc_TplManager::fetch((int) $rec->template, 'id,name,lang');
+        if (!is_object($tplRec)) return;
+
+        $text .= "\n\n" . doc_plg_LlmExportable::systemNote("Template: {$tplRec->name} ({$tplRec->lang}): {$tplRec->id} doc_TplManager");
+    }
+
     
     /**
      * Връща опциите за избор на шаблон на даден документ на английски език

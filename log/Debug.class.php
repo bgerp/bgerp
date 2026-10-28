@@ -125,7 +125,8 @@ class log_Debug extends core_Manager
             $sysDomain = urlencode($_SERVER['HTTP_HOST']) . '/';
         } else {
             $cUrl = $sysDomain = '';
-            $dTitle = null;
+            // onClick използва dTitle и без детайли - иначе е недефинирана променлива
+            $dTitle = "var dTitle = '';";
         }
 
         $attr = array('onClick' => "{$dTitle} openWindow('{$url}&title={$sysDomain}' + dTitle + '&url={$cUrl}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP', 'translate' => 'no');

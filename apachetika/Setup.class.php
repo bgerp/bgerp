@@ -17,7 +17,7 @@ defIfNot('APACHE_TIKA_VERSION', '1.24.1');
  * @package   apachetika
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,9 +38,9 @@ class apachetika_Setup extends core_ProtoSetup
     
     
     /**
-     * Пакет без инсталация
+     * Новите Java дистрибуции се осигуряват при инициализиране.
      */
-    public $noInstall = true;
+    public $noInstall = false;
     
     
     /**
@@ -48,7 +48,108 @@ class apachetika_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1, 2.6.0, 2.9.2)', 'caption=Версия на програмата'),
+        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1, 2.6.0, 2.9.2, 3.3.3, 4.1.0)', 'caption=Версия на програмата'),
     
     );
+
+
+    /** Инсталира само Tika от собствен lock файл, без промяна на общите Composer зависимости. */
+    public function install()
+    {
+        $html = parent::install();
+        if (version_compare(self::get('APACHE_TIKA_VERSION', true), '3.0.0', '<')) {
+            return $html;
+        }
+        if ($error = $this->checkConfig()) {
+            return $html . "<li class='debug-error'>" . $error . '</li>';
+        }
+
+        $dir = self::getComposerDir();
+        core_Os::requireDir($dir, 0755);
+        foreach (array('composer.json', 'composer.lock') as $file) {
+            expect(copy(__DIR__ . '/composer/' . $file, $dir . '/' . $file), 'Не може да се запише Tika manifest', $file);
+        }
+
+        core_App::setTimeLimit(600);
+        $environment = array('COMPOSER' => $dir . '/composer.json', 'COMPOSER_VENDOR_DIR' => $dir . '/vendor');
+        $previousEnvironment = array();
+        foreach ($environment as $name => $value) {
+            $previousEnvironment[$name] = getenv($name);
+        }
+        try {
+            // Само manifest не е достатъчен: vendor също трябва да е извън общия проект.
+            foreach ($environment as $name => $value) {
+                expect(putenv($name . '=' . $value), 'Не може да се зададе Tika Composer средата', $name);
+            }
+            $result = core_Composer::run('install --no-interaction --no-dev --no-plugins --no-scripts --prefer-dist');
+        } finally {
+            foreach ($previousEnvironment as $name => $value) {
+                putenv($value === false ? $name : $name . '=' . $value);
+            }
+        }
+        if ($result === false) {
+            return $html . "<li class='debug-error'>Tika Composer: " . core_Type::escape(core_Composer::$error ?? '') . '</li>';
+        }
+
+        // Двете версии остават налични за превключване без преинсталиране.
+        self::getJarPath('3.3.3');
+        self::getJarPath('4.1.0');
+
+        return $html . "<li class='debug-new'>Composer: Apache Tika 3.3.3 и 4.1.0 са инсталирани</li>";
+    }
+
+
+    /**
+     * Показва стандартна setup грешка при липсваща или неподходяща Java за новите версии.
+     *
+     * @return string|null
+     */
+    public function checkConfig()
+    {
+        $version = self::get('APACHE_TIKA_VERSION', true);
+        $minimumJava = array('3.3.3' => 11, '4.1.0' => 17);
+        if (!isset($minimumJava[$version])) {
+            return;
+        }
+
+        $required = $minimumJava[$version];
+        exec('java -version 2>&1', $output, $code);
+        if ($code !== 0) {
+            return "Apache Tika {$version} изисква Java {$required} или по-нова. Програмата java липсва или не може да се изпълни от уеб потребителя.";
+        }
+        if (!preg_match('/(?:openjdk|java) (?:version )?"(?:1\\.)?(\\d+)/i', implode("\n", $output), $matches)) {
+            return "Не може да се определи версията на Java. Apache Tika {$version} изисква Java {$required} или по-нова.";
+        }
+        if ((int) $matches[1] < $required) {
+            return "Apache Tika {$version} изисква Java {$required} или по-нова; открита е Java {$matches[1]}. Обновете Java или изберете съвместима версия на Tika.";
+        }
+    }
+
+
+    /** Отделя Java дистрибуциите от Composer проекта с общите PHP зависимости. */
+    public static function getComposerDir()
+    {
+        cls::load('core_Composer');
+
+        return rtrim(EF_VENDOR_PATH, '/') . '/apachetika';
+    }
+
+
+    /** Връща launcher-а за избраната или изрично посочена версия, без да изтегля при извличане. */
+    public static function getJarPath($version = null)
+    {
+        $version = $version ?? self::get('APACHE_TIKA_VERSION', true);
+        if (in_array($version, array('3.3.3', '4.1.0'), true)) {
+            $major = $version === '3.3.3' ? '3' : '4';
+            $path = self::getComposerDir() . "/vendor/bgerp/tika-app-{$major}/tika-app-{$version}.jar";
+        } else {
+            $path = getFullPath("apachetika/{$version}/tika-app.jar");
+        }
+        expect($path && is_file($path), 'Липсва избраната Apache Tika библиотека. Инициализирайте пакета apachetika', $version);
+        if ($version === '4.1.0') {
+            expect(is_dir(dirname($path) . '/lib'), 'Липсват зависимостите lib/ на Apache Tika', $version);
+        }
+
+        return $path;
+    }
 }

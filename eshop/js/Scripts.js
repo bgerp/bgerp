@@ -252,8 +252,10 @@ function eshopActions() {
 		} else {
 			var imgtodrag = $('.product-image').eq(0);
 		}
-		var imgWidth = imgtodrag ? parseInt($(imgtodrag).css('width')) : 150;
-		var imgHeight = imgtodrag ? parseInt($(imgtodrag).css('height')) : 150;
+		// Артикул без снимка - няма какво да лети към количката
+		if (!imgtodrag.length || !cart.length) return;
+		var imgWidth = parseInt($(imgtodrag).css('width'));
+		var imgHeight = parseInt($(imgtodrag).css('height'));
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({

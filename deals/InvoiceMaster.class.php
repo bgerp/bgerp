@@ -371,17 +371,23 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      *
-     * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
+     * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата
+     * в друг данъчен период; в същия период (месец) - само предупреждение.
      */
     public static function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
     {
         if (empty($rec->vatDate)) {
             return;
         }
-        
-        // Датата на ДС не може да бъде след датата на фактурата, нито на повече от 5 дни преди нея.
-        if ($rec->vatDate > $rec->date || dt::addDays(5, $rec->vatDate) < $rec->date) {
-            $form->setError('vatDate', '|Данъчното събитие трябва да е до 5 дни|* <b>|преди|*</b> |датата на фактурата|*');
+
+        $date = $rec->date ?? '';
+        if ($rec->vatDate > $date || dt::addDays(5, $rec->vatDate) < $date) {
+            // Закъсняла фактура в същия месец не мени ДДС периода, затова може да се запише отпечатаната дата
+            if ($rec->vatDate < $date && substr($rec->vatDate, 0, 7) === substr($date, 0, 7)) {
+                $form->setWarning('vatDate', '|Данъчното събитие е повече от 5 дни преди датата на фактурата, в същия данъчен период||The tax event is more than 5 days before the invoice date, in the same tax period|*');
+            } else {
+                $form->setError('vatDate', '|Данъчното събитие трябва да е до 5 дни|* <b>|преди|*</b> |датата на фактурата|*');
+            }
         }
     }
     
@@ -1579,7 +1585,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
                 $originRow = $mvc->recToVerbal($originRec);
                 $row->originInv = $originRow->number;
-                if(!Mode::isReadOnly()){
+                if(Mode::is('renderForLlm')){
+                    $row->originInv = '#' . $mvc->getHandle($originRec->id);
+                } elseif(!Mode::isReadOnly()){
                     $singleUrlArray = $mvc->getSingleUrlArray($originRec->id);
                     if(countR($singleUrlArray)){
                         $row->originInv = ht::createLink($originRow->number, $singleUrlArray);

@@ -439,20 +439,9 @@ class fconv_Remote extends core_Manager
         $delCnt = core_Os::deleteOldFiles($dirName, 2 * 60 * 60);
         
         if ($delCnt) {
-            $res = "<li class=\"green\">Изтрити са {$delCnt} файла в {$dirName}</li>";
-            
-            // След изтвиване, ако има директории без файлове - премахваме ги
-            $allFiles = core_Os::listFiles($dirName);
-            foreach ((array) $allFiles['dirs'] as $dPath) {
-                $dPathList = core_Os::listFiles($dPath);
-                if (!empty($dPathList['files'])) {
-                    continue;
-                }
-                
-                core_Os::deleteDir($dPath);
-            }
-            
-            return $res;
+            $dirName = htmlspecialchars($dirName, ENT_QUOTES, 'UTF-8');
+
+            return "<li class=\"green\">Изтрити са {$delCnt} файла в {$dirName}</li>";
         }
     }
     
