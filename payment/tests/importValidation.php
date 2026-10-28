@@ -73,6 +73,8 @@ class core_FieldSet {
     public $fields = array();
     public function __construct() { $this->toolbar = new core_Toolbar(); }
     public function FLD($name, $type, $params) { $this->fields[$name] = array($type, $params); }
+    public function setField($name, $params) { $this->fields[$name] = $params; }
+    public function input($field) {}
     public $rec;
     public $cmd = 'save';
     public $info;

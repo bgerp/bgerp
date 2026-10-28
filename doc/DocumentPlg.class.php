@@ -2946,7 +2946,7 @@ class doc_DocumentPlg extends core_Plugin
                         $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
                         $allowedCidArr = Mode::get($modeAllowedContainerIdName);
                         
-                        $cId = $rec->containerId;
+                        $cId = $rec->containerId ?? null;
                         
                         if (!$cId && !empty($rec->id)) {
                             $cId = $mvc->fetchField($rec->id, 'containerId');

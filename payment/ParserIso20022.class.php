@@ -43,6 +43,7 @@ class payment_ParserIso20022 extends core_BaseClass
     public static function addFields(&$mvc)
     {
         $mvc->FLD('archivePassword', 'password', 'caption=ZIP архиви->Парола,before=note,single=none');
+        $mvc->FLD('includeMt940', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително MT940,before=note,hint=Обработва и MT940 файлове в същото правило');
         $mvc->FLD('notifyUserId', 'user(roles=bank|ceo,showClosedUsers=no,allowEmpty)', 'caption=При проблем->Известяване на,before=note,hint=При празно поле не се изпращат известия');
     }
 
@@ -584,18 +585,20 @@ class payment_ParserIso20022 extends core_BaseClass
         $res = false;
         $failed = false;
         $emailFileHnd = null;
+        $includeMt940 = ($serviceRec->includeMt940 ?? 'no') === 'yes';
+        $logPrefix = $includeMt940 ? 'Банков импорт' : 'ISO20022';
         
         foreach ($filesArr as $fId) {
             $fh = fileman::fetchField($fId, 'fileHnd');
-            // Правилото остава само за CAMT; ръчният импорт поддържа и Unicredit XML.
-            $parsed = payment_ImportFiles::getRecs($fh, $serviceRec->archivePassword ?? null, 'EMAIL', false);
+            // MT940 е изрично включване; съществуващите CAMT правила запазват обхвата си.
+            $parsed = payment_ImportFiles::getRecs($fh, $serviceRec->archivePassword ?? null, 'EMAIL', false, $includeMt940);
             $fileErrors = $parsed->errors ?? array();
             $fileWarnings = $parsed->warnings ?? array();
             foreach (array_merge($fileErrors, $fileWarnings) as $message) {
-                fileman::logWarning('ISO20022: ' . $message, $fId);
+                fileman::logWarning($logPrefix . ': ' . $message, $fId);
             }
             if (($parsed->status ?? null) == 'unsupported') {
-                fileman::logNotice('ISO20022: Пропуснат файл без разпознато банково извлечение', $fId);
+                fileman::logNotice($logPrefix . ': Пропуснат файл без разпознато банково извлечение', $fId);
                 continue;
             }
             if (!empty($parsed->errors) || !empty($parsed->warnings)) {
@@ -616,22 +619,22 @@ class payment_ParserIso20022 extends core_BaseClass
                         $fileWarnings = array_merge($fileWarnings, $importWarnings);
                         $failed = true;
                         foreach ($importWarnings as $message) {
-                            fileman::logWarning('ISO20022: ' . $message, $fId);
+                            fileman::logWarning($logPrefix . ': ' . $message, $fId);
                         }
                     }
-                    fileman::logNotice('ISO20022: ' . $status, $fId);
+                    fileman::logNotice($logPrefix . ': ' . $status, $fId);
                 }
                 $matches = bank_Register::findMatches();
-                fileman::logNotice("ISO20022: Обработени {$matches} записа", $fId);
+                fileman::logNotice($logPrefix . ": Обработени {$matches} записа", $fId);
             } elseif (!empty($parsed->recognized)) {
-                fileman::logNotice('ISO20022: Няма записи', $fId);
+                fileman::logNotice($logPrefix . ': Няма записи', $fId);
             }
             if (!empty($parsed->recognized)) {
-                $res = 'ISO20022';
+                $res = $logPrefix;
             }
             self::notifyImportProblems($fh, (int) ($serviceRec->notifyUserId ?? 0), $fileErrors, $fileWarnings);
             if (($parsed->status ?? null) == 'partial') {
-                fileman::logWarning('ISO20022: Частичен импорт - валидните операции са обработени; проверете останалите', $fId);
+                fileman::logWarning($logPrefix . ': Частичен импорт - валидните операции са обработени; проверете останалите', $fId);
             }
         }
 
