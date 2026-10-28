@@ -33,11 +33,13 @@ class core_App
         if ($filename !== null && preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
+            header_remove('X-Robots-Tag');
             core_Webroot::serve($filename);
         } elseif (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
             // Ако имаме заявка за статичен ресурс, веднага го сервираме и
             // приключване. Ако не - продъжаваме със зареждането на фреймуърка
             
+            header_remove('X-Robots-Tag');
             core_Sbf::serveStaticFile($_GET[EF_SBF]);
         } else {
             
@@ -67,6 +69,11 @@ class core_App
      */
     public static function initSystem()
     {
+        // Обхваща и отговорите преди dispatch, включително инициализацията на системата.
+        if (PHP_SAPI !== 'cli') {
+            header('X-Robots-Tag: noindex, nofollow');
+        }
+
         /**
          * Дефинира, ако не е зададено името на кода на приложението
          */
