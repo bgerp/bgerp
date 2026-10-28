@@ -1646,7 +1646,7 @@ class planning_Tasks extends core_Master
                 $rec->folderId = $folderId;
             }
         } else {
-            if (($data->action ?? null) != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+            if (($data->action ?? null) != 'clone' && in_array($rec->state ?? null, array('active', 'wakeup', 'stopped'))) {
                 $form->setField('wasteProductId', 'input=none');
                 $form->setField('wasteStart', 'input=none');
                 $form->setField('wastePercent', 'input=none');
@@ -3095,7 +3095,7 @@ class planning_Tasks extends core_Master
                         $newConsRec->state = 'draft';
                         $newConsRec->threadId = $newTask->threadId;
                         $newConsRec->folderId = $newTask->folderId;
-                        $newConsRec->clonedFromId = $newConsRec->id;
+                        $newConsRec->clonedFromId = $consRec->id;
 
                         if ($Consumptions->save($newConsRec)) {
                             $clonedConsumptionNotes++;
