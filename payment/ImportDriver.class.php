@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за импортиране на трансакции от банков XML
+ * Драйвер за импортиране на трансакции от банкови извлечения
  *
  * @category  bgerp
  * @package   payment
@@ -27,7 +27,7 @@ class payment_ImportDriver extends import2_AbstractDriver
     /**
      * Заглавие
      */
-    public $title = 'Банков XML Файл';
+    public $title = 'Банково извлечение (XML/MT940/ZIP)';
     
     
     /**
@@ -40,7 +40,7 @@ class payment_ImportDriver extends import2_AbstractDriver
      */
     public function addImportFields($mvc, core_FieldSet $form)
     {
-        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML или ZIP файл,mandatory');
+        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML|* / MT940 / ZIP,mandatory');
         $form->FLD('archivePassword', 'password(allowEmpty)', 'caption=ZIP архив->Парола,hint=При повторно изпращане на формата въведете паролата отново');
         $form->FLD('previewFilter', 'enum(all=Всички,problems=Проблемни)', 'caption=Преглед->Редове,value=all');
         $form->FLD('previewPage', 'int(min=1)', 'caption=Преглед->Страница,value=1,hint=По 200 реда на страница');

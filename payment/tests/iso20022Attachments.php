@@ -64,6 +64,7 @@ class bank_Register {
 }
 require dirname(__DIR__) . '/XmlParser.class.php';
 require dirname(__DIR__) . '/ImportFiles.class.php';
+require dirname(__DIR__) . '/ParserMt940.class.php';
 require dirname(__DIR__) . '/ParserIso20022.class.php';
 class attachment_TestParser extends payment_ParserIso20022 {
     public static function read($fh, $password = null) { return parent::getAttachmentContents($fh, $password); }
