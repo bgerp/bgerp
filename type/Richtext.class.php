@@ -1308,7 +1308,9 @@ class type_Richtext extends type_Blob
             return false;
         }
 
-        $domains = array_diff(cms_Domains::getDomainOptions(true), array('localhost'));
+        static $domainOptions = null;
+        $domainOptions ??= cms_Domains::getDomainOptions(true);
+        $domains = array_diff($domainOptions, array('localhost'));
         $domains[] = getBoot(true);
         if (defined('BGERP_ABSOLUTE_HTTP_HOST')) $domains[] = BGERP_ABSOLUTE_HTTP_HOST;
         $host = preg_replace('/^www\./i', '', strtolower($parts['host'] ?? ''));
