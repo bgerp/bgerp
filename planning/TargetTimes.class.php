@@ -485,6 +485,7 @@ class planning_TargetTimes extends core_BaseClass
         $report['requestedStart'] = static::verbalTime($rec->timeStart ?? null);
         $report['proposedStart'] = static::verbalTime($simulation->proposedStart ?? ($rec->timeStart ?? null));
         $report['editedOperation'] = ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1);
+        $report['currentStart'] = static::verbalTime($baseline[$rec->id ?? -1]->expectedTimeStart ?? null);
         $report['operationChanges'] = array();
         $report['operationOrder'] = array();
         $oldRequired = planning_TaskConstraints::getSameResourceJobPackageLinks($baseline);
@@ -497,14 +498,22 @@ class planning_TargetTimes extends core_BaseClass
             $rows = $scheduled->tasks[$assetId] ?? array();
             $asset = $simulation->context->prepared->assets[$assetId] ?? (object)array();
             $storedManual = $storedManuals[$assetId] ?? (object)array();
-            $oldOrder = array_values((array)($storedManual->data ?? array()));
-            $newOrder = array_values((array)($simulation->options['manualOrderOverrides'][$assetId] ?? $oldOrder));
+            // Сравняваме ефективните връзки от двата плана, включително автоматичните пакети.
+            $oldAsset = $comparison->assets[$assetId] ?? $storedManual;
+            $newAsset = $scheduled->assets[$assetId] ?? (object)array();
+            $oldOrder = array_values((array)($oldAsset->manualOrder ?? ($storedManual->data ?? array())));
+            $newOrder = array_values((array)($newAsset->manualOrder ?? ($simulation->options['manualOrderOverrides'][$assetId] ?? $oldOrder)));
             $oldPositions = array_flip($oldOrder);
             $newPositions = array_flip($newOrder);
-            $oldLinks = $oldRequired + (array)($storedManual->anchorLinks ?? array()) + (array)($storedManual->packageLinks ?? array());
-            $newLinks = $newRequired + (array)($simulation->options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array()))
-                + (array)($simulation->options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array()));
+            $oldPackages = $oldRequired + (array)($oldAsset->packageLinks ?? array());
+            $newPackages = $newRequired + (array)($newAsset->packageLinks ?? ($simulation->options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array())));
+            $oldAnchors = (array)($oldAsset->anchorLinks ?? array());
+            $newAnchors = (array)($newAsset->anchorLinks ?? ($simulation->options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array())));
+            $oldLinks = $oldRequired + $oldAnchors + $oldPackages;
+            $newLinks = $newRequired + $newAnchors + $newPackages;
             $orderRows = array();
+            $focus = array();
+            $changedCount = $laterCount = $pinCount = $packageCount = $anchorCount = 0;
             $assetChanged = $assetId == ($rec->assetId ?? null);
             foreach (($beforeByAsset[$assetId] ?? array()) + $rows as $taskId => $unusedRow) {
                 $row = $rows[$taskId] ?? (object)array();
@@ -521,14 +530,23 @@ class planning_TargetTimes extends core_BaseClass
                     'asset' => $asset->code ?? (string)$assetId, 'before' => $before, 'after' => $after,
                     'pinBefore' => static::verbalTime($pinBefore), 'pinAfter' => static::verbalTime($pinAfter),
                     'pinChanged' => $pinBefore != $pinAfter, 'positionBefore' => $oldPosition, 'positionAfter' => $newPosition,
+                    'packageChanged' => ($oldPackages[$taskId] ?? null) != ($newPackages[$taskId] ?? null),
+                    'anchorChanged' => ($oldAnchors[$taskId] ?? null) != ($newAnchors[$taskId] ?? null),
                     'linkBefore' => isset($oldLinks[$taskId]) ? 'Opr' . $oldLinks[$taskId] : '—',
                     'linkAfter' => isset($newLinks[$taskId]) ? 'Opr' . $newLinks[$taskId] : '—');
                 $changed = $presentBefore != $presentAfter || $before != $after || $pinBefore != $pinAfter
-                    || $oldPosition != $newPosition || ($oldLinks[$taskId] ?? null) != ($newLinks[$taskId] ?? null);
+                    || $oldPosition != $newPosition || $entry['packageChanged'] || $entry['anchorChanged'];
+                $entry['changed'] = $changed;
                 if ($changed || $taskId == ($rec->id ?? -1)) {
+                    $focus[$taskId] = true;
                     $report['operationChanges'][] = $entry;
                     $assetChanged = true;
                 }
+                if ($changed) $changedCount++;
+                if (static::timeDirection($old->expectedTimeEnd ?? null, $row->expectedTimeEnd ?? null) > 0) $laterCount++;
+                if ($entry['pinChanged'] && $taskId != ($rec->id ?? -1)) $pinCount++;
+                if ($entry['packageChanged']) $packageCount++;
+                if ($entry['anchorChanged']) $anchorCount++;
                 foreach (array('before', 'after') as $side) {
                     if ($side == 'before' ? !$presentBefore : !$presentAfter) continue;
                     $source = $side == 'before' ? $old : $row;
@@ -552,11 +570,28 @@ class planning_TargetTimes extends core_BaseClass
                     return strcmp($a['sortStart'], $b['sortStart']) ?: ($a['position'] <=> $b['position']) ?: ($a['id'] <=> $b['id']);
                 });
             }
+            // Един съсед от всяка страна дава контекст; останалите редове са разгъваеми.
+            $visible = $focus;
+            foreach ($orderRows as $sideRows) foreach ($sideRows as $index => $item) {
+                if (empty($focus[$item['id']])) continue;
+                foreach (array($index - 1, $index + 1) as $neighbor) {
+                    if (isset($sideRows[$neighbor])) $visible[$sideRows[$neighbor]['id']] = true;
+                }
+            }
+            foreach ($orderRows as &$sideRows) foreach ($sideRows as &$item) $item['focus'] = !empty($visible[$item['id']]);
+            unset($sideRows, $item);
             $report['operationOrder'][] = array('asset' => trim(($asset->code ?? (string)$assetId) . ' ' . ($asset->name ?? '')),
+                'assetId' => $assetId, 'edited' => $assetId == ($rec->assetId ?? null),
+                'changedCount' => $changedCount, 'laterCount' => $laterCount, 'foreignPinCount' => $pinCount,
+                'packageCount' => $packageCount, 'anchorCount' => $anchorCount,
                 'before' => $orderRows['before'], 'after' => $orderRows['after']);
         }
-        // Един и същ номер следва операцията и при смяна на машина.
+        usort($report['operationOrder'], function ($a, $b) { return $b['edited'] <=> $a['edited']; });
+        // Кратките номера започват от видимите редове на редактираната машина.
         $numbers = array();
+        foreach ($report['operationOrder'] as $group) foreach (array('before', 'after') as $side) foreach ($group[$side] as $item) {
+            if ($item['focus'] && !isset($numbers[$item['id']])) $numbers[$item['id']] = count($numbers) + 1;
+        }
         foreach (array('before', 'after') as $side) foreach ($report['operationOrder'] as &$group) {
             foreach ($group[$side] as &$item) {
                 if (!isset($numbers[$item['id']])) $numbers[$item['id']] = count($numbers) + 1;

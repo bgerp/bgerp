@@ -12,6 +12,7 @@
 <button type="button" id="free">Пример: свободна операция</button>
 <button type="button" id="changed">Пример: променен план</button>
 <button type="button" id="blocked">Пример: технологичен конфликт</button>
+<button type="button" id="large">Пример: дълги опашки и други машини</button>
 <button type="button" id="checks">Автоматични UI проверки</button>
 <form>
     <table id="editFormTable"><tr><td>Начало:</td><td>Контролна клетка на едит формата</td></tr></table>
@@ -44,16 +45,17 @@ function sampleReport(mode, free) {
             {operation: 'Opr6396', asset: 'П10', before: ['30.10.2026 08:00', '30.10.2026 09:59'],
                 after: moving ? ['30.10.2026 ' + requested, '30.10.2026 ' + (free ? '11:59' : '15:59')] : ['30.10.2026 08:00', '30.10.2026 09:59'],
                 pinBefore: '—', pinAfter: moving ? '30.10.2026 ' + requested : '30.10.2026 08:00', pinChanged: true,
-                positionBefore: 1, positionAfter: detached ? 2 : 1, linkBefore: '—', linkAfter: '—'},
+                changed: true, positionBefore: 1, positionAfter: detached ? 2 : 1, linkBefore: '—', linkAfter: '—'},
             {operation: 'Opr6397', asset: 'П10', before: ['30.10.2026 10:00', '30.10.2026 10:59'],
                 after: changedOther ? ['30.10.2026 ' + next, '30.10.2026 ' + (free ? '12:59' : '16:59')] : ['30.10.2026 10:00', '30.10.2026 10:59'],
                 pinBefore: '30.10.2026 10:00', pinAfter: changedOther ? '30.10.2026 ' + next : '30.10.2026 10:00', pinChanged: changedOther,
+                changed: changedOther || detached, packageChanged: detached && !free,
                 positionBefore: 2, positionAfter: detached ? 1 : 2, linkBefore: free ? '—' : 'Opr6396', linkAfter: detached || free ? '—' : 'Opr6396'}
         ],
         idleChanges: [], idleTotals: {}, optimizationMetrics: {}, legendHint: legendHint
     };
     const asDate = function (value) { return value.replace(/(\d{2})\.(\d{2})\.(\d{4}) (\d{2}:\d{2})/, '$3-$2-$1 $4'); };
-    const group = {asset: '[П10] Тестова машина', before: [], after: []};
+    const group = {asset: '[П10] Тестова машина', edited: true, before: [], after: []};
     report.operationChanges.forEach(function (row, index) {
         ['before', 'after'].forEach(function (side) {
             group[side].push({id: 6396 + index, operation: row.operation, number: index + 1, state: index ? 'stopped' : 'pending',
@@ -95,7 +97,45 @@ function showBlockedSample() {
     ]});
 }
 $('#blocked').on('click', showBlockedSample);
-$('#checks').on('click', function () {
+function largeReport() {
+    const report = sampleReport('move');
+    report.currentStart = '30.10.2026 08:00';
+    const group = report.operationOrder[0];
+    group.asset = '[П10] Редактирана машина — демонстрационни данни';
+    const prefix = [];
+    const suffix = [];
+    for (let i = 0; i < 30; i++) {
+        prefix.push({id: 100 + i, operation: 'Opr' + (100 + i), number: i === 29 ? 1 : i + 10,
+            state: 'pending', start: '29.10.2026 08:00', end: '29.10.2026 09:00', focus: i === 29,
+            pin: '—', previous: i ? 99 + i : null, startChange: 0, endChange: 0});
+        suffix.push({id: 200 + i, operation: 'Opr' + (200 + i), number: i === 0 ? 4 : i + 50,
+            state: 'pending', start: '31.10.2026 08:00', end: '31.10.2026 09:00', focus: i === 0,
+            pin: '—', previous: i ? 199 + i : null, startChange: 0, endChange: 0});
+    }
+    ['before', 'after'].forEach(function (side) {
+        group[side].forEach(function (row, i) { row.number = i + 2; row.focus = true; });
+        group[side] = prefix.concat(group[side], suffix);
+    });
+    group.changedCount = 2;
+    group.laterCount = 2;
+    const foreign = {asset: '[П20] Засегната следваща машина', changedCount: 1, laterCount: 1,
+        foreignPinCount: 0, packageCount: 0, before: [], after: []};
+    ['before', 'after'].forEach(function (side) {
+        foreign[side] = [{id: 900, operation: 'Opr900', number: 5, state: 'pending',
+            start: side === 'before' ? '30.10.2026 12:00' : '30.10.2026 17:00',
+            end: side === 'before' ? '30.10.2026 13:00' : '30.10.2026 18:00',
+            pin: '—', startChange: 1, endChange: 1, focus: true}];
+    });
+    report.operationOrder.push(foreign);
+    report.operationChanges.push({operation: 'Opr900', changed: true});
+    report.optimizationMetrics = {lateJobsBefore: 2, lateJobsAfter: 3, tardinessBefore: '1 ден', tardinessAfter: '2 дни',
+        tardinessChange: '+1 ден', tardinessChangeSeconds: 86400, targetAssetTitle: '[П10]', targetBefore: '3 дни', targetAfter: '3 дни'};
+    report.idleChanges = [{assetTitle: '[П20]', before: '1 час', after: '3 часа', change: '+2 часа', changeSeconds: 7200}];
+    report.idleTotals = {increased: '2 часа', decreased: '0 мин.', net: '+2 часа', netSeconds: 7200};
+    return report;
+}
+$('#large').on('click', function () { showTargetTimesPreview(largeReport()); });
+$('#checks').on('click', async function () {
     $('[name="Cmd[save]"]').remove();
     let count = 0;
     const check = function (condition, message) { if (!condition) throw new Error(message); count++; };
@@ -134,6 +174,9 @@ $('#checks').on('click', function () {
     check($('.targetTimeSide-after .targetTimeLater').length === 4 && !$('.targetTimeSide-before .targetTimeLater').length, 'По-късните времена са отбелязани само вдясно');
     check($('.targetTimeSide-after .targetTimePin').first().parent().attr('title').includes('→'), 'Променената фиксация има подсказка преди/след');
     check($('.targetTimePackageStart').length === 2 && $('.targetTimePackageEnd').length === 2, 'Пакетът е показан и от двете страни');
+    choose(1);
+    check($('.targetTimeImpactSummary').text().includes('Променени операции: 1; чужди фиксирани начала: 0'),
+        'Запазените чужди фиксации не се броят като променени заради новата собствена фиксация');
     choose(2);
     check($('.targetTimeSide-before .targetTimeNumber').map(function () { return $(this).text(); }).get().join(',') === '1,2', 'Оригиналната номерация е запазена');
     check($('.targetTimeSide-after .targetTimeNumber').map(function () { return $(this).text(); }).get().join(',') === '2 ↑,1 ↓', 'Номерата следват разместването и показват посоката');
@@ -187,6 +230,44 @@ $('#checks').on('click', function () {
     choose(0);
     $('#optimizationIdleReport .optimizationIdleReportConfirm').trigger('click');
     check($('[name="targetResolution"]').val() === 'move' && $('[name="targetPreviewAccepted"]').val() === 'yes' && $('[name="targetPreviewHash"]').val() === 'hash-move', 'Приложи изпраща избрания вариант');
+    showTargetTimesPreview(largeReport());
+    check($('.targetTimeSide-before tr[data-operation]:visible').length === 4
+        && $('.targetTimeSide-after tr[data-operation]:visible').length === 4, 'Дългите опашки показват промените и непосредствения контекст');
+    check($('.targetTimeGap').length === 4 && $('.targetTimePackageGap').length > 0, 'Скритите непроменени участъци не прикриват пакетната непрекъснатост');
+    check($('.targetTimeOtherMachine').length === 1 && !$('.targetTimeOtherMachine').prop('open')
+        && !$('.targetTimeOtherMachine table').length, 'Другите машини са сгънати, без излишни таблици в началния преглед');
+    check($('.targetTimeOtherMachine > summary').text().includes('по-късен край: 1'), 'Влошаването на друга машина е видно и при сгънати подробности');
+    check($('.targetTimeImpactWarnings').text().includes('Закъснели задания')
+        && $('.targetTimeImpactWarnings').text().includes('+1 ден'), 'Влошените общи показатели остават видими без разгъване');
+    check($('.targetTimeIdleImpact:visible').text().includes('Нетна промяна на престоите: +2 часа'),
+        'Увеличените престои остават видими и при сгънатия общ отчет');
+    check($('.targetTimeGlobalDetails').length === 1 && !$('.targetTimeGlobalDetails').prop('open'), 'Пълните общи показатели са достъпни при поискване');
+    check($('.targetTimeCurrentStart').text().includes('30.10.2026 08:00'), 'Текущото изчислено начало е отделено от въведеното и предложеното');
+    check($('.targetTimeImpactSummary').text().includes('чужди фиксирани начала: 1'), 'Броят на чуждите фиксации не включва редактираната операция');
+    check($('.targetTimeComparisonHolder').css('overflow-y') === 'visible', 'Няма вложен вертикален скрол в сравнителните таблици');
+    const gap = $('.targetTimeGap button').first();
+    gap.trigger('click');
+    check(gap.attr('aria-expanded') === 'true' && $('.targetTimeSide-before tr[data-operation]:visible').length === 33,
+        'Непромененият участък може да се разгъне изцяло');
+    gap.trigger('click');
+    check(gap.attr('aria-expanded') === 'false' && $('.targetTimeSide-before tr[data-operation]:visible').length === 4,
+        'Повторното сгъване възстановява компактния изглед');
+    $('.targetTimeOtherMachine > summary')[0].click();
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    check($('.targetTimeOtherMachine table').length === 2
+        && $('.targetTimeOtherMachine .targetTimeSide-after .targetTimeLater').length === 2,
+        'Разгъването показва пълното сравнение и истинските по-късни времена на другата машина');
+    $('.targetTimeOtherMachine > summary')[0].click();
+    $('.targetTimeOtherMachine > summary')[0].click();
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    check($('.targetTimeOtherMachine table').length === 2, 'Повторното разгъване не дублира подробностите');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    const duplicate = sampleReport('move');
+    duplicate.operationChanges.push(Object.assign({}, duplicate.operationChanges[1]));
+    showTargetTimesPreview(duplicate);
+    check($('.targetTimeImpactSummary').text().includes('Променени операции: 2; чужди фиксирани начала: 1'),
+        'Една операция не се брои двойно, ако присъства в двете машинни групи при смяна на машина');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     renderOptimizationIdleReport([], {}, {}, {hasImprovement: true, testedCandidates: 4, duration: 0.1}, false);
     check($('#optimizationIdleReport .optimizationSearchResult').text().includes('Намерен е по-добър вариант'), 'Старият отчет от оптимизацията запазва резултата и статистиката');
     check(!$('#optimizationIdleReport').hasClass('targetTimeReport') && !$('body').hasClass('targetTimePreviewOpen'), 'Стиловете на целевите времена не остават в стария отчет');
