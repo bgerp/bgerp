@@ -686,7 +686,7 @@ class bank_Register extends core_Manager
 
             // Вадим номерата от основанието
             $matches = array();
-            preg_match_all('/([1-9][0-9]+)/', $rec->reason, $matches);
+            preg_match_all('/([1-9][0-9]+)/', $rec->reason ?? '', $matches);
             if (countR($matches[0])) {
                 $numbers = array_flip($matches[0]);
             } else {
@@ -779,7 +779,7 @@ class bank_Register extends core_Manager
                 $pParts = array();
 
                 // Номер на документа
-                if (strlen($d->number) && stripos($rec->reason, $d->number) !== false) {
+                if (strlen($d->number ?? '') && stripos($rec->reason ?? '', $d->number) !== false) {
                     $pNumber = max(0, 1 - 2.8 / strlen($d->number));
                     if (!empty($numbers[$d->number])) {
                         $pNumber += max(0, 1 - 1.3 / strlen($d->number));

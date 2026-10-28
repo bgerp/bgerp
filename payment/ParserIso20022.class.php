@@ -44,6 +44,7 @@ class payment_ParserIso20022 extends core_BaseClass
     {
         $mvc->FLD('archivePassword', 'password', 'caption=ZIP архиви->Парола,before=note,single=none');
         $mvc->FLD('includeMt940', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително MT940,before=note,hint=Обработва и MT940 файлове в същото правило');
+        $mvc->FLD('includeUnicredit', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително Unicredit XML,before=note,hint=Обработва и XML извлечения APAccounts в същото правило');
         $mvc->FLD('notifyUserId', 'user(roles=bank|ceo,showClosedUsers=no,allowEmpty)', 'caption=При проблем->Известяване на,before=note,hint=При празно поле не се изпращат известия');
     }
 
@@ -586,12 +587,13 @@ class payment_ParserIso20022 extends core_BaseClass
         $failed = false;
         $emailFileHnd = null;
         $includeMt940 = ($serviceRec->includeMt940 ?? 'no') === 'yes';
-        $logPrefix = $includeMt940 ? 'Банков импорт' : 'ISO20022';
+        $includeUnicredit = ($serviceRec->includeUnicredit ?? 'no') === 'yes';
+        $logPrefix = ($includeMt940 || $includeUnicredit) ? 'Банков импорт' : 'ISO20022';
         
         foreach ($filesArr as $fId) {
             $fh = fileman::fetchField($fId, 'fileHnd');
-            // MT940 е изрично включване; съществуващите CAMT правила запазват обхвата си.
-            $parsed = payment_ImportFiles::getRecs($fh, $serviceRec->archivePassword ?? null, 'EMAIL', false, $includeMt940);
+            // Другите формати са изрично включване; старите CAMT правила запазват обхвата си.
+            $parsed = payment_ImportFiles::getRecs($fh, $serviceRec->archivePassword ?? null, 'EMAIL', $includeUnicredit, $includeMt940);
             $fileErrors = $parsed->errors ?? array();
             $fileWarnings = $parsed->warnings ?? array();
             foreach (array_merge($fileErrors, $fileWarnings) as $message) {
