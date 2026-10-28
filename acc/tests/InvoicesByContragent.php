@@ -1811,4 +1811,113 @@ foreach (array('no', 'yes') as $corrections) {
     check(frame2_Reports::$logReads === 1, 'Вече зареденият лог не се чете повторно: ' . $corrections);
 }
 
+// КИ намаляват неплатеното, без да скриват реална надплата или да променят нетния остатък.
+$noteCases = array(
+    1 => array(100, 30, 'invoice', 70, 0),
+    2 => array(-20, 0, 'dc_note', -20, 0),
+    3 => array(10, 0, 'dc_note', 10, 0),
+    4 => array(50, 60, 'invoice', 0, 10),
+    5 => array(-12, -12, 'dc_note', 0, 0),
+    6 => array(-25, -10, 'dc_note', -15, 0),
+    7 => array(15, 5, 'dc_note', 10, 0),
+    8 => array(15, 20, 'dc_note', 0, 5),
+);
+foreach (array('out', 'in', 'all') as $direction) {
+    foreach (array('no', 'yes') as $corrections) {
+        foreach (array('all', 'unpaid', 'overdue') as $status) {
+            foreach (array(array('2025-10-15', 'BGN', 1), array('2026-10-15', 'EUR', 1), array('2026-10-15', 'USD', 2)) as $currencyCase) {
+                list($cutoff, $currency, $rate) = $currencyCase;
+                InvoiceTestData::reset();
+                $date = substr($cutoff, 0, 8) . '01';
+                $due = substr($cutoff, 0, 8) . '05';
+                foreach ($direction == 'all' ? array('out', 'in') : array($direction) as $kind) {
+                    foreach ($noteCases as $id => $noteCase) {
+                        InvoiceTestData::invoice($kind, $id, 'Credit balance', $due, $noteCase[0], $noteCase[1], $date, $currency, $rate);
+                        $class = $kind == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+                        end(InvoiceTestData::$records[$class])->type = $noteCase[2];
+                    }
+                    InvoiceTestData::combine($kind, array(2, 3, 4, 5, 6, 7, 8, 1));
+                }
+                $rec = reportRec($direction, $status);
+                $rec->checkDate = $cutoff;
+                $rec->accountingCorrections = $corrections;
+                $rows = $driver->run($rec, $data);
+                $totals = array_fill(0, 5, 0);
+                $case = implode('/', array($direction, $corrections, $status, $cutoff, $currency));
+                $expectedCount = $status == 'all' ? 8 : ($status == 'unpaid' ? 7 : 3);
+                check(count($rows) == $expectedCount * ($direction == 'all' ? 2 : 1), 'КИ/ДИ не добавят или премахват документи: ' . $case);
+                foreach ($rows as $detail) {
+                    list($value, $paid, $type, $notPaid, $overPaid) = $noteCases[$detail->invoiceId];
+                    $correction = 0;
+                    if ($status == 'all' && $corrections == 'no') $notPaid = $overPaid = 0;
+                    $row = $driver->verbal($rec, $detail);
+                    $number = function ($value) { return (float)strip_tags($value ?? '0'); };
+                    check(closeAmount($number($row->invoiceCurrentSumm ?? 0), $notPaid * $rate)
+                        && closeAmount($number($row->invoiceOverSumm ?? 0), $overPaid * $rate), 'Точната колона и знак за КИ/ДИ/надплатена фактура: ' . $detail->invoiceId . '/' . $case);
+                    $export = $driver->exportRow($rec, $detail);
+                    check(closeAmount($export->paidAmount ?? 0, $paid * $rate), 'Експортът пази реалното платено и по известията: ' . $case);
+                    check(closeAmount($export->invoiceCurrentSumm ?? 0, $notPaid * $rate)
+                        && closeAmount($export->invoiceOverSumm ?? 0, $overPaid * $rate), 'Екран и експорт разнасят КИ/ДИ и надплатите еднакво: ' . $case);
+                    if ($status != 'all' || $corrections == 'yes') {
+                        check(closeAmount($value * $rate - $paid * $rate - $correction, ($notPaid - $overPaid) * $rate), 'КИ/ДИ запазват равенството стойност - платено - МО = остатък: ' . $case);
+                        $amounts = array($value * $rate, $paid * $rate, $notPaid * $rate, -$overPaid * $rate, max(0, $notPaid * $rate));
+                        $sign = $direction == 'all' && $detail->className == 'purchase_Invoices' ? -1 : 1;
+                        foreach ($amounts as $i => $amount) $totals[$i] += $sign * $amount;
+                    }
+                }
+                if ($status != 'all' || $corrections == 'yes') {
+                    foreach (array('totalInvoiceValue', 'totalInvoicePayout', 'totalInvoiceNotPayd', 'totalInvoiceOverPaid', 'totalInvoiceOverDue') as $i => $field) {
+                        check(closeAmount($rec->{$field . 'All'} ?? 0, $totals[$i]), 'Общото обобщение сумира показаните колони след КИ: ' . $field . '/' . $case);
+                    }
+                    foreach ($rows as $detail) {
+                        $expected = $status == 'overdue' ? 90 : 55;
+                        check(closeAmount($detail->totalInvoiceNotPayd, $expected * $rate)
+                            && closeAmount($detail->totalInvoiceOverPaid, $status == 'overdue' ? 0 : -15 * $rate), 'Фирменият сбор отчита КИ и отделя само истинската надплата: ' . $case);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// МО променя остатъка по КИ, но не го превръща в надплата по фактура.
+foreach (array(5, -25) as $correction) {
+    InvoiceTestData::reset();
+    InvoiceTestData::invoice('in', 1, 'Credit with MO', '2026-10-14', -20, 0);
+    InvoiceTestData::$records['purchase_Invoices'][0]->type = 'dc_note';
+    articleFixture('in', 1, 803, $correction);
+    $rec = reportRec('in', 'all');
+    $rec->accountingCorrections = 'yes';
+    $rows = $driver->run($rec, $data);
+    $detail = reset($rows);
+    $row = $driver->verbal($rec, $detail);
+    check(count($rows) == 1 && closeAmount($rec->totalAccountingCorrectionAll, $correction)
+        && closeAmount($rec->totalInvoiceNotPaydAll, -20 - $correction) && closeAmount($rec->totalInvoiceOverPaidAll, 0), 'КИ запазва точния остатък след МО: ' . $correction);
+    check(closeAmount(strip_tags($row->invoiceCurrentSumm ?? '0'), -20 - $correction)
+        && empty($row->invoiceOverSumm), 'Остатъкът след МО по КИ е в правилната колона: ' . $correction);
+}
+
+// Петте КИ от потребителския пример намаляват точно неплатеното с 64.29 EUR.
+foreach (array('out', 'in') as $direction) {
+    foreach (array('no', 'yes') as $corrections) {
+        InvoiceTestData::reset();
+        InvoiceTestData::invoice($direction, 1, 'Credit example', '2026-10-14', 46210.98, 17330.18);
+        foreach (array(2 => -4.01, 3 => -11.54, 4 => -10.02, 5 => -21.04, 6 => -17.68) as $id => $value) {
+            InvoiceTestData::invoice($direction, $id, 'Credit example', '2026-10-14', $value, 0);
+            $class = $direction == 'out' ? 'sales_Invoices' : 'purchase_Invoices';
+            end(InvoiceTestData::$records[$class])->type = 'dc_note';
+        }
+        InvoiceTestData::combine($direction, array(2, 3, 4, 5, 6, 1));
+        $rec = reportRec($direction, 'unpaid');
+        $rec->accountingCorrections = $corrections;
+        $rows = $driver->run($rec, $data);
+        check(closeAmount($rec->totalInvoiceValueAll, 46146.69) && closeAmount($rec->totalInvoicePayoutAll, 17330.18)
+            && closeAmount($rec->totalInvoiceNotPaydAll, 28816.51) && closeAmount($rec->totalInvoiceOverPaidAll, 0), 'Точните суми от потребителския пример: ' . $direction . '/' . $corrections);
+        $credit = $rows[2];
+        unset($credit->creditNoteBalance);
+        $old = $driver->verbal($rec, $credit);
+        check(empty($old->invoiceCurrentSumm) && closeAmount(strip_tags($old->invoiceOverSumm ?? '0'), 4.01), 'Стара снимка не смесва нови колони със стари обобщения');
+    }
+}
+
 echo "OK: {$checks} invoice report checks\n";

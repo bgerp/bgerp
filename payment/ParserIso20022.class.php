@@ -137,6 +137,10 @@ class payment_ParserIso20022 extends core_BaseClass
             $bic = payment_XmlParser::getText($stmt, 'Acct/Svcr/FinInstnId/BIC');
             
             $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
+            $pagination = $stmt->StmtPgntn ?? $document->BkToCstmrStmt->GrpHdr->MsgPgntn ?? $document->BkToCstmrAcctRpt->GrpHdr->MsgPgntn ?? null;
+            if (!self::checkStatementTotals($stmt, $pagination, $iban, $res)) {
+                continue;
+            }
 
             $entryNumber = 0;
             foreach ($stmt->Ntry as $node) {
@@ -249,6 +253,10 @@ class payment_ParserIso20022 extends core_BaseClass
                     $part->type = $partDirection === 'DBIT' ? 'outgoing' : 'incoming';
                     self::setCounterparty($part, $transaction, $partDirection, $isReversal, $iban);
                     $part->reason = ($isReversal ? '[Сторно] ' : '') . self::getPaymentReason($node, $transaction);
+                    $reference = self::getBankReference($node, $transaction, $grouped);
+                    if ($reference !== '') {
+                        $part->bankReference = 'CAMT:' . $recordCurrency . ':' . ($isReversal ? 'R:' : 'N:') . $reference;
+                    }
                     $entryRecs[] = $part;
                     $total += (int) round($part->amount * 100) * ($partDirection === 'DBIT' ? -1 : 1);
                 }
@@ -256,6 +264,17 @@ class payment_ParserIso20022 extends core_BaseClass
                 if (!$complete || ($grouped && ($total != $entryTotal || abs((float) $amount - round((float) $amount, 2)) > 0.000001))) {
                     $res->warnings[] = $entryLabel . "непълни или несъответстващи суми, валути или посоки в групирания превод";
                     continue;
+                }
+                $references = array();
+                foreach ($entryRecs as $part) {
+                    if (isset($part->bankReference)) {
+                        $references[$part->bankReference] = ($references[$part->bankReference] ?? 0) + 1;
+                    }
+                }
+                foreach ($entryRecs as $part) {
+                    if (isset($part->bankReference) && $references[$part->bankReference] > 1) {
+                        unset($part->bankReference);
+                    }
                 }
                 // Старият импорт е записвал цялата група към първата страна; не добавяме втори комплект записи.
                 if (($grouped || ($isReversal && ($legacy->contragentIban ?? '') !== ($entryRecs[0]->contragentIban ?? '')))
@@ -276,6 +295,182 @@ class payment_ParserIso20022 extends core_BaseClass
     }
     
     
+    /**
+     * Контролите са върху оригиналните Ntry, преди филтриране и разделяне на групи.
+     * При липса на контролни полета досегашният импорт остава непроменен.
+     */
+    private static function checkStatementTotals($stmt, $pagination, $iban, $res)
+    {
+        $prefix = "IBAN {$iban}: ";
+        $summary = $stmt->TxsSummry ?? null;
+        $balances = array();
+        foreach ($stmt->Bal ?? array() as $balance) {
+            $code = payment_XmlParser::getText($balance, 'Tp/CdOrPrtry/Cd');
+            if (in_array($code, array('OPBD', 'CLBD'), true)) {
+                $balances[$code][] = $balance;
+            }
+        }
+        $checkBalances = isset($balances['OPBD'], $balances['CLBD']);
+        if ($summary === null && !$checkBalances) {
+            return true;
+        }
+        if ($pagination !== null && (trim(payment_XmlParser::getText($pagination, 'PgNb')) !== '1'
+            || !in_array(strtolower(trim(payment_XmlParser::getText($pagination, 'LastPgInd'))), array('true', '1'), true))) {
+            $res->warnings[] = $prefix . 'контролните суми и броят операции не са проверени: извлечението е на няколко страници';
+
+            return true;
+        }
+        $errors = array();
+        $counts = array('CRDT' => 0, 'DBIT' => 0);
+        $sums = array('CRDT' => 0, 'DBIT' => 0);
+        $booked = 0;
+        $currency = strtoupper(trim(payment_XmlParser::getText($stmt, 'Acct/Ccy')));
+        $canCheckBalance = true;
+        foreach ($stmt->Ntry ?? array() as $entry) {
+            $direction = trim(payment_XmlParser::getText($entry, 'CdtDbtInd'));
+            $amount = self::controlAmount(payment_XmlParser::getText($entry, 'Amt'));
+            $entryCurrency = strtoupper(trim((string) ($entry->Amt->attributes()['Ccy'] ?? '')));
+            if ($currency === '') {
+                $currency = $entryCurrency;
+            }
+            if ($amount === null || !isset($counts[$direction]) || ($entryCurrency !== '' && $currency !== $entryCurrency)) {
+                $errors[] = 'не може да се провери извлечението поради невалидна сума, посока или различни валути';
+                break;
+            }
+            $counts[$direction]++;
+            $sums[$direction] += $amount;
+            $status = isset($entry->Sts->Cd) ? payment_XmlParser::getText($entry, 'Sts/Cd') : payment_XmlParser::getText($entry, 'Sts');
+            $status = trim($status);
+            if (!isset($entry->Sts) || $status === 'BOOK') {
+                $booked += $amount * ($direction === 'DBIT' ? -1 : 1);
+            } elseif (!in_array($status, array('PDNG', 'INFO'), true)) {
+                $canCheckBalance = false;
+            }
+        }
+        if (!$errors && $summary !== null) {
+            if (count($summary) != 1) {
+                $errors[] = 'повече от един блок TxsSummry';
+            }
+            foreach (array('TtlNtries' => null, 'TtlCdtNtries' => 'CRDT', 'TtlDbtNtries' => 'DBIT') as $name => $direction) {
+                if (!isset($summary->{$name})) {
+                    continue;
+                }
+                $group = $summary->{$name};
+                $expectedCount = $direction === null ? array_sum($counts) : $counts[$direction];
+                $expectedSum = $direction === null ? array_sum($sums) : $sums[$direction];
+                if (count($group) != 1) {
+                    $errors[] = "повторен контролен блок {$name}";
+                }
+                if (isset($group->NbOfNtries)) {
+                    $count = trim((string) $group->NbOfNtries);
+                    if (count($group->NbOfNtries) != 1 || !ctype_digit($count) || strlen($count) > 15 || (int) $count !== $expectedCount) {
+                        $errors[] = "{$name}/NbOfNtries: посоченият брой операции не съвпада с прочетените {$expectedCount}";
+                    }
+                }
+                if (isset($group->Sum) && (count($group->Sum) != 1 || self::controlAmount((string) $group->Sum) !== $expectedSum)) {
+                    $errors[] = "{$name}/Sum: контролната сума не съвпада със сбора на операциите";
+                }
+            }
+            // Старите версии използват TtlNetNtryAmt, а новите - TtlNetNtry/Amt.
+            $total = $summary->TtlNtries ?? null;
+            $net = $total->TtlNetNtry ?? null;
+            if (isset($total->TtlNetNtryAmt) && $net !== null) {
+                $errors[] = 'две различни представяния на нетната контролна сума';
+            }
+            if (isset($total->TtlNetNtryAmt) || $net !== null) {
+                $netAmount = self::controlAmount($net !== null ? payment_XmlParser::getText($net, 'Amt') : payment_XmlParser::getText($total, 'TtlNetNtryAmt'));
+                $direction = trim(payment_XmlParser::getText($net ?? $total, 'CdtDbtInd'));
+                if (($net !== null && (count($net) != 1 || count($net->Amt ?? array()) != 1 || count($net->CdtDbtInd ?? array()) != 1))
+                    || (isset($total->TtlNetNtryAmt) && (count($total->TtlNetNtryAmt) != 1 || count($total->CdtDbtInd ?? array()) != 1))
+                    || $netAmount === null || !isset($counts[$direction])
+                    || $netAmount * ($direction === 'DBIT' ? -1 : 1) !== $sums['CRDT'] - $sums['DBIT']) {
+                    $errors[] = 'нетната контролна сума не съвпада с кредитните минус дебитните операции';
+                }
+            }
+        }
+        if (!$errors && $checkBalances) {
+            $values = $dates = array();
+            foreach ($balances as $code => $items) {
+                $balance = $items[0];
+                $value = self::controlAmount(payment_XmlParser::getText($balance, 'Amt'));
+                $direction = trim(payment_XmlParser::getText($balance, 'CdtDbtInd'));
+                $balanceCurrency = strtoupper(trim((string) ($balance->Amt->attributes()['Ccy'] ?? '')));
+                $date = payment_XmlParser::getText($balance, 'Dt/Dt');
+                $date = $date !== '' ? $date : substr(payment_XmlParser::getText($balance, 'Dt/DtTm'), 0, 10);
+                if (count($items) != 1 || $value === null || !isset($counts[$direction])) {
+                    $errors[] = "невалидно или нееднозначно салдо {$code}";
+                    continue;
+                }
+                if ($currency === '' || $balanceCurrency !== $currency || !payment_XmlParser::isValidDate($date)) {
+                    $canCheckBalance = false;
+                }
+                $values[$code] = $value * ($direction === 'DBIT' ? -1 : 1);
+                $dates[$code] = $date;
+            }
+            if (!$errors) {
+                if (!$canCheckBalance || $dates['OPBD'] > $dates['CLBD']) {
+                    $res->warnings[] = $prefix . 'салдата не са проверени: липсват съпоставими валути, дати или статуси';
+                } elseif ($values['OPBD'] + $booked !== $values['CLBD']) {
+                    $errors[] = 'начално салдо + осчетоводени постъпления - осчетоводени плащания не е равно на крайното салдо';
+                }
+            }
+        }
+        foreach (array_unique($errors) as $error) {
+            $res->errors[] = $prefix . $error . '; извлечението за тази сметка не се импортира';
+        }
+
+        return !$errors;
+    }
+
+
+    /**
+     * Точни стотинки за контролите, без float закръгляне и с по-голям лимит от отделен превод.
+     */
+    private static function controlAmount($value)
+    {
+        $value = trim($value ?? '');
+        $value = preg_replace('/^(\+?)\./', '${1}0.', $value);
+        if (!preg_match('/^\\+?([0-9]+)(?:\\.([0-9]*))?$/D', $value, $parts)) {
+            return null;
+        }
+        $whole = ltrim($parts[1], '0');
+        $fraction = rtrim($parts[2] ?? '', '0');
+        if (strlen($whole) > 13 || strlen($fraction) > 2) {
+            return null;
+        }
+
+        return (int) $whole * 100 + (int) str_pad($fraction, 2, '0');
+    }
+
+
+    /**
+     * Само референцията на обслужващата банка е ключ; клиентските номера могат да се повтарят.
+     * Общата референция на Ntry не идентифицира отделните детайли на групиран превод.
+     */
+    private static function getBankReference($entry, $transaction, $grouped)
+    {
+        $nodes = array($transaction->Refs->AcctSvcrRef ?? null);
+        if (!$grouped) {
+            $nodes[] = $entry->AcctSvcrRef ?? null;
+        }
+        foreach ($nodes as $node) {
+            $value = trim((string) $node);
+            if ($node === null || count($node) != 1 || strlen($value) > 100 || preg_match('/[\x00-\x1f\x7f]/', $value)) {
+                continue;
+            }
+            $placeholder = strtoupper(preg_replace('/[^a-z0-9]/i', '', $value));
+            if ($placeholder === '' || preg_match('/^0+$/D', $placeholder)
+                || in_array($placeholder, array('NOTPROVIDED', 'NONREF', 'NOTAVAILABLE', 'UNKNOWN', 'NA', 'NONE'), true)) {
+                continue;
+            }
+
+            return $value;
+        }
+
+        return '';
+    }
+
+
     /**
      * Страните при сторно запазват ролите от първоначалния превод.
      */
@@ -383,6 +578,7 @@ class payment_ParserIso20022 extends core_BaseClass
 
         $res = false;
         $failed = false;
+        $emailFileHnd = null;
         
         foreach ($filesArr as $fId) {
             $fh = fileman::fetchField($fId, 'fileHnd');
@@ -399,8 +595,22 @@ class payment_ParserIso20022 extends core_BaseClass
                 $failed = true;
             }
             if (!empty($parsed->recs)) {
+                // Правилата се изпълняват преди създаването на входящия/сервизния имейл.
+                if ($emailFileHnd === null) {
+                    $emailFileHnd = fileman::fetchField((int) $mime->getEmlFile(), 'fileHnd');
+                }
+                foreach ($parsed->recs as $rec) {
+                    $rec->sourceEmailHnd = $emailFileHnd;
+                }
                 foreach ($parsed->batches ?? array() as $batch) {
-                    $status = bank_Register::importRecs($batch);
+                    $importWarnings = array();
+                    $status = bank_Register::importRecs($batch, null, $importWarnings);
+                    if ($importWarnings) {
+                        $failed = true;
+                        foreach ($importWarnings as $message) {
+                            fileman::logWarning('ISO20022: ' . $message, $fId);
+                        }
+                    }
                     fileman::logNotice('ISO20022: ' . $status, $fId);
                 }
                 $matches = bank_Register::findMatches();
