@@ -623,7 +623,7 @@ class cms_GalleryImages extends core_Manager
         $listFields = array('tools' => '✍', 'src' => 'Картинка', 'groupId' => 'Група');
         
         // Рендираме таблицата
-        $tpl = $table->get($data->rows, $listFields);
+        $tpl = $table->get($data->rows ?? array(), $listFields);
         
         return new ET("<div class='listRows'>[#1#]</div>", $tpl);
     }
