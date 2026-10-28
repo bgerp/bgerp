@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -3529,14 +3529,16 @@ class planning_Tasks extends core_Master
             }
 
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
-            $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
-            if (!is_array($jobParams)) {
-                if(empty($data->masterMvc)){
-                    $jobParams = cat_Products::getParams($jRec->productId, null, true);
-                    core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+            if ($displayPlanningParamsCount) {
+                $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
+                if (!is_array($jobParams)) {
+                    if(empty($data->masterMvc)){
+                        $jobParams = cat_Products::getParams($jRec->productId, null, true);
+                        core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                    }
                 }
+                $jobRecs[$jRec->containerId]->params = $jobParams;
             }
-            $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
         // Дали заданията и операциите са всичките с една мярка
