@@ -981,6 +981,7 @@ class core_Debug
                 $status = ($state['httpStatusCode'] ?? 500) . ' ' . ($state['httpStatusMsg'] ?? 'Internal Server Error');
                 header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $status);
                 header('Content-Type: text/plain; charset=UTF-8');
+                header('X-Robots-Tag: noindex, nofollow');
                 echo $status;
             }
 
@@ -1002,6 +1003,7 @@ class core_Debug
         if (!$supressShowing && !headers_sent()) {
             header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
             header('Content-Type: text/html; charset=UTF-8');
+            header('X-Robots-Tag: noindex, nofollow');
             
             echo isDebug() ? $debugPage : self::getErrorPage($state);
         }

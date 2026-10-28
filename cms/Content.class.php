@@ -719,6 +719,7 @@ class cms_Content extends core_Master
         
         if ($externalPage) {
             Mode::set('wrapper', 'cms_page_External');
+            Mode::set('publicPage', true);
         }
     }
     
