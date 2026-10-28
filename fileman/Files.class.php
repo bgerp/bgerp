@@ -9,7 +9,7 @@
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -2279,10 +2279,10 @@ class fileman_Files extends core_Master
         $pathArr = static::getFirstContainerLinks($rec);
 
         // Ако има такъв документ
-        if (countR($pathArr)) {
+        if (!empty($pathArr['firstContainer'])) {
 
             // Пътя до файла и документа
-            $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
+            $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . ($pathArr['folder']['content'] ?? '');
             
             // TODO името на самия документ, където се среща но става много дълго
             //$pathArr['container']
