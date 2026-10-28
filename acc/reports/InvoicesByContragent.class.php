@@ -420,8 +420,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $progress = acc_reports_InvoiceResult::progress($rec->data);
             $message = !empty($progress->error)
                 ? tr('Изчислението е прекъснато. „Обновяване“ повтаря незавършената порция.')
-                : tr('Справката се изчислява във фонов режим. Отворете я отново или рефрешнете браузъра (F5) след малко.');
-            if (isset($progress->done, $progress->total)) $message .= ' ' . tr('Обработени пакети') . ': ' . $progress->done . ' / ' . $progress->total . '.';
+                : tr('Справката се изчислява във фонов режим.') . '<br>' . tr('Отворете справката отново или рефрешнете браузъра (F5) след малко!');
+            if (isset($progress->done, $progress->total)) $message .= '<br>' . tr('Обработени пакети') . ': ' . $progress->done . ' / ' . $progress->total;
 
             return new core_ET("<fieldset class='detail-info'><span class='red'>{$message}</span></fieldset>");
         }

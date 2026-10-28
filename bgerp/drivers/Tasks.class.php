@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -92,7 +92,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         }
         
         // Подготвяме полетата за показване
-        $resData->data->listFields = 'groupDate,title,progress';
+        $resData->data->listFields = 'title,progress';
         
         if ($this->isFromMe($dRec->from ?? null)) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
