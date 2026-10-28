@@ -2,6 +2,12 @@
 
 
 /**
+ * Досегашната версия остава по подразбиране за всички инсталации.
+ */
+defIfNot('TINYMCE_VERSION', '4.7.13');
+
+
+/**
  * Клас 'tinymce_Setup' - Редактор за HTML текстови полета
  *
  *
@@ -9,7 +15,7 @@
  * @package   tinymce
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,6 +47,14 @@ class tinymce_Setup extends core_ProtoSetup
     public $info = 'Wysiwyg редактор за HTML данни използващ tinyMCE';
     
     
+    /**
+     * Избор на локално доставената библиотека.
+     */
+    public $configDescription = array(
+        'TINYMCE_VERSION' => array('enum(4.7.13, 8.10.1)', 'caption=TinyMCE->Версия'),
+    );
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
