@@ -58,7 +58,8 @@ class bank_Register {
     public static function fetch($where) { return self::$legacy; }
     public static $imports = array();
     public static $batches = array();
-    public static function importRecs($recs) { self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
+    public static $importWarnings = array();
+    public static function importRecs($recs, $serviceId = null, &$warnings = null) { $warnings = self::$importWarnings; self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
     public static function findMatches() { return 0; }
 }
 require dirname(__DIR__) . '/XmlParser.class.php';

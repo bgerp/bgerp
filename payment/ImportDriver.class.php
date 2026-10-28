@@ -42,6 +42,8 @@ class payment_ImportDriver extends import2_AbstractDriver
     {
         $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML или ZIP файл,mandatory');
         $form->FLD('archivePassword', 'password(allowEmpty)', 'caption=ZIP архив->Парола,hint=При повторно изпращане на формата въведете паролата отново');
+        $form->FLD('previewFilter', 'enum(all=Всички,problems=Проблемни)', 'caption=Преглед->Редове,value=all');
+        $form->FLD('previewPage', 'int(min=1)', 'caption=Преглед->Страница,value=1,hint=По 200 реда на страница');
         $form->FLD('previewHash', 'varchar(64)', 'input=hidden,silent');
         $form->importButtonCaption = 'Преглед';
     }
@@ -94,7 +96,12 @@ class payment_ImportDriver extends import2_AbstractDriver
         }
         $form->rec->recs = $res->recs ?? array();
         $form->rec->importBatches = $res->batches ?? array();
-        $form->info = $this->renderPreview($res);
+        $filter = ($form->rec->previewFilter ?? 'all') === 'problems' ? 'problems' : 'all';
+        $page = max(1, (int) ($form->rec->previewPage ?? 1));
+        $form->info = $this->renderPreview($res, $filter, $page);
+        $form->rec->previewFilter = $filter;
+        $form->rec->previewPage = $page;
+        $form->toolbar->addSbBtn('Обнови прегледа', 'preview', 'ef_icon=img/16/preview.png,order=9');
         $form->styles['.formTable'] = 'max-width:100%;width:100%;';
         if (empty($res->recs) || !empty($res->errors)) {
             $form->rec->previewHash = null;
@@ -104,8 +111,8 @@ class payment_ImportDriver extends import2_AbstractDriver
         }
 
         // Потвърждението е само за показания резултат; файлът се разчита отново при всеки submit.
-        $hash = hash_hmac('sha256', serialize(array(core_Users::getCurrent(), $form->rec->xmlFile ?? null, $res)), EF_SALT);
-        if (!hash_equals($hash, $form->rec->previewHash ?? '')) {
+        $hash = hash_hmac('sha256', serialize(array(core_Users::getCurrent(), $form->rec->xmlFile ?? null, $res, $filter, $page)), EF_SALT);
+        if (($form->cmd ?? null) === 'preview' || !hash_equals($hash, $form->rec->previewHash ?? '')) {
             $form->cmd = 'refresh';
             $form->ignore = false;
         }
@@ -117,7 +124,7 @@ class payment_ImportDriver extends import2_AbstractDriver
     /**
      * Прегледът не извиква импорта или съпоставянето на банковия регистър.
      */
-    protected function renderPreview($result)
+    protected function renderPreview($result, $filter = 'all', &$page = 1)
     {
         $count = count($result->recs ?? array());
         $skipped = $result->skippedEntries ?? 0;
@@ -136,7 +143,20 @@ class payment_ImportDriver extends import2_AbstractDriver
         $rows = array();
         $amountType = core_Type::getByName('double(decimals=2)');
         $dateType = core_Type::getByName('date');
-        foreach (array_slice($result->previewRows ?? array(), 0, 200) as $i => $rec) {
+        $selected = $result->previewRows ?? array();
+        if ($filter === 'problems') {
+            foreach ($selected as $i => $rec) {
+                if (!in_array($result->importPreview[$i]->status ?? null, array('conflict', 'legacy'), true)) {
+                    unset($selected[$i]);
+                }
+            }
+        }
+        $selectedCount = count($selected);
+        $pages = max(1, (int) ceil($selectedCount / 200));
+        $page = min(max(1, $page), $pages);
+        $html .= '<p>' . strtr(tr('Страница %PAGE% от %PAGES%; редове по филтъра: %COUNT%'), array('%PAGE%' => $page, '%PAGES%' => $pages, '%COUNT%' => $selectedCount)) . '.</p>';
+        $html .= '<p>' . tr('Филтърът и страницата променят само прегледа. Импортът обработва всички разчетени редове') . '.</p>';
+        foreach (array_slice($selected, ($page - 1) * 200, 200, true) as $i => $rec) {
             $row = new stdClass();
             $row->number = $i + 1;
             $diagnostic = $result->importPreview[$i] ?? null;
@@ -149,6 +169,24 @@ class payment_ImportDriver extends import2_AbstractDriver
             } elseif (!empty($diagnostic->duplicateRow)) {
                 $row->importStatus .= '<br>' . tr('Към ред от този импорт') . ' №' . (int) $diagnostic->duplicateRow;
             }
+            foreach ($diagnostic->differences ?? array() as $field => $values) {
+                $labels = array('amount' => 'Сума', 'valior' => 'Вальор', 'contragentIban' => 'IBAN');
+                if (!isset($labels[$field])) {
+                    continue;
+                }
+                $old = $values['existing'] ?? '';
+                $new = $values['incoming'] ?? '';
+                if ($field === 'amount') {
+                    $old = $amountType->toVerbal($old);
+                    $new = $amountType->toVerbal($new);
+                } elseif ($field === 'valior') {
+                    $old = $dateType->toVerbal($old);
+                    $new = $dateType->toVerbal($new);
+                }
+                $row->importStatus .= '<br><small>' . strtr(tr('%FIELD%: налично %OLD%; във файла %NEW%'), array(
+                    '%FIELD%' => tr($labels[$field]), '%OLD%' => self::escapeText($old ?? ''), '%NEW%' => self::escapeText($new ?? ''),
+                )) . '</small>';
+            }
             foreach (array('sourceFile', 'ownIban', 'contragentName', 'contragentIban', 'reason', 'currency') as $field) {
                 $row->{$field} = self::escapeText($rec->{$field} ?? '');
             }
@@ -158,9 +196,6 @@ class payment_ImportDriver extends import2_AbstractDriver
             $row->type = tr(($rec->type ?? null) == 'incoming' ? 'Входящ' : 'Изходящ');
             $row->amount = $amountType->toVerbal($rec->amount ?? null) . ' ' . $row->currency;
             $rows[] = $row;
-        }
-        if ($count > count($rows)) {
-            $html .= '<p>' . tr('Показани са първите 200 реда; при потвърждение ще се обработят всички валидни редове') . '.</p>';
         }
         if ($rows) {
             $table = cls::get('core_TableView');
@@ -176,6 +211,15 @@ class payment_ImportDriver extends import2_AbstractDriver
         $labels = array('new' => 'Нова', 'duplicate' => 'Дубликат', 'conflict' => 'Конфликт на банкова референция', 'legacy' => 'Възможен дубликат без референция');
 
         return $labels[$status] ?? $status;
+    }
+
+
+    /**
+     * Отваря формата за повторен преглед; не стартира запис и не пренася пароли.
+     */
+    public static function getImportUrl($fh)
+    {
+        return array('bank_Register', 'import2', 'driverClass' => core_Classes::getId('payment_ImportDriver'), 'xmlFile' => $fh, 'Cmd' => 'refresh');
     }
 
 

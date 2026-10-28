@@ -15,13 +15,17 @@ defIfNot('CHROMEPHP_SHOW_PAGE_NUMBERS', 'no');
 defIfNot('CHROMEPHP_BIN_PATH', '');
 
 
+/** Досегашният общ Composer пакет остава избран по подразбиране. */
+defIfNot('CHROMEPHP_VERSION', 'shared');
+
+
 /**
  *
  *
  * @package   chromephp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,6 +51,7 @@ class chromephp_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        'CHROMEPHP_VERSION' => array('enum(shared=Общ Composer пакет,1.16.1)', 'mandatory, caption=Chrome PHP->Версия'),
         'CHROMEPHP_SHOW_PAGE_NUMBERS' => array('enum(no=Не,yes=Да)', 'caption=Дали да се показват броя на страниците->Избор'),
         'CHROMEPHP_BIN_PATH' => array('varchar', 'caption=Път до изпълнимия файл на Chrome->Път'),
     );
@@ -120,8 +125,8 @@ class chromephp_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
-        $html .= core_Composer::install('chrome-php/chrome');
-
+        $version = self::get('VERSION');
+        $html .= core_Composer::install('chrome-php/chrome', $version === 'shared' ? '' : $version, $version !== 'shared');
         if (!core_Composer::isInUse()) {
             $html .= "<li class='red'>Проблем при зареждането на composer</li>";
         }
@@ -129,6 +134,42 @@ class chromephp_Setup extends core_ProtoSetup
         $html .= $this->installChromeBin();
 
         return $html;
+    }
+
+
+    /** Проверява избраната версия в общия vendor, без изтегляне. */
+    public static function isLibraryInstalled()
+    {
+        $version = self::get('VERSION');
+        $factory = dirname(core_Composer::getAutoloadPath()) . '/chrome-php/chrome/src/BrowserFactory.php';
+
+        return is_readable($factory) && core_Composer::isInstalled('chrome-php/chrome', $version === 'shared' ? null : $version, true);
+    }
+
+
+    /** Зарежда общия Composer autoloader след проверка на избраната версия. */
+    public static function loadLibrary()
+    {
+        if (self::get('VERSION') !== 'shared' && version_compare(PHP_VERSION, '7.4.15', '<')) {
+            return false;
+        }
+
+        return self::isLibraryInstalled() && core_Composer::isInUse();
+    }
+
+
+    /** Показва липсващите изисквания през стандартните настройки на core_Packs. */
+    public function checkConfig()
+    {
+        if (self::get('VERSION') !== 'shared' && version_compare(PHP_VERSION, '7.4.15', '<')) {
+            return 'Chrome PHP 1.16.1 изисква PHP 7.4.15 или по-нова версия.';
+        }
+        if (!self::isLibraryInstalled()) {
+            return 'Липсва избраната библиотека Chrome PHP. Инициализирайте пакета chromephp.';
+        }
+        if (!chromephp_Browser::getBinPath()) {
+            return 'Не е намерен Chrome/Chromium. Инициализирайте пакета или изберете инсталиран браузър.';
+        }
     }
 
 

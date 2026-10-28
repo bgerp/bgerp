@@ -1,0 +1,25 @@
+{
+    "type": "package",
+    "package": [
+        {
+            "name": "bgerp/tika-app",
+            "version": "3.3.3",
+            "license": "Apache-2.0",
+            "dist": {
+                "url": "https://archive.apache.org/dist/tika/3.3.3/tika-app-3.3.3.jar",
+                "type": "file",
+                "shasum": "7a23f5b43f6cdf6ec1839b4cc282743e81747dfb"
+            }
+        },
+        {
+            "name": "bgerp/tika-app",
+            "version": "4.1.0",
+            "license": "Apache-2.0",
+            "dist": {
+                "url": "https://archive.apache.org/dist/tika/4.1.0/tika-app-4.1.0.zip",
+                "type": "zip",
+                "shasum": "b6a6f37720f82537f0ba8f9e75dda5dca518f1bb"
+            }
+        }
+    ]
+}

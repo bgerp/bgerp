@@ -9,7 +9,7 @@
  * @package   wtime
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -259,11 +259,11 @@ class wtime_Summary extends core_Manager
         core_App::setTimeLimit(countR($entriesArr) * 0.2, false, 150);
 
         // Какъв е статуса на дните от тогава до сега
-        $sDate = $from;
-        $daysBetween = dt::daysBetween($to, dt::verbal2mysql($from, false));
-        for($i = 0; $i < $daysBetween; $i++){
-            $sDate = dt::addDays(1, $sDate, false);
+        $sDate = dt::verbal2mysql($from, false);
+        $daysBetween = dt::daysBetween($to, $sDate);
+        for($i = 0; $i <= $daysBetween; $i++){
             $dateStatus[$sDate] = cal_Calendar::getDayStatus($sDate);
+            $sDate = dt::addDays(1, $sDate, false);
         }
 
         $toClone = new stdClass();

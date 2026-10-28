@@ -172,13 +172,25 @@ class core_Composer extends core_Mvc
      * @param string $pack
      * @param string $version
      * @param bool   $exactVersion - позволява връщане към избрана по-стара версия
+     * @param array|null $repository - Composer описание на пакет извън Packagist
      * @return string
      */
-    public static function install($pack, $version = '', $exactVersion = false)
+    public static function install($pack, $version = '', $exactVersion = false, $repository = null)
     {
         if(self::isInstalled($pack, $version, $exactVersion)) {
 
             return "<li><strong>Composer require</strong>: пакета `{$pack} {$version}` е бил инсталиран от по-рано</li>";
+        }
+
+        if ($repository !== null) {
+            if (!is_file(rtrim(EF_VENDOR_PATH, '/') . '/composer.json')
+                && self::run('init --no-interaction --name=bgerp/dependencies') === false) {
+                return "<li class='debug-error'>" . core_Type::escape(self::$error ?? '') . '</li>';
+            }
+            $command = 'config ' . escapeshellarg('repositories.' . $pack) . ' ' . escapeshellarg(json_encode($repository));
+            if (self::run($command) === false) {
+                return "<li class='debug-error'>" . core_Type::escape(self::$error ?? '') . '</li>';
+            }
         }
 
         $lines = self::run("--apcu-autoloader require {$pack} {$version}");

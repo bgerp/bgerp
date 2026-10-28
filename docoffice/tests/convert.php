@@ -22,6 +22,8 @@ function expect($value, $message = 'Assertion failed', ...$context) { if (!$valu
 function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
 /** Намира файл от текущото хранилище. */
 function getFullPath($path) { $file = dirname(__DIR__, 2) . '/' . $path; return is_file($file) ? $file : false; }
+/** Framework съвместимост за Composer кеша. */
+function countR($value) { return is_countable($value) ? count($value) : 0; }
 class core_Mvc {}
 class core_Manager extends core_Mvc {}
 class core_ProtoSetup
@@ -55,7 +57,11 @@ class cls
 class core_Cache
 {
     /** Подаденият PHAR пропуска Composer bootstrap и self-update. */
-    public static function get($type, $key) { return getenv('BGERP_TEST_COMPOSER'); }
+    public static function get($type, $key) { return $key === 'PATH' ? getenv('BGERP_TEST_COMPOSER') : false; }
+    /** Тестът не запазва постоянен кеш. */
+    public static function set(...$args) {}
+    /** Инсталирането чисти процесния кеш в реалния helper. */
+    public static function remove(...$args) {}
 }
 class core_Os
 {
