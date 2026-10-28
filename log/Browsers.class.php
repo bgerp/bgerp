@@ -1053,7 +1053,7 @@ class log_Browsers extends core_Master
      */
     public function render1x1gif()
     {
-        header('X-Robots-Tag: noindex', true);
+        header('X-Robots-Tag: noindex, nofollow', true);
         header('Content-Type:  image/gif');
         header('Expires: Wed, 11 Nov 1998 11:11:11 GMT');
         header('Cache-Control: no-cache');

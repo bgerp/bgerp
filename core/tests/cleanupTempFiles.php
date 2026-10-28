@@ -2,6 +2,7 @@
 
 /**
  * Isolated filesystem checks: php core/tests/cleanupTempFiles.php
+ * Nested SBF layout: CLEANUP_TEST_NESTED_SBF=1 php core/tests/cleanupTempFiles.php
  *
  * @category ef
  * @package core
@@ -91,10 +92,11 @@ function cleanupFixtures($path)
 }
 
 $checks = 0;
+$nestedSbf = getenv('CLEANUP_TEST_NESTED_SBF') === '1';
 $base = sys_get_temp_dir() . '/core-cleanup-' . bin2hex(random_bytes(8));
 mkdir($base, 0700);
 define('EF_TEMP_PATH', $base . '/temp & <fixture>');
-define('EF_SBF_PATH', $base . '/sbf "fixture"');
+define('EF_SBF_PATH', ($nestedSbf ? EF_TEMP_PATH : $base) . '/sbf "fixture"');
 define('FILEMAN_TEMP_PATH', $base . '/fileman');
 define('FCONV_TEMP_PATH', $base . '/fconv & <fixture>');
 define('THUMB_IMG_PATH', $base . '/thumb');
@@ -108,6 +110,28 @@ $old = time() - 11 * 86400;
 $recent = time() - 3600;
 
 try {
+    if ($nestedSbf) {
+        foreach (array('public', '_keep', 'part_keep') as $name) {
+            mkdir(EF_SBF_PATH . '/' . $name);
+            cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $old, $old);
+        }
+        mkdir(EF_SBF_PATH . '-sibling');
+        cleanupFile(EF_SBF_PATH . '-sibling/old', $old, $old);
+        cleanupFile(EF_SBF_PATH . '/.htaccess', $old, $old);
+        cleanupFile(EF_TEMP_PATH . '/old', $old, $old);
+        $report = core_Os::cron_clearOldFiles();
+        cleanupCheck(file_exists(EF_SBF_PATH . '/_keep/old'), 'Nested SBF preserves excluded directories');
+        cleanupCheck(file_exists(EF_SBF_PATH . '/part_keep/old'), 'Preserve the existing exclusion for names containing an underscore');
+        cleanupCheck(file_exists(EF_SBF_PATH . '/.htaccess'), 'Nested SBF preserves root configuration files');
+        cleanupCheck(!file_exists(EF_SBF_PATH . '/public/old'), 'Nested SBF still cleans ordinary cache files');
+        cleanupCheck(!file_exists(EF_TEMP_PATH . '/old'), 'Ordinary temporary files are still cleaned');
+        cleanupCheck(!file_exists(EF_SBF_PATH . '-sibling/old'), 'The SBF exclusion does not match a similarly named sibling');
+        cleanupCheck(strpos($report, '2 файла от ' . htmlspecialchars(EF_TEMP_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Report only temporary deletions under the temp root');
+        cleanupCheck(strpos($report, '1 файл от ' . htmlspecialchars(EF_SBF_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Report nested SBF deletions separately');
+        echo "OK: {$checks} nested SBF cleanup checks on PHP " . PHP_VERSION . ".\n";
+        return;
+    }
+
     // Validate system paths without passing them to any deletion method.
     $validatePath = new ReflectionMethod('core_Os', 'getCleanupPath');
     $validatePath->setAccessible(true);
@@ -259,15 +283,18 @@ try {
     $root = $work . '/patterns';
     mkdir($root);
     mkdir($root . '/nested');
+    mkdir($root . '/keep-tree/nested', 0700, true);
     mkdir($root . '/keep-empty');
     touch($root . '/keep-empty', $old, $old);
-    foreach (array('remove.css', 'keep.css', 'keep.txt', 'nested/remove.css') as $name) {
+    foreach (array('remove.css', 'keep.css', 'keep.txt', 'nested/remove.css', 'keep-tree/nested/old.css') as $name) {
         cleanupFile($root . '/' . $name, $old, $old);
     }
     cleanupLink($base . '/absent', $root . '/keep-link', $old);
     cleanupCheck(core_Os::deleteOldFiles($root, $age, '#/keep[^/]*$#', '#\.css$#') === 2, 'Keep positive and negative path filters');
     cleanupCheck(file_exists($root . '/keep.css') && file_exists($root . '/keep.txt'), 'Preserve filtered files');
     cleanupCheck(is_link($root . '/keep-link') && is_dir($root . '/keep-empty'), 'Preserve filtered links and directories');
+    cleanupCheck(file_exists($root . '/keep-tree/nested/old.css'), 'Preserve the contents of an excluded directory');
+    cleanupCheck(core_Os::deleteOldFiles($root . '/keep-tree', $age, '#/keep[^/]*$#') === 0, 'An excluded initial directory is not traversed');
 
     foreach (array('#[invalid#', array(), true, 123) as $invalidPattern) {
         cleanupCheck(core_Os::deleteOldFiles($root, $age, $invalidPattern) === 0, 'Reject invalid negative filters before deletion');
@@ -279,10 +306,14 @@ try {
     $path = $root . '/' . str_repeat('a', 80) . '!';
     cleanupFile($path, $old, $old);
     $limitedPattern = '#(*NO_JIT)(*LIMIT_MATCH=10)(a+)+$#';
+    $errorDir = $root . '/nested/' . str_repeat('a', 80) . '!';
+    mkdir($errorDir, 0700, true);
+    cleanupFile($errorDir . '/old.txt', $old, $old);
     cleanupCheck(preg_match($limitedPattern, '') === 0 && preg_match($limitedPattern, $path) === false, 'The fixture triggers a match-time error in a valid regular expression');
     cleanupCheck(core_Os::deleteOldFiles($root, $age, $limitedPattern) === 0, 'A match-time negative filter error preserves the file');
     cleanupCheck(core_Os::deleteOldFiles($root, $age, null, $limitedPattern) === 0, 'A match-time positive filter error preserves the file');
     cleanupCheck(file_exists($path), 'Preserve files after match-time errors');
+    cleanupCheck(file_exists($errorDir . '/old.txt'), 'A negative filter error on a directory preserves its contents');
 
     $root = $work . '/literal names';
     mkdir($root);

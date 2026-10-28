@@ -2199,6 +2199,8 @@ class core_Users extends core_Manager
         $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
         
         if ($requiredRoles !== 'every_one') {
+            // Външната тема се използва и за страници с ограничен достъп.
+            Mode::set('robotsNoIndex', true);
             if (EF_HTTPS == 'MANDATORY' && $connection == 'HTTP' && $_GET) {
                 static::redirectToEnableHttps();
             }
