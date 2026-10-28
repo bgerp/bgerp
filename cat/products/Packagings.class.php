@@ -450,13 +450,13 @@ class cat_products_Packagings extends core_Detail
         }
 
         if ($action == 'edit' && isset($rec)) {
-            if ($rec->state == 'closed') {
+            if (($rec->state ?? null) == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
 
         if ($action == 'changestate' && isset($rec)) {
-            if ($rec->state == 'closed') {
+            if (($rec->state ?? null) == 'closed') {
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if ($canStore != 'yes') {
                     $requiredRoles = 'no_one';
