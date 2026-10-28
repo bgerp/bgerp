@@ -27,7 +27,14 @@ class core_Manager extends core_Mvc {}
 class core_ProtoSetup
 {
     /** Избира само тестовата версия, без промяна на реална настройка. */
-    public static function get($name, $absolute = false) { global $argv; return $name === 'OFFICE_CONVERTER_CLASS' ? 'docoffice_Jodconverter' : $argv[1]; }
+    public static function get($name, $absolute = false)
+    {
+        global $argv, $converter;
+        if ($name === 'OFFICE_CONVERTER_CLASS') return $converter;
+        if ($name === 'OFFICE_UNOSERVER_PYTHON') return 'python3';
+        if ($name === 'OFFICE_UNOSERVER_VERSION') return '3.7';
+        return $argv[1];
+    }
     /** Пропуска регистрациите в базата данни. */
     public function install() { return ''; }
 }
@@ -111,7 +118,7 @@ class fconv_Script
 {
     public $tempDir, $tempPath, $outFilePath, $params, $fh, $line, $options, $callback;
     public $values = array();
-    public static $last;
+    public static $last, $fail = false;
     /** Създава отделно работно място за всяко конвертиране. */
     public function __construct() { global $argv; $this->tempPath = $argv[2]; $this->tempDir = $argv[2] . '/run-' . uniqid() . '/'; mkdir($this->tempDir); self::$last = $this; }
     /** Приема входен/изходен файл с реалното shell quoting. */
@@ -123,11 +130,12 @@ class fconv_Script
     /** Запомня callback-а на адаптера. */
     public function callBack($callback) { $this->callback = $callback; }
     /** Проверява заявената външна програма. */
-    public function setCheckProgramsArr($program) { expect($program === 'java'); }
-    /** Изпълнява истинските Java и LibreOffice, после callback-а на адаптера. */
+    public function setCheckProgramsArr($program) { expect(in_array($program, array('java', 'python3'), true)); }
+    /** Изпълнява истинския конвертор и LibreOffice, после callback-а на адаптера. */
     public function run($async)
     {
         expect(!$async, 'CLI test must be synchronous');
+        if (self::$fail) return false;
         $cmd = $this->line;
         foreach ($this->values as $name => $value) $cmd = str_replace('[#' . $name . '#]', $value, $cmd);
         $cmd = 'LANG=' . escapeshellarg($this->options['LANG']) . ' ' . $cmd . ' > ' . escapeshellarg($this->outFilePath . '.log') . ' 2> ' . escapeshellarg($this->options['errFilePath']);
@@ -137,18 +145,19 @@ class fconv_Script
         return true;
     }
 }
-expect(isset($argv[1], $argv[2]) && is_dir($argv[2]), 'Usage: php docoffice/tests/convert.php VERSION OUTPUT_DIR [BASELINE_ADAPTER]');
+expect(isset($argv[1], $argv[2]) && is_dir($argv[2]), 'Usage: php docoffice/tests/convert.php VERSION|unoserver OUTPUT_DIR [BASELINE_ADAPTER]');
+$converter = $argv[1] === 'unoserver' ? 'docoffice_Unoserver' : 'docoffice_Jodconverter';
 define('EF_ROOT_PATH', dirname(__DIR__, 3));
 define('EF_VENDOR_PATH', getenv('BGERP_TEST_VENDOR_PATH') ?: $argv[2] . '/dependencies');
 define('OFFICE_PACKET_PATH', 'soffice');
 spl_autoload_register(function ($class) { $path = getFullPath(str_replace('_', '/', $class) . '.class.php'); if ($path) require_once $path; });
 require dirname(__DIR__) . '/Setup.class.php';
 expect(OFFICE_JODCONVERTER_VERSION === '3.0b4' && OFFICE_CONVERTER_CLASS === 'docoffice_Jodconverter', 'Default changed');
-if ($argv[1] === '5.1.1') {
+if ($argv[1] === '5.1.1' || $argv[1] === 'unoserver') {
     expect(is_file(getenv('BGERP_TEST_COMPOSER') ?: ''), 'Set BGERP_TEST_COMPOSER to an existing Composer PHAR');
     core_Os::requireDir(EF_VENDOR_PATH);
     $setup = new docoffice_Setup();
-    expect($setup->checkConfig() === null, 'Java/Office requirements failed');
+    expect($setup->checkConfig() === null, 'Converter/Office requirements failed');
     $result = $setup->install();
     expect(strpos($result, 'debug-error') === false, strip_tags($result));
 }
@@ -156,7 +165,7 @@ if (!empty($argv[3])) require $argv[3];
 $files = docoffice_tests_Fixtures::create($argv[2]);
 $results = array();
 foreach ($files as $file) {
-    $pdf = docoffice_Jodconverter::convertDoc($argv[2] . '/' . $file, 'pdf', array('asynch' => false, 'callBack' => ''));
+    $pdf = $converter::convertDoc($argv[2] . '/' . $file, 'pdf', array('asynch' => false, 'callBack' => ''));
     expect(is_file($pdf) && filesize($pdf) > 1000, 'Missing PDF: ' . $file);
     exec('pdftotext -layout ' . escapeshellarg($pdf) . ' -', $lines, $code);
     $text = implode("\n", $lines);
@@ -171,15 +180,20 @@ foreach ($files as $file) {
 // XLS е реален изходен формат на export_OfficeXls, не само междинен вход за PDF.
 $csv = $argv[2] . '/export.csv';
 file_put_contents($csv, "\"Място\",\"Сума\"\n\"София\",12.5\n\"България\",25\n\"Общо\",37.5\n");
-$xls = docoffice_Jodconverter::convertDoc($csv, 'xls', array('asynch' => false, 'callBack' => ''));
+$xls = $converter::convertDoc($csv, 'xls', array('asynch' => false, 'callBack' => ''));
 expect(is_file($xls) && bin2hex(file_get_contents($xls, false, null, 0, 8)) === 'd0cf11e0a1b11ae1', 'Missing BIFF XLS export');
-$pdf = docoffice_Jodconverter::convertDoc($xls, 'pdf', array('asynch' => false, 'callBack' => ''));
+$pdf = $converter::convertDoc($xls, 'pdf', array('asynch' => false, 'callBack' => ''));
 exec('pdftotext -layout ' . escapeshellarg($pdf) . ' -', $lines, $code);
 $text = implode("\n", $lines);
 foreach (array('София', 'България', 'Общо', '12.5', '25', '37.5') as $needle) expect(strpos($text, $needle) !== false, 'XLS export lost ' . $needle);
 expect($code === 0 && !core_Locks::$held, 'XLS export failed or left locks');
 $results['export.csv'] = array('xls' => $xls, 'pdf' => $pdf, 'text' => $text);
 echo "CSV -> XLS -> PDF: OK\n";
-if ($argv[1] === '5.1.1') expect(docoffice_Office::$prepared === 0 && docoffice_Office::$count === 0, 'New CLI changed the legacy Office lifecycle');
+if ($argv[1] === '5.1.1' || $argv[1] === 'unoserver') expect(docoffice_Office::$prepared === 0 && docoffice_Office::$count === 0, 'New CLI changed the legacy Office lifecycle');
+if ($argv[1] === 'unoserver') {
+    fconv_Script::$fail = true;
+    expect($converter::convertDoc($csv, 'xls', array('asynch' => false)) === null, 'Failed launch must not return a file');
+    expect(fileman_Indexes::$errors === 1 && !core_Locks::$held, 'Failed launch must record an error and release locks');
+}
 file_put_contents($argv[2] . '/results.json', json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-echo 'PHP ' . PHP_VERSION . '; JODConverter ' . $argv[1] . "; OK\n";
+echo 'PHP ' . PHP_VERSION . '; ' . $converter . ' ' . $argv[1] . "; OK\n";

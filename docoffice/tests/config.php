@@ -24,7 +24,7 @@ class core_ProtoSetup
 {
     public static $selectedVersion = '5.1.1', $converter = 'docoffice_Jodconverter';
     /** Изолира избраните стойности от реалния пакетен конфиг. */
-    public static function get($name, $absolute = false) { return $name === 'OFFICE_CONVERTER_CLASS' ? self::$converter : self::$selectedVersion; }
+    public static function get($name, $absolute = false) { return $name === 'OFFICE_CONVERTER_CLASS' ? self::$converter : ($name === 'OFFICE_UNOSERVER_PYTHON' ? 'python3' : self::$selectedVersion); }
     /** Пропуска моделите и базата данни. */
     public function install() { return ''; }
 }
@@ -64,7 +64,18 @@ try {
     core_ProtoSetup::$selectedVersion = '5.1.1';
     core_ProtoSetup::$converter = 'docoffice_Unoconv';
     expect($setup->checkConfig() === null, 'Java requirement applied to Unoconv');
+    core_ProtoSetup::$converter = 'docoffice_Unoserver';
+    expect(strpos($setup->checkConfig(), 'Python 3.8+') !== false, 'Missing Python accepted');
+    expect(strpos($setup->install(), 'debug-error') !== false, 'Missing Python must stop before Composer');
+    file_put_contents($dir . '/python3', "#!/bin/sh\nexit 1\n");
+    chmod($dir . '/python3', 0755);
+    expect(strpos($setup->checkConfig(), 'python3-uno') !== false, 'Failed UNO import accepted');
+    file_put_contents($dir . '/python3', "#!/bin/sh\nexit 0\n");
+    expect($setup->checkConfig() === null, 'Python/UNO + Office rejected or requires Java');
+    unlink($dir . '/soffice');
+    expect(strpos($setup->checkConfig(), 'LibreOffice/OpenOffice') !== false, 'Unoserver without Office accepted');
     expect(OFFICE_JODCONVERTER_VERSION === '3.0b4' && OFFICE_CONVERTER_CLASS === 'docoffice_Jodconverter', 'Defaults changed');
+    expect(OFFICE_CONVERTER_PYTHON === '' && OFFICE_CONVERTER_UNOCONV === 'unoconv', 'Unoconv defaults changed');
 } finally {
     putenv($previousPath === false ? 'PATH' : 'PATH=' . $previousPath);
 }

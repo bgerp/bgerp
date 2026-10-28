@@ -1,4 +1,6 @@
-# JODConverter в bgERP
+# Office конвертори в bgERP
+
+За новия адаптер вижте [Unoserver 3.7](UNOSERVER.md). JODConverter и Unoconv остават налични.
 
 Проверено на 27.10.2026 г. Добавена е стабилната [JODConverter 5.1.1](https://github.com/jodconverter/jodconverter/releases/tag/v5.1.1) чрез отделен Composer проект. Нови JAR/ZIP файлове не се добавят в Git. Включената `3.0b4` остава непроменена, както и defaults:
 
