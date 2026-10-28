@@ -715,8 +715,10 @@ class type_Richtext extends type_Blob
         } else {
             $place = $this->getPlace();
             
-            // Текстът може да идва отвън (имейли, публични форми), затова HTML-ът се пречиства
-            $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
+            // trustedHtml=yes е само за полета, чиито редактори могат да публикуват изпълним код.
+            $this->_htmlBoard[$place] = (($this->params['trustedHtml'] ?? null) === 'yes')
+                ? $match[1]
+                : hclean_Purifier::clean($match[1], 'UTF-8');
             $res = "[#{$place}#]";
             $this->_htmlBoard['html1'] = true;
         }
