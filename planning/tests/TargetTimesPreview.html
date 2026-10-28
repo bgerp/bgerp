@@ -11,6 +11,7 @@
 <button type="button" id="package">Пример: конфликт в пакет</button>
 <button type="button" id="free">Пример: свободна операция</button>
 <button type="button" id="changed">Пример: променен план</button>
+<button type="button" id="blocked">Пример: технологичен конфликт</button>
 <button type="button" id="checks">Автоматични UI проверки</button>
 <form>
     <table id="editFormTable"><tr><td>Начало:</td><td>Контролна клетка на едит формата</td></tr></table>
@@ -85,6 +86,15 @@ $('#changed').on('click', function () {
     report.approvalChanges = ['Opr6397: променени данни: прогрес, оставаща продължителност.'];
     showTargetTimesPreview(report);
 });
+function showBlockedSample() {
+    const reason = 'Opr6396: Технологично ограничение за Opr6396: Opr6395 (планиран край: 08.12.2026 14:25; освобождаване на заетия интервал: 08.12.2026 14:26; изчакване: 30 мин.; без застъпване). Начало не е допустимо преди 08.12.2026 14:56';
+    showTargetTimesPreview({editedOperation: 'Opr6396', conflictText: reason, alternatives: [
+        {mode: 'move', policy: 'keep', title: 'Запази желания час и промени конфликтните фиксирани начала', available: false, reason: reason},
+        {mode: 'nearest', policy: 'keep', title: 'Запази чуждите фиксирани начала и предложи близко допустимо начало', available: false,
+            reason: 'Няма допустим вариант: предходната Opr6395 не може да завърши преди запазената фиксирана операция в пакета.'}
+    ]});
+}
+$('#blocked').on('click', showBlockedSample);
 $('#checks').on('click', function () {
     $('[name="Cmd[save]"]').remove();
     let count = 0;
@@ -162,6 +172,15 @@ $('#checks').on('click', function () {
     check($('.targetTimeApprovalChanges li').eq(1).text().includes('<b>') && !$('.targetTimeApprovalChanges li b').length, 'Причините се показват като безопасен текст, а не HTML');
     $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     check(!$('.targetTimeApprovalChanges').length && $('[name="timeStart"]').val() === original, 'Отказ от обновения преглед запазва въведеното начало');
+    showBlockedSample();
+    check($('.targetTimeChoiceHelp').text().startsWith('Няма допустим вариант')
+        && !$('.targetTimeChoiceHelp').text().includes('Изберете вариант'), 'При всички недостъпни варианти няма невъзможна покана за избор');
+    check($('.targetTimeChoice button:disabled').length === 2 && !$('.optimizationIdleReportConfirm').length,
+        'Технологичният конфликт не може да бъде потвърден');
+    check($('.targetTimeConflict strong').text().includes('Opr6395') && $('.targetTimeConflict strong').text().includes('30 мин.'),
+        'Формата запазва конкретната блокираща операция и времето за изчакване');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    check($('[name="timeStart"]').val() === original, 'Отказ от технологичния конфликт запазва въведеното начало');
     showSample(false);
     check($('.targetTimeConflict strong').text().startsWith('Opr6396 (1) | Свободната операция'), 'Съобщение без собствен номер получава номера на редактираната операция');
     check($('#optimizationIdleReport .targetTimeChoice button').eq(2).prop('disabled'), 'Свободна операция не предлага разкачване');

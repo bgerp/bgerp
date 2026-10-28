@@ -64,29 +64,7 @@ class apachetika_Setup extends core_ProtoSetup
             return $html . "<li class='debug-error'>" . $error . '</li>';
         }
 
-        $dir = self::getComposerDir();
-        core_Os::requireDir($dir, 0755);
-        foreach (array('composer.json', 'composer.lock') as $file) {
-            expect(copy(__DIR__ . '/composer/' . $file, $dir . '/' . $file), 'Не може да се запише Tika manifest', $file);
-        }
-
-        core_App::setTimeLimit(600);
-        $environment = array('COMPOSER' => $dir . '/composer.json', 'COMPOSER_VENDOR_DIR' => $dir . '/vendor');
-        $previousEnvironment = array();
-        foreach ($environment as $name => $value) {
-            $previousEnvironment[$name] = getenv($name);
-        }
-        try {
-            // Само manifest не е достатъчен: vendor също трябва да е извън общия проект.
-            foreach ($environment as $name => $value) {
-                expect(putenv($name . '=' . $value), 'Не може да се зададе Tika Composer средата', $name);
-            }
-            $result = core_Composer::run('install --no-interaction --no-dev --no-plugins --no-scripts --prefer-dist');
-        } finally {
-            foreach ($previousEnvironment as $name => $value) {
-                putenv($value === false ? $name : $name . '=' . $value);
-            }
-        }
+        $result = core_ComposerProject::install(__DIR__ . '/composer', self::getComposerDir());
         if ($result === false) {
             return $html . "<li class='debug-error'>Tika Composer: " . core_Type::escape(core_Composer::$error ?? '') . '</li>';
         }

@@ -133,6 +133,38 @@ check(!empty($result->conflicts), 'Moving foreign targets cannot bypass a techno
 $result = proposal($context, 1, '2026-10-08 09:00:00', 'nearest');
 feasible($result, 'Closest alternative incorporates technological readiness');
 check($result->proposedStart === '2026-10-08 10:00:00', 'Technological predecessor must finish before the proposed start');
+
+$frames = array();
+for ($day = 0; $day <= 80; $day++) {
+    if ((int)date('N', strtotime("2026-10-08 +{$day} days")) <= 5) {
+        $frames[] = array("+{$day} days 08:00:00", "+{$day} days 16:59:59");
+    }
+}
+$previous = array(1 => array(2 => (object)array('intersect' => 'no', 'waitingTime' => 1800)));
+$context = planContext(array(2 => task(2, 8 * 60, '2026-12-08 14:18:00', 2), 1 => task(1, 45 * 60)), array(), $frames, $previous);
+$snapshot = serialize($context);
+$direct = proposal($context, 1, '2026-12-08 14:56:00');
+feasible($direct, 'A distant technological readiness boundary is actually feasible');
+$result = proposal($context, 1, '2026-10-30 10:00:00', 'nearest');
+feasible($result, 'Nearby calendar edges must not starve the scheduler-provided distant boundary');
+check($result->proposedStart === '2026-12-08 14:56:00' && !$result->pinChanges,
+    'The distant alternative preserves the predecessor fixed start');
+check(serialize($context) === $snapshot, 'Distant nearest search does not mutate its context');
+$result = proposal($context, 1, '2026-10-30 10:00:00', 'move');
+$reason = $result->conflicts[1]['reason'] ?? '';
+check(strpos($reason, 'Opr2') !== false && strpos($reason, '08.12.2026 14:25') !== false,
+    'Technological conflict names the blocking predecessor and its planned end');
+check(strpos($reason, '30 мин.') !== false && strpos($reason, '08.12.2026 14:56') !== false,
+    'Technological conflict explains the wait and the exact readiness boundary');
+check(strpos($reason, '14:26') !== false, 'Conflict distinguishes the displayed end from the exclusive resource boundary');
+$context = planContext(array(2 => task(2, 8 * 60, '2026-12-08 14:18:00', 2), 1 => task(1, 45 * 60),
+    3 => task(3, 3600, '2026-10-30 11:00:00')), array(3 => 1), $frames, $previous);
+$snapshot = serialize($context);
+$result = proposal($context, 1, '2026-10-30 10:00:00', 'nearest');
+check(!empty($result->error) && strpos($result->error, 'Opr2') !== false,
+    'An impossible anchored alternative retains the concrete technological blocker');
+check(serialize($context) === $snapshot, 'Unsuccessful nearest search preserves every fixed start and package link');
+
 $context = planContext(array(1 => task(1, 7200), 2 => task(2, 3600, '2026-10-08 11:00:00')), array(), array(array('08:00:00', '11:59:59')));
 $result = proposal($context, 1, '2026-10-08 10:00:00', 'move');
 check(!empty($result->error), 'Exhausted calendar does not offer partially scheduled displaced operations');

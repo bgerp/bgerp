@@ -76,6 +76,7 @@ cls::load('core_Composer');
 $defaultDir = core_Composer::run('config vendor-dir --absolute --no-plugins --no-scripts');
 expect($defaultDir !== false && end($defaultDir) === EF_VENDOR_PATH . '/shared-php-vendor', 'Default Composer directory changed');
 require dirname(__DIR__) . '/Setup.class.php';
+require getFullPath('core/ComposerProject.class.php');
 $setup = new apachetika_Setup();
 expect(APACHE_TIKA_VERSION === '1.24.1');
 foreach (array('1.7', '1.24.1', '2.6.0', '2.9.2') as $version) {
