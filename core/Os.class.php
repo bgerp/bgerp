@@ -123,7 +123,7 @@ class core_Os
      *
      * @param string      $dir
      * @param int         $maxAge          Срок в секунди
-     * @param string|null $negativePattern Регулярен израз за изключване
+     * @param string|null $negativePattern Регулярен израз за изключване на файлове и цели папки
      * @param string|null $positivePattern Регулярен израз за включване
      * @param string|null $allowedRoot     Друга разрешена база от настройките на модула, не от Request
      *
@@ -142,6 +142,10 @@ class core_Os
                 (!is_string($pattern) || @preg_match($pattern, '') === false)) {
                 return 0;
             }
+        }
+        // Изключена папка се запазва заедно със съдържанието, преди да я обходим.
+        if ($negativePattern && @preg_match($negativePattern, $dir) !== 0) {
+            return 0;
         }
 
         $handle = @opendir($dir);
@@ -334,6 +338,10 @@ class core_Os
         
         // Резултат във вербален вид
         $resText = '';
+
+        // SBF има собствени изключения, дори когато е вложен във временна папка.
+        $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
+        $tempExclude = $sbfPath === false ? null : '#^' . preg_quote($sbfPath, '#') . '(?:' . preg_quote(DIRECTORY_SEPARATOR, '#') . '|$)#';
         
         // Пакетите може да използват временни папки извън общата EF_TEMP_PATH.
         $cleanedPaths = array();
@@ -347,7 +355,7 @@ class core_Os
                     continue 2;
                 }
             }
-            $delCnt = self::deleteOldFiles($tempPath, $maxAge);
+            $delCnt = self::deleteOldFiles($tempPath, $maxAge, $tempExclude);
             $cleanedPaths[] = $tempPath;
             if ($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($tempPath, ENT_QUOTES, 'UTF-8');
@@ -355,7 +363,6 @@ class core_Os
         }
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
-        $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
         if ($sbfPath !== false) {
             $delCnt = 0;
             if ($handle = @opendir($sbfPath)) {

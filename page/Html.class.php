@@ -8,7 +8,7 @@
  * @package   page
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -106,6 +106,13 @@ class page_Html extends core_ET
      */
     public static function on_Output(&$invoker)
     {
+        // Разрешаваме индексиране само на публичното CMS съдържание.
+        if ($invoker instanceof cms_page_External && Mode::is('publicPage') &&
+            !Mode::is('robotsNoIndex') && !Mode::get('currentExternalTab') &&
+            !Mode::is('printing') && !Mode::is('pdf')) {
+            header_remove('X-Robots-Tag');
+        }
+
         // Добавяне на хедърите
         $headers = $invoker->getArray('HTTP_HEADER');
         if (!empty($headers)) {
