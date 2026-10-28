@@ -445,7 +445,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $artCode = !is_null($planningRec->code) ? $planningRec->code : "Art{$planningRec->productId}";
 
             if ($rec->groupBy == 'month') {
-                unset($this->groupByField);
+                $this->groupByField = null;
                 $monthQuantityArr[$planningRec->productId][$month] =
                     ($monthQuantityArr[$planningRec->productId][$month] ?? 0) + $quantity;
             }

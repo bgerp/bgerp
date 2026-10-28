@@ -150,18 +150,25 @@ function printFiscalReceipt(onSuccess, onError) {
                 
                 fpCloseReceiptInCash();
                 
+                // Изключение в setTimeout не се хваща от външния try - затова е вътре
+                var readQRcodeLater = function() {
+                    setTimeout(function() {
+                        try {
+                            res = fpReadLastReceiptQRcodeData();
+                        } catch(ex) {
+                            console.log('Грешка при повторно прочитане на данните за последния ФБ: ' + ex.message);
+                        }
+                    }, 1000);
+                };
+
                 try {
                     res = fpReadLastReceiptQRcodeData();
                     if (!res) {
-                        setTimeout(function(){ res = fpReadLastReceiptQRcodeData(); }, 1000);
+                        readQRcodeLater();
                     }
                 } catch(ex) {
                     console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
-                    try {
-                        setTimeout(function(){ res = fpReadLastReceiptQRcodeData(); }, 1000);
-                    } catch(ex) {
-                        console.log('Грешка при повторно прочитане на данните за последния ФБ: ' + ex.message);
-                    }
+                    readQRcodeLater();
                 }
                 
                 // Ако всичко мине добре - викаме функцията за успех

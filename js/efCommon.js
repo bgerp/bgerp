@@ -5337,8 +5337,9 @@ function render_Notify(data) {
     // ако няма зададен текст, ще скриваме титлата
     var title = data.title ? data.title : '\u200E';
 
-    //запазваме старата фав икона
-    oldIconPath = $('link[rel="shortcut icon"]')[0].href;
+    //запазваме старата фав икона; страници като page_Empty нямат такава
+    var oldIconLink = $('link[rel~="icon"]')[0];
+    oldIconPath = oldIconLink ? oldIconLink.href : '';
 
     // подготвяме фав иконките
     var newIcon = prepareFavIcon(data.favicon);
