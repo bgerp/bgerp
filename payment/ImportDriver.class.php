@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за импортиране на трансакции от банков XML
+ * Драйвер за импортиране на трансакции от банкови извлечения
  *
  * @category  bgerp
  * @package   payment
@@ -27,7 +27,7 @@ class payment_ImportDriver extends import2_AbstractDriver
     /**
      * Заглавие
      */
-    public $title = 'Банков XML Файл';
+    public $title = 'Банково извлечение (XML/MT940/ZIP)';
     
     
     /**
@@ -40,8 +40,11 @@ class payment_ImportDriver extends import2_AbstractDriver
      */
     public function addImportFields($mvc, core_FieldSet $form)
     {
-        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML или ZIP файл,mandatory');
+        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML|* / MT940 / ZIP,mandatory');
         $form->FLD('archivePassword', 'password(allowEmpty)', 'caption=ZIP архив->Парола,hint=При повторно изпращане на формата въведете паролата отново');
+        $form->FLD('confirmedCrossFormatRows', 'varchar(1024)', 'caption=Проверка CAMT/MT940->Различни преводи,input=none,hint=Само след проверка посочете номерата на редовете за добавяне като отделни преводи - разделени със запетая. Останалите съмнителни редове се пропускат');
+        $form->FLD('previewFilter', 'enum(all=Всички,problems=Проблемни)', 'caption=Преглед->Редове,value=all');
+        $form->FLD('previewPage', 'int(min=1)', 'caption=Преглед->Страница,value=1,hint=По 200 реда на страница');
         $form->FLD('previewHash', 'varchar(64)', 'input=hidden,silent');
         $form->importButtonCaption = 'Преглед';
     }
@@ -58,6 +61,7 @@ class payment_ImportDriver extends import2_AbstractDriver
     public function checkImportForm($mvc, core_FieldSet $form)
     {
         $form->rec->recs = $form->rec->importBatches = array();
+        $form->rec->confirmedCrossFormats = array();
         $file = fileman_Files::fetchByFh($form->rec->xmlFile ?? null);
         if (!$file || !fileman_Files::haveRightFor('single', $file)) {
             $form->rec->previewHash = null;
@@ -73,6 +77,38 @@ class payment_ImportDriver extends import2_AbstractDriver
             return;
         }
         $res = payment_ImportFiles::getRecs($form->rec->xmlFile ?? null, $password);
+        $form->setField('confirmedCrossFormatRows', 'input=input');
+        $form->input('confirmedCrossFormatRows');
+        $selection = trim($form->rec->confirmedCrossFormatRows ?? '');
+        $confirmed = array();
+        if ($selection !== '') {
+            if (!preg_match('/^[1-9][0-9]*(?:\s*,\s*[1-9][0-9]*)*$/D', $selection)) {
+                $form->setError('confirmedCrossFormatRows', 'Посочете номера на редове, разделени със запетая');
+            } else {
+                foreach (explode(',', $selection) as $number) $confirmed[(int) trim($number)] = true;
+            }
+        }
+        ksort($confirmed);
+        $res->importPreview = bank_Register::previewImport($res->batches ?? array(), $confirmed);
+        $crossRows = array();
+        foreach ($res->importPreview as $i => $diagnostic) {
+            $status = $diagnostic->status ?? '';
+            if (in_array($status, array('crossFormat', 'crossFormatConfirmed'), true)) $crossRows[$i + 1] = true;
+            if ($status === 'crossFormatConfirmed') {
+                $form->rec->confirmedCrossFormats[$diagnostic->referenceId ?? ''] = $diagnostic->crossFormatToken ?? '';
+            }
+        }
+        foreach ($confirmed as $number => $unused) {
+            if (($res->importPreview[$number - 1]->status ?? '') !== 'crossFormatConfirmed') {
+                $form->setError('confirmedCrossFormatRows', 'Може да потвърждавате само редове с възможен дубликат между CAMT и MT940');
+            }
+        }
+        if (!$crossRows && $selection === '') $form->setField('confirmedCrossFormatRows', 'input=none');
+        foreach ($res->importPreview as $i => $diagnostic) {
+            if (in_array($diagnostic->status ?? null, array('conflict', 'legacy', 'crossFormat'), true)) {
+                $res->warnings[] = 'Ред №' . ($i + 1) . ': ' . self::getPreviewStatus($diagnostic->status ?? '') . '; няма да бъде добавен';
+            }
+        }
         if (($res->status ?? null) == 'unsupported') {
             $form->setError('xmlFile', 'Непознат файлов формат');
         }
@@ -88,7 +124,12 @@ class payment_ImportDriver extends import2_AbstractDriver
         }
         $form->rec->recs = $res->recs ?? array();
         $form->rec->importBatches = $res->batches ?? array();
-        $form->info = $this->renderPreview($res);
+        $filter = ($form->rec->previewFilter ?? 'all') === 'problems' ? 'problems' : 'all';
+        $page = max(1, (int) ($form->rec->previewPage ?? 1));
+        $form->info = $this->renderPreview($res, $filter, $page);
+        $form->rec->previewFilter = $filter;
+        $form->rec->previewPage = $page;
+        $form->toolbar->addSbBtn('Обнови прегледа', 'preview', 'ef_icon=img/16/preview.png,order=9');
         $form->styles['.formTable'] = 'max-width:100%;width:100%;';
         if (empty($res->recs) || !empty($res->errors)) {
             $form->rec->previewHash = null;
@@ -98,8 +139,8 @@ class payment_ImportDriver extends import2_AbstractDriver
         }
 
         // Потвърждението е само за показания резултат; файлът се разчита отново при всеки submit.
-        $hash = hash_hmac('sha256', serialize(array(core_Users::getCurrent(), $form->rec->xmlFile ?? null, $res)), EF_SALT);
-        if (!hash_equals($hash, $form->rec->previewHash ?? '')) {
+        $hash = hash_hmac('sha256', serialize(array(core_Users::getCurrent(), $form->rec->xmlFile ?? null, $res, $filter, $page, $confirmed)), EF_SALT);
+        if (($form->cmd ?? null) === 'preview' || !hash_equals($hash, $form->rec->previewHash ?? '')) {
             $form->cmd = 'refresh';
             $form->ignore = false;
         }
@@ -111,21 +152,82 @@ class payment_ImportDriver extends import2_AbstractDriver
     /**
      * Прегледът не извиква импорта или съпоставянето на банковия регистър.
      */
-    protected function renderPreview($result)
+    protected function renderPreview($result, $filter = 'all', &$page = 1)
     {
         $count = count($result->recs ?? array());
         $skipped = $result->skippedEntries ?? 0;
         $warnings = count($result->warnings ?? array());
         $errors = count($result->errors ?? array());
         $html = '<h3>' . tr('Преглед преди импорт') . '</h3><p><b>' . tr('Нищо не е записано') . '</b></p>';
-        $html .= '<p>' . tr('Валидни редове за импорт') . ": <b>{$count}</b>; " . tr('Пропуснати записи от извлеченията') . ": <b>{$skipped}</b>; " .
+        $html .= '<p>' . tr('Разчетени редове') . ": <b>{$count}</b>; " . tr('Пропуснати записи от извлеченията') . ": <b>{$skipped}</b>; " .
             tr('Предупреждения') . ": {$warnings}; " . tr('Грешки') . ": {$errors}.</p>";
-        $html .= '<p>' . tr('Групираните операции са разделени на редове. Вече импортираните записи ще бъдат пропуснати при запис') . '.</p>';
+        $counts = array_count_values(array_map(function ($row) { return $row->status ?? 'new'; }, $result->importPreview ?? array()));
+        $summary = array();
+        foreach (array('new', 'duplicate', 'conflict', 'legacy', 'crossFormat', 'crossFormatConfirmed') as $status) {
+            if (in_array($status, array('crossFormat', 'crossFormatConfirmed'), true) && empty($counts[$status])) continue;
+            $summary[] = tr(self::getPreviewStatus($status)) . ': <b>' . ($counts[$status] ?? 0) . '</b>';
+        }
+        $html .= '<p>' . implode('; ', $summary) . '.</p>';
+        $html .= '<p>' . tr('Групираните операции са разделени на редове. Ще се добавят само новите операции; дубликатите и конфликтите се пропускат. Проверява се отново при запис') . '.</p>';
+        if (!empty($counts['crossFormat']) || !empty($counts['crossFormatConfirmed'])) {
+            $html .= '<p>' . tr('Съвпаденията между CAMT и MT940 се пропускат. След сравнение с посочените записи може да потвърдите конкретни редове като различни преводи. Те ще се добавят след нов преглед и потвърждение') . '.</p>';
+        }
         $rows = array();
         $amountType = core_Type::getByName('double(decimals=2)');
         $dateType = core_Type::getByName('date');
-        foreach (array_slice($result->previewRows ?? array(), 0, 200) as $rec) {
+        $selected = $result->previewRows ?? array();
+        if ($filter === 'problems') {
+            foreach ($selected as $i => $rec) {
+                if (!in_array($result->importPreview[$i]->status ?? null, array('conflict', 'legacy', 'crossFormat', 'crossFormatConfirmed'), true)) {
+                    unset($selected[$i]);
+                }
+            }
+        }
+        $selectedCount = count($selected);
+        $pages = max(1, (int) ceil($selectedCount / 200));
+        $page = min(max(1, $page), $pages);
+        $html .= '<p>' . strtr(tr('Страница %PAGE% от %PAGES%; редове по филтъра: %COUNT%'), array('%PAGE%' => $page, '%PAGES%' => $pages, '%COUNT%' => $selectedCount)) . '.</p>';
+        $html .= '<p>' . tr('Филтърът и страницата променят само прегледа. Импортът обработва всички разчетени редове') . '.</p>';
+        foreach (array_slice($selected, ($page - 1) * 200, 200, true) as $i => $rec) {
             $row = new stdClass();
+            $row->number = $i + 1;
+            $diagnostic = $result->importPreview[$i] ?? null;
+            $row->importStatus = tr(self::getPreviewStatus($diagnostic->status ?? 'new'));
+            if (!empty($diagnostic->crossFormatMatches)) {
+                $row->importStatus .= '<br><small>' . tr('Във файла') . ': ' . self::escapeText($rec->bankReference ?? '') . '</small>';
+            }
+            foreach ($diagnostic->crossFormatMatches ?? array() as $match) {
+                $id = (int) ($match->existingId ?? 0);
+                $label = $id ? tr('Банков запис') . ' №' . $id : tr('Към ред от този импорт') . ' №' . (int) ($match->duplicateRow ?? 0);
+                $row->importStatus .= '<br>' . ($id && bank_Register::haveRightFor('list') ? ht::createLink($label, array('bank_Register', 'list', $id)) : $label);
+                $row->importStatus .= '<br><small>' . self::escapeText($match->bankReference ?? '') . '</small>';
+            }
+            if (!empty($diagnostic->existingId)) {
+                $id = (int) $diagnostic->existingId;
+                $row->importStatus .= '<br>' . (bank_Register::haveRightFor('list')
+                    ? ht::createLink(tr('Банков запис') . ' №' . $id, array('bank_Register', 'list', $id))
+                    : tr('Банков запис') . ' №' . $id);
+            } elseif (!empty($diagnostic->duplicateRow)) {
+                $row->importStatus .= '<br>' . tr('Към ред от този импорт') . ' №' . (int) $diagnostic->duplicateRow;
+            }
+            foreach ($diagnostic->differences ?? array() as $field => $values) {
+                $labels = array('amount' => 'Сума', 'valior' => 'Вальор', 'contragentIban' => 'IBAN');
+                if (!isset($labels[$field])) {
+                    continue;
+                }
+                $old = $values['existing'] ?? '';
+                $new = $values['incoming'] ?? '';
+                if ($field === 'amount') {
+                    $old = $amountType->toVerbal($old);
+                    $new = $amountType->toVerbal($new);
+                } elseif ($field === 'valior') {
+                    $old = $dateType->toVerbal($old);
+                    $new = $dateType->toVerbal($new);
+                }
+                $row->importStatus .= '<br><small>' . strtr(tr('%FIELD%: налично %OLD%; във файла %NEW%'), array(
+                    '%FIELD%' => tr($labels[$field]), '%OLD%' => self::escapeText($old ?? ''), '%NEW%' => self::escapeText($new ?? ''),
+                )) . '</small>';
+            }
             foreach (array('sourceFile', 'ownIban', 'contragentName', 'contragentIban', 'reason', 'currency') as $field) {
                 $row->{$field} = self::escapeText($rec->{$field} ?? '');
             }
@@ -136,15 +238,30 @@ class payment_ImportDriver extends import2_AbstractDriver
             $row->amount = $amountType->toVerbal($rec->amount ?? null) . ' ' . $row->currency;
             $rows[] = $row;
         }
-        if ($count > count($rows)) {
-            $html .= '<p>' . tr('Показани са първите 200 реда; при потвърждение ще се обработят всички валидни редове') . '.</p>';
-        }
         if ($rows) {
             $table = cls::get('core_TableView');
-            $html .= '<div style="overflow-x:auto">' . $table->get($rows, 'sourceFile=Файл,ownIban=Наша сметка,valior=Вальор,type=Вид,amount=Сума,contragentName=Контрагент,reason=Основание') . '</div>';
+            $html .= '<div style="overflow-x:auto">' . $table->get($rows, 'number=№,importStatus=Резултат,sourceFile=Файл,ownIban=Наша сметка,valior=Вальор,type=Вид,amount=Сума,contragentName=Контрагент,reason=Основание') . '</div>';
         }
 
         return $html;
+    }
+
+
+    private static function getPreviewStatus($status)
+    {
+        $labels = array('new' => 'Нова', 'duplicate' => 'Дубликат', 'conflict' => 'Конфликт на банкова референция', 'legacy' => 'Възможен дубликат без референция',
+            'crossFormat' => 'Възможен дубликат CAMT/MT940', 'crossFormatConfirmed' => 'Потвърден различен превод');
+
+        return $labels[$status] ?? $status;
+    }
+
+
+    /**
+     * Отваря формата за повторен преглед; не стартира запис и не пренася пароли.
+     */
+    public static function getImportUrl($fh)
+    {
+        return array('bank_Register', 'import2', 'driverClass' => core_Classes::getId('payment_ImportDriver'), 'xmlFile' => $fh, 'Cmd' => 'refresh');
     }
 
 
@@ -168,7 +285,8 @@ class payment_ImportDriver extends import2_AbstractDriver
     {
         $statuses = array();
         foreach ($rec->importBatches ?? array($rec->recs ?? array()) as $batch) {
-            $statuses[] = bank_Register::importRecs($batch);
+            $warnings = array();
+            $statuses[] = bank_Register::importRecs($batch, null, $warnings, $rec->confirmedCrossFormats ?? array());
         }
 
         return implode('; ', $statuses);

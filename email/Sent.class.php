@@ -11,7 +11,7 @@ defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN'));
  * @package   email
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -76,7 +76,7 @@ class email_Sent
         
         $sentRec = (object) array(
             'boxFrom' => $boxFrom,
-            'mid' => $body->__mid,
+            'mid' => $body->__mid ?? null,
             'encoding' => $options['encoding'],
             'attachments' => (is_array($body->attachments ?? null)) ? keylist::fromArray($body->attachments) : ($body->attachments ?? null),
             'documents' => (is_array($body->documents ?? null)) ? keylist::fromArray($body->documents) : ($body->documents ?? null),

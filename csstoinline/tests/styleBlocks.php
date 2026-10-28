@@ -64,4 +64,38 @@ foreach (array('csstoinline_Emogrifier', 'csstoinline_CssToInline') as $class) {
     check(strpos($html, 'color:#FF0000;') !== false, "$class: valid declaration survives purification");
 }
 
+// Структурните селектори и CSS приоритетите изискват Emogrifier или CssToInline 2.x.
+$css = '.prices th { background-color:#f0f0f0; } .prices th { background-color:#6b7071 !important; color:#fff; }'
+    . ' .prices.columns td:nth-child(3) { background-color:#e3f2e6; }'
+    . ' .prices.columns td:nth-child(4) { background-color:#dbf2fd; }'
+    . ' .prices.columns td:nth-child(5) { background-color:#fce0e7; }'
+    . ' .prices.rows tr:nth-child(1) td { background-color:#e3f2e6; }'
+    . ' .prices.rows tr:nth-child(2) td { background-color:#dbf2fd; }'
+    . ' .prices.rows tr:nth-child(3) td { background-color:#fce0e7; }';
+$table = '<table class="prices columns"><thead><tr><th>Plan</th></tr></thead><tbody>'
+    . '<tr><td>Visit</td><td>12</td><td>10</td><td>9</td><td>8</td></tr></tbody></table>'
+    . '<table class="prices rows"><thead><tr><th>Level</th></tr></thead><tbody>'
+    . '<tr><td>Silver</td></tr><tr><td>Gold</td></tr><tr><td>Platinum</td></tr></tbody></table>';
+foreach (array('csstoinline_Emogrifier' => array('2011.10.26', '2014.11.10', '3.0.0', '8.3.0'),
+    'csstoinline_CssToInline' => array('2.2.2', '2.4.0')) as $class => $versions) {
+    foreach ($versions as $version) {
+        core_Packs::$config = (object) array('CSSTOINLINE_CONVERTER_CLASS' => $class,
+            'CSSTOINLINE_EMOGRIFIER_VERSION' => $version, 'CSSTOINLINE_CSSTOINLINE_VERSION' => $version);
+        $html = hclean_Purifier::clean('<style>' . $css . '</style>' . $table);
+        $dom = new DOMDocument();
+        $dom->loadHTML($html);
+        $xpath = new DOMXPath($dom);
+        $header = strtolower($xpath->query('(//th)[1]')->item(0)->getAttribute('style'));
+        check(strpos($header, 'background-color:#6b7071;') !== false, "$class $version: important header background");
+        foreach (array('#e3f2e6', '#dbf2fd', '#fce0e7') as $index => $color) {
+            $column = $index + 3;
+            $row = $index + 1;
+            foreach (array('(//table)[1]/tbody/tr/td[' . $column . ']', '(//table)[2]/tbody/tr[' . $row . ']/td') as $selector) {
+                $style = strtolower($xpath->query($selector)->item(0)->getAttribute('style'));
+                check(strpos($style, 'background-color:' . $color . ';') !== false, "$class $version: $selector color");
+            }
+        }
+    }
+}
+
 echo "PASS: {$checks} style block checks\n";

@@ -61,6 +61,18 @@ function initElements() {
 	// за плавни анимации на менютата
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
+    $('.btn-sidemenu').off('click.filterWidth').on('click.filterWidth', function () {
+        if ($('body').hasClass('wide')) setMaxWidth();
+    });
+    // Окончателното място за филтъра е известно едва след анимацията на менютата.
+    $('#main-container').off('transitionend.filterWidth').on('transitionend.filterWidth', function (event) {
+        if (event.target === this && $('body').hasClass('wide') &&
+            /^(margin-left|margin-right|width)$/.test(event.originalEvent.propertyName) &&
+            typeof scheduleTwoColsFilterModeUpdate == 'function') {
+            scheduleTwoColsFilterModeUpdate();
+        }
+    });
+
 	// задава динамично ширина на елементи
 	if($('body').hasClass('narrow')){
 		if(viewportWidth <= 800) {
@@ -134,8 +146,8 @@ function setMaxWidth() {
 	}
 
 	// Филтърът се проверява след окончателното възстановяване на ширините от темата
-	if (typeof updateTwoColsFilterModes == 'function') {
-		updateTwoColsFilterModes();
+	if (typeof scheduleTwoColsFilterModeUpdate == 'function') {
+		scheduleTwoColsFilterModeUpdate();
 	}
 }
 
@@ -260,9 +272,6 @@ function changePinIcon(){
     	} else {
     		$('.pinned').addClass('hidden');
     		$('.pin').removeClass('hidden');
-    	}
-    	if($('body').hasClass('wide')){
-    		setMaxWidth();
     	}
 	});
 }

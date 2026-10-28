@@ -8,7 +8,7 @@
  * @package   tinymce
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -36,13 +36,19 @@ class tinymce_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
-        setIfNot($invoker->params['tinyEditor'], 'yes');
+        $invoker->params['tinyEditor'] ??= 'yes';
         
         if ($invoker->params['tinyEditor'] == 'no') {
             
             return ;
         }
         
+        if (tinymce_Setup::get('VERSION') === '8.10.1') {
+            $this->renderModernInput($invoker, $tpl, $attr);
+
+            return;
+        }
+
         $tinyPlugins = '';
         if (!empty($invoker->params['tinyPlugins'])) {
             $tinyPlugins = $invoker->params['tinyPlugins'];
@@ -98,4 +104,39 @@ class tinymce_Plugin extends core_Plugin
         
         });", true);
     }
+
+    /**
+     * Зарежда TinyMCE 8 със съществуващите параметри на HTML полето.
+     */
+    protected function renderModernInput($invoker, $tpl, $attr)
+    {
+        $path = 'tinymce/8.10.1';
+        $locale = core_Lg::getCurrent() === 'bg' ? 'bg-BG' : 'en';
+        $tpl->push($path . '/tinymce.min.js', 'JS');
+        $cmPath = 'tinymce/codemirror-5.65.21';
+        foreach (array('lib/codemirror', 'addon/dialog/dialog') as $file) {
+            $tpl->push($cmPath . '/' . $file . '.css', 'CSS');
+        }
+        foreach (array('lib/codemirror', 'mode/xml/xml', 'mode/javascript/javascript', 'mode/css/css',
+            'mode/htmlmixed/htmlmixed', 'mode/clike/clike', 'mode/php/php', 'addon/edit/matchbrackets',
+            'addon/selection/active-line', 'addon/dialog/dialog', 'addon/search/searchcursor', 'addon/search/search') as $file) {
+            $tpl->push($cmPath . '/' . $file . '.js', 'JS');
+        }
+        $tpl->push('tinymce/js/adapter.js', 'JS');
+        $config = array(
+            'id' => $attr['id'] ?? '',
+            'base_url' => dirname(sbf($path . '/tinymce.min.js', '')),
+            'language' => $locale,
+            'plugins' => $invoker->params['tinyPlugins'] ?? '',
+            'toolbar' => $invoker->params['tinyToolbars'] ?? '',
+            'fullscreen' => !empty($invoker->params['tinyFullScreen']),
+            'saveCallback' => $invoker->params['tinySaveCallback'] ?? '',
+        );
+        if ($locale !== 'en') {
+            $config['language_url'] = sbf($path . '/langs/' . $locale . '.js', '');
+        }
+        $json = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        jquery_Jquery::run($tpl, "bgerpTinyMceRun({$json});", true);
+    }
+
 }

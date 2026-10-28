@@ -8,7 +8,7 @@ var twoColsFilterEventsBound = false;
 
 
 /**
- * При промяна на прозореца превключва режима само с вече измерените размери.
+ * Избира броя колони по запазените размери, без клониране на полетата.
  */
 function scheduleTwoColsFilterModeUpdate() {
     if (twoColsFilterResizeFrame !== null) {
@@ -50,14 +50,17 @@ function scheduleTwoColsFilterWidthUpdate() {
  * Връща свободната видима ширина вдясно от началото на филтъра.
  */
 function getTwoColsFilterVisibleWidth(filter) {
-    var visibleRight = document.documentElement.clientWidth;
+    var visibleLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+    var visibleRight = window.visualViewport ?
+        Math.min(document.documentElement.clientWidth, visibleLeft + window.visualViewport.width) :
+        document.documentElement.clientWidth;
     var metrics = filter.twoColsFilterMetrics;
 
     if (metrics && metrics.content) {
         visibleRight = Math.min(visibleRight, metrics.content.getBoundingClientRect().right);
     }
 
-    return visibleRight - Math.max(0, filter.getBoundingClientRect().left);
+    return visibleRight - Math.max(visibleLeft, filter.getBoundingClientRect().left);
 }
 
 
@@ -159,7 +162,7 @@ function updateTwoColsFilterModes() {
  */
 function render_setTwoColsFilterWidth() {
     // Календарът и датата споделят широчината на едно поле, ако има бутон за избор.
-    $('.doc_Search .twoColsFilter, .cal_Tasks .twoColsFilter').find('input[type=text]').each(function () {
+    $('.twoColsFilter .listFilter').find('input[type=text]').each(function () {
         var $input = $(this);
         var $button = $input.next('a');
 
@@ -185,7 +188,10 @@ function render_setTwoColsFilterWidth() {
 
     if (!twoColsFilterResizeBound) {
         twoColsFilterResizeBound = true;
-        window.addEventListener('resize', scheduleTwoColsFilterModeUpdate);
+        window.addEventListener('resize', scheduleTwoColsFilterWidthUpdate);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleTwoColsFilterWidthUpdate);
+        }
     }
 
     if (!twoColsFilterEventsBound) {
@@ -231,8 +237,7 @@ function render_setTwoColsFilterWidth() {
 
         var rowIndexes = [];
         var $allRows = $fieldTable.children('tbody').children('tr');
-        var hasToggableRows = $allRows.filter('.toggable').length > 0;
-        $allRows.removeClass('twoColsFilterLeftRow twoColsFilterRightRow');
+        $allRows.removeClass('twoColsFilterLeftRow twoColsFilterRightRow twoColsFilterSizedRow');
         $allRows.each(function (index) {
             // Допълнителните филтри участват в измерването, а условно скритите полета - не
             if ($(this).css('display') != 'none' || $(this).hasClass('toggable')) {
@@ -240,7 +245,7 @@ function render_setTwoColsFilterWidth() {
             }
         });
 
-        if (rowIndexes.length <= 5) {
+        if (!rowIndexes.length) {
             return;
         }
 
@@ -283,15 +288,61 @@ function render_setTwoColsFilterWidth() {
             $copy.find('[id]').removeAttr('id');
             $measureFields.append($copy);
 
+            // Затвореният Select2 не показва широчината на неизбраните опции.
+            $copy.find('select').not('.combo').each(function () {
+                var $select = $(this);
+                var $optionsCopy = $select.clone().removeAttr('multiple size').css({
+                    position: 'absolute',
+                    display: 'inline-block',
+                    width: 'auto',
+                    minWidth: 0,
+                    maxWidth: '400px',
+                    height: 'auto'
+                }).removeClass('select2-hidden-accessible').appendTo($measureFields);
+                var optionsWidth = Math.ceil($optionsCopy.outerWidth());
+                $optionsCopy.remove();
+                var $control = $select.next('.select2-container');
+                if ($control.length) {
+                    // Select2 добавя цветен маркер, отстъпи и скролбар към текста на опцията.
+                    var $results = $('<ul class="select2-results__options"></ul>').css({
+                        width: 'max-content', overflowY: 'scroll', maxHeight: '200px'
+                    }).appendTo($measureFields);
+                    var $option = $('<li class="select2-results__option"></li>').css({
+                        width: 'max-content', whiteSpace: 'nowrap'
+                    }).appendTo($results);
+                    var scrollbarWidth = $results[0].offsetWidth - $results[0].clientWidth;
+                    $select.find('option').each(function () {
+                        $option.empty();
+                        var $label = $('<span></span>').text(this.text).appendTo($option);
+                        var color = $(this).attr('data-color');
+                        if (color) {
+                            $label.prepend(document.createTextNode('\u00a0'));
+                            $('<div class="color-preview"></div>').css('background-color', color)
+                                .prependTo($label);
+                        }
+                        optionsWidth = Math.max(optionsWidth,
+                            Math.ceil($option.outerWidth()) + scrollbarWidth + 2);
+                    });
+                    $results.remove();
+                }
+                ($control.length ? $control : $select).css('min-width', Math.min(400, optionsWidth) + 'px');
+            });
+
             return $copy;
         }
 
-        function getCopySize($copy) {
+        function getCopySize($copy, excludeChoices) {
+            if (excludeChoices) {
+                // Радиогрупите и чекбоксовете не определят широчината на останалите полета.
+                $copy.find('.formElement').has('input[type=radio], input[type=checkbox]')
+                    .empty();
+            }
             var captionWidth = Math.ceil($copy.find('.formFieldCaption').first().outerWidth());
-            var radioSafety = $copy.find('input[type=radio]').length ? 2 : 0;
+            var radioSafety = !excludeChoices && $copy.find('input[type=radio]').length ? 2 : 0;
 
             return {
                 caption: captionWidth,
+                field: Math.ceil($copy.find('.formElement').first().width()),
                 // Минималният резерв компенсира субпикселното закръгляване само
                 // в колона с реално изобразена радио-група.
                 total: Math.ceil($copy.outerWidth()) + radioSafety
@@ -299,17 +350,21 @@ function render_setTwoColsFilterWidth() {
         }
 
         var $singleColumnCopy = getTableCopy(rowIndexes);
-        var singleSize = getCopySize($singleColumnCopy);
+        var singleSize = getCopySize($singleColumnCopy, true);
         $singleColumnCopy.remove();
 
         var rowsInFirstColumn = Math.ceil(rowIndexes.length / 2);
-        var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn));
-        var leftSize = getCopySize($leftColumnCopy);
-        $leftColumnCopy.remove();
+        var leftSize = singleSize;
+        var rightSize = singleSize;
+        if (rowIndexes.length > 5) {
+            var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn));
+            leftSize = getCopySize($leftColumnCopy, true);
+            $leftColumnCopy.remove();
 
-        var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn));
-        var rightSize = getCopySize($rightColumnCopy);
-        $rightColumnCopy.remove();
+            var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn));
+            rightSize = getCopySize($rightColumnCopy, true);
+            $rightColumnCopy.remove();
+        }
 
         var $summary = $filter.children('.summary-block').first();
         var summaryWidth = 0;
@@ -334,9 +389,9 @@ function render_setTwoColsFilterWidth() {
         }
 
         // Общата горна граница пази разширяващите се полета в стандартния размер.
-        var singleFieldWidth = singleSize.total - singleSize.caption;
-        var leftFieldWidth = leftSize.total - leftSize.caption;
-        var rightFieldWidth = rightSize.total - rightSize.caption;
+        var singleFieldWidth = singleSize.field;
+        var leftFieldWidth = leftSize.field;
+        var rightFieldWidth = rightSize.field;
         var maxFieldWidth = Math.max(singleFieldWidth, leftFieldWidth, rightFieldWidth);
         var formHorizontalSpacing = 0;
         if ($filter.closest('.doc_Search').length) {
@@ -344,12 +399,9 @@ function render_setTwoColsFilterWidth() {
             // Самостоятелната форма има и рамка с вътрешни отстъпи.
             formHorizontalSpacing = $formSection.outerWidth() - $formSection.width();
         }
-        // Всяка колона пази реалната широчина на собствените си полета. Така
-        // по-широко поле в едната не оставя излишно празно място в другата.
-        // При „Още филтри“ полетата използват широчината от оригиналния
-        // едноколонен изглед, включително когато първоначално са били скрити.
-        var leftColumnWidth = leftSize.caption + (hasToggableRows ? singleFieldWidth : leftFieldWidth);
-        var rightColumnWidth = rightSize.caption + (hasToggableRows ? singleFieldWidth : rightFieldWidth);
+        // Всяка колона използва само собствените си полета, включително допълнителните.
+        var leftColumnWidth = leftSize.total;
+        var rightColumnWidth = rightSize.total;
         var columnGap = Math.ceil(parseFloat($fieldTable.css('font-size')) || 16);
         var summaryGap = $summary.length ? (parseFloat($filter.css('column-gap')) || 0) : 0;
         var twoColumnsWidth = leftColumnWidth + columnGap + rightColumnWidth;
@@ -358,11 +410,15 @@ function render_setTwoColsFilterWidth() {
         var summarySafetySpace = $summary.length ? 40 : 0;
         var singleColumnMinWidth = summaryWidth ?
             singleSize.total + summaryGap + summaryWidth + summarySafetySpace : 0;
-        var twoColumnsMinWidth = twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace;
+        var twoColumnsMinWidth = rowIndexes.length > 5 ?
+            twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace : Infinity;
 
         $.each(rowIndexes, function (position, rowIndex) {
-            $allRows.eq(rowIndex).addClass(position < rowsInFirstColumn ?
+            var $row = $allRows.eq(rowIndex);
+            $row.addClass(position < rowsInFirstColumn ?
                 'twoColsFilterLeftRow' : 'twoColsFilterRightRow');
+            $row.toggleClass('twoColsFilterSizedRow',
+                !$row.find('input[type=radio], input[type=checkbox]').length);
         });
 
         filter.style.setProperty('--two-cols-filter-caption-offset', singleSize.caption + 3 + 'px');
@@ -370,6 +426,8 @@ function render_setTwoColsFilterWidth() {
         filter.style.setProperty('--two-cols-filter-right-caption-width', rightSize.caption + 'px');
         filter.style.setProperty('--two-cols-filter-left-caption-offset', leftSize.caption + 3 + 'px');
         filter.style.setProperty('--two-cols-filter-field-width', maxFieldWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-left-field-width', leftFieldWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-right-field-width', rightFieldWidth + 'px');
         filter.style.setProperty('--two-cols-filter-single-width', singleSize.total + 'px');
         filter.style.setProperty('--two-cols-filter-left-width', leftColumnWidth + 'px');
         filter.style.setProperty('--two-cols-filter-right-width', rightColumnWidth + 'px');

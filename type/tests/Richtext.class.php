@@ -191,6 +191,7 @@ class type_tests_Richtext extends unit_Class
 
             // Атрибутите за събития и data-*, javascript: връзките и iframe отпадат
             '[html]<span onclick="f()" data-x="1">a</span><a href="javascript:void(0)">b</a><iframe src="https://example.com/"></iframe>[/html]' => '<span>a</span><a>b</a>',
+            '[html]<script>window.qa = 1;</script><p data-id="sample">Text</p>[/html]' => '<p>Text</p>',
 
             // Незатворените тагове се затварят в блока
             '[html]<div><b>a[/html] b' => '<div><b>a</b></div> b',
@@ -199,11 +200,37 @@ class type_tests_Richtext extends unit_Class
 
 
     /**
+     * Само изрично доверени полета запазват CSS, JavaScript и data-*.
+     */
+    public function test_TrustedHtml()
+    {
+        $html = '<style>.qa td:nth-child(2) { color:red !important; } @media (max-width:600px) { .qa { padding:0; } }</style>'
+            . '<div class="qa" data-id="sample"><button onclick="qa()">Text</button></div>'
+            . '<script src="https://example.com/widget.js"></script><script>window.qa = 1 < 2;</script>';
+        $this->expectRendered(array('[html]' . $html . '[/html]' => $html), 'richtext(trustedHtml=yes)');
+
+        $plain = '[html]<p data-id="sample">Text</p><script>window.qa = 1;</script>[/html]';
+        foreach (array('richtext', 'richtext(trustedHtml=no)', 'richtext(trustedHtml=1)') as $type) {
+            $this->expectRendered(array($plain => '<p>Text</p>'), $type);
+        }
+
+        Mode::push('text', 'plain');
+        try {
+            $trusted = core_Type::getByName('richtext(trustedHtml=yes)')->toVerbal($plain);
+            $regular = core_Type::getByName('richtext')->toVerbal($plain);
+            UT::expectEqual((string) $trusted, (string) $regular);
+        } finally {
+            Mode::pop('text');
+        }
+    }
+
+
+    /**
      * Сравнява рендирания текст с очаквания HTML в обвивката на ричтекста
      */
-    protected function expectRendered($cases)
+    protected function expectRendered($cases, $type = 'richtext')
     {
-        $rt = cls::get('type_Richtext');
+        $rt = core_Type::getByName($type);
         foreach ($cases as $text => $res) {
             $html = $rt->toVerbal($text);
             $html = ($html instanceof core_ET) ? $html->getContent() : (string) $html;

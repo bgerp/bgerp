@@ -173,4 +173,61 @@ planning_Setup::$values = array();
 check(planning_TaskManualOrderPerAssets::getPackageLinks(null) === array()
     && planning_TaskManualOrderPerAssets::getAnchorLinks(0) === array(), 'No machine never produces a malformed package query');
 
+$links = array(2 => 1, 4 => 3);
+$context = regressionContext(array(1 => task(1), 2 => task(2, 3600, '2026-10-08 11:00:00'),
+    3 => task(3, 7200), 4 => task(4), 5 => task(5, 3600, null, 2)), $links);
+$context->previous = array(3 => array(5 => (object)array('intersect' => 'no', 'waitingTime' => 3600)));
+$order = array(3, 4, 1, 2);
+$result = regressionPlan($context, array('manualOrderOverrides' => array(1 => $order)));
+check(chronologicalIds($result) === array(1, 2, 3, 4), 'Reproduce the safe but silently reordered package before a fixed member');
+check($result->tasks[1][2]->expectedTimeStart === '2026-10-08 11:00:00'
+    && $result->assets[1]->packageLinks === $links, 'Reproduction keeps fixed starts and both packages intact');
+$conflicts = planning_TargetTimes::collectNewConflicts($result, $context->baseline);
+$conflicts += planning_TaskConstraints::getManualOrderTimeConflicts(1, $order, $links, $context->tasks, $result);
+check(!empty($conflicts), 'The impossible submitted package order must report a conflict instead of accepting the fallback');
+$reason = $conflicts[3]['reason'] ?? '';
+check(strpos($reason, 'Opr3') !== false && strpos($reason, 'Opr4') !== false && strpos($reason, 'Opr2') !== false,
+    'Conflict identifies both moving package members and the fixed member of the other package');
+check(strpos($reason, '08.10.2026 10:00') !== false && strpos($reason, '08.10.2026 11:00') !== false,
+    'Conflict distinguishes the complete reservation start from its fixed non-head member');
+$snapshot = serialize(array($context, $result));
+planning_TaskConstraints::getManualOrderTimeConflicts(1, $order, $links, $context->tasks, $result);
+check(serialize(array($context, $result)) === $snapshot, 'Rejecting the order never retimes pins, splits packages or mutates the simulated plan');
+check(!planning_TaskConstraints::getManualOrderTimeConflicts(1, array(1, 2, 3, 4), $links, $context->tasks, $result),
+    'The feasible original package order remains valid');
+check(!planning_TaskConstraints::getManualOrderTimeConflicts(2, array(5), array(), $context->tasks, $result),
+    'A fixed reservation on another machine does not reject an unrelated resource');
+safeMachinePlan($result, 'Rejected manual package order still has a safe unchanged reservation');
+
+$context->tasks[2] = clone $context->tasks[2];
+$context->tasks[2]->timeStart = '2026-10-08 15:00:00';
+$result = regressionPlan($context, array('manualOrderOverrides' => array(1 => $order)));
+check(chronologicalIds($result) === $order, 'The same complete package fits before a later fixed reservation');
+check(!planning_TaskConstraints::getManualOrderTimeConflicts(1, $order, $links, $context->tasks, $result),
+    'Feasible movement before a fixed package is not rejected');
+check($result->tasks[1][2]->expectedTimeStart === '2026-10-08 15:00:00' && $result->assets[1]->packageLinks === $links,
+    'Accepting the feasible order also preserves the fixed start and both package chains');
+
+$context = regressionContext(array(1 => task(1), 2 => task(2, 3600, '2026-10-08 11:00:00'),
+    3 => task(3), 4 => task(4)), $links);
+$result = regressionPlan($context, array('manualOrderOverrides' => array(1 => $order)));
+check(($result->tasks[1][4]->_endTimestamp ?? null) === ($result->tasks[1][1]->_startTimestamp ?? null),
+    'Whole package can end exactly at the following fixed package boundary');
+check(!planning_TaskConstraints::getManualOrderTimeConflicts(1, $order, $links, $context->tasks, $result),
+    'An exact exclusive-end boundary is not a false overlap');
+
+$context->tasks[3] = clone $context->tasks[3];
+$context->tasks[3]->calcedCurrentDuration = 14400;
+$singleOrder = array(3, 1, 2, 4);
+$singleLinks = array(2 => 1);
+$result = regressionPlan($context, array('manualOrderOverrides' => array(1 => $singleOrder), 'packageLinkOverrides' => array(1 => $singleLinks)));
+$conflicts = planning_TaskConstraints::getManualOrderTimeConflicts(1, $singleOrder, $singleLinks, $context->tasks, $result);
+check(strpos($conflicts[3]['reason'] ?? '', 'Операцията Opr3') !== false,
+    'The same protection explains an individual operation that cannot fit before the fixed package');
+$context->tasks[2] = clone $context->tasks[2];
+$context->tasks[2]->timeStart = null;
+$result = regressionPlan($context, array('manualOrderOverrides' => array(1 => $singleOrder), 'packageLinkOverrides' => array(1 => $singleLinks)));
+check(!planning_TaskConstraints::getManualOrderTimeConflicts(1, $singleOrder, $singleLinks, $context->tasks, $result),
+    'Queues without fixed reservations retain their existing scheduling behavior');
+
 echo 'OK: ' . ($checks - $extraStart) . " additional manual/package regression checks; {$checks} total checks\n";

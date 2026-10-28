@@ -715,8 +715,10 @@ class type_Richtext extends type_Blob
         } else {
             $place = $this->getPlace();
             
-            // Текстът може да идва отвън (имейли, публични форми), затова HTML-ът се пречиства
-            $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
+            // trustedHtml=yes е само за полета, чиито редактори могат да публикуват изпълним код.
+            $this->_htmlBoard[$place] = (($this->params['trustedHtml'] ?? null) === 'yes')
+                ? $match[1]
+                : hclean_Purifier::clean($match[1], 'UTF-8');
             $res = "[#{$place}#]";
             $this->_htmlBoard['html1'] = true;
         }
@@ -1039,10 +1041,12 @@ class type_Richtext extends type_Blob
             }
         }
 
-        $dArr = cms_Domains::getDomainOptions(true);
+        $url = core_Url::escape($url);
+        $this->_htmlBoard[$place] = $url;
 
-        if (core_Url::isLocal($url, $rest, $dArr)) {
+        if ($this->isLocalUrl($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
+            $url = $this->_htmlBoard[$place];
             [$url1, $url2] = explode('#', $url, 2) + [1 => null];
             if ($url2) {
                 $url2 = str::canonize($url2);
@@ -1053,8 +1057,6 @@ class type_Richtext extends type_Blob
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
-        
-        $url = core_Url::escape($url);
         
         $this->_htmlBoard[$place] = $url;
         
@@ -1285,19 +1287,43 @@ class type_Richtext extends type_Blob
             return $url;
         }
 
-        $dArr = cms_Domains::getDomainOptions(true);
-        if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-            $dArr[-1] = BGERP_ABSOLUTE_HTTP_HOST;
-        }
-        $dArr = array_diff($dArr, array('localhost'));
-
-        if (core_Url::isLocal($url, $rest, $dArr)) {
-            $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
+        $title = str::limitLen(decodeUrl($url), 120);
+        if ($this->isLocalUrl($url, $rest)) {
+            $result = $this->internalUrl($url, $title, $rest);
         } else {
-            $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));
+            $result = $this->externalUrl($url, $title);
         }
         
         return $result . $trim;
+    }
+
+
+    /**
+     * Еднаква проверка на поддържаните домейни за URL и [link=...].
+     */
+    protected function isLocalUrl($url, &$rest)
+    {
+        $parts = parse_url($url);
+        if (!$parts || !in_array(strtolower($parts['scheme'] ?? ''), array('http', 'https')) || isset($parts['user']) || isset($parts['pass'])) {
+            return false;
+        }
+
+        static $domainOptions = null;
+        $domainOptions ??= cms_Domains::getDomainOptions(true);
+        $domains = array_diff($domainOptions, array('localhost'));
+        $domains[] = getBoot(true);
+        if (defined('BGERP_ABSOLUTE_HTTP_HOST')) $domains[] = BGERP_ABSOLUTE_HTTP_HOST;
+        $host = preg_replace('/^www\./i', '', strtolower($parts['host'] ?? ''));
+        foreach ($domains as $domain) {
+            $domainHost = parse_url(strpos($domain, '://') === false ? 'http://' . $domain : $domain, PHP_URL_HOST);
+            if ($host && $host === preg_replace('/^www\./i', '', strtolower($domainHost ?? ''))) {
+                $rest = ($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '') . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+
+                return true;
+            }
+        }
+
+        return false;
     }
     
     

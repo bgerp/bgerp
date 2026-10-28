@@ -156,9 +156,9 @@ class eshop_Products extends core_Master
         $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
+        $this->FLD('info', 'richtext(bucket=Notes,rows=5,trustedHtml=yes)', 'caption=Описание->Кратко');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в списъка,optionsFunc=cat_Params::getPublic');
-        $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
+        $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5,trustedHtml=yes)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в изгледа,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none,single=none,column=none');

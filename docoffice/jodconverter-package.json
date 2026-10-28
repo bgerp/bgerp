@@ -1,0 +1,13 @@
+{
+    "type": "package",
+    "package": {
+        "name": "bgerp/jodconverter-cli",
+        "version": "5.1.1",
+        "license": "Apache-2.0",
+        "dist": {
+            "url": "https://github.com/jodconverter/jodconverter/releases/download/v5.1.1/jodconverter-cli-5.1.1.zip",
+            "type": "zip",
+            "shasum": "48925020587fd5d1bb945364784b1438560e3e24"
+        }
+    }
+}

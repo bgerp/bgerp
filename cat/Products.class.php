@@ -2758,6 +2758,20 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Добавя класа на драйвера към LLM експорта, за да не се гадае
+     */
+    protected static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text) || empty($rec->innerClass)) return;
+
+        $driverName = cls::getClassName($rec->innerClass);
+        if (empty($driverName)) return;
+
+        $text .= "\n\n" . doc_plg_LlmExportable::systemNote("Product driver: {$driverName}");
+    }
+
+
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

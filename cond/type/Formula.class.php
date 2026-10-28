@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -113,7 +113,7 @@ class cond_type_Formula extends cond_type_Text
             if ($Domain instanceof cat_Products) {
                 if (isset($domainId)) {
                     if (!array_key_exists($key, static::$cache)) {
-                        static::$cache[$key] = $Domain->getParams($domainId);
+                        static::$cache[$key] = static::tryToCalcAllFormulas($Domain->getParams($domainId));
                     }
                     $params = static::$cache[$key];
                 }
@@ -153,13 +153,11 @@ class cond_type_Formula extends cond_type_Text
                         while ($tRec = $tQuery->fetch()) {
                             $params[$tRec->paramId] = $tRec->paramValue;
                         }
-                        static::$cache[$key] = $params;
+                        static::$cache[$key] = static::tryToCalcAllFormulas($params);
                     }
                     $params = static::$cache[$key];
                 }
             }
-
-            $params = static::tryToCalcAllFormulas($params);
         }
 
         $params[self::JOB_QUANTITY_PARAM] = $jobQuantity;

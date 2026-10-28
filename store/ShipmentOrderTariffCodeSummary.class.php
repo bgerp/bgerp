@@ -12,7 +12,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -111,6 +111,12 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $this->requireRightFor('modify', (object)array('shipmentId' => $shipmentId, 'tariffCode' => $tariffCode));
         $exRec = static::getRec($shipmentId, $tariffCode);
         $shipmentRec = store_ShipmentOrders::fetch($shipmentId);
+
+        // Изпратената таблица не е URL параметър; GET подсказките се запазват при отваряне.
+        $postParams = Request::getParams('_POST');
+        if (isset($postParams['transUnits'])) {
+            Request::ignoreParams(array('transUnits' => true));
+        }
 
         $form = static::getForm();
         $exRecId = is_object($exRec) ? $exRec->id : null;

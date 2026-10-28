@@ -1,0 +1,13 @@
+{
+    "type": "package",
+    "package": {
+        "name": "bgerp/unoserver",
+        "version": "3.7",
+        "license": "MIT",
+        "dist": {
+            "url": "https://files.pythonhosted.org/packages/4f/1d/8cfa91f04d5865ed6d30e1375c22fed98694aafd6171b4979dd7f5f9b16d/unoserver-3.7-py3-none-any.whl",
+            "type": "zip",
+            "shasum": "42cc9c5fab76ad7a71e62bf7529fd1d3fc0c8ff3"
+        }
+    }
+}

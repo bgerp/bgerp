@@ -8,7 +8,7 @@
  * @package   auto
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -76,7 +76,7 @@ class auto_handler_CreateQuotationFromInquiry
         // Имали подадени количества
         $quantities = array();
         foreach (range(1, 3) as $i) {
-            $q = $marketingRec->{"quantity{$i}"};
+            $q = $marketingRec->{"quantity{$i}"} ?? null;
             if (empty($q)) {
                 continue;
             }
@@ -205,22 +205,22 @@ class auto_handler_CreateQuotationFromInquiry
         
         $form->rec->originId = $marketingRec->containerId;
         $form->rec->threadId = $marketingRec->threadId;
-        $form->rec->proto = $marketingRec->proto;
-        if(strpos($marketingRec->title, '||') !== false){
+        $form->rec->proto = $marketingRec->proto ?? null;
+        if(strpos($marketingRec->title ?? '', '||') !== false){
             list($form->rec->name, $form->rec->nameEn) = explode('||', $marketingRec->title);
         } else {
-            $form->rec->name = $marketingRec->title;
+            $form->rec->name = $marketingRec->title ?? null;
         }
         
         $Driver->addFields($form);
         foreach ($form->fields as $name => $fld) {
-            if (isset($marketingRec->{$name}) && !$iForm->fields[$name]) {
+            if (isset($marketingRec->{$name}) && empty($iForm->fields[$name])) {
                 $form->rec->{$name} = $marketingRec->{$name};
             }
         }
 
         // Определяме мярката за продукта, ако липсва
-        if (!$form->rec->measureId) {
+        if (empty($form->rec->measureId)) {
             // Ако има дефолтна мярка, избираме я
             $driverMeasureId = $Driver->getDefaultUomId($form->rec);
             if (is_object($Driver) && isset($driverMeasureId)) {

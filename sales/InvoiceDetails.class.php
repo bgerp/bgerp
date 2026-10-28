@@ -197,7 +197,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             unset($oRec->discount);
 
             $oRec->invoiceId = $invoiceId;
-            $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
+            $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, null, $oRec->productId, $oRec->packagingId, $oRec->price, null, null, null, $oRec->batch ?? null, $oRec->expenseItemId ?? null, $oRec->notes ?? null);
             $oRec->quantity = $oRec->packQuantity;
             if ($exRec) {
                 $exRec->quantity += $oRec->quantity;
@@ -213,7 +213,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         $handle = "#{$origin->getHandle()}";
 
         // Добавяне в забележките
-        if(strpos($invoiceRec->additionalInfo, $handle) === false){
+        if(strpos($invoiceRec->additionalInfo ?? '', $handle) === false){
             $invoiceRec->additionalInfo .= "\n" . $handle;
             $this->Master->save_($invoiceRec, 'additionalInfo');
         }

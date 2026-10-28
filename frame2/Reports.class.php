@@ -1182,6 +1182,20 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Добавя класа на драйвера към LLM експорта, за да не се гадае
+     */
+    protected static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text) || empty($rec->driverClass)) return;
+
+        $driverName = cls::getClassName($rec->driverClass);
+        if (empty($driverName)) return;
+
+        $text .= "\n\n" . doc_plg_LlmExportable::systemNote("Report driver: {$driverName}");
+    }
+
+
+    /**
      * Добавя допълнителни полетата в антетката
      *
      * @param core_Master $mvc

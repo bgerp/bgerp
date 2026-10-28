@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,7 +41,7 @@ class bank_Register extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valiorAndIban, amount, contragentName=Контрагент, info=Осчетоводяване';
+    public $listFields = 'valiorAndIban, amount, contragentName=Контрагент, info=Осчетоводяване, source=Източник';
 
 
     /**
@@ -91,6 +91,13 @@ class bank_Register extends core_Manager
     {
         $this->FLD('serviceId', 'varchar(32)', 'caption=Услуга');
         $this->FLD('transactionId', 'varchar(32)', 'caption=Услуга');
+        $this->FLD('bankReference', 'varchar(128)', 'caption=Банкова референция,input=none');
+        $this->FLD('bankReferenceId', 'varchar(32)', 'input=none,column=none,single=none');
+
+        $this->FLD('sourceFileHnd', 'fileman_FileType', 'caption=Източник->Файл,input=none,column=none,single=none');
+        $this->FLD('sourceFileName', 'varchar(1024)', 'caption=Източник->Име в архива,input=none,column=none,single=none');
+        $this->FLD('sourceEntry', 'int', 'caption=Източник->Операция,input=none,column=none,single=none');
+        $this->FLD('sourceEmailHnd', 'fileman_FileType', 'caption=Източник->Имейл,input=none,column=none,single=none');
 
         $this->FLD('type', 'enum(incoming=Входящ,outgoing=Изходящ)', 'caption=Вид');
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума');
@@ -108,6 +115,8 @@ class bank_Register extends core_Manager
         $this->FNC('valiorAndIban', 'varchar', 'captin=Дата и IBAN');
 
         $this->setDbUnique('transactionId');
+        $this->setDbUnique('bankReferenceId');
+        $this->setDbIndex('ownAccountId,valior,type,amount');
     }
 
 
@@ -150,6 +159,8 @@ class bank_Register extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->source = self::renderImportSource($rec);
+
         if (!empty($rec->contragentIban)) {
             $row->contragentName = ($row->contragentName ?? '') . (!empty($row->contragentName) ? '<br>' : '') . $mvc->getVerbal($rec, 'contragentIban');
         }
@@ -402,35 +413,247 @@ class bank_Register extends core_Manager
     /**
      * Импортира подготвени редове в модела
      */
-    public static function importRecs($recs, $serviceId = null)
+    public static function importRecs($recs, $serviceId = null, &$warnings = null, $confirmedCrossFormats = array())
     {
-        $usedIds = array();
+        $virtual = $rows = array();
+        list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows, $confirmedCrossFormats);
+        $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
+        if ($warnings) {
+            $status .= '; ' . implode('; ', array_unique($warnings));
+        }
+
+        return $status;
+    }
+
+
+    /**
+     * Същите проверки като при запис, включително между файловете в ZIP, без промени в базата.
+     *
+     * @return array Диагностика в реда на операциите във всички партиди.
+     */
+    public static function previewImport($batches, $confirmedRows = array())
+    {
+        $virtual = $rows = array();
+        foreach ($batches as $batch) {
+            self::processImportRecs($batch, null, true, $virtual, $rows, $confirmedRows);
+        }
+
+        return $rows;
+    }
+
+
+    /**
+     * В прегледа новите записи се пазят само в паметта; идентификаторите следват реалния импорт.
+     */
+    private static function processImportRecs($recs, $serviceId, $preview, &$virtual, &$rows, $confirmedCrossFormats = array())
+    {
+        $usedIds = $warnings = array();
         $ins = $skip = 0;
 
-        foreach ($recs as $rec) {
+        foreach ($recs as $input) {
+            $diagnostic = (object) array('status' => 'new', 'existingId' => null, 'duplicateRow' => null);
+            $existing = false;
+            $rec = clone $input;
+            unset($rec->id);
             if ($serviceId) {
                 $rec->serviceId = $serviceId;
             }
             $rec->state = 'waiting';
+            $reference = trim($rec->bankReference ?? '');
+            $rec->bankReference = $reference !== '' ? $reference : null;
+            $rec->bankReferenceId = $reference !== '' ? md5(serialize(array((string) ($rec->ownAccountId ?? ''), $rec->type ?? '', $reference))) : null;
+            $fingerprint = implode('|', array($rec->valior ?? '', $rec->type ?? '', $rec->amount ?? '', $rec->contragentIban ?? '', $rec->ownAccountId ?? ''));
             $ind = 0;
-            do {
-                $rec->transactionId = md5("{$rec->valior}|{$rec->type}|{$rec->amount}|{$rec->contragentIban}|{$rec->ownAccountId}|{$ind}");
-                $ind++;
-            } while (!empty($usedIds[$rec->transactionId]));
+            $checkReference = $reference !== '';
+            $crossChecked = false;
+            while (true) {
+                if ($checkReference) {
+                    $checkReference = false;
+                    $existing = ($virtual['bankReferenceId'][$rec->bankReferenceId] ?? self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false));
+                    if ($existing) {
+                        $diagnostic->status = 'duplicate';
+                        $diagnostic->differences = self::getImportedPaymentDifferences($existing, $rec);
+                        if ($diagnostic->differences) {
+                            $diagnostic->status = 'conflict';
+                            $warnings[] = 'Банков запис №' . (int) ($existing->id ?? 0) . ': една банкова референция е с различна сума, вальор или насрещна сметка; записът е оставен за проверка';
+                        }
+                        $usedIds[$existing->transactionId ?? ''] = true;
+                        $skip++;
+                        break;
+                    }
+                }
+                if (!$crossChecked) {
+                    $crossChecked = true;
+                    $matches = self::getCrossFormatMatches($rec, $virtual);
+                    if ($matches) {
+                        $identities = array();
+                        foreach ($matches as $key => $match) $identities[$key] = $match->contragentIban ?? '';
+                        ksort($identities);
+                        $token = hash('sha256', serialize($identities));
+                        $diagnostic->crossFormatMatches = array_values($matches);
+                        $diagnostic->crossFormatToken = $token;
+                        $diagnostic->referenceId = $rec->bankReferenceId ?? '';
+                        $confirmed = $preview ? !empty($confirmedCrossFormats[count($rows) + 1])
+                            : ($confirmedCrossFormats[$rec->bankReferenceId ?? ''] ?? null) === $token;
+                        if (!$confirmed) {
+                            $diagnostic->status = 'crossFormat';
+                            $warnings[] = 'Възможен дубликат между CAMT и MT940; операцията е пропусната и изисква проверка в прегледа преди импорт';
+                            $skip++;
+                            break;
+                        }
+                        $diagnostic->status = 'crossFormatConfirmed';
+                    }
+                }
+                // Запазваме старите идентификатори и реда при извлечения без референции.
+                $rec->transactionId = md5($fingerprint . '|' . $ind++);
+                if (isset($usedIds[$rec->transactionId])) {
+                    continue;
+                }
+                $existing = ($virtual['transactionId'][$rec->transactionId] ?? self::fetch(array("#transactionId = '[#1#]'", $rec->transactionId), '*', false));
+                if ($existing && $reference !== '' && !empty($existing->bankReferenceId)) {
+                    // Две еднакви по сума операции с различни банкови референции са отделни преводи.
+                    continue;
+                }
+                $usedIds[$rec->transactionId] = true;
+                if ($existing) {
+                    $diagnostic->status = 'duplicate';
+                    if ($reference !== '') {
+                        $diagnostic->status = 'legacy';
+                        $warnings[] = 'Възможен дубликат на банков запис №' . (int) ($existing->id ?? 0) . ' без референция; не е добавен нов запис и е нужна проверка';
+                    }
+                    $skip++;
+                    break;
+                }
+                unset($rec->id);
+                if ($preview || self::save($rec, null, 'IGNORE')) {
+                    if ($preview) {
+                        $virtual['transactionId'][$rec->transactionId] = clone $rec;
+                        if ($reference !== '') {
+                            $virtual['bankReferenceId'][$rec->bankReferenceId] = clone $rec;
+                        }
+                        $virtual['row'][$rec->transactionId] = count($rows) + 1;
+                        $scope = self::getCrossFormatScope($rec);
+                        if ($scope) $virtual['crossFormat'][$scope['key']][] = clone $rec;
+                    }
+                    $ins++;
+                    break;
+                }
+                // Друг импорт може да е заел идентификатора между четенето и INSERT IGNORE.
+                unset($usedIds[$rec->transactionId]);
+                $collision = self::fetch(array("#transactionId = '[#1#]'", $rec->transactionId), '*', false);
+                if (!$collision && ($reference === '' || !self::fetch(array("#bankReferenceId = '[#1#]'", $rec->bankReferenceId), '*', false))) {
+                    $diagnostic->status = 'error';
+                    $warnings[] = 'Банкова операция не е записана; проверете входните данни и банковия регистър';
+                    $skip++;
+                    break;
+                }
+                $ind--;
+                $checkReference = $reference !== '';
+                $crossChecked = false;
+            }
+            if ($existing) {
+                $diagnostic->existingId = isset($existing->id) ? (int) $existing->id : null;
+                $diagnostic->duplicateRow = $virtual['row'][$existing->transactionId ?? ''] ?? null;
+            }
+            $rows[] = $diagnostic;
+        }
 
-            $usedIds[$rec->transactionId] = true;
+        return array($ins, $skip, $warnings);
+    }
 
-            if (self::fetch("#transactionId = '{$rec->transactionId}'")) {
-                $skip++;
-            } else {
-                self::save($rec, null, 'IGNORE');
-                $ins++;
+
+    /**
+     * Сравняваме само референции с известни формат, валута и признак за сторно.
+     */
+    private static function getCrossFormatScope($rec)
+    {
+        if (!preg_match('/^(CAMT|MT940):([A-Z]{3}):([NR]):.+$/D', $rec->bankReference ?? '', $match)) return null;
+
+        return array('prefix' => ($match[1] === 'CAMT' ? 'MT940' : 'CAMT') . ':' . $match[2] . ':' . $match[3] . ':',
+            'key' => serialize(array((string) ($rec->ownAccountId ?? ''), $rec->valior ?? '', $rec->type ?? '',
+                number_format((float) ($rec->amount ?? 0), 2, '.', ''), $match[2], $match[3])));
+    }
+
+
+    /**
+     * Липсващ IBAN не доказва различен превод. Съвпадението остава само предположение.
+     */
+    private static function getCrossFormatMatches($rec, $virtual)
+    {
+        $scope = self::getCrossFormatScope($rec);
+        if (!$scope) return array();
+        $query = self::getQuery();
+        $query->where(array("#ownAccountId = '[#1#]' AND #valior = '[#2#]' AND #type = '[#3#]' AND #amount = '[#4#]' AND #bankReference LIKE '[#5#]%'",
+            $rec->ownAccountId ?? null, $rec->valior ?? '', $rec->type ?? '', $rec->amount ?? 0, $scope['prefix']));
+        $query->show('id,bankReferenceId,bankReference,contragentIban');
+        $candidates = $virtual['crossFormat'][$scope['key']] ?? array();
+        while ($candidate = $query->fetch()) $candidates[] = $candidate;
+        $iban = strtoupper(preg_replace('/\s+/', '', $rec->contragentIban ?? ''));
+        $matches = array();
+        foreach ($candidates as $candidate) {
+            if (strpos($candidate->bankReference ?? '', $scope['prefix']) !== 0) continue;
+            $candidateIban = strtoupper(preg_replace('/\s+/', '', $candidate->contragentIban ?? ''));
+            if ($iban !== '' && $candidateIban !== '' && $iban !== $candidateIban) continue;
+            $matches[$candidate->bankReferenceId ?? ''] = (object) array('existingId' => $candidate->id ?? null,
+                'duplicateRow' => $virtual['row'][$candidate->transactionId ?? ''] ?? null,
+                'bankReference' => $candidate->bankReference ?? '', 'contragentIban' => $candidateIban);
+        }
+        ksort($matches);
+
+        return $matches;
+    }
+
+
+    /**
+     * Източникът ползва обичайните файлови права; повторният импорт не го подменя.
+     */
+    public static function renderImportSource($rec)
+    {
+        $parts = array();
+        foreach (array('sourceFileHnd', 'sourceEmailHnd') as $field) {
+            $fh = $rec->{$field} ?? null;
+            if (!$fh) {
+                continue;
+            }
+            $file = fileman_Files::fetchByFh($fh);
+            if (!$file || !fileman_Files::haveRightFor('single', $file)) {
+                $parts[] = tr('Недостъпен източник');
+                continue;
+            }
+            $name = $field == 'sourceEmailHnd' ? tr('Оригинален имейл') : ($file->name ?? '');
+            $parts[] = ht::createLink(str_replace('[', '&#91;', type_Varchar::escape($name)), array('fileman_Files', 'single', $fh));
+            if ($field == 'sourceFileHnd') {
+                if (!empty($rec->sourceFileName) && $rec->sourceFileName !== ($file->name ?? '')) {
+                    $parts[] = str_replace('[', '&#91;', type_Varchar::escape($rec->sourceFileName));
+                }
+                if (!empty($rec->sourceEntry)) {
+                    $parts[] = tr('Операция') . ' №' . (int) $rec->sourceEntry;
+                }
             }
         }
 
-        $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
+        return implode('<br>', $parts);
+    }
 
-        return $status;
+
+    /**
+     * При повторена банкова референция не заместваме различни финансови данни.
+     */
+    private static function getImportedPaymentDifferences($a, $b)
+    {
+        $different = array(
+            'valior' => ($a->valior ?? null) !== ($b->valior ?? null),
+            'amount' => !(abs((float) ($a->amount ?? 0) - (float) ($b->amount ?? 0)) < 0.000001),
+            'contragentIban' => strtoupper(preg_replace('/\s+/', '', $a->contragentIban ?? '')) !== strtoupper(preg_replace('/\s+/', '', $b->contragentIban ?? '')),
+        );
+        $res = array();
+        foreach ($different as $field => $changed) {
+            if ($changed) {
+                $res[$field] = array('existing' => $a->{$field} ?? null, 'incoming' => $b->{$field} ?? null);
+            }
+        }
+
+        return $res;
     }
 
 
@@ -463,7 +686,7 @@ class bank_Register extends core_Manager
 
             // Вадим номерата от основанието
             $matches = array();
-            preg_match_all('/([1-9][0-9]+)/', $rec->reason, $matches);
+            preg_match_all('/([1-9][0-9]+)/', $rec->reason ?? '', $matches);
             if (countR($matches[0])) {
                 $numbers = array_flip($matches[0]);
             } else {
@@ -556,7 +779,7 @@ class bank_Register extends core_Manager
                 $pParts = array();
 
                 // Номер на документа
-                if (strlen($d->number) && stripos($rec->reason, $d->number) !== false) {
+                if (strlen($d->number ?? '') && stripos($rec->reason ?? '', $d->number) !== false) {
                     $pNumber = max(0, 1 - 2.8 / strlen($d->number));
                     if (!empty($numbers[$d->number])) {
                         $pNumber += max(0, 1 - 1.3 / strlen($d->number));

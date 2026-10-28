@@ -306,11 +306,98 @@ $accepted = clockApply($preview);
 check(!$accepted->gotErrors(), 'Forecast-only cron updates do not invalidate source-data approval');
 
 clockContext();
+$rows = array(1 => task(1), 2 => task(2));
+for ($id = 3; $id <= 18; $id++) $rows[$id] = task($id, 600, null, 2 + ($id % 4));
+PreviewClockTargetTimes::$context = planContext($rows);
+$context = PreviewClockTargetTimes::$context;
+planning_Tasks::$records = $context->baseline;
+$preview = clockPreview();
+$originalChanges = array_column($preview->_targetTimesReport['operationChanges'], 'operation');
+dt::$now = '2026-10-08 08:05:00';
+// Кронът е обновил изчислените времена навсякъде, но не и входните ограничения.
+foreach (array($context->tasks, $context->baseline) as $records) foreach ($records as $row) {
+    $row->expectedTimeStart = dt::addSecs(300, $row->expectedTimeStart ?? '2026-10-08 08:00:00');
+    $row->expectedTimeEnd = dt::addSecs(300, $row->expectedTimeEnd ?? '2026-10-08 09:00:00');
+    $row->_startTimestamp = strtotime($row->expectedTimeStart);
+    $row->_endTimestamp = strtotime($row->expectedTimeEnd);
+}
+$accepted = clockApply($preview);
+check(!$accepted->gotErrors() && !empty($accepted->rec->_targetTimesChanged),
+    'Cron-only timing updates on every machine between preview and Apply do not require another confirmation');
+$fresh = clockPreview();
+check(array_column($fresh->_targetTimesReport['operationOrder'], 'assetId') === array(1),
+    'After a global cron timing refresh, unrelated machines still do not appear in the preview');
+check(array_column($fresh->_targetTimesReport['operationChanges'], 'operation') === $originalChanges,
+    'Clock drift and refreshed cron forecasts do not inflate the changed-operation list');
+$context->tasks[1]->calcedCurrentDuration = $context->baseline[1]->calcedCurrentDuration = 7200;
+$stale = clockApply($fresh);
+check($stale->gotErrors() && empty($stale->rec->_targetTimesChanged)
+    && strpos(implode(' ', $stale->_targetTimesReport['approvalChanges'] ?? array()), 'продължителност') !== false,
+    'A genuine relevant duration change after the cron still requires confirmation with a concrete explanation');
+
+clockContext();
 PreviewClockTargetTimes::$context->previous = array(3 => array(2 => (object)array('intersect' => 'no', 'waitingTime' => 0)));
 $preview = clockPreview();
 $groups = $preview->_targetTimesReport['operationOrder'];
 check(count($groups) === 2, 'A genuinely affected downstream machine is still shown');
 check($groups[1]['after'][0]['startChange'] === 1, 'A real downstream delay remains visible');
+
+clockContext();
+$context = PreviewClockTargetTimes::$context;
+$context->tasks[4] = task(4, 3600, null, 2);
+$context->baseline[4] = clone $context->tasks[4];
+$context->prepared->assets[2]->manualOrder = array(3, 4);
+$context->prepared->assets[2]->packageLinks = array(4 => 3);
+$snapshot = serialize($context);
+$preview = clockPreview();
+check(count($preview->_targetTimesReport['operationOrder']) === 1,
+    'An unchanged effective automatic package does not add a foreign machine to the preview');
+check(!in_array('Opr4', array_column($preview->_targetTimesReport['operationChanges'], 'operation')),
+    'Calculated automatic links are compared with the calculated baseline, not the stored links');
+check(serialize($context) === $snapshot, 'Reporting effective packages does not mutate the source context');
+
+clockContext();
+$context = PreviewClockTargetTimes::$context;
+$context->tasks[1]->assetId = $context->baseline[1]->assetId = 2;
+$context->tasks[2]->assetId = $context->baseline[2]->assetId = 2;
+$context->tasks[3]->assetId = $context->baseline[3]->assetId = 1;
+$context->prepared->assets[1]->manualOrder = array(3);
+$context->prepared->assets[2]->manualOrder = array(1, 2);
+$context->previous = array(3 => array(2 => (object)array('intersect' => 'no', 'waitingTime' => 0)));
+$result = PreviewClockTargetTimes::simulate((object)array('id' => 2, 'assetId' => 2, 'timeStart' => '2026-10-08 15:00:00'));
+$reportMethod = new ReflectionMethod('planning_TargetTimes', 'proposalReport');
+$reportMethod->setAccessible(true);
+$report = $reportMethod->invoke(null, $result, (object)array('id' => 2, 'assetId' => 2, 'timeStart' => '2026-10-08 15:00:00'), (object)array());
+check($report['operationOrder'][0]['assetId'] === 2 && $report['operationOrder'][0]['edited'],
+    'The edited machine comes first even when its numeric id is larger');
+check(count($report['operationOrder']) === 2 && $report['operationOrder'][1]['changedCount'] > 0,
+    'A genuine downstream effect is retained with a concrete changed-operation count');
+check($report['currentStart'] === '08.10.2026 09:00', 'The summary uses the current calculated start');
+
+$rows = array();
+for ($id = 1; $id <= 40; $id++) $rows[$id] = task($id, 300);
+$context = planContext($rows);
+$context->comparison = $context->prepared;
+$result = proposal($context, 20, '2026-10-08 09:35:00');
+$report = $reportMethod->invoke(null, $result, (object)array('id' => 20, 'assetId' => 1, 'timeStart' => '2026-10-08 09:35:00'), (object)array());
+$before = $report['operationOrder'][0]['before'];
+$focused = array_values(array_filter($before, function ($row) { return $row['focus']; }));
+check(count($focused) < count($before) && count($before) === 40, 'Compact context retains every row for explicit expansion');
+$edited = array_values(array_filter($before, function ($row) { return $row['id'] === 20; }));
+check($edited[0]['number'] <= count($focused), 'Short reference numbers are assigned to the visible context first');
+check(count(array_filter($report['operationChanges'], function ($row) { return !empty($row['pinChanged']) && $row['operation'] !== 'Opr20'; })) === 0,
+    'The edited pin is not reported as a foreign fixed-start change');
+
+$context = planContext(array(1 => task(1, 7200), 2 => task(2, 3600, '2026-10-08 10:00:00')), array(2 => 1));
+$context->comparison = $context->prepared;
+$result = proposal($context, 1, '2026-10-08 14:00:00', 'move');
+$report = $reportMethod->invoke(null, $result, (object)array('id' => 1, 'assetId' => 1, 'timeStart' => '2026-10-08 14:00:00'), (object)array());
+check($report['operationOrder'][0]['foreignPinCount'] === 1 && $report['operationOrder'][0]['packageCount'] === 0,
+    'An explicit foreign pin change is counted separately from the edited pin and intact packages');
+$result = proposal($context, 1, '2026-10-08 14:00:00', 'keep', 'detach');
+$report = $reportMethod->invoke(null, $result, (object)array('id' => 1, 'assetId' => 1, 'timeStart' => '2026-10-08 14:00:00'), (object)array());
+check($report['operationOrder'][0]['packageCount'] === 1 && $report['operationOrder'][0]['foreignPinCount'] === 0,
+    'A genuine package detachment remains visible without inventing a foreign pin change');
 
 dt::$now = '2026-10-08 08:00:00';
 echo "OK: {$checks} total checks including preview clock and scope\n";
