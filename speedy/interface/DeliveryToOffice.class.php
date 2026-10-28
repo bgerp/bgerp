@@ -68,7 +68,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate = null)
     {
         //@todo Да се направи да работи с API-то
-        $officeId = $params['officeId'];
+        $officeId = $params['officeId'] ?? null;
         $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         // Временно работи с навлата
@@ -140,7 +140,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     {
         $res = array();
         
-        if($deliveryData['officeId']){
+        if(!empty($deliveryData['officeId'])){
             $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
             $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
             
