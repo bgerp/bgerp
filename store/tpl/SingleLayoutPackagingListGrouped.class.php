@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -230,7 +230,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             if($displayTariffCode != self::EMPTY_TARIFF_NUMBER){
                 $code = "<span class='quiet small'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
-                $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
+                $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang ?? null);
                 $tariffDescriptionVerbal = $this->getVerbalRow($tariffDescription, 'varchar', $tariffCodeRec->displayDescription);
             } else {
                 $code = "<span class='small'>" . tr('Без тарифен код') . "</span>";
