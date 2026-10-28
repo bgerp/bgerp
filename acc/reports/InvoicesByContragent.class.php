@@ -1166,6 +1166,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rate = ($dRec->rate ?? 1) ?: 1;
             $sourcePaid = self::getPaidAmount($dRec);
             $sourceValue = $dRec->invoiceValue ?? 0;
+            // Старите снимки запазват разпределението си до обновяване на резултата.
+            if (($dRec->type ?? 'invoice') == 'dc_note' && $sourceValue < 0
+                && in_array($dRec->className ?? '', array(sales_Invoices::class, purchase_Invoices::class))) {
+                $dRec->creditNoteBalance = true;
+            }
             // Сумираме показаните стотинки по документ, не скрити дробни части след превалутиране.
             $paid = round($sourcePaid, 2);
             $value = round($sourceValue, 2);
@@ -1189,8 +1194,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if (($dRec->className ?? null) == sales_Proformas::class) continue;
             $name = $dRec->contragent ?? '';
             $overdueAmount = !empty($dRec->dueDate) && $dRec->dueDate < $checkDate && $balance > 0 ? $balance : 0;
+            list($notPaid, $overPaid) = self::getBalanceAmounts($dRec, $balance);
             $amounts = !$withCorrections && $unpaid == 'all' ? array($value, 0, 0, 0, 0)
-                : array($value, $paid, max(0, $balance), min(0, $balance), $overdueAmount, $correction);
+                : array($value, $paid, $notPaid, $overPaid, $overdueAmount, $correction);
             foreach ($fields as $i => $field) {
                 $totals[$name][$field] = round(($totals[$name][$field] ?? 0) + $amounts[$i], 2);
                 $rec->{$field . 'All'} = round($rec->{$field . 'All'} + $amounts[$i], 2);
@@ -1208,6 +1214,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         });
 
         return $recs;
+    }
+
+
+    /**
+     * Непогасеното КИ намалява неплатеното, ДИ го увеличава; реалните надплати остават отделно.
+     */
+    private static function getBalanceAmounts($dRec, $balance)
+    {
+        return !empty($dRec->creditNoteBalance) ? array($balance, 0) : array(max(0, $balance), min(0, $balance));
     }
 
 
@@ -2754,18 +2769,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Стойност на фактурата в основна валута
             $row->invoiceValueBaseCurr = $styleAmount($dRec->invoiceValue);
 
-            //Остатък за плащане в основна валута
-            if ($dRec->invoiceCurrentSumm > 0) {
-
-                $row->invoiceCurrentSumm = $styleAmount($dRec->invoiceCurrentSumm * $dRec->rate);
-            }
-
-            if ($dRec->invoiceCurrentSumm < 0) {
-                $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-                $row->invoiceOverSumm = $styleAmount($invoiceOverSumm * $dRec->rate);
-            }
-
-
         }
 
         // --- Превалутиране и показване: период от въвеждане на EUR (основна валута EUR) ---
@@ -2791,18 +2794,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Стойност на фактурата в основна валута
             $row->invoiceValueBaseCurr = $styleAmount($dRec->invoiceValue);
 
-            //Остатък за плащане в основна валута
-            if ($dRec->invoiceCurrentSumm > 0) {
-
-                $row->invoiceCurrentSumm = $styleAmount($dRec->invoiceCurrentSumm * $dRec->rate);
-            }
-
-            if ($dRec->invoiceCurrentSumm < 0) {
-                $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-                $row->invoiceOverSumm = $styleAmount($invoiceOverSumm * $dRec->rate);
-            }
-
         }
+
+        list($notPaid, $overPaid) = self::getBalanceAmounts($dRec, ($dRec->invoiceCurrentSumm ?? 0) * ($dRec->rate ?? 1));
+        if ($notPaid != 0) $row->invoiceCurrentSumm = $styleAmount($notPaid);
+        if ($overPaid != 0) $row->invoiceOverSumm = $styleAmount(-$overPaid);
 
         //Стойност на фактурата във валутата на издаване
         $invoiceCurrencyValue = self::getInvoiceCurrencyValue($rec, $dRec);
@@ -3310,7 +3306,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         self::normalizeDetailRec($dRec);
         // Форматира дати, суми и статус „просрочен“ за CSV/Excel експорт.
-        $Date = cls::get('type_Date');
         if (($rec->typeOfInvoice ?? 'out') == 'all') {
             $res->invoiceDirection = ($dRec->className ?? '') == 'purchase_Invoices' ? tr('Входящи') : tr('Изходящи');
         }
@@ -3322,30 +3317,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         $invoiceValue = $dRec->invoiceValue ?? 0;
         $invoiceCurrentSumm = $dRec->invoiceCurrentSumm ?? 0;
-        $dcMark = $invoiceValue < 0 ? -1 : 1;
-        if (($dRec->type ?? 'invoice') != 'invoice') {
-            foreach ((array)($dRec->dcPay ?? array()) as $k => $val) {
-                $res->paidAmount = ($res->paidAmount ?? '') . ($val->amount ?? 0) * $dcMark;
-            }
-        } else {
-            $res->paidAmount = self::getPaidAmount($dRec);
-        }
-
-        if (($dRec->type ?? 'invoice') != 'invoice') {
-            foreach ((array)($dRec->dcPay ?? array()) as $k => $val) {
-                $res->paidDates = ($res->paidDates ?? '') . $Date->toVerbal($val->payDate ?? null) . "\n\r";
-            }
-        } else {
-            $res->paidDates = self::getPaidDates($dRec, false);
-        }
+        $res->paidAmount = self::getPaidAmount($dRec);
+        $res->paidDates = self::getPaidDates($dRec, false);
 
         $res->dueDate = self::getDueDate($dRec, false, $rec);
-
-        if ($invoiceCurrentSumm < 0) {
-            $invoiceOverSumm = -1 * $invoiceCurrentSumm;
-            $res->invoiceCurrentSumm = '';
-            $res->invoiceOverSumm = ($invoiceOverSumm);
-        }
 
         if (!empty($dRec->dueDate) && $invoiceCurrentSumm > 0 && $dRec->dueDate < $checkDate) {
             $res->dueDateStatus = 'Просрочен';
@@ -3365,13 +3340,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $documents = array();
             foreach ($dRec->accountingDocuments ?? array() as $document) $documents[] = 'МО' . ($document->id ?? '') . ' / ' . ($document->date ?? '');
             $res->accountingDocuments = implode(', ', $documents);
-            $res->invoiceCurrentSumm = round(max(0, $invoiceCurrentSumm * ($dRec->rate ?? 1)), 2);
-            $res->invoiceOverSumm = round(max(0, -$invoiceCurrentSumm * ($dRec->rate ?? 1)), 2);
             if (!empty($dRec->isAccountingCorrection)) {
                 $res->invoiceNo = self::getAccountingDealTitle($dRec);
                 $res->invoiceValue = $res->invoiceValueBaseCurr = $res->paidAmount = '';
             }
         }
+        list($notPaid, $overPaid) = self::getBalanceAmounts($dRec, round($invoiceCurrentSumm * ($dRec->rate ?? 1), 2));
+        $res->invoiceCurrentSumm = $notPaid;
+        $res->invoiceOverSumm = -$overPaid;
     }
 
 }

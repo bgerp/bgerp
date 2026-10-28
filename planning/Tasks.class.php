@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -312,6 +312,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кеш на заглавията на етапите за текущия хит
+     */
+    protected $stepTitles = array();
+
+
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
@@ -541,12 +547,21 @@ class planning_Tasks extends core_Master
      */
     private function getStepTitle($productId)
     {
-        if ($Driver = cat_Products::getDriver($productId)) {
-            $pData = $Driver->getProductionData($productId);
-            if (!empty($pData['name'])) return $pData['name'];
+        // Етапите в списъка се повтарят, а данните за производство правят заявки
+        $key = $productId . '|' . core_Lg::getCurrent();
+        if (!array_key_exists($key, $this->stepTitles)) {
+            $title = null;
+            if ($Driver = cat_Products::getDriver($productId)) {
+                $pData = $Driver->getProductionData($productId);
+                if (!empty($pData['name'])) {
+                    $title = $pData['name'];
+                }
+            }
+
+            $this->stepTitles[$key] = $title ?? cat_Products::getTitleById($productId, false);
         }
 
-        return cat_Products::getTitleById($productId, false);
+        return $this->stepTitles[$key];
     }
 
 
@@ -3529,14 +3544,16 @@ class planning_Tasks extends core_Master
             }
 
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
-            $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
-            if (!is_array($jobParams)) {
-                if(empty($data->masterMvc)){
-                    $jobParams = cat_Products::getParams($jRec->productId, null, true);
-                    core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+            if ($displayPlanningParamsCount) {
+                $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
+                if (!is_array($jobParams)) {
+                    if(empty($data->masterMvc)){
+                        $jobParams = cat_Products::getParams($jRec->productId, null, true);
+                        core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                    }
                 }
+                $jobRecs[$jRec->containerId]->params = $jobParams;
             }
-            $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
         // Дали заданията и операциите са всичките с една мярка
@@ -5114,6 +5131,9 @@ class planning_Tasks extends core_Master
         $report = static::buildSchedulePreviewReport($baselineMetrics, $previewCandidate->metrics);
         $changedIds = array_unique(array_merge(array_keys((array)($manualTimes['expectedTimeStart'] ?? array())), array_keys((array)($manualTimes['expectedTimeEnd'] ?? array()))));
         $report['targetConflicts'] = planning_TargetTimes::collectNewConflicts($previewCandidate->scheduledData, $tasksById, $changedIds);
+        $report['targetConflicts'] += planning_TaskConstraints::getManualOrderTimeConflicts(
+            $assetId, $submittedOrder, $submittedLinks, $previewTasks, $previewCandidate->scheduledData
+        );
         return $report;
     }
 

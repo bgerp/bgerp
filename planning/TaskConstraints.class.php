@@ -609,6 +609,59 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
+     * Отхвърля ръчен ред, при който цял пакет не се побира пред фиксирана резервация.
+     */
+    public static function getManualOrderTimeConflicts($assetId, $orderedTaskIds, $packageLinks, $tasks, $scheduledData)
+    {
+        $orderedTasks = array();
+        foreach ((array)$orderedTaskIds as $taskId) {
+            $taskId = (int)$taskId;
+            $task = $tasks[$taskId] ?? null;
+            if (($task->assetId ?? null) != $assetId
+                || (!empty($task->actualStart) && ($task->state ?? null) != 'stopped')) continue;
+            $orderedTasks[$taskId] = $task;
+        }
+        $blocks = static::buildPlanningParamPackageBlocks($orderedTasks, $packageLinks);
+        $planned = $scheduledData->tasks[$assetId] ?? array();
+        $conflicts = array();
+        $nextFixed = null;
+        foreach (array_reverse($blocks) as $block) {
+            $start = $end = $pinId = null;
+            foreach ($block['tasks'] as $taskId => $task) {
+                $row = $planned[$taskId] ?? null;
+                $rowStart = $row->expectedTimeStart ?? null;
+                $rowEnd = $row->expectedTimeEnd ?? null;
+                if (empty($rowStart) || empty($rowEnd) || $rowStart >= self::NOT_FOUND_DATE || $rowEnd >= self::NOT_FOUND_DATE) continue;
+                $taskStart = $row->_startTimestamp ?? strtotime($rowStart);
+                $taskEnd = $row->_endTimestamp ?? strtotime($rowEnd);
+                if ($taskStart === false || $taskEnd === false) continue;
+                if (!isset($row->_endTimestamp)) $taskEnd++;
+                $start = $start === null ? $taskStart : min($start, $taskStart);
+                $end = $end === null ? $taskEnd : max($end, $taskEnd);
+                $target = $task->timeStart ?? null;
+                if (!empty($target) && $rowStart == $target) $pinId = $taskId;
+            }
+            if ($nextFixed !== null && $end !== null && $end > $nextFixed['start']) {
+                $headId = $block['headId'];
+                $tailId = $block['tailId'];
+                $label = $headId == $tailId ? "Операцията Opr{$headId}" : "Пакетът Opr{$headId} – Opr{$tailId}";
+                $fixedLabel = $nextFixed['isPackage'] ? 'пакета' : 'операцията';
+                $target = dt::mysql2verbal($nextFixed['target'], 'd.m.Y H:i');
+                $limit = dt::mysql2verbal(date('Y-m-d H:i:s', $nextFixed['start']), 'd.m.Y H:i');
+                $finish = dt::mysql2verbal(date('Y-m-d H:i:s', $end), 'd.m.Y H:i');
+                $conflicts[$headId] = array('reason' => "{$label} е поставен пред {$fixedLabel} с фиксирана Opr{$nextFixed['pinId']} ({$target}), но изчисленият му край {$finish} е след началото на резервацията {$limit}. Подредбата не може да бъде спазена без промяна на фиксираното начало или разделяне на пакет");
+            }
+            if ($pinId !== null && $start !== null) {
+                $nextFixed = array('pinId' => $pinId, 'target' => $tasks[$pinId]->timeStart ?? '',
+                    'start' => $start, 'isPackage' => count($block['tasks']) > 1);
+            }
+        }
+
+        return $conflicts;
+    }
+
+
+    /**
      * Checks for a directed path in the planning dependency graph.
      */
     private static function hasPlanningPath($fromId, $toId, $adjacency)

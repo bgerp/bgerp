@@ -64,9 +64,11 @@ class payment_ImportFiles
                 $res->batches[] = $parsed->recs;
                 $res->recs = array_merge($res->recs, $parsed->recs);
                 foreach ($parsed->recs as $i => $rec) {
+                    $rec->sourceFileHnd = $fh;
+                    $rec->sourceFileName = $name;
+                    $rec->sourceEntry = $parsed->recordSources[$i]['entry'] ?? null;
                     $row = clone $rec;
                     $row->sourceFile = $name;
-                    $row->sourceEntry = $parsed->recordSources[$i]['entry'] ?? null;
                     $row->ownIban = $parsed->recordSources[$i]['iban'] ?? '';
                     $row->currency = $parsed->recordCurrencies[$i] ?? '';
                     $res->previewRows[] = $row;

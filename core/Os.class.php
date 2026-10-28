@@ -157,7 +157,8 @@ class core_Os
         $before = time() - $maxAge;
         try {
             while (false !== ($entry = readdir($handle))) {
-                if ($entry == '.' || $entry == '..') {
+                // Правилата на уеб сървъра не са временни файлове.
+                if ($entry == '.' || $entry == '..' || $entry == '.htaccess') {
                     continue;
                 }
 
@@ -341,7 +342,19 @@ class core_Os
 
         // SBF има собствени изключения, дори когато е вложен във временна папка.
         $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
-        $tempExclude = $sbfPath === false ? null : '#^' . preg_quote($sbfPath, '#') . '(?:' . preg_quote(DIRECTORY_SEPARATOR, '#') . '|$)#';
+        $tempExcludes = array();
+        if ($sbfPath !== false) {
+            $tempExcludes[] = preg_quote($sbfPath, '#') . '(?:' . preg_quote(DIRECTORY_SEPARATOR, '#') . '|$)';
+        }
+
+        // Само setup премахва маркера при успешно завършване на първата инсталация.
+        $mainTempPath = defined('EF_TEMP_PATH') ? self::getCleanupPath(EF_TEMP_PATH) : false;
+        $setupMarkerPattern = null;
+        if ($mainTempPath !== false) {
+            $setupMarkerPattern = preg_quote($mainTempPath . DIRECTORY_SEPARATOR . 'bgerp-first-install.inprogress', '#') . '\z';
+            $tempExcludes[] = $setupMarkerPattern;
+        }
+        $tempExclude = $tempExcludes ? '#^(?:' . implode('|', $tempExcludes) . ')#' : null;
         
         // Пакетите може да използват временни папки извън общата EF_TEMP_PATH.
         $cleanedPaths = array();
@@ -364,11 +377,12 @@ class core_Os
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
         if ($sbfPath !== false) {
+            $setupExclude = $setupMarkerPattern === null ? null : '#^' . $setupMarkerPattern . '#';
             $delCnt = 0;
             if ($handle = @opendir($sbfPath)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir($sbfPath . "/{$entry}")) {
-                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge);
+                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge, $setupExclude);
                     }
                 }
                 closedir($handle);

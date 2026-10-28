@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -120,19 +120,19 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $form->setField("paramcat{$id}", "unit={$suffix}");
                 }
 
-                $value = $defaultArr['value'];
+                $value = $defaultArr['value'] ?? null;
                 if ($action == 'clone') {
                     $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $recId, $value);
                 }
 
                 // Ако има дефолтна стойност, задаваме и нея
-                if (strlen($value)) {
+                if (strlen($value ?? '')) {
                     $form->setDefault("paramcat{$id}", $value);
                 }
 
-                if($defaultArr['mandatory'] === true){
+                if(($defaultArr['mandatory'] ?? null) === true){
                     $form->setField("paramcat{$id}", 'mandatory');
-                } elseif($defaultArr['isReadOnly'] === true){
+                } elseif(($defaultArr['isReadOnly'] ?? null) === true){
                     $form->setReadOnly("paramcat{$id}");
                 }
                 $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $recId));

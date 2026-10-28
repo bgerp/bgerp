@@ -8,7 +8,7 @@
  * @package   docoffice
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -35,15 +35,16 @@ class docoffice_Jodconverter extends core_Manager
     {
         // Разширението да е в долния регистър
         $toExt = strtolower($toExt);
+        $params += array('asynch' => true, 'outType' => null);
+        $modern = docoffice_Setup::get('OFFICE_JODCONVERTER_VERSION', true) === '5.1.1';
         
         // Стартираме или рестартираме офис пакета
-        docoffice_Office::prepareOffice();
-        
-        // Вземаме конфигурационните данни
-        $conf = core_Packs::getConfig('docoffice');
+        if (!$modern) {
+            docoffice_Office::prepareOffice();
+        }
         
         // Вземаме целия път до jodconverter
-        $jodPath = getFullPath('docoffice/jodconverter/' . $conf->OFFICE_JODCONVERTER_VERSION . '/lib/jodconverter-core.jar');
+        $jodPath = docoffice_Setup::getJodconverterPath();
         
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
@@ -59,7 +60,7 @@ class docoffice_Jodconverter extends core_Manager
         $Script->setParam('JODPATH', $jodPath, true);
         
         // Портра на който е стартиран офис пакета
-        $port = docoffice_Office::getOfficePort();
+        $port = $modern ? docoffice_Office::findEmptyPort() : docoffice_Office::getOfficePort();
         
         // Задаваме пътя, като параметър
         $Script->setParam('PORT', $port, true);
@@ -69,13 +70,17 @@ class docoffice_Jodconverter extends core_Manager
 //        $lineExecStr = "java -jar [#JODPATH#] -p [#PORT#] [#INPUTF#] [#OUTPUTF#]";
         // Добавяме към изпълнимия скрипт
         $lineExecStr = 'java -jar [#JODPATH#] [#INPUTF#] [#OUTPUTF#]';
+        if ($modern) {
+            // Новият CLI управлява собствен временен Office процес и не прекратява чужд процес на зает порт.
+            $lineExecStr = 'java -cp [#JODPATH#] org.jodconverter.cli.Convert --port [#PORT#] --existing-process-action fail [#INPUTF#] [#OUTPUTF#]';
+        }
         
         // @todo
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+        $Script->lineExec($lineExecStr, array('LANG' => $modern ? 'C.UTF-8' : 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Jodconverter::afterConvertDoc');
@@ -94,7 +99,9 @@ class docoffice_Jodconverter extends core_Manager
         docoffice_Office::lockOffice(100, 60);
         
         // Увеличаваме броя на направените конвертирания с единица
-        docoffice_Office::increaseConvertCount();
+        if (!$modern) {
+            docoffice_Office::increaseConvertCount();
+        }
         
         // Стартираме скрипта синхронно
         $Script->setCheckProgramsArr('java');
@@ -132,7 +139,7 @@ class docoffice_Jodconverter extends core_Manager
         $params = unserialize($script->params);
         
         // Ако има callBack функция
-        if ($params['callBack']) {
+        if (!empty($params['callBack'])) {
             
             // Разделяме класа от метода
             $funcArr = explode('::', $params['callBack']);
