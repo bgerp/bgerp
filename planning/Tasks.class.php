@@ -5114,6 +5114,9 @@ class planning_Tasks extends core_Master
         $report = static::buildSchedulePreviewReport($baselineMetrics, $previewCandidate->metrics);
         $changedIds = array_unique(array_merge(array_keys((array)($manualTimes['expectedTimeStart'] ?? array())), array_keys((array)($manualTimes['expectedTimeEnd'] ?? array()))));
         $report['targetConflicts'] = planning_TargetTimes::collectNewConflicts($previewCandidate->scheduledData, $tasksById, $changedIds);
+        $report['targetConflicts'] += planning_TaskConstraints::getManualOrderTimeConflicts(
+            $assetId, $submittedOrder, $submittedLinks, $previewTasks, $previewCandidate->scheduledData
+        );
         return $report;
     }
 
