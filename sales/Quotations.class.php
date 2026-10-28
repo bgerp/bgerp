@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -297,7 +297,7 @@ class sales_Quotations extends deals_QuotationMaster
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin && cls::haveInterface('cat_ProductAccRegIntf', $origin->instance)) {
                 $originRec = $origin->fetch('id,measureId');
-                $vat = cat_Products::getVat($origin->that, $rec->date, $rec->vatExceptionId);
+                $vat = cat_Products::getVat($origin->that, $rec->date ?? null, $rec->vatExceptionId ?? null);
                 
                 // Ако в река има 1 от 3 к-ва
                 foreach (range(1, 3) as $i) {
@@ -312,7 +312,7 @@ class sales_Quotations extends deals_QuotationMaster
                     // Прави се опит за добавянето на артикула към реда
                     try {
                         if (!empty($price)) {
-                            $price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
+                            $price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate ?? null, $rec->chargeVat ?? null);
                         }
                         sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
                     } catch (core_exception_Expect $e) {
