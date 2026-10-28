@@ -1,0 +1,5 @@
+/* Copyright 2026 Experta EOOD, GPL-3.0-or-later.
+   Keep table-based forms within the viewport so the toolbar can group its items. */
+.ck-editor {
+    max-width: calc(100vw - 10rem);
+}

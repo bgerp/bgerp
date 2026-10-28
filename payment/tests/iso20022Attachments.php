@@ -48,8 +48,16 @@ class bank_Register {
     public static $previewRows;
     public static $canList = true;
     public static function haveRightFor($action) { return self::$canList; }
-    public static function previewImport($batches) {
-        if (isset(self::$previewRows)) return self::$previewRows;
+    public static function previewImport($batches, $confirmedRows = array()) {
+        if (isset(self::$previewRows)) {
+            $rows = array();
+            foreach (self::$previewRows as $i => $row) {
+                $copy = clone $row;
+                if (($copy->status ?? '') === 'crossFormat' && !empty($confirmedRows[$i + 1])) $copy->status = 'crossFormatConfirmed';
+                $rows[] = $copy;
+            }
+            return $rows;
+        }
         $rows = array();
         foreach ($batches as $batch) foreach ($batch as $rec) $rows[] = (object) array('status' => 'new');
         return $rows;
@@ -59,11 +67,13 @@ class bank_Register {
     public static $imports = array();
     public static $batches = array();
     public static $importWarnings = array();
-    public static function importRecs($recs, $serviceId = null, &$warnings = null) { $warnings = self::$importWarnings; self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
+    public static $confirmedCrossFormats = array();
+    public static function importRecs($recs, $serviceId = null, &$warnings = null, $confirmedCrossFormats = array()) { self::$confirmedCrossFormats = $confirmedCrossFormats; $warnings = self::$importWarnings; self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
     public static function findMatches() { return 0; }
 }
 require dirname(__DIR__) . '/XmlParser.class.php';
 require dirname(__DIR__) . '/ImportFiles.class.php';
+require dirname(__DIR__) . '/ParserMt940.class.php';
 require dirname(__DIR__) . '/ParserIso20022.class.php';
 class attachment_TestParser extends payment_ParserIso20022 {
     public static function read($fh, $password = null) { return parent::getAttachmentContents($fh, $password); }

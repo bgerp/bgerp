@@ -116,6 +116,7 @@ class bank_Register extends core_Manager
 
         $this->setDbUnique('transactionId');
         $this->setDbUnique('bankReferenceId');
+        $this->setDbIndex('ownAccountId,valior,type,amount');
     }
 
 
@@ -412,10 +413,10 @@ class bank_Register extends core_Manager
     /**
      * Импортира подготвени редове в модела
      */
-    public static function importRecs($recs, $serviceId = null, &$warnings = null)
+    public static function importRecs($recs, $serviceId = null, &$warnings = null, $confirmedCrossFormats = array())
     {
         $virtual = $rows = array();
-        list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows);
+        list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows, $confirmedCrossFormats);
         $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
         if ($warnings) {
             $status .= '; ' . implode('; ', array_unique($warnings));
@@ -430,11 +431,11 @@ class bank_Register extends core_Manager
      *
      * @return array Диагностика в реда на операциите във всички партиди.
      */
-    public static function previewImport($batches)
+    public static function previewImport($batches, $confirmedRows = array())
     {
         $virtual = $rows = array();
         foreach ($batches as $batch) {
-            self::processImportRecs($batch, null, true, $virtual, $rows);
+            self::processImportRecs($batch, null, true, $virtual, $rows, $confirmedRows);
         }
 
         return $rows;
@@ -444,7 +445,7 @@ class bank_Register extends core_Manager
     /**
      * В прегледа новите записи се пазят само в паметта; идентификаторите следват реалния импорт.
      */
-    private static function processImportRecs($recs, $serviceId, $preview, &$virtual, &$rows)
+    private static function processImportRecs($recs, $serviceId, $preview, &$virtual, &$rows, $confirmedCrossFormats = array())
     {
         $usedIds = $warnings = array();
         $ins = $skip = 0;
@@ -464,6 +465,7 @@ class bank_Register extends core_Manager
             $fingerprint = implode('|', array($rec->valior ?? '', $rec->type ?? '', $rec->amount ?? '', $rec->contragentIban ?? '', $rec->ownAccountId ?? ''));
             $ind = 0;
             $checkReference = $reference !== '';
+            $crossChecked = false;
             while (true) {
                 if ($checkReference) {
                     $checkReference = false;
@@ -478,6 +480,28 @@ class bank_Register extends core_Manager
                         $usedIds[$existing->transactionId ?? ''] = true;
                         $skip++;
                         break;
+                    }
+                }
+                if (!$crossChecked) {
+                    $crossChecked = true;
+                    $matches = self::getCrossFormatMatches($rec, $virtual);
+                    if ($matches) {
+                        $identities = array();
+                        foreach ($matches as $key => $match) $identities[$key] = $match->contragentIban ?? '';
+                        ksort($identities);
+                        $token = hash('sha256', serialize($identities));
+                        $diagnostic->crossFormatMatches = array_values($matches);
+                        $diagnostic->crossFormatToken = $token;
+                        $diagnostic->referenceId = $rec->bankReferenceId ?? '';
+                        $confirmed = $preview ? !empty($confirmedCrossFormats[count($rows) + 1])
+                            : ($confirmedCrossFormats[$rec->bankReferenceId ?? ''] ?? null) === $token;
+                        if (!$confirmed) {
+                            $diagnostic->status = 'crossFormat';
+                            $warnings[] = 'Възможен дубликат между CAMT и MT940; операцията е пропусната и изисква проверка в прегледа преди импорт';
+                            $skip++;
+                            break;
+                        }
+                        $diagnostic->status = 'crossFormatConfirmed';
                     }
                 }
                 // Запазваме старите идентификатори и реда при извлечения без референции.
@@ -508,6 +532,8 @@ class bank_Register extends core_Manager
                             $virtual['bankReferenceId'][$rec->bankReferenceId] = clone $rec;
                         }
                         $virtual['row'][$rec->transactionId] = count($rows) + 1;
+                        $scope = self::getCrossFormatScope($rec);
+                        if ($scope) $virtual['crossFormat'][$scope['key']][] = clone $rec;
                     }
                     $ins++;
                     break;
@@ -523,6 +549,7 @@ class bank_Register extends core_Manager
                 }
                 $ind--;
                 $checkReference = $reference !== '';
+                $crossChecked = false;
             }
             if ($existing) {
                 $diagnostic->existingId = isset($existing->id) ? (int) $existing->id : null;
@@ -532,6 +559,48 @@ class bank_Register extends core_Manager
         }
 
         return array($ins, $skip, $warnings);
+    }
+
+
+    /**
+     * Сравняваме само референции с известни формат, валута и признак за сторно.
+     */
+    private static function getCrossFormatScope($rec)
+    {
+        if (!preg_match('/^(CAMT|MT940):([A-Z]{3}):([NR]):.+$/D', $rec->bankReference ?? '', $match)) return null;
+
+        return array('prefix' => ($match[1] === 'CAMT' ? 'MT940' : 'CAMT') . ':' . $match[2] . ':' . $match[3] . ':',
+            'key' => serialize(array((string) ($rec->ownAccountId ?? ''), $rec->valior ?? '', $rec->type ?? '',
+                number_format((float) ($rec->amount ?? 0), 2, '.', ''), $match[2], $match[3])));
+    }
+
+
+    /**
+     * Липсващ IBAN не доказва различен превод. Съвпадението остава само предположение.
+     */
+    private static function getCrossFormatMatches($rec, $virtual)
+    {
+        $scope = self::getCrossFormatScope($rec);
+        if (!$scope) return array();
+        $query = self::getQuery();
+        $query->where(array("#ownAccountId = '[#1#]' AND #valior = '[#2#]' AND #type = '[#3#]' AND #amount = '[#4#]' AND #bankReference LIKE '[#5#]%'",
+            $rec->ownAccountId ?? null, $rec->valior ?? '', $rec->type ?? '', $rec->amount ?? 0, $scope['prefix']));
+        $query->show('id,bankReferenceId,bankReference,contragentIban');
+        $candidates = $virtual['crossFormat'][$scope['key']] ?? array();
+        while ($candidate = $query->fetch()) $candidates[] = $candidate;
+        $iban = strtoupper(preg_replace('/\s+/', '', $rec->contragentIban ?? ''));
+        $matches = array();
+        foreach ($candidates as $candidate) {
+            if (strpos($candidate->bankReference ?? '', $scope['prefix']) !== 0) continue;
+            $candidateIban = strtoupper(preg_replace('/\s+/', '', $candidate->contragentIban ?? ''));
+            if ($iban !== '' && $candidateIban !== '' && $iban !== $candidateIban) continue;
+            $matches[$candidate->bankReferenceId ?? ''] = (object) array('existingId' => $candidate->id ?? null,
+                'duplicateRow' => $virtual['row'][$candidate->transactionId ?? ''] ?? null,
+                'bankReference' => $candidate->bankReference ?? '', 'contragentIban' => $candidateIban);
+        }
+        ksort($matches);
+
+        return $matches;
     }
 
 

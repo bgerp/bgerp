@@ -9,6 +9,7 @@ set_error_handler(function ($severity, $message, $file, $line) { throw new Error
 class core_Manager {
     public static $rows = array();
     public static $race;
+    public static function getQuery() { return new payment_TestCrossQuery(); }
     public static function fetch($where, $fields = '*', $cache = true) {
         if (!is_array($where) || !preg_match('/^#(transactionId|bankReferenceId) =/', $where[0], $match)) throw new Exception('Unexpected query');
         foreach (self::$rows as $row) {
@@ -27,6 +28,18 @@ class core_Manager {
         self::$rows[] = clone $rec;
         return $rec->id;
     }
+}
+class payment_TestCrossQuery {
+    private $rows = array();
+    public function where($where) {
+        if (!is_array($where) || count($where) !== 6) throw new Exception('Unexpected cross-format query');
+        foreach (core_Manager::$rows as $rec) {
+            if (($rec->ownAccountId ?? null) == $where[1] && ($rec->valior ?? '') === $where[2] && ($rec->type ?? '') === $where[3]
+                && (float) ($rec->amount ?? 0) === (float) $where[4] && strpos($rec->bankReference ?? '', $where[5]) === 0) $this->rows[] = clone $rec;
+        }
+    }
+    public function show($fields) {}
+    public function fetch() { return array_shift($this->rows); }
 }
 require dirname(__DIR__, 2) . '/bank/Register.class.php';
 function check($condition, $name) { if (!$condition) { fwrite(STDERR, "FAIL $name\n"); exit(1); } echo "PASS $name\n"; }
