@@ -53,27 +53,26 @@ class apachetika_Setup extends core_ProtoSetup
     );
 
 
-    /** Инсталира само Tika от собствен lock файл, без промяна на общите Composer зависимости. */
+    /** Инсталира само избраната Tika в общия Composer проект. */
     public function install()
     {
         $html = parent::install();
-        if (version_compare(self::get('APACHE_TIKA_VERSION', true), '3.0.0', '<')) {
+        $version = self::get('APACHE_TIKA_VERSION', true);
+        if (version_compare($version, '3.0.0', '<')) {
+            if (is_file(core_Composer::getAutoloadPath()) && core_Composer::isInstalled('bgerp/tika-app')) {
+                $html .= core_Composer::remove('bgerp/tika-app');
+            }
+
             return $html;
         }
         if ($error = $this->checkConfig()) {
             return $html . "<li class='debug-error'>" . $error . '</li>';
         }
 
-        $result = core_ComposerProject::install(__DIR__ . '/composer', self::getComposerDir());
-        if ($result === false) {
-            return $html . "<li class='debug-error'>Tika Composer: " . core_Type::escape(core_Composer::$error ?? '') . '</li>';
-        }
+        core_App::setTimeLimit(600);
+        $repository = json_decode(file_get_contents(__DIR__ . '/composer-packages.json'), true);
 
-        // Двете версии остават налични за превключване без преинсталиране.
-        self::getJarPath('3.3.3');
-        self::getJarPath('4.1.0');
-
-        return $html . "<li class='debug-new'>Composer: Apache Tika 3.3.3 и 4.1.0 са инсталирани</li>";
+        return $html . core_Composer::install('bgerp/tika-app', $version, true, $repository);
     }
 
 
@@ -104,12 +103,12 @@ class apachetika_Setup extends core_ProtoSetup
     }
 
 
-    /** Отделя Java дистрибуциите от Composer проекта с общите PHP зависимости. */
+    /** Връща общия Composer проект за Java и PHP зависимостите. */
     public static function getComposerDir()
     {
         cls::load('core_Composer');
 
-        return rtrim(EF_VENDOR_PATH, '/') . '/apachetika';
+        return rtrim(EF_VENDOR_PATH, '/');
     }
 
 
@@ -118,8 +117,7 @@ class apachetika_Setup extends core_ProtoSetup
     {
         $version = $version ?? self::get('APACHE_TIKA_VERSION', true);
         if (in_array($version, array('3.3.3', '4.1.0'), true)) {
-            $major = $version === '3.3.3' ? '3' : '4';
-            $path = self::getComposerDir() . "/vendor/bgerp/tika-app-{$major}/tika-app-{$version}.jar";
+            $path = self::getComposerDir() . "/vendor/bgerp/tika-app/tika-app-{$version}.jar";
         } else {
             $path = getFullPath("apachetika/{$version}/tika-app.jar");
         }
