@@ -260,20 +260,30 @@ class planning_TargetTimePlan extends core_BaseClass
             }
         }
         $attempts = 0;
-        $tried = array();
-        while ($candidates && $attempts++ < self::MAX_NEAREST_TRIALS) {
+        $tried = $readinessCandidates = array();
+        $lastFailure = null;
+        while ($candidates) {
+            if ($attempts >= self::MAX_NEAREST_TRIALS) {
+                // Един допълнителен опит за границата от планировчика, недостигната сред близките календарни дати.
+                $candidates = array_diff_key($readinessCandidates, $tried);
+                if ($attempts > self::MAX_NEAREST_TRIALS || !$candidates) break;
+            }
             uksort($candidates, function($a, $b) use ($requested) { return (abs(strtotime($a) - $requested) <=> abs(strtotime($b) - $requested)) ?: strcmp($a, $b); });
             $date = key($candidates);
             unset($candidates[$date]);
             if (isset($tried[$date])) continue;
             $tried[$date] = true;
+            $attempts++;
             $copy = $tasks;
             $copy[$id] = clone $tasks[$id];
             $copy[$id]->timeStart = $date;
             $result = static::propose($copy, $previous, $baseline, $prepared, $options, $id, 'keep', $now);
             if (empty($result->error) && empty($result->conflicts)) return $result;
+            $lastFailure = $result;
             $earliest = $result->conflicts[$id]['earliest'] ?? null;
-            if (!$anchored && $earliest && !isset($tried[$earliest])) $candidates[$earliest] = true;
+            if (!$anchored && $earliest && !isset($tried[$earliest])) {
+                $candidates[$earliest] = $readinessCandidates[$earliest] = true;
+            }
             if (!$anchored) foreach ((array)($result->conflicts ?? array()) as $taskId => $conflict) {
                 if ($taskId == $id || empty($conflict['earliest']) || empty($conflict['requested'])) continue;
                 $delay = strtotime($conflict['earliest']) - strtotime($conflict['requested']);
@@ -284,7 +294,12 @@ class planning_TargetTimePlan extends core_BaseClass
                 }
             }
         }
-        return (object)array('error' => 'Не е намерено близко допустимо начало, което запазва останалите фиксирани начала, пакетите и технологичните зависимости');
+        $error = 'Не е намерено близко допустимо начало, което запазва останалите фиксирани начала, пакетите и технологичните зависимости';
+        if ($attempts >= self::MAX_NEAREST_TRIALS) $error .= ". Достигнат е лимитът на ограниченото търсене ({$attempts} проверки), а не доказана липса на решение";
+        if (!empty($lastFailure->error)) $error .= '. Последна пречка: ' . $lastFailure->error;
+        elseif (!empty($lastFailure->conflicts)) $error .= '. Последна пречка: ' . str_replace('<br>', '; ', planning_TargetTimes::formatConflicts($lastFailure->conflicts));
+
+        return (object)array('error' => $error);
     }
 
     private static function trial($tasks, $previous, $baseline, $prepared, $options, $id, $now)

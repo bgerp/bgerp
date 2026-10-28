@@ -1643,13 +1643,31 @@ class planning_TaskConstraints extends core_Master
             $reason = null;
             foreach ($run['chain'] as $id) {
                 $task = $allTasks[$id];
-                $ready = static::getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now);
+                $blockingPrevious = array();
+                $ready = static::getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now, $blockingPrevious);
                 $start = date('Y-m-d H:i:s', $planned[$id]->_startTimestamp ?? strtotime($planned[$id]->expectedTimeStart ?? ''));
                 if ($ready > $start) {
                     $manualReady = $task->_manualOrderReadyAfter ?? '';
                     $reason = $manualReady > $start
                         ? "Ръчната подредба изисква начало след предходната фиксирана операция/пакет: {$manualReady}"
                         : "Предходна операция/технологична зависимост не позволява начало преди {$ready}";
+                    if ($manualReady <= $start && $blockingPrevious) {
+                        $details = array();
+                        foreach ($blockingPrevious as $previousId => $limit) {
+                            $detail = "Opr{$previousId}";
+                            if (!empty($limit['end'])) $detail .= ' (планиран край: ' . dt::mysql2verbal($limit['end'], 'd.m.Y H:i');
+                            else $detail .= ' (няма изчислен край';
+                            $waiting = max(0, (int)($limit['waitingTime'] ?? 0));
+                            if (($limit['intersect'] ?? 'yes') == 'no' && !empty($limit['end']) && $ready < self::NOT_FOUND_DATE) {
+                                $release = dt::addSecs(-$waiting, $ready);
+                                if ($release != $limit['end']) $detail .= '; освобождаване на заетия интервал: ' . dt::mysql2verbal($release, 'd.m.Y H:i');
+                            }
+                            if ($waiting) $detail .= '; изчакване: ' . ($waiting % 60 ? "{$waiting} сек." : ($waiting / 60) . ' мин.');
+                            $details[] = $detail . (($limit['intersect'] ?? 'yes') == 'no' ? '; без застъпване)' : '; с допустимо застъпване)');
+                        }
+                        $reason = "Технологично ограничение за Opr{$id}: " . implode('; ', $details)
+                            . '. Начало не е допустимо преди ' . dt::mysql2verbal($ready, 'd.m.Y H:i');
+                    }
                     break;
                 }
                 $previousId = $manualPackagePrevious[$id] ?? null;
@@ -1757,7 +1775,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Calculates the earliest usable time after all already planned predecessors.
      */
-    private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now)
+    private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now, &$blockingPrevious = null)
     {
         $readyTimes = array($now);
         if (!empty($task->_targetReadyAfter)) $readyTimes[] = $task->_targetReadyAfter;
@@ -1772,13 +1790,25 @@ class planning_TaskConstraints extends core_Master
             }
             if (!isset($planned[$previousTaskId])) {
                 $readyTimes[] = self::NOT_FOUND_DATE;
+                if (is_array($blockingPrevious)) $blockingPrevious[$previousTaskId] = array('ready' => self::NOT_FOUND_DATE);
                 continue;
             }
 
-            $readyTimes[] = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
+            $constraintReady = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
+            $readyTimes[] = $constraintReady;
+            if (is_array($blockingPrevious)) {
+                $blockingPrevious[$previousTaskId] = array('ready' => $constraintReady,
+                    'end' => $planned[$previousTaskId]->expectedTimeEnd ?? null,
+                    'waitingTime' => $constraint->waitingTime ?? 0, 'intersect' => $constraint->intersect ?? 'yes');
+            }
         }
 
-        return max($readyTimes);
+        $ready = max($readyTimes);
+        if (is_array($blockingPrevious)) foreach ($blockingPrevious as $id => $limit) {
+            if (($limit['ready'] ?? null) != $ready) unset($blockingPrevious[$id]);
+        }
+
+        return $ready;
     }
 
 
