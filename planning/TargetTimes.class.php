@@ -158,16 +158,8 @@ class planning_TargetTimes extends core_BaseClass
         $messages = array();
         foreach ($conflicts as $id => $conflict) {
             $label = $id < 0 ? 'Новата операция' : "Opr{$id}";
-            $reason = $conflict['reason'] ?? 'конфликт в плана';
-            $message = $label . ': ' . $reason;
-            if (!empty($conflict['earliest'])) {
-                // Причината е от отказания опит, а часът е от следващ план с освободени резервации.
-                $message = $label . ': При първоначалния опит за запазване на фиксираните начала: ' . $reason;
-                $message .= "\nВ отделен пробен план, след освобождаване на неспазимите фиксирани начала, {$label} е изчислена за "
-                    . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i')
-                    . '. Този час е ориентир за търсенето, а не потвърдено предложение за запис.';
-            }
-            $messages[] = $message;
+            // Пробният час служи само за търсенето; за запис се показват проверените предложения.
+            $messages[] = $label . ': ' . ($conflict['reason'] ?? 'конфликт в плана');
         }
         return implode('<br>', $messages);
     }
@@ -197,7 +189,7 @@ class planning_TargetTimes extends core_BaseClass
                 ? ' Двете операции са от едно задание.' : ' Двете операции са от различни задания, но са обвързани в пакет.';
             $parts[] = "{$blocked} {$relation} на " . $machine($blockedId) . '.' . $jobNote . ' Операциите в пакета се планират заедно.';
         }
-        if ($requiredStart && $requiredStart < planning_TaskConstraints::NOT_FOUND_DATE) $parts[] = 'За да се спази въведеният час за ' . $label($targetId)
+        if ($targetId != $blockedId && $requiredStart && $requiredStart < planning_TaskConstraints::NOT_FOUND_DATE) $parts[] = 'За да се спази въведеният час за ' . $label($targetId)
             . ", {$blocked} трябва да започне на " . dt::mysql2verbal($requiredStart, 'd.m.Y H:i') . '.';
         foreach ($limits as $previousId => $limit) {
             $previous = $label($previousId);
@@ -206,13 +198,15 @@ class planning_TargetTimes extends core_BaseClass
             $differentJob = !empty($tasks[$blockedId]->originId) && !empty($tasks[$previousId]->originId) && !$sameJob;
             $knownMachines = !empty($tasks[$blockedId]->assetId) && !empty($tasks[$previousId]->assetId);
             $sameMachine = $knownMachines && ($tasks[$blockedId]->assetId ?? null) == ($tasks[$previousId]->assetId ?? null);
-            $parts[] = "{$blocked} зависи от {$previous} — предходна технологична операция"
+            $dependency = "{$blocked} зависи от {$previous} — предходна технологична операция"
                 . ($sameJob ? ' в същото задание' : ($differentJob ? ' от друго задание' : ' по зададената технологична връзка'))
-                . ', изпълнявана на ' . ($knownMachines ? ($sameMachine ? 'същата ' : 'друга ') : '') . $machine($previousId) . '.';
+                . ', изпълнявана на ' . ($knownMachines ? ($sameMachine ? 'същата ' : 'друга ') : '') . $machine($previousId);
             $end = $limit['end'] ?? null;
-            $parts[] = $end && $end < planning_TaskConstraints::NOT_FOUND_DATE
-                ? "Очакван край на {$previous}: " . dt::mysql2verbal($end, 'd.m.Y H:i') . '.'
-                : "За {$previous} все още няма изчислен край.";
+            if (!$end || $end >= planning_TaskConstraints::NOT_FOUND_DATE) {
+                $parts[] = $dependency . '. За нея все още няма изчислен край и не може да се определи допустимо начало.';
+                continue;
+            }
+            $parts[] = $dependency . ', с очакван край: ' . dt::mysql2verbal($end, 'd.m.Y H:i') . '.';
             $waiting = max(0, (int)($limit['waitingTime'] ?? 0));
             $duration = array();
             $hours = (int)floor($waiting / 3600);
@@ -222,18 +216,13 @@ class planning_TargetTimes extends core_BaseClass
             if ($waiting % 60) $duration[] = ($waiting % 60) . ' сек.';
             $noOverlap = ($limit['intersect'] ?? 'yes') == 'no';
             $limitReady = $limit['ready'] ?? $ready;
-            if ($noOverlap && $end && $limitReady < planning_TaskConstraints::NOT_FOUND_DATE) {
-                $release = dt::addSecs(-$waiting, $limitReady);
-                if (substr($release, 0, 16) != substr($end, 0, 16)) $parts[] = 'За следващата операция заетият интервал се освобождава в '
-                    . dt::mysql2verbal($release, 'd.m.Y H:i') . '; изчакването се брои от този момент.';
-            }
-            $parts[] = $noOverlap
-                ? "{$blocked} може да започне едва след приключването на {$previous}" . ($waiting ? ' и още ' . implode(' и ', $duration) . ' календарно изчакване' : '') . '.'
-                : 'Зададената връзка допуска застъпване на двете операции' . ($waiting ? ', но изисква изчакване ' . implode(' и ', $duration) : '') . '.';
+            $condition = $noOverlap
+                ? 'Може да започне едва след приключването ѝ' . ($waiting ? ' и още ' . implode(' и ', $duration) . ' календарно изчакване' : '')
+                : 'Връзката допуска застъпване на двете операции' . ($waiting ? ', но изисква изчакване ' . implode(' и ', $duration) : '');
+            if ($limitReady && $limitReady < planning_TaskConstraints::NOT_FOUND_DATE) $condition .= ' и затова не може да започне преди '
+                . dt::mysql2verbal($limitReady, 'd.m.Y H:i');
+            $parts[] = $condition . '.';
         }
-        $parts[] = $ready < planning_TaskConstraints::NOT_FOUND_DATE
-            ? "Само по това технологично условие {$blocked} не може да започне преди " . dt::mysql2verbal($ready, 'd.m.Y H:i') . '. Това все още не означава свободен час на машината.'
-            : "Докато предходните операции нямат изчислено изпълнение, не може да се определи допустимо начало за {$blocked}.";
         return implode("\n", $parts);
     }
 

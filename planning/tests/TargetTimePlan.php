@@ -156,7 +156,8 @@ check(strpos($reason, 'Opr2') !== false && strpos($reason, '08.12.2026 14:25') !
     'Technological conflict names the blocking predecessor and its planned end');
 check(strpos($reason, '30 мин.') !== false && strpos($reason, '08.12.2026 14:56') !== false,
     'Technological conflict explains the wait and the exact readiness boundary');
-check(strpos($reason, '14:26') !== false, 'Conflict distinguishes the displayed end from the exclusive resource boundary');
+check(strpos($reason, '14:26') === false && substr_count($reason, '08.12.2026 14:56') === 1,
+    'Conflict shows the correct final readiness once without the intermediate resource boundary');
 $context = planContext(array(2 => task(2, 8 * 60, '2026-12-08 14:18:00', 2), 1 => task(1, 45 * 60),
     3 => task(3, 3600, '2026-10-30 11:00:00')), array(3 => 1), $frames, $previous);
 $snapshot = serialize($context);
@@ -313,7 +314,7 @@ check(strpos($reason, 'За да се спази въведеният час з�
 check(strpos($reason, 'Opr1 зависи от Opr3 — предходна технологична операция в същото задание') !== false
     && strpos($reason, 'друга машина „PREVIOUS“') !== false,
     'The third operation has an explicit technological, job and machine relationship');
-check(strpos($reason, 'едва след приключването на Opr3 и още 30 мин.') !== false,
+check(strpos($reason, 'едва след приключването ѝ и още 30 мин.') !== false,
     'A no-overlap dependency explains why the operations cannot run together');
 check(serialize($context) === $snapshot, 'Explanatory diagnostics never modify tasks, pins or package links');
 $limits = array(3 => array('end' => '2026-10-08 11:59:00', 'waitingTime' => 86400, 'intersect' => 'no'));
@@ -327,5 +328,35 @@ check(strpos($reason, 'Opr2 е след Opr1') !== false && strpos($reason, 'о�
     'A following package member and a different job are not described as a preceding member in the same job');
 check(strpos($reason, 'допуска застъпване') !== false && strpos($reason, 'едва след приключването') === false,
     'An overlap-permitted dependency is not falsely explained as requiring completion');
+
+// Прякото ограничение остава заглавие и два смислово свързани реда.
+$rows = array(321204 => task(321204), 321199 => task(321199, 3600, null, 2));
+foreach ($rows as $row) $row->originId = 10;
+$limits = array(321199 => array('end' => '2026-11-06 18:17:00', 'ready' => '2026-11-06 18:18:00',
+    'waitingTime' => 0, 'intersect' => 'no'));
+$reason = planning_TargetTimes::describeDependencyConflict(321204, 321204, $limits, '2026-11-06 18:18:00',
+    $rows, array(1 => (object)array('code' => 'К1 / КА12'), 2 => (object)array('code' => 'К1 / КА13')),
+    array(321204), '2026-10-30 10:00:00');
+check(count(explode("\n", $reason)) === 3 && strpos($reason, 'За да се спази въведеният час') === false,
+    'A direct dependency has no tautological requested-start sentence');
+check(strpos($reason, 'друга машина „К1 / КА13“, с очакван край: 06.11.2026 18:17.') !== false,
+    'The predecessor relationship, machine and expected end share one sentence');
+check(substr_count($reason, 'Opr321199') === 1 && substr_count($reason, '06.11.2026 18:17') === 1,
+    'The predecessor handle and expected end are not repeated');
+check(strpos($reason, 'Може да започне едва след приключването ѝ и затова не може да започне преди 06.11.2026 18:18.') !== false,
+    'The completion rule and resulting start limit share one sentence');
+check(strpos($reason, 'освобождава') === false && strpos($reason, 'Само по това технологично условие') === false,
+    'Internal interval release details and the repeated limit are omitted');
+$limits[321199]['waitingTime'] = 1800;
+$limits[321199]['ready'] = '2026-11-06 18:48:00';
+$reason = planning_TargetTimes::describeDependencyConflict(321204, 321204, $limits, '2026-11-06 18:48:00', $rows, array(), array(321204));
+check(strpos($reason, 'и още 30 мин. календарно изчакване и затова не може да започне преди 06.11.2026 18:48.') !== false,
+    'A real calendar wait remains visible together with its resulting start limit');
+$limits[321199] = array('ready' => planning_TaskConstraints::NOT_FOUND_DATE);
+$reason = planning_TargetTimes::describeDependencyConflict(321204, 321204, $limits, planning_TaskConstraints::NOT_FOUND_DATE,
+    $rows, array(), array(321204));
+check(strpos($reason, 'няма изчислен край и не може да се определи допустимо начало') !== false
+    && strpos($reason, 'не може да започне преди') === false,
+    'An unplanned predecessor has a concise explanation without inventing a usable start');
 
 echo "OK: {$checks} total checks including target-time proposals\n";

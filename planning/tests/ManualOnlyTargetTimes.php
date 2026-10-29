@@ -101,11 +101,12 @@ planning_Tasks::$records = $context->baseline;
 $conflictForm = scenarioForm((object)array('id' => 3, 'assetId' => 1, 'timeStart' => '2026-10-08 10:30:00'));
 ScenarioTargetTimes::validateForm(new planning_Tasks(), $conflictForm);
 $report = $conflictForm->_targetTimesReport ?? array();
-check($conflictForm->gotErrors() && strpos($report['conflictText'] ?? '', 'При първоначалния опит') !== false
-    && strpos($report['conflictText'] ?? '', 'В отделен пробен план') !== false,
-    'The form distinguishes the refused attempt from its fallback diagnostic');
-check(strpos($report['conflictText'] ?? '', 'не потвърдено предложение за запис') !== false,
-    'The form never advertises the fallback diagnostic as a checked alternative');
+check($conflictForm->gotErrors() && strpos($report['conflictText'] ?? '', 'Opr') !== false
+    && strpos($report['conflictText'] ?? '', 'При първоначалния опит') === false,
+    'The form identifies the conflict without a technical preamble');
+check(strpos($report['conflictText'] ?? '', 'пробен план') === false
+    && strpos($report['conflictText'] ?? '', 'ориентир за търсенето') === false,
+    'The form omits internal fallback diagnostics and shows only checked alternatives');
 $alternatives = array_column($report['alternatives'] ?? array(), null, 'mode');
 check(!empty($alternatives['nearest']['available']) && !empty($alternatives['move']['available']),
     'Diagnostic clarification does not disable the independently checked alternatives');

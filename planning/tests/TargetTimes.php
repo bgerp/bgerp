@@ -330,19 +330,19 @@ planning_Tasks::$records[1]->timeClosed = '2026-10-08 11:00:00';
 planning_TargetTimes::addJobPredecessors($tasks, $previous);
 check($tasks[2]->_targetReadyAfter == '2026-10-08 13:00:00', 'Closed predecessor uses actual end and technological wait');
 
-// Причината и пробният час могат да са от различни планове, не са общо ограничение.
+// Пробният час не е проверено предложение и остава само във входа за търсене.
 $diagnostic = array('requested' => '2026-11-12 09:00:00',
     'reason' => 'Ръчната подредба на машината изисква начало след Opr321204: 2026-11-30 07:24:00',
     'earliest' => '2026-11-20 01:35:00');
 $diagnosticSnapshot = serialize($diagnostic);
 $text = planning_TargetTimes::formatConflicts(array(321198 => $diagnostic));
-check(strpos($text, 'Opr321198: При първоначалния опит за запазване на фиксираните начала:') === 0,
-    'The original conflict is explicitly tied to the refused planning attempt');
+check($text === 'Opr321198: ' . $diagnostic['reason'],
+    'The conflict contains its operation and reason without a technical preamble');
 check(strpos($text, $diagnostic['reason']) !== false,
     'The original blocking operation and its diagnostic date are preserved');
-check(strpos($text, 'В отделен пробен план, след освобождаване на неспазимите фиксирани начала, Opr321198 е изчислена за 20.11.2026 01:35') !== false,
-    'The earlier fallback date is explicitly tied to a separate plan with released reservations');
-check(strpos($text, 'не потвърдено предложение за запис') !== false
+check(strpos($text, '20.11.2026 01:35') === false && strpos($text, 'пробен план') === false,
+    'The fallback date and internal planning attempts are not shown as competing dates');
+check(strpos($text, 'ориентир за търсенето') === false
     && strpos($text, 'най-ранното намерено безопасно начало') === false,
     'A fallback calculation is never presented as an approved or globally earliest safe start');
 check(serialize($diagnostic) === $diagnosticSnapshot,
@@ -350,7 +350,7 @@ check(serialize($diagnostic) === $diagnosticSnapshot,
 check(planning_TargetTimes::formatConflicts(array(1 => array('reason' => 'Няма работен график')))
     === 'Opr1: Няма работен график', 'A conflict without a fallback does not invent a separate planning attempt');
 check(strpos(planning_TargetTimes::formatConflicts(array(-1 => $diagnostic)), 'Новата операция:') === 0,
-    'New operations keep their readable label in the separated diagnostic');
+    'New operations keep their readable label in the concise diagnostic');
 check(planning_TargetTimes::formatConflicts(array()) === '', 'An empty conflict list remains empty');
 
 $conflict = array('requested' => '2026-10-08 09:00:00', 'reason' => 'test', 'earliest' => '2026-10-08 10:00:00');
