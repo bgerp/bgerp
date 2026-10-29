@@ -221,7 +221,7 @@ class store_Stores extends core_Master
         $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време');
 
         $this->FLD('chiefs', 'userList(roles=store|ceo|production,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
-        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
         $this->FLD('workersIds', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Допълнително->Товарачи');
 

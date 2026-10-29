@@ -180,7 +180,7 @@ class accda_Da extends core_Master
         $this->FLD('info', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Описание,column=none,width=400px');
         $this->FLD('origin', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Произход,column=none,width=400px');
         $this->FLD('amortNorm', 'percent', 'caption=Дълготраен актив->ГАН,hint=Годишна амортизационна норма,notNull');
-        $this->FLD('location', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Дълготраен актив->Локация,column=none,width=400px,silent,refreshForm');
+        $this->FLD('location', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Дълготраен актив->Локация,column=none,width=400px,silent,refreshForm');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Дълготраен актив->Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Дълготраен актив->Снимка');
         $this->FLD('syncWithAsset', 'enum(no=Няма,new=Нов ресурс,existing=Съществуващ ресурс)', 'caption=Оборудване->Ресурс,notNull,value=new,silent,removeAndRefreshForm=exAssetId|assetCode|assetGroupId|assetResourceFolderId|assetSupportFolderId');

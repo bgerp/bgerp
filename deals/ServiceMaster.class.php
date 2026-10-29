@@ -79,7 +79,7 @@ abstract class deals_ServiceMaster extends core_Master
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $mvc->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Обект до,silent');
+        $mvc->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Обект до,silent');
         $mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $mvc->FLD('received', 'varchar', 'caption=Получил');
         $mvc->FLD('delivered', 'varchar', 'caption=Доставил');

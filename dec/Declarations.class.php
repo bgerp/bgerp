@@ -181,7 +181,7 @@ class dec_Declarations extends core_Master
         
         // допълнителен текст
         $this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележка');
-        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Допълнително->Локация');
 
 
         // поле събирателно за плейсхолдерите
