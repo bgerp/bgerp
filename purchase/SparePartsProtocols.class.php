@@ -323,7 +323,7 @@ class purchase_SparePartsProtocols extends core_Master
 
         if(isset($fields['-single'])){
             list($row->date, $row->time) = explode(' ', $row->date);
-            list($row->handedOverOn, $row->handedOverOnTime) = explode(' ', $row->handedOverOn);
+            list($row->handedOverOn, $row->handedOverOnTime) = explode(' ', $row->handedOverOn ?? '') + array('', '');
 
             if(!empty($rec->repairBy)){
                 $repairByArr = explode("\n", $rec->repairBy);
