@@ -183,6 +183,10 @@ class colab_Threads extends core_Manager
         if (!isset($data->recs)) {
             $data->recs = array();
         }
+
+        if (!isset($data->rows)) {
+            $data->rows = array();
+        }
         
         // Извличаме записите
         while ($rec = $data->query->fetch()) {
