@@ -84,13 +84,13 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             ''
         ));
         planMetrics.append(createPlanMetric(
-            'Общо закъснение по всички задания',
+            'Сбор от закъсненията на заданията спрямо падежите',
             metrics.tardinessBefore,
             metrics.tardinessAfter,
             metrics.tardinessChange,
             Number(metrics.tardinessChangeSeconds) || 0,
-            ''
-        ));
+            'Закъснението на всяко задание се брои веднъж. Например 10 задания, всяко с 1 ден закъснение, дават сбор 10 дни — не 10 дни изместване на целия план.'
+        ).addClass('optimizationTardinessMetric'));
         planMetrics.append(createPlanMetric(
             'Избрана машина: ' + (metrics.targetAssetTitle || ''),
             metrics.targetBefore,
@@ -100,7 +100,7 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             targetDetailParts.join(' — ')
         ));
         planMetrics.append(createPlanMetric(
-            'Целият производствен план (всички машини)',
+            'Край на целия производствен план (всички машини)',
             metrics.before,
             metrics.after,
             metrics.change,
@@ -116,15 +116,23 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
     } else {
         let increasedCount = changes.filter((change) => Number(change.changeSeconds) > 0).length;
         let decreasedCount = changes.filter((change) => Number(change.changeSeconds) < 0).length;
+        const machineTime = function (seconds, fallback) {
+            if (seconds == null) return fallback || '0 мин.';
+            const minutes = Math.round(Math.abs(Number(seconds) || 0) / 60);
+            const hours = Math.floor(minutes / 60);
+            return (hours ? hours + (hours === 1 ? ' час' : ' часа') : '')
+                + (minutes % 60 ? (hours ? ' и ' : '') + (minutes % 60) + ' мин.' : (hours ? '' : '0 мин.'));
+        };
         let summary = $('<div>', {class: 'optimizationIdleSummary'});
         summary.append($('<span>', {class: 'idleIncreaseCount'})
-            .text('Увеличени: ' + increasedCount + ' машини — общо ' + (totals.increased || '0 мин.')));
+            .text('Машини с повече престой: ' + increasedCount + ' — общо ' + (increasedCount ? '+' : '') + machineTime(totals.increasedSeconds, totals.increased)));
         summary.append($('<span>', {class: 'idleDecreaseCount'})
-            .text('Намалени: ' + decreasedCount + ' машини — общо ' + (totals.decreased || '0 мин.')));
+            .text('Машини с по-малко престой: ' + decreasedCount + ' — общо ' + (decreasedCount ? '−' : '') + machineTime(totals.decreasedSeconds, totals.decreased)));
         let netSeconds = Number(totals.netSeconds) || 0;
         let netClass = netSeconds > 0 ? 'idleNetIncrease' : (netSeconds < 0 ? 'idleNetDecrease' : 'idleNetUnchanged');
         summary.append($('<span>', {class: netClass})
-            .text('Нетна промяна на престоите: ' + (totals.net || '0 мин.')));
+            .text('Обща промяна на машинния престой: ' + (netSeconds > 0 ? '+' : (netSeconds < 0 ? '−' : ''))
+                + machineTime(totals.netSeconds, totals.net)));
         report.append(summary);
 
         let table = $('<table>', {class: 'optimizationIdleTable'});
@@ -191,7 +199,7 @@ function showTargetTimesPreview(data, selectedIndex)
     renderOptimizationIdleReport(preview.idleChanges, preview.idleTotals, preview.optimizationMetrics, {}, Boolean(preview.hasNetIdleIncrease), {
         mode: 'savePreview',
         title: 'Предварителен резултат от целевите времена',
-        hint: 'Промените още не са записани. Прегледайте новата подредба, сроковете и престоите по всички машини.',
+        hint: 'Промените още не са записани. Показани са редактираната машина и реално засегнатите операции.',
         close: correct,
         cancelLabel: 'Отказ',
         cancel: correct,
@@ -234,6 +242,37 @@ function showTargetTimesPreview(data, selectedIndex)
         const number = referenceNumbers[operation.toLowerCase()];
         return operation + (number == null ? '' : ' (' + number + ')') + ' | ';
     };
+    const conflictDescription = function (text) {
+        return text.split('\n').map(function (message, index) {
+            const labelled = message.match(/^(Opr\d+|Новата операция):\s*(.*)$/i);
+            const operation = labelled ? labelled[1] : (index === 0 ? editedOperation : '');
+            const reason = (labelled ? labelled[2] : message).replace(/^Желаният час/, 'Желаното начало');
+            return (operation ? operationLabel(operation) : '') + withReferenceNumbers(reason);
+        }).join('\n');
+    };
+    const conflictBox = function (text, requestedStart) {
+        const lines = conflictDescription(text).split('\n');
+        if (requestedStart && requestedStart !== '—') lines[0] = lines[0].replace(/Желаното начало(?!\s*\()/,
+            function () { return 'Желаното начало (' + requestedStart + ')'; });
+        const box = $('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(lines[0]));
+        if (lines.length > 1) {
+            const steps = $('<ul>', {class: 'targetTimeConflictSteps'});
+            lines.slice(1).filter(Boolean).forEach(function (line) { steps.append($('<li>').text(line)); });
+            box.append(steps);
+        }
+        return box;
+    };
+    const changeSummary = function (report) {
+        const rows = report.operationChanges || [];
+        const own = report.editedOperation || editedOperation;
+        const count = function (predicate) {
+            return new Set(rows.filter(predicate).map(function (row) { return row.operation; })).size;
+        };
+        return 'Променени операции: ' + count(function (row) { return row.changed !== false; })
+            + '; чужди фиксирани начала: ' + count(function (row) { return row.pinChanged && row.operation !== own; })
+            + '; пакетни връзки: ' + count(function (row) { return row.packageChanged; })
+            + '; ръчни зависимости: ' + count(function (row) { return row.anchorChanged; }) + '.';
+    };
     if ((data.approvalChanges || []).length) {
         const changed = $('<div>', {class: 'targetTimeConflict targetTimeApprovalChanges'});
         changed.append($('<strong>').text('Записът не е извършен. Необходимо е ново потвърждение:'));
@@ -242,25 +281,24 @@ function showTargetTimesPreview(data, selectedIndex)
         details.append(changed.append(list));
     }
     if (data.conflictText) {
-        const conflict = data.conflictText.split('\n').map(function (message) {
-            const labelled = message.match(/^(Opr\d+|Новата операция):\s*(.*)$/i);
-            const operation = labelled ? labelled[1] : editedOperation;
-            const reason = (labelled ? labelled[2] : message).replace(/^Желаният час/, 'Желаното начало');
-            return (operation ? operationLabel(operation) : '') + withReferenceNumbers(reason);
-        }).join('\n');
-        details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
+        details.append(conflictBox(data.conflictText, data.requestedStart || preview.requestedStart));
     }
     if (alternatives.length) {
-        details.append($('<strong>').text('Изберете вариант, прегледайте всички промени и едва тогава натиснете „Приложи“.'));
+        details.append($('<strong>', {class: 'targetTimeChoiceHelp'}).text(firstAvailable
+            ? 'Изберете вариант, прегледайте всички промени и едва тогава натиснете „Приложи“.'
+            : 'Няма допустим вариант при текущите ограничения. Върнете се с „Отказ“ и проверете посочените предходни операции, пакетни връзки и фиксирани начала.'));
         alternatives.forEach(function (variant, index) {
             const box = $('<div>', {class: 'targetTimeChoice' + (index === selectedIndex ? ' isSelected' : '')});
             box.append($('<button>', {type: 'button', disabled: !variant.available})
                 .text(variant.title).on('click', function () { showTargetTimesPreview(data, index); }));
-            if (!variant.available) box.append($('<div>', {class: 'targetTimeConflict'}).text(variant.reason || 'Няма допустим вариант.'));
+            if (!variant.available) {
+                const reason = variant.reason || 'Няма допустим вариант.';
+                box.append(reason.trim() === (data.conflictText || '').trim()
+                    ? $('<div>', {class: 'targetTimeConflict'}).text('Този вариант не отстранява описаното по-горе ограничение.')
+                    : conflictBox(reason));
+            }
             else {
-                const rows = variant.report.operationChanges || [];
-                const pins = rows.filter(function (row) { return row.pinChanged; }).length;
-                box.append($('<div>').text('Променени фиксирани начала: ' + pins + '; операции в подробния преглед: ' + rows.length + '.'));
+                box.append($('<div>').text(changeSummary(variant.report)));
             }
             details.append(box);
         });
@@ -270,75 +308,152 @@ function showTargetTimesPreview(data, selectedIndex)
         const editedLabel = editedOperation ? operationLabel(editedOperation) : '';
         details.append($('<p>').append($('<strong>').text(editedLabel + 'Въведено начало: ' + (preview.requestedStart || '—')
             + '; предложено за запис: ' + (preview.proposedStart || '—') + '.')));
+        details.append($('<div>', {class: 'targetTimeImpactSummary'}).text(changeSummary(preview)));
+        const idleSummary = $('#optimizationIdleReport .optimizationIdleSummary');
+        if (idleSummary.length) details.append($('<div>', {class: 'targetTimeIdleImpact'})
+            .append($('<strong>').text('Престой на машините — незаето време в работните им графици'))
+            .append($('<div>', {class: 'targetTimeIdleTotals'}).append(idleSummary.children().clone()))
+            .append($('<small>').text('Сбор по машини. Това не е закъснение на заданията и не е изместване на крайния срок на плана.')));
+        const warnings = $('#optimizationIdleReport .optimizationPlanMetric').filter(function () {
+            return $(this).find('.optimizationMetricWorsened').length > 0;
+        });
+        const metrics = preview.optimizationMetrics || {};
+        if (Object.keys(metrics).length) details.append($('<strong>', {class: 'targetTimeDeadlineTitle'}).text('Срокове на заданията и край на плана'));
+        if (warnings.length) {
+            const list = $('<ul>', {class: 'targetTimeImpactWarnings'});
+            warnings.each(function () {
+                const item = $('<li>').text($(this).find('.optimizationPlanMetricLabel').text() + ' — '
+                    + $(this).find('.optimizationPlanMetricChange').text());
+                if ($(this).hasClass('optimizationTardinessMetric')) item.append($('<small>')
+                    .text($(this).find('.optimizationPlanMetricDetail').text()));
+                list.append(item);
+            });
+            details.append(list);
+        }
+        if (metrics.change != null) details.append($('<div>', {class: 'targetTimePlanEnd'})
+            .text('Изместване на изчисления край на целия производствен план: ' + metrics.change
+                + (metrics.globalEnd ? '; нов край: ' + metrics.globalEnd : '') + '.'
+                + (Number(metrics.missingJobCompletionsAfter) > 0 ? ' Има задания без изчислен край — прогнозата е непълна.' : '')));
         if ((preview.operationOrder || []).length) {
             preview.operationOrder.forEach(function (group) {
-                const section = $('<section>', {class: 'targetTimeMachine'})
-                    .append($('<h3>').text(group.asset).append(data.legendHint || ''));
-                const comparison = $('<div>', {class: 'targetTimeComparison'});
-                const oldPositions = {};
-                (group.before || []).forEach(function (row, index) { oldPositions[row.id] = index; });
-                ['before', 'after'].forEach(function (side) {
-                    const rows = group[side] || [];
-                    const panel = $('<div>', {class: 'targetTimeSide targetTimeSide-' + side});
-                    panel.append($('<h4>').text(side === 'before' ? 'Преди (към момента)' : 'След'));
-                    const table = $('<table>', {class: 'targetTimeOrderTable'});
-                    const head = $('<tr>');
-                    ['№', 'Начало', 'Операция', 'Край'].forEach(function (title) { head.append($('<th>').text(title)); });
-                    table.append($('<thead>').append(head));
-                    const body = $('<tbody>');
-                    rows.forEach(function (row, index) {
-                        const previous = rows[index - 1];
-                        const next = rows[index + 1];
-                        const linkedBefore = previous && row.previous === previous.id;
-                        const linkedAfter = next && next.previous === row.id;
-                        const state = ['draft', 'waiting', 'pending', 'active', 'wakeup', 'stopped', 'closed'].includes(row.state) ? row.state : '';
-                        const tr = $('<tr>', {class: 'state-' + state, 'data-operation': row.operation});
-                        if (row.operation === editedOperation) tr.addClass('targetTimeEditedOperation');
-                        if (linkedBefore || linkedAfter) tr.addClass('targetTimePackage');
-                        if (linkedAfter && !linkedBefore) tr.addClass('targetTimePackageStart');
-                        if (linkedBefore && !linkedAfter) tr.addClass('targetTimePackageEnd');
-                        const number = $('<td>', {class: 'targetTimeNumber', title: row.previous == null ? '' : 'В пакет след Opr' + row.previous}).text(row.number);
-                        const oldPosition = oldPositions[row.id];
-                        if (side === 'after' && oldPosition != null && oldPosition !== index) {
-                            const direction = index < oldPosition ? 'нагоре' : 'надолу';
-                            number.append($('<span>', {class: 'targetTimeMove',
-                                title: 'Преместена ' + direction + ': място ' + (oldPosition + 1) + ' → ' + (index + 1),
-                                'aria-label': 'Преместена ' + direction}).text(index < oldPosition ? ' ↑' : ' ↓'));
-                        }
-                        tr.append(number);
-                        const timeCell = function (field, direction, title) {
-                            const cell = $('<td>', {class: 'targetTimeDate', title: title});
-                            const value = $('<span>', {class: 'targetTimeValue'});
-                            const parts = String(row[field] || '—').split(' ');
-                            parts.forEach(function (part) { value.append($('<span>').text(part)); });
-                            if (side === 'after' && direction !== 0 && direction != null) {
-                                value.addClass(direction < 0 ? 'targetTimeEarlier' : 'targetTimeLater');
-                            } else if (side === 'after' && direction == null && row[field] !== '—') {
-                                value.addClass('targetTimeNew');
-                            }
-                            if (field === 'start' && row.pin && row.pin !== '—') {
-                                cell.attr('title', side === 'after' && row.pinChanged
-                                    ? 'Фиксирано начало: ' + row.pinBefore + ' → ' + row.pin
-                                    : 'Фиксирано начало: ' + row.pin);
-                                cell.append($('<span>', {class: 'targetTimePin', 'aria-label': 'Фиксирано начало'}).text('📌'));
-                            }
-                            return cell.append(value);
+                const edited = group.edited || (group.after || []).some(function (row) { return row.operation === editedOperation; });
+                const section = $('<section>', {class: 'targetTimeMachine'});
+                let holder = section;
+                if (!edited) {
+                    holder = $('<details>', {class: 'targetTimeOtherMachine'});
+                    const summary = $('<summary>').text(group.asset + ' — променени операции: ' + (group.changedCount || 0));
+                    if (group.laterCount) summary.append($('<span>', {class: 'targetTimeLater'})
+                        .text('; по-късен край: ' + group.laterCount));
+                    if (group.foreignPinCount) summary.append($('<span>', {class: 'targetTimeLater'})
+                        .text('; чужди фиксирани начала: ' + group.foreignPinCount));
+                    if (group.packageCount || group.anchorCount) summary.append($('<span>', {class: 'targetTimeLater'})
+                        .text('; пакетни връзки: ' + (group.packageCount || 0) + '; ръчни зависимости: ' + (group.anchorCount || 0)));
+                    holder.append(summary);
+                    section.append(holder);
+                } else {
+                    section.append($('<h3>').text(group.asset).append(data.legendHint || ''));
+                    const current = (group.before || []).find(function (row) { return row.operation === editedOperation; });
+                    section.append($('<div>', {class: 'targetTimeCurrentStart'})
+                        .text('Текущо изчислено начало: ' + (preview.currentStart || (current && current.start) || '—')));
+                }
+                const renderComparison = function () {
+                    const comparison = $('<div>', {class: 'targetTimeComparison'});
+                    const oldPositions = {};
+                    (group.before || []).forEach(function (row, index) { oldPositions[row.id] = index; });
+                    ['before', 'after'].forEach(function (side) {
+                        const rows = group[side] || [];
+                        const panel = $('<div>', {class: 'targetTimeSide targetTimeSide-' + side});
+                        panel.append($('<h4>').text(side === 'before' ? 'Преди (към момента)' : 'След'));
+                        const table = $('<table>', {class: 'targetTimeOrderTable'});
+                        const head = $('<tr>');
+                        ['№', 'Начало', 'Операция', 'Край'].forEach(function (title) { head.append($('<th>').text(title)); });
+                        table.append($('<thead>').append(head));
+                        const body = $('<tbody>');
+                        let hiddenRows = [];
+                        const appendGap = function () {
+                            if (!hiddenRows.length) return;
+                            const hidden = hiddenRows;
+                            const gap = $('<tr>', {class: 'targetTimeGap'});
+                            if (hidden.some(function (tr) { return tr.hasClass('targetTimePackage'); })) gap.addClass('targetTimePackageGap');
+                            const button = $('<button>', {type: 'button', 'aria-expanded': 'false',
+                                title: 'Непроменените операции и пакетните им връзки се запазват. Разгънете за подробности.'});
+                            button.text('… ' + hidden.length + ' непроменени — покажи').on('click', function () {
+                                const expand = button.attr('aria-expanded') !== 'true';
+                                button.attr('aria-expanded', String(expand)).text(expand ? 'Скрий непроменените (' + hidden.length + ')'
+                                    : '… ' + hidden.length + ' непроменени — покажи');
+                                hidden.forEach(function (tr) { tr.toggle(expand); });
+                            });
+                            body.append(gap.append($('<td>', {colspan: 4}).append(button)));
+                            hidden.forEach(function (tr) { body.append(tr.hide()); });
+                            hiddenRows = [];
                         };
-                        tr.append(timeCell('start', row.startChange, 'Планирано начало'));
-                        tr.append($('<td>', {class: 'targetTimeOperation', title: row.operation}).text(row.operation));
-                        tr.append(timeCell('end', row.endChange, 'Планиран край'));
-                        body.append(tr);
+                        rows.forEach(function (row, index) {
+                            const previous = rows[index - 1];
+                            const next = rows[index + 1];
+                            const linkedBefore = previous && row.previous === previous.id;
+                            const linkedAfter = next && next.previous === row.id;
+                            const state = ['draft', 'waiting', 'pending', 'active', 'wakeup', 'stopped', 'closed'].includes(row.state) ? row.state : '';
+                            const tr = $('<tr>', {class: 'state-' + state, 'data-operation': row.operation});
+                            if (row.operation === editedOperation) tr.addClass('targetTimeEditedOperation');
+                            if (linkedBefore || linkedAfter) tr.addClass('targetTimePackage');
+                            if (linkedAfter && !linkedBefore) tr.addClass('targetTimePackageStart');
+                            if (linkedBefore && !linkedAfter) tr.addClass('targetTimePackageEnd');
+                            const number = $('<td>', {class: 'targetTimeNumber', title: row.previous == null ? '' : 'В пакет след Opr' + row.previous}).text(row.number);
+                            const oldPosition = oldPositions[row.id];
+                            if (side === 'after' && oldPosition != null && oldPosition !== index) {
+                                const direction = index < oldPosition ? 'нагоре' : 'надолу';
+                                number.append($('<span>', {class: 'targetTimeMove',
+                                    title: 'Преместена ' + direction + ': място ' + (oldPosition + 1) + ' → ' + (index + 1),
+                                    'aria-label': 'Преместена ' + direction}).text(index < oldPosition ? ' ↑' : ' ↓'));
+                            }
+                            tr.append(number);
+                            const timeCell = function (field, direction, title) {
+                                const cell = $('<td>', {class: 'targetTimeDate', title: title});
+                                const value = $('<span>', {class: 'targetTimeValue'});
+                                const parts = String(row[field] || '—').split(' ');
+                                parts.forEach(function (part) { value.append($('<span>').text(part)); });
+                                if (side === 'after' && direction !== 0 && direction != null) {
+                                    value.addClass(direction < 0 ? 'targetTimeEarlier' : 'targetTimeLater');
+                                } else if (side === 'after' && direction == null && row[field] !== '—') {
+                                    value.addClass('targetTimeNew');
+                                }
+                                if (field === 'start' && row.pin && row.pin !== '—') {
+                                    cell.attr('title', side === 'after' && row.pinChanged
+                                        ? 'Фиксирано начало: ' + row.pinBefore + ' → ' + row.pin
+                                        : 'Фиксирано начало: ' + row.pin);
+                                    cell.append($('<span>', {class: 'targetTimePin', 'aria-label': 'Фиксирано начало'}).text('📌'));
+                                }
+                                return cell.append(value);
+                            };
+                            tr.append(timeCell('start', row.startChange, 'Планирано начало'));
+                            tr.append($('<td>', {class: 'targetTimeOperation', title: row.operation}).text(row.operation));
+                            tr.append(timeCell('end', row.endChange, 'Планиран край'));
+                            if (row.focus === false) hiddenRows.push(tr);
+                            else { appendGap(); body.append(tr); }
+                        });
+                        appendGap();
+                        table.append(body);
+                        panel.append(table);
+                        comparison.append(panel);
                     });
-                    table.append(body);
-                    panel.append(table);
-                    comparison.append(panel);
+                    holder.append($('<div>', {class: 'targetTimeComparisonHolder'}).append(comparison));
+                };
+                if (edited) renderComparison();
+                else holder.on('toggle', function () {
+                    if (holder.prop('open') && !holder.find('.targetTimeComparison').length) renderComparison();
                 });
-                section.append($('<div>', {class: 'targetTimeComparisonHolder'}).append(comparison));
                 details.append(section);
             });
         }
     }
     $('#optimizationIdleReport .optimizationIdleReportHint').after(details);
+    if (canApply) {
+        const globalDetails = $('<details>', {class: 'targetTimeGlobalDetails'})
+            .append($('<summary>').text('Общо отражение върху сроковете и престоите (всички машини)'));
+        $('#optimizationIdleReport').children('.optimizationGlobalMetrics, .optimizationIdleSummary, .optimizationIdleTableHolder, .optimizationIdleNoChanges')
+            .appendTo(globalDetails);
+        details.append(globalDetails);
+    }
     $('body').append($('<div>', {id: 'savedOrderReportBackdrop'}));
     $('body').addClass('targetTimePreviewOpen').css('overflow', 'hidden');
 }

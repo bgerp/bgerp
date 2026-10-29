@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -833,9 +833,9 @@ class purchase_Purchases extends deals_DealMaster
                                         }
                                         $allocatedArr[$pData->productId]->amount += $pData->amount;
                                         $allocatedArr[$pData->productId]->quantity += $pData->quantity;
-                                        $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight;
-                                        $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume;
-                                        if(is_array($pData->inStores)){
+                                        $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight ?? 0;
+                                        $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume ?? 0;
+                                        if(is_array($pData->inStores ?? null)){
                                             $allocatedArr[$pData->productId]->inStores += $pData->inStores;
                                         }
                                     }

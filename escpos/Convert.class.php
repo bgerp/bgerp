@@ -47,6 +47,8 @@ class escpos_Convert extends core_Manager
         $lines = array();
         $i = 0;
         $l = '';
+        $lLen = 0;
+        $res = '';
         
         foreach ($elArr as $el) {
             $col = 0;

@@ -9,7 +9,7 @@
  * @package   import2
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -94,7 +94,8 @@ class import2_Plugin extends core_Plugin
         }
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title=Импорт');
+        $caption = $form->importButtonCaption ?? 'Импорт';
+        $form->toolbar->addSbBtn($caption, 'save', array('ef_icon' => 'img/16/import.png', 'title' => $caption));
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Рендиране на формата

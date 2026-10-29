@@ -2853,6 +2853,19 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * След рендиране на шаблона на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        // Надписът за чернова е до заглавието на заданието, а не над статистиката
+        if (!empty($data->row->ExtState)) {
+            $tpl->removeBlock('ExtState');
+            $data->row->draftState = mb_strtoupper(strip_tags((string) $data->row->ExtState));
+        }
+    }
+
+
+    /**
      * Вкарваме css файл за единичния изглед
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)

@@ -319,8 +319,8 @@ abstract class cash_Document extends deals_PaymentDocument
         }
 
         $expectedPayment = null;
-        $realOriginId = !empty($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
-        $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId);
+        $realOriginId = !empty($form->rec->fromContainerId) ? $form->rec->fromContainerId : ($form->rec->originId ?? null);
+        $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId ?? null);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
         }

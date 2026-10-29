@@ -608,7 +608,13 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        if ($Script = doc_TplManager::getTplScriptClass($rec->template, $rec->createdOn)) {
+        // При частичен запис шаблонът се взима от базата
+        $tplRec = $rec;
+        if (empty($rec->template) && !empty($rec->id)) {
+            $tplRec = $mvc->fetch((int) $rec->id, 'template,createdOn', false);
+        }
+
+        if ($Script = doc_TplManager::getTplScriptClass($tplRec->template ?? null, $tplRec->createdOn ?? null)) {
             $Script->afterActivation($mvc, $rec);
         }
     }

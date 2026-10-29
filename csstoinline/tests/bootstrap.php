@@ -54,6 +54,8 @@ class cls
 {
     /** В тестовете конфигурацията съдържа името вместо ID на клас. */
     public static function getClassName($name) { return $name; }
+    /** Създава изолирания адаптер без регистрация в база данни. */
+    public static function get($name) { return new $name(); }
 }
 /** Дефинира настройките по същия начин като framework-а. */
 function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
@@ -61,3 +63,5 @@ function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
 function getFullPath($path) { return dirname(__DIR__, 2) . '/' . $path; }
 /** Прекъсва теста при нарушено условие. */
 function expect($condition, $message) { if (!$condition) throw new RuntimeException($message); }
+/** Брои намерените CSS блокове. */
+function countR($value) { return is_array($value) ? count($value) : 0; }

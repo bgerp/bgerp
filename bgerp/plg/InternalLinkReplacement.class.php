@@ -15,7 +15,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -23,10 +23,55 @@
 class bgerp_plg_InternalLinkReplacement extends core_Plugin
 {
     /**
+     * Запазва зададеното заглавие на [link=...], като сменя само адреса.
+     */
+    public function on_AfterInternalLink($rt, &$res, $url, $title, $place, $rest)
+    {
+        if ($this->prepareInternalUrl($url, $rest)) {
+            $rt->_htmlBoard[$place] = $url;
+        }
+    }
+
+
+    /**
+     * Познатите вътрешни действия използват текущия домейн и при кеширан HTML.
+     */
+    protected function prepareInternalUrl(&$url, &$rest)
+    {
+        $base = getBoot(false, false, true);
+        if (strpos($rest, '//') === 0 || ($base && strpos($rest, $base . '/') !== 0)) return false;
+        $local = substr($rest, strlen($base));
+        $path = trim(parse_url($local, PHP_URL_PATH) ?? '', '/');
+        $route = explode('/', $path);
+        $query = array();
+        parse_str(parse_url($local, PHP_URL_QUERY) ?? '', $query);
+        $ctr = $query['Ctr'] ?? (($path === 'index.php') ? '' : ($route[0] ?? ''));
+        $act = $query['Act'] ?? $route[1] ?? 'default';
+        if (!is_string($ctr) || !is_string($act) || !preg_match('/^[a-z][a-z0-9_]*$/i', $ctr) || !cls::load($ctr, true)) return false;
+
+        $class = cls::getClassName($ctr);
+        $act = strtolower($act);
+        $defaults = get_class_vars($class);
+        $plugins = implode(',', (array) ($defaults['loadList'] ?? array()));
+        if (!is_subclass_of($class, 'core_Manager') || stripos($plugins, 'cms_ExternalWrapper') !== false) return false;
+        if (!in_array($act, array('single', 'list', 'default')) && !(strtolower($class) === 'fileman_files' && $act === 'previewfile') && !(strtolower($class) === 'bgerp_portal' && $act === 'show')) return false;
+        if (!method_exists($class, 'act_' . $act)) return false;
+        if ($act === 'default' && (new ReflectionMethod($class, 'act_Default'))->getDeclaringClass()->getName() !== 'core_Manager') return false;
+
+        $rest = $local;
+        $url = ((Mode::isReadOnly() || Mode::is('text', 'plain')) ? getBoot(true, true, true) : $base) . $rest;
+
+        return true;
+    }
+
+
+    /**
      * Изпълнява се преди да се обработят вътрешните URL-та
      */
-    public function on_BeforeInternalUrl($rt, &$res, $url, $title, $rest)
+    public function on_BeforeInternalUrl($rt, &$res, &$url, $title, &$rest)
     {
+        if (!$this->prepareInternalUrl($url, $rest)) return;
+
         // Парсираме URL' то
         $params = type_Richtext::parseInternalUrl($rest);
         

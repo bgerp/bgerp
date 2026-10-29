@@ -159,10 +159,76 @@ class planning_TargetTimes extends core_BaseClass
         foreach ($conflicts as $id => $conflict) {
             $label = $id < 0 ? 'Новата операция' : "Opr{$id}";
             $message = $label . ': ' . ($conflict['reason'] ?? 'конфликт в плана');
-            if (!empty($conflict['earliest'])) $message .= '. Най-ранно намерено безопасно начало: ' . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i');
+            if (!empty($conflict['earliest'])) $message .= "\nСлед отчитане и на работните графици, заетостта на машините и останалите зависимости, най-ранното намерено безопасно начало за {$label} в текущия план е "
+                . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i') . '.';
             $messages[] = $message;
         }
         return implode('<br>', $messages);
+    }
+
+    /**
+     * Обяснява причинната верига, без да смесва пакетната и технологичната връзка.
+     */
+    public static function describeDependencyConflict($targetId, $blockedId, $limits, $ready, $tasks, $assets, $chain, $requiredStart = null)
+    {
+        $label = function ($id) { return $id < 0 ? 'новата операция' : "Opr{$id}"; };
+        $machine = function ($id) use ($tasks, $assets) {
+            $assetId = $tasks[$id]->assetId ?? null;
+            $asset = $assets[$assetId] ?? (object)array();
+            $name = trim(($asset->code ?? '') . ' ' . ($asset->name ?? ''));
+            return $name !== '' ? 'машина „' . $name . '“' : ($assetId ? "машина №{$assetId}" : 'неуказана машина');
+        };
+        $blocked = $label($blockedId);
+        $parts = array('Желаното начало не може да се спази поради технологична зависимост.');
+        if ($targetId != $blockedId) {
+            $targetPosition = array_search($targetId, $chain);
+            $blockedPosition = array_search($blockedId, $chain);
+            $relation = $targetPosition !== false && $blockedPosition !== false
+                ? 'е ' . ($blockedPosition < $targetPosition ? 'преди' : 'след') . ' ' . $label($targetId) . ' в същия пакет'
+                : 'е в същия пакет като ' . $label($targetId);
+            $jobNote = '';
+            if (!empty($tasks[$targetId]->originId) && !empty($tasks[$blockedId]->originId)) $jobNote = ($tasks[$targetId]->originId ?? null) == ($tasks[$blockedId]->originId ?? null)
+                ? ' Двете операции са от едно задание.' : ' Двете операции са от различни задания, но са обвързани в пакет.';
+            $parts[] = "{$blocked} {$relation} на " . $machine($blockedId) . '.' . $jobNote . ' Операциите в пакета се планират заедно.';
+        }
+        if ($requiredStart && $requiredStart < planning_TaskConstraints::NOT_FOUND_DATE) $parts[] = 'За да се спази въведеният час за ' . $label($targetId)
+            . ", {$blocked} трябва да започне на " . dt::mysql2verbal($requiredStart, 'd.m.Y H:i') . '.';
+        foreach ($limits as $previousId => $limit) {
+            $previous = $label($previousId);
+            $sameJob = !empty($tasks[$blockedId]->originId) && !empty($tasks[$previousId]->originId)
+                && ($tasks[$blockedId]->originId ?? null) == ($tasks[$previousId]->originId ?? null);
+            $differentJob = !empty($tasks[$blockedId]->originId) && !empty($tasks[$previousId]->originId) && !$sameJob;
+            $knownMachines = !empty($tasks[$blockedId]->assetId) && !empty($tasks[$previousId]->assetId);
+            $sameMachine = $knownMachines && ($tasks[$blockedId]->assetId ?? null) == ($tasks[$previousId]->assetId ?? null);
+            $parts[] = "{$blocked} зависи от {$previous} — предходна технологична операция"
+                . ($sameJob ? ' в същото задание' : ($differentJob ? ' от друго задание' : ' по зададената технологична връзка'))
+                . ', изпълнявана на ' . ($knownMachines ? ($sameMachine ? 'същата ' : 'друга ') : '') . $machine($previousId) . '.';
+            $end = $limit['end'] ?? null;
+            $parts[] = $end && $end < planning_TaskConstraints::NOT_FOUND_DATE
+                ? "Очакван край на {$previous}: " . dt::mysql2verbal($end, 'd.m.Y H:i') . '.'
+                : "За {$previous} все още няма изчислен край.";
+            $waiting = max(0, (int)($limit['waitingTime'] ?? 0));
+            $duration = array();
+            $hours = (int)floor($waiting / 3600);
+            $minutes = (int)floor(($waiting % 3600) / 60);
+            if ($hours) $duration[] = $hours . ($hours == 1 ? ' час' : ' часа');
+            if ($minutes) $duration[] = $minutes . ' мин.';
+            if ($waiting % 60) $duration[] = ($waiting % 60) . ' сек.';
+            $noOverlap = ($limit['intersect'] ?? 'yes') == 'no';
+            $limitReady = $limit['ready'] ?? $ready;
+            if ($noOverlap && $end && $limitReady < planning_TaskConstraints::NOT_FOUND_DATE) {
+                $release = dt::addSecs(-$waiting, $limitReady);
+                if (substr($release, 0, 16) != substr($end, 0, 16)) $parts[] = 'За следващата операция заетият интервал се освобождава в '
+                    . dt::mysql2verbal($release, 'd.m.Y H:i') . '; изчакването се брои от този момент.';
+            }
+            $parts[] = $noOverlap
+                ? "{$blocked} може да започне едва след приключването на {$previous}" . ($waiting ? ' и още ' . implode(' и ', $duration) . ' календарно изчакване' : '') . '.'
+                : 'Зададената връзка допуска застъпване на двете операции' . ($waiting ? ', но изисква изчакване ' . implode(' и ', $duration) : '') . '.';
+        }
+        $parts[] = $ready < planning_TaskConstraints::NOT_FOUND_DATE
+            ? "Само по това технологично условие {$blocked} не може да започне преди " . dt::mysql2verbal($ready, 'd.m.Y H:i') . '. Това все още не означава свободен час на машината.'
+            : "Докато предходните операции нямат изчислено изпълнение, не може да се определи допустимо начало за {$blocked}.";
+        return implode("\n", $parts);
     }
 
     /**
@@ -400,10 +466,11 @@ class planning_TargetTimes extends core_BaseClass
             if ($conflicts) $messages[] = static::formatConflicts($conflicts);
             if ($rightsError) $messages[] = $rightsError;
             if ($canChangePackages) $form->setField('targetPackagePolicy', 'input');
-            $form->setError('timeStart,timeDuration', str_replace('<br>', '; ', implode('; ', $messages)));
+            $form->setError('timeStart,timeDuration', htmlspecialchars(str_replace('<br>', '; ', implode('; ', $messages)), ENT_QUOTES, 'UTF-8'));
             if (!empty($rec->timeStart)) {
                 $report = array('alternatives' => array(), 'conflictText' => str_replace('<br>', "\n", implode("\n", $messages)),
                     'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore), 'approvalChanges' => $approvalChanges,
+                    'requestedStart' => static::verbalTime($rec->timeStart ?? null),
                     'editedOperation' => ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1));
                 $choices = array(
                     array('mode' => 'move', 'policy' => $policy, 'title' => 'Запази желания час и промени конфликтните фиксирани начала'),
@@ -485,6 +552,7 @@ class planning_TargetTimes extends core_BaseClass
         $report['requestedStart'] = static::verbalTime($rec->timeStart ?? null);
         $report['proposedStart'] = static::verbalTime($simulation->proposedStart ?? ($rec->timeStart ?? null));
         $report['editedOperation'] = ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1);
+        $report['currentStart'] = static::verbalTime($baseline[$rec->id ?? -1]->expectedTimeStart ?? null);
         $report['operationChanges'] = array();
         $report['operationOrder'] = array();
         $oldRequired = planning_TaskConstraints::getSameResourceJobPackageLinks($baseline);
@@ -497,14 +565,22 @@ class planning_TargetTimes extends core_BaseClass
             $rows = $scheduled->tasks[$assetId] ?? array();
             $asset = $simulation->context->prepared->assets[$assetId] ?? (object)array();
             $storedManual = $storedManuals[$assetId] ?? (object)array();
-            $oldOrder = array_values((array)($storedManual->data ?? array()));
-            $newOrder = array_values((array)($simulation->options['manualOrderOverrides'][$assetId] ?? $oldOrder));
+            // Сравняваме ефективните връзки от двата плана, включително автоматичните пакети.
+            $oldAsset = $comparison->assets[$assetId] ?? $storedManual;
+            $newAsset = $scheduled->assets[$assetId] ?? (object)array();
+            $oldOrder = array_values((array)($oldAsset->manualOrder ?? ($storedManual->data ?? array())));
+            $newOrder = array_values((array)($newAsset->manualOrder ?? ($simulation->options['manualOrderOverrides'][$assetId] ?? $oldOrder)));
             $oldPositions = array_flip($oldOrder);
             $newPositions = array_flip($newOrder);
-            $oldLinks = $oldRequired + (array)($storedManual->anchorLinks ?? array()) + (array)($storedManual->packageLinks ?? array());
-            $newLinks = $newRequired + (array)($simulation->options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array()))
-                + (array)($simulation->options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array()));
+            $oldPackages = $oldRequired + (array)($oldAsset->packageLinks ?? array());
+            $newPackages = $newRequired + (array)($newAsset->packageLinks ?? ($simulation->options['packageLinkOverrides'][$assetId] ?? ($asset->packageLinks ?? array())));
+            $oldAnchors = (array)($oldAsset->anchorLinks ?? array());
+            $newAnchors = (array)($newAsset->anchorLinks ?? ($simulation->options['anchorLinkOverrides'][$assetId] ?? ($asset->anchorLinks ?? array())));
+            $oldLinks = $oldRequired + $oldAnchors + $oldPackages;
+            $newLinks = $newRequired + $newAnchors + $newPackages;
             $orderRows = array();
+            $focus = array();
+            $changedCount = $laterCount = $pinCount = $packageCount = $anchorCount = 0;
             $assetChanged = $assetId == ($rec->assetId ?? null);
             foreach (($beforeByAsset[$assetId] ?? array()) + $rows as $taskId => $unusedRow) {
                 $row = $rows[$taskId] ?? (object)array();
@@ -521,14 +597,23 @@ class planning_TargetTimes extends core_BaseClass
                     'asset' => $asset->code ?? (string)$assetId, 'before' => $before, 'after' => $after,
                     'pinBefore' => static::verbalTime($pinBefore), 'pinAfter' => static::verbalTime($pinAfter),
                     'pinChanged' => $pinBefore != $pinAfter, 'positionBefore' => $oldPosition, 'positionAfter' => $newPosition,
+                    'packageChanged' => ($oldPackages[$taskId] ?? null) != ($newPackages[$taskId] ?? null),
+                    'anchorChanged' => ($oldAnchors[$taskId] ?? null) != ($newAnchors[$taskId] ?? null),
                     'linkBefore' => isset($oldLinks[$taskId]) ? 'Opr' . $oldLinks[$taskId] : '—',
                     'linkAfter' => isset($newLinks[$taskId]) ? 'Opr' . $newLinks[$taskId] : '—');
                 $changed = $presentBefore != $presentAfter || $before != $after || $pinBefore != $pinAfter
-                    || $oldPosition != $newPosition || ($oldLinks[$taskId] ?? null) != ($newLinks[$taskId] ?? null);
+                    || $oldPosition != $newPosition || $entry['packageChanged'] || $entry['anchorChanged'];
+                $entry['changed'] = $changed;
                 if ($changed || $taskId == ($rec->id ?? -1)) {
+                    $focus[$taskId] = true;
                     $report['operationChanges'][] = $entry;
                     $assetChanged = true;
                 }
+                if ($changed) $changedCount++;
+                if (static::timeDirection($old->expectedTimeEnd ?? null, $row->expectedTimeEnd ?? null) > 0) $laterCount++;
+                if ($entry['pinChanged'] && $taskId != ($rec->id ?? -1)) $pinCount++;
+                if ($entry['packageChanged']) $packageCount++;
+                if ($entry['anchorChanged']) $anchorCount++;
                 foreach (array('before', 'after') as $side) {
                     if ($side == 'before' ? !$presentBefore : !$presentAfter) continue;
                     $source = $side == 'before' ? $old : $row;
@@ -552,11 +637,28 @@ class planning_TargetTimes extends core_BaseClass
                     return strcmp($a['sortStart'], $b['sortStart']) ?: ($a['position'] <=> $b['position']) ?: ($a['id'] <=> $b['id']);
                 });
             }
+            // Един съсед от всяка страна дава контекст; останалите редове са разгъваеми.
+            $visible = $focus;
+            foreach ($orderRows as $sideRows) foreach ($sideRows as $index => $item) {
+                if (empty($focus[$item['id']])) continue;
+                foreach (array($index - 1, $index + 1) as $neighbor) {
+                    if (isset($sideRows[$neighbor])) $visible[$sideRows[$neighbor]['id']] = true;
+                }
+            }
+            foreach ($orderRows as &$sideRows) foreach ($sideRows as &$item) $item['focus'] = !empty($visible[$item['id']]);
+            unset($sideRows, $item);
             $report['operationOrder'][] = array('asset' => trim(($asset->code ?? (string)$assetId) . ' ' . ($asset->name ?? '')),
+                'assetId' => $assetId, 'edited' => $assetId == ($rec->assetId ?? null),
+                'changedCount' => $changedCount, 'laterCount' => $laterCount, 'foreignPinCount' => $pinCount,
+                'packageCount' => $packageCount, 'anchorCount' => $anchorCount,
                 'before' => $orderRows['before'], 'after' => $orderRows['after']);
         }
-        // Един и същ номер следва операцията и при смяна на машина.
+        usort($report['operationOrder'], function ($a, $b) { return $b['edited'] <=> $a['edited']; });
+        // Кратките номера започват от видимите редове на редактираната машина.
         $numbers = array();
+        foreach ($report['operationOrder'] as $group) foreach (array('before', 'after') as $side) foreach ($group[$side] as $item) {
+            if ($item['focus'] && !isset($numbers[$item['id']])) $numbers[$item['id']] = count($numbers) + 1;
+        }
         foreach (array('before', 'after') as $side) foreach ($report['operationOrder'] as &$group) {
             foreach ($group[$side] as &$item) {
                 if (!isset($numbers[$item['id']])) $numbers[$item['id']] = count($numbers) + 1;

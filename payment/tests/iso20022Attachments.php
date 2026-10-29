@@ -45,20 +45,42 @@ class bank_OwnAccounts {
     public static function getDefaultCurrency($id, $date, $code) { return self::$historicalCurrency && $date < '2026-01-01' ? 'BGN' : 'EUR'; }
 }
 class bank_Register {
+    public static $previewRows;
+    public static $canList = true;
+    public static function haveRightFor($action) { return self::$canList; }
+    public static function previewImport($batches, $confirmedRows = array()) {
+        if (isset(self::$previewRows)) {
+            $rows = array();
+            foreach (self::$previewRows as $i => $row) {
+                $copy = clone $row;
+                if (($copy->status ?? '') === 'crossFormat' && !empty($confirmedRows[$i + 1])) $copy->status = 'crossFormatConfirmed';
+                $rows[] = $copy;
+            }
+            return $rows;
+        }
+        $rows = array();
+        foreach ($batches as $batch) foreach ($batch as $rec) $rows[] = (object) array('status' => 'new');
+        return $rows;
+    }
     public static $legacy = false;
     public static function fetch($where) { return self::$legacy; }
     public static $imports = array();
     public static $batches = array();
-    public static function importRecs($recs) { self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
+    public static $importWarnings = array();
+    public static $confirmedCrossFormats = array();
+    public static function importRecs($recs, $serviceId = null, &$warnings = null, $confirmedCrossFormats = array()) { self::$confirmedCrossFormats = $confirmedCrossFormats; $warnings = self::$importWarnings; self::$batches[] = $recs; self::$imports = array_merge(self::$imports, $recs); return 'test'; }
     public static function findMatches() { return 0; }
 }
 require dirname(__DIR__) . '/XmlParser.class.php';
 require dirname(__DIR__) . '/ImportFiles.class.php';
+require dirname(__DIR__) . '/ParserMt940.class.php';
 require dirname(__DIR__) . '/ParserIso20022.class.php';
 class attachment_TestParser extends payment_ParserIso20022 {
     public static function read($fh, $password = null) { return parent::getAttachmentContents($fh, $password); }
 }
 class attachment_TestMime {
+    public $emlCalls = 0;
+    public function getEmlFile() { $this->emlCalls++; return 900; }
     private $files;
     public function __construct($files) { $this->files = $files; }
     public function saveFiles() {}

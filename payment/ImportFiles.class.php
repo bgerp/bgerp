@@ -1,6 +1,6 @@
 <?php
 /**
- * Обща обработка на XML и ZIP файлове с банкови извлечения.
+ * Обща обработка на XML, MT940 и ZIP файлове с банкови извлечения.
  *
  * @category bgerp
  * @package payment
@@ -19,7 +19,7 @@ class payment_ImportFiles
      * Разпознава и парсира извлеченията по съдържание за двата входа за импорт.
      * batches запазва отделните извлечения за съществуващата проверка за дубликати.
      */
-    public static function getRecs($fh, $password = null, $servicePrefix = 'Import', $includeUnicredit = true)
+    public static function getRecs($fh, $password = null, $servicePrefix = 'Import', $includeUnicredit = true, $includeMt940 = true)
     {
         $res = (object) array('recs' => array(), 'batches' => array(), 'warnings' => array(),
             'errors' => array(), 'recognized' => 0, 'passwordError' => false, 'status' => 'unsupported',
@@ -44,6 +44,9 @@ class payment_ImportFiles
             } elseif ($includeUnicredit && strpos($xml, 'APAccounts') !== false) {
                 $parser = 'payment_ParserUC';
                 $service = 'Unicredit';
+            } elseif ($includeMt940 && payment_ParserMt940::isCandidate($xml)) {
+                $parser = 'payment_ParserMt940';
+                $service = 'MT940';
             } else {
                 continue;
             }
@@ -64,9 +67,11 @@ class payment_ImportFiles
                 $res->batches[] = $parsed->recs;
                 $res->recs = array_merge($res->recs, $parsed->recs);
                 foreach ($parsed->recs as $i => $rec) {
+                    $rec->sourceFileHnd = $fh;
+                    $rec->sourceFileName = $name;
+                    $rec->sourceEntry = $parsed->recordSources[$i]['entry'] ?? null;
                     $row = clone $rec;
                     $row->sourceFile = $name;
-                    $row->sourceEntry = $parsed->recordSources[$i]['entry'] ?? null;
                     $row->ownIban = $parsed->recordSources[$i]['iban'] ?? '';
                     $row->currency = $parsed->recordCurrencies[$i] ?? '';
                     $res->previewRows[] = $row;
@@ -106,8 +111,9 @@ class payment_ImportFiles
         $extension = strtolower(fileman::getExt($name ?? ''));
         $isZip = $extension == 'zip' || in_array($signature, array("PK\x03\x04", "PK\x05\x06"), true);
         $xmlStart = ltrim($header, "\xEF\xBB\xBF \t\r\n");
-        if (!$isZip && !in_array($extension, array('xml', 'camt'), true)
-            && $xmlStart !== '' && substr($xmlStart, 0, 1) !== '<') {
+        if (!$isZip && !in_array($extension, array('xml', 'camt', 'mt940', 'sta'), true)
+            && $xmlStart !== '' && substr($xmlStart, 0, 1) !== '<'
+            && strpos($xmlStart, ':20:') !== 0 && strpos($xmlStart, '{1:') !== 0) {
             return array();
         }
         if ($size > self::MAX_XML_BYTES) {

@@ -79,7 +79,7 @@
     contain: inline-size; }
     .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody,
     .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
-      grid-template-columns: minmax(var(--two-cols-filter-left-width, calc(400px + 6em + 1em)), 1fr) minmax(var(--two-cols-filter-right-width, calc(400px + 6em + 1em)), 1fr); }
+      grid-template-columns: var(--two-cols-filter-left-width, calc(400px + 6em + 1em)) var(--two-cols-filter-right-width, calc(400px + 6em + 1em)); }
 
   .wide .doc_Search .twoColsFilter {
     column-gap: 0; }
@@ -183,3 +183,74 @@
     float: none !important;
     flex: 0 0 auto; }
 
+
+.wide .twoColsFilter.twoColsFilterActive .twoColsFilterLeftRow {
+    --two-cols-filter-field-width: var(--two-cols-filter-left-field-width);
+}
+.wide .twoColsFilter.twoColsFilterActive .twoColsFilterRightRow {
+    --two-cols-filter-field-width: var(--two-cols-filter-right-field-width);
+}
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > input:not([type=hidden]):not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit]):not([type=reset]):not([type=image]):not([type=file]),
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > select:not(.select2-hidden-accessible),
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > textarea,
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .select2-container,
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterComboInput,
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterDateInput {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0;
+    max-width: var(--two-cols-filter-field-width);
+}
+
+/* Плаващата форма не трябва да свива полетата с процентна широчина. */
+.wide .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
+    width: var(--two-cols-filter-single-width);
+    max-width: 100%;
+}
+
+/* Свободната широчина от резултатите се разпределя поравно между колоните. */
+
+.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
+    grid-template-columns: calc(var(--two-cols-filter-left-width) + (100% - var(--two-cols-filter-width)) / 2) calc(var(--two-cols-filter-right-width) + (100% - var(--two-cols-filter-width)) / 2);
+}
+
+.wide .doc_Search .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow {
+    --two-cols-filter-field-width: 100%;
+}
+
+.wide .doc_Search .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
+    width: 100%;
+}
+
+.wide .twoColsFilter .allowEmptyRadioHolder,
+.wide .twoColsFilter .notAllowEmptyRadioHolder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1em;
+    row-gap: 0.2em;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr > td,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr > td {
+    display: contents;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder br,
+.wide .twoColsFilter .notAllowEmptyRadioHolder br {
+    display: none;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    gap: 3px;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption > input[type=radio] {
+    flex-shrink: 0;
+    margin: 0;
+}

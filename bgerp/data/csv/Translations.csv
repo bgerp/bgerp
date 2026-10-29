@@ -4189,3 +4189,27 @@ en,"Локацията се добавя към фирма или лице: ли
 en,Няма такъв собственик на локацията,The owner of the location does not exist
 en,Групов марж - среден приоритет,Group margin - medium priority
 en,Групов марж - нисък приоритет,Group margin - low priority
+en,Разрешения,Permissions
+en,Последен резултат,Last result
+en,мин,min
+en,Следващо изпълнение,Next run
+en,Последно изпълнение,Last run
+en,Последно успешно,Last success
+en,Поредни грешки,Consecutive failures
+en,Дата и час,Date and time
+en,Ден от месеца,Day of month
+en,Часова зона,Time zone
+en,Брой изпълнения,Number of runs
+en,Промени в папки,Changes in folders
+en,Видове документи,Document types
+en,Обработка,Processing
+en,Промени след,Changes after
+en,Изпращане и активиране,Sending and activation
+en,Допълнителни роли,Additional roles
+en,Документи от името на,Documents on behalf of
+en,Усилие,Effort
+en,Изпълнение на задача,Task run
+en,Стартирано на,Started on
+en,Приключено на,Finished on
+en,Планирано за,Scheduled for
+en,Промпт,Prompt

@@ -133,7 +133,7 @@ class eshop_Groups extends core_Master
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,removeAndRefreshForm');
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Група->Описание');
+        $this->FLD('info', 'richtext(bucket=Notes,trustedHtml=yes)', 'caption=Група->Описание');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Изглед),optionsFunc=cat_Params::getPublic');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Списък),optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');

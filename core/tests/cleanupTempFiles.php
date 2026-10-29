@@ -2,6 +2,8 @@
 
 /**
  * Isolated filesystem checks: php core/tests/cleanupTempFiles.php
+ * Nested SBF layout: CLEANUP_TEST_NESTED_SBF=1 php core/tests/cleanupTempFiles.php
+ * Temp inside SBF: CLEANUP_TEST_TEMP_IN_SBF=1 php core/tests/cleanupTempFiles.php
  *
  * @category ef
  * @package core
@@ -91,15 +93,19 @@ function cleanupFixtures($path)
 }
 
 $checks = 0;
+$nestedSbf = getenv('CLEANUP_TEST_NESTED_SBF') === '1';
+$tempInSbf = getenv('CLEANUP_TEST_TEMP_IN_SBF') === '1';
 $base = sys_get_temp_dir() . '/core-cleanup-' . bin2hex(random_bytes(8));
 mkdir($base, 0700);
-define('EF_TEMP_PATH', $base . '/temp & <fixture>');
-define('EF_SBF_PATH', $base . '/sbf "fixture"');
+define('EF_TEMP_PATH', $base . ($tempInSbf ? '/sbf "fixture"' : '') . '/temp & <fixture>');
+define('EF_SBF_PATH', ($nestedSbf ? EF_TEMP_PATH : $base) . '/sbf "fixture"');
 define('FILEMAN_TEMP_PATH', $base . '/fileman');
 define('FCONV_TEMP_PATH', $base . '/fconv & <fixture>');
 define('THUMB_IMG_PATH', $base . '/thumb');
 foreach (array(EF_TEMP_PATH, EF_SBF_PATH, FILEMAN_TEMP_PATH, FCONV_TEMP_PATH, THUMB_IMG_PATH) as $path) {
-    mkdir($path);
+    if (!is_dir($path)) {
+        mkdir($path, 0700, true);
+    }
 }
 $work = EF_TEMP_PATH . '/fixtures';
 mkdir($work);
@@ -108,6 +114,43 @@ $old = time() - 11 * 86400;
 $recent = time() - 3600;
 
 try {
+    if ($tempInSbf) {
+        cleanupFile(EF_TEMP_PATH . '/bgerp-first-install.inprogress', $old, $old);
+        cleanupFile(EF_TEMP_PATH . '/old', $old, $old);
+        mkdir(EF_SBF_PATH . '/public');
+        cleanupFile(EF_SBF_PATH . '/public/.htaccess', $old, $old);
+        cleanupFile(EF_SBF_PATH . '/public/old', $old, $old);
+        core_Os::cron_clearOldFiles();
+        cleanupCheck(file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress'), 'SBF traversal also preserves the main setup marker');
+        cleanupCheck(file_exists(EF_SBF_PATH . '/public/.htaccess'), 'SBF traversal preserves nested web-server configuration');
+        cleanupCheck(!file_exists(EF_TEMP_PATH . '/old'), 'Clean ordinary files from a temp root inside SBF');
+        cleanupCheck(!file_exists(EF_SBF_PATH . '/public/old'), 'Clean ordinary SBF cache beside web-server configuration');
+        echo "OK: {$checks} temp inside SBF cleanup checks on PHP " . PHP_VERSION . ".\n";
+        return;
+    }
+
+    if ($nestedSbf) {
+        foreach (array('public', '_keep', 'part_keep') as $name) {
+            mkdir(EF_SBF_PATH . '/' . $name);
+            cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $old, $old);
+        }
+        mkdir(EF_SBF_PATH . '-sibling');
+        cleanupFile(EF_SBF_PATH . '-sibling/old', $old, $old);
+        cleanupFile(EF_SBF_PATH . '/.htaccess', $old, $old);
+        cleanupFile(EF_TEMP_PATH . '/old', $old, $old);
+        $report = core_Os::cron_clearOldFiles();
+        cleanupCheck(file_exists(EF_SBF_PATH . '/_keep/old'), 'Nested SBF preserves excluded directories');
+        cleanupCheck(file_exists(EF_SBF_PATH . '/part_keep/old'), 'Preserve the existing exclusion for names containing an underscore');
+        cleanupCheck(file_exists(EF_SBF_PATH . '/.htaccess'), 'Nested SBF preserves root configuration files');
+        cleanupCheck(!file_exists(EF_SBF_PATH . '/public/old'), 'Nested SBF still cleans ordinary cache files');
+        cleanupCheck(!file_exists(EF_TEMP_PATH . '/old'), 'Ordinary temporary files are still cleaned');
+        cleanupCheck(!file_exists(EF_SBF_PATH . '-sibling/old'), 'The SBF exclusion does not match a similarly named sibling');
+        cleanupCheck(strpos($report, '2 файла от ' . htmlspecialchars(EF_TEMP_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Report only temporary deletions under the temp root');
+        cleanupCheck(strpos($report, '1 файл от ' . htmlspecialchars(EF_SBF_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Report nested SBF deletions separately');
+        echo "OK: {$checks} nested SBF cleanup checks on PHP " . PHP_VERSION . ".\n";
+        return;
+    }
+
     // Validate system paths without passing them to any deletion method.
     $validatePath = new ReflectionMethod('core_Os', 'getCleanupPath');
     $validatePath->setAccessible(true);
@@ -256,18 +299,30 @@ try {
     cleanupCheck(is_dir($root . '/young-empty'), 'Preserve a newly created empty work directory');
     cleanupCheck(file_exists($root . '/active/fresh'), 'Preserve a directory containing a recent file');
 
+    $root = $work . '/web-cache';
+    mkdir($root . '/nested', 0700, true);
+    foreach (array('.htaccess', 'nested/.htaccess', 'nested/expired') as $name) {
+        cleanupFile($root . '/' . $name, $old, $old);
+    }
+    cleanupCheck(core_Os::deleteOldFiles($root, $age) === 1, 'Only cache data is counted as deleted');
+    cleanupCheck(file_exists($root . '/.htaccess') && file_exists($root . '/nested/.htaccess'), 'Keep old web-server configuration at every depth');
+    cleanupCheck(!file_exists($root . '/nested/expired'), 'Web-server configuration does not prevent cache cleanup');
+
     $root = $work . '/patterns';
     mkdir($root);
     mkdir($root . '/nested');
+    mkdir($root . '/keep-tree/nested', 0700, true);
     mkdir($root . '/keep-empty');
     touch($root . '/keep-empty', $old, $old);
-    foreach (array('remove.css', 'keep.css', 'keep.txt', 'nested/remove.css') as $name) {
+    foreach (array('remove.css', 'keep.css', 'keep.txt', 'nested/remove.css', 'keep-tree/nested/old.css') as $name) {
         cleanupFile($root . '/' . $name, $old, $old);
     }
     cleanupLink($base . '/absent', $root . '/keep-link', $old);
     cleanupCheck(core_Os::deleteOldFiles($root, $age, '#/keep[^/]*$#', '#\.css$#') === 2, 'Keep positive and negative path filters');
     cleanupCheck(file_exists($root . '/keep.css') && file_exists($root . '/keep.txt'), 'Preserve filtered files');
     cleanupCheck(is_link($root . '/keep-link') && is_dir($root . '/keep-empty'), 'Preserve filtered links and directories');
+    cleanupCheck(file_exists($root . '/keep-tree/nested/old.css'), 'Preserve the contents of an excluded directory');
+    cleanupCheck(core_Os::deleteOldFiles($root . '/keep-tree', $age, '#/keep[^/]*$#') === 0, 'An excluded initial directory is not traversed');
 
     foreach (array('#[invalid#', array(), true, 123) as $invalidPattern) {
         cleanupCheck(core_Os::deleteOldFiles($root, $age, $invalidPattern) === 0, 'Reject invalid negative filters before deletion');
@@ -279,10 +334,14 @@ try {
     $path = $root . '/' . str_repeat('a', 80) . '!';
     cleanupFile($path, $old, $old);
     $limitedPattern = '#(*NO_JIT)(*LIMIT_MATCH=10)(a+)+$#';
+    $errorDir = $root . '/nested/' . str_repeat('a', 80) . '!';
+    mkdir($errorDir, 0700, true);
+    cleanupFile($errorDir . '/old.txt', $old, $old);
     cleanupCheck(preg_match($limitedPattern, '') === 0 && preg_match($limitedPattern, $path) === false, 'The fixture triggers a match-time error in a valid regular expression');
     cleanupCheck(core_Os::deleteOldFiles($root, $age, $limitedPattern) === 0, 'A match-time negative filter error preserves the file');
     cleanupCheck(core_Os::deleteOldFiles($root, $age, null, $limitedPattern) === 0, 'A match-time positive filter error preserves the file');
     cleanupCheck(file_exists($path), 'Preserve files after match-time errors');
+    cleanupCheck(file_exists($errorDir . '/old.txt'), 'A negative filter error on a directory preserves its contents');
 
     $root = $work . '/literal names';
     mkdir($root);
@@ -320,12 +379,19 @@ try {
 
     cleanupFixtures($work);
     cleanupFile(EF_TEMP_PATH . '/old', $old, $old);
+    cleanupFile(EF_TEMP_PATH . '/bgerp-first-install.inprogress', $old, $old);
     cleanupFile(EF_TEMP_PATH . '/nine-days', time() - 9 * 86400, time() - 9 * 86400);
     $report = core_Os::cron_clearOldFiles();
     cleanupCheck(strpos($report, '1 файл от ' . htmlspecialchars(EF_TEMP_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Report the tmp count with an HTML-escaped path');
     cleanupCheck(strpos($report, EF_TEMP_PATH) === false, 'Do not insert raw HTML from a temp path into the cron report');
     cleanupCheck(strpos($report, htmlspecialchars(EF_SBF_PATH, ENT_QUOTES, 'UTF-8')) === false, 'An empty sbf has no deletions to report');
     cleanupCheck(file_exists(EF_TEMP_PATH . '/nine-days'), 'Cron retains the ten-day lifetime');
+    cleanupCheck(file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress'), 'Cron preserves an interrupted installation marker regardless of age');
+    cleanupFile(FILEMAN_TEMP_PATH . '/bgerp-first-install.inprogress', $old, $old);
+    cleanupFile(EF_TEMP_PATH . '/bgerp-first-install.inprogress.old', $old, $old);
+    core_Os::cron_clearOldFiles();
+    cleanupCheck(!file_exists(FILEMAN_TEMP_PATH . '/bgerp-first-install.inprogress'), 'The setup marker exclusion is limited to the main temp root');
+    cleanupCheck(!file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress.old'), 'The setup marker exclusion matches the exact filename');
     foreach (array('first', 'second', '_keep') as $name) {
         mkdir(EF_SBF_PATH . '/' . $name);
         cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $old, $old);
@@ -367,6 +433,7 @@ try {
     mkdir($base . '/remote-outside/empty', 0700, true);
     cleanupFile($base . '/remote-outside/source', $old, $old);
     cleanupFile($remoteRoot . '/old', time() - 10800, time() - 10800);
+    cleanupFile($remoteRoot . '/.htaccess', $old, $old);
     cleanupFile($remoteRoot . '/recent', $recent, $recent);
     cleanupLink($base . '/remote-outside', $remoteRoot . '/fresh-directory-link', $recent);
     cleanupLink($base . '/remote-outside/source', $remoteRoot . '/fresh-input-link', $recent);
@@ -374,6 +441,7 @@ try {
     $report = $remote->cron_DeleteOldDir();
     cleanupCheck(!file_exists($remoteRoot . '/old'), 'Remote cleanup retains its two-hour lifetime');
     cleanupCheck(file_exists($remoteRoot . '/recent'), 'Remote cleanup preserves recent files');
+    cleanupCheck(file_exists($remoteRoot . '/.htaccess'), 'Remote cleanup preserves web-server configuration');
     cleanupCheck(is_dir($remoteRoot . '/fresh'), 'Remote cleanup preserves recent empty work directories');
     cleanupCheck(!is_dir($remoteRoot . '/old-empty'), 'Remote cleanup removes old empty work directories');
     cleanupCheck(is_dir($base . '/remote-outside/empty'), 'Remote cleanup preserves directories behind a link');

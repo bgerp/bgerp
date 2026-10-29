@@ -609,6 +609,59 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
+     * Отхвърля ръчен ред, при който цял пакет не се побира пред фиксирана резервация.
+     */
+    public static function getManualOrderTimeConflicts($assetId, $orderedTaskIds, $packageLinks, $tasks, $scheduledData)
+    {
+        $orderedTasks = array();
+        foreach ((array)$orderedTaskIds as $taskId) {
+            $taskId = (int)$taskId;
+            $task = $tasks[$taskId] ?? null;
+            if (($task->assetId ?? null) != $assetId
+                || (!empty($task->actualStart) && ($task->state ?? null) != 'stopped')) continue;
+            $orderedTasks[$taskId] = $task;
+        }
+        $blocks = static::buildPlanningParamPackageBlocks($orderedTasks, $packageLinks);
+        $planned = $scheduledData->tasks[$assetId] ?? array();
+        $conflicts = array();
+        $nextFixed = null;
+        foreach (array_reverse($blocks) as $block) {
+            $start = $end = $pinId = null;
+            foreach ($block['tasks'] as $taskId => $task) {
+                $row = $planned[$taskId] ?? null;
+                $rowStart = $row->expectedTimeStart ?? null;
+                $rowEnd = $row->expectedTimeEnd ?? null;
+                if (empty($rowStart) || empty($rowEnd) || $rowStart >= self::NOT_FOUND_DATE || $rowEnd >= self::NOT_FOUND_DATE) continue;
+                $taskStart = $row->_startTimestamp ?? strtotime($rowStart);
+                $taskEnd = $row->_endTimestamp ?? strtotime($rowEnd);
+                if ($taskStart === false || $taskEnd === false) continue;
+                if (!isset($row->_endTimestamp)) $taskEnd++;
+                $start = $start === null ? $taskStart : min($start, $taskStart);
+                $end = $end === null ? $taskEnd : max($end, $taskEnd);
+                $target = $task->timeStart ?? null;
+                if (!empty($target) && $rowStart == $target) $pinId = $taskId;
+            }
+            if ($nextFixed !== null && $end !== null && $end > $nextFixed['start']) {
+                $headId = $block['headId'];
+                $tailId = $block['tailId'];
+                $label = $headId == $tailId ? "Операцията Opr{$headId}" : "Пакетът Opr{$headId} – Opr{$tailId}";
+                $fixedLabel = $nextFixed['isPackage'] ? 'пакета' : 'операцията';
+                $target = dt::mysql2verbal($nextFixed['target'], 'd.m.Y H:i');
+                $limit = dt::mysql2verbal(date('Y-m-d H:i:s', $nextFixed['start']), 'd.m.Y H:i');
+                $finish = dt::mysql2verbal(date('Y-m-d H:i:s', $end), 'd.m.Y H:i');
+                $conflicts[$headId] = array('reason' => "{$label} е поставен пред {$fixedLabel} с фиксирана Opr{$nextFixed['pinId']} ({$target}), но изчисленият му край {$finish} е след началото на резервацията {$limit}. Подредбата не може да бъде спазена без промяна на фиксираното начало или разделяне на пакет");
+            }
+            if ($pinId !== null && $start !== null) {
+                $nextFixed = array('pinId' => $pinId, 'target' => $tasks[$pinId]->timeStart ?? '',
+                    'start' => $start, 'isPackage' => count($block['tasks']) > 1);
+            }
+        }
+
+        return $conflicts;
+    }
+
+
+    /**
      * Checks for a directed path in the planning dependency graph.
      */
     private static function hasPlanningPath($fromId, $toId, $adjacency)
@@ -1589,15 +1642,20 @@ class planning_TaskConstraints extends core_Master
 
         foreach ($reservedRuns as $run) {
             $reason = null;
+            $dependency = null;
             foreach ($run['chain'] as $id) {
                 $task = $allTasks[$id];
-                $ready = static::getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now);
+                $blockingPrevious = array();
+                $ready = static::getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now, $blockingPrevious);
                 $start = date('Y-m-d H:i:s', $planned[$id]->_startTimestamp ?? strtotime($planned[$id]->expectedTimeStart ?? ''));
                 if ($ready > $start) {
                     $manualReady = $task->_manualOrderReadyAfter ?? '';
                     $reason = $manualReady > $start
                         ? "Ръчната подредба изисква начало след предходната фиксирана операция/пакет: {$manualReady}"
                         : "Предходна операция/технологична зависимост не позволява начало преди {$ready}";
+                    if ($manualReady <= $start && $blockingPrevious) {
+                        $dependency = array('taskId' => $id, 'limits' => $blockingPrevious, 'ready' => $ready, 'requiredStart' => $start);
+                    }
                     break;
                 }
                 $previousId = $manualPackagePrevious[$id] ?? null;
@@ -1606,7 +1664,11 @@ class planning_TaskConstraints extends core_Master
                     break;
                 }
             }
-            if ($reason !== null) foreach ($run['pins'] as $id => $date) $targetConflicts[$id] = array('reason' => $reason, 'priority' => 1);
+            if ($reason !== null) foreach ($run['pins'] as $id => $date) {
+                $pinReason = $dependency ? planning_TargetTimes::describeDependencyConflict($id, $dependency['taskId'],
+                    $dependency['limits'], $dependency['ready'], $allTasks, $assets, $run['chain'], $dependency['requiredStart']) : $reason;
+                $targetConflicts[$id] = array('reason' => $pinReason, 'priority' => 1);
+            }
         }
 
         // What remains is part of, or depends on, a technological dependency cycle.
@@ -1705,7 +1767,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Calculates the earliest usable time after all already planned predecessors.
      */
-    private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now)
+    private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now, &$blockingPrevious = null)
     {
         $readyTimes = array($now);
         if (!empty($task->_targetReadyAfter)) $readyTimes[] = $task->_targetReadyAfter;
@@ -1720,13 +1782,25 @@ class planning_TaskConstraints extends core_Master
             }
             if (!isset($planned[$previousTaskId])) {
                 $readyTimes[] = self::NOT_FOUND_DATE;
+                if (is_array($blockingPrevious)) $blockingPrevious[$previousTaskId] = array('ready' => self::NOT_FOUND_DATE);
                 continue;
             }
 
-            $readyTimes[] = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
+            $constraintReady = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
+            $readyTimes[] = $constraintReady;
+            if (is_array($blockingPrevious)) {
+                $blockingPrevious[$previousTaskId] = array('ready' => $constraintReady,
+                    'end' => $planned[$previousTaskId]->expectedTimeEnd ?? null,
+                    'waitingTime' => $constraint->waitingTime ?? 0, 'intersect' => $constraint->intersect ?? 'yes');
+            }
         }
 
-        return max($readyTimes);
+        $ready = max($readyTimes);
+        if (is_array($blockingPrevious)) foreach ($blockingPrevious as $id => $limit) {
+            if (($limit['ready'] ?? null) != $ready) unset($blockingPrevious[$id]);
+        }
+
+        return $ready;
     }
 
 

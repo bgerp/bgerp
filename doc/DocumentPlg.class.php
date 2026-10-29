@@ -2946,7 +2946,7 @@ class doc_DocumentPlg extends core_Plugin
                         $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
                         $allowedCidArr = Mode::get($modeAllowedContainerIdName);
                         
-                        $cId = $rec->containerId;
+                        $cId = $rec->containerId ?? null;
                         
                         if (!$cId && !empty($rec->id)) {
                             $cId = $mvc->fetchField($rec->id, 'containerId');
@@ -3372,6 +3372,12 @@ class doc_DocumentPlg extends core_Plugin
     
     public function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        // Шаблоните с място за състоянието показват черновата там, а не над документа
+        if (!empty($data->row->ExtState) && $tpl->isPlaceholderExists('state')) {
+            $tpl->replace($data->row->ExtState, 'state');
+            $tpl->removeBlock('ExtState');
+        }
+
         if (Request::get('Printing')) {
             // Заместваме MID само ако сме в Print Preview!
             //
@@ -3928,6 +3934,22 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Дали видът документ може да се печата в състояние "Чернова" (doc_Setup DOC_PRINT_DRAFT_DOC_TYPES)
+     *
+     * @param mixed $mvc
+     *
+     * @return bool
+     */
+    public static function canPrintDraft($mvc)
+    {
+        $docTypes = doc_Setup::get('PRINT_DRAFT_DOC_TYPES');
+        if (empty($docTypes)) return false;
+
+        return keylist::isIn(core_Classes::getId($mvc), $docTypes);
+    }
+
+
     /**
      * Връща стринг, който се използва за плейсхолдер на mid стринга
      *
@@ -5072,6 +5094,11 @@ class doc_DocumentPlg extends core_Plugin
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             if ($data->rec->state == 'draft') {
                 $data->row->ExtState = $data->row->state;
+
+                // Отпечатаната чернова не бива да се бърка с валиден документ
+                if (Mode::is('printing')) {
+                    $data->row->ExtState = ht::createElement('b', array('style' => 'font-size:1.2em;'), mb_strtoupper(tr('Чернова')));
+                }
             }
             
             // Оставяме състоянието да се показва само ако не е оттеглено

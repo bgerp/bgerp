@@ -949,12 +949,12 @@ class deals_QuotationDetails extends doc_Detail
 
                         // Слага се 'opt' в класа на колоната да се отличава
                         $rowTpl->replace("-opt{$masterRec->id}", 'OPT');
-                        if ($row->productId) {
+                        if (!empty($row->productId)) {
                             $rowTpl->replace('-opt-product', 'OPTP');
                         }
                         $oTpl->replace("-opt{$masterRec->id}", 'OPT');
                         $id = &$oCount;
-                        if ($hasQuantityColOpt !== true && ($row->quantity)) {
+                        if ($hasQuantityColOpt !== true && !empty($row->quantity)) {
                             $hasQuantityColOpt = true;
                         }
                     }

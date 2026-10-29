@@ -224,6 +224,8 @@
 #optimizationIdleReport.targetTimeReport { width: 780px; }
 .targetTimeProposal { padding: 10px 12px; }
 .targetTimeConflict { color: #a83220; white-space: pre-line; margin: 6px 0; }
+.targetTimeConflictSteps { color: #333333; white-space: normal; padding-left: 22px; margin: 8px 0 12px; line-height: 1.4; }
+.targetTimeConflictSteps li { margin: 5px 0; }
 .targetTimeChoice { margin: 8px 0; padding: 8px; border: 1px solid #cccccc; }
 .targetTimeChoice.isSelected { border: 2px solid #386f54; background: #f0f8f2; }
 .targetTimeChoice button { white-space: normal; text-align: left; padding: 6px; cursor: pointer; margin-bottom: 5px; }
@@ -233,7 +235,30 @@
 .targetTimePreviewOpen .fuiHintLayer { max-width: min(480px, calc(100vw - 24px)) !important; }
 .targetTimeMachine { margin: 14px 0; }
 .targetTimeMachine h3 { margin: 8px 0; font-size: 14px; }
-.targetTimeComparisonHolder { overflow: auto; max-height: 420px; }
+.targetTimeComparisonHolder { overflow: visible; }
+.targetTimeReport .optimizationIdleTableHolder { max-height: none; overflow: visible; }
+.targetTimeImpactSummary, .targetTimeCurrentStart { color: #555555; margin: 6px 0; }
+.targetTimeImpactWarnings { color: #a83220; padding-left: 20px; }
+.targetTimeOtherMachine, .targetTimeGlobalDetails { border: 1px solid #dddddd; margin: 10px 0; }
+.targetTimeOtherMachine > summary, .targetTimeGlobalDetails > summary { padding: 9px; background: #f5f5f5; cursor: pointer; font-weight: 600; }
+.targetTimeOtherMachine > summary, .targetTimeGlobalDetails > summary { list-style: none; }
+.targetTimeOtherMachine > summary::before, .targetTimeGlobalDetails > summary::before { content: '▸'; display: inline-block; width: 16px; }
+.targetTimeOtherMachine[open] > summary::before, .targetTimeGlobalDetails[open] > summary::before { content: '▾'; }
+.targetTimeIdleImpact { margin: 12px 0; }
+.targetTimeIdleTotals { display: flex; gap: 5px 16px; flex-wrap: wrap; margin: 5px 0; }
+.targetTimeIdleImpact small, .targetTimeImpactWarnings small { display: block; margin: 5px 0; color: #555555; font-weight: 400; }
+.targetTimeDeadlineTitle { display: block; margin-top: 12px; }
+.targetTimePlanEnd { margin: 6px 0 12px; }
+.targetTimeOtherMachine > .targetTimeComparisonHolder { padding: 8px; }
+#optimizationIdleReport .targetTimeGap td { background: #f7f7f7; }
+#optimizationIdleReport .targetTimePackageGap td { box-shadow: inset 4px 0 #2474b5; }
+.targetTimeGap button { padding: 3px; border: 0; background: transparent; color: #555555; cursor: pointer; font: inherit; }
+.targetTimeReport .optimizationIdleReportActions { position: sticky; bottom: 0; z-index: 1; }
+@media (max-width: 680px) {
+  .targetTimeComparison { min-width: 0 !important; gap: 5px !important; }
+  #optimizationIdleReport .targetTimeOrderTable th:first-child { width: 26px; }
+  #optimizationIdleReport .targetTimeOrderTable th, #optimizationIdleReport .targetTimeOrderTable td { font-size: 11px; padding: 4px 2px !important; }
+}
 .targetTimeComparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 620px; }
 .targetTimeSide { min-width: 0; }
 .targetTimeSide h4 { margin: 0; padding: 6px; text-align: center; background: #eeeeee; }

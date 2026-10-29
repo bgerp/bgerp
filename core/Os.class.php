@@ -123,7 +123,7 @@ class core_Os
      *
      * @param string      $dir
      * @param int         $maxAge          Срок в секунди
-     * @param string|null $negativePattern Регулярен израз за изключване
+     * @param string|null $negativePattern Регулярен израз за изключване на файлове и цели папки
      * @param string|null $positivePattern Регулярен израз за включване
      * @param string|null $allowedRoot     Друга разрешена база от настройките на модула, не от Request
      *
@@ -143,6 +143,10 @@ class core_Os
                 return 0;
             }
         }
+        // Изключена папка се запазва заедно със съдържанието, преди да я обходим.
+        if ($negativePattern && @preg_match($negativePattern, $dir) !== 0) {
+            return 0;
+        }
 
         $handle = @opendir($dir);
         if (!$handle) {
@@ -153,7 +157,8 @@ class core_Os
         $before = time() - $maxAge;
         try {
             while (false !== ($entry = readdir($handle))) {
-                if ($entry == '.' || $entry == '..') {
+                // Правилата на уеб сървъра не са временни файлове.
+                if ($entry == '.' || $entry == '..' || $entry == '.htaccess') {
                     continue;
                 }
 
@@ -334,6 +339,22 @@ class core_Os
         
         // Резултат във вербален вид
         $resText = '';
+
+        // SBF има собствени изключения, дори когато е вложен във временна папка.
+        $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
+        $tempExcludes = array();
+        if ($sbfPath !== false) {
+            $tempExcludes[] = preg_quote($sbfPath, '#') . '(?:' . preg_quote(DIRECTORY_SEPARATOR, '#') . '|$)';
+        }
+
+        // Само setup премахва маркера при успешно завършване на първата инсталация.
+        $mainTempPath = defined('EF_TEMP_PATH') ? self::getCleanupPath(EF_TEMP_PATH) : false;
+        $setupMarkerPattern = null;
+        if ($mainTempPath !== false) {
+            $setupMarkerPattern = preg_quote($mainTempPath . DIRECTORY_SEPARATOR . 'bgerp-first-install.inprogress', '#') . '\z';
+            $tempExcludes[] = $setupMarkerPattern;
+        }
+        $tempExclude = $tempExcludes ? '#^(?:' . implode('|', $tempExcludes) . ')#' : null;
         
         // Пакетите може да използват временни папки извън общата EF_TEMP_PATH.
         $cleanedPaths = array();
@@ -347,7 +368,7 @@ class core_Os
                     continue 2;
                 }
             }
-            $delCnt = self::deleteOldFiles($tempPath, $maxAge);
+            $delCnt = self::deleteOldFiles($tempPath, $maxAge, $tempExclude);
             $cleanedPaths[] = $tempPath;
             if ($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($tempPath, ENT_QUOTES, 'UTF-8');
@@ -355,13 +376,13 @@ class core_Os
         }
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
-        $sbfPath = defined('EF_SBF_PATH') ? self::getCleanupPath(EF_SBF_PATH) : false;
         if ($sbfPath !== false) {
+            $setupExclude = $setupMarkerPattern === null ? null : '#^' . $setupMarkerPattern . '#';
             $delCnt = 0;
             if ($handle = @opendir($sbfPath)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir($sbfPath . "/{$entry}")) {
-                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge);
+                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge, $setupExclude);
                     }
                 }
                 closedir($handle);

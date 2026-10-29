@@ -9,7 +9,7 @@
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,7 +74,8 @@ class plg_Printing extends core_Plugin
     {
         $recState = $data->rec->state ?? null;
         $recBrState = $data->rec->brState ?? null;
-        if (Mode::is('forceShowPrint') || !($recState == 'draft' ||
+        $printDraft = ($recState == 'draft') && cls::haveInterface('doc_DocumentIntf', $mvc) && doc_DocumentPlg::canPrintDraft($mvc);
+        if (Mode::is('forceShowPrint') || $printDraft || !($recState == 'draft' ||
             ($recState == 'rejected' && $recBrState == 'draft') ||
             ($recState == 'rejected' && $recBrState != 'draft' && ($mvc->printRejected ?? null) === false))) {
             if (($mvc instanceof core_Manager) && $mvc->haveRightFor('single', $data->rec)) {
