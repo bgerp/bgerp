@@ -9,7 +9,7 @@
  * @package   synck
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2020 - 2026 Experta OOD
+ * @copyright 2020 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -179,7 +179,7 @@ class sync_Map extends core_Manager
             if ($cParRec) {
                 $Driver = cat_Params::getDriver($rec->paramId);
                 if ($Driver) {
-                    $dType = $Driver->getType($rec->paramId);
+                    $dType = $Driver->getType($cParRec);
                     if ($dType && ($dType instanceof fileman_FileType)) {
                         try {
                             $status = self::exportRec('cat_Params', $rec->paramId, $res, $controller, $exportState);
@@ -813,7 +813,7 @@ class sync_Map extends core_Manager
                     $Driver = cat_Params::getDriver($cParamId);
                     
                     if ($Driver) {
-                        $dType = $Driver->getType($cParamId);
+                        $dType = $Driver->getType($cParRec);
                         if ($dType && ($dType instanceof fileman_FileType)) {
                             expect(sync_Settings::renewImportLock(), 'Изгубен mutex по време на sync import');
                             $file = self::downloadRemoteFile($rec->__paramValue);
