@@ -395,11 +395,6 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->addX = $this->paddingLeft - $this->minX;
         $this->addY = $this->paddingTop - $this->minY;
         
-        defIfNot('PDF_FONT_NAME_MAIN', 'dejavuserifcondensed');
-        
-        defIfNot('PDF_FONT_NAME_DATA', 'dejavuserifcondensed');
-        
-        
         // create new PDF document
         $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), true, 'UTF-8', false);
         
