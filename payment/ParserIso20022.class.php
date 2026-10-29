@@ -139,10 +139,6 @@ class payment_ParserIso20022 extends core_BaseClass
                 continue;
             }
             
-            $owrName = payment_XmlParser::getText($stmt, 'Acct/Ownr/Nm');
-            $bank = payment_XmlParser::getText($stmt, 'Acct/Svcr/FinInstnId/Nm');
-            $bic = payment_XmlParser::getText($stmt, 'Acct/Svcr/FinInstnId/BIC');
-            
             $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
             $pagination = $stmt->StmtPgntn ?? $document->BkToCstmrStmt->GrpHdr->MsgPgntn ?? $document->BkToCstmrAcctRpt->GrpHdr->MsgPgntn ?? null;
             if (!self::checkStatementTotals($stmt, $pagination, $iban, $res)) {

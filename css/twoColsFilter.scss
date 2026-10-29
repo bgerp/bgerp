@@ -121,7 +121,6 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 }
 
 // Формата запълва широчината на резултатите, а колоните пазят измерените размери.
-.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
 .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
 	flex-grow: 1;
 
@@ -140,17 +139,13 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-// Формата и резултатите запълват общата широчина на списъка.
+// Резултатите запълват списъка, а формата запазва измерената си широчина.
 .wide .doc_Search {
 	.twoColsFilter {
 		column-gap: 0;
 
-		.listFilter {
-			flex: 1 1 auto;
-		}
 	}
 
-	.twoColsFilter .formTable,
 	.listRows > .listTable {
 		width: 100%;
 		max-width: none;
@@ -295,20 +290,6 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 .wide .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
     width: var(--two-cols-filter-single-width);
     max-width: 100%;
-}
-
-// Свободната широчина от резултатите се разпределя поравно между колоните.
-
-.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
-    grid-template-columns: calc(var(--two-cols-filter-left-width) + (100% - var(--two-cols-filter-width)) / 2) calc(var(--two-cols-filter-right-width) + (100% - var(--two-cols-filter-width)) / 2);
-}
-
-.wide .doc_Search .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow {
-    --two-cols-filter-field-width: 100%;
-}
-
-.wide .doc_Search .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
-    width: 100%;
 }
 
 .wide .twoColsFilter .allowEmptyRadioHolder,

@@ -93,7 +93,7 @@ class sales_Routes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,showContragent,allowEmpty)', 'caption=Локация,mandatory,silent,tdClass=nowrap');
+        $this->FLD('locationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,showContragent,allowEmpty)', 'caption=Локация,mandatory,silent,tdClass=nowrap');
         $this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
         $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory,smartCenter');
         $this->FLD('type', 'enum(visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)', 'caption=Посещения->Вид,mandatory,notNull,default=visit');

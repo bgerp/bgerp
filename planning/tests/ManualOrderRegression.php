@@ -62,7 +62,6 @@ function compareExistingEngine($context) {
     $intervals = array_map(function ($interval) { return clone $interval; }, $prepared->calendarIntervals);
     $tasks = array_map(function ($row) { return clone $row; }, $context->tasks);
     $engine = planning_Setup::get('MANUAL_ORDER_IN_ASSET') == 'yes' ? 'manualPlanning' : 'smartPlanningGraph';
-    foreach ($tasks as $row) if (!empty($row->timeStart)) $engine = 'smartPlanningGraph';
     $method = new ReflectionMethod('planning_TaskConstraints', $engine);
     $method->setAccessible(true);
     $planned = $notPlanned = array();
