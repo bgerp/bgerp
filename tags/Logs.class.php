@@ -8,7 +8,7 @@
  * @package   tags
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -148,13 +148,13 @@ class tags_Logs extends core_Manager
         while ($rec = $query->fetch()) {
             $tArr = tags_Tags::getTagNameArr($rec->tagId);
 
-            $resArr[$rec->id]['name'] = $tArr['name'];
+            $resArr[$rec->id]['name'] = $tArr['name'] ?? null;
 
-            $resArr[$rec->id]['span'] = $tArr['span'];
+            $resArr[$rec->id]['span'] = $tArr['span'] ?? null;
 
-            $resArr[$rec->id]['spanNoName'] = $tArr['spanNoName'];
+            $resArr[$rec->id]['spanNoName'] = $tArr['spanNoName'] ?? null;
 
-            $resArr[$rec->id]['color'] = $tArr['color'];
+            $resArr[$rec->id]['color'] = $tArr['color'] ?? null;
         }
 
         return $resArr;
@@ -466,10 +466,10 @@ class tags_Logs extends core_Manager
             if(!array_key_exists($rec->tagId, $tagCache)){
                 $tagCache[$rec->tagId] = tags_Tags::getTagNameArr($rec->tagId);
             }
-            $resArr[$rec->containerId][$rec->id]['name'] = $tagCache[$rec->tagId]['name'];
-            $resArr[$rec->containerId][$rec->id]['span'] = $tagCache[$rec->tagId]['span'];
-            $resArr[$rec->containerId][$rec->id]['spanNoName'] = $tagCache[$rec->tagId]['spanNoName'];
-            $resArr[$rec->containerId][$rec->id]['color'] = $tagCache[$rec->tagId]['color'];
+            $resArr[$rec->containerId][$rec->id]['name'] = $tagCache[$rec->tagId]['name'] ?? null;
+            $resArr[$rec->containerId][$rec->id]['span'] = $tagCache[$rec->tagId]['span'] ?? null;
+            $resArr[$rec->containerId][$rec->id]['spanNoName'] = $tagCache[$rec->tagId]['spanNoName'] ?? null;
+            $resArr[$rec->containerId][$rec->id]['color'] = $tagCache[$rec->tagId]['color'] ?? null;
         }
 
         return $resArr;
