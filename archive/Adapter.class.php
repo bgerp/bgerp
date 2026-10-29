@@ -20,7 +20,7 @@ defIfNot('ARCHIVE_TEMP_PATH', EF_TEMP_PATH . '/archive');
  * @package   archive
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,6 +37,12 @@ class archive_Adapter
      * Временната директория с временните файлове, екстрактнати от архива
      */
     public $dir;
+
+
+    /**
+     * @var Archive_7z
+     */
+    public $inst;
     
     
     /**
