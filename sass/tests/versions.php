@@ -11,7 +11,7 @@
  * @since v 0.1
  */
 if (PHP_SAPI !== 'cli') exit;
-if ($argc < 4 || $argc > 5) exit("Usage: php versions.php phpsass|1.0.4|1.13.0 LIBRARY_DIR OUTPUT_DIR [BASELINE_CONVERTER]\n");
+if ($argc < 4 || $argc > 5) exit("Usage: php versions.php phpsass|1.0.4|1.13.0|2.1.0 LIBRARY_DIR_OR_AUTOLOAD OUTPUT_DIR [BASELINE_CONVERTER]\n");
 error_reporting(E_ALL);
 $mode = $argv[1];
 $library = rtrim($argv[2], '/');
@@ -68,8 +68,8 @@ set_error_handler(function ($level, $message, $file, $line) {
     }
     throw new ErrorException($message, 0, $level, $file, $line);
 });
-expect(in_array($mode, array('phpsass', '1.0.4', '1.13.0'), true), 'Invalid compiler');
-if ($mode !== 'phpsass') require $library . '/scss.inc.php';
+expect(in_array($mode, array('phpsass', '1.0.4', '1.13.0', '2.1.0'), true), 'Invalid compiler');
+if ($mode !== 'phpsass') require (is_file($library) ? $library : $library . '/scss.inc.php');
 require dirname(__DIR__) . '/Setup.class.php';
 require dirname(__DIR__) . '/Converter.class.php';
 require dirname(__DIR__) . '/Plugin.class.php';
@@ -85,7 +85,7 @@ expect(strpos($css, 'Сума 123,45 лв.') !== false, 'Cyrillic or amount lost
 expect(strpos($css, '8px') !== false && strpos($css, '75%') !== false, 'Mixin, imports or loop failed');
 expect(strpos($css, 'display: none') !== false, 'Hidden element changed');
 expect(strpos($css, 'marker.svg') !== false, 'Relative CSS URL changed');
-if ($mode === '1.13.0') expect(count($reports) === 0, 'New compiler unexpectedly fell back');
+if (in_array($mode, array('1.13.0', '2.1.0'), true)) expect(count($reports) === 0, 'New compiler unexpectedly fell back');
 file_put_contents($output . '/invoice.css', $css);
 copy(__DIR__ . '/fixtures/marker.svg', $output . '/marker.svg');
 $body = '<div class="sass-qa"><div class="logo"></div><h1>Пробна фактура</h1><table><tr><th>Артикул</th><th>Сума</th></tr><tr><td>Кирилица</td><td class="sum">123,45 лв.</td></tr></table><div class="label"></div><div class="hidden">Скрит текст</div></div>';
@@ -141,8 +141,8 @@ $plugin = new sass_Plugin();
 $path = 'invoice.css'; $result = null;
 $plugin->on_BeforeGetSbfFilePath(null, $result, $path);
 expect(file_get_contents($oldCss) === '/* retained legacy CSS */', 'Existing CSS overwritten');
-if ($mode === '1.13.0') {
-    expect(strpos($result, '_scssphp1_13_0.css') !== false, 'Missing version-specific SBF path');
+if (in_array($mode, array('1.13.0', '2.1.0'), true)) {
+    expect(strpos($result, '_scssphp' . str_replace('.', '_', $mode) . '.css') !== false, 'Missing version-specific SBF path');
     expect(file_get_contents($result) === $css, 'SBF did not use new compiler');
     $firstPath = $result; $writes = core_Sbf::$writes;
     $plugin->on_BeforeGetSbfFilePath(null, $result, $path);
@@ -161,3 +161,27 @@ $path = 'missing.css'; $result = null;
 $plugin->on_BeforeGetSbfFilePath(null, $result, $path);
 expect($result === null, 'Missing SCSS intercepted ordinary CSS');
 echo json_encode(array('mode' => $mode, 'php' => PHP_VERSION, 'checks' => $checks, 'cssSha256' => hash('sha256', $css), 'legacyDeprecations' => array_sum($warnings), 'fallbackReports' => count($reports)), JSON_UNESCAPED_UNICODE) . "\n";
+
+// Проверка на входния hook без Composer инсталация или SQL.
+$form = new class {
+    public $rec;
+    public $errors = array();
+    /** Формата е подадена за запис. */ public function isSubmitted() { return true; }
+    /** Запазва стандартните грешки по полета. */ public function setError($field, $message) { $this->errors[$field] = $message; }
+};
+$form->rec = (object) array('SASS_USE_COMPOSER' => 'yes', 'SASS_VERSION' => '2.1.0');
+(new sass_Setup())->inputConfigDescriptionForm($form);
+expect(isset($form->errors['SASS_VERSION']) === (PHP_VERSION_ID < 80100), 'PHP form guard failed');
+if (PHP_VERSION_ID < 80100) {
+    $config = array('USE_COMPOSER' => 'yes', 'VERSION' => '2.1.0');
+    expect(strpos((new sass_Setup())->checkConfig(), 'PHP 8.1') !== false, 'Setup PHP error missing');
+    expect(strpos((new sass_Setup())->install(), "class='red'") !== false, 'Installer must reject before Composer');
+    $failed = false;
+    try { sass_Converter::convert($simple, true); } catch (RuntimeException $e) { $failed = strpos($e->getMessage(), 'PHP 8.1') !== false; }
+    expect($failed, 'Runtime must reject before loading PHP 8 code');
+    $form->errors = array();
+    $form->rec->SASS_USE_COMPOSER = 'no';
+    (new sass_Setup())->inputConfigDescriptionForm($form);
+    expect(!$form->errors, 'Unused Composer selection must not block PHPSass');
+}
+echo "PHP requirement guards: OK\n";

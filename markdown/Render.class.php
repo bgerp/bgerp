@@ -2,9 +2,8 @@
 
 
 /**
- * Версията на пакете, който използва markdown
+ * Default за показване на лиценза преди настройването на базата
  */
-//defIfNot('MARKDOWN_VERSION', '1.0.1');
 defIfNot('MARKDOWN_VERSION', 'extra-1.2.5');
 
 
@@ -15,7 +14,7 @@ defIfNot('MARKDOWN_VERSION', 'extra-1.2.5');
  * @package   markdown
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,19 +23,26 @@ class markdown_Render
 {
     /**
      * Конвертира посочени markdown текст в HTML формат
+     *
+     * @param string|null $html
+     * @param bool $useDefault Без четене на core_Packs при първоначална инсталация
+     * @return string
      */
-    public static function Convert($html)
+    public static function Convert($html, $useDefault = false)
     {
-        //Пътя до файла на markdown
-        $filePath = MARKDOWN_VERSION . '/' . 'markdown.php';
-        
-        // Очакваме да няма грешка при включване на файла
-        expect(@include_once($filePath), "Не може да бъде намерен файла: {$filePath}");
-        
-        //Конвертираме от markdown към html
-        $convertedHtml = Markdown($html);
-        
-        //Връщаме конвертирания текст
-        return $convertedHtml;
+        $version = $useDefault ? MARKDOWN_VERSION : markdown_Setup::get('VERSION');
+        expect(in_array($version, array('1.0.1', 'extra-1.2.5', '2.0.0'), true), 'Неподдържана Markdown версия', $version);
+        $html = (string) ($html ?? '');
+
+        if ($version === '2.0.0') {
+            expect(PHP_VERSION_ID >= 70400, 'PHP Markdown 2.0.0 изисква PHP 7.4 или по-нова версия');
+            require_once __DIR__ . '/2.0.0/Michelf/MarkdownExtra.inc.php';
+
+            return \Michelf\MarkdownExtra::defaultTransform($html);
+        }
+
+        require_once __DIR__ . '/' . $version . '/markdown.php';
+
+        return Markdown($html);
     }
 }

@@ -350,6 +350,12 @@ class doc_Linked extends core_Manager
             
             return ;
         }
+
+        // Блокът е извън формата и остава на страницата при AJAX обновяване.
+        if (($form->cmd ?? null) == 'refresh' && Request::get('ajax_mode')) {
+
+            return;
+        }
         
         $className = '';
         if (Mode::is('screenMode', 'wide')) {

@@ -16,7 +16,11 @@ if (PHP_SAPI !== 'cli') {
 
 define('EF_ROOT_PATH', dirname(__DIR__, 3));
 class core_Mvc {}
-class core_ProtoSetup {}
+class core_ProtoSetup
+{
+    /** Тестов избор без запис в базата. */
+    public static function get($key) { return '5.10.0'; }
+}
 
 /** Дефинира стойност само ако още липсва. */
 function defIfNot($name, $value)
@@ -53,3 +57,37 @@ checkVersion(core_Composer::isInstalled($package, '1.30.5'), 'Existing minimum-v
 checkVersion(core_Composer::isInstalled($package, 'v1.30.7', true), 'Version prefix is accepted');
 checkVersion(core_Composer::isInstalled($package), 'Versionless callers are unchanged');
 checkVersion(!core_Composer::isInstalled('missing/package', '1.30.7', true), 'Missing package is rejected');
+
+$form = new class {
+    public $rec;
+    public $errors = array();
+    /** Формата е подадена за запис. */ public function isSubmitted() { return true; }
+    /** Запазва стандартните грешки по полета. */ public function setError($field, $message) { $this->errors[$field] = $message; }
+};
+$form->rec = (object) array('PHPSPREADSHEET_VERSION' => '5.10.0');
+$setup = new phpspreadsheet_Setup();
+$setup->inputConfigDescriptionForm($form);
+checkVersion(isset($form->errors['PHPSPREADSHEET_VERSION']) === (PHP_VERSION_ID < 80200), 'PHP form guard');
+checkVersion(phpspreadsheet_Setup::getPhpVersionError('1.30.7') === null, 'Old branch stays available');
+if (PHP_VERSION_ID < 80200) {
+    checkVersion(strpos($setup->checkConfig(), 'PHP 8.2') !== false, 'Setup PHP diagnostic');
+    checkVersion(strpos($setup->install(), "class='red'") !== false, 'No Composer invocation on PHP 7.4');
+} else {
+    checkVersion(strpos($setup->checkConfig(), 'Липсва') !== false, 'Missing new version diagnostic');
+    core_Composer::$packs[$package] = '5.10.0';
+    checkVersion($setup->checkConfig() === null, 'Installed new branch accepted');
+}
+
+if (PHP_VERSION_ID < 80200) {
+    class core_BaseClass {}
+    class core_Packs {
+        /** Симулира инсталиран bgERP пакет. */ public static function isInstalled($name) { return true; }
+    }
+    /** Проверява отказа преди зареждане на PHP 8 класове. */
+    function expect($value, $message) { if (!$value) throw new RuntimeException($message); }
+    require dirname(__DIR__) . '/Adapter.class.php';
+    checkVersion(!phpspreadsheet_Adapter::isAvailable(), 'PHP 7.4 uses the existing XLS fallback');
+    $failed = false;
+    try { phpspreadsheet_Adapter::writeXls('', 'unused.xls'); } catch (RuntimeException $e) { $failed = strpos($e->getMessage(), 'PHP 8.2') !== false; }
+    checkVersion($failed, 'Direct XLS call rejects before loading PHP 8 code');
+}

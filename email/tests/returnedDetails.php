@@ -155,4 +155,24 @@ check(reset($result)['source'] === 'dsn' && reset($result)['status'] === '5.0.0'
 $mime->parts['1.1']->data = '<another@example.test>: 550 User unknown';
 $result = readReport($mime);
 check(reset($result)['reasonCode'] === 'unknown', 'Another recipient cannot supply the missing DSN diagnostic');
+
+$error = 'SMTP Error: data not accepted. SMTP server error: DATA END command failed Detail: Error: message file too big SMTP code: 552 Additional SMTP info: 5.3.4';
+$result = email_ReturnedDetails::fromSendError($error, '2026-01-02 12:00:00');
+$detail = reset($result);
+check(count($result) === 1 && $detail['reasonCode'] === 'message_too_large', 'Direct DATA rejection has a size reason');
+check($detail['smtpCode'] === '552' && $detail['status'] === '5.3.4', 'Keeps SMTP and enhanced status codes');
+check($detail['text'] === $error && $detail['diagnostic'] === $error, 'Keeps the direct transport diagnostic');
+check($detail['source'] === 'smtp' && $detail['recipient'] === null && $detail['deliveryAction'] === 'failed', 'Common transport failure does not blame an individual recipient');
+check($detail['reportedOn'] === '2026-01-02 12:00:00', 'Keeps failure time');
+check(array_keys($result) === array_keys(email_ReturnedDetails::fromSendError($error, '2026-01-03 12:00:00')), 'Repeated failure has a stable key');
+$result = email_ReturnedDetails::fromSendError('552 Error: message file too big', '2026-01-02 12:00:00');
+check(reset($result)['reasonCode'] === 'message_too_large', 'Recognizes size refusal without enhanced status');
+$result = email_ReturnedDetails::fromSendError('552 5.2.2 Mailbox full', '2026-01-02 12:00:00');
+check(reset($result)['reasonCode'] === 'mailbox_full', '552 alone does not mean oversized message');
+$result = email_ReturnedDetails::fromSendError('Unspecified transport failure', '2026-01-02 12:00:00');
+check(reset($result)['reasonCode'] === 'unknown', 'Preserves unrecognized transport failures');
+check(email_ReturnedDetails::fromSendError(null, '2026-01-02 12:00:00') === array(), 'Empty transport failure does not invent details');
+check(email_ReturnedDetails::fromSendError(" \r\n", '2026-01-02 12:00:00') === array(), 'Blank transport failure does not invent details');
+$result = email_ReturnedDetails::fromSendError(str_repeat('x', 9000), '2026-01-02 12:00:00');
+check(mb_strlen(reset($result)['text']) < 8100, 'Transport diagnostics remain bounded');
 echo "returnedDetails: {$checks} checks passed.\n";

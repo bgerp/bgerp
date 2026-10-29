@@ -11,16 +11,19 @@
  * @package   iban
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class iban_Type extends type_Varchar
 {
+    /**
+     * Зарежда избраната библиотека независимо от текущата работна директория.
+     */
     public static function loadCode()
     {
-        require_once('php-iban-' . iban_Setup::get('CODE_VERSION') . '/php-iban.php');
+        require_once(__DIR__ . '/php-iban-' . iban_Setup::get('CODE_VERSION') . '/php-iban.php');
     }
     
     
@@ -162,7 +165,7 @@ class iban_Type extends type_Varchar
      */
     public static function removeDs($value)
     {
-        if ($value[0] == '#') {
+        if (($value[0] ?? '') == '#') {
             $value = substr($value, 1);
         }
         
@@ -176,8 +179,9 @@ class iban_Type extends type_Varchar
     public function canonize($iban)
     {
         self::loadCode();
+        $iban = $iban ?? '';
         
-        if ($iban[0] == '#') {
+        if (($iban[0] ?? '') == '#') {
             
             return trim(str_replace(array(' ', '-'), array('', ''), $iban));
         }

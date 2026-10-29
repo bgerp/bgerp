@@ -1995,7 +1995,14 @@ class doc_DocumentPlg extends core_Plugin
         
         $handle = $mvc->getHandle($id);
         $rec = $mvc->fetch($id);
-        
+
+        // Препратка към изтрит документ - само хендлър, без линк
+        if (!$rec) {
+            $link = ht::createLink("#{$handle}", array(), false, array('class' => 'red'));
+
+            return;
+        }
+
         if ($maxLength > 0) {
             $row = $mvc->getDocumentRow($id);
             $row->title = "#{$handle} - " . str::limitLen($row->title, $maxLength);
