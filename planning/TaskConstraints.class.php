@@ -493,6 +493,7 @@ class planning_TaskConstraints extends core_Master
                 $constraints[] = $constraint;
             }
         }
+        if (planning_Setup::get('MANUAL_ORDER_IN_ASSET') == 'yes') $constraints = array();
 
         $cleanOrder = array();
         foreach ((array)$orderedTaskIds as $taskId) {
@@ -895,7 +896,9 @@ class planning_TaskConstraints extends core_Master
     public static function calcScheduledTimes($tasks, $previousTasks, $now = null, $options = array())
     {
         $now = $now ?? dt::now();
-        planning_TargetTimes::addJobPredecessors($tasks, $previousTasks);
+        if (planning_Setup::get('MANUAL_ORDER_IN_ASSET') != 'yes') {
+            planning_TargetTimes::addJobPredecessors($tasks, $previousTasks);
+        }
 
         core_Debug::startTimer('SCHEDULE_CALC_TIMES');
         core_Debug::startTimer('SCHEDULE_PREPARE_INTERVALS');
@@ -1067,13 +1070,10 @@ class planning_TaskConstraints extends core_Master
         $plannedByAssets = $notPlanned = array();
 
         $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
-        $hasTargetStarts = false;
-        foreach ($tasks as $task) {
-            if (!empty($task->timeStart) && (empty($task->actualStart) || ($task->state ?? null) == 'stopped')) { $hasTargetStarts = true; break; }
-        }
-        if($manualPlanning == 'no' || $hasTargetStarts){
+        if($manualPlanning == 'no'){
             $debugRes .= self::smartPlanningGraph($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         } else {
+            $previousTasks = array();
             $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         }
 
@@ -1093,7 +1093,7 @@ class planning_TaskConstraints extends core_Master
      * @param array $previousTasks
      * @return string
      */
-    private static function manualPlanning(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
+    private static function manualPlanning(&$plannedByAssets, &$notPlanned, &$intervals, $assets, $tasks, $now, $previousTasks)
     {
         $planned = $reservedByAssets = array();
 
@@ -1109,8 +1109,9 @@ class planning_TaskConstraints extends core_Master
         }
         $interruptionArr = planning_Steps::getInterruptionArr($tasks);
 
-        foreach ($assets as $assetRec){
-            $tasksInAsset = $tasksByAssets[$assetRec->id];
+        foreach ($assets as $assetId => $assetRec){
+            $tasksInAsset = $tasksByAssets[$assetId] ?? array();
+            if (!$tasksInAsset) continue;
             arr::sortObjects($tasksInAsset, 'dueDate', 'ASC');
             $debugRes .= "<hr />Слагане на задачи на <b>{$assets[$assetRec->id]->code} [{$assets[$assetRec->id]->scheduleName}]</b><br />";
 
@@ -1120,6 +1121,37 @@ class planning_TaskConstraints extends core_Master
                 $tasksInAsset = arr::reorderArrayByOrderedKeys($tasksInAsset, $assets[$assetRec->id]->manualOrder);
             } else {
                 $debugRes .=  "<hr />НЯМА ръчна подредба";
+            }
+
+            $hasTargetStart = false;
+            foreach ($tasksInAsset as $task) {
+                if (!empty($task->timeStart) && (empty($task->actualStart) || ($task->state ?? null) == 'stopped')) {
+                    $hasTargetStart = true;
+                    break;
+                }
+            }
+            if ($hasTargetStart) {
+                $manualAsset = clone $assetRec;
+                $manualAsset->manualOrder = array_keys($tasksInAsset);
+                $manualAsset->_manualOnlyPlanning = true;
+                $manualAsset->_manualTargetCalendar = clone $intervals[$assetId];
+                // Твърд е само ръчният ред на тази машина, не технологичният ред на заданията.
+                $manualPrevious = array();
+                $previousId = null;
+                foreach ($tasksInAsset as $taskId => $task) {
+                    if (isset($previousId)) {
+                        $manualPrevious[$taskId][$previousId] = (object)array('intersect' => 'no', 'waitingTime' => 0);
+                    }
+                    $previousId = $taskId;
+                }
+                $manualIntervals = array($assetId => $intervals[$assetId]);
+                $manualPlanned = $manualNotPlanned = array();
+                $debugRes .= static::smartPlanningGraph($manualPlanned, $manualNotPlanned, $manualIntervals,
+                    array($assetId => $manualAsset), $tasksInAsset, $now, $manualPrevious);
+                $plannedByAssets += $manualPlanned;
+                $notPlanned += $manualNotPlanned;
+                $intervals[$assetId] = $manualIntervals[$assetId];
+                continue;
             }
 
             foreach ($tasksInAsset as $taskRec1){
@@ -1306,16 +1338,18 @@ class planning_TaskConstraints extends core_Master
             arr::sortObjects($withoutStart, 'dueDate', 'ASC');
             $orderedTasks = $withStart + $withoutStart;
             $hasManualOrder = isset($assets[$assetId]->manualOrder) && is_array($assets[$assetId]->manualOrder);
-            if ($hasManualOrder && empty($assets[$assetId]->_forceOptimization)) {
+            if ($hasManualOrder && (!empty($assets[$assetId]->_manualOnlyPlanning) || empty($assets[$assetId]->_forceOptimization))) {
                 $orderedTasks = static::reorderTasksByManualOrder($orderedTasks, $assets[$assetId]->manualOrder);
             }
-            $orderedTasks = static::groupTasksByPlanningParams(
-                $orderedTasks,
-                $assets[$assetId],
-                $packageAdjacency,
-                $allTasks,
-                $sameResourceJobLinks
-            );
+            if (empty($assets[$assetId]->_manualOnlyPlanning)) {
+                $orderedTasks = static::groupTasksByPlanningParams(
+                    $orderedTasks,
+                    $assets[$assetId],
+                    $packageAdjacency,
+                    $allTasks,
+                    $sameResourceJobLinks
+                );
+            }
 
             $position = 0;
             foreach ($orderedTasks as $task) {
@@ -1460,6 +1494,25 @@ class planning_TaskConstraints extends core_Master
                 $reservedByAssets[$assetId][] = array($continuationStart, $targetStart - 1);
             }
             if ($reservation === false) {
+                if (!empty($assets[$assetId]->_manualOnlyPlanning)) {
+                    $probe = clone ($assets[$assetId]->_manualTargetCalendar ?? $beforeReservation);
+                    $probeRanges = array();
+                    $wanted = planning_TargetTimes::reserveRun($run['chain'], $allTasks, $probe, $probeRanges, $now);
+                    if ($wanted !== false) {
+                        $begin = reset($wanted)->_startTimestamp ?? 0;
+                        $end = end($wanted)->_endTimestamp ?? 0;
+                        $blockers = array();
+                        foreach ($planned as $plannedId => $row) {
+                            if (($row->assetId ?? null) != $assetId || ($row->_startTimestamp ?? PHP_INT_MAX) >= $end
+                                || ($row->_endTimestamp ?? 0) <= $begin) continue;
+                            $blockers[] = "Opr{$plannedId} (" . ($row->expectedTimeStart ?? '') . ' — ' . ($row->expectedTimeEnd ?? '') . ')';
+                        }
+                        if ($blockers) $reason = 'Желаното начало застъпва започната или фиксирана операция на същата машина: ' . implode(', ', $blockers);
+                    } elseif (count($run['pins']) > 1) {
+                        $reason = 'Фиксираните начала в пакета не могат да се спазят едновременно: '
+                            . implode(', ', array_map(function($id) { return "Opr{$id}"; }, array_keys($run['pins'])));
+                    }
+                }
                 foreach ($run['pins'] as $id => $date) $targetConflicts[$id] = array('reason' => $reason, 'priority' => isset($continuationStart) ? 0 : 2);
                 continue;
             }
@@ -1653,7 +1706,11 @@ class planning_TaskConstraints extends core_Master
                     $reason = $manualReady > $start
                         ? "Ръчната подредба изисква начало след предходната фиксирана операция/пакет: {$manualReady}"
                         : "Предходна операция/технологична зависимост не позволява начало преди {$ready}";
-                    if ($manualReady <= $start && $blockingPrevious) {
+                    if (!empty($assets[$task->assetId ?? null]->_manualOnlyPlanning)) {
+                        $handles = array_map(function($id) { return "Opr{$id}"; }, array_keys($blockingPrevious));
+                        $reason = 'Ръчната подредба на машината изисква начало след '
+                            . ($handles ? implode(', ', $handles) : 'предходната фиксирана операция/пакет') . ": {$ready}";
+                    } elseif ($manualReady <= $start && $blockingPrevious) {
                         $dependency = array('taskId' => $id, 'limits' => $blockingPrevious, 'ready' => $ready, 'requiredStart' => $start);
                     }
                     break;
@@ -2375,6 +2432,8 @@ class planning_TaskConstraints extends core_Master
      */
     public static function getSameResourceJobPackageLinks($allTasks, $assetId = null)
     {
+        if (planning_Setup::get('MANUAL_ORDER_IN_ASSET') == 'yes') return array();
+
         $tasksByJob = $result = array();
         foreach ($allTasks as $task) {
             if (isset($task->originId, $task->saoOrder)) {

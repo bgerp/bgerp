@@ -366,6 +366,8 @@ class planning_TargetTimes extends core_BaseClass
 
     private static function getPredecessors($tasks)
     {
+        if (planning_Setup::get('MANUAL_ORDER_IN_ASSET') == 'yes') return array();
+
         $previous = array();
         foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
             if (($constraint->type ?? null) == 'prevId' && isset($constraint->taskId, $constraint->previousTaskId)) {
