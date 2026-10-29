@@ -294,14 +294,18 @@ class email_Mime extends core_BaseClass
         if (!isset($this->lg)) {
             $defLg = '';
             $defLgArr = array();
+            $hasCyrillic = preg_match('/\p{Cyrillic}/ui', (string) $this->textPart);
             
             if (defined('EF_DEFAULT_LANGUAGE')) {
                 $defLg = EF_DEFAULT_LANGUAGE;
                 
-                $defLgArr[$defLg] = 5;
+                // Без кирилица в текста предимството на кирилски език би надделяло над истинския (напр. италиански)
+                if ($hasCyrillic || !in_array($defLg, array('bg', 'ru', 'md', 'sr'))) {
+                    $defLgArr[$defLg] = 5;
+                }
             }
             
-            if ($defLg != 'en' && !preg_match('/\p{Cyrillic}/ui', $this->textPart)) {
+            if ($defLg != 'en' && !$hasCyrillic) {
                 $defLgArr['en'] = 3;
             }
 

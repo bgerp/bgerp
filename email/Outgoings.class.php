@@ -3371,7 +3371,8 @@ class email_Outgoings extends core_Master
         
         if ($body) {
             if (in_array($lg, array('bg', 'ru', 'md', 'sr'))) {
-                if (strlen($body) == mb_strlen($body)) {
+                // Латински текст с ударения или символи (à, ×, €) също не е на кирилски език
+                if (!preg_match('/\p{Cyrillic}/ui', (string) $body)) {
                     $lg = 'en';
                 }
             }

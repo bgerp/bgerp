@@ -49,4 +49,30 @@ class email_tests_Mime extends unit_Class
         UT::expectEqual(email_Mime::parseHeaders($headers), array('subject' => array("First\n continued", 'Second')));
     }
 
+
+    /**
+     * Езикът по подразбиране (bg) не надделява над латински текст на друг език
+     */
+    public function test_getLg()
+    {
+        // EF_DEFAULT_LANGUAGE се дефинира от настройките на ядрото
+        cls::load('core_Setup');
+
+        $cases = array(
+            array('it', "Buon pomeriggio Adelina, mi fai sapere il costo della forma di cordonatura del seguente preventivo che ti inoltro.\nMi fai sapere anche se hai qualche fustella già disponibile con qualche misura che si avvicina a quelle che mi occorrono.\nGrazie saluti."),
+            array('it', 'Buongiorno, mi mandi il preventivo aggiornato? Saluti, Marco'),
+            array('pl', 'Dzień dobry, proszę o ofertę na torby papierowe z logo. Pozdrawiam'),
+            array('bg', 'Здравейте, кога ще е готово?'),
+            array('bg', 'Zdraveite! Mojete li da mi kajete cenata na kutiite za picca 33 sm? Blagodarq'),
+        );
+
+        $mime = cls::get('email_Mime');
+        foreach ($cases as $case) {
+            list($lg, $text) = $case;
+            $mime->textPart = $text;
+            $mime->lg = null;
+            UT::expectEqual($mime->getLg(), $lg);
+        }
+    }
+
 }
