@@ -158,9 +158,15 @@ class planning_TargetTimes extends core_BaseClass
         $messages = array();
         foreach ($conflicts as $id => $conflict) {
             $label = $id < 0 ? 'Новата операция' : "Opr{$id}";
-            $message = $label . ': ' . ($conflict['reason'] ?? 'конфликт в плана');
-            if (!empty($conflict['earliest'])) $message .= "\nСлед отчитане и на работните графици, заетостта на машините и останалите зависимости, най-ранното намерено безопасно начало за {$label} в текущия план е "
-                . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i') . '.';
+            $reason = $conflict['reason'] ?? 'конфликт в плана';
+            $message = $label . ': ' . $reason;
+            if (!empty($conflict['earliest'])) {
+                // Причината е от отказания опит, а часът е от следващ план с освободени резервации.
+                $message = $label . ': При първоначалния опит за запазване на фиксираните начала: ' . $reason;
+                $message .= "\nВ отделен пробен план, след освобождаване на неспазимите фиксирани начала, {$label} е изчислена за "
+                    . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i')
+                    . '. Този час е ориентир за търсенето, а не потвърдено предложение за запис.';
+            }
             $messages[] = $message;
         }
         return implode('<br>', $messages);

@@ -96,6 +96,24 @@ check(!$nearest->pinChanges && $nearest->scheduled->assets[1]->packageLinks === 
 $moved = proposal($context, 3, '2026-10-08 10:30:00', 'move');
 feasible($moved, 'Foreign fixed package may move only in the explicit move variant');
 check(!empty($moved->pinChanges[2]) && $moved->scheduled->assets[1]->packageLinks === array(2 => 1), 'Explicit variant lists the foreign pin change without splitting its package');
+ScenarioTargetTimes::$context = $context;
+planning_Tasks::$records = $context->baseline;
+$conflictForm = scenarioForm((object)array('id' => 3, 'assetId' => 1, 'timeStart' => '2026-10-08 10:30:00'));
+ScenarioTargetTimes::validateForm(new planning_Tasks(), $conflictForm);
+$report = $conflictForm->_targetTimesReport ?? array();
+check($conflictForm->gotErrors() && strpos($report['conflictText'] ?? '', 'При първоначалния опит') !== false
+    && strpos($report['conflictText'] ?? '', 'В отделен пробен план') !== false,
+    'The form distinguishes the refused attempt from its fallback diagnostic');
+check(strpos($report['conflictText'] ?? '', 'не потвърдено предложение за запис') !== false,
+    'The form never advertises the fallback diagnostic as a checked alternative');
+$alternatives = array_column($report['alternatives'] ?? array(), null, 'mode');
+check(!empty($alternatives['nearest']['available']) && !empty($alternatives['move']['available']),
+    'Diagnostic clarification does not disable the independently checked alternatives');
+check(($alternatives['nearest']['report']['proposedStart'] ?? null) === dt::mysql2verbal($nearest->proposedStart ?? '', 'd.m.Y H:i')
+    && ($alternatives['move']['report']['proposedStart'] ?? null) === '08.10.2026 10:30',
+    'Each selected alternative retains its own checked proposal rather than the diagnostic date');
+check(serialize($context) === $snapshot && (planning_Tasks::$records[2]->timeStart ?? null) === '2026-10-08 11:00:00',
+    'Preparing clarified alternatives never changes foreign fixed starts or package links');
 $ownPackage = proposal($context, 1, '2026-10-08 14:00:00');
 check(!empty($ownPackage->conflicts), 'Fixing a package head after its fixed successor is refused');
 $ownNearest = proposal($context, 1, '2026-10-08 14:00:00', 'nearest');
