@@ -161,6 +161,22 @@ function updateTwoColsFilterModes() {
  * Измерва филтъра след рендиране и запазва размерите за ресайз.
  */
 function render_setTwoColsFilterWidth() {
+    // Бутонът и надписът се пренасят заедно, без да се губят обработчиците им.
+    $('.twoColsFilter .allowEmptyRadioHolder, .twoColsFilter .notAllowEmptyRadioHolder')
+        .find('input[type=radio]').each(function () {
+            var $radio = $(this);
+            var $label = $radio.next('label');
+            if ($label.length && !$radio.parent().hasClass('twoColsFilterRadioOption')) {
+                $radio.add($label).wrapAll('<span class="twoColsFilterRadioOption"></span>');
+            }
+            var $cell = $radio.closest('td');
+            if ($cell.closest('table').hasClass('keylist')) {
+                var position = $cell.find('input[type=radio]').index(this);
+                $radio.parent('.twoColsFilterRadioOption').css('order',
+                    position * $cell.siblings().addBack().length + $cell.index());
+            }
+        });
+
     // Календарът и датата споделят широчината на едно поле, ако има бутон за избор.
     $('.twoColsFilter .listFilter').find('input[type=text]').each(function () {
         var $input = $(this);

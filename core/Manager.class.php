@@ -1254,7 +1254,7 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Връща автоматичния CSS клас за стандартен вертикален филтър с повече от 5 видими полета
+     * Връща автоматичния CSS клас за оразмеряване на стандартен вертикален филтър
      *
      * @param stdClass $data
      */
@@ -1270,7 +1270,7 @@ class core_Manager extends core_Mvc
         }
 
         $showFields = arr::make($listFilter->showFields ?? null, true);
-        if (countR($showFields) <= 5) {
+        if (!countR($showFields)) {
 
             return '';
         }
@@ -1283,7 +1283,7 @@ class core_Manager extends core_Mvc
             }
         }
 
-        return countR($fields) > 5 ? ' twoColsFilter' : '';
+        return countR($fields) ? ' twoColsFilter' : '';
     }
 
 
