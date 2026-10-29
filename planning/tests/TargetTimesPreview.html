@@ -12,6 +12,7 @@
 <button type="button" id="free">Пример: свободна операция</button>
 <button type="button" id="changed">Пример: променен план</button>
 <button type="button" id="blocked">Пример: технологичен конфликт</button>
+<button type="button" id="dependency">Пример: пакет и технологичен предшественик</button>
 <button type="button" id="large">Пример: дълги опашки и други машини</button>
 <button type="button" id="checks">Автоматични UI проверки</button>
 <form>
@@ -71,7 +72,7 @@ function sampleReport(mode, free) {
     return report;
 }
 function showSample(withPackage) {
-    showTargetTimesPreview({command: 'save', editedOperation: 'Opr6396', legendHint: legendHint, conflictText: withPackage
+    showTargetTimesPreview({command: 'save', editedOperation: 'Opr6396', requestedStart: '30.10.2026 ' + (withPackage ? '14:00' : '10:00'), legendHint: legendHint, conflictText: withPackage
         ? 'Opr6396: Желаният час противоречи на фиксираното начало на Opr6397 в същия пакет.'
         : 'Свободната операция застъпва фиксирани операции на машината.',
         alternatives: [
@@ -97,6 +98,34 @@ function showBlockedSample() {
     ]});
 }
 $('#blocked').on('click', showBlockedSample);
+function showDependencySample() {
+    const report = sampleReport('nearest');
+    report.editedOperation = 'Opr6397';
+    report.requestedStart = '30.10.2026 16:00';
+    report.proposedStart = '30.10.2026 18:00';
+    report.operationChanges[0].pinChanged = false;
+    report.operationChanges[1].pinChanged = report.operationChanges[1].changed = true;
+    report.operationOrder[0].after.forEach(function (row, index) {
+        row.start = index ? '30.10.2026 18:00' : '30.10.2026 16:00';
+        row.end = index ? '30.10.2026 18:59' : '30.10.2026 17:59';
+        row.pin = index ? row.start : '—';
+        row.startChange = row.endChange = 1;
+    });
+    const reason = 'Opr6397: Желаното начало не може да се спази поради технологична зависимост.\n'
+        + 'Opr6396 е преди Opr6397 в същия пакет на машина „П10“. Двете операции са от едно задание. Операциите в пакета се планират заедно.\n'
+        + 'За да се спази въведеният час за Opr6397, Opr6396 трябва да започне на 30.10.2026 14:00.\n'
+        + 'Opr6396 зависи от Opr6395 — предходна технологична операция в същото задание, изпълнявана на друга машина „П20“.\n'
+        + 'Очакван край на Opr6395: 30.10.2026 15:25.\n'
+        + 'За следващата операция заетият интервал се освобождава в 30.10.2026 15:26; изчакването се брои от този момент.\n'
+        + 'Opr6396 може да започне едва след приключването на Opr6395 и още 30 мин. календарно изчакване.\n'
+        + 'Само по това технологично условие Opr6396 не може да започне преди 30.10.2026 15:56. Това все още не означава свободен час на машината.\n'
+        + 'След отчитане и на работните графици, заетостта на машините и останалите зависимости, най-ранното намерено безопасно начало за Opr6397 в текущия план е 30.10.2026 18:00.';
+    showTargetTimesPreview(Object.assign({}, report, {conflictText: reason, alternatives: [
+        {mode: 'move', policy: 'keep', title: 'Запази желания час и промени конфликтните фиксирани начала', available: false, reason: reason},
+        {mode: 'nearest', policy: 'keep', title: 'Запази чуждите фиксирани начала и предложи близко допустимо начало', available: true, report: report}
+    ]}));
+}
+$('#dependency').on('click', showDependencySample);
 function largeReport() {
     const report = sampleReport('move');
     report.currentStart = '30.10.2026 08:00';
@@ -129,7 +158,8 @@ function largeReport() {
     report.operationOrder.push(foreign);
     report.operationChanges.push({operation: 'Opr900', changed: true});
     report.optimizationMetrics = {lateJobsBefore: 2, lateJobsAfter: 3, tardinessBefore: '1 ден', tardinessAfter: '2 дни',
-        tardinessChange: '+1 ден', tardinessChangeSeconds: 86400, targetAssetTitle: '[П10]', targetBefore: '3 дни', targetAfter: '3 дни'};
+        tardinessChange: '+1 ден', tardinessChangeSeconds: 86400, targetAssetTitle: '[П10]', targetBefore: '3 дни', targetAfter: '3 дни',
+        before: '3 дни', after: '3 дни', change: '0 мин.', globalEnd: '31.10.2026 09:00'};
     report.idleChanges = [{assetTitle: '[П20]', before: '1 час', after: '3 часа', change: '+2 часа', changeSeconds: 7200}];
     report.idleTotals = {increased: '2 часа', decreased: '0 мин.', net: '+2 часа', netSeconds: 7200};
     return report;
@@ -144,7 +174,7 @@ $('#checks').on('click', async function () {
     check($('#editFormTable td').first().css('border-top-width') === '0px', 'Прегледът не добавя рамки на едит формата');
     check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ', 'Преди избор има само Отказ');
     check($('.targetTimeConflict strong').text().includes('Opr6396 (1)') && $('.targetTimeConflict strong').text().includes('Opr6397 (2)'), 'Проблемът е получер и включва номерата от прегледа още преди избор');
-    check($('.targetTimeConflict strong').text() === 'Opr6396 (1) | Желаното начало противоречи на фиксираното начало на Opr6397 (2) в същия пакет.', 'Червеният ред използва същия надпис и разделител като обобщението');
+    check($('.targetTimeConflict strong').text() === 'Opr6396 (1) | Желаното начало (30.10.2026 14:00) противоречи на фиксираното начало на Opr6397 (2) в същия пакет.', 'Червеният ред използва номера, разделителя и оригиналното желано начало');
     check($('#optimizationIdleReport').hasClass('targetTimeReport'), 'Компактната ширина е ограничена до този преглед');
     choose(0);
     check($('#optimizationIdleReport .optimizationIdleReportActions button').map(function () { return $(this).text(); }).get().join('|') === 'Отказ|Приложи', 'След избор има точно два бутона');
@@ -239,9 +269,14 @@ $('#checks').on('click', async function () {
     check($('.targetTimeOtherMachine > summary').text().includes('по-късен край: 1'), 'Влошаването на друга машина е видно и при сгънати подробности');
     check($('.targetTimeImpactWarnings').text().includes('Закъснели задания')
         && $('.targetTimeImpactWarnings').text().includes('+1 ден'), 'Влошените общи показатели остават видими без разгъване');
-    check($('.targetTimeIdleImpact:visible').text().includes('Нетна промяна на престоите: +2 часа'),
+    check($('.targetTimeIdleImpact:visible').text().includes('Обща промяна на машинния престой: +2 часа'),
         'Увеличените престои остават видими и при сгънатия общ отчет');
+    check($('.targetTimeIdleImpact small').text().includes('Това не е закъснение на заданията')
+        && $('.targetTimeImpactWarnings small').text().includes('10 задания, всяко с 1 ден'),
+        'Престоите и сумарното закъснение имат различни, видими обяснения');
     check($('.targetTimeGlobalDetails').length === 1 && !$('.targetTimeGlobalDetails').prop('open'), 'Пълните общи показатели са достъпни при поискване');
+    check($('.targetTimePlanEnd').text().includes('0 мин.') && $('.targetTimePlanEnd').text().includes('31.10.2026 09:00'),
+        'Непромененият общ край се показва отделно дори когато сборът от закъсненията на заданията расте');
     check($('.targetTimeCurrentStart').text().includes('30.10.2026 08:00'), 'Текущото изчислено начало е отделено от въведеното и предложеното');
     check($('.targetTimeImpactSummary').text().includes('чужди фиксирани начала: 1'), 'Броят на чуждите фиксации не включва редактираната операция');
     check($('.targetTimeComparisonHolder').css('overflow-y') === 'visible', 'Няма вложен вертикален скрол в сравнителните таблици');
@@ -267,6 +302,33 @@ $('#checks').on('click', async function () {
     showTargetTimesPreview(duplicate);
     check($('.targetTimeImpactSummary').text().includes('Променени операции: 2; чужди фиксирани начала: 1'),
         'Една операция не се брои двойно, ако присъства в двете машинни групи при смяна на машина');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    showDependencySample();
+    check($('.targetTimeConflictSteps').text().includes('Opr6396 (1) е преди Opr6397 (2) в същия пакет')
+        && $('.targetTimeConflictSteps').text().includes('Opr6396 (1) зависи от Opr6395 — предходна технологична операция в същото задание'),
+        'Причинната верига различава пакетния член от предходната операция в заданието');
+    check(($('.targetTimeConflict strong').text().match(/Opr6397 \(2\) \|/g) || []).length === 1,
+        'Редактираната операция не се натрапва като ново заглавие пред всеки пояснителен ред');
+    check($('.targetTimeChoice').first().text().includes('не отстранява описаното по-горе ограничение'),
+        'Недостъпният вариант не повтаря целия вече показан конфликт');
+    $('.targetTimeChoice button').eq(1).trigger('click');
+    check($('.targetTimeProposal > .targetTimeConflict strong').text().includes('Желаното начало (30.10.2026 16:00) не може да се спази')
+        && !$('.targetTimeProposal > .targetTimeConflict strong').text().includes('(30.10.2026 18:00)'),
+        'Червеното заглавие пази въведения час и след избор на различно предложено начало');
+    check($('.targetTimeConflictSteps').text().includes('трябва да започне на 30.10.2026 14:00')
+        && $('.targetTimeConflictSteps').text().includes('не може да започне преди 30.10.2026 15:56'),
+        'Необходимото начало на пакетния член и технологичната му граница са ясно разграничени');
+    $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
+    const separateMetrics = largeReport();
+    separateMetrics.idleChanges = [{changeSeconds: 210 * 3600}, {changeSeconds: -26 * 3600}];
+    separateMetrics.idleTotals = {increasedSeconds: 210 * 3600, decreasedSeconds: 26 * 3600, netSeconds: 184 * 3600};
+    separateMetrics.optimizationMetrics.tardinessChange = '+46 дни, 20 часа и 35 мин.';
+    separateMetrics.optimizationMetrics.change = '+3 дни';
+    showTargetTimesPreview(separateMetrics);
+    check($('.targetTimeIdleTotals').text().includes('+210 часа') && $('.targetTimeIdleTotals').text().includes('−26 часа')
+        && $('.targetTimeIdleTotals').text().includes('+184 часа'), 'Машинните престои се сумират в часове, без подвеждащи календарни седмици');
+    check($('.targetTimeImpactWarnings').text().includes('+46 дни') && $('.targetTimePlanEnd').text().includes('+3 дни'),
+        'Сборът на закъсненията не се представя като изместване на края на целия план');
     $('#optimizationIdleReport .optimizationIdleReportCancel').trigger('click');
     renderOptimizationIdleReport([], {}, {}, {hasImprovement: true, testedCandidates: 4, duration: 0.1}, false);
     check($('#optimizationIdleReport .optimizationSearchResult').text().includes('Намерен е по-добър вариант'), 'Старият отчет от оптимизацията запазва резултата и статистиката');
