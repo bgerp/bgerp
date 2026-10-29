@@ -9,7 +9,7 @@
  * @package   jqueryui
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,7 +41,12 @@ class jqueryui_Ui
      */
     public static function enableJS(&$tpl)
     {
-        $jQueryUI = page_Html::getFileForAppend('jqueryui/' . jqueryui_Setup::get('VERSION') . '/jquery-ui.js');
+        $files = jqueryui_Setup::getJsFiles();
+        $library = array_pop($files);
+        foreach ($files as $file) {
+            $tpl->push($file, 'JS');
+        }
+        $jQueryUI = page_Html::getFileForAppend($library);
         
         if (($url = jqueryui_Setup::get('CDN_URL')) && ($integrity = jqueryui_Setup::get('CDN_INTEGRITY'))) {
             $jQueryUI = (object) array(

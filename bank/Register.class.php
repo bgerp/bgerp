@@ -416,7 +416,26 @@ class bank_Register extends core_Manager
     public static function importRecs($recs, $serviceId = null, &$warnings = null, $confirmedCrossFormats = array())
     {
         $virtual = $rows = array();
-        list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows, $confirmedCrossFormats);
+        $ins = $skip = 0;
+        $warnings = array();
+        if (count($recs)) {
+            // Проверка и запис са в един участък и за преводи с различни референции/формати.
+            // Заключването живее до края на връзката, без срок, който дълъг импорт да надвиши.
+            $mvc = cls::get(__CLASS__);
+            $db = $mvc->db;
+            $lock = 'bankImport:' . sha1($db->dbName . ':' . $mvc->dbTableName);
+            $acquired = $db->fetchObject($db->query("SELECT GET_LOCK('{$lock}', 10) AS acquired"));
+            if ((int) ($acquired->acquired ?? 0) !== 1) {
+                $skip = count($recs);
+                $warnings[] = 'Друг банков импорт е в процес; няма добавени записи от тази партида. Опитайте отново';
+            } else {
+                try {
+                    list($ins, $skip, $warnings) = self::processImportRecs($recs, $serviceId, false, $virtual, $rows, $confirmedCrossFormats);
+                } finally {
+                    $db->query("SELECT RELEASE_LOCK('{$lock}')");
+                }
+            }
+        }
         $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
         if ($warnings) {
             $status .= '; ' . implode('; ', array_unique($warnings));

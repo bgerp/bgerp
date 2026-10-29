@@ -9,7 +9,7 @@
  * @package   jqdatepick
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,11 +33,10 @@ class jqdatepick_Plugin extends core_Plugin
     {
         $conf = core_Packs::getConfig('jqdatepick');
         
-        $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.css', 'CSS', true);
-        $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.plugin.min.js', 'JS', true);
-        $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js', 'JS', true);
-        $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.ext.js', 'JS', true);
-        $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick-' . core_Lg::getCurrent() . '.js', 'JS', true);
+        $tpl->push('jqdatepick/' . ($conf->JQDATEPICKER_VERSION ?? JQDATEPICKER_VERSION) . '/jquery.datepick.css', 'CSS', true);
+        foreach (jqdatepick_Setup::getJsFiles(core_Lg::getCurrent()) as $file) {
+            $tpl->push($file, 'JS', true);
+        }
         
         // custom стилове за плъгина
         $tpl->push('jqdatepick/css/jquery.datepick-custom.css', 'CSS', true);
