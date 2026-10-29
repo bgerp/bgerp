@@ -366,6 +366,36 @@ class core_Classes extends core_Manager
         
         self::$classes = $classes;
     }
+
+
+    /**
+     * id на класа по точното му име (колоната е utf8mb4_bin). Активните са от заредения списък,
+     * без заявка; неактивен или току-що добавен клас се чете от таблицата.
+     *
+     * @param string $className
+     *
+     * @return int|null
+     */
+    public static function getIdByClassName($className)
+    {
+        // Зареждането на списъка не бива да се върти обратно тук
+        static $loading = false;
+        if (!countR(self::$classes) && !$loading) {
+            $loading = true;
+            try {
+                self::loadClasses();
+            } catch (core_exception_Expect $e) {
+                // Напр. при инсталация без таблицата на кеша - както преди, от таблицата
+            } finally {
+                $loading = false;
+            }
+        }
+        $id = self::$classes[$className] ?? null;
+        if ($id) return $id;
+
+        // Неактивен или току-що добавен клас го няма в заредения списък
+        return self::fetchField(array("#name = '[#1#]'", $className), 'id');
+    }
     
     
     /**

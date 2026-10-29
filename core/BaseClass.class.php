@@ -80,7 +80,8 @@ class core_BaseClass
      */
     public static function getClassId()
     {
-        return core_Classes::fetchField(array("#name = '[#1#]'", get_called_class()), 'id');
+        // От заредения списък с класове, а не със заявка при всяко извикване
+        return core_Classes::getIdByClassName(get_called_class());
     }
     
     
