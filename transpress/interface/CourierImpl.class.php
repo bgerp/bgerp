@@ -682,10 +682,60 @@ class transpress_interface_CourierImpl extends core_BaseClass
         $query->where(array('#containerId = [#1#]', $containerId));
         $query->orderBy('id', 'DESC');
         while($bolRec = $query->fetch()){
-            $res[] = (object)array('number' => $bolRec->number, 'date' => $bolRec->createdOn, 'file' => $bolRec->file, 'state' => $bolRec->state);
+            $res[] = (object)array('number' => $bolRec->number, 'date' => $bolRec->createdOn, 'file' => $bolRec->file, 'state' => $bolRec->state, 'stateVerbal' => transpress_WayBills::getVerbal($bolRec, 'state'));
         }
 
         return $res;
+    }
+
+
+    /**
+     * Последните издадени товарителници, от последната към първата
+     *
+     * @param int      $limit
+     * @param int|null $folderId - само към документи от тази папка
+     * @return array $res - обекти с containerId, number, createdOn, file, state и stateVerbal
+     */
+    public function getLastWayBills($limit, $folderId = null)
+    {
+        $res = array();
+        $query = transpress_WayBills::getQuery();
+        $query->where("#containerId IS NOT NULL");
+        if(isset($folderId)){
+            $query->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+            $query->where(array("#folderId = [#1#]", $folderId));
+        }
+        $query->orderBy('id', 'DESC');
+        $query->limit($limit);
+        while($bolRec = $query->fetch()){
+            $res[] = (object)array('containerId' => $bolRec->containerId, 'number' => $bolRec->number, 'createdOn' => $bolRec->createdOn, 'file' => $bolRec->file, 'state' => $bolRec->state, 'stateVerbal' => transpress_WayBills::getVerbal($bolRec, 'state'));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Данните, с които е издадена товарителницата (без ЕГН-то на подателя)
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @return array|false $data  - false ако няма такава товарителница
+     */
+    public function getWayBillData($containerId, $number)
+    {
+        $rec = transpress_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        if(empty($rec)) return false;
+
+        $data = is_array($rec->data) ? $rec->data : array();
+        unset($data['source_person_personal_number']);
+
+        // API-то иска датата в милисекунди
+        if(is_numeric($data['pickup_date'] ?? null)){
+            $data['pickup_date'] = dt::timestamp2Mysql((int)($data['pickup_date'] / 1000));
+        }
+
+        return $data;
     }
 
 
