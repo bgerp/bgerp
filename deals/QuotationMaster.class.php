@@ -542,15 +542,10 @@ abstract class deals_QuotationMaster extends core_Master
             $row->number = $mvc->getHandle($rec->id);
             $profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
 
-            // Преводът на името от визитката на автора е с предимство пред името на потребителя
+            // Името от визитката на автора минава през потребителските ѝ преводи
             $personId = $profRec->personId ?? null;
-            $personNameTr = null;
             if (!empty($personId)) {
-                $personName = crm_Persons::fetchField($personId, 'name');
-                $personNameTr = core_UserTranslates::getUserTranslatedStr(crm_Persons::getClassId(), $personId, core_Lg::getCurrent(), 'name', $personName);
-            }
-            if (isset($personNameTr)) {
-                $row->username = transliterate(cls::get('type_Varchar')->toVerbal($personNameTr));
+                $row->username = transliterate(crm_Persons::getVerbal($personId, 'name'));
             } else {
                 $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
                 $row->username = transliterate(tr($row->username));
