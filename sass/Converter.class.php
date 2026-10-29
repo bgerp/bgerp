@@ -1,8 +1,5 @@
 <?php
 
-defIfNot('SASS_USE_COMPOSER', 'no');
-
-
 use ScssPhp\ScssPhp\Compiler;
 
 /**
@@ -12,7 +9,7 @@ use ScssPhp\ScssPhp\Compiler;
  * @package   sass
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,8 +29,17 @@ class sass_Converter
     {
         $isParsed = false;
         $baseName = basename($file);
+        $useComposer = sass_Setup::get('USE_COMPOSER') === 'yes';
+        $version = sass_Setup::get('VERSION');
+        $composerLoaded = $useComposer && core_Composer::isInUse();
+
+        if ($useComposer && $version === '1.13.0') {
+            expect($composerLoaded && class_exists('ScssPhp\\ScssPhp\\Version')
+                && version_compare(\ScssPhp\ScssPhp\Version::VERSION, $version, '=='),
+                'Липсва избраната версия на scssphp. Инициализирайте пакета sass.');
+        }
         
-        if (SASS_USE_COMPOSER == 'yes' && core_Composer::isInUse()) {
+        if ($composerLoaded) {
             $dTimeName = 'sassConvert: ' . $baseName;
             core_Debug::startTimer($dTimeName);
             
@@ -41,7 +47,10 @@ class sass_Converter
                 // Инстанция на класа
                 $parser = new Compiler();
                 // Парсираме и връщаме резултата
-                $res = $parser->compile(file_get_contents($file));
+                // Новото API запазва пътя за относителните @import директиви.
+                $res = $version === '1.13.0'
+                    ? $parser->compileFile($file)->getCss()
+                    : $parser->compile(file_get_contents($file));
                 $isParsed = true;
             } catch (core_exception_Redirect $e) {
                 throw $e;
@@ -49,8 +58,9 @@ class sass_Converter
                 reportException($e);
             } catch (Throwable $t) {
                 reportException($t);
+            } finally {
+                core_Debug::stopTimer($dTimeName);
             }
-            core_Debug::stopTimer($dTimeName);
         }
         
         if (!$isParsed) {

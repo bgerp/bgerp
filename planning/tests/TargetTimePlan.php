@@ -203,6 +203,7 @@ ScenarioTargetTimes::validateForm(new planning_Tasks(), $form);
 $choices = $form->_targetTimesReport['alternatives'] ?? array();
 check(count($choices) === 3 && $choices[0]['available'] && $choices[1]['available'] && $choices[2]['available'], 'Conflict dialog offers move, nearest, and voluntary detachment');
 check(($form->_targetTimesReport['editedOperation'] ?? null) === 'Opr1', 'Conflict preview identifies the edited operation before choosing an alternative');
+check(($form->_targetTimesReport['requestedStart'] ?? null) === '08.10.2026 14:00', 'The conflict header receives the original requested start before choosing an alternative');
 check(array_column(array_column($choices, 'report'), 'editedOperation') === array('Opr1', 'Opr1', 'Opr1'), 'Every alternative identifies the edited operation');
 check(count(planning_Tasks::$saved) === $savedBefore && empty($form->rec->_targetTimesChanged), 'Opening alternatives does not save any operation');
 $foreignRow = array_values(array_filter($choices[0]['report']['operationChanges'], function($row) { return $row['operation'] === 'Opr2'; }))[0];
@@ -291,5 +292,40 @@ foreach (array(1800, 3600, 5400) as $duration) foreach (array('09:00:00', '10:00
         }
     }
 }
+
+$rows = array(3 => task(3, 7200, '2026-10-08 10:00:00', 2), 1 => task(1), 2 => task(2));
+foreach ($rows as $id => $row) {
+    $row->originId = 10;
+    $row->saoOrder = $id == 3 ? 1 : $id + 1;
+}
+$context = planContext($rows, array(2 => 1), null, array(1 => array(3 => (object)array('intersect' => 'no', 'waitingTime' => 1800))));
+$context->prepared->assets[1]->code = 'PACK';
+$context->prepared->assets[2]->code = 'PREVIOUS';
+$snapshot = serialize($context);
+$result = proposal($context, 2, '2026-10-08 09:00:00');
+$reason = $result->conflicts[2]['reason'] ?? '';
+check(strpos($reason, 'Opr1 е преди Opr2 в същия пакет на машина „PACK“') !== false,
+    'A package conflict explains the blocked member relative to the edited operation');
+check(strpos($reason, 'Двете операции са от едно задание') !== false,
+    'The job relationship between the edited operation and its package member is explicit');
+check(strpos($reason, 'За да се спази въведеният час за Opr2, Opr1 трябва да започне на 08.10.2026 08:00') !== false,
+    'The explanation includes the package-member start required to honor the edited target');
+check(strpos($reason, 'Opr1 зависи от Opr3 — предходна технологична операция в същото задание') !== false
+    && strpos($reason, 'друга машина „PREVIOUS“') !== false,
+    'The third operation has an explicit technological, job and machine relationship');
+check(strpos($reason, 'едва след приключването на Opr3 и още 30 мин.') !== false,
+    'A no-overlap dependency explains why the operations cannot run together');
+check(serialize($context) === $snapshot, 'Explanatory diagnostics never modify tasks, pins or package links');
+$limits = array(3 => array('end' => '2026-10-08 11:59:00', 'waitingTime' => 86400, 'intersect' => 'no'));
+$reason = planning_TargetTimes::describeDependencyConflict(2, 1, $limits, '2026-10-09 12:00:00', $rows, $context->prepared->assets, array(1, 2));
+check(strpos($reason, '24 часа календарно изчакване') !== false && strpos($reason, '1440') === false,
+    'A full-day wait is explained in calendar hours, not as a cryptic minute count');
+$rows[3]->originId = 20;
+$limits[3]['intersect'] = 'yes';
+$reason = planning_TargetTimes::describeDependencyConflict(1, 2, $limits, '2026-10-09 12:00:00', $rows, $context->prepared->assets, array(1, 2));
+check(strpos($reason, 'Opr2 е след Opr1') !== false && strpos($reason, 'от друго задание') !== false,
+    'A following package member and a different job are not described as a preceding member in the same job');
+check(strpos($reason, 'допуска застъпване') !== false && strpos($reason, 'едва след приключването') === false,
+    'An overlap-permitted dependency is not falsely explained as requiring completion');
 
 echo "OK: {$checks} total checks including target-time proposals\n";

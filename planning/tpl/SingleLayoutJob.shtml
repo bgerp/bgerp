@@ -97,6 +97,9 @@
                 <!--ET_BEGIN timeActivated-->
                 <span class='small'>( |Активирано|* [#timeActivated#] )</span>
                 <!--ET_END timeActivated-->
+                <!--ET_BEGIN draftState-->
+                <span style="float:right;margin:0 2px 0 8px;padding:0 6px;border:1px solid #000;border-radius:3px;color:#000;font-size:0.85em;font-weight:bold;letter-spacing:0.08em;">[#draftState#]</span>
+                <!--ET_END draftState-->
             </td>
         </tr>
         <tr>

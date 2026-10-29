@@ -9,7 +9,7 @@
  * @package   ckeditor
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -22,7 +22,7 @@ class autosize_Plugin extends core_Plugin
     public function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
         ht::setUniqId($attr);
-        $attr['class'] .= ' autosize';
+        $attr['class'] = ($attr['class'] ?? '') . ' autosize';
     }
     
     
@@ -31,9 +31,9 @@ class autosize_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-        $conf = core_Packs::getConfig('autosize');
-        
-        $tpl->push('autosize/' . $conf->AUTOSIZE_VERSION . '/jquery.autosize.min.js', 'JS');
+        foreach (autosize_Setup::getJsFiles() as $file) {
+            $tpl->push($file, 'JS');
+        }
         
         jquery_Jquery::run($tpl, "$('.autosize:visible').autosize({maxHeight:$(window).height() - 150});");
     }

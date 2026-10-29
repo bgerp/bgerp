@@ -66,26 +66,19 @@
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
 
-.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
 .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
   flex-grow: 1; }
-  .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter > form,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter > form {
     width: 100%; }
-  .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter .vFormField {
     width: 100%;
     min-width: var(--two-cols-filter-width, calc(800px + 12em + 3em));
     contain: inline-size; }
-    .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody,
     .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
       grid-template-columns: var(--two-cols-filter-left-width, calc(400px + 6em + 1em)) var(--two-cols-filter-right-width, calc(400px + 6em + 1em)); }
 
   .wide .doc_Search .twoColsFilter {
     column-gap: 0; }
-    .wide .doc_Search .twoColsFilter .listFilter {
-      flex: 1 1 auto; }
-  .wide .doc_Search .twoColsFilter .formTable,
   .wide .doc_Search .listRows > .listTable {
     width: 100%;
     max-width: none; }
@@ -206,4 +199,37 @@
 .wide .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
     width: var(--two-cols-filter-single-width);
     max-width: 100%;
+}
+
+.wide .twoColsFilter .allowEmptyRadioHolder,
+.wide .twoColsFilter .notAllowEmptyRadioHolder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1em;
+    row-gap: 0.2em;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr > td,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr > td {
+    display: contents;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder br,
+.wide .twoColsFilter .notAllowEmptyRadioHolder br {
+    display: none;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    gap: 3px;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption > input[type=radio] {
+    flex-shrink: 0;
+    margin: 0;
 }

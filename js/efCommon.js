@@ -1459,10 +1459,11 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
+    });
 
-        $('.modal-toolbar .button').on("click", function () {
-            $('.more-btn').contextMenu('close');
-        });
+    // AJAX обновяването не трябва да натрупва обработчици за затваряне.
+    $('.modal-toolbar .button').off('click.contextMenuToolbar').on('click.contextMenuToolbar', function () {
+        $('.more-btn').contextMenu('close');
     });
 }
 document.addEventListener("DOMContentLoaded", () => {

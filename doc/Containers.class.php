@@ -2032,7 +2032,7 @@ class doc_Containers extends core_Manager
             $rec = $ctrInst->fetch($params['id']);
             
             // Кое поле е избрано да се показва, като текст
-            $field = $ctrInst->rowToolsSingleField;
+            $field = $ctrInst->rowToolsSingleField ?? null;
             
             // Очакваме да имаме права за съответния екшън
             expect($rec && ($ctrInst->haveRightFor('single', $rec) || $ctrInst->haveRightFor('viewpsingle', $rec)));

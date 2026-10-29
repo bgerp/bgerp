@@ -333,7 +333,7 @@ class planning_Jobs extends core_Master
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок,input=hidden');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие,input=hidden');
-        $this->FLD('deliveryPlace', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Данни от договора->Място,input=hidden');
+        $this->FLD('deliveryPlace', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Данни от договора->Място,input=hidden');
 
         $this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
         $this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -2849,6 +2849,19 @@ class planning_Jobs extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * След рендиране на шаблона на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        // Надписът за чернова е до заглавието на заданието, а не над статистиката
+        if (!empty($data->row->ExtState)) {
+            $tpl->removeBlock('ExtState');
+            $data->row->draftState = mb_strtoupper(strip_tags((string) $data->row->ExtState));
+        }
     }
 
 

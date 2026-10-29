@@ -104,12 +104,20 @@ class payment_ParserMt940
             }
             foreach ($parsed->recs as $i => $rec) {
                 $rec->serviceId = $serviceId;
-                $rec->ownAccountId = $own->id;
+                $rec->ownAccountId = $own->id ?? null;
+                // Старите TBB/TFC записи без референция са били идентифицирани с празен IBAN.
+                if (!empty($parsed->checkLegacy[$i]) && bank_Register::fetch(array(
+                    "#ownAccountId = '[#1#]' AND #valior = '[#2#]' AND #type = '[#3#]' AND #amount = '[#4#]' AND (#contragentIban IS NULL OR #contragentIban = '') AND #bankReferenceId IS NULL AND #serviceId LIKE '%MT940%'",
+                    $rec->ownAccountId, $rec->valior ?? '', $rec->type ?? '', $rec->amount ?? 0
+                ))) {
+                    $res->warnings[] = $prefix . 'операция №' . ($parsed->entries[$i] ?? 0) . ': има възможен запис от стария MT940 импорт без IBAN и референция; проверете банковия регистър';
+                    continue;
+                }
                 $res->recs[] = $rec;
                 $res->recordCurrencies[] = $parsed->currency;
                 $res->recordSources[] = array('iban' => $parsed->iban, 'entry' => $parsed->entries[$i]);
+                $res->skippedEntries--;
             }
-            $res->skippedEntries -= $entryCount;
         }
 
         return $res;
@@ -178,7 +186,7 @@ class payment_ParserMt940
 
             return null;
         }
-        $parsed = (object) array('iban' => $iban, 'currency' => $opening['currency'], 'recs' => array(), 'entries' => $entries);
+        $parsed = (object) array('iban' => $iban, 'currency' => $opening['currency'], 'recs' => array(), 'entries' => $entries, 'checkLegacy' => array());
         $sums = $counts = array('C' => 0, 'D' => 0);
         $references = array();
         foreach ($transactions as $i => $transaction) {
@@ -205,7 +213,7 @@ class payment_ParserMt940
                 'type' => $direction === 'C' ? 'incoming' : 'outgoing', 'contragentIban' => '', 'contragentName' => '');
             $details = $transaction['details'] ?? '';
             // Извличаме само известните подполета; пълният текст остава в основанието.
-            if (preg_match('/^[0-9]{3}([?+])[0-9]{2}/', $details, $separator)) {
+            if (preg_match('/^(?:[0-9]{3}|TBB|TFC)([?+])[0-9]{2}/', $details, $separator)) {
                 $subfields = preg_split('/' . preg_quote($separator[1], '/') . '([0-9]{2})/', str_replace("\n", '', $details), -1, PREG_SPLIT_DELIM_CAPTURE);
                 $values = array();
                 for ($j = 1; $j + 1 < count($subfields); $j += 2) $values[$subfields[$j]][] = $subfields[$j + 1];
@@ -214,6 +222,7 @@ class payment_ParserMt940
                     if (count($values[$key] ?? array()) === 1) $rec->contragentName .= trim($values[$key][0]) . ' ';
                 }
                 $rec->contragentName = trim($rec->contragentName);
+                $parsed->checkLegacy[$i] = $rec->contragentIban !== '' && !ctype_digit(substr($details, 0, 3));
             }
             $rec->reason = trim($details . "\n" . ($parts[1] ?? '') . "\n" . (self::hasReference($refs[0]) ? $refs[0] : ''));
             if ($reversal) $rec->reason = 'Сторно: ' . $rec->reason;

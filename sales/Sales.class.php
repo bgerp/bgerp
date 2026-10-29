@@ -1149,9 +1149,15 @@ class sales_Sales extends deals_DealMaster
 
         // Количката е само в таблицата със статистиката, където конверторът разбърква колоните
         if (core_Packs::isInstalled('eshop')) {
-            $cartId = eshop_Carts::fetchField("#saleId = {$rec->id}", 'id');
-            if (!empty($cartId)) {
-                $text .= "\n\n" . doc_plg_LlmExportable::systemNote("E-shop order: cart {$cartId} eshop_Carts");
+            $cartRec = eshop_Carts::fetch("#saleId = {$rec->id}");
+            if (!empty($cartRec)) {
+                $text .= "\n\n" . doc_plg_LlmExportable::systemNote("E-shop order: cart {$cartRec->id} eshop_Carts");
+
+                // Само данните от поръчката, които ги няма в продажбата - артикулите и сумите се дублират с разминавания от закръгляне
+                $cartText = doc_plg_LlmExportable::renderSingleForLlm(cls::get('eshop_Carts'), $cartRec, array('noDetails' => true, 'hideFields' => 'saleId,totalNoVat,deliveryNoVat,vatAmount,total'));
+                if ($cartText !== '') {
+                    $text .= "\n\n" . $cartText;
+                }
             }
         }
     }

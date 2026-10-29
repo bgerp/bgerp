@@ -121,7 +121,6 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 }
 
 // Формата запълва широчината на резултатите, а колоните пазят измерените размери.
-.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
 .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
 	flex-grow: 1;
 
@@ -140,17 +139,13 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-// Формата и резултатите запълват общата широчина на списъка.
+// Резултатите запълват списъка, а формата запазва измерената си широчина.
 .wide .doc_Search {
 	.twoColsFilter {
 		column-gap: 0;
 
-		.listFilter {
-			flex: 1 1 auto;
-		}
 	}
 
-	.twoColsFilter .formTable,
 	.listRows > .listTable {
 		width: 100%;
 		max-width: none;
@@ -295,4 +290,37 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 .wide .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
     width: var(--two-cols-filter-single-width);
     max-width: 100%;
+}
+
+.wide .twoColsFilter .allowEmptyRadioHolder,
+.wide .twoColsFilter .notAllowEmptyRadioHolder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1em;
+    row-gap: 0.2em;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr > td,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr > td {
+    display: contents;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder br,
+.wide .twoColsFilter .notAllowEmptyRadioHolder br {
+    display: none;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    gap: 3px;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption > input[type=radio] {
+    flex-shrink: 0;
+    margin: 0;
 }

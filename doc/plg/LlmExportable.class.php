@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author   Mustafa Mustafov <mmustafov084@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,7 +60,27 @@ class doc_plg_LlmExportable extends core_Plugin
         } finally {
             Mode::pop('renderForLlm');
         }
-        $content = self::prepareHtmlForMarkitdown($content);
+        $string = self::htmlToLlmMarkdown($content);
+        $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
+
+        $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
+        $text = doc_plg_TxtExportable::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
+        $text = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($text);
+
+        $mvc->invoke('AfterAfterGetLlmExport', array(&$text, $rec, $params));
+    }
+
+
+    /**
+     * Превръща HTML, рендиран в `plain` и 'renderForLlm' режим, в LLM-четим маркдаун
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    public static function htmlToLlmMarkdown($html)
+    {
+        $content = self::prepareHtmlForMarkitdown($html);
 
         $string = '';
         $useMarkitdown = core_Packs::isInstalled('markitdown') && cls::load('markitdown_Converter', true);
@@ -80,14 +100,50 @@ class doc_plg_LlmExportable extends core_Plugin
 
         // Ако извикващият е рендирал файловете като линкове (напр. по-стар пакет без 'renderForLlm'),
         // те се превръщат в [file=XXXXXX] тагове
-        $string = fileman_RichTextPlg::replaceFileLinksWithLlmTags($string);
-        $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
+        return fileman_RichTextPlg::replaceFileLinksWithLlmTags($string);
+    }
 
-        $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
-        $text = doc_plg_TxtExportable::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
-        $text = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($text);
 
-        $mvc->invoke('AfterAfterGetLlmExport', array(&$text, $rec, $params));
+    /**
+     * Единичният изглед на запис от core_Master (не документ) в LLM-четим маркдаун, ако потребителят има права за него
+     *
+     * @param core_Master $mvc
+     * @param stdClass    $rec
+     * @param array       $params - 'noDetails' => true без детайлите, 'hideFields' => полета, които да не се показват
+     *
+     * @return string
+     */
+    public static function renderSingleForLlm($mvc, $rec, $params = array())
+    {
+        if (!$mvc->haveRightFor('single', $rec)) return '';
+
+        $data = new stdClass();
+        $data->rec = $rec;
+        $data->details = arr::make($mvc->details ?? null);
+        $data->noDetails = !empty($params['noDetails']);
+        $data->noToolbar = true;
+
+        Mode::push('text', 'plain');
+        Mode::push('renderForLlm', true);
+        try {
+            $mvc->prepareSingle($data);
+            foreach (arr::make($params['hideFields'] ?? null) as $field) {
+                unset($data->row->{$field});
+            }
+            $html = $mvc->renderSingle($data)->getContent();
+        } finally {
+            Mode::pop('renderForLlm');
+            Mode::pop('text');
+        }
+
+        // Групи, останали само със заглавие след скритите полета, иначе то се залепва за следващата
+        $html = preg_replace_callback('/<fieldset\b[^>]*>(?:(?!<\/?fieldset\b).)*<\/fieldset>/si', function ($match) {
+            $content = preg_replace('/<legend\b.*?<\/legend>/si', '', $match[0]);
+
+            return (trim(strip_tags($content)) === '') ? '' : $match[0];
+        }, $html);
+
+        return self::htmlToLlmMarkdown($html);
     }
 
 

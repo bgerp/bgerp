@@ -89,13 +89,20 @@ class drdata_IpToCountry extends core_Manager
      */
     public static function get($ip = null)
     {
+        if (!$ip) {
+            $ip = type_Ip::getRealIp();
+        }
+
+        // Локалните, частните и резервираните адреси ги няма в таблицата
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+            && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+
+            return '??';
+        }
+
         $ipToCountry = core_Cache::get('drdata_IpToCountry', 'ipToCountry');
         if ($ipToCountry === false) {
             $ipToCountry = array();
-        }
-
-        if (!$ip) {
-            $ip = type_Ip::getRealIp();
         }
 
         if (isset($ipToCountry[$ip])) {
@@ -103,14 +110,19 @@ class drdata_IpToCountry extends core_Manager
             return $ipToCountry[$ip];
         }
 
+        // Диапазоните не се застъпват: кандидат е само най-близкото начало под адреса - едно четене по индекса,
+        // вместо обхождане на всички диапазони под адрес, който го няма в таблицата
         $query = self::getQuery();
-        $query->show('country2, id');
+        $query->show('country2, maxIp, id');
         $ipInt = sprintf("%u", ip2long($ip));
-        $query->where("#minIp <= {$ipInt} AND #maxIp >= {$ipInt}");
+        $query->where("#minIp <= {$ipInt}");
         $query->orderBy('minIp=DESC');
         $query->limit(1);
         $rec = $query->fetch();
-   
+        if ($rec && $rec->maxIp < $ipInt) {
+            $rec = null;
+        }
+
         if($rec && isset($rec->country2)) {
             $ipToCountry[$ip] = $rec->country2;
         } else {

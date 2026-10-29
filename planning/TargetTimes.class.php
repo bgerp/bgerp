@@ -159,10 +159,76 @@ class planning_TargetTimes extends core_BaseClass
         foreach ($conflicts as $id => $conflict) {
             $label = $id < 0 ? 'Новата операция' : "Opr{$id}";
             $message = $label . ': ' . ($conflict['reason'] ?? 'конфликт в плана');
-            if (!empty($conflict['earliest'])) $message .= '. Най-ранно намерено безопасно начало: ' . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i');
+            if (!empty($conflict['earliest'])) $message .= "\nСлед отчитане и на работните графици, заетостта на машините и останалите зависимости, най-ранното намерено безопасно начало за {$label} в текущия план е "
+                . dt::mysql2verbal($conflict['earliest'], 'd.m.Y H:i') . '.';
             $messages[] = $message;
         }
         return implode('<br>', $messages);
+    }
+
+    /**
+     * Обяснява причинната верига, без да смесва пакетната и технологичната връзка.
+     */
+    public static function describeDependencyConflict($targetId, $blockedId, $limits, $ready, $tasks, $assets, $chain, $requiredStart = null)
+    {
+        $label = function ($id) { return $id < 0 ? 'новата операция' : "Opr{$id}"; };
+        $machine = function ($id) use ($tasks, $assets) {
+            $assetId = $tasks[$id]->assetId ?? null;
+            $asset = $assets[$assetId] ?? (object)array();
+            $name = trim(($asset->code ?? '') . ' ' . ($asset->name ?? ''));
+            return $name !== '' ? 'машина „' . $name . '“' : ($assetId ? "машина №{$assetId}" : 'неуказана машина');
+        };
+        $blocked = $label($blockedId);
+        $parts = array('Желаното начало не може да се спази поради технологична зависимост.');
+        if ($targetId != $blockedId) {
+            $targetPosition = array_search($targetId, $chain);
+            $blockedPosition = array_search($blockedId, $chain);
+            $relation = $targetPosition !== false && $blockedPosition !== false
+                ? 'е ' . ($blockedPosition < $targetPosition ? 'преди' : 'след') . ' ' . $label($targetId) . ' в същия пакет'
+                : 'е в същия пакет като ' . $label($targetId);
+            $jobNote = '';
+            if (!empty($tasks[$targetId]->originId) && !empty($tasks[$blockedId]->originId)) $jobNote = ($tasks[$targetId]->originId ?? null) == ($tasks[$blockedId]->originId ?? null)
+                ? ' Двете операции са от едно задание.' : ' Двете операции са от различни задания, но са обвързани в пакет.';
+            $parts[] = "{$blocked} {$relation} на " . $machine($blockedId) . '.' . $jobNote . ' Операциите в пакета се планират заедно.';
+        }
+        if ($requiredStart && $requiredStart < planning_TaskConstraints::NOT_FOUND_DATE) $parts[] = 'За да се спази въведеният час за ' . $label($targetId)
+            . ", {$blocked} трябва да започне на " . dt::mysql2verbal($requiredStart, 'd.m.Y H:i') . '.';
+        foreach ($limits as $previousId => $limit) {
+            $previous = $label($previousId);
+            $sameJob = !empty($tasks[$blockedId]->originId) && !empty($tasks[$previousId]->originId)
+                && ($tasks[$blockedId]->originId ?? null) == ($tasks[$previousId]->originId ?? null);
+            $differentJob = !empty($tasks[$blockedId]->originId) && !empty($tasks[$previousId]->originId) && !$sameJob;
+            $knownMachines = !empty($tasks[$blockedId]->assetId) && !empty($tasks[$previousId]->assetId);
+            $sameMachine = $knownMachines && ($tasks[$blockedId]->assetId ?? null) == ($tasks[$previousId]->assetId ?? null);
+            $parts[] = "{$blocked} зависи от {$previous} — предходна технологична операция"
+                . ($sameJob ? ' в същото задание' : ($differentJob ? ' от друго задание' : ' по зададената технологична връзка'))
+                . ', изпълнявана на ' . ($knownMachines ? ($sameMachine ? 'същата ' : 'друга ') : '') . $machine($previousId) . '.';
+            $end = $limit['end'] ?? null;
+            $parts[] = $end && $end < planning_TaskConstraints::NOT_FOUND_DATE
+                ? "Очакван край на {$previous}: " . dt::mysql2verbal($end, 'd.m.Y H:i') . '.'
+                : "За {$previous} все още няма изчислен край.";
+            $waiting = max(0, (int)($limit['waitingTime'] ?? 0));
+            $duration = array();
+            $hours = (int)floor($waiting / 3600);
+            $minutes = (int)floor(($waiting % 3600) / 60);
+            if ($hours) $duration[] = $hours . ($hours == 1 ? ' час' : ' часа');
+            if ($minutes) $duration[] = $minutes . ' мин.';
+            if ($waiting % 60) $duration[] = ($waiting % 60) . ' сек.';
+            $noOverlap = ($limit['intersect'] ?? 'yes') == 'no';
+            $limitReady = $limit['ready'] ?? $ready;
+            if ($noOverlap && $end && $limitReady < planning_TaskConstraints::NOT_FOUND_DATE) {
+                $release = dt::addSecs(-$waiting, $limitReady);
+                if (substr($release, 0, 16) != substr($end, 0, 16)) $parts[] = 'За следващата операция заетият интервал се освобождава в '
+                    . dt::mysql2verbal($release, 'd.m.Y H:i') . '; изчакването се брои от този момент.';
+            }
+            $parts[] = $noOverlap
+                ? "{$blocked} може да започне едва след приключването на {$previous}" . ($waiting ? ' и още ' . implode(' и ', $duration) . ' календарно изчакване' : '') . '.'
+                : 'Зададената връзка допуска застъпване на двете операции' . ($waiting ? ', но изисква изчакване ' . implode(' и ', $duration) : '') . '.';
+        }
+        $parts[] = $ready < planning_TaskConstraints::NOT_FOUND_DATE
+            ? "Само по това технологично условие {$blocked} не може да започне преди " . dt::mysql2verbal($ready, 'd.m.Y H:i') . '. Това все още не означава свободен час на машината.'
+            : "Докато предходните операции нямат изчислено изпълнение, не може да се определи допустимо начало за {$blocked}.";
+        return implode("\n", $parts);
     }
 
     /**
@@ -300,6 +366,8 @@ class planning_TargetTimes extends core_BaseClass
 
     private static function getPredecessors($tasks)
     {
+        if (planning_Setup::get('MANUAL_ORDER_IN_ASSET') == 'yes') return array();
+
         $previous = array();
         foreach (planning_TaskConstraints::calculateTaskConstraints($tasks) as $constraint) {
             if (($constraint->type ?? null) == 'prevId' && isset($constraint->taskId, $constraint->previousTaskId)) {
@@ -400,10 +468,11 @@ class planning_TargetTimes extends core_BaseClass
             if ($conflicts) $messages[] = static::formatConflicts($conflicts);
             if ($rightsError) $messages[] = $rightsError;
             if ($canChangePackages) $form->setField('targetPackagePolicy', 'input');
-            $form->setError('timeStart,timeDuration', str_replace('<br>', '; ', implode('; ', $messages)));
+            $form->setError('timeStart,timeDuration', htmlspecialchars(str_replace('<br>', '; ', implode('; ', $messages)), ENT_QUOTES, 'UTF-8'));
             if (!empty($rec->timeStart)) {
                 $report = array('alternatives' => array(), 'conflictText' => str_replace('<br>', "\n", implode("\n", $messages)),
                     'command' => $form->cmd ?? 'save', 'ignoreWarnings' => !empty($form->ignore), 'approvalChanges' => $approvalChanges,
+                    'requestedStart' => static::verbalTime($rec->timeStart ?? null),
                     'editedOperation' => ($rec->id ?? -1) < 0 ? 'Новата операция' : 'Opr' . ($rec->id ?? -1));
                 $choices = array(
                     array('mode' => 'move', 'policy' => $policy, 'title' => 'Запази желания час и промени конфликтните фиксирани начала'),

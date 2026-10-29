@@ -11,7 +11,7 @@
  * @package   minify
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -23,6 +23,11 @@ class minify_Plugin extends core_Plugin
      */
     public static function on_BeforeSaveFile($mvc, $res, &$content, $path, $isFullPath = null)
     {
+        // Официалният TinyMCE 8 build използва синтаксис, който JSMin/JShrink повреждат.
+        if (preg_match('#(?:^|/)tinymce/8\.10\.1/.*\.(?:js|css)$#', $path ?? '')) {
+            return;
+        }
+
         $ext = str::getFileExt($path);
 
         try {

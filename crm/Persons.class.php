@@ -353,7 +353,7 @@ class crm_Persons extends core_Master
             'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)',
             'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId'
         );
-        $this->FLD('buzLocationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
+        $this->FLD('buzLocationId', 'key2(mvc=crm_Locations,select=title,selectSource=crm_Locations::getSelectOptions,forceAjax,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
