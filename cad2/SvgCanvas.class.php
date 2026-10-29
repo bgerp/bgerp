@@ -15,6 +15,8 @@ class cad2_SvgCanvas extends cad2_Canvas
     /**
      * Масив с XML обекти - тагове
      */
+    public $content = array();
+
     public $contents = array();
     
     //
@@ -209,9 +211,9 @@ class cad2_SvgCanvas extends cad2_Canvas
      */
     protected function getCurrentPath()
     {
-        $path = $this->content[countR($this->content) - 1];
+        $path = $this->content[countR($this->content) - 1] ?? null;
         
-        if ($path->name == 'path') {
+        if (($path->name ?? null) == 'path') {
             
             return $path;
         }
