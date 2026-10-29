@@ -84,13 +84,13 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             ''
         ));
         planMetrics.append(createPlanMetric(
-            'Общо закъснение по всички задания',
+            'Сбор от закъсненията на заданията спрямо падежите',
             metrics.tardinessBefore,
             metrics.tardinessAfter,
             metrics.tardinessChange,
             Number(metrics.tardinessChangeSeconds) || 0,
-            ''
-        ));
+            'Закъснението на всяко задание се брои веднъж. Например 10 задания, всяко с 1 ден закъснение, дават сбор 10 дни — не 10 дни изместване на целия план.'
+        ).addClass('optimizationTardinessMetric'));
         planMetrics.append(createPlanMetric(
             'Избрана машина: ' + (metrics.targetAssetTitle || ''),
             metrics.targetBefore,
@@ -100,7 +100,7 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             targetDetailParts.join(' — ')
         ));
         planMetrics.append(createPlanMetric(
-            'Целият производствен план (всички машини)',
+            'Край на целия производствен план (всички машини)',
             metrics.before,
             metrics.after,
             metrics.change,
@@ -116,15 +116,23 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
     } else {
         let increasedCount = changes.filter((change) => Number(change.changeSeconds) > 0).length;
         let decreasedCount = changes.filter((change) => Number(change.changeSeconds) < 0).length;
+        const machineTime = function (seconds, fallback) {
+            if (seconds == null) return fallback || '0 мин.';
+            const minutes = Math.round(Math.abs(Number(seconds) || 0) / 60);
+            const hours = Math.floor(minutes / 60);
+            return (hours ? hours + (hours === 1 ? ' час' : ' часа') : '')
+                + (minutes % 60 ? (hours ? ' и ' : '') + (minutes % 60) + ' мин.' : (hours ? '' : '0 мин.'));
+        };
         let summary = $('<div>', {class: 'optimizationIdleSummary'});
         summary.append($('<span>', {class: 'idleIncreaseCount'})
-            .text('Увеличени: ' + increasedCount + ' машини — общо ' + (totals.increased || '0 мин.')));
+            .text('Машини с повече престой: ' + increasedCount + ' — общо ' + (increasedCount ? '+' : '') + machineTime(totals.increasedSeconds, totals.increased)));
         summary.append($('<span>', {class: 'idleDecreaseCount'})
-            .text('Намалени: ' + decreasedCount + ' машини — общо ' + (totals.decreased || '0 мин.')));
+            .text('Машини с по-малко престой: ' + decreasedCount + ' — общо ' + (decreasedCount ? '−' : '') + machineTime(totals.decreasedSeconds, totals.decreased)));
         let netSeconds = Number(totals.netSeconds) || 0;
         let netClass = netSeconds > 0 ? 'idleNetIncrease' : (netSeconds < 0 ? 'idleNetDecrease' : 'idleNetUnchanged');
         summary.append($('<span>', {class: netClass})
-            .text('Нетна промяна на престоите: ' + (totals.net || '0 мин.')));
+            .text('Обща промяна на машинния престой: ' + (netSeconds > 0 ? '+' : (netSeconds < 0 ? '−' : ''))
+                + machineTime(totals.netSeconds, totals.net)));
         report.append(summary);
 
         let table = $('<table>', {class: 'optimizationIdleTable'});
@@ -234,6 +242,26 @@ function showTargetTimesPreview(data, selectedIndex)
         const number = referenceNumbers[operation.toLowerCase()];
         return operation + (number == null ? '' : ' (' + number + ')') + ' | ';
     };
+    const conflictDescription = function (text) {
+        return text.split('\n').map(function (message, index) {
+            const labelled = message.match(/^(Opr\d+|Новата операция):\s*(.*)$/i);
+            const operation = labelled ? labelled[1] : (index === 0 ? editedOperation : '');
+            const reason = (labelled ? labelled[2] : message).replace(/^Желаният час/, 'Желаното начало');
+            return (operation ? operationLabel(operation) : '') + withReferenceNumbers(reason);
+        }).join('\n');
+    };
+    const conflictBox = function (text, requestedStart) {
+        const lines = conflictDescription(text).split('\n');
+        if (requestedStart && requestedStart !== '—') lines[0] = lines[0].replace(/Желаното начало(?!\s*\()/,
+            function () { return 'Желаното начало (' + requestedStart + ')'; });
+        const box = $('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(lines[0]));
+        if (lines.length > 1) {
+            const steps = $('<ul>', {class: 'targetTimeConflictSteps'});
+            lines.slice(1).filter(Boolean).forEach(function (line) { steps.append($('<li>').text(line)); });
+            box.append(steps);
+        }
+        return box;
+    };
     const changeSummary = function (report) {
         const rows = report.operationChanges || [];
         const own = report.editedOperation || editedOperation;
@@ -253,13 +281,7 @@ function showTargetTimesPreview(data, selectedIndex)
         details.append(changed.append(list));
     }
     if (data.conflictText) {
-        const conflict = data.conflictText.split('\n').map(function (message) {
-            const labelled = message.match(/^(Opr\d+|Новата операция):\s*(.*)$/i);
-            const operation = labelled ? labelled[1] : editedOperation;
-            const reason = (labelled ? labelled[2] : message).replace(/^Желаният час/, 'Желаното начало');
-            return (operation ? operationLabel(operation) : '') + withReferenceNumbers(reason);
-        }).join('\n');
-        details.append($('<div>', {class: 'targetTimeConflict'}).append($('<strong>').text(conflict)));
+        details.append(conflictBox(data.conflictText, data.requestedStart || preview.requestedStart));
     }
     if (alternatives.length) {
         details.append($('<strong>', {class: 'targetTimeChoiceHelp'}).text(firstAvailable
@@ -269,7 +291,12 @@ function showTargetTimesPreview(data, selectedIndex)
             const box = $('<div>', {class: 'targetTimeChoice' + (index === selectedIndex ? ' isSelected' : '')});
             box.append($('<button>', {type: 'button', disabled: !variant.available})
                 .text(variant.title).on('click', function () { showTargetTimesPreview(data, index); }));
-            if (!variant.available) box.append($('<div>', {class: 'targetTimeConflict'}).text(variant.reason || 'Няма допустим вариант.'));
+            if (!variant.available) {
+                const reason = variant.reason || 'Няма допустим вариант.';
+                box.append(reason.trim() === (data.conflictText || '').trim()
+                    ? $('<div>', {class: 'targetTimeConflict'}).text('Този вариант не отстранява описаното по-горе ограничение.')
+                    : conflictBox(reason));
+            }
             else {
                 box.append($('<div>').text(changeSummary(variant.report)));
             }
@@ -284,18 +311,29 @@ function showTargetTimesPreview(data, selectedIndex)
         details.append($('<div>', {class: 'targetTimeImpactSummary'}).text(changeSummary(preview)));
         const idleSummary = $('#optimizationIdleReport .optimizationIdleSummary');
         if (idleSummary.length) details.append($('<div>', {class: 'targetTimeIdleImpact'})
-            .append(idleSummary.children().clone()));
+            .append($('<strong>').text('Престой на машините — незаето време в работните им графици'))
+            .append($('<div>', {class: 'targetTimeIdleTotals'}).append(idleSummary.children().clone()))
+            .append($('<small>').text('Сбор по машини. Това не е закъснение на заданията и не е изместване на крайния срок на плана.')));
         const warnings = $('#optimizationIdleReport .optimizationPlanMetric').filter(function () {
             return $(this).find('.optimizationMetricWorsened').length > 0;
         });
+        const metrics = preview.optimizationMetrics || {};
+        if (Object.keys(metrics).length) details.append($('<strong>', {class: 'targetTimeDeadlineTitle'}).text('Срокове на заданията и край на плана'));
         if (warnings.length) {
             const list = $('<ul>', {class: 'targetTimeImpactWarnings'});
             warnings.each(function () {
-                list.append($('<li>').text($(this).find('.optimizationPlanMetricLabel').text() + ' — '
-                    + $(this).find('.optimizationPlanMetricChange').text()));
+                const item = $('<li>').text($(this).find('.optimizationPlanMetricLabel').text() + ' — '
+                    + $(this).find('.optimizationPlanMetricChange').text());
+                if ($(this).hasClass('optimizationTardinessMetric')) item.append($('<small>')
+                    .text($(this).find('.optimizationPlanMetricDetail').text()));
+                list.append(item);
             });
             details.append(list);
         }
+        if (metrics.change != null) details.append($('<div>', {class: 'targetTimePlanEnd'})
+            .text('Изместване на изчисления край на целия производствен план: ' + metrics.change
+                + (metrics.globalEnd ? '; нов край: ' + metrics.globalEnd : '') + '.'
+                + (Number(metrics.missingJobCompletionsAfter) > 0 ? ' Има задания без изчислен край — прогнозата е непълна.' : '')));
         if ((preview.operationOrder || []).length) {
             preview.operationOrder.forEach(function (group) {
                 const edited = group.edited || (group.after || []).some(function (row) { return row.operation === editedOperation; });
