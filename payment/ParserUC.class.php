@@ -70,9 +70,6 @@ class payment_ParserUC
                 continue;
             }
 
-            $owrName = payment_XmlParser::getText($stmt, 'BankClient/NAME');
-            $bic = payment_XmlParser::getText($stmt, 'BankAccount/BIC-Code');
-
             $currency = strtoupper(trim(payment_XmlParser::getText($stmt, 'BankAccount/CCY/SWIFTCode')));
             $entryNumber = 0;
             foreach ($movements->BankAccountMovement ?? array() as $node) {

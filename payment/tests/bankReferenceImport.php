@@ -13,6 +13,15 @@ class core_Manager {
     public static $race;
     public static function getQuery() { return new payment_TestCrossQuery(); }
     public static function fetch($where, $fields = '*', $cache = true) {
+        if (is_array($where) && count($where) === 5 && $where[0] === "#ownAccountId = '[#1#]' AND #valior = '[#2#]' AND #type = '[#3#]' AND #amount = '[#4#]' AND (#contragentIban IS NULL OR #contragentIban = '') AND #bankReferenceId IS NULL AND #serviceId LIKE '%MT940%'") {
+            foreach (self::$rows as $row) {
+                if (($row->ownAccountId ?? null) == $where[1] && ($row->valior ?? '') === $where[2]
+                    && ($row->type ?? '') === $where[3] && (float) ($row->amount ?? 0) === (float) $where[4]
+                    && empty($row->contragentIban) && !isset($row->bankReferenceId)
+                    && strpos($row->serviceId ?? '', 'MT940') !== false) return clone $row;
+            }
+            return false;
+        }
         if (!is_array($where) || !preg_match('/^#(transactionId|bankReferenceId) =/', $where[0], $match)) throw new Exception('Unexpected query');
         foreach (self::$rows as $row) {
             if (($row->{$match[1]} ?? null) === $where[1]) return clone $row;
