@@ -847,23 +847,25 @@ class rack_Zones extends core_Master
                 }
             }
 
-            if (!empty($filter->grouping)) {
-                switch ($filter->grouping) {
+            $grouping = $filter->grouping ?? '';
+            if (!empty($grouping)) {
+                switch ($grouping) {
                     case 'no':
                         $data->query->where("#groupId IS NULL");
-                        break;
-                    case is_numeric($filter->grouping):
-                        $data->query->where("#groupId = {$filter->grouping}");
-                        break;
-                    case strpos($filter->grouping, 's'):
-                        $id = trim($filter->grouping, 's');
-                        $data->query->where("#id = {$id}");
                         break;
                     case 'notfree':
                         $data->query->where("#containerId IS NOT NULL");
                         break;
                     case 'free':
                         $data->query->where("#containerId IS NULL");
+                        break;
+                    default:
+                        if (is_numeric($grouping)) {
+                            $data->query->where("#groupId = {$grouping}");
+                        } elseif (strpos($grouping, 's') === 0) {
+                            $id = (int) substr($grouping, 1);
+                            $data->query->where("#id = {$id}");
+                        }
                         break;
                 }
             }
