@@ -28,13 +28,14 @@ class sass_Plugin extends core_Plugin
             if ($scssFile && file_exists($scssFile)) {
                 $scssFileArr = pathinfo($scssFile);
                 $time = core_Os::getTimeOfLastModifiedFile(dirname($scssFile), '', "#[a-z0-9\-\/_]+(.scss)$#i");
-                $newCompiler = sass_Setup::get('USE_COMPOSER') === 'yes' && sass_Setup::get('VERSION') === '1.13.0';
+                $version = sass_Setup::get('VERSION');
+                $newCompiler = sass_Setup::get('USE_COMPOSER') === 'yes' && in_array($version, array('1.13.0', '2.1.0'), true);
                 
                 // Проверка дали файла вече не съществува в sbf
                 $sbfPath = core_Sbf::getSbfPathByTime($path, $time);
                 if ($newCompiler) {
                     // Отделен SBF файл пази стария CSS при връщане на компилатора.
-                    $sbfPath = substr($sbfPath, 0, -4) . '_scssphp1_13_0.css';
+                    $sbfPath = substr($sbfPath, 0, -4) . '_scssphp' . str_replace('.', '_', $version) . '.css';
                 }
                 if (file_exists($sbfPath)) {
                     $res = $sbfPath;

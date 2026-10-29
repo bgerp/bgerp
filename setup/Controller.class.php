@@ -25,7 +25,7 @@ if (isset($_REQUEST['SetupKey']) && $_REQUEST['SetupKey'] == 'demo') {
  * @package   setup
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2015 Experta OOD
+ * @copyright 2015 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -46,7 +46,7 @@ class setup_Controller
         $res->title = 'Лицензно споразумение';
         $res->next = 'Приемам лиценза »';
         $res->back = false;
-        $res->body = markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'));
+        $res->body = markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'), true);
     }
     
     

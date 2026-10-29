@@ -12,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
  * @category  vendors
  * @package   phpspreadsheet
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -29,7 +29,9 @@ class phpspreadsheet_Adapter extends core_BaseClass
      */
     public static function isAvailable()
     {
-        return core_Packs::isInstalled('phpspreadsheet') && core_Composer::isInUse()
+        return core_Packs::isInstalled('phpspreadsheet')
+            && !phpspreadsheet_Setup::getPhpVersionError(phpspreadsheet_Setup::get('VERSION'))
+            && core_Composer::isInUse()
             && class_exists(Spreadsheet::class) && class_exists(Xls::class);
     }
 
@@ -68,6 +70,8 @@ class phpspreadsheet_Adapter extends core_BaseClass
      */
     public static function writeXls($csv, $path, core_FieldSet $fieldSet = null, $listFields = null, $params = array())
     {
+        $error = phpspreadsheet_Setup::getPhpVersionError(phpspreadsheet_Setup::get('VERSION'));
+        expect(!$error, $error);
         $encoding = $params['encoding'] ?? 'UTF-8';
         $csv = mb_convert_encoding($csv, 'UTF-8', $encoding);
         if (substr($csv, 0, 3) === "\xEF\xBB\xBF") {

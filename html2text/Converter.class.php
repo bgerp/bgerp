@@ -91,7 +91,7 @@
  * @package   html2text
  *
  * @author    Jon Abernathy <jon@chuggnutt.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -104,7 +104,7 @@ class html2text_Converter
      * @var string $html
      * @access public
      */
-    public $html;
+    public $html = '';
     
     
     /**
@@ -307,14 +307,14 @@ class html2text_Converter
      */
     public function __construct($source = '', $from_file = false)
     {
-        if (!empty($source)) {
+        if ($source !== '' && $source !== null) {
             $this->set_html($source, $from_file);
         }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Конвертира HTML към Richtext според избраната пакетна версия.
      */
     public static function toRichText($text)
     {
@@ -335,7 +335,7 @@ class html2text_Converter
      */
     public function set_html($source, $from_file = false)
     {
-        $this->html = $source;
+        $this->html = (string) ($source ?? '');
         
         if ($from_file && file_exists($source)) {
             $fp = fopen($source, 'r');
@@ -450,6 +450,15 @@ class html2text_Converter
      */
     public function _convert()
     {
+        // Режимът с разрешени HTML тагове запазва стария си специализиран алгоритъм.
+        if (html2text_Setup::get('VERSION') === '4.3.2' && $this->allowed_tags === '') {
+            $converter = new html2text_Modern($this);
+            $this->text = $converter->getText();
+            $this->_converted = true;
+
+            return;
+        }
+
         // Variables used for building the link list
         $this->_link_count = 0;
         $this->_link_list = '';
@@ -509,8 +518,7 @@ class html2text_Converter
         
         
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')(?\'style\'[^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
-        $text = preg_replace_callback('/<font\\s+([^>]*(?\'style\'(color)\\s*\\=\\s*(\\"|\\\')([^\\\'|\\"]+)(\\"|\\\')))[^>]*\\>(?\'text\'.*?)<\\/font>/i', array($this, 'highlighting'), $text);
+        $text = $this->convertStyles($text);
         
         // <i>
         $text = preg_replace("/<i[^>]*>(.+)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
@@ -709,6 +717,31 @@ class html2text_Converter
     }
     
     
+    /**
+     * Общи правила за CSS и FONT атрибути при двете версии.
+     *
+     * @param string $text HTML съдържание
+     * @param bool $preserveTags Запазва блоковете и многострочния текст за upstream.
+     */
+    public function convertStyles($text, $preserveTags = false)
+    {
+        $callback = array($this, 'highlighting');
+        if ($preserveTags) {
+            $callback = function ($matches) {
+                if (!preg_match('/^<([a-z]+)\b[^>]*>/i', $matches[0] ?? '', $tag)) {
+                    return $this->highlighting($matches);
+                }
+
+                return $tag[0] . $this->highlighting($matches) . '</' . $tag[1] . '>';
+            };
+        }
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')(?\'style\'[^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i' . ($preserveTags ? 's' : ''), $callback, $text);
+        $text = preg_replace_callback('/<font\\s+([^>]*(?\'style\'(color)\\s*\\=\\s*(\\"|\\\')([^\\\'|\\"]+)(\\"|\\\')))[^>]*\\>(?\'text\'.*?)<\\/font>/i' . ($preserveTags ? 's' : ''), $callback, $text);
+
+        return $text;
+    }
+
+
     /**
      * Замества форматиращи тагове, зададени чрез стилове към HTML елементи
      */

@@ -12,7 +12,7 @@
 #
 
 
-define( 'MARKDOWN_VERSION',  "1.0.1o" ); # Sun 8 Jan 2012
+defined('MARKDOWN_VERSION') or define( 'MARKDOWN_VERSION',  "1.0.1o" ); # Sun 8 Jan 2012
 
 
 #
