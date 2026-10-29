@@ -1,0 +1,15 @@
+@import "palette";
+.sass-qa {
+  color: $ink;
+  width: 480px;
+  font: 16px/24px sans-serif;
+  table { border-collapse: collapse; width: 100%; }
+  td, th { @include cell; }
+  th { background: lighten($ink, 60%); }
+  .sum { font-weight: bold; text-align: right; }
+  .label:after { content: "Сума 123,45 лв."; }
+  .hidden { display: none; }
+  .logo { background-image: url("marker.svg"); width: 24px; height: 24px; }
+}
+@for $i from 1 through 3 { .sass-qa .col-#{$i} { width: $i * 25%; } }
+@media (max-width: 600px) { .sass-qa { width: 100%; } }

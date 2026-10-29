@@ -1,0 +1,3 @@
+$ink: #048;
+$space: 4px;
+@mixin cell { padding: $space * 2; border: 1px solid $ink; }
