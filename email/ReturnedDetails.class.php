@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -85,6 +85,35 @@ class email_ReturnedDetails
         }
 
         $reportKey = hash('sha256', $mime->getHeader('Message-ID') ?: $mime->getData());
+
+        return self::prepareDetails($details, $reportKey, $date);
+    }
+
+
+    /**
+     * Диагностика от директен отказ при изпращане, без входящо DSN известие.
+     * Отказът е за опита за изпращане, без да приписва общата грешка на отделен получател.
+     *
+     * @param string|null $error Грешка от транспорта
+     * @param string      $date  Дата на отказа във формат MySQL
+     *
+     * @return array
+     */
+    public static function fromSendError($error, $date)
+    {
+        $error = self::cleanText($error);
+        if ($error === '') return array();
+
+        return self::prepareDetails(array(array('recipient' => null, 'deliveryAction' => 'failed',
+            'diagnostic' => $error, 'text' => $error, 'source' => 'smtp')), 'smtp', $date);
+    }
+
+
+    /**
+     * Почиства диагностиките, разпознава кодовете и добавя устойчив ключ за всяка причина.
+     */
+    protected static function prepareDetails($details, $reportKey, $date)
+    {
         $result = array();
         foreach ($details as $detail) {
             $detail['diagnostic'] = self::cleanText($detail['diagnostic']);
@@ -293,7 +322,7 @@ class email_ReturnedDetails
         // RFC 7505: 5.1.10 е null MX; Outlook RecipientNotFound се разпознава по текста по-горе.
         if ($status === '5.1.10') return 'domain_not_accepting_mail';
         if ($status === '4.2.1' || $status === '5.2.1') return 'mailbox_disabled';
-        if ($status === '5.3.4' || preg_match('/message (?:size )?(?:too large|exceeds)|size limit exceeded/i', $text)) return 'message_too_large';
+        if ($status === '5.3.4' || preg_match('/message (?:(?:size|file) )?(?:too (?:large|big)|exceeds)|size limit exceeded/i', $text)) return 'message_too_large';
         if ($status === '4.7.1' || $status === '5.7.1') return 'policy_rejection';
 
         return 'unknown';
