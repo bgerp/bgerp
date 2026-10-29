@@ -7,6 +7,8 @@
 if (PHP_SAPI !== 'cli') exit("CLI only.\n");
 set_error_handler(function ($severity, $message, $file, $line) { throw new ErrorException($message, 0, $severity, $file, $line); });
 class core_Manager {
+    public $db;
+    public $dbTableName = 'bank_register';
     public static $rows = array();
     public static $race;
     public static function getQuery() { return new payment_TestCrossQuery(); }
@@ -28,6 +30,23 @@ class core_Manager {
         self::$rows[] = clone $rec;
         return $rec->id;
     }
+}
+class cls {
+    public static function get($name) { $mvc = new $name(); $mvc->db = new payment_TestImportDb(); return $mvc; }
+}
+class payment_TestImportDb {
+    public $dbName = 'synthetic';
+    public static $available = true;
+    public static $held = 0;
+    public function query($sql) {
+        if (strpos($sql, 'SELECT GET_LOCK(') === 0) {
+            if (self::$available) self::$held++;
+            return (object) array('acquired' => self::$available ? 1 : 0);
+        }
+        if (strpos($sql, 'SELECT RELEASE_LOCK(') === 0) { self::$held--; return true; }
+        throw new Exception('Unexpected lock query');
+    }
+    public function fetchObject($result) { return $result; }
 }
 class payment_TestCrossQuery {
     private $rows = array();
@@ -165,3 +184,22 @@ check(array_keys($preview[0]->differences) === array('valior', 'amount', 'contra
 $equivalent = clone $a;$equivalent->contragentIban = strtolower('BG00 TEST00000000000001');$equivalent->amount += 0.0000001;
 $preview = bank_Register::previewImport(array(array($equivalent)));
 check($preview[0]->status === 'duplicate' && !$preview[0]->differences, 'difference diagnostics preserve original amount tolerance and IBAN normalization');
+
+$before = serialize(bank_Register::$rows);
+payment_TestImportDb::$available = false;
+$status = bank_Register::importRecs(array($c), null, $warnings);
+check(serialize(bank_Register::$rows) === $before && $warnings && strpos($status, 'Импортирани 0 трансакции, пропуснати 1') === 0
+    && payment_TestImportDb::$held === 0, 'busy import performs no writes and reports that retry is needed');
+bank_Register::previewImport(array(array($c)));
+check(payment_TestImportDb::$held === 0, 'preview does not acquire a write lock');
+payment_TestImportDb::$available = true;
+$status = bank_Register::importRecs(array($c), null, $warnings);
+check(strpos($status, 'Импортирани 1 трансакции, пропуснати 0') === 0 && serialize(bank_Register::$rows) !== $before
+    && payment_TestImportDb::$held === 0, 'successful import preserves its result and releases lock');
+bank_Register::$race = function ($rec) { throw new RuntimeException('synthetic save interruption'); };
+try {
+    bank_Register::importRecs(array(payment('CAMT:EUR:N:INTERRUPT')));
+    check(false, 'save interruption must propagate');
+} catch (RuntimeException $e) {
+    check($e->getMessage() === 'synthetic save interruption' && payment_TestImportDb::$held === 0, 'exception propagates after releasing lock');
+}

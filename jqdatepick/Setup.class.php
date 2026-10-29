@@ -15,7 +15,7 @@ defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
  * @package   jqdatepick
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -40,7 +40,7 @@ class jqdatepick_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'JQDATEPICKER_VERSION' => array('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
+        'JQDATEPICKER_VERSION' => array('enum(v4.0.6, v5.0.0, v5.1.1)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
     
@@ -67,12 +67,31 @@ class jqdatepick_Setup extends core_ProtoSetup
      */
     public function getCommonJs()
     {
-        $conf = core_Packs::getConfig('jqdatepick');
         $confCore = core_Packs::getConfig('core');
-        
-        return 'jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.plugin.min.js, jqdatepick/' .
-            $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js, jqdatepick/' .
-            $conf->JQDATEPICKER_VERSION . '/jquery.datepick-' . $confCore->EF_DEFAULT_LANGUAGE . '.js';
+
+        return implode(', ', self::getJsFiles($confCore->EF_DEFAULT_LANGUAGE ?? 'bg', false));
+    }
+
+
+    /**
+     * Подрежда ресурсите за адаптера и compactor; 4.0.6 няма kbw-plugin зависимост.
+     */
+    public static function getJsFiles($lg, $includeExtensions = true)
+    {
+        $conf = core_Packs::getConfig('jqdatepick');
+        $version = $conf->JQDATEPICKER_VERSION ?? JQDATEPICKER_VERSION;
+        $path = 'jqdatepick/' . $version . '/';
+        $files = array();
+        if ($version !== 'v4.0.6') {
+            $files[] = $path . 'jquery.plugin.min.js';
+        }
+        $files[] = $path . 'jquery.datepick.js';
+        if ($includeExtensions) {
+            $files[] = $path . 'jquery.datepick.ext.js';
+        }
+        $files[] = $path . 'jquery.datepick-' . $lg . '.js';
+
+        return $files;
     }
     
     

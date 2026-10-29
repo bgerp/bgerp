@@ -109,27 +109,39 @@ class doc_plg_LlmExportable extends core_Plugin
      *
      * @param core_Master $mvc
      * @param stdClass    $rec
+     * @param array       $params - 'noDetails' => true без детайлите, 'hideFields' => полета, които да не се показват
      *
      * @return string
      */
-    public static function renderSingleForLlm($mvc, $rec)
+    public static function renderSingleForLlm($mvc, $rec, $params = array())
     {
         if (!$mvc->haveRightFor('single', $rec)) return '';
 
         $data = new stdClass();
         $data->rec = $rec;
         $data->details = arr::make($mvc->details ?? null);
+        $data->noDetails = !empty($params['noDetails']);
         $data->noToolbar = true;
 
         Mode::push('text', 'plain');
         Mode::push('renderForLlm', true);
         try {
             $mvc->prepareSingle($data);
+            foreach (arr::make($params['hideFields'] ?? null) as $field) {
+                unset($data->row->{$field});
+            }
             $html = $mvc->renderSingle($data)->getContent();
         } finally {
             Mode::pop('renderForLlm');
             Mode::pop('text');
         }
+
+        // Групи, останали само със заглавие след скритите полета, иначе то се залепва за следващата
+        $html = preg_replace_callback('/<fieldset\b[^>]*>(?:(?!<\/?fieldset\b).)*<\/fieldset>/si', function ($match) {
+            $content = preg_replace('/<legend\b.*?<\/legend>/si', '', $match[0]);
+
+            return (trim(strip_tags($content)) === '') ? '' : $match[0];
+        }, $html);
 
         return self::htmlToLlmMarkdown($html);
     }

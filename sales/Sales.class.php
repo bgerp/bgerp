@@ -1153,8 +1153,8 @@ class sales_Sales extends deals_DealMaster
             if (!empty($cartRec)) {
                 $text .= "\n\n" . doc_plg_LlmExportable::systemNote("E-shop order: cart {$cartRec->id} eshop_Carts");
 
-                // Данните от поръчката (контакт, доставка, фактуриране) ги няма в самата продажба
-                $cartText = doc_plg_LlmExportable::renderSingleForLlm(cls::get('eshop_Carts'), $cartRec);
+                // Само данните от поръчката, които ги няма в продажбата - артикулите и сумите се дублират с разминавания от закръгляне
+                $cartText = doc_plg_LlmExportable::renderSingleForLlm(cls::get('eshop_Carts'), $cartRec, array('noDetails' => true, 'hideFields' => 'saleId,totalNoVat,deliveryNoVat,vatAmount,total'));
                 if ($cartText !== '') {
                     $text .= "\n\n" . $cartText;
                 }

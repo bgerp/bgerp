@@ -2181,7 +2181,12 @@ class eshop_Carts extends core_Master
         $domainId = $rec->domainId ?? null;
         $state = $rec->state ?? null;
         $settings = cms_Domains::getSettings($domainId);
-        $row->userId = ($row->userId ?? '') . type_Ip::decorateIp($rec->ip ?? null, $rec->createdOn ?? null)."</br>" . log_Browsers::getLink($rec->brid ?? null);
+        if (Mode::is('renderForLlm')) {
+            // IP-то е на отделен ред, а идентификаторът на браузъра не носи смисъл за модела
+            unset($row->brid);
+        } else {
+            $row->userId = ($row->userId ?? '') . type_Ip::decorateIp($rec->ip ?? null, $rec->createdOn ?? null)."</br>" . log_Browsers::getLink($rec->brid ?? null);
+        }
         $row->ROW_ATTR['class'] = isset($state) ? "state-{$state}" : '';
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         if (isset($domainId)) {
