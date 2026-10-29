@@ -363,6 +363,8 @@
             }
 
             if(isHidden != true) {
+                // bgERP: toggle-close must also release keyboard and AJAX state.
+                iMethods.closeContextMenu(option, trigger, menu, e);
                 return;
             }
 

@@ -27,7 +27,7 @@ defIfNot('AUTOSIZE_MAX_ROWS_NARROW', '400');
  * @package   autosize
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -64,7 +64,8 @@ class autosize_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'AUTOSIZE_VERSION' => array('enum(v1.18.4=v1.18.4,
-                                                 v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
+                                                 v1.18.9=v1.18.9,
+                                                 v6.0.1=v6.0.1)', 'mandatory, caption=Версията на програмата->Версия'),
     );
     
     
@@ -82,10 +83,22 @@ class autosize_Setup extends core_ProtoSetup
      */
     public function getCommonJs()
     {
+        return implode(', ', self::getJsFiles());
+    }
+
+
+    /**
+     * Запазва реда библиотека -> jQuery адаптер и в compactor.
+     */
+    public static function getJsFiles()
+    {
         $conf = core_Packs::getConfig('autosize');
-        
-        $res = 'autosize/' .$conf->AUTOSIZE_VERSION. '/jquery.autosize.min.js';
-        
-        return $res;
+        $version = $conf->AUTOSIZE_VERSION ?? AUTOSIZE_VERSION;
+
+        if ($version === 'v6.0.1') {
+            return array('autosize/v6.0.1/autosize.min.js', 'autosize/js/jquery-adapter.js');
+        }
+
+        return array('autosize/' . $version . '/jquery.autosize.min.js');
     }
 }

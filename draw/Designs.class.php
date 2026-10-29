@@ -264,7 +264,7 @@ class draw_Designs extends core_Master
         foreach ($sArr as $parsedLine) {
             list($cmd, $params, $l) = $parsedLine;
             
-            if (is_array($contex->_if) && countR($contex->_if)) {
+            if (is_array($contex->_if ?? null) && countR($contex->_if)) {
                 $lastIf = array_pop($contex->_if);
                 $contex->_if[] = $lastIf;
                 
@@ -320,7 +320,7 @@ class draw_Designs extends core_Master
                 $c = '';
             }
             
-            $res[$i] .= $c;
+            $res[$i] = ($res[$i] ?? '') . $c;
         }
         
         foreach ($res as $i => &$expr) {
@@ -387,7 +387,7 @@ class draw_Designs extends core_Master
     
     public static function cmd_Else($params, &$svg, &$contex, &$error)
     {
-        if (!is_array($contex->_if) || !countR($contex->_if)) {
+        if (!is_array($contex->_if ?? null) || !countR($contex->_if)) {
             $error = 'Грешка при ELSE';
             
             return false;
@@ -399,7 +399,7 @@ class draw_Designs extends core_Master
     
     public static function cmd_EndIf($params, &$svg, &$contex, &$error)
     {
-        if (!is_array($contex->_if) || !countR($contex->_if)) {
+        if (!is_array($contex->_if ?? null) || !countR($contex->_if)) {
             $error = 'Грешка при затваряне на IF';
             
             return false;
