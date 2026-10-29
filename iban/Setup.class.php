@@ -7,14 +7,14 @@ defIfNot('IBAN_CODE_VERSION', '2.6.5');
 /**
  * Клас 'iban_Setup'
  *
- * Исталиране/деинсталиране на Apachetika
+ * Настройки на библиотеката за IBAN
  *
  *
  * @category  bgerp
  * @package   iban
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,6 +45,6 @@ class iban_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'IBAN_CODE_VERSION' => array('enum(1.1.2, 1.4.7, 2.5.6, 2.6.5, 2.7.1,4.0.0,4.2.3)', 'caption=Версия на IBAN модула->Версия'),
+        'IBAN_CODE_VERSION' => array('enum(1.1.2, 1.4.7, 2.5.6, 2.6.5, 2.7.1,4.0.0,4.2.3,5.0.0)', 'caption=Версия на IBAN модула->Версия'),
     );
 }
