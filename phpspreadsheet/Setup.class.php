@@ -32,11 +32,42 @@ class phpspreadsheet_Setup extends core_ProtoSetup
 
 
     /**
-     * Проверени версии за PHP 7.4 и PHP 8.2.
+     * Старият клон остава наличен за PHP 7.4.
      */
     public $configDescription = array(
-        'PHPSPREADSHEET_VERSION' => array('enum(1.30.5,1.30.7)', 'mandatory, caption=PhpSpreadsheet->Версия'),
+        'PHPSPREADSHEET_VERSION' => array('enum(1.30.5,1.30.7,5.10.0=5.10.0 (PHP 8.2+))', 'mandatory, caption=PhpSpreadsheet->Версия'),
     );
+
+
+    /** Проверява средата преди зареждане или инсталиране на PHP 8 библиотеката. */
+    public static function getPhpVersionError($version)
+    {
+        if ($version === '5.10.0' && PHP_VERSION_ID < 80200) {
+            return 'PhpSpreadsheet 5.10.0 изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 1.30.7.';
+        }
+    }
+
+
+    /** Връща стандартна грешка към полето, преди core_Packs да запише избора. */
+    public function inputConfigDescriptionForm(&$form)
+    {
+        if ($form->isSubmitted() && ($error = self::getPhpVersionError($form->rec->PHPSPREADSHEET_VERSION ?? null))) {
+            $form->setError('PHPSPREADSHEET_VERSION', $error);
+        }
+    }
+
+
+    /** Показва неподходящ PHP или липсваща нова библиотека в core_Packs. */
+    public function checkConfig()
+    {
+        if ($error = self::getPhpVersionError(self::get('VERSION'))) {
+            return $error;
+        }
+        if (self::get('VERSION') === '5.10.0'
+            && !core_Composer::isInstalled('phpoffice/phpspreadsheet', self::get('VERSION'), true)) {
+            return 'Липсва избраната версия на PhpSpreadsheet. Инициализирайте пакета phpspreadsheet.';
+        }
+    }
 
 
     /**
@@ -44,6 +75,9 @@ class phpspreadsheet_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        if ($error = self::getPhpVersionError(self::get('VERSION'))) {
+            return "<li class='red'>" . $error . '</li>';
+        }
         $html = parent::install();
 
         // Точното съвпадение позволява и връщане към по-старата версия.
