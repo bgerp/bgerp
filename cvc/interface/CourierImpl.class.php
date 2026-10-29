@@ -885,10 +885,67 @@ class cvc_interface_CourierImpl extends core_Manager
         $query->where(array("#containerId = [#1#]", $containerId));
         $query->orderBy('id', 'DESC');
         while($wbRec = $query->fetch()){
-            $res[] = (object)array('number' => $wbRec->number, 'date' => $wbRec->pickupDate, 'file' => $wbRec->file, 'state' => $wbRec->state);
+            $res[] = (object)array('number' => $wbRec->number, 'date' => $wbRec->pickupDate, 'file' => $wbRec->file, 'state' => $wbRec->state, 'stateVerbal' => cvc_WayBills::getVerbal($wbRec, 'state'));
         }
 
         return $res;
+    }
+
+
+    /**
+     * Последните издадени товарителници, от последната към първата
+     *
+     * @param int      $limit
+     * @param int|null $folderId - само към документи от тази папка
+     * @return array $res - обекти с containerId, number, createdOn, file, state и stateVerbal
+     */
+    public function getLastWayBills($limit, $folderId = null)
+    {
+        $res = array();
+        $query = cvc_WayBills::getQuery();
+        $query->where("#containerId IS NOT NULL");
+        if(isset($folderId)){
+            $query->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+            $query->where(array("#folderId = [#1#]", $folderId));
+        }
+        $query->orderBy('id', 'DESC');
+        $query->limit($limit);
+        while($bolRec = $query->fetch()){
+            $res[] = (object)array('containerId' => $bolRec->containerId, 'number' => $bolRec->number, 'createdOn' => $bolRec->createdOn, 'file' => $bolRec->file, 'state' => $bolRec->state, 'stateVerbal' => cvc_WayBills::getVerbal($bolRec, 'state'));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Данните, с които е издадена товарителницата, с имената на хъбовете и офиса
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @return array|false $data  - false ако няма такава товарителница
+     */
+    public function getWayBillData($containerId, $number)
+    {
+        $rec = cvc_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        if(empty($rec)) return false;
+
+        $data = is_array($rec->data) ? $rec->data : array();
+        foreach (array('sender', 'rec') as $side){
+            if(!is_object($data[$side] ?? null)) continue;
+
+            foreach (array('hub_id' => 'cvc_Hubs', 'office_id' => 'cvc_Offices') as $fld => $class){
+                $num = $data[$side]->{$fld} ?? null;
+                if(isset($num)){
+                    $name = $class::fetchField(array("#num = [#1#]", $num), 'name');
+                    if($name){
+                        $data[$side]->{str_replace('_id', '', $fld)} = $name;
+                    }
+                }
+            }
+        }
+
+        return $data;
     }
 
 

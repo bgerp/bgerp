@@ -417,7 +417,7 @@ class draw_Designs extends core_Master
     {
         $contexNew = new stdClass();
         $scriptName = $params[0];
-        unset($p[0]);
+        unset($params[0]);
         
         foreach ($params as $p) {
             if (stripos($p, '=')) {

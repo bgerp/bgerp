@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -160,7 +160,7 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * Издадените товарителници към документа, от последната към първата
      *
      * @param int $containerId
-     * @return array|null $res - обекти с number, date, file и state; null ако драйверът не поддържа проверката
+     * @return array|null $res - обекти с number, date, file, state и stateVerbal (състоянието при куриера с думи); null ако драйверът не поддържа проверката
      */
     public function getWayBills($containerId)
     {
@@ -168,6 +168,36 @@ class cond_CourierApiIntf extends embed_DriverIntf
         if(!cls::existsMethod($this->class, 'getWayBills')) return null;
 
         return $this->class->getWayBills($containerId);
+    }
+
+
+    /**
+     * Последните издадени товарителници при куриера, от последната към първата
+     *
+     * @param int      $limit
+     * @param int|null $folderId - само към документи от тази папка
+     * @return array|null $res - обекти с containerId, number, createdOn, file, state и stateVerbal; null ако драйверът не поддържа списъка
+     */
+    public function getLastWayBills($limit, $folderId = null)
+    {
+        if(!cls::existsMethod($this->class, 'getLastWayBills')) return null;
+
+        return $this->class->getLastWayBills($limit, $folderId);
+    }
+
+
+    /**
+     * Данните, с които е издадена товарителницата, с имената на офисите и хъбовете
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @return array|false|null $res - данните; false ако няма такава товарителница; null ако драйверът не поддържа четенето
+     */
+    public function getWayBillData($containerId, $number)
+    {
+        if(!cls::existsMethod($this->class, 'getWayBillData')) return null;
+
+        return $this->class->getWayBillData($containerId, $number);
     }
 
 
