@@ -2,13 +2,13 @@
 
 
 /**
- *
+ * maxCount е в стратегията за 0.2.4 и в options за 1.8.5.
  *
  * @category  vendors
  * @package   rtac
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,9 +31,12 @@ class rtac_yuku_Textcomplete extends core_Manager
     public static function loadPacks(&$tpl)
     {
         $conf = core_Packs::getConfig('rtac');
-        $tpl->push('rtac/yuku/' . $conf->RTAC_YUKU_VERSION . '/jquery.textcomplete.js', 'JS');
+        $tpl->push('rtac/yuku/' . ($conf->RTAC_YUKU_VERSION ?? RTAC_YUKU_VERSION) . '/jquery.textcomplete.js', 'JS');
         
         $tpl->push('rtac/yuku/autocomplete.css', 'CSS');
+
+        // Изборът променя стойността програмно, без native input събитие.
+        jquery_Jquery::run($tpl, "$(document).off('textComplete:select.rtac', '.autosize').on('textComplete:select.rtac', '.autosize', function () { $(this).trigger('autosize.resize'); });");
     }
     
     
@@ -66,7 +69,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                     template: function(userObj) {
                     	return userObj.nick + ' ' + '<span class=\'autocomplete-name\'>' + userObj.names + '</span>';
     				}
-                }]
+                }], {maxCount: {$maxCount}}
             );
         ", true);
     }
@@ -86,8 +89,9 @@ class rtac_yuku_Textcomplete extends core_Manager
         jquery_Jquery::run($tpl, "
         	$('#{$textId}').textcomplete([
                 {
-                    match: /([^\s]*)$/,
-                    index: 1,
+                    // При разрешено споменаване оставяме @nick на стратегията за потребители.
+                    match: rtacObj.shareUsersURL && rtacObj.shareUsersURL.{$textId} ? /(^|\s)([^\s@]+)$/ : /()([^\s]*)$/,
+                    index: 2,
                     search: function (term, callback) {
                     	
                         callback($.map(rtacObj.textCompleteObj.{$textId}, function (element) {
@@ -130,7 +134,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                             var text = textComplete.val;
                         }
                         
-                        return text + rtacObj.textCompleteStrEnd.{$textId};
+                        return '$1' + text + rtacObj.textCompleteStrEnd.{$textId};
                     },
                     maxCount: {$maxCount},
                     template: function(textComplete) {
@@ -142,7 +146,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                         
                     	return text;
     				}
-                }]
+                }], {maxCount: {$maxCount}}
             );
         ", true);
     }

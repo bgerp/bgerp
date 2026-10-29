@@ -236,7 +236,7 @@ class draw_Designs extends core_Master
                 continue;
             }
             
-            list($cmd, $params) = explode('(', $l, 2);
+            list($cmd, $params) = explode('(', $l, 2) + array('', '');
             
             $params = trim($params, '; ');
             
@@ -306,7 +306,9 @@ class draw_Designs extends core_Master
     {
         $i = 0;
         $level = 0;
-        $res = array();
+        
+        // В PHP 8.2 str_split('') връща празен масив, а команда без аргументи трябва да има един празен параметър
+        $res = array(0 => '');
         foreach (str_split($params) as $c) {
             if ($c == '(') {
                 $level++;
@@ -496,7 +498,7 @@ class draw_Designs extends core_Master
         $val = $d->fromVerbal(Request::get($varId));
         
         if ($val === null || $val === false) {
-            $val = (float) $params[1];
+            $val = (float) ($params[1] ?? 0);
         }
         
         if (!isset($contex->{$varId})) {
@@ -1240,7 +1242,7 @@ class draw_Designs extends core_Master
                     
                     return false;
                 }
-                $caption = $params[2] ? $params[2] : $params[0];
+                $caption = !empty($params[2]) ? $params[2] : $params[0];
                 $varId = ltrim($params[0], '$');
                 
                 // Проверка за валидно име
@@ -1251,7 +1253,7 @@ class draw_Designs extends core_Master
                 }
                 
                 // Проверка за дублиране
-                if ($form->fields[$varId]) {
+                if (!empty($form->fields[$varId])) {
                     $error = "Повторение на входен параметър: \${$varId}";
                     
                     return false;
