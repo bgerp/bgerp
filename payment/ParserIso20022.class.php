@@ -390,7 +390,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 if (($net !== null && (count($net) != 1 || count($net->Amt ?? array()) != 1 || count($net->CdtDbtInd ?? array()) != 1))
                     || (isset($total->TtlNetNtryAmt) && (count($total->TtlNetNtryAmt) != 1 || count($total->CdtDbtInd ?? array()) != 1))
                     || $netAmount === null || !isset($counts[$direction])
-                    || $netAmount * ($direction === 'DBIT' ? -1 : 1) !== $sums['CRDT'] - $sums['DBIT']) {
+                    || !self::isStatedNet($netAmount * ($direction === 'DBIT' ? -1 : 1), $sums)) {
                     $errors[] = 'нетната контролна сума не съвпада с кредитните минус дебитните операции';
                 }
             }
@@ -427,6 +427,22 @@ class payment_ParserIso20022 extends core_BaseClass
         }
 
         return !$errors;
+    }
+
+
+    /**
+     * Нетната сума е точната разлика или нейното отрязване от float сметка на банката:
+     * Unicredit подава 2888.33 - 330.82 = 2557.5099… като 2557.50.
+     */
+    private static function isStatedNet($net, $sums)
+    {
+        $exact = $sums['CRDT'] - $sums['DBIT'];
+        if ($net === $exact) {
+            return true;
+        }
+        $float = $sums['CRDT'] / 100 - $sums['DBIT'] / 100;
+
+        return $exact !== 0 && $net === $exact - ($exact > 0 ? 1 : -1) && abs($float) < abs($exact / 100);
     }
 
 

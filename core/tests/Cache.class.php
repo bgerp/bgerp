@@ -2,7 +2,7 @@
 
 
 /**
- * Проверки на кеша в текущото PHP изпълнение, без достъп до база данни
+ * Проверки на кеша в текущото PHP изпълнение, без достъп до база данни; test_CliKeepsValueInDatabase - с таблицата на кеша
  *
  * @category ef
  * @package core
@@ -192,6 +192,41 @@ class core_tests_Cache extends unit_Class
             } else {
                 unset(cls::$singletons['core_Cache']);
             }
+        }
+    }
+
+
+    /**
+     * CLI процесът има своя памет, която изчезва с него: стойността остава и в таблицата за следващия процес
+     */
+    public static function test_CliKeepsValueInDatabase()
+    {
+        if (PHP_SAPI !== 'cli') return;
+
+        $Cache = cls::get('core_Cache');
+        $type = 'utCliCache';
+        $handler = uniqid('', true);
+        $keyType = $type;
+        $keyHandler = $handler;
+        $key = $Cache->getKey($keyType, $keyHandler);
+        try {
+            core_Cache::set($type, $handler, array('value' => 7), 10);
+            // Само паметта на процеса - като в следващ CLI процес
+            $Cache->deleteData($key, true);
+            ut::expectEqual(core_Cache::get($type, $handler), array('value' => 7));
+
+            // Четенето от таблицата удължава срока чак след половината от него
+            $lifetime = $Cache->fetchField(array("#key = '[#1#]'", $key), 'lifetime', false);
+            $Cache->getData($key, 10);
+            ut::expectEqual($Cache->fetchField(array("#key = '[#1#]'", $key), 'lifetime', false), $lifetime);
+            $rec = $Cache->fetch(array("#key = '[#1#]'", $key), 'id,lifetime', false);
+            $rec->lifetime = time() + 60;
+            $Cache->save($rec, 'lifetime');
+            $Cache->deleteData($key, true);
+            $Cache->getData($key, 10);
+            ut::expectEqual($Cache->fetchField(array("#key = '[#1#]'", $key), 'lifetime', false) >= time() + 590, true);
+        } finally {
+            core_Cache::remove($type, $handler);
         }
     }
 

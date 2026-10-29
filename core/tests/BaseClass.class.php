@@ -31,6 +31,26 @@ class core_tests_BaseClass extends unit_Class
         ));
         ut::expectEqual($value, 111);
     }
+
+
+    /**
+     * id-то на класа идва от заредения списък, без заявка; без запис там - от таблицата
+     */
+    public static function test_ClassIdFromLoadedList()
+    {
+        $name = 'core_tests_BaseClassChildListener';
+        core_Classes::getId('core_Classes', true);
+        $classes = core_Classes::$classes;
+        try {
+            core_Classes::$classes[$name] = 987654321;
+            ut::expectEqual(core_tests_BaseClassChildListener::getClassId(), 987654321);
+            unset(core_Classes::$classes[$name]);
+            ut::expectEqual(core_tests_BaseClassChildListener::getClassId(), core_Classes::fetchField(array("#name = '[#1#]'", $name), 'id'));
+            ut::expectEqual(core_Classes::getClassId(), core_Classes::fetchField(array("#name = '[#1#]'", 'core_Classes'), 'id'));
+        } finally {
+            core_Classes::$classes = $classes;
+        }
+    }
 }
 
 

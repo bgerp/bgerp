@@ -396,7 +396,8 @@ class core_Cache extends core_Manager
         }
         
         if ($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), null, false)) {
-            if ($keepMinutes) {
+            // Удължава се, след като е минала половината от срока - иначе всяко четене от базата е и запис
+            if ($keepMinutes && $rec->lifetime < time() + $keepMinutes * 30) {
                 $rec->lifetime = time() + $keepMinutes * 60;
                 $this->save($rec, 'lifetime');
             }
@@ -480,7 +481,8 @@ class core_Cache extends core_Manager
         $sepPos = strrpos($key, '|');
         $rec->type = ($sepPos !== false) ? substr($key, $sepPos + 1) : '';
 
-        if (!$saved) {
+        // CLI процесът има своя памет, която изчезва с него: данните остават и в базата за следващия процес
+        if (!$saved || PHP_SAPI === 'cli') {
 
             // Сериализирането и компресирането ги прави типът на полето
             $rec->data = $data;

@@ -113,3 +113,21 @@ $bothNet = str_replace('</TtlNtries>', '<TtlNetNtry><Amt>123.45</Amt><CdtDbtInd>
 check(payment_ParserIso20022::getRecs(totalsFixture($xml, $bothNet))->errors, 'conflicting net representations rejected');
 $repeatedNet = str_replace('<TtlNetNtryAmt>123.45</TtlNetNtryAmt>', '<TtlNetNtryAmt>123.45</TtlNetNtryAmt><TtlNetNtryAmt>1</TtlNetNtryAmt>', $summary);
 check(payment_ParserIso20022::getRecs(totalsFixture($xml, $repeatedNet))->errors, 'repeated net amount rejected');
+check(payment_ParserIso20022::getRecs(totalsFixture($xml, str_replace('<TtlNetNtryAmt>123.45', '<TtlNetNtryAmt>123.44', $summary)))->errors, 'net one cent lower rejected without float truncation');
+
+// Unicredit отрязва float разликата: 2888.33 - 330.82 = 2557.5099… става 2557.50.
+preg_match('~<Ntry>.*?</Ntry>~', $xml, $entry);
+$credit = str_replace('123.45', '2888.33', $entry[0]);
+$debit = str_replace(array('123.45', 'CRDT'), array('330.82', 'DBIT'), $entry[0]);
+$truncatedSummary = '<TxsSummry><TtlNtries><NbOfNtries>2</NbOfNtries><Sum>3219.15</Sum><TtlNetNtryAmt>2557.50</TtlNetNtryAmt><CdtDbtInd>CRDT</CdtDbtInd></TtlNtries><TtlCdtNtries><NbOfNtries>1</NbOfNtries><Sum>2888.33</Sum></TtlCdtNtries><TtlDbtNtries><NbOfNtries>1</NbOfNtries><Sum>330.82</Sum></TtlDbtNtries></TxsSummry>';
+$creditFirst = totalsFixture(str_replace($entry[0], $credit . $debit, $xml), $truncatedSummary);
+$result = payment_ParserIso20022::getRecs($creditFirst);
+check(count($result->recs) === 2 && !$result->errors && !$result->warnings, 'bank net truncated from float difference accepted');
+check(!payment_ParserIso20022::getRecs(str_replace('2557.50', '2557.51', $creditFirst))->errors, 'exact net still accepted');
+foreach (array('2557.49', '2557.52') as $wrongNet) {
+    check(payment_ParserIso20022::getRecs(str_replace('2557.50', $wrongNet, $creditFirst))->errors, 'other net mismatch rejected ' . $wrongNet);
+}
+$debitSummary = strtr($truncatedSummary, array('<CdtDbtInd>CRDT' => '<CdtDbtInd>DBIT', '2888.33' => '330.82', '330.82' => '2888.33'));
+$debitEntries = strtr($credit . $debit, array('2888.33' => '330.82', '330.82' => '2888.33'));
+$result = payment_ParserIso20022::getRecs(totalsFixture(str_replace($entry[0], $debitEntries, $xml), $debitSummary));
+check(count($result->recs) === 2 && !$result->errors, 'truncated debit net accepted');
