@@ -207,3 +207,50 @@
     width: var(--two-cols-filter-single-width);
     max-width: 100%;
 }
+
+/* Свободната широчина от резултатите се разпределя поравно между колоните. */
+
+.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
+    grid-template-columns: calc(var(--two-cols-filter-left-width) + (100% - var(--two-cols-filter-width)) / 2) calc(var(--two-cols-filter-right-width) + (100% - var(--two-cols-filter-width)) / 2);
+}
+
+.wide .doc_Search .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow {
+    --two-cols-filter-field-width: 100%;
+}
+
+.wide .doc_Search .twoColsFilter.twoColsFilterReady:not(.twoColsFilterActive) .listFilter .vFormField {
+    width: 100%;
+}
+
+.wide .twoColsFilter .allowEmptyRadioHolder,
+.wide .twoColsFilter .notAllowEmptyRadioHolder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1em;
+    row-gap: 0.2em;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr,
+.wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody > tr > td,
+.wide .twoColsFilter .notAllowEmptyRadioHolder .keylist > tbody > tr > td {
+    display: contents;
+}
+.wide .twoColsFilter .allowEmptyRadioHolder br,
+.wide .twoColsFilter .notAllowEmptyRadioHolder br {
+    display: none;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    gap: 3px;
+}
+.wide .twoColsFilter .twoColsFilterRadioOption > input[type=radio] {
+    flex-shrink: 0;
+    margin: 0;
+}
