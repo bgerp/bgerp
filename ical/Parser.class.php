@@ -2,11 +2,11 @@
 
 
 /**
- * Клас  'ical_Parser' - Тип за време
+ * Преглед на събития от iCalendar
  *
  *
  * @category  ef
- * @package   type
+ * @package   ical
  *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -22,50 +22,67 @@ class ical_Parser extends core_Mvc
      */
     public static function getEvents($ics, $dtFormat = 'smartTime')
     {
-        require_once(__DIR__ . '/parser/ICal.php');
-        require_once(__DIR__ . '/parser/EventObject.php');
+        $modern = ical_Setup::get('VERSION') === '3.6.0';
+        $path = $modern ? '/3.6.0/src/ICal/' : '/parser/';
+        require_once(__DIR__ . $path . 'ICal.php');
+        require_once(__DIR__ . $path . ($modern ? 'Event.php' : 'EventObject.php'));
         
         $ical = new ICal\ICal();
         
-        $ical->initString($ics);
+        $ical->initString($ics ?? '');
         
         $events = $ical->events();
 
 
         foreach ($events as $id => $e) {
-            if ($e->dtstart) {
+            if ($modern) {
+                // Вербалните полета са на bgERP, а не динамични свойства на библиотеката.
+                $e = (object) (get_object_vars($e) + $e->additionalProperties);
+                unset($e->additionalProperties);
+                $e->lastmodified = $e->last_modified ?? null;
+                foreach (array('dtstart', 'dtend') as $field) {
+                    $timestamp = $e->{$field . '_array'}[2] ?? null;
+                    // Целодневните дати нямат часова зона.
+                    if ($timestamp !== null && strlen($e->{$field} ?? '') !== 8) {
+                        $e->{$field} = date('Y-m-d H:i:s', $timestamp);
+                    }
+                }
+                $events[$id] = $e;
+            }
+
+            if (!empty($e->dtstart)) {
                 $e->dtstart = dt::timestamp2mysql(strtotime($e->dtstart));
                 $e->dtstartVrb = dt::mysql2verbal($e->dtstart, $dtFormat);
             }
             
-            if ($e->dtend) {
+            if (!empty($e->dtend)) {
                 $e->dtend = dt::timestamp2mysql(strtotime($e->dtend));
                 $e->dtendVrb = dt::mysql2verbal($e->dtend, $dtFormat);
             }
             
-            if ($e->dtstamp) {
+            if (!empty($e->dtstamp)) {
                 $e->dtstamp = dt::timestamp2mysql(strtotime($e->dtstamp));
                 $e->dtstampVrb = dt::mysql2verbal($e->dtstamp, $dtFormat);
             }
             
-            if ($e->created) {
+            if (!empty($e->created)) {
                 $e->created = dt::timestamp2mysql(strtotime($e->created));
                 $e->createdVrb = dt::mysql2verbal($e->created, $dtFormat);
             }
             
-            if ($e->lastmodified) {
+            if (!empty($e->lastmodified)) {
                 $e->lastmodified = dt::timestamp2mysql(strtotime($e->lastmodified));
                 $e->lastmodifiedVrb = dt::mysql2verbal($e->lastmodified, $dtFormat);
             }
             
-            if ($e->duration) {
+            if (!empty($e->duration)) {
                 $d = new \DateInterval($e->duration);
                 $t = '';
                 if ($d->y) {
                     $t .= $d->y . ' years ';
                 }
                 if ($d->m) {
-                    $t .= $d->m . ' monts ';
+                    $t .= $d->m . ' months ';
                 }
                 if ($d->d) {
                     $t .= $d->d . ' days ';
@@ -79,7 +96,7 @@ class ical_Parser extends core_Mvc
                 }
                 
                 if ($d->s) {
-                    $t .= $d->i . ' secs ';
+                    $t .= $d->s . ' seconds ';
                 }
                 
                 $tt = cls::get('type_Time');
@@ -89,22 +106,22 @@ class ical_Parser extends core_Mvc
                 $e->durationVrb = $tt->toVerbal_($e->duration);
             }
             
-            if (!$e->summary) {
+            if (empty($e->summary)) {
                 $e->summary = tr('Събитие') . ' ' . ($id + 1);
             }
             $e->summary = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->summary);
             $e->summaryVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->summary));
             
-            $e->location = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->location);
+            $e->location = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->location ?? '');
             $e->locationVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->location));
             
-            $e->description = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->description);
+            $e->description = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->description ?? '');
             $e->descriptionVrb = str_replace("\\n", "<br>", type_Varchar::escape($e->description));
             
             $Richtext = cls::get('type_Richtext');
             $e->descriptionVrb = preg_replace_callback(type_Richtext::URL_PATTERN, array($Richtext, '_catchUrls'), $e->descriptionVrb);
 
-            if (is_array($Richtext->_htmlBoard)) {
+            if (is_array($Richtext->_htmlBoard ?? null)) {
                 // Подготовка и заместване на плейсхолдерите
                 foreach ($Richtext->_htmlBoard as $place => $text) {
                     $Richtext->_htmlBoard[$place] = new ET($text);
@@ -117,13 +134,13 @@ class ical_Parser extends core_Mvc
             }
 
             
-            $e->organizer = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->organizer);
-            $e->organizerVrb = self::getPersons($e->organizer_array);
+            $e->organizer = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->organizer ?? '');
+            $e->organizerVrb = self::getPersons($e->organizer_array ?? null);
             
-            $e->attendee = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->attendee);
-            $e->attendeeVrb = self::getPersons($e->attendee_array);
+            $e->attendee = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->attendee ?? '');
+            $e->attendeeVrb = self::getPersons($e->attendee_array ?? null);
             
-            switch ($e->status) {
+            switch ($e->status ?? null) {
                 case 'TENTATIVE':
                     $e->statusVrb = tr('ПРЕДВАРИТЕЛНО||' . $e->status);
                     break;
@@ -154,8 +171,8 @@ class ical_Parser extends core_Mvc
                 $e->statusVrb = str::mbUcfirst(mb_strtolower($e->statusVrb));
             }
             
-            if ($e->transp == 'TRANSPARENT') {
-                $e->statusVrb .= ($e->statusVrb ? ', ' : '') . tr('Не ангажира време');
+            if (($e->transp ?? null) == 'TRANSPARENT') {
+                $e->statusVrb = ($e->statusVrb ?? '') . (!empty($e->statusVrb) ? ', ' : '') . tr('Не ангажира време');
             }
         }
         
@@ -174,7 +191,7 @@ class ical_Parser extends core_Mvc
             $tE = cls::get('type_Email');
             foreach ($p as $el) {
                 if (is_array($el) && !empty($el['CN'])) {
-                    $res .= ($res ? "\n<br>" : '') . $el['CN'];
+                    $res .= ($res ? "\n<br>" : '') . type_Varchar::escape($el['CN']);
                 } elseif (is_string($el) && stripos($el, 'mailto:') !== false) {
                     $eml = type_Email::extractEmails($el);
                     if (is_array($eml)) {

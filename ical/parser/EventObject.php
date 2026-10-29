@@ -6,7 +6,8 @@
 
 namespace ICal;
 
-class EventObject
+// stdClass запазва произволните ICS полета и под PHP 8.2.
+class EventObject extends \stdClass
 {
     public $summary;
     public $dtstart;
