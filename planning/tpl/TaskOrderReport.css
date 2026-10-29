@@ -224,6 +224,8 @@
 #optimizationIdleReport.targetTimeReport { width: 780px; }
 .targetTimeProposal { padding: 10px 12px; }
 .targetTimeConflict { color: #a83220; white-space: pre-line; margin: 6px 0; }
+.targetTimeConflictSteps { color: #333333; white-space: normal; padding-left: 22px; margin: 8px 0 12px; line-height: 1.4; }
+.targetTimeConflictSteps li { margin: 5px 0; }
 .targetTimeChoice { margin: 8px 0; padding: 8px; border: 1px solid #cccccc; }
 .targetTimeChoice.isSelected { border: 2px solid #386f54; background: #f0f8f2; }
 .targetTimeChoice button { white-space: normal; text-align: left; padding: 6px; cursor: pointer; margin-bottom: 5px; }
@@ -242,7 +244,11 @@
 .targetTimeOtherMachine > summary, .targetTimeGlobalDetails > summary { list-style: none; }
 .targetTimeOtherMachine > summary::before, .targetTimeGlobalDetails > summary::before { content: '▸'; display: inline-block; width: 16px; }
 .targetTimeOtherMachine[open] > summary::before, .targetTimeGlobalDetails[open] > summary::before { content: '▾'; }
-.targetTimeIdleImpact { display: flex; gap: 8px 16px; flex-wrap: wrap; margin: 8px 0; }
+.targetTimeIdleImpact { margin: 12px 0; }
+.targetTimeIdleTotals { display: flex; gap: 5px 16px; flex-wrap: wrap; margin: 5px 0; }
+.targetTimeIdleImpact small, .targetTimeImpactWarnings small { display: block; margin: 5px 0; color: #555555; font-weight: 400; }
+.targetTimeDeadlineTitle { display: block; margin-top: 12px; }
+.targetTimePlanEnd { margin: 6px 0 12px; }
 .targetTimeOtherMachine > .targetTimeComparisonHolder { padding: 8px; }
 #optimizationIdleReport .targetTimeGap td { background: #f7f7f7; }
 #optimizationIdleReport .targetTimePackageGap td { box-shadow: inset 4px 0 #2474b5; }

@@ -1641,6 +1641,7 @@ class planning_TaskConstraints extends core_Master
 
         foreach ($reservedRuns as $run) {
             $reason = null;
+            $dependency = null;
             foreach ($run['chain'] as $id) {
                 $task = $allTasks[$id];
                 $blockingPrevious = array();
@@ -1652,21 +1653,7 @@ class planning_TaskConstraints extends core_Master
                         ? "Ръчната подредба изисква начало след предходната фиксирана операция/пакет: {$manualReady}"
                         : "Предходна операция/технологична зависимост не позволява начало преди {$ready}";
                     if ($manualReady <= $start && $blockingPrevious) {
-                        $details = array();
-                        foreach ($blockingPrevious as $previousId => $limit) {
-                            $detail = "Opr{$previousId}";
-                            if (!empty($limit['end'])) $detail .= ' (планиран край: ' . dt::mysql2verbal($limit['end'], 'd.m.Y H:i');
-                            else $detail .= ' (няма изчислен край';
-                            $waiting = max(0, (int)($limit['waitingTime'] ?? 0));
-                            if (($limit['intersect'] ?? 'yes') == 'no' && !empty($limit['end']) && $ready < self::NOT_FOUND_DATE) {
-                                $release = dt::addSecs(-$waiting, $ready);
-                                if ($release != $limit['end']) $detail .= '; освобождаване на заетия интервал: ' . dt::mysql2verbal($release, 'd.m.Y H:i');
-                            }
-                            if ($waiting) $detail .= '; изчакване: ' . ($waiting % 60 ? "{$waiting} сек." : ($waiting / 60) . ' мин.');
-                            $details[] = $detail . (($limit['intersect'] ?? 'yes') == 'no' ? '; без застъпване)' : '; с допустимо застъпване)');
-                        }
-                        $reason = "Технологично ограничение за Opr{$id}: " . implode('; ', $details)
-                            . '. Начало не е допустимо преди ' . dt::mysql2verbal($ready, 'd.m.Y H:i');
+                        $dependency = array('taskId' => $id, 'limits' => $blockingPrevious, 'ready' => $ready, 'requiredStart' => $start);
                     }
                     break;
                 }
@@ -1676,7 +1663,11 @@ class planning_TaskConstraints extends core_Master
                     break;
                 }
             }
-            if ($reason !== null) foreach ($run['pins'] as $id => $date) $targetConflicts[$id] = array('reason' => $reason, 'priority' => 1);
+            if ($reason !== null) foreach ($run['pins'] as $id => $date) {
+                $pinReason = $dependency ? planning_TargetTimes::describeDependencyConflict($id, $dependency['taskId'],
+                    $dependency['limits'], $dependency['ready'], $allTasks, $assets, $run['chain'], $dependency['requiredStart']) : $reason;
+                $targetConflicts[$id] = array('reason' => $pinReason, 'priority' => 1);
+            }
         }
 
         // What remains is part of, or depends on, a technological dependency cycle.
