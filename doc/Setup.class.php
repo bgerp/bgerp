@@ -105,6 +105,12 @@ defIfNot('DOC_STOP_NOTIFY_NEW_DOC_TYPE', '');
 
 
 /**
+ * Видове документи, които могат да се печатат в състояние "Чернова"
+ */
+defIfNot('DOC_PRINT_DRAFT_DOC_TYPES', '');
+
+
+/**
  * Задължително показване на документи -> В края на нишката
  */
 defIfNot('DOC_SHOW_DOCUMENTS_END', 3);
@@ -234,7 +240,7 @@ defIfNot('DOC_SHOW_LIST_SUMMARY_VAT', 'no');
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -293,6 +299,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
+        'DOC_PRINT_DRAFT_DOC_TYPES' => array('keylist(mvc=core_Classes, select=title)', 'caption=Печат на документи в състояние "Чернова"->Документи, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_NOTIFY_FOR_CONTO' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
