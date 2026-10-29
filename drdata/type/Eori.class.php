@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Yusein Yuseinov
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,20 +63,21 @@ class drdata_type_Eori extends type_Varchar
             return;
         }
         
-        $Eori = cls::get('drdata_Eori');
-        
         $res = array();
         
         $res['value'] = $value = strtoupper(trim($value));
         
-        list($status, ) = $Eori->check($value, true);
-        
-        $status = $this->statuses[$status];
+        // Автоматичното обновяване и отварянето на форма не правят онлайн проверка.
+        if (empty($this->_isRefreshed) && ($_SERVER['REQUEST_METHOD'] ?? null) != 'GET') {
+            $Eori = cls::get('drdata_Eori');
+            list($status, ) = $Eori->check($value, true);
+            $status = $this->statuses[$status];
 
-        if ($status[1] == 'red') {
-            $res['warning'] = $status[0];
-            
-            return $res;
+            if ($status[1] == 'red') {
+                $res['warning'] = $status[0];
+
+                return $res;
+            }
         }
         
         $res = parent::isValid($value);

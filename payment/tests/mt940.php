@@ -24,6 +24,18 @@ check($read->recs[0]->contragentIban === 'BG00TEST11111111111111' && $read->recs
 check(strpos($read->recs[0]->reason, 'Фактура 0000123456') !== false && strpos($read->recs[0]->reason, 'CLIENT1') !== false, 'MT940 retains full details and customer reference');
 check($read->recs[0]->bankReference === 'MT940:EUR:N:BANKREF1' && $read->recordSources[1]['entry'] === 2, 'MT940 supplies scoped bank reference and source position');
 check(payment_ParserMt940::getRecs(str_replace('?', '+', $mt))->recs[0]->contragentName === 'Test Client OOD', 'MT940 plus-separated details');
+foreach (array('TBB', 'TFC') as $code) {
+    $bulbank = str_replace(array('105?', '?'), array($code . '+', '+'), $mt);
+    $result = payment_ParserMt940::getRecs($bulbank);
+    check(!$result->errors && !$result->warnings && count($result->recs) === 2
+        && $result->recs[0]->contragentIban === 'BG00TEST11111111111111'
+        && $result->recs[0]->contragentName === 'Test Client OOD', 'MT940 Bulbank counterparty for ' . $code);
+    check($result->recs[0]->amount === $read->recs[0]->amount && $result->recs[0]->valior === $read->recs[0]->valior
+        && $result->recs[0]->bankReference === $read->recs[0]->bankReference
+        && strpos($result->recs[0]->reason, $code . '+00Transfer') === 0, 'MT940 Bulbank preserves amounts, references and narrative for ' . $code);
+}
+$unknownCode = payment_ParserMt940::getRecs(str_replace('105?', 'ABC?', $mt));
+check($unknownCode->recs[0]->contragentIban === '' && $unknownCode->recs[0]->contragentName === '', 'MT940 unknown alphabetic code remains unstructured');
 check(payment_ParserMt940::getRecs(str_replace(':25:BG', ':25:TESTBGSF/BG', $mt))->recs[0]->ownAccountId === 2, 'MT940 BIC and IBAN account field');
 check(count(payment_ParserMt940::getRecs("\xEF\xBB\xBF" . str_replace("\n", "\r\n", $mt))->recs) === 2, 'MT940 BOM and CRLF');
 check(count(payment_ParserMt940::getRecs(str_replace("\n", "\r", $mt))->recs) === 2, 'MT940 CR line endings');
@@ -101,6 +113,9 @@ foreach (array($mtFile, fixture('statement.sta', $mt), fixture('statement.txt', 
 }
 $mtZip = archiveFixture('mt940-mixed.zip', array('statement.sta' => $mt, 'camt.xml' => $xml));
 check(count(payment_ImportFiles::getRecs($mtZip)->recs) === 3, 'MT940 shares ZIP reader with CAMT');
+$bulbankZip = archiveFixture('bulbank-locked.zip', array('statement.sta' => $bulbank), 'bulbank-test');
+$bulbankResult = payment_ImportFiles::getRecs($bulbankZip, 'bulbank-test');
+check($bulbankResult->status === 'success' && $bulbankResult->recs[0]->contragentIban === 'BG00TEST11111111111111', 'MT940 Bulbank counterparty survives encrypted ZIP');
 $mtLocked = archiveFixture('mt940-locked.zip', array('private.sta' => $mt), 'synth-pass');
 check(count(payment_ImportFiles::getRecs($mtLocked, 'synth-pass')->recs) === 2, 'MT940 encrypted ZIP uses existing password support');
 $view = previewForm(fixture('mt940-unsafe.txt', $free));
@@ -113,6 +128,9 @@ check($parser->process(new attachment_TestMime(array($mtFile)), (object) array()
 $mtRule = (object) array('includeMt940' => 'yes', 'notifyUserId' => 77);
 check($parser->process(new attachment_TestMime(array($mtFile)), $mtRule) !== false && count(bank_Register::$imports) === $before + 2, 'email rule explicitly enables MT940');
 check(end(bank_Register::$imports)->sourceEmailHnd === 900, 'MT940 email retains original source');
+$before = count(bank_Register::$imports);
+check($parser->process(new attachment_TestMime(array($bulbankZip)), (object) array('includeMt940' => 'yes', 'archivePassword' => 'bulbank-test')) !== false
+    && count(bank_Register::$imports) === $before + 2 && bank_Register::$imports[$before]->contragentIban === 'BG00TEST11111111111111', 'MT940 Bulbank email import retains parsed counterparty');
 bgerp_Notifications::$items = array();
 $badMtFile = fixture('notify-bad.mt940', $badCases['closing mismatch']);
 $before = count(bank_Register::$imports);

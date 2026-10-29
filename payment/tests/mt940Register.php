@@ -55,4 +55,48 @@ bank_Accounts::$found = false;
 check(!payment_ParserMt940::getRecs($mt)->recs, 'MT940 unknown account rejected');
 bank_Accounts::$found = true;bank_OwnAccounts::$found = false;
 check(!payment_ParserMt940::getRecs($mt)->recs, 'MT940 counterparty account cannot be used as own account');
+bank_OwnAccounts::$found = true;
+$bulbank = str_replace(array('Invoice 001', 'Invoice 002'),
+    array('TBB+21Invoice 001+31BG00TEST11111111111111+32Test payer', 'TFC+21Invoice 002+31BG00TEST22222222222222+32Other payer'), $mt);
+foreach (array(true, false) as $hasReference) {
+    $text = $hasReference ? $bulbank : preg_replace('~//BANKREF[12]~', '', $bulbank);
+    bank_Register::$rows = array();
+    $old = payment_ParserMt940::getRecs($text)->recs;
+    foreach ($old as $rec) $rec->contragentIban = $rec->contragentName = '';
+    bank_Register::importRecs($old);
+    $before = serialize(bank_Register::$rows);
+    $parsed = payment_ParserMt940::getRecs($text);
+    bank_Register::importRecs($parsed->recs, null, $warnings);
+    check(serialize(bank_Register::$rows) === $before && ($warnings || $parsed->warnings),
+        'MT940 Bulbank reimport cannot duplicate old blank-IBAN rows ' . ($hasReference ? 'with reference' : 'without reference'));
+}
+$text = preg_replace('~//BANKREF[12]~', '', $bulbank);
+bank_Register::$rows = array();
+$fresh = payment_ParserMt940::getRecs($text);
+check(count($fresh->recs) === 2 && !$fresh->warnings && !$fresh->skippedEntries, 'MT940 Bulbank without references still imports new transfers');
+bank_Register::importRecs($fresh->recs);
+$before = serialize(bank_Register::$rows);
+$again = payment_ParserMt940::getRecs($text);
+bank_Register::importRecs($again->recs);
+check(count($again->recs) === 2 && !$again->warnings && serialize(bank_Register::$rows) === $before, 'MT940 Bulbank reimport after fix retains ordinal deduplication');
+$old = clone $fresh->recs[0];
+$old->contragentIban = $old->contragentName = '';
+foreach (array('ownAccountId' => 3, 'valior' => '2026-10-29', 'type' => 'outgoing', 'amount' => 20.25,
+    'serviceId' => 'Import ISO20022', 'contragentIban' => 'BG00OTHER0000000000001') as $field => $value) {
+    bank_Register::$rows = array();
+    $different = clone $old; $different->{$field} = $value;
+    bank_Register::importRecs(array($different));
+    check(count(payment_ParserMt940::getRecs($text)->recs) === 2, 'MT940 legacy check does not suppress different ' . $field);
+}
+foreach (array('', null) as $emptyIban) {
+    bank_Register::$rows = array();
+    $old->contragentIban = $emptyIban;
+    bank_Register::importRecs(array($old));
+    $partialText = str_replace(array(":61:261028C15,25NTRFNONREF\n:86:TFC", ':62F:C261028EUR30,50'),
+        array(":61:261028C20,25NTRFNONREF\n:86:TFC", ':62F:C261028EUR35,50'), $text);
+    $parsed = payment_ParserMt940::getRecs($partialText);
+    check(count($parsed->recs) === 1 && count($parsed->warnings) === 1 && $parsed->skippedEntries === 1
+        && $parsed->recordSources[0]['entry'] === 2 && $parsed->recs[0]->contragentIban === 'BG00TEST22222222222222',
+        'MT940 legacy check preserves independent operation and source position');
+}
 echo "MT940 register checks passed\n";

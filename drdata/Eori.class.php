@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -94,6 +94,12 @@ class drdata_Eori extends core_Manager
      * Списък с EORI номера, които трябва да се обновят на shutdown
      */
     public $updateOnShutdown = array();
+
+
+    /**
+     * Резултати от проверките, извършени в текущата заявка
+     */
+    protected $checkedEori = array();
     
     
     /**
@@ -190,16 +196,26 @@ class drdata_Eori extends core_Manager
     {
         $canonocalEori = $this->canonize($eori);
 
+        if (isset($this->checkedEori[$canonocalEori])) {
+            return $this->checkedEori[$canonocalEori];
+        }
+
         $rec = $this->fetch(array("#eori = '[#1#]'", $canonocalEori));
 
-        if (!$rec) {
-            // Ако нямаме кеширан запис за този EORI номер, създаваме нов и го записваме
-            $rec = new stdClass();
+        if (!$rec || $force) {
+            // Принудителната проверка трябва да върне актуалния резултат още в тази заявка.
+            $rec = $rec ?: new stdClass();
             list($rec->status, $rec->info) = $this->checkStatus($canonocalEori);
+            $this->checkedEori[$canonocalEori] = array($rec->status ?? self::statusUnknown, $rec->info ?? null);
             $rec->eori = $canonocalEori;
             $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
-            if (in_array($rec->status, array(self::statusValid, self::statusInvalid, self::statusUnknown))) {
-                $this->save($rec, NULL, 'IGNORE');
+            if (!empty($rec->id) || in_array($rec->status ?? null, array(self::statusValid, self::statusInvalid, self::statusUnknown))) {
+                $this->save($rec, null, empty($rec->id) ? 'IGNORE' : null);
+            }
+            foreach ($this->updateOnShutdown as $key => $queuedRec) {
+                if (($queuedRec->eori ?? null) == $canonocalEori) {
+                    unset($this->updateOnShutdown[$key]);
+                }
             }
         } else {
             // Проверяваме дали кеша не е изтекъл
@@ -211,7 +227,7 @@ class drdata_Eori extends core_Manager
             $this->save($rec, 'lastUsed');
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа
-            if ($force || ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown))) {
+            if (((($rec->lastChecked ?? '') <= $expDate) && (($rec->lastUsed ?? '') >= $lastUsedExp)) || (($rec->status ?? null) == self::statusUnknown && ($rec->lastChecked ?? '') < $expUnknown)) {
                 
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
                 if (countR($this->updateOnShutdown) < self::MAX_CNT_EORI_FOR_UPDATE) {
@@ -220,7 +236,7 @@ class drdata_Eori extends core_Manager
             }
         }
         
-        return array($rec->status, $rec->info);
+        return array($rec->status ?? self::statusUnknown, $rec->info ?? null);
     }
 
 
@@ -236,88 +252,77 @@ class drdata_Eori extends core_Manager
      */
     public function checkStatus($eori)
     {
-        $res = $info = null;
+        $res = self::statusUnknown;
+        $info = null;
         $rArr = array();
 
-        // Ако синтаксиса не отговаря на EORI, статуса сигнализира за това
         if (!$this->checkSyntax($eori)) {
-            $res = self::statusSyntax;
+            return array(self::statusSyntax, $info, $rArr);
         }
 
-        if (!$res) {
+        if (strtoupper(substr($eori, 0, 2)) == 'GB') {
             $curl = curl_init('https://api.service.hmrc.gov.uk/customs/eori/lookup/check-multiple-eori');
-
-            $params = new stdClass();
-            $params->eoris = array();
-            $params->eoris[] = $eori;
-
-            // Да не се проверява сертификата
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 4);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 10);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
-
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-
-            curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array('eoris' => array($eori))));
 
             core_Debug::startTimer('drdata_Eori_check');
-            $responseJson = @curl_exec($curl);
-            core_Debug::stopTimer('drdata_Eori_check');
-
-            if (!$responseJson) {
-                $res = self::statusInvalid;
-            } else {
-                $response = @json_decode($responseJson);
-
-                if (!$response) {
-                    $res = self::statusInvalid;
-                } else {
-                    if (is_array($response) && !empty($response[0]->valid)) {
-                        $res = self::statusValid;
-                        if (!empty($response[0]->companyDetails)) {
-                            $details = $response[0]->companyDetails;
-                            $rArr['name'] = $details->traderName ?? null;
-                            $rArr['street'] = $details->address->streetAndNumber ?? null;
-                            $rArr['postalCode'] = $details->address->postcode ?? null;
-                            $rArr['city'] = $details->address->cityName ?? null;
-
-                            $info = $rArr['postalCode'] . ', ' . $rArr['city'] . "\n" . $rArr['street'] . "\n" . $rArr['name'];
-                        }
-                    } else {
-                        $res = self::statusInvalid;
-                    }
-                }
+            try {
+                $responseJson = @curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            } finally {
+                core_Debug::stopTimer('drdata_Eori_check');
+                curl_close($curl);
             }
 
-            if ($res == self::statusInvalid) {
-                // URL на WSDL услугата
-                $wsdl = "https://ec.europa.eu/taxation_customs/dds2/eos/validation/services/validation?wsdl";
-
-                try {
-                    // Създаване на SOAP клиент
-                    $client = new SoapClient($wsdl);
-
-                    // Подгответе входните данни (заменете с реален ЕОРИ номер)
-                    $params = array (
-                        'eori' => $eori, // Примерен ЕОРИ номер
-                    );
-
-                    // Извикване на SOAP метода
-                    $response = @$client->__soapCall("validateEORI", array($params));
-
-                    if ($response && ($response->return->result->statusDescr ?? null) == 'Valid') {
-                        $res = self::statusValid;
-                    } else {
-                        $res = self::statusInvalid;
+            $response = json_decode($responseJson ?: '');
+            $result = is_array($response) ? ($response[0] ?? null) : null;
+            if ($httpCode == 200 && is_object($result) && ($result->eori ?? null) === $eori) {
+                if (($result->valid ?? null) === true) {
+                    $res = self::statusValid;
+                    $details = $result->companyDetails ?? null;
+                    if (is_object($details)) {
+                        $address = $details->address ?? null;
+                        $rArr['name'] = $details->traderName ?? null;
+                        $rArr['street'] = is_object($address) ? ($address->streetAndNumber ?? null) : null;
+                        $rArr['postalCode'] = is_object($address) ? ($address->postcode ?? null) : null;
+                        $rArr['city'] = is_object($address) ? ($address->cityName ?? null) : null;
+                        $info = $rArr['postalCode'] . ', ' . $rArr['city'] . "\n" . $rArr['street'] . "\n" . $rArr['name'];
                     }
-                } catch (core_exception_Redirect $e) {
-                    throw $e;
-                } catch (Exception $e) {
+                } elseif (($result->valid ?? null) === false) {
                     $res = self::statusInvalid;
                 }
+            }
+        } elseif (class_exists('SoapClient')) {
+            // SOAP използва default_socket_timeout и за четенето на отговора.
+            $socketTimeout = ini_get('default_socket_timeout');
+            ini_set('default_socket_timeout', '10');
+            core_Debug::startTimer('drdata_Eori_check');
+            try {
+                $client = @new SoapClient(
+                    'https://ec.europa.eu/taxation_customs/dds2/eos/validation/services/validation?wsdl',
+                    array('connection_timeout' => 4)
+                );
+                $response = @$client->__soapCall('validateEORI', array(array('eori' => $eori)));
+                $return = is_object($response) ? ($response->return ?? null) : null;
+                $result = is_object($return) ? ($return->result ?? null) : null;
+                if (is_object($result) && empty($return->errorDescription) && empty($result->errorReason) && ($result->eori ?? null) === $eori) {
+                    if (($result->status ?? null) === 0) {
+                        $res = self::statusValid;
+                    } elseif (($result->status ?? null) === 1) {
+                        $res = self::statusInvalid;
+                    }
+                }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Exception $e) {
+                $res = self::statusUnknown;
+            } finally {
+                ini_set('default_socket_timeout', $socketTimeout);
+                core_Debug::stopTimer('drdata_Eori_check');
             }
         }
 
