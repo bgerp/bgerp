@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -540,10 +540,22 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             $row->number = $mvc->getHandle($rec->id);
-            $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-            $row->username = transliterate(tr($row->username));
-
             $profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
+
+            // Преводът на името от визитката на автора е с предимство пред името на потребителя
+            $personId = $profRec->personId ?? null;
+            $personNameTr = null;
+            if (!empty($personId)) {
+                $personName = crm_Persons::fetchField($personId, 'name');
+                $personNameTr = core_UserTranslates::getUserTranslatedStr(crm_Persons::getClassId(), $personId, core_Lg::getCurrent(), 'name', $personName);
+            }
+            if (isset($personNameTr)) {
+                $row->username = transliterate(cls::get('type_Varchar')->toVerbal($personNameTr));
+            } else {
+                $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
+                $row->username = transliterate(tr($row->username));
+            }
+
             if (!empty($profRec)) {
                 if ($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')) {
                     $row->position = cls::get('type_Varchar')->toVerbal($position);
