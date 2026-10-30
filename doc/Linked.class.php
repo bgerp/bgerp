@@ -491,10 +491,25 @@ class doc_Linked extends core_Manager
             $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($inVal);
-            if ($document->haveRightFor('single')) {
+            $canView = $document->haveRightFor('single');
+            if (!$canView && ($lRec->state ?? null) == 'active') {
+                // Активната връзка и достъпът до източника са проверени по-горе.
+                expect($dRec = $document->fetch());
+                $allowedName = $document->instance->getAllowedContainerName();
+                $allowed = Mode::get($allowedName) ?? array();
+                $allowed[$inVal] = $inVal;
+                Mode::setPermanent($allowedName, $allowed);
+
+                // Както след pSingle, проверяваме отново без кеширания предишен отказ.
+                $canView = haveRole($document->instance->getRequiredRoles('single', $dRec));
+            }
+            if ($canView) {
                 Request::push(array('ajax_mode' => false), 'noAjaxMode');
-                $docHtml = $document->getInlineDocumentBody();
-                Request::pop('noAjaxMode');
+                try {
+                    $docHtml = $document->getInlineDocumentBody();
+                } finally {
+                    Request::pop('noAjaxMode');
+                }
                 
                 $tplRes->replace($docHtml, 'DOCUMENT');
             }
