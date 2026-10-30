@@ -1,0 +1,83 @@
+/* Optional public theme effects. Copyright 2026 Experta EOOD. */
+/* Избраният ефект има предимство пред !important стиловете на темите. */
+@layer cms-theme-reduced, cms-theme-effects;
+@layer cms-theme-effects {
+body .cms-effect-button {
+    transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease, background-size 250ms ease !important;
+}
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-underline:not(:disabled):not([aria-disabled="true"]):not(.disabled),
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-sweep:not(:disabled):not([aria-disabled="true"]):not(.disabled) {
+    background-image: linear-gradient(currentColor, currentColor), var(--cms-effect-image, none) !important;
+    background-position: center bottom, var(--cms-effect-position, center) !important;
+    background-size: 0 2px, var(--cms-effect-size, auto) !important;
+    background-repeat: no-repeat, var(--cms-effect-repeat, no-repeat) !important;
+}
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-sweep:not(:disabled):not([aria-disabled="true"]):not(.disabled) {
+    background-image: linear-gradient(100deg, rgba(0, 0, 0, .18), rgba(255, 255, 255, .4), rgba(0, 0, 0, .18)), var(--cms-effect-image, none) !important;
+    background-size: 0 100%, var(--cms-effect-size, auto) !important;
+}
+body .cms-effect-card :is(.eshopLink, .eshop-card-media, .eshop-related-image, .eshop-group-button-img) :is(img, svg) {
+    transition: transform 240ms ease, filter 240ms ease;
+}
+body .cms-card-border { position: relative; }
+body .cms-card-border::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent, var(--c-accent, #3388bb), transparent) 0 0 / 40% 2px no-repeat,
+                linear-gradient(180deg, transparent, var(--c-accent, #3388bb), transparent) 100% 0 / 2px 40% no-repeat,
+                linear-gradient(270deg, transparent, var(--c-accent, #3388bb), transparent) 100% 100% / 40% 2px no-repeat,
+                linear-gradient(0deg, transparent, var(--c-accent, #3388bb), transparent) 0 100% / 2px 40% no-repeat;
+}
+/* Фокусът и натискането работят и без мишка. */
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-glow:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) {
+    box-shadow: 0 0 0 3px var(--c-accent, #3388bb), 0 0 18px var(--c-accent, #3388bb) !important;
+}
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-tilt:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) { transform: rotate(-2deg) !important; }
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-darken:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) { filter: brightness(.88) !important; }
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-brighten:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) { filter: brightness(1.14) !important; }
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-underline:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) { background-size: 100% 2px, var(--cms-effect-size, auto) !important; }
+body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-sweep:not(:disabled):not([aria-disabled="true"]):not(.disabled):is(:focus-visible, :active) { background-size: 200% 100%, var(--cms-effect-size, auto) !important; }
+@media (hover: hover) and (pointer: fine) {
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-glow:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover {
+        box-shadow: 0 0 0 3px var(--c-accent, #3388bb), 0 0 18px var(--c-accent, #3388bb) !important;
+    }
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-tilt:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover { transform: rotate(-2deg) !important; }
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-darken:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover { filter: brightness(.88) !important; }
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-brighten:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover { filter: brightness(1.14) !important; }
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-underline:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover { background-size: 100% 2px, var(--cms-effect-size, auto) !important; }
+    body.cms-theme-effects :is(input, button, a).cms-effect-button.cms-button-sweep:not(:disabled):not([aria-disabled="true"]):not(.disabled):hover { background-size: 200% 100%, var(--cms-effect-size, auto) !important; }
+    body .cms-card-zoom:hover :is(.eshopLink, .eshop-card-media, .eshop-related-image, .eshop-group-button-img) :is(img, svg) { transform: scale(1.07) !important; }
+    body .cms-card-brighten:hover :is(.eshopLink, .eshop-card-media, .eshop-related-image, .eshop-group-button-img) :is(img, svg) { filter: brightness(1.12) !important; }
+    body .cms-card-bounce:hover :is(.eshopLink, .eshop-card-media, .eshop-related-image, .eshop-group-button-img) :is(img, svg) { animation: cms-image-bounce 550ms ease !important; }
+    body .cms-card-border:hover::after { opacity: 1; animation: cms-border-travel 1.6s linear infinite; }
+}
+body .cms-reveal-fade { animation: cms-reveal-fade 500ms ease both; }
+body .cms-reveal-zoom { animation: cms-reveal-zoom 500ms ease both; }
+body .cms-reveal-left { animation: cms-reveal-left 500ms ease both; }
+body .cms-reveal-right { animation: cms-reveal-right 500ms ease both; }
+@keyframes cms-reveal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cms-reveal-zoom { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes cms-reveal-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes cms-reveal-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes cms-image-bounce { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-8px); } 75% { transform: translateY(-3px); } }
+@keyframes cms-border-travel {
+    0%, 100% { background-position: 0 0, 100% 0, 100% 100%, 0 100%; }
+    50% { background-position: 100% 0, 100% 100%, 0 100%, 0 0; }
+}
+}
+@layer cms-theme-reduced {
+@media (prefers-reduced-motion: reduce), print {
+    body .cms-effect-button,
+    body .cms-effect-card :is(img, svg),
+    body .cms-effect-card::after,
+    body :is(.cms-reveal-fade, .cms-reveal-zoom, .cms-reveal-left, .cms-reveal-right) {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+}

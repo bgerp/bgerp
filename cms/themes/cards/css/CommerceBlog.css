@@ -100,10 +100,10 @@ body.commerce-blog {
     box-shadow: none !important;
     cursor: pointer;
 }
-.commerce-blog #cmsNavigation .blogm-workshop .button:hover,
+
 .commerce-blog #cmsNavigation .blogm-workshop .button:focus-visible {
-    background-color: var(--c-accent-soft) !important;
-    border-color: var(--c-accent-line-strong);
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
 }
 .commerce-blog .blogm-browse > h1 {
     margin: 0 0 16px;

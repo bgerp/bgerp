@@ -181,7 +181,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar :i
     border-color: var(--c-accent);
     color: #fff !important;
 }
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar :is(.submitBtn, input[type=submit]):hover { background: var(--c-accent-dark) !important; }
+
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inputError,
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit textarea.inputError { border-color: #bd4050 !important; background-color: #fff4f5 !important; }
 @media (max-width: 650px) {
@@ -357,10 +357,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_alig
     vertical-align: middle;
     cursor: pointer;
 }
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical_btn:hover {
-    border-color: var(--c-accent);
-    background-color: var(--c-accent-soft) !important;
-}
+
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical {
     float: none;
     display: inline-block;
@@ -446,7 +443,7 @@ body.commerce-theme #login-form .commerce-password-toggle {
     align-items: center;
     justify-content: center;
 }
-body.commerce-theme #login-form .commerce-password-toggle:hover { background: var(--c-accent-soft-3); color: var(--c-accent); }
+
 body.commerce-theme #login-form .commerce-password-toggle:focus-visible { outline: 2px solid var(--c-focus); outline-offset: -2px; }
 body.commerce-theme #login-form .commerce-password-toggle svg { width: 20px; height: 20px; }
 body.commerce-theme #login-form .commerce-eye-slash { display: none; }

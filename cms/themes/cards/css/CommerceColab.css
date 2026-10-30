@@ -74,7 +74,7 @@ body.commerce-theme .contractorExtHolder .listFilter input[type=submit] {
     height: 2.75rem; padding: 0.5em 1.1em; border: 1px solid var(--c-accent); border-radius: 0.5em !important;
     background: var(--c-accent) !important; color: #fff; font: inherit; font-weight: 600; text-shadow: none; box-shadow: none; cursor: pointer;
 }
-body.commerce-theme .contractorExtHolder .listFilter input[type=submit]:hover { background: var(--c-accent-dark) !important; }
+
 body.commerce-theme .contractorExtHolder .listFilter .formTable { background: #fff; border: 1px solid var(--c-line-3) !important; border-radius: 0.75em; border-collapse: separate; border-spacing: 0; box-shadow: none; max-width: 100%; }
 body.commerce-theme .contractorExtHolder .listFilter .formTitle { min-width: 0; background: none; color: var(--c-ink); font-size: 1.2em; padding: 0 0 0.75em; }
 body.commerce-theme .contractorExtHolder .listFilter .formSection { padding: 0 0 0.75em; background: none; }
@@ -99,7 +99,7 @@ body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=butto
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button).linkWithIcon {
     padding-left: 2.25em !important; background-position: 0.7em center !important;
 }
-body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button):hover { background-color: var(--c-accent-soft-2); border-color: var(--c-accent); }
+
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button):focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 /* Document tabs (Statistic, DealReport...): a compact variant of the top tabs. */
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row { margin: 0.5em 0 0.75em; border: 0; background: none; }
@@ -177,7 +177,7 @@ body.commerce-theme #barcodeForm .toolbar .button {
     background-color: #fff; color: var(--c-accent); text-shadow: none; box-shadow: none;
 }
 body.commerce-theme #barcodeForm #filter { background: var(--c-accent) !important; border-color: var(--c-accent); color: #fff; padding-left: 1em !important; }
-body.commerce-theme #barcodeForm #filter:hover { background: var(--c-accent-dark) !important; }
+
 body.commerce-theme #barcodeForm .button:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 body.commerce-theme #barcodeForm #scanBtn { padding-left: 2.25em !important; background-position: 0.7em center !important; }
 @media (max-width: 900px) {
