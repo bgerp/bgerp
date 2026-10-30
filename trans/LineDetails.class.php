@@ -109,6 +109,7 @@ class trans_LineDetails extends doc_Detail
                                         'store_Receipts' => 'Доставки',
                                         'store_ConsignmentProtocols' => 'Отговорно пазене',
                                         'store_Transfers' => 'Трансфери',
+                                        'trans_Waybills' => 'Товарителници',
                                         'cash_Pko' => 'Приходни касови ордери',
                                         'cash_Rko' => 'Разходни касови ордери',
                                         'removed' => 'Премахнати документи');
@@ -308,8 +309,8 @@ class trans_LineDetails extends doc_Detail
             $row->notes .= "<div>" . implode(' | ', $linkedFiles);
         }
 
-        // Ако е складов документ
-        if($Document->haveInterface('store_iface_DocumentIntf')){
+        // Cargo documents include own stock and external consignments.
+        if(trans_LineDocuments::isCargoDocument($Document)){
             if(!empty($transportInfo['deliveryOn'])){
                 $row->notes = "Доставка до: " . dt::mysql2verbal($transportInfo['deliveryOn']) . (!empty($row->notes) ? "<br/>" : "") . $row->notes;
             }
@@ -445,7 +446,7 @@ class trans_LineDetails extends doc_Detail
 
         // В какъв цвят да се оцвети реда на линията
         $transportState = $transportInfo['state'];
-        if($Document->haveInterface('store_iface_DocumentIntf')){
+        if(trans_LineDocuments::isCargoDocument($Document)){
             $class = in_array($transportState, array('active', 'rejected')) ? $transportState : 'waiting';
             if(($rec->_allPaymentActive) ?? null && $class == 'active'){
                 $class = 'closed';
@@ -611,6 +612,13 @@ class trans_LineDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        if (in_array($action, array('remove', 'delete')) && !empty($rec->containerId)) {
+            $document = doc_Containers::getDocument($rec->containerId);
+            if ($document->isInstanceOf('trans_Waybills')) {
+                $bill = $document->fetch();
+                if (!empty($bill->tripSheetId) || !$document->haveRightFor('single', $userId)) $requiredRoles = 'no_one';
+            }
+        }
         if ($action == 'remove' && isset($rec->lineId)) {
             $state = trans_Lines::fetchField($rec->lineId, 'state');
             if (in_array($state, array('rejected', 'closed', 'draft', 'pending')) || ($rec->status ?? null) == 'removed') {

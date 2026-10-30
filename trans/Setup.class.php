@@ -79,7 +79,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.2';
+    public $version = '0.31';
     
     
     /**
@@ -113,12 +113,14 @@ class trans_Setup extends core_ProtoSetup
         'trans_Vehicles',
         'trans_Lines',
         'trans_TripSheets',
+        'trans_Waybills',
         'trans_Cmrs',
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_Features',
         'trans_LineDetails',
         'trans_IntraCommunitySupplyConfirmations',
+        'migrate::includeWaybillsInLines',
     );
 
 
@@ -188,5 +190,20 @@ class trans_Setup extends core_ProtoSetup
         crm_Groups::forceGroup($groupRec);
         
         return $html;
+    }
+
+
+    /**
+     * Bring existing waybills into line details without reattaching removed rows.
+     */
+    public function includeWaybillsInLines()
+    {
+        $query = trans_Waybills::getQuery();
+        $query->where("#lineId IS NOT NULL AND #state != 'rejected'");
+        while ($rec = $query->fetch()) {
+            if (!trans_LineDetails::fetch(array('#lineId = [#1#] AND #containerId = [#2#]', $rec->lineId, $rec->containerId))) {
+                trans_LineDetails::sync($rec->lineId, $rec->containerId);
+            }
+        }
     }
 }

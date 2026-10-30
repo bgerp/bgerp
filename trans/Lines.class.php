@@ -380,6 +380,10 @@ class trans_Lines extends core_Master
             $tripToolbar->addBtn('Пътен лист', array('trans_TripSheets', 'add', 'originId' => $rec->containerId ?? null,
                 'threadId' => $rec->threadId ?? null, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry_go.png');
         }
+        if (trans_Waybills::haveRightFor('add', $tripRec)) {
+            $data->toolbar->addBtn('Товарителница', array('trans_Waybills', 'add', 'originId' => $rec->containerId,
+                'threadId' => $rec->threadId, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry.png');
+        }
 
         if (!$data->toolbar->haveButton("btnOpen_{$rec->containerId}")) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
@@ -569,9 +573,9 @@ class trans_Lines extends core_Master
         // Показване на готовността
         $row->created = "{$mvc->getVerbal($rec, 'createdOn')}</br>" . tr('от') . "" . crm_Profiles::createLink($rec->createdBy);
         $row->countStoreDocuments = $mvc->getVerbal($rec, 'countStoreDocuments');
-        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой складови документи', 'noicon', false);
+        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой товарни документи (складови и товарителници)', 'noicon', false);
         $row->countActiveDocuments = $mvc->getVerbal($rec, 'countActiveDocuments');
-        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани складови документи', 'noicon', false);
+        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани товарни документи', 'noicon', false);
         $row->countReadyDocuments = $mvc->getVerbal($rec, 'countReadyDocuments');
         $row->countReadyDocuments = ht::createHint($row->countReadyDocuments, 'Брой нагласени складови документи', 'noicon', false);
 
@@ -618,9 +622,9 @@ class trans_Lines extends core_Master
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($rec->id);
-            $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
+            $isCargoDocument = trans_LineDocuments::isCargoDocument($Document);
 
-            if (!$isStoreDocument) {
+            if (!$isCargoDocument) {
                 $toBaseAmount = deals_Helper::getSmartBaseCurrency($transInfo['baseAmount'], $transInfo['valior'], $today);
 
                 if ($toBaseAmount < 0) {
@@ -639,7 +643,7 @@ class trans_Lines extends core_Master
             if ($sumWeight === true) {
                 if (!empty($transInfo['weight'])) {
                     $weight += $transInfo['weight'];
-                } elseif ($isStoreDocument) {
+                } elseif ($isCargoDocument) {
                     unset($weight);
                     $sumWeight = false;
                 }
@@ -649,7 +653,7 @@ class trans_Lines extends core_Master
             if ($sumVolume === true) {
                 if (!empty($transInfo['volume'])) {
                     $volume += $transInfo['volume'];
-                } elseif ($isStoreDocument) {
+                } elseif ($isCargoDocument) {
                     unset($volume);
                     $sumVolume = false;
                 }
@@ -732,6 +736,7 @@ class trans_Lines extends core_Master
 
         if ($interface) {
             $iOptions = array_keys(core_Classes::getOptionsByInterface($interface));
+            if ($interface == 'store_iface_DocumentIntf') $iOptions[] = trans_Waybills::getClassId();
             if (countR($iOptions)) {
                 $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
                 $query->in('docClass', $iOptions);
@@ -755,6 +760,8 @@ class trans_Lines extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
+        // A document may have changed earlier in the same request.
+        $this->cacheLineInfo = array();
 
         // Изчисляване на готовите и не-готовите редове
         $dQuery = trans_LineDetails::getQuery();
@@ -779,7 +786,7 @@ class trans_Lines extends core_Master
                 $countries[$lineInfo['countryId']] = $lineInfo['countryId'];
             }
 
-            if ($Doc->haveInterface('store_iface_DocumentIntf')) {
+            if (trans_LineDocuments::isCargoDocument($Doc)) {
                 $rec->countStoreDocuments++;
                 if ($dRec->containerState == 'active') {
                     $rec->countActiveDocuments++;

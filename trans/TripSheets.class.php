@@ -34,7 +34,7 @@ class trans_TripSheets extends core_Master
     public $searchFields = 'companyName,vehicleNumber,driverName,route,cargo,transportDocuments';
 
     const REPORT_FIELDS = 'odometerStart,odometerEnd,departedOn,returnedOn,reportNotes,signedSheet';
-    const ISSUE_FIELDS = 'lineId,originId,threadId,folderId,series,transportType,companyName,companyAddress,companyNumber,companyPhone,vehicleId,vehicleModel,vehicleNumber,driverId,driverName,secondDriver,companions,departure,expectedReturn,route,cargo,transportDocuments,authorizedBy,authorization,issuedOn,issuedBy,issuerName';
+    const ISSUE_FIELDS = 'lineId,originId,threadId,folderId,series,transportType,companyName,companyAddress,companyNumber,companyPhone,vehicleId,vehicleModel,vehicleNumber,driverId,driverName,secondDriver,companions,departure,expectedReturn,route,cargo,transportDocuments,cargoManifest,lineNotes,sourceData,authorizedBy,authorization,issuedOn,issuedBy,issuerName';
 
 
     public function description()
@@ -42,7 +42,7 @@ class trans_TripSheets extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,pending=Заявка,active=Отчетен,rejected=Оттеглен)', 'caption=Състояние,input=none');
         $this->FLD('lineId', 'key(mvc=trans_Lines)', 'caption=Транспортна линия,input=hidden,silent,mandatory');
         $this->FLD('series', 'varchar(16)', 'caption=Превоз->Серия,mandatory,value=ТЛ');
-        $this->FLD('transportType', 'enum(own=За собствена сметка,public=Обществен превоз)', 'caption=Превоз->Режим,mandatory,value=own');
+        $this->FLD('transportType', 'enum(own=За собствена сметка,public=Обществен превоз,mixed=За собствена сметка и обществен превоз)', 'caption=Превоз->Режим,mandatory,value=own');
         $this->FLD('companyName', 'varchar(255)', 'caption=Предприятие->Наименование,mandatory');
         $this->FLD('companyNumber', 'varchar(32)', 'caption=Предприятие->ЕИК,mandatory');
         $this->FLD('companyAddress', 'varchar(255)', 'caption=Предприятие->Адрес,mandatory');
@@ -59,6 +59,9 @@ class trans_TripSheets extends core_Master
         $this->FLD('route', 'text(rows=4)', 'caption=Курс->Маршрут,mandatory');
         $this->FLD('cargo', 'text(rows=3)', 'caption=Курс->Вид на товара,mandatory');
         $this->FLD('transportDocuments', 'text(rows=3)', 'caption=Курс->Документи за товара,mandatory');
+        $this->FLD('cargoManifest', 'text(rows=10)', 'caption=От транспортната линия->Маршрут и товари');
+        $this->FLD('lineNotes', 'richtext(rows=3,bucket=Notes)', 'caption=От транспортната линия->Бележки');
+        $this->FLD('sourceData', 'blob(serialize,compress)', 'input=none');
         $this->FLD('authorizedBy', 'varchar(128)', 'caption=Разрешил превоза->Имена,mandatory');
         $this->FLD('authorization', 'varchar(255)', 'caption=Разрешил превоза->Заповед за упълномощаване');
         $this->FLD('issuedOn', 'datetime', 'caption=Издаден на,input=none');
@@ -115,9 +118,13 @@ class trans_TripSheets extends core_Master
         $form = $data->form ?? null;
         $rec = $form->rec;
         $form->setOptions('driverId', trans_Vehicles::getDriverOptions());
-        if (!empty($rec->id)) return;
+        $refresh = !empty($rec->id) && Request::get('fromLine', 'int') && $mvc->haveRightFor('edit', $rec);
+        if (!empty($rec->id) && !$refresh) return;
         $form->setDefault('series', 'ТЛ');
-        $form->setDefault('transportType', 'own');
+        if ($refresh) {
+            $form->FLD('fromLine', 'int', 'input=hidden,silent');
+            $form->setDefault('fromLine', 1);
+        }
 
         $first = !empty($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId ?? null) : null;
         if (!$first || !$first->isInstanceOf('trans_Lines')) return;
@@ -125,12 +132,9 @@ class trans_TripSheets extends core_Master
         trans_Lines::requireRightFor('single', $line);
         $form->setDefault('lineId', $line->id ?? null);
         $form->setDefault('originId', $line->containerId ?? null);
-        $form->setDefault('departure', $line->start ?? null);
-        $form->setDefault('driverId', $line->forwarderPersonId ?? null);
-        $vehicle = trans_Vehicles::fetch(array("#name = '[#1#]'", $line->vehicle ?? ''));
-        if ($vehicle) {
-            $form->setDefault('vehicleId', $vehicle->id ?? null);
-            $form->setDefault('vehicleModel', $vehicle->name ?? null);
+        foreach (trans_LineDocuments::getTripDefaults($line->id) as $field => $value) {
+            if ($refresh) $rec->{$field} = $value;
+            else $form->setDefault($field, $value);
         }
         $company = crm_Companies::fetchOwnCompany();
         $form->setDefault('companyName', $company->company ?? '');
@@ -138,34 +142,8 @@ class trans_TripSheets extends core_Master
         $form->setDefault('companyAddress', trim(($company->pCode ?? '') . ' ' . ($company->place ?? '') . ', ' . ($company->address ?? ''), ' ,'));
         $form->setDefault('companyPhone', $company->tel ?? '');
 
-        $documents = $places = $products = array();
-        $query = trans_LineDetails::getQuery();
-        $query->where(array("#lineId = [#1#] AND #status != 'removed' AND #containerState != 'rejected'", (int) ($line->id ?? 0)));
-        $query->orderBy('id', 'ASC');
-        while ($detail = $query->fetch()) {
-            $document = doc_Containers::getDocument($detail->containerId ?? null);
-            if (!$document->haveInterface('store_iface_DocumentIntf') || !$document->haveRightFor('single')) continue;
-            $documents[] = '#' . $document->getHandle();
-            $info = $document->getTransportLineInfo($line->id ?? null);
-            if (!empty($info['address'])) $places[$info['address']] = $info['address'];
-            $master = $document->getInstance();
-            $detailClass = $master->mainDetail ?? null;
-            if (!$detailClass) continue;
-            $Detail = cls::get($detailClass);
-            $masterKey = $Detail->masterKey ?? null;
-            if (!$masterKey || !$Detail->getField('productId', false)) continue;
-            $productQuery = $Detail->getQuery();
-            $productQuery->where(array("#{$masterKey} = [#1#]", (int) ($document->that ?? 0)));
-            $productQuery->show('productId');
-            while ($product = $productQuery->fetch()) {
-                $productId = $product->productId ?? null;
-                if ($productId) $products[$productId] = cat_Products::fetchField($productId, 'name');
-            }
-        }
-        $form->setDefault('route', implode("\n", $places));
-        $form->setDefault('cargo', implode("\n", array_unique($products)));
-        $form->setDefault('transportDocuments', implode("\n", $documents));
-        $form->setField('route', 'unit=Потвърдете реда на посещенията и включете началния и крайния пункт');
+        $form->setField('route', 'unit=Подредете реалните посещения и добавете началния и крайния пункт. Предложението е по реда на документите');
+        if ($refresh) $form->info = 'Данните са предложени от текущата транспортна линия. Прегледайте ги и запишете промените.';
     }
 
 
@@ -187,10 +165,14 @@ class trans_TripSheets extends core_Master
     {
         if (!$rec || $roles == 'no_one') return;
         $state = $rec->state ?? 'draft';
-        if ($action == 'edit' && ($state != 'draft' || !empty($rec->issuedOn))) $roles = 'no_one';
+        if ($action == 'edit') {
+            // The native form checks edit rights again after applying its issue command.
+            $saved = !empty($rec->id) ? $mvc->fetch($rec->id, '*', false) : $rec;
+            if (($saved->state ?? 'draft') != 'draft' || !empty($saved->issuedOn)) $roles = 'no_one';
+        }
         if ($action == 'pending' && ($state != 'draft' || !empty($rec->issuedOn))) $roles = 'no_one';
         if ($action == 'report' && ($state != 'pending' || empty($rec->issuedOn))) $roles = 'no_one';
-        if ($action == 'order' && (empty($rec->issuedOn) || ($rec->transportType ?? null) != 'own' || $state == 'rejected')) $roles = 'no_one';
+        if ($action == 'order' && (empty($rec->issuedOn) || !in_array($rec->transportType ?? null, array('own', 'mixed')) || $state == 'rejected')) $roles = 'no_one';
         if (in_array($action, array('report', 'order')) && !empty($rec->id) && !$mvc->haveRightFor('single', $rec, $userId)) $roles = 'no_one';
         if ($action == 'restore' && ($rec->brState ?? null) == 'active' && $mvc->getOverlap($rec)) $roles = 'no_one';
         if (in_array($action, array('add', 'pending', 'report', 'restore', 'order'))) {
@@ -211,6 +193,7 @@ class trans_TripSheets extends core_Master
 
     protected static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
+        unset($rec->_attachWaybills);
         $old = !empty($rec->id) ? $mvc->fetch($rec->id ?? null, '*', false) : null;
         if (!empty($old->issuedOn)) {
             foreach (arr::make(self::ISSUE_FIELDS) as $field) $rec->{$field} = $old->{$field} ?? null;
@@ -237,6 +220,7 @@ class trans_TripSheets extends core_Master
             $rec->issuedOn = dt::now();
             $rec->issuedBy = core_Users::getCurrent();
             $rec->issuerName = core_Users::fetchField($rec->issuedBy ?? null, 'names');
+            $rec->_attachWaybills = true;
             if ($fields !== null) $fields = arr::make($fields, true) + arr::make('vehicleNumber,driverName,issuedOn,issuedBy,issuerName', true);
         }
         if (($full->state ?? null) == 'active') {
@@ -259,6 +243,13 @@ class trans_TripSheets extends core_Master
     private function getIssueErrors($rec)
     {
         $errors = array();
+        $errors += trans_Waybills::getTripBindingErrors($rec);
+        if (!empty($rec->sourceData['hash'])) {
+            $current = trans_LineDocuments::getTripDefaults($rec->lineId);
+            if ($rec->sourceData['hash'] != $current['sourceData']['hash']) $errors['route'] = 'Транспортната линия е променена. Използвайте Обновяване от ТЛ и прегледайте данните преди издаване';
+            if (!empty($current['sourceData']['unavailable'])) $errors['transportDocuments'] = 'Нямате достъп до всички стокови документи на линията';
+            if (!empty($current['sourceData']['waybills']) && ($rec->transportType ?? null) == 'own') $errors['transportType'] = 'Линията включва товарителници за външни товари. Изберете обществен или смесен превоз';
+        }
         foreach (arr::make('series,companyName,companyNumber,companyAddress,vehicleModel,departure,route,cargo,transportDocuments,authorizedBy') as $field) {
             if (trim($rec->{$field} ?? '') === '') $errors[$field] = 'Попълнете реквизитите преди издаване на пътния лист';
         }
@@ -275,6 +266,7 @@ class trans_TripSheets extends core_Master
 
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
+        if (!empty($rec->_attachWaybills)) trans_Waybills::attachIssuedTrip($mvc->fetch($id, '*', false));
         if (($rec->state ?? null) == 'active') core_Locks::release('transTripVehicle' . ($rec->vehicleId ?? 0));
         if (!empty($rec->originId)) doc_DocumentCache::cacheInvalidation($rec->originId ?? null);
     }
@@ -378,6 +370,7 @@ class trans_TripSheets extends core_Master
     {
         $rec = $data->rec ?? null;
         $toolbar = $data->toolbar ?? null;
+        if ($mvc->haveRightFor('edit', $rec)) $toolbar->addBtn('Обновяване от ТЛ', array($mvc, 'edit', $rec->id, 'fromLine' => 1, 'ret_url' => true), 'row=2,ef_icon=img/16/arrow_refresh.png,title=Предлагане на актуалните данни от линията за преглед и запис');
         if ($mvc->haveRightFor('report', $rec)) $toolbar->addBtn('Отчитане', array($mvc, 'report', $rec->id ?? null), 'ef_icon=img/16/tick.png');
         if ($mvc->haveRightFor('order', $rec)) $toolbar->addBtn('Печат заповед', array($mvc, 'single', $rec->id ?? null, 'Printing' => 'yes', 'tripView' => 'order'), 'target=_blank,ef_icon=img/16/printer.png');
         if (!empty($rec->issuedOn)) $toolbar->addBtn('Издаден лист', array($mvc, 'single', $rec->id ?? null, 'Printing' => 'yes', 'tripView' => 'issued'), 'row=2,target=_blank,ef_icon=img/16/printer.png');
@@ -409,9 +402,14 @@ class trans_TripSheets extends core_Master
         if (isset($fields['-single'])) {
             $row->sheetNumber = str_pad((string) ($rec->id ?? ''), 10, '0', STR_PAD_LEFT);
             $row->issueDate = !empty($rec->issuedOn) ? dt::mysql2verbal($rec->issuedOn ?? '', 'd.m.Y') : tr('ЧЕРНОВА');
-            $row->vehicleNumber = $row->vehicleNumber ?? $mvc->getVerbal($rec, 'vehicleId');
+            if (empty($rec->vehicleNumber) && !empty($rec->vehicleId)) {
+                $row->vehicleNumber = $mvc->getFieldType('vehicleNumber')->toVerbal(trans_Vehicles::fetchField($rec->vehicleId, 'number'));
+            }
             $row->driverName = $row->driverName ?? $mvc->getVerbal($rec, 'driverId');
             $row->documentStatus = $row->state ?? '';
+            if (Request::get('tripView') == 'order' && ($rec->transportType ?? null) == 'mixed') {
+                foreach (arr::make('route,cargo,transportDocuments') as $field) $row->{$field} = $mvc->getFieldType($field)->toVerbal($rec->sourceData['own'][$field] ?? '');
+            }
             if (Mode::is('printing') && ($rec->state ?? null) != 'active') $row->distance = '';
             if (Request::get('tripView') == 'issued') {
                 foreach (arr::make(self::REPORT_FIELDS . ',reportedOn,reporterName,distance') as $field) $row->{$field} = '';

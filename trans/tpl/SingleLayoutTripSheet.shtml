@@ -16,7 +16,7 @@
     </table>
     <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px">
         <tr><td style="width:50%">|Автомобилът е технически изправен.|*<br>|Механик — фамилия и подпис|*: ................................</td><td>|Приех автомобила технически изправен.|*<br>|Водач — фамилия и подпис|*: ................................</td></tr>
-        <tr><td colspan="2">|Проба за алкохол. Общо здравословно състояние — добро. Водачът е годен да управлява.|*<br>|Извършил проверката — фамилия и подпис|*: ................................................................</td></tr>
+        <tr style="page-break-inside:avoid"><td colspan="2" style="height:30mm;vertical-align:top">|Проба за алкохол. Общо здравословно състояние — добро. Водачът е годен да управлява.|*<br>|Извършил проверката — фамилия и подпис|*: ................................................................</td></tr>
     </table>
     <h3>|Отчет на курса|*</h3>
     <table class="innerTable border-table paddingCells" style="width:100%">
@@ -35,5 +35,12 @@
     <p>|Приел и проверил|*: [#reporterName#] &nbsp; |Дата|*: [#reportedOn#]<br>|Подпис|*: ................................</p>
     <p>|Бележки на контролните органи|*: ........................................................................................................................<br><br>|Подпис и печат|*: ................................</p>
     <!--ET_BEGIN signedSheet--><div class="no-print">|Подписан лист|*: [#signedSheet#]</div><!--ET_END signedSheet-->
+    <!--ET_BEGIN cargoManifest-->
+    <div style="page-break-before:always">
+        <h3>|Маршрут и товари към пътен лист|* [#series#] № [#sheetNumber#]</h3>
+        <div>[#cargoManifest#]</div>
+    </div>
+    <!--ET_END cargoManifest-->
+    <!--ET_BEGIN lineNotes--><h4>|Бележки от транспортната линия|*</h4><div>[#lineNotes#]</div><!--ET_END lineNotes-->
 </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
