@@ -109,7 +109,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
+    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност,reportedDistance=Пробег, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
 
 
     /**
@@ -231,6 +231,7 @@ class trans_Lines extends core_Master
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
         $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
         $this->FLD('places', 'varchar(255)', 'caption=Населени места,input=none');
+        $this->FNC('reportedDistance', 'int', 'caption=Отчетен пробег,input=none,unit=км');
 
         $this->XPR('shipmentOnCalc', 'date', "COALESCE(#shipmentOn, #start)", 'caption=Експедиране');
     }
@@ -373,6 +374,13 @@ class trans_Lines extends core_Master
     {
         $rec = $data->rec;
 
+        $tripRec = (object) array('lineId' => $rec->id ?? null, 'threadId' => $rec->threadId ?? null);
+        if (trans_TripSheets::haveRightFor('add', $tripRec)) {
+            $tripToolbar = $data->toolbar ?? null;
+            $tripToolbar->addBtn('Пътен лист', array('trans_TripSheets', 'add', 'originId' => $rec->containerId ?? null,
+                'threadId' => $rec->threadId ?? null, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry_go.png');
+        }
+
         if (!$data->toolbar->haveButton("btnOpen_{$rec->containerId}")) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
                 $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нея|*!', 'title' => 'Затваряне на транспортна линия'));
@@ -483,6 +491,23 @@ class trans_Lines extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
         $transUnitsTotal = array();
+
+        if (isset($fields['-single']) || isset($fields['-list'])) {
+            $tripSummary = trans_TripSheets::getLineSummary($rec->id ?? null);
+            $reportedDistance = $tripSummary->distance ?? null;
+            $row->reportedDistance = $reportedDistance === null ? tr('Неотчетен пробег')
+                : core_Type::getByName('int')->toVerbal($reportedDistance) . ' ' . tr('км');
+            if (!empty($tripSummary->unreported) && $reportedDistance !== null) {
+                $row->reportedDistance .= ' (' . tr('частичен') . ')';
+            }
+            if (isset($fields['-single'])) {
+                $links = array();
+                foreach (($tripSummary->sheets ?? array()) as $sheet) {
+                    if (trans_TripSheets::haveRightFor('single', $sheet)) $links[] = trans_TripSheets::getLink($sheet->id ?? null, 0);
+                }
+                $row->tripSheets = implode(', ', $links);
+            }
+        }
 
         if (isset($fields['-single'])) {
             if (isset($rec->defaultCaseId)) {

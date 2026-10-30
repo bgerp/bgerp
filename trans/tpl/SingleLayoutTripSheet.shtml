@@ -1,0 +1,39 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class="trip-sheet">
+    <h2 class="centered">|ПЪТЕН ЛИСТ|* [#series#] № [#sheetNumber#] / [#issueDate#]</h2>
+    <p class="centered">[#transportType#] &nbsp; · &nbsp; [#lineId#]</p>
+    <p class="no-print centered">[#documentStatus#]</p>
+    <table class="innerTable border-table paddingCells" style="width:100%">
+        <tr><td colspan="2"><b>[#companyName#]</b> · |ЕИК|*: [#companyNumber#]<br>[#companyAddress#]<br>|Телефон|*: [#companyPhone#]</td></tr>
+        <tr><td>|Автомобил — марка и модел|*: <b>[#vehicleModel#]</b></td><td>|Рег. номер|*: <b>[#vehicleNumber#]</b></td></tr>
+        <tr><td>|Водач I|*: <b>[#driverName#]</b></td><td>|Водач II|*: [#secondDriver#]</td></tr>
+        <tr><td colspan="2">|Придружители|*: [#companions#]</td></tr>
+        <tr><td>|Планирано тръгване|*: [#departure#]</td><td>|Планирано връщане|*: [#expectedReturn#]</td></tr>
+        <tr><td colspan="2"><b>|Маршрут|*</b><br>[#route#]</td></tr>
+        <tr><td colspan="2"><b>|Вид на товара|*</b><br>[#cargo#]</td></tr>
+        <tr><td colspan="2"><b>|Документи за товара|*</b><br>[#transportDocuments#]</td></tr>
+        <tr><td>|Издал|*: [#issuerName#]<br>|Подпис|*: ................................</td><td>|Разрешил излизането|*: [#authorizedBy#]<br>|Подпис и печат|*: ................................</td></tr>
+    </table>
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px">
+        <tr><td style="width:50%">|Автомобилът е технически изправен.|*<br>|Механик — фамилия и подпис|*: ................................</td><td>|Приех автомобила технически изправен.|*<br>|Водач — фамилия и подпис|*: ................................</td></tr>
+        <tr><td colspan="2">|Проба за алкохол. Общо здравословно състояние — добро. Водачът е годен да управлява.|*<br>|Извършил проверката — фамилия и подпис|*: ................................................................</td></tr>
+    </table>
+    <h3>|Отчет на курса|*</h3>
+    <table class="innerTable border-table paddingCells" style="width:100%">
+        <tr><td>|Излизане — дата и час|*: [#departedOn#]</td><td>|Прибиране — дата и час|*: [#returnedOn#]</td></tr>
+        <tr><td>|Начален километраж|*: <b>[#odometerStart#]</b> |км|*</td><td>|Краен километраж|*: <b>[#odometerEnd#]</b> |км|*</td></tr>
+        <tr><td colspan="2">|Изминато разстояние|*: <b>[#distance#]</b> |км|*</td></tr>
+    </table>
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px">
+        <tr><th>|Водач|*</th><th>|Маршрут от — до|*</th><th>|Тръгване|*</th><th>|Пристигане|*</th><th>|Престой|*</th><th>|Заверка|*</th></tr>
+        <tr style="height:35px"><td>&nbsp;</td><td style="width:35%"></td><td></td><td></td><td></td><td></td></tr>
+        <tr style="height:35px"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr style="height:35px"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr style="height:35px"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+    <p>|Отклонения и бележки|*: [#reportNotes#]<br>........................................................................................................................</p>
+    <p>|Приел и проверил|*: [#reporterName#] &nbsp; |Дата|*: [#reportedOn#]<br>|Подпис|*: ................................</p>
+    <p>|Бележки на контролните органи|*: ........................................................................................................................<br><br>|Подпис и печат|*: ................................</p>
+    <!--ET_BEGIN signedSheet--><div class="no-print">|Подписан лист|*: [#signedSheet#]</div><!--ET_END signedSheet-->
+</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

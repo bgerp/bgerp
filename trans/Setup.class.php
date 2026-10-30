@@ -79,7 +79,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.1';
+    public $version = '0.2';
     
     
     /**
@@ -112,6 +112,7 @@ class trans_Setup extends core_ProtoSetup
     public $managers = array(
         'trans_Vehicles',
         'trans_Lines',
+        'trans_TripSheets',
         'trans_Cmrs',
         'trans_TransportModes',
         'trans_TransportUnits',
