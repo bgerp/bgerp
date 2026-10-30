@@ -932,10 +932,11 @@ class eshop_Carts extends core_Master
      * @param mixed $id
      * @param bool  $force
      * @param bool  $sendEmailIfNecessary
+     * @param array $paymentData - данни за картовото плащане (@see eshop_InitiatorPaymentIntf::receivePayment)
      *
      * @return stdClass $saleRec
      */
-    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
+    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true, $paymentData = array())
     {
         $rec = static::fetchRec($id);
 
@@ -1140,6 +1141,9 @@ class eshop_Carts extends core_Master
         cls::get('sales_Sales')->updateMaster($saleRec);
         self::activate($rec, $saleRec->id);
         
+        // Преди имейла, за да може да се изпрати създаденото по продажбата (напр. документът по чл. 52о)
+        cls::get('eshop_Carts')->invoke('AfterForceSale', array($rec, $saleRec, $paymentData));
+
         doc_Threads::doUpdateThread($saleRec->threadId);
         if ($sendEmailIfNecessary === true) {
             self::sendEmail($rec, $saleRec);
@@ -2916,10 +2920,11 @@ class eshop_Carts extends core_Master
      * @param string      $currencyCode      - валута за нареждане
      * @param int|NULL    $accountId         - ид на наша сметка, или NULL ако няма
      * @param int         $linkedContainerId - свързан контейнер
+     * @param array       $paymentData       - данни за картовото плащане: transactionRef, posId, merchantId, paidOn, amount
      *
      * @return void
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null, $paymentData = array())
     {
         $cartId = self::fetchField($objId, 'id');
 
@@ -2934,9 +2939,16 @@ class eshop_Carts extends core_Master
         $rec->paidOnline = 'yes';
         self::save($rec, 'paidOnline');
         
+        $hadSale = !empty($rec->saleId);
+
         $saleRec = null;
         try {
-            $saleRec = self::forceSale($rec);
+            $saleRec = self::forceSale($rec, false, true, $paymentData);
+
+            // Продажбата е от преди плащането и forceSale() не е вдигнал събитието
+            if ($hadSale && is_object($saleRec)) {
+                $this->invoke('AfterForceSale', array($rec, $saleRec, $paymentData));
+            }
         } catch (core_exception_Expect $e) {
             reportException($e);
         }

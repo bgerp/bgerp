@@ -4223,3 +4223,17 @@ en,Онлайн платформа,Online platform
 en,Уеб адрес,Web address
 en,Номерът на магазина от НАП е задължителен при включен режим,The NRA shop number is mandatory when the regime is on
 en,При онлайн платформа трябва да се посочи адресът на магазина в нея,For an online platform the address of the shop in it must be given
+en,Документи за регистриране на продажба (чл. 52о),Sale registration documents (art. 52o)
+en,Документ за регистриране на продажба,Sale registration document
+en,Документи по чл. 52о,Art. 52o documents
+en,Поръчка и плащане,Order and payment
+en,Трансакция,Transaction
+en,Виртуален ПОС,Virtual POS
+en,Стока/услуга,Goods/service
+en,Данъчна група,Tax group
+en,Номер на магазина от НАП,NRA shop number
+en,Документът не е създаден - причината е в системния лог на количката,The document was not created - the reason is in the system log of the cart
+en,Документът е създаден,The document was created
+en,Документ за регистриране на продажбата,Sale registration document
+en,Документът не е създаден при плащането - нов опит със запазените данни,The document was not created at payment - retry with the saved data
+en,Код на плащането (PAYM),Payment code (PAYM)
