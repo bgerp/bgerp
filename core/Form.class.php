@@ -676,7 +676,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (empty($errRec->msg)) {
-                    $fieldCaption = tr($this->fields[$field]->caption);
+                    $fieldCaption = tr($this->fields[$field]->caption ?? core_Type::escape((string) $field));
                     $errRec->msg = "Има проблем с полето|* <b>{$fieldCaption}</b>";
                 }
                 
