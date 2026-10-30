@@ -205,10 +205,11 @@ class drdata_Eori extends core_Manager
         if (!$rec || $force) {
             // Принудителната проверка трябва да върне актуалния резултат още в тази заявка.
             $rec = $rec ?: new stdClass();
-            list($rec->status, $rec->info) = $this->checkStatus($canonocalEori);
+            list($status, $info) = $this->checkStatus($canonocalEori);
+            self::applyStatus($rec, $status, $info);
             $this->checkedEori[$canonocalEori] = array($rec->status ?? self::statusUnknown, $rec->info ?? null);
             $rec->eori = $canonocalEori;
-            $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
+            $rec->lastUsed = dt::verbal2mysql();
             if (!empty($rec->id) || in_array($rec->status ?? null, array(self::statusValid, self::statusInvalid, self::statusUnknown))) {
                 $this->save($rec, null, empty($rec->id) ? 'IGNORE' : null);
             }
@@ -336,9 +337,25 @@ class drdata_Eori extends core_Manager
     public static function on_Shutdown($mvc)
     {
         foreach ($mvc->updateOnShutdown as $rec) {
-            list($rec->status, $rec->info) = $mvc->checkStatus($rec->eori);
-            $rec->lastChecked = dt::verbal2mysql();
+            list($status, $info) = $mvc->checkStatus($rec->eori);
+            self::applyStatus($rec, $status, $info);
             $mvc->save($rec, 'status, info, lastChecked');
+        }
+    }
+    
+    
+    /**
+     * Записва резултата от проверката; недостъпна услуга не заменя последния известен резултат
+     */
+    protected static function applyStatus($rec, $status, $info)
+    {
+        if ($status == self::statusUnknown && in_array($rec->status ?? null, array(self::statusValid, self::statusInvalid))) {
+            // Нов опит след ден, като при неизвестен
+            $rec->lastChecked = dt::addSecs(self::$unknowTTL - drdata_Setup::get('EORI_TTL'));
+        } else {
+            $rec->status = $status;
+            $rec->info = $info;
+            $rec->lastChecked = dt::verbal2mysql();
         }
     }
     

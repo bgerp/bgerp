@@ -386,8 +386,16 @@ class drdata_Vats extends core_Manager
     public static function on_Shutdown($mvc)
     {
         foreach ($mvc->updateOnShutdown as $rec) {
-            list($rec->status, $rec->info) = $mvc->checkStatus($rec->vat);
-            $rec->lastChecked = dt::verbal2mysql();
+            list($status, $info) = $mvc->checkStatus($rec->vat);
+            
+            // Недостъпен VIES не заменя последния известен резултат; нов опит след ден, като при неизвестен
+            if ($status == self::statusUnknown && in_array($rec->status ?? null, array(self::statusValid, self::statusInvalid))) {
+                $rec->lastChecked = dt::addSecs(self::$unknowTTL - drdata_Setup::get('VAT_TTL'));
+            } else {
+                $rec->status = $status;
+                $rec->info = $info;
+                $rec->lastChecked = dt::verbal2mysql();
+            }
             $mvc->save($rec, 'status, info, lastChecked');
         }
     }

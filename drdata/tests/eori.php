@@ -87,6 +87,7 @@ class dt
 {
     public static function verbal2mysql() { return '2026-01-15 12:00:00'; }
     public static function subtractSecs($seconds) { return gmdate('Y-m-d H:i:s', strtotime(self::verbal2mysql() . ' UTC') - $seconds); }
+    public static function addSecs($seconds) { return self::subtractSecs(-$seconds); }
 }
 class drdata_Setup { public static function get($name) { return $name == 'EORI_TTL' ? 5184000 : 2592000; } }
 function countR($value) { return count($value); }
@@ -198,9 +199,22 @@ check($checker->records[$eu]->lastChecked === dt::verbal2mysql() && $checker->re
 check($checker->check(strtolower($eu), true)[0] === 'valid' && EoriTransport::$soapCalls === 1, 'Repeated force reuses the canonical number result in this request');
 $checker = nextRequest($checker);
 EoriTransport::reset(new Exception('Unavailable'));
-check($checker->check($eu, true)[0] === 'unknown' && $checker->records[$eu]->status === 'unknown', 'Force failure caches unknown');
-check($checker->check($eu, true)[0] === 'unknown' && EoriTransport::$soapCalls === 1, 'Unknown result is not retried within the same request');
+check($checker->check($eu, true)[0] === 'valid' && $checker->records[$eu]->status === 'valid', 'Force failure keeps the last known status');
+check($checker->records[$eu]->lastChecked === dt::subtractSecs(5184000 - 86400), 'The kept status is checked again after a day');
+check($checker->check($eu, true)[0] === 'valid' && EoriTransport::$soapCalls === 1, 'A failed check is not retried within the same request');
 $checker = nextRequest($checker);
+EoriTransport::reset(soapResult($eu, 0));
+check($checker->check($eu)[0] === 'valid' && !$checker->updateOnShutdown, 'The kept status is not refreshed before a day');
+$checker->records[$eu]->lastChecked = dt::subtractSecs(5184001);
+EoriTransport::reset(new Exception('Unavailable'));
+check($checker->check($eu)[0] === 'valid' && count($checker->updateOnShutdown) === 1, 'The kept status is refreshed after a day');
+drdata_Eori::on_Shutdown($checker);
+check($checker->records[$eu]->status === 'valid' && $checker->records[$eu]->lastChecked === dt::subtractSecs(5184000 - 86400), 'Deferred refresh failure keeps the last known status');
+$new = 'BG1111111111111';
+$checker = nextRequest($checker);
+check($checker->check($new, true)[0] === 'unknown' && $checker->records[$new]->status === 'unknown', 'Force failure on a new number caches unknown');
+$checker = nextRequest($checker);
+$checker->records[$eu]->status = 'unknown';
 $checker->records[$eu]->lastChecked = dt::subtractSecs(86401);
 EoriTransport::reset(soapResult($eu, 0));
 check($checker->check($eu)[0] === 'unknown' && count($checker->updateOnShutdown) === 1 && EoriTransport::$soapCalls === 0, 'Unknown retries after one day');
