@@ -488,8 +488,6 @@ class doc_Linked extends core_Manager
         expect($inType && $inVal);
         
         if ($inType == 'doc') {
-            $docInst = doc_Containers::getDocument($outVal);
-            
             $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($inVal);
