@@ -52,7 +52,7 @@ defIfNot('BGFISC_SHOW_BPT_IN_RECEIPT', 'no');
  * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -144,6 +144,7 @@ class bgfisc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към СР', 'bgfisc_plg_SaleDocument', 'store_Receipts', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към протокола за предаване на услуга', 'bgfisc_plg_SaleDocument', 'sales_Services', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към протокола за приемане на услуга', 'bgfisc_plg_SaleDocument', 'purchase_Services', 'private');
+        $html .= $Plugins->installPlugin('Настройки на онлайн магазина по Н-18', 'bgfisc_plg_EshopSettings', 'eshop_Settings', 'private');
 
         if(!bgfisc_Register::count()){
             pos_Receipts::delete("#state = 'draft'");
@@ -154,6 +155,9 @@ class bgfisc_Setup extends core_ProtoSetup
         cls::get('pos_Receipts')->setupMvc();
         cls::get('cash_Pko')->setupMvc();
         cls::get('cash_Rko')->setupMvc();
+        if (core_Packs::isInstalled('eshop')) {
+            cls::get('eshop_Settings')->setupMvc();
+        }
 
         return $html;
     }
