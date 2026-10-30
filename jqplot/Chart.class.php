@@ -9,7 +9,7 @@
  * @package   jqplot
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  */
@@ -112,11 +112,11 @@ class jqplot_Chart
     {
         $this->options = static::$defaultOptions;
         
-        if ($config['type'] == 'bars') {
+        if (($config['type'] ?? 'lines') == 'bars') {
             $this->options['seriesDefaults']['renderer'] = '@$.jqplot.BarRenderer@';
             $this->usePlugin('barRenderer');
             
-            if ($config['dir'] == 'horizontal') {
+            if (($config['dir'] ?? 'vertical') == 'horizontal') {
                 $this->options['seriesDefaults']['rendererOptions']['barDirection'] = 'horizontal';
                 
                 $this->tickAxis = 'yaxis';
@@ -124,7 +124,7 @@ class jqplot_Chart
             }
         }
         
-        if ($config['log']) {
+        if (!empty($config['log'])) {
             $this->options['axes'][$this->valueAxis]['renderer'] = '@$.jqplot.LogAxisRenderer@';
             $this->usePlugin('logAxisRenderer');
         }
@@ -241,7 +241,7 @@ class jqplot_Chart
             // Нещо като autoheight възможност за хоризонтални бар-графики. Височината на
             // контейнера се адаптира според броя на баровете.
             $this->htmlAttr['style'] .=
-                '; height: ' . countR($series) * countR($series[0]) * 20 . 'px';
+                '; height: ' . countR($series) * countR($series[0] ?? array()) * 20 . 'px';
         }
         
         // Създаваме контейнер елемента със зададените HTML атрибути
@@ -360,7 +360,7 @@ class jqplot_Chart
             $name = substr($name, 0, $dot) . '.min' . substr($name, $dot);
         }
         $conf = core_Packs::getConfig('jqplot');
-        $resource = 'jqplot/' . $conf->JQPLOT_VERSION . '/' . $name;
+        $resource = 'jqplot/' . ($conf->JQPLOT_VERSION ?? JQPLOT_VERSION) . '/' . $name;
         
         return $resource;
     }

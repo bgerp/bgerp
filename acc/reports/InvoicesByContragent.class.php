@@ -185,6 +185,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form->layout = $form->renderLayout();
         $form->layout->append(' invoicesByContragentForm', 'CLASS');
         $form->layout->push('acc/css/InvoicesByContragent.css', 'CSS');
+        $form->appendSuggestions('changeFields', array('accountingCorrections' => 'Отчитане на корекции с МО'));
+        $form->setFieldTypeParams('changeFields', array('maxChars' => 60));
 
         // Начални стойности и видимост на полетата според избрания режим (всички / неплатени).
         $form->setDefault('seeProformаs', null);
@@ -3588,7 +3590,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         $invoiceValue = $dRec->invoiceValue ?? 0;
         $invoiceCurrentSumm = $dRec->invoiceCurrentSumm ?? 0;
-        $res->paidAmount = self::getPaidAmount($dRec);
+        $res->paidAmount = round(self::getPaidAmount($dRec), 2);
         $res->paidDates = self::getPaidDates($dRec, false);
 
         $res->dueDate = self::getDueDate($dRec, false, $rec);
@@ -3601,12 +3603,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $res->invoiceNo = $invoiceNo;
 
-        // Като на екрана: invoiceValue вече е в основната валута
-        $res->invoiceValue = self::getInvoiceCurrencyValue($rec, $dRec);
-        $res->invoiceValueBaseCurr = $invoiceValue;
+        // Изнасяме показаните стотинки, за да се сумират еднакво и без форматиране в CSV.
+        $currencyValue = self::getInvoiceCurrencyValue($rec, $dRec);
+        $res->invoiceValue = isset($currencyValue) ? round($currencyValue, 2) : null;
+        $res->invoiceValueBaseCurr = round($invoiceValue, 2);
         if (($rec->accountingCorrections ?? 'no') == 'yes') {
-            $res->invoiceValueBaseCurr = round($invoiceValue, 2);
-            $res->paidAmount = round(self::getPaidAmount($dRec), 2);
             $res->accountingCorrection = $dRec->accountingCorrection ?? 0;
             $documents = array();
             foreach ($dRec->accountingDocuments ?? array() as $document) $documents[] = 'МО' . ($document->id ?? '') . ' / ' . ($document->date ?? '');

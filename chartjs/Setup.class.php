@@ -14,7 +14,7 @@ defIfNot('CHARTJS_VERSION', '2.3.0');
  * @package   chartjs
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,6 +45,6 @@ class chartjs_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CHARTJS_VERSION' => array('enum(2.3.0)', 'caption=Версия на chartjs->Версия')
+        'CHARTJS_VERSION' => array('enum(2.3.0,4.6.1)', 'caption=Версия на chartjs->Версия')
     );
 }

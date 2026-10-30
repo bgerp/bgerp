@@ -247,6 +247,8 @@ class drdata_Vats extends core_Manager
      */
     public function checkStatus($vat)
 	{
+		// Директните извиквания могат да подават малки букви и интервали; пазим + и * в ирландските номера.
+		$vat = strtoupper(preg_replace('/\s+/', '', $vat ?? ''));
 		$res = null;
 		$info = null;
 
@@ -261,7 +263,7 @@ class drdata_Vats extends core_Manager
 				$res = self::statusNotVat;
 			}
 
-			return array($res, $info, $result->name, $result->address);
+			return array($res, $info, $result->name ?? null, $result->address ?? null);
 		}
 
 		/**
@@ -276,7 +278,7 @@ class drdata_Vats extends core_Manager
 		if (!$syntaxOk && !$plausible) {
 			$res = self::statusSyntax;
 
-			return array($res, $info, $result->name, $result->address);
+			return array($res, $info, $result->name ?? null, $result->address ?? null);
 		}
 
 		// Конвериране на български 13-цифрени данъчни номера към 9-цифрени
@@ -286,6 +288,11 @@ class drdata_Vats extends core_Manager
 
 		$countryCode = substr($vat, 0, 2);
 		$vatNumber = substr($vat, 2);
+
+		// Разпознаваме тези VAT префикси, но VIES не обслужва техните регистри.
+		if (in_array($countryCode, array('GB', 'NO'), true)) {
+			return array(self::statusUnknown, "VIES не поддържа проверка на VAT номера с префикс {$countryCode}.", null, null);
+		}
 
 		try {
 			$client = @new SoapClient(
@@ -303,9 +310,9 @@ class drdata_Vats extends core_Manager
 
 			// Очакваните откази на VIES не са грешка в кода - логват се като предупреждение
 			if (trim($f->faultstring ?? $f->getMessage()) === 'INVALID_INPUT') {
-				$this->logWarning('VIES отхвърли входните данни: INVALID_INPUT');
+				$this->logWarning("VIES отхвърли входните данни за {$vat}: INVALID_INPUT");
 			} elseif (self::isTemporaryViesFault($f)) {
-				$this->logWarning('VIES недостъпен: ' . $f->getMessage());
+				$this->logWarning("VIES недостъпен за {$vat}: " . $f->getMessage());
 			} else {
 				reportException($f);
 			}
@@ -322,10 +329,10 @@ class drdata_Vats extends core_Manager
 		}
 
 		if (is_object($result)) {
-			if ($result->valid === true) {
+			if (($result->valid ?? null) === true) {
 				$res = self::statusValid;
-				$info = $result->name . "\n" . $result->address;
-			} elseif ($result->valid === false) {
+				$info = ($result->name ?? '') . "\n" . ($result->address ?? '');
+			} elseif (($result->valid ?? null) === false) {
 				$res = self::statusInvalid;
 			}
 		}
@@ -340,7 +347,7 @@ class drdata_Vats extends core_Manager
 			$info = trim($info ?? '') ? ($info . "\n" . $note) : $note;
 		}
 
-		return array($res, $info, $result->name, $result->address);
+		return array($res, $info, $result->name ?? null, $result->address ?? null);
 	}
 
 

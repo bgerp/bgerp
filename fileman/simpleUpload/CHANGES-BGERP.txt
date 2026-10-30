@@ -1,0 +1,63 @@
+SimpleUpload 1.1.0
+=================
+
+Оригинален проект: https://github.com/michaelcbrook/simpleUpload.js
+Публикуван npm пакет: jquery-simple-upload@1.1.0.
+https://registry.npmjs.org/jquery-simple-upload/1.1.0
+Git commit: bebb3942478ffd01a630da3e22669eab4d510150.
+Архивът е проверен спрямо npm SHA-512 integrity; simpleUpload.js съвпада
+байт по байт с официалния Git файл. Новите библиотечни файлове са непроменени.
+SHA-256 JS: c917a0276d00f59e11dcc2830c4a058db52a4c758477cdcbaddcb1901094d6c7
+
+Запазено е старото копие 1.0/simpleUpload.min.js без промяна:
+SHA-256: c774a2f19ebe04d239485e0004aa55f80d3b0d7fd4a81f9d244ec067012f15d1
+Ново копие: 1.1.0/simpleUpload.js, с README, CHANGELOG, package.json и LICENSE.
+Няма нов Composer/npm проект или допълнително копие на jQuery.
+package.json е оригинална метаинформация, не инсталационна стъпка.
+
+Ново в 1.1.0:
+- beforeSend(jqXHR, settings) позволява добавяне на HTTP headers;
+- error.xhr дава HTTP status и response при неуспешна AJAX заявка;
+- общият текст за неуспешна заявка е "Upload failed".
+API остава jQuery plugin / глобалният simpleUpload. Изискване: jQuery >=1.7.
+При стар jQuery отговорът е в xhr.responseText; xhr.responseJSON не е наличен
+във всички поддържани версии на jQuery.
+
+При прегледа няма намерен потребител на тази библиотека в bgERP и активните
+частни пакети. fileman_Upload използва собствения fileman/js/upload.js.
+Сходното име SimpleUpload в CKEditor е друг компонент. Няма промяна на
+активното качване на файлове, default, core_Packs настройка или локален избор.
+Новото копие е налично за изрично зареждане при бъдеща употреба, не се включва
+автоматично в страниците. Старите директни пътища продължават да работят.
+
+Лиценз: MIT, Michael Brook. LICENSE е взет от оригиналния пакет; авторските
+header-и са запазени. При разпространение се запазват copyright и лицензът.
+
+Проверки
+--------
+node --check на библиотеката и tests/upload.browser.js: успешно.
+Браузърна матрица: PHP 7.4.33/8.2.34, jQuery 1.7.1/4.0.0 с приложимия
+съществуващ Migrate, SimpleUpload 1.0/1.1.0. Всичките 8 комбинации преминават:
+26 проверки за старото копие, 29 за 1.1.0. Изпращат се само синтетични файлове
+към локален тестов endpoint; не се създават fileman или бизнес записи.
+
+Проверени са multipart POST, кирилско име и съдържание, точен брой байтове,
+допълнителни данни, progress/complete, опашка от два файла, limit, файл
+1 024 000 байта, проверки за разширение/MIME/размер, отмяна преди изпращане,
+HTTP 422 и достъп до отговора, beforeSend header и реален DOM file input,
+включително замяната и изчистването му след качване.
+
+За повторение заредете избрания jQuery, една версия на SimpleUpload и
+тестовия JS в изолирана тестова страница. Извикайте
+await testSimpleUpload(echoUrl, true) за 1.1.0 или false за 1.0.
+echoUrl трябва да е тестов multipart endpoint в същата инсталация, достъпен
+само за тестовия потребител. Той приема поле file и връща JSON:
+name (оригинално име), size (байтове), text (точно съдържание), marker
+(POST поле marker), header (HTTP X-Upload-Test). При POST errorMode=1
+връща HTTP 422 и {"message":"Тестов отказ"}. Достатъчни са временните PHP
+upload файлове; endpoint-ът не трябва да съхранява реални документи.
+
+Не са тествани legacy iframe/IE fallback, cross-origin upload, hash worker,
+прекъсване по време на преноса или интеграция с fileman, която в момента
+не използва тази библиотека. Новото копие не е основание да се подменя
+работещият fileman upload код.

@@ -78,6 +78,9 @@ class cad2_PdfCanvas extends cad2_Canvas
      */
     public function __construct()
     {
+        $this->setAttr('stroke', 'black');
+        $this->setAttr('stroke-width', 0.2);
+        $this->setAttr('fill', 'none');
     }
     
     
@@ -447,6 +450,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         $strokeDasharray = $e->attr['stroke-dasharray'] ?? null;
         $stroke = $e->attr['stroke'] ?? null;
         $pathFill = $e->attr['fill'] ?? null;
+        $hasZeroStrokeWidth = is_numeric($strokeWidth) && (float) $strokeWidth == 0.0;
         
         $this->pdf->SetLineStyle(array(
             'width' => $strokeWidth,
@@ -461,7 +465,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         $fill = 'S';
         
         if ($pathFill != 'transparent' && $pathFill != 'none') {
-            $fill = 'FD';
+            $fill = $hasZeroStrokeWidth ? 'F' : 'FD';
             
             if ($pathFill !== null) {
                 $fillColor = self::hexToCmyk($pathFill);
@@ -476,7 +480,8 @@ class cad2_PdfCanvas extends cad2_Canvas
             $fillOpacity = 1;
         }
         
-        if ($stroke == 'transparent' || $stroke == 'none') {
+        // В PDF нулевата дебелина е видима тънка линия, а в SVG скрива контура.
+        if ($stroke == 'transparent' || $stroke == 'none' || $hasZeroStrokeWidth) {
             $strokeOpacity = 0;
         } elseif (isset($e->attr['stroke-opacity'])) {
             $strokeOpacity = (float) $e->attr['stroke-opacity'];

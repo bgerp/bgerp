@@ -10,7 +10,7 @@ use Aws\S3\S3Client;
  * @package   cond
  *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,20 +33,25 @@ class backup_Amazon extends core_BaseClass
     private static $s3Client;
     private static $bucket;
     
+    /** Зарежда избраната съвместима SDK версия преди създаване на S3 клиента. */
     public function __construct()
     {
-        if (core_Composer::isInUse()) {
-            self::$s3Client = new S3Client([
-                'version' => 'latest',
-                'region' => 'eu-west-1',
-                'credentials' => [
-                    'key' => backup_Setup::get('AMAZON_KEY', true),
-                    'secret' => backup_Setup::get('AMAZON_SECRET', true),
-                ],
-            ]);
-            
-            self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
-        }
+        $error = backup_Setup::getPhpVersionError(backup_Setup::get('AWS_VERSION'));
+        expect(!$error, $error);
+        expect(core_Composer::isInUse() && class_exists(S3Client::class),
+            'Липсва AWS SDK. Инициализирайте пакета backup с избрано S3 съхранение.');
+        self::$s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => 'eu-west-1',
+            // PHP 7.4 клонът е избран съзнателно; статусът е описан в CHANGES-BGERP.txt.
+            'suppress_php_deprecation_warning' => PHP_VERSION_ID < 80100,
+            'credentials' => [
+                'key' => backup_Setup::get('AMAZON_KEY', true),
+                'secret' => backup_Setup::get('AMAZON_SECRET', true),
+            ],
+        ]);
+
+        self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
     }
     
     
@@ -95,20 +100,29 @@ class backup_Amazon extends core_BaseClass
      */
     public static function putFile($sourceFile, $subDir = null)
     {
+        if (!is_string($sourceFile) || $sourceFile === '' || !is_file($sourceFile)) {
+            return false;
+        }
         $key = $subDir ?  $subDir . '/' . basename($sourceFile) : basename($sourceFile);
+        $stream = @fopen($sourceFile, 'rb');
+        if (!$stream) {
+            return false;
+        }
         
         try {
             $result = self::$s3Client->putObject(
                 array(
                     'Bucket' => self::$bucket,
                     'Key' => $key,
-                    'Body' => fopen($sourceFile, 'r+')
+                    'Body' => $stream
                 )
             );
         } catch (core_exception_Redirect $e) {
             throw $e;
         } catch (Exception $e) {
             $result = false;
+        } finally {
+            if (is_resource($stream)) fclose($stream);
         }
         
         return $result ? true : false;

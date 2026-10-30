@@ -10,7 +10,7 @@ use Minishlink\WebPush\Subscription;
  * @package   pwa
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -200,7 +200,13 @@ class pwa_PushSubscriptions extends core_Manager
 
         $resArr = array();
 
-        if (!core_Composer::isInUse()) {
+        if ($error = pwa_Setup::getPhpVersionError(pwa_Setup::get('WEB_PUSH_VERSION'))) {
+            self::logNotice($error);
+
+            return $resArr;
+        }
+
+        if (!core_Composer::isInUse() || !class_exists(WebPush::class)) {
 
             self::logNotice('Не е зададена стойност за EF_VENDOR_PATH и не може да се използва composer');
 
@@ -272,7 +278,7 @@ class pwa_PushSubscriptions extends core_Manager
                     ),
                 );
 
-                $webPush = new WebPush($auth);
+                $webPush = self::createWebPush($auth);
 
                 $s = array('endpoint' => $rec->endpoint, 'publicKey' => $rec->publicKey,
                     'authToken' => $rec->authToken, 'contentEncoding' => $rec->contentEncoding);
@@ -326,6 +332,24 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         return $resArr;
+    }
+
+
+    /**
+     * Създава клиент според реално зареденото API, включително при auto избор.
+     * Web Push 11 приема PSR logger вместо PHP notices за препоръки към средата.
+     *
+     * @param array $auth
+     * @return \Minishlink\WebPush\WebPush
+     */
+    public static function createWebPush($auth)
+    {
+        $constructor = new ReflectionMethod(WebPush::class, '__construct');
+        if ($constructor->getNumberOfParameters() >= 7) {
+            return new WebPush($auth, array(), null, null, null, null, cls::get('pwa_WebPushLogger'));
+        }
+
+        return new WebPush($auth);
     }
 
 

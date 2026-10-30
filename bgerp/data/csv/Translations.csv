@@ -4215,3 +4215,26 @@ en,Планирано за,Scheduled for
 en,Промпт,Prompt
 en,Складът не е от избраната наша фирма,The store does not belong to the selected company
 en,Касата не е от избраната наша фирма,The cash-desk does not belong to the selected company
+en,Магазин в НАП по Наредба Н-18 (картови плащания без касов бон),Online shop registered at NRA under Ordinance N-18 (card payments without fiscal receipt)
+en,Включен,Turned on
+en,Номер от НАП,NRA number
+en,Собствен или нает домейн,Own or rented domain
+en,Онлайн платформа,Online platform
+en,Уеб адрес,Web address
+en,Номерът на магазина от НАП е задължителен при включен режим,The NRA shop number is mandatory when the regime is on
+en,При онлайн платформа трябва да се посочи адресът на магазина в нея,For an online platform the address of the shop in it must be given
+en,Документи за регистриране на продажба (чл. 52о),Sale registration documents (art. 52o)
+en,Документ за регистриране на продажба,Sale registration document
+en,Документи по чл. 52о,Art. 52o documents
+en,Поръчка и плащане,Order and payment
+en,Трансакция,Transaction
+en,Виртуален ПОС,Virtual POS
+en,Стока/услуга,Goods/service
+en,Данъчна група,Tax group
+en,Номер на магазина от НАП,NRA shop number
+en,Документът не е създаден - причината е в системния лог на количката,The document was not created - the reason is in the system log of the cart
+en,Документът е създаден,The document was created
+en,Документ за регистриране на продажбата,Sale registration document
+en,Документът не е създаден при плащането - нов опит със запазените данни,The document was not created at payment - retry with the saved data
+en,Код на плащането (PAYM),Payment code (PAYM)
+en,Н-18,N-18

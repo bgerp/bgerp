@@ -1,8 +1,11 @@
 <?php
 
+/** Версия на браузърния клиент; досегашният CDN остава default. */
+defIfNot('CONVERSEJS_VERSION', 'legacy');
+
 
 /**
- * Минималния брой елементи, за които няма да сработи Chosen
+ * Адрес на BOSH услугата за XMPP връзката
  */
 defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
 
@@ -15,7 +18,7 @@ defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
  * @package   conversejs
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -57,7 +60,7 @@ class conversejs_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        // Минималния брой елементи, за които няма да сработи Chosen
+        'CONVERSEJS_VERSION' => array('enum(legacy=Досегашен CDN,14.0.1=14.0.1)', 'caption=Converse.js->Версия'),
         'CONVERSEJS_BOSH_SERVICE_URL' => array('url', 'caption=BOSH_SERVICE->Url'),
     
     );

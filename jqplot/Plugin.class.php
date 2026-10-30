@@ -6,7 +6,7 @@
  * @package   jqplot
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  */
@@ -178,7 +178,7 @@ class jqplot_Plugin extends core_Plugin
      * @param core_ET  $tpl
      * @param stdClass $data
      */
-    public static function on_AfterRenderListTable($mvc, $tpl, $data)
+    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         static $defaultChartConfig = array(
             'menu' => null,         // заглавие на графиката в менюто

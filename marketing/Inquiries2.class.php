@@ -9,7 +9,7 @@
  * @package   marketing
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1364,7 +1364,7 @@ class marketing_Inquiries2 extends embed_Manager
                         } else {
                             $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
                             
-                            $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode);
+                            $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode ?? '');
                             $totalFee = $TransportCalculator->getTransportFee($countryDeliveryTermId, 1, 1000, $params);
                             if ($totalFee['fee'] < 0) {
                                 $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');

@@ -8,7 +8,7 @@
  * @package   mejs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -113,7 +113,7 @@ class mejs_Adapter
         $mTpl->removeBlocks();
         
         // Добавяме файловете за плейване с mediaElement
-        static::enableMeJs($mTpl, $type, $params);
+        static::enableMeJs($mTpl, $type, $params, $id);
         
         return $mTpl;
     }
@@ -123,20 +123,28 @@ class mejs_Adapter
      * Добавя файловете и скрипта необходими за стартиране на mediaElement
      *
      * @param core_Et $tpl
+     * @param string|null $id DOM id; без него се запазва изборът по тип елемент
      */
-    public static function enableMeJs($tpl, $type = 'video', $params = null)
+    public static function enableMeJs($tpl, $type = 'video', $params = null, $id = null)
     {
+        $version = mejs_Setup::get('VERSION');
+        if ($version === '7.1.0') {
+            // Новите контроли ползват SVG sprite вместо CSS фонови изображения.
+            $params['iconSprite'] = $params['iconSprite'] ?? sbf('mejs/' . $version . '/build/mejs-controls.svg', '');
+        }
+
         // Превръщаме параметрите в стринг
         $paramsStr = static::prepareParams($params);
         
         // Добавяме скрипта за стартиране
-        jquery_Jquery::run($tpl, "$('{$type}').mediaelementplayer({$paramsStr});");
+        $selector = json_encode($id !== null ? '#' . $id : $type);
+        jquery_Jquery::run($tpl, "jQuery({$selector}).mediaelementplayer({$paramsStr});");
 
         // Добавяме CSS
-        $tpl->push('mejs/' . mejs_Setup::get('VERSION') . '/build/mediaelementplayer.css', 'CSS');
+        $tpl->push('mejs/' . $version . '/build/mediaelementplayer.css', 'CSS');
         
         // Добавяме JS
-        $tpl->push('mejs/' . mejs_Setup::get('VERSION') . '/build/mediaelement-and-player.js', 'JS');
+        $tpl->push('mejs/' . $version . '/build/mediaelement-and-player.js', 'JS');
     }
     
     

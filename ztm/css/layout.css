@@ -233,8 +233,12 @@ figure {
 }
 .optionsBtn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: -25px;
+    right: 0;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+    cursor: pointer;
 }
 .table-dark {
     background: #2a3039;
@@ -568,6 +572,9 @@ input:checked + .sliderToggle:before {
     padding: 5px;
     border: none;
     border-bottom: 1px solid rgba(190,197,207,.2);
+}
+.modal-content {
+    color: inherit;
 }
 .modal .close span {
     filter: invert(100%);

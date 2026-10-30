@@ -11,24 +11,20 @@
  * @package   conversejs
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class conversejs_Adapter extends core_Mvc
 {
+    /** Показва чата с избраната версия и достъпните XMPP данни. */
     public function act_Show()
     {
         if (Request::get('locale')) {
             core_App::outputJson(array());
         }
         requireRole('powerUser');
-        
-        $tpl = new page_Html();
-
-        $tpl->push('https://cdn.conversejs.org/dist/converse.min.css', 'CSS');
-        $tpl->push('https://cdn.conversejs.org/dist/converse.min.js', 'JS');
         
         $cu = core_Users::getCurrent();
         $rec = null;
@@ -43,35 +39,52 @@ class conversejs_Adapter extends core_Mvc
             $driver = remote_Authorizations::getDriver($aRec);
             $rec = $driver->getXmppCredentials($aRec);
         }
-        $url = conversejs_Setup::get('BOSH_SERVICE_URL');
-        
-        if ($rec) {
-            $script = "
-                converse.initialize({
-                    bosh_service_url: '{$url}',
-                    show_controlbox_by_default: true,
-                    view_mode: 'fullscreen',
-                    keepalive: true,
-                    message_carbons: true,
-                    play_sounds: true,
-                    roster_groups: true,
-                    xhr_user_search: false,
-                    auto_login: true,
-                    allow_dragresize: true,
-                    jid: '{$rec->xmppUser}',
-                    password: window.atob('" . base64_encode($rec->xmppPass) . "')
-                });";
-            $title = $rec->xmppUser . ' / ConverseJS Chat';
-        } else {
-            $script = "
-                converse.initialize({
-                    bosh_service_url: '{$url}',
-                    show_controlbox_by_default: true,
-                });
-                alert('Към вашият провил няма свързана XMPP чат услуга, но ако все-пак имате акаунт - може да се логнете с него.');";
-            $title = core_Users::getCurrent('nick') . ' / ConverseJS Chat';
+        $tpl = self::getChatPage($rec, conversejs_Setup::get('BOSH_SERVICE_URL'), core_Users::getCurrent('nick'));
+        $tpl->output();
+        shutdown();
+    }
+
+
+    /** Подготвя чата без извличане на данни за достъп или отваряне на връзка. */
+    public static function getChatPage($rec, $url, $nick)
+    {
+        $tpl = new page_Html();
+
+        $version = conversejs_Setup::get('VERSION');
+        $isModule = $version === '14.0.1';
+        $base = 'https://cdn.conversejs.org/' . ($isModule ? '14.0.1/' : '') . 'dist/';
+        $tpl->push($base . 'converse.min.css', 'CSS');
+        if (!$isModule) {
+            $tpl->push($base . 'converse.min.js', 'JS');
         }
         
+        $options = array('bosh_service_url' => $url, 'show_controlbox_by_default' => true);
+        if ($rec) {
+            $options += array(
+                'view_mode' => 'fullscreen',
+                'keepalive' => true,
+                'message_carbons' => true,
+                'play_sounds' => true,
+                'roster_groups' => true,
+                'xhr_user_search' => false,
+                'auto_login' => true,
+                'allow_dragresize' => true,
+                'jid' => $rec->xmppUser ?? '',
+                'password' => $rec->xmppPass ?? '',
+            );
+            $title = ($rec->xmppUser ?? '') . ' / ConverseJS Chat';
+        } else {
+            $title = $nick . ' / ConverseJS Chat';
+        }
+        if ($isModule) {
+            $options['assets_path'] = $base;
+            $options['discover_connection_methods'] = false;
+        }
+        $script = 'converse.initialize(' . json_encode($options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ');';
+        if (!$rec) {
+            $script .= "alert('Към вашият профил няма свързана XMPP чат услуга, но ако все пак имате акаунт - може да се логнете с него.');";
+        }
+
         $urlBackground = sbf('conversejs/img/background.jpg', '');
         
         $style = "
@@ -85,13 +98,15 @@ class conversejs_Adapter extends core_Mvc
         $urlIcon = sbf('conversejs/img/16/converse.png', '');
         $icon = "<link rel='icon' type='image/png' href='{$urlIcon}'/>";
         
-        $tpl->appendOnce($script, 'SCRIPTS');
+        if ($isModule) {
+            $tpl->appendOnce('<script type="module">import converse from "' . $base . 'converse.min.js";' . $script . '</script>', 'HEAD');
+        } else {
+            $tpl->appendOnce($script, 'SCRIPTS');
+        }
         $tpl->appendOnce($style, 'STYLES');
         $tpl->appendOnce($title, 'PAGE_TITLE');
         $tpl->appendOnce($icon, 'HEAD');
         
-        $tpl->output();
-        
-        shutdown();
+        return $tpl;
     }
 }

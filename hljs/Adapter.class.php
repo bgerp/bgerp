@@ -8,7 +8,7 @@
  * @package   hljs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,9 +41,10 @@ class hljs_Adapter
     public static function enableHlJs($tpl, $style = 'default')
     {
         $conf = core_Packs::getConfig('hljs');
+        $version = $conf->HLJS_VERSION ?? HLJS_VERSION;
         
         // CSS fajla
-        $css = 'hljs/' . $conf->HLJS_VERSION . "/styles/{$style}.css";
+        $css = 'hljs/' . $version . "/styles/{$style}.css";
         
         // Ако стила не е по подразбиране
         if ($style != 'default') {
@@ -52,7 +53,7 @@ class hljs_Adapter
             if (!getFullPath($css)) {
                 
                 // Ако няма такъв файл, използваме стила по подразбиране
-                $css = 'hljs/' . $conf->HLJS_VERSION . '/styles/default.css';
+                $css = 'hljs/' . $version . '/styles/default.css';
             }
         }
         
@@ -60,7 +61,10 @@ class hljs_Adapter
         $tpl->push($css, 'CSS');
         
         // Добавяме JS
-        $tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
+        $tpl->push('hljs/' . $version . '/highlight.pack.js', 'JS');
+        if ($version === '11.12.0') {
+            $tpl->push('hljs/lib/compat.css', 'CSS');
+        }
         jquery_Jquery::run($tpl, 'runHljs();', true);
         jquery_Jquery::runAfterAjax($tpl, 'runHljs');
     }

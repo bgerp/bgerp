@@ -8,7 +8,7 @@
  * @package   orgchart
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,6 +42,7 @@ class orgchart_Adapter extends core_BaseClass
         $orgChartCnt++;
         
         $idChart = 'orgChart' . $orgChartCnt;
+        $sourceId = $idChart . 'Source';
         
         $level = 'NULL';
         $nestedLists = static::transformArrayToNestedLists($orgData, $level);
@@ -50,12 +51,13 @@ class orgchart_Adapter extends core_BaseClass
         $tpl = new ET();
         
         // Генерираме необходимия маркъп за плъгина
-        $tpl->append("<div class='organisation'>{$nestedLists}</div><div id='{$idChart}'></div>");
+        $tpl->append("<div class='organisation' id='{$sourceId}'>{$nestedLists}</div><div id='{$idChart}'></div>");
         
-        $tpl->push('orgchart/lib/jquery.orgchart.css', 'CSS');
-        $tpl->push('orgchart/lib/jquery.orgchart.js', 'JS');
+        $version = orgchart_Setup::get('VERSION') === '1.0.0' ? '1.0.0' : 'lib';
+        $tpl->push("orgchart/{$version}/jquery.orgchart.css", 'CSS');
+        $tpl->push("orgchart/{$version}/jquery.orgchart.js", 'JS');
         
-        jquery_Jquery::run($tpl, "$('.organisation > ul').orgChart({container: $('#{$idChart}'), interactive: true});", true);
+        jquery_Jquery::run($tpl, "$('#{$sourceId} > ul').orgChart({container: $('#{$idChart}'), interactive: true});", true);
         
         return $tpl;
     }
