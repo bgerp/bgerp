@@ -1792,6 +1792,66 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Проверява достъпа при редакция и възстановяване на връзката
+     *
+     * @param doc_Linked    $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|null $rec
+     * @param int|null      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($requiredRoles == 'no_one' || !in_array($action, array('edit', 'restore')) || empty($rec->id)) {
+
+            return;
+        }
+
+        $rec = $mvc->fetch($rec->id);
+        $access = array('out' => false, 'in' => false);
+
+        // Редакцията е възможна от всеки достъпен край; оттеглянето запазва стандартните права.
+        foreach (array('out', 'in') as $side) {
+            $type = $rec->{$side . 'Type'} ?? null;
+            $id = $rec->{$side . 'Val'} ?? null;
+            if (!$id) {
+                continue;
+            }
+
+            if ($type == 'doc') {
+                $cRec = doc_Containers::fetch($id);
+                if (empty($cRec->docClass) || empty($cRec->docId)) {
+                    continue;
+                }
+                $doc = doc_Containers::getDocument($cRec);
+                $access[$side] = $doc->fetch() && ($doc->haveRightFor('single', $userId) || $doc->haveRightFor('psingle', $userId));
+            } elseif ($type == 'file') {
+                $fRec = fileman_Files::fetch($id);
+                $access[$side] = $fRec && fileman_Files::haveRightFor('single', $fRec, $userId);
+            }
+        }
+
+        if (!$access['out'] && !$access['in']) {
+            $requiredRoles = 'no_one';
+        }
+
+        if ($action == 'restore') {
+            if (!$access['out'] || !$access['in']) {
+                $requiredRoles = 'no_one';
+            } elseif (($rec->inType ?? null) == 'doc') {
+                // Както при добавяне, цитираният документ трябва да е достъпен в избора.
+                $query = doc_Containers::getQuery();
+                doc_Threads::restrictAccess($query, $userId);
+                $query->where(array("#id = '[#1#]'", $rec->inVal ?? null));
+                if (!$query->fetch()) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
