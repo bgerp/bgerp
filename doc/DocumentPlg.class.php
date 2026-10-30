@@ -1995,7 +1995,14 @@ class doc_DocumentPlg extends core_Plugin
         
         $handle = $mvc->getHandle($id);
         $rec = $mvc->fetch($id);
-        
+
+        // Препратка към изтрит документ - само хендлър, без линк
+        if (!$rec) {
+            $link = ht::createLink("#{$handle}", array(), false, array('class' => 'red'));
+
+            return;
+        }
+
         if ($maxLength > 0) {
             $row = $mvc->getDocumentRow($id);
             $row->title = "#{$handle} - " . str::limitLen($row->title, $maxLength);
@@ -3024,18 +3031,19 @@ class doc_DocumentPlg extends core_Plugin
         // Ако ще се клонират данните
         if ($rec && ($action == 'cloneuserdata')) {
             $cRec = clone $rec;
+            $tRec = null;
             
             if (!empty($rec->threadId) && !empty($rec->containerId)) {
                 $tRec = doc_Threads::fetch($rec->threadId);
 
                 // Ако е първи документ, да се клонира в нова нишка
-                if ($tRec->firstContainerId == $rec->containerId) {
+                if (($tRec->firstContainerId ?? null) == $rec->containerId) {
                     unset($cRec->threadId);
                 }
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            if (!$tRec || !$mvc->haveRightFor('add', $cRec, $userId)) {
                 $requiredRoles = 'no_one';
             }
             

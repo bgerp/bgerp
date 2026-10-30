@@ -10,7 +10,7 @@
  * @package   markdown
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,6 +26,16 @@ class markdown_RichTextPlg extends core_Plugin
     }
     
     
+    /** Запазва fenced code блоковете в 2.0.0 преди обработката на inline код от Richtext. */
+    public function on_BeforeCatchRichElements($mvc, &$html)
+    {
+        if (stripos($html ?? '', '[md]') !== false && markdown_Setup::get('VERSION') === '2.0.0') {
+            $this->on_AfterCatchRichElements($mvc, $html);
+        }
+    }
+
+
+    /** Замества Markdown блоковете; при старите версии запазва досегашния ред. */
     public function on_AfterCatchRichElements($mvc, &$html)
     {
         // Обработваме [md].......[/md] елементите, които  съдържат връзки към файлове

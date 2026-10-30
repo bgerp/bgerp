@@ -963,10 +963,61 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $query->where(array("#containerId = [#1#]", $containerId));
         $query->orderBy('id', 'DESC');
         while($bolRec = $query->fetch()){
-            $res[] = (object)array('number' => $bolRec->number, 'date' => $bolRec->takingDate, 'file' => $bolRec->file, 'state' => $bolRec->state);
+            $res[] = (object)array('number' => $bolRec->number, 'date' => $bolRec->takingDate, 'file' => $bolRec->file, 'state' => $bolRec->state, 'stateVerbal' => speedy_WayBills::getVerbal($bolRec, 'state'));
         }
 
         return $res;
+    }
+
+
+    /**
+     * Последните издадени товарителници, от последната към първата
+     *
+     * @param int      $limit
+     * @param int|null $folderId - само към документи от тази папка
+     * @return array $res - обекти с containerId, number, createdOn, file, state и stateVerbal
+     */
+    public function getLastWayBills($limit, $folderId = null)
+    {
+        $res = array();
+        $query = speedy_WayBills::getQuery();
+        $query->where("#containerId IS NOT NULL");
+        if(isset($folderId)){
+            $query->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+            $query->where(array("#folderId = [#1#]", $folderId));
+        }
+        $query->orderBy('id', 'DESC');
+        $query->limit($limit);
+        while($bolRec = $query->fetch()){
+            $res[] = (object)array('containerId' => $bolRec->containerId, 'number' => $bolRec->number, 'createdOn' => $bolRec->createdOn, 'file' => $bolRec->file, 'state' => $bolRec->state, 'stateVerbal' => speedy_WayBills::getVerbal($bolRec, 'state'));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Данните, с които е издадена товарителницата, с името на офиса на получателя
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @return array|false $data  - false ако няма такава товарителница
+     */
+    public function getWayBillData($containerId, $number)
+    {
+        $rec = speedy_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        if(empty($rec)) return false;
+
+        $data = is_array($rec->data) ? $rec->data : array();
+        $officeNum = $data['recipient']['pickupOfficeId'] ?? null;
+        if(isset($officeNum)){
+            $officeRec = speedy_Offices::fetch(array("#num = [#1#]", $officeNum));
+            if($officeRec){
+                $data['recipient']['pickupOffice'] = $officeRec->extName ?? null;
+            }
+        }
+
+        return $data;
     }
 
 

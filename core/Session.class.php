@@ -150,7 +150,7 @@ class core_Session
             $Session = cls::get('core_Session');
         }
         
-        return $Session->_started;
+        return $Session->_started ?? null;
     }
     
     
@@ -167,7 +167,8 @@ class core_Session
 
         $Session = cls::get('core_Session');
         
-        if ($Session->_started) {
+        // Докато конструкторът работи (напр. чете конфигурацията), cls::get() връща временен stdClass
+        if (!empty($Session->_started)) {
             $dv = $Session->_decorate($varName);
             
             if (isset($_SESSION[$dv])) {

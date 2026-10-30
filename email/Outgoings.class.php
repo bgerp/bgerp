@@ -476,6 +476,8 @@ class email_Outgoings extends core_Master
 
         // Обхождаме масива с всички групи имейли
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
+            $status = false;
+            $error = '';
 
             // Вземаме имейлите от cc
             $emailsCc = $groupEmailsArr['cc'][$key] ?? null;
@@ -578,6 +580,7 @@ class email_Outgoings extends core_Master
                 } catch (core_exception_Expect $e) {
                     self::logErr('Грешка при изпращане', $rec->id);
                     reportException($e);
+                    $error = $e->getMessage();
                     $status = false;
                 }
 
@@ -587,8 +590,10 @@ class email_Outgoings extends core_Master
                 // Ако възникне грешка при изпращане
                 if (!$status) {
 
-                    // Записваме имейла, като върнат
-                    doclog_Documents::returned($rec->__mid);
+                    // Директният отказ няма DSN писмо, затова запазваме транспортната диагностика.
+                    $returnedOn = dt::now();
+                    $details = email_ReturnedDetails::fromSendError($error, $returnedOn);
+                    doclog_Documents::returned($rec->__mid ?? '', $returnedOn, null, $details);
 
                     email_AddressesInfo::addEmail($emailTo, true, 'error');
                 }

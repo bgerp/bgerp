@@ -33,7 +33,7 @@ class acc_reports_InvoiceResult extends core_BaseClass
         $remaining = self::BACKGROUND_ROWS;
         foreach (self::sourceQueries($rec) as $query) {
             $query->show('id');
-            if (!empty($rec->paymentType)) {
+            if (($rec->unpaid ?? 'all') == 'all' && !empty($rec->paymentType)) {
                 $query->where(array("IF(#paymentType IS NULL OR #paymentType = '', #autoPaymentType, #paymentType) = '[#1#]'", $rec->paymentType));
             }
             $remaining -= $query->count(null, $remaining + 1);
@@ -67,8 +67,12 @@ class acc_reports_InvoiceResult extends core_BaseClass
             $query->where('#number IS NOT NULL');
             $query->in('state', 'rejected,draft', true);
             $query->where(array("#date <= '[#1#]'", $rec->checkDate));
-            if (!empty($rec->fromDate)) $query->where(array("#date >= '[#1#]'", $rec->fromDate));
+            if (($rec->unpaid ?? 'all') == 'all' && !empty($rec->fromDate)) $query->where(array("#date >= '[#1#]'", $rec->fromDate));
             if (isset($folders)) $query->in('folderId', $folders);
+            if (($rec->unpaid ?? 'all') != 'all') {
+                acc_reports_InvoicesByContragent::excludeClosedDealThreads($query,
+                    $class == 'purchase_Invoices' ? 'purchase_Purchases' : 'sales_Sales', $rec->checkDate ?? dt::today(false), null, $folders);
+            }
             $query->onReplica = true;
             $queries[] = $query;
         }
@@ -89,7 +93,6 @@ class acc_reports_InvoiceResult extends core_BaseClass
             $generation = md5(uniqid((string) $rec->id, true));
             $settings = clone $rec;
             unset($settings->data, $settings->log, $settings->driverRec, $settings->_invoiceResultEdit);
-            $settings->_invoiceResultToday = dt::today();
             $job = (object) array('reportId' => $rec->id, 'generation' => $generation,
                 'filterHash' => $filterHash, 'settings' => $settings, 'state' => 'pending',
                 'started' => microtime(true), 'cursor' => 0, 'plan' => null,
@@ -357,6 +360,7 @@ class acc_reports_InvoiceResult extends core_BaseClass
         }
 
         $result = (object) array('recs' => array(), 'invoiceResultState' => 'complete',
+            'invoiceFamilyFormat' => 1,
             'resultGeneration' => $job->generation, 'resultFilterHash' => $job->filterHash,
             'invoiceBlocks' => $blocks, 'invoiceRowCount' => $count, 'invoiceTotals' => $job->invoiceTotals,
             'invoiceContentHash' => hash('sha256', serialize(array($job->filterHash, $digests, $job->totals, $job->invoiceTotals))));

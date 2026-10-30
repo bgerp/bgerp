@@ -347,8 +347,8 @@ class cad2_SvgCanvas extends cad2_Canvas
             $path->data[] = array($c, $x1, $y1, $x2, $y2, $x, $y);
         }
 
-        $this->setCP($x1, $y1, $absolute);
-        $this->setCP($x2, $y2, $absolute);
+        $this->fitPoint($absolute ? $x1 : $this->x + $x1, $absolute ? $y1 : $this->y + $y1);
+        $this->fitPoint($absolute ? $x2 : $this->x + $x2, $absolute ? $y2 : $this->y + $y2);
         $this->setCP($x, $y, $absolute);
     }
     

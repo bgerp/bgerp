@@ -31,9 +31,13 @@ class sass_Converter
         $baseName = basename($file);
         $useComposer = sass_Setup::get('USE_COMPOSER') === 'yes';
         $version = sass_Setup::get('VERSION');
+        if ($useComposer) {
+            $error = sass_Setup::getPhpVersionError($version);
+            expect(!$error, $error);
+        }
         $composerLoaded = $useComposer && core_Composer::isInUse();
 
-        if ($useComposer && $version === '1.13.0') {
+        if ($useComposer && $version !== '1.0.4') {
             expect($composerLoaded && class_exists('ScssPhp\\ScssPhp\\Version')
                 && version_compare(\ScssPhp\ScssPhp\Version::VERSION, $version, '=='),
                 'Липсва избраната версия на scssphp. Инициализирайте пакета sass.');
@@ -48,7 +52,7 @@ class sass_Converter
                 $parser = new Compiler();
                 // Парсираме и връщаме резултата
                 // Новото API запазва пътя за относителните @import директиви.
-                $res = $version === '1.13.0'
+                $res = $version !== '1.0.4'
                     ? $parser->compileFile($file)->getCss()
                     : $parser->compile(file_get_contents($file));
                 $isParsed = true;

@@ -47,7 +47,7 @@
  * @package   html2text
  *
  * @author    Jon Abernathy <jon@chuggnutt.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,7 +60,7 @@ class html2text_Html2Text
      * @var string $html
      * @access public
      */
-    public $html;
+    public $html = '';
     
     
     /**
@@ -245,7 +245,7 @@ class html2text_Html2Text
      */
     public function set($source = '', $from_file = false)
     {
-        if (!empty($source)) {
+        if ($source !== '' && $source !== null) {
             $this->set_html($source, $from_file);
         }
     }
@@ -262,7 +262,7 @@ class html2text_Html2Text
      */
     public function set_html($source, $from_file = false)
     {
-        $this->html = $source;
+        $this->html = (string) ($source ?? '');
         
         if ($from_file && file_exists($source)) {
             $fp = fopen($source, 'r');
@@ -333,6 +333,14 @@ class html2text_Html2Text
      */
     public function _convert()
     {
+        // WAP маркерите са стар специализиран формат, който няма upstream еквивалент.
+        if (html2text_Setup::get('VERSION') === '4.3.2' && !$this->wapSafe) {
+            $this->text = html2text_Modern::toPlainText($this->html, $this->width);
+            $this->_converted = true;
+
+            return;
+        }
+
         $link_count = 1;
         $this->_link_list = '';
 

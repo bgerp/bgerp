@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -540,10 +540,17 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             $row->number = $mvc->getHandle($rec->id);
-            $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-            $row->username = transliterate(tr($row->username));
-
             $profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
+
+            // Името от визитката на автора минава през потребителските ѝ преводи
+            $personId = $profRec->personId ?? null;
+            if (!empty($personId)) {
+                $row->username = transliterate(crm_Persons::getVerbal($personId, 'name'));
+            } else {
+                $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
+                $row->username = transliterate(tr($row->username));
+            }
+
             if (!empty($profRec)) {
                 if ($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')) {
                     $row->position = cls::get('type_Varchar')->toVerbal($position);

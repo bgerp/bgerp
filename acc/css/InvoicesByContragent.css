@@ -76,3 +76,52 @@
 .narrow .invoicesByContragentInfo {
     display: block;
 }
+
+.invoice-report-as-of {
+    color: #800000;
+    font-weight: bold;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-document {
+    display: block;
+    min-height: 1.7em;
+    line-height: 1.7;
+    white-space: nowrap;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-note {
+    font-size: 85%;
+    font-weight: normal;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-note,
+.acc_reports_InvoicesByContragent .invoice-report-note span,
+.acc_reports_InvoicesByContragent .invoice-report-note a {
+    color: #555 !important;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-context,
+.acc_reports_InvoicesByContragent .invoice-report-context span,
+.acc_reports_InvoicesByContragent .invoice-report-context a {
+    color: #aaa !important;
+    font-weight: normal;
+}
+
+.acc_reports_InvoicesByContragent td.invoice-report-value {
+    position: relative;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family-value .textHint {
+    display: block;
+    border-bottom: 0;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family td.invoice-report-aggregate {
+    vertical-align: middle;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family-value .textHint::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}

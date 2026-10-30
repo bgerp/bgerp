@@ -9,7 +9,7 @@
  * @package   tcost
  *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -190,11 +190,12 @@ class tcost_FeeZones extends core_Master
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
         $volumicWeight = null;
+        $zoneRec = null;
         if (!empty($weight) || !empty($volume)) {
             $multiplier = self::V2C;
-            if($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
+            if(!empty($params['deliveryCountry']) && ($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'] ?? ''))){
                 $zoneRec = tcost_FeeZones::fetch($zoneArr['zoneId'], 'volume2quantity,volume2quantityValidForAbove');
-                if($zoneRec->volume2quantity){
+                if(!empty($zoneRec->volume2quantity)){
                     $multiplier = $zoneRec->volume2quantity;
                 }
             }
