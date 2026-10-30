@@ -5218,11 +5218,16 @@ function render_makeTooltipFromTitle() {
 
 
 /**
- * Функция, която извиква подготвянето на показването на тоолтипове
- * Може да се комбинира с efae
+ * Оцветява новите блокове с код след AJAX обновяване.
  */
 function render_runHljs() {
     if (typeof hljs != 'undefined') {
+        if (hljs.highlightElement) {
+            document.querySelectorAll('pre code:not([data-highlighted])').forEach(function (block) {
+                hljs.highlightElement(block);
+            });
+            return;
+        }
         hljs.initHighlighting.called = false;
         hljs.initHighlighting();
     }
@@ -5234,6 +5239,14 @@ function render_runHljs() {
  */
 function runHljs() {
     if (typeof hljs != 'undefined') {
+        if (hljs.highlightElement) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', render_runHljs, {once: true});
+            } else {
+                render_runHljs();
+            }
+            return;
+        }
         hljs.tabReplace = '    ';
         hljs.initHighlightingOnLoad();
     }

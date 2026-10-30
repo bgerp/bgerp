@@ -1,0 +1,45 @@
+Hotkeys 4.0.8
+==============
+
+Официален пакет: https://registry.npmjs.org/hotkeys-js/-/hotkeys-js-4.0.8.tgz
+Проект: https://github.com/jaywcjlove/hotkeys-js
+Проверен npm SHA-512 integrity:
+sha512-A0nu5ZU7cN8nEx3uGUHrv1WnJvjPFUw4Cfxj8pLyR5AIg14ACP4D0YZ+5JHAPjlvUbPbgok56+XTZWjscYCV4A==
+MIT: Kenny Wong; Thomas Fuchs. Официалният LICENSE е запазен.
+
+Добавен е немодифицираният IIFE browser build hotkeys-js.min.js със source
+map. Пакетът предлага и ESM/UMD build, които не са нужни за bgERP push JS.
+За изрично използване:
+  $tpl->push('js/hotkeys/4.0.8/hotkeys-js.min.js', 'JS');
+Публичният API остава глобалната функция hotkeys. Не са нужни jQuery,
+Composer, npm или отделна PHP зависимост на инсталацията.
+
+Старият js/hotkeys.js 3.7.2 е оставен без промени. Не са намерени текущи
+извиквания в основните PHP/JS шаблони или активните частни пакети.
+Затова няма автоматично зареждане, нова глобална настройка или промяна
+на клавишните комбинации на приложението. Не е създаден изкуствен
+core_Packs избор за библиотека без текущ адаптер/потребител.
+Използващите библиотеката извън проверените хранилища могат изрично
+да изберат новия път, след тест на собствените shortcuts.
+
+Тестове
+-------
+js/tests/widgets.browser.js е споделен browser тест с Wheelzoom.
+Изисква тестова страница с #hotkeys-target (tabindex=0), #hotkeys-count,
+#hotkeys-input (value=Кирилица), #hotkeys-area (textarea),
+#hotkeys-edit (contenteditable=true) и #widget-images (контейнер).
+Заредете точно една Hotkeys и една Wheelzoom версия. Извикайте от бутон:
+  await checkOptionalWidgets(false, false) // 3.7.2 + 3.1.2: 20 проверки
+  await checkOptionalWidgets(true, true)   // 4.0.8 + 4.0.1: 24 проверки
+Всяко изпълнение започва от свежа тестова страница.
+
+Проверено в Chromium през PHP 7.4.33 и 8.2.34, със стандартен SBF:
+обикновен клавиш, Ctrl+Shift, keyup, scope, deleteScope, unbind,
+игнориране на input/textarea/contenteditable и запазен текст на кирилица.
+Проверено и с реално натискане на Q извън поле и вътре в input: само
+първото изпълнява shortcut. JavaScript syntax check преминава.
+Няма PHP runtime код в новата библиотека; PHP версиите обслужват fixture-а.
+
+Ограничения: не са проверени Safari/Firefox, физическа Mac клавиатура,
+всички езикови подредби, всички API опции или чужди интеграции. Новият
+build използва модерен JavaScript; не заявяваме съвместимост с IE.
