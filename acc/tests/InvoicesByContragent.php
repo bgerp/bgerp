@@ -150,6 +150,7 @@ class core_ET {
     public $assets = array();
     public function __construct($content) { $this->content = $content; }
     public function getContent() { return $this->content; }
+    public function __toString() { return $this->getContent(); }
     public function append($value, $place) {
         if ($value instanceof self) $value = $value->getContent();
         $marker = '[#' . $place . '#]';
@@ -169,7 +170,10 @@ class ht {
     }
     public static function createLinkRef($title, $url) { return $title; }
     public static function createLink($title, $url, $warning = false, $attr = array()) { return '<a href="/' . $url[0] . '/single/' . $url[2] . '">' . $title . '</a>'; }
-    public static function createHint($title, $hint, $type) { return $title; }
+    public static function createHint($title, $hint, $type, $append = true, $hintAttr = array(), $elementAttr = array()) {
+        return $type == 'noicon' ? '<span class="' . ($elementAttr['class'] ?? '') . '"><span class="textHint" title="'
+            . htmlspecialchars($hint, ENT_QUOTES, 'UTF-8') . '">' . $title . '</span></span>' : $title;
+    }
     public static function createElement($tag, $attr, $content) {
         return new core_ET('<' . $tag . ' class="' . ($attr['class'] ?? '') . '">' . $content . '</' . $tag . '>');
     }
@@ -181,7 +185,7 @@ class InvoiceTestDb {
     public function escape($value) { return addslashes($value); }
 }
 class keylist {
-    public static function toArray($value) { return array_filter(explode('|', $value ?? '')); }
+    public static function toArray($value) { $ids = array_values(array_filter(explode('|', $value ?? ''))); return array_combine($ids, $ids); }
 }
 class arr {
     public static function make($value, $keys = false) {
@@ -228,6 +232,18 @@ class InvoiceTestQuery {
         // Изключването на приключените сделки в SQL се проверява и по фактура
         if (is_string($condition) && strpos($condition, '#threadId NOT IN (SELECT ') === 0) {
             InvoiceTestData::$sqlConditions[] = $condition;
+            preg_match('/`closed_on` (<=|<) \'([^\']+)\'/', $condition, $cutoff);
+            preg_match('/`id` NOT IN \(([^)]+)\)/', $condition, $united);
+            $excludedIds = isset($united[1]) ? explode(',', $united[1]) : array();
+            $this->filter(function ($invoice) use ($cutoff, $excludedIds) {
+                foreach (array('sales_Sales', 'purchase_Purchases') as $class) {
+                    foreach (InvoiceTestData::$records[$class] ?? array() as $deal) {
+                        if (($deal->threadId ?? null) != ($invoice->threadId ?? null) || ($deal->state ?? '') != 'closed' || in_array($deal->id, $excludedIds)) continue;
+                        if (($cutoff[1] == '<' && ($deal->closedOn ?? '') < $cutoff[2]) || ($cutoff[1] == '<=' && ($deal->closedOn ?? '') <= $cutoff[2])) return false;
+                    }
+                }
+                return true;
+            });
 
             return;
         }
@@ -424,11 +440,15 @@ class InvoiceDateForm {
     public $rec, $layout;
     public $errors = array();
     public $values = array();
+    public $fieldParams = array();
+    public $suggestions = array();
     public $submitted = false;
     public function __construct($rec) { $this->rec = $rec; }
     public function renderLayout() { return new core_ET(''); }
     public function setDefault($name, $value) { if (!isset($this->rec->{$name})) $this->rec->{$name} = $value; }
-    public function setField($name, $value) {}
+    public function setField($name, $value) { $this->fieldParams[$name] = $value; }
+    public function appendSuggestions($name, $suggestions) { $this->suggestions[$name] = array_merge($this->suggestions[$name] ?? array(), $suggestions); }
+    public function setFieldTypeParams($name, $params) { $this->fieldParams[$name] = array_merge($this->fieldParams[$name] ?? array(), $params); }
     public function input($names = null, $mode = null) {
         foreach ($this->values as $name => $value) {
             if ($names === null || $names === $name) $this->rec->{$name} = $value;
@@ -449,6 +469,7 @@ function reportRec($direction, $payment) {
     return (object)array('typeOfInvoice' => $direction, 'unpaid' => $payment, 'checkDate' => '2026-10-15');
 }
 $driver = new InvoiceReportTest();
+if (defined('INVOICE_REPORT_FIXTURE_ONLY')) return;
 $fieldset = new core_FieldSet();
 $driver->addFields($fieldset);
 check(strpos($fieldset->fields['typeOfInvoice'], 'all=Всички') !== false, 'Опция за двата вида');
@@ -487,7 +508,7 @@ foreach (array('out', 'in') as $direction) {
     check(key($rows) == 'spacer|Acme' && strip_tags(reset($rows)->getContent()) == '', 'Празен разделител и преди първата фирма: ' . $direction);
     check(strpos($row->invoiceSummary, $direction == 'out' ? 'ПРОДАЖБИ' : 'ПОКУПКИ') !== false, 'Видът е в реда със сумите: ' . $direction);
     $rec->unpaid = 'unpaid';
-    check(count($driver->run($rec, $data)) == 6, 'Запазен режим неплатени и надплатени: ' . $direction);
+    check(count($driver->run($rec, $data)) == 5, 'Неплатени и надплатени без погасените до стотинка: ' . $direction);
     $rec->unpaid = 'all';
     check(count($driver->run($rec, $data)) == 7, 'Запазен режим всички плащания: ' . $direction);
 }
@@ -895,7 +916,7 @@ foreach (array('out', 'in', 'all') as $direction) {
                     foreach (array(array(1, '2026-10-01', 100, 40), array(2, '2026-09-30', 200, 50)) as $invoice) {
                         list($id, $date, $amount, $paid) = $invoice;
                         InvoiceTestData::invoice($kind, $id, 'Acme', '2026-10-14', $amount * $factor, $paid * $factor, $date);
-                        if (isset($from) && $date < $from) continue;
+                        if ($payment == 'all' && isset($from) && $date < $from) continue;
                         $expectedIds[] = $class . '|' . $id;
                         $amounts = array($amount, $paid, $amount - $paid, 0, $amount - $paid);
                         foreach ($amounts as $i => $value) {
@@ -954,7 +975,7 @@ foreach (array('out', 'in', 'all') as $direction) {
         deals_Helper::$conversions = 0;
         $recs = $driver->run($rec, $data);
         check(!$recs && $rec->totalInvoiceValueAll == 0, 'Отпадналите по начин фактури не влизат в обобщението: ' . $case);
-        check(deals_Helper::$conversions <= ($direction == 'all' ? 80 : 40), 'Отпадналите фактури не се обработват повторно: ' . $case);
+        check(deals_Helper::$conversions <= ($direction == 'all' ? 80 : 40), 'Отпадналите фактурни групи не се обработват повторно: ' . $case);
         foreach (array('sales_Sales', 'purchase_Purchases') as $dealClass) {
             InvoiceTestData::$records[$dealClass][0]->contoActions = 'pay';
         }
@@ -1339,7 +1360,7 @@ foreach (array('out', 'in') as $direction) {
     $legacy = $driver->run($rec, $data);
     $rec->accountingCorrections = 'yes';
     $corrected = $driver->run($rec, $data);
-    check(count($legacy) == 1 && closeAmount(reset($legacy)->invoiceCurrentSumm, 0), 'При Не остатъкът е до стотинка при запазен състав на редовете: ' . $direction);
+    check(count($legacy) == 0, 'При Не погасените до стотинка не остават като неплатени с 0.00: ' . $direction);
     check(count($corrected) == 0, 'При Да платените до стотинка фактури не остават като неплатени с 0.00: ' . $direction);
 }
 
@@ -1541,7 +1562,7 @@ foreach (array('out', 'in', 'all') as $direction) {
             $rows = $driver->run($rec, $data);
             $case = $direction . '/' . $payment . '/' . $flag;
             $params = $driver->fieldParams($rec);
-            check($params['invoiceValue'] == 'caption=Стойност' && $params['invoiceValueBaseCurr'] == 'caption=|Стойност|*<br>EUR,tdClass=invoice-report-base-value', 'Общи заглавия и клас за помощната стойност: ' . $case);
+            check($params['invoiceValue'] == 'caption=Стойност,tdClass=invoice-report-value' && $params['invoiceValueBaseCurr'] == 'caption=|Стойност|*<br>EUR,tdClass=invoice-report-base-value invoice-report-value', 'Общи заглавия и клас за помощната стойност: ' . $case);
             if ($payment != 'all' || $flag == 'yes') check(strpos($params['invoiceCurrentSumm'], 'caption=Състояние->|Неплатено|*<br>EUR') === 0, 'Общо заглавие за остатъка: ' . $case);
             $info = $driver->info($rec, $data);
             check(strpos($info, 'Обобщени резултати') < strpos($info, '>Филтър<'), 'Обобщението е преди филтъра: ' . $case);
@@ -1644,7 +1665,7 @@ foreach (array('out', 'in', 'all') as $direction) {
                 // Самото отваряне не преизчислява и не сменя датата на стария резултат.
                 $head = array('title' => array('val' => 'AI'));
                 InvoiceReportTest::on_AfterGetFieldForLetterHead($driver, new embed_Manager(), $head, $saved, new stdClass());
-                check($head['checkDate']['val'] == '2026-10-26', 'Антетката пази датата на показвания резултат: ' . $case);
+                check(strip_tags($head['checkDate']['val']) == '2026-10-26', 'Антетката пази датата на показвания резултат: ' . $case);
                 $secondData = $driver->prepareData($saved);
                 check(($saved->checkDate ?? null) == '2026-10-27' && ($saved->useTodayAsCheckDate ?? null) == 'yes', 'Обновяване на следващия ден без редакция: ' . $case);
                 check(count($secondData->recs ?? array()) == 2 * $oldCount, 'Включват се и фактурите от новия ден: ' . $case);
@@ -1918,6 +1939,20 @@ foreach (array('out', 'in') as $direction) {
         $old = $driver->verbal($rec, $credit);
         check(empty($old->invoiceCurrentSumm) && closeAmount(strip_tags($old->invoiceOverSumm ?? '0'), 4.01), 'Стара снимка не смесва нови колони със стари обобщения');
     }
+}
+
+// Реален BCKP пример: CSV трябва да съдържа показаните стотинки, без скрити дробни части.
+foreach (array('no', 'yes') as $corrections) {
+    $rec = reportRec('in', 'all');
+    $rec->accountingCorrections = $corrections;
+    $detail = (object) array('className' => 'purchase_Invoices', 'invoiceId' => 1, 'invoiceNo' => '0417542287',
+        'invoiceDate' => '2025-11-13', 'dueDate' => '2025-11-24', 'currencyId' => 'BGN', 'rate' => 1.95583,
+        'invoiceValue' => 1858.505085, 'invoicePayout' => 1858.505085 / 1.95583, 'invoiceCurrentSumm' => 0,
+        'type' => 'invoice', 'contragent' => 'CSV precision');
+    $export = $driver->exportRow($rec, $detail);
+    check(closeAmount($export->invoiceValue, 3634.92), 'CSV закръгля и стойността във валутата на фактурата: ' . $corrections);
+    check(closeAmount($export->paidAmount, 1858.51) && closeAmount($export->invoiceValueBaseCurr, 1858.51), 'CSV няма скрита точност в стойността и платеното: ' . $corrections);
+    check(closeAmount($export->paidAmount + $export->paidAmount, 3717.02), 'Сборът на изнесените плащания е сбор на показаните стотинки: ' . $corrections);
 }
 
 echo "OK: {$checks} invoice report checks\n";

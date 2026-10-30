@@ -12,7 +12,8 @@
         <!--ET_END onlinePaymentDriver-->
         <!--ET_BEGIN DRIVER_DATA-->
         <fieldset class="detail-info">
-            [#DRIVER_DATA#]
+            [#DRIVER_LEGEND#]
+            <ul>[#DRIVER_DATA#]</ul>
         </fieldset>
         <!--ET_END DRIVER_DATA-->
         

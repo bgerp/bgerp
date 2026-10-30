@@ -852,8 +852,11 @@ class draw_Designs extends core_Master
             return false;
         }
         
-        $svg->closePath(false);
-        $svg->startPath();
+        // Вътрешните контури остават в същия път без свързваща линия.
+        if (strtolower(trim($params[2] ?? '')) !== 'subpath') {
+            $svg->closePath(false);
+            $svg->startPath();
+        }
         $svg->moveTo($x, $y, true);
     }
     

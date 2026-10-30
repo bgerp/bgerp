@@ -8,29 +8,41 @@
  *
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class ztm_Adapter extends core_Mvc
 {
+    /**
+     * Подготвя самостоятелното табло с избраната Bootstrap версия.
+     */
     public function act_Default()
     {
         Mode::set('wrapper', 'page_PureHtml');
         
         
         $tpl = new ET(getTplFromFile('ztm/tpl/dashboard.shtml'));
+        $modern = ztm_Setup::get('BOOTSTRAP_VERSION') === '5.3.8';
+        $tpl->replace($modern ? 'bs-' : '', 'BS_DATA_PREFIX');
+        $tpl->replace($modern ? '' : 'xs-', 'BS_XS_PREFIX');
+        $tpl->replace($modern ? 'btn-close btn-close-white' : 'close text-white-50', 'BS_CLOSE_CLASS');
+        $tpl->replace($modern ? '' : '<span aria-hidden="true">&times;</span>', 'BS_CLOSE_ICON');
         
         
-        $tpl->push('ztm/css/bootstrap.min.css', 'CSS');
+        $tpl->push($modern ? 'cms/bootstrap/5.3.8/css/bootstrap.min.css' : 'ztm/css/bootstrap.min.css', 'CSS');
         $tpl->push('ztm/css/rangeslider.css', 'CSS');
         $tpl->push('ztm/css/layout.css', 'CSS');
         
         
         $tpl->push('ztm/js/jquery-3.1.1.min.js', 'JS');
-        $tpl->push('ztm/js/popper.min.js', 'JS');
-        $tpl->push('ztm/js/bootstrap.min.js', 'JS');
+        if ($modern) {
+            $tpl->push('cms/bootstrap/5.3.8/js/bootstrap.bundle.min.js', 'JS');
+        } else {
+            $tpl->push('ztm/js/popper.min.js', 'JS');
+            $tpl->push('ztm/js/bootstrap.min.js', 'JS');
+        }
         $tpl->push('ztm/js/skycons.js', 'JS');
         $tpl->push('ztm/js/rangeslider.js', 'JS');
         $tpl->push('ztm/js/custom.js', 'JS');
@@ -59,6 +71,7 @@ class ztm_Adapter extends core_Mvc
         $tpl->replace($lampImg, 'lamp');
         $tpl->replace($blindsImg, 'blinds');
         $tpl->replace($fanImg, 'vent');
+        $tpl->replace(ht::createImg(array('path' => 'img/16/settings.png', 'alt' => 'Настройки')), 'settings');
         return $tpl;
     }
 }

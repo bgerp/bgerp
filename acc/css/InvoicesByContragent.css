@@ -6,7 +6,38 @@
 }
 
 .wide #main-container .invoicesByContragentForm .formTable .formElement {
-    min-width: 24em;
+    min-width: 0;
+}
+
+.wide .invoicesByContragentForm .formFields > table {
+    table-layout: fixed;
+}
+
+.wide .invoicesByContragentForm .formFieldCaption {
+    width: 11em;
+    white-space: normal;
+}
+
+.invoicesByContragentForm .formElement input,
+.invoicesByContragentForm .formElement select,
+.invoicesByContragentForm .formElement .select2-container {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) td {
+    white-space: normal !important;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) label {
+    max-width: calc(100% - 1.6em) !important;
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
 .wide .invoicesByContragentForm select[name="driverClass"] + .select2-container {
@@ -75,4 +106,55 @@
 
 .narrow .invoicesByContragentInfo {
     display: block;
+}
+
+.invoice-report-as-of {
+    color: #800000;
+    font-weight: bold;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-document {
+    display: block;
+    min-height: 1.7em;
+    line-height: 1.7;
+    white-space: nowrap;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-note {
+    font-size: 85%;
+    font-weight: normal;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-note,
+.acc_reports_InvoicesByContragent .invoice-report-note span,
+.acc_reports_InvoicesByContragent .invoice-report-note a {
+    color: #555 !important;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-context,
+.acc_reports_InvoicesByContragent .invoice-report-context span,
+.acc_reports_InvoicesByContragent .invoice-report-context a {
+    color: #aaa !important;
+    font-weight: normal;
+}
+
+.acc_reports_InvoicesByContragent td.invoice-report-value {
+    position: relative;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family-value .textHint {
+    display: block;
+    border-bottom: 0;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family td.invoice-report-aggregate {
+    vertical-align: middle;
+}
+
+.acc_reports_InvoicesByContragent .invoice-report-family-value .textHint::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(225deg, #888 50%, transparent 50%) top right / 6px 6px no-repeat;
+    cursor: help;
 }

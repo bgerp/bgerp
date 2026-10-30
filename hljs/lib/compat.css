@@ -1,0 +1,4 @@
+/* Visual tab width without replacing the source text copied by the user. */
+pre code.hljs {
+    tab-size: 4;
+}

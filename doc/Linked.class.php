@@ -350,6 +350,12 @@ class doc_Linked extends core_Manager
             
             return ;
         }
+
+        // Блокът е извън формата и остава на страницата при AJAX обновяване.
+        if (($form->cmd ?? null) == 'refresh' && Request::get('ajax_mode')) {
+
+            return;
+        }
         
         $className = '';
         if (Mode::is('screenMode', 'wide')) {
@@ -482,15 +488,28 @@ class doc_Linked extends core_Manager
         expect($inType && $inVal);
         
         if ($inType == 'doc') {
-            $docInst = doc_Containers::getDocument($outVal);
-            
             $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($inVal);
-            if ($document->haveRightFor('single')) {
+            $canView = $document->haveRightFor('single');
+            if (!$canView && ($lRec->state ?? null) == 'active') {
+                // Активната връзка и достъпът до източника са проверени по-горе.
+                expect($dRec = $document->fetch());
+                $allowedName = $document->instance->getAllowedContainerName();
+                $allowed = Mode::get($allowedName) ?? array();
+                $allowed[$inVal] = $inVal;
+                Mode::setPermanent($allowedName, $allowed);
+
+                // Както след pSingle, проверяваме отново без кеширания предишен отказ.
+                $canView = haveRole($document->instance->getRequiredRoles('single', $dRec));
+            }
+            if ($canView) {
                 Request::push(array('ajax_mode' => false), 'noAjaxMode');
-                $docHtml = $document->getInlineDocumentBody();
-                Request::pop('noAjaxMode');
+                try {
+                    $docHtml = $document->getInlineDocumentBody();
+                } finally {
+                    Request::pop('noAjaxMode');
+                }
                 
                 $tplRes->replace($docHtml, 'DOCUMENT');
             }
@@ -1785,6 +1804,66 @@ class doc_Linked extends core_Manager
     }
     
     
+    /**
+     * Проверява достъпа при редакция и възстановяване на връзката
+     *
+     * @param doc_Linked    $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|null $rec
+     * @param int|null      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($requiredRoles == 'no_one' || !in_array($action, array('edit', 'restore')) || empty($rec->id)) {
+
+            return;
+        }
+
+        $rec = $mvc->fetch($rec->id);
+        $access = array('out' => false, 'in' => false);
+
+        // Редакцията е възможна от всеки достъпен край; оттеглянето запазва стандартните права.
+        foreach (array('out', 'in') as $side) {
+            $type = $rec->{$side . 'Type'} ?? null;
+            $id = $rec->{$side . 'Val'} ?? null;
+            if (!$id) {
+                continue;
+            }
+
+            if ($type == 'doc') {
+                $cRec = doc_Containers::fetch($id);
+                if (empty($cRec->docClass) || empty($cRec->docId)) {
+                    continue;
+                }
+                $doc = doc_Containers::getDocument($cRec);
+                $access[$side] = $doc->fetch() && ($doc->haveRightFor('single', $userId) || $doc->haveRightFor('psingle', $userId));
+            } elseif ($type == 'file') {
+                $fRec = fileman_Files::fetch($id);
+                $access[$side] = $fRec && fileman_Files::haveRightFor('single', $fRec, $userId);
+            }
+        }
+
+        if (!$access['out'] && !$access['in']) {
+            $requiredRoles = 'no_one';
+        }
+
+        if ($action == 'restore') {
+            if (!$access['out'] || !$access['in']) {
+                $requiredRoles = 'no_one';
+            } elseif (($rec->inType ?? null) == 'doc') {
+                // Както при добавяне, цитираният документ трябва да е достъпен в избора.
+                $query = doc_Containers::getQuery();
+                doc_Threads::restrictAccess($query, $userId);
+                $query->where(array("#id = '[#1#]'", $rec->inVal ?? null));
+                if (!$query->fetch()) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *

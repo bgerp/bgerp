@@ -8,15 +8,24 @@ https://select2.org/|Select2|Kevin Brown
 https://ckeditor.com|CKEditor|Frederico Knabben
 https://fancyapps.com/fancybox/|FancyBox|Janis Skarnelis
 https://chuggnutt.com/html2text|class.html2text.inc|Jon Abernathy
+https://github.com/mtibben/html2text|Html2Text|Jon Abernathy, mtibben и сътрудници от RoundCube
 https://github.com/powerbuoy/|Colour Picker|Andreas Lagerkvist
 https://jquery.com/|jQuery JavaScript Library|John Resig
+https://getbootstrap.com/|Bootstrap|Екипа на Bootstrap
+https://github.com/floating-ui/floating-ui/tree/v2.x|Popper|Federico Zivolo и сътрудници
 https://github.com/tijsverkoyen/CssToInlineStyles|CssToInlineStyles|Tijs Verkoyen
 https://pelagodesign.com/sidecar/emogrifier/|Emogrifier|Pelago Corp.
+https://github.com/symfony/css-selector|Symfony CssSelector|Fabien Potencier, Jean-François Simon и сътрудници
+https://github.com/symfony/polyfill|Symfony Polyfills|Nicolas Grekas и сътрудници
+https://github.com/MyIntervals/PHP-CSS-Parser|Sabberworm PHP CSS Parser|Raphael Schweikert, Oliver Klee, Jake Hotson и сътрудници
 https://github.com/dagwieers/unoconv|unoconv|Dag Wieers
+https://github.com/unoconv/unoserver|unoserver|Lennart Regebro и сътрудници
 https://wkhtmltopdf.org/|wkhtmltopdf|Екипа на wkhtmltopdf
 https://tika.apache.org/|Apache Tika|Apache Software Foundation
 https://sourceforge.net/projects/phpbarcode/|phpbarcode|Demonte Jean-Baptiste, Hourez Jonathan
 https://sourceforge.net/projects/phpqrcode/files/|phpqrcode|Dominik Dzienia
+https://github.com/mebjas/html5-qrcode|html5-qrcode|Minhaz и сътрудници
+https://github.com/zxing-js/library|ZXing for JS|Adrian Toșcă, David Werth, Luiz Barni и сътрудници от ZXing
 https://github.com/jodconverter/jodconverter|JODConverter|Mirko Nasato и екипа на JODConverter
 https://github.com/akquinet/jquery-toastmessage-plugin|jquery toastmessage|Daniel Bremer-Tonn
 https://openoffice.org/download/|openoffice|Екипа на OpenOffice
@@ -24,8 +33,12 @@ https://zbar.sourceforge.net/|zbar|Jeff Brown
 https://daringfireball.net/projects/markdown/|Markdown|John Gruber
 https://michelf.ca/projects/php-markdown/|PHP Markdown Extra|Michel Fortin
 https://pear.php.net/package/File_IMC|File_IMC|Paul M. Jones
+https://github.com/PHPOffice/PhpSpreadsheet|PhpSpreadsheet|Maarten Balliauw, Mark Baker и екипа на PHPOffice
+https://github.com/shuchkin/simplexlsx|SimpleXLSX|Sergey Shuchkin и сътрудници
 https://sourceforge.net/projects/jscalendar/|DHTML Date/Time Selector|Mihai Bazon
 https://github.com/jackmoore/autosize|Autosize|Jack Moore
+https://github.com/GreyWyvern/virtual-keyboard|Virtual Keyboard|Brian Huisman и сътрудници
+https://github.com/kabachello/jQuery.NumPad|jQuery.NumPad|Andrej Kabachnik, almasaeed2010 и сътрудници
 https://canvas-gauges.com/|Canvas Gauges|Mykhailo Stadnyk
 https://www.chartjs.org/|Chart.js|Екипа на Chart.js
 https://codemirror.net/|CodeMirror|Marijn Haverbeke и екипа на CodeMirror
@@ -46,6 +59,7 @@ https://github.com/krakorj/phpmodbus|Phpmodbus|Jan Krakora
 https://github.com/u01jmg3/ics-parser|PHP ICS Parser|Martin Thoma, John Grogg, Jonathan Goode
 https://code.google.com/archive/p/xmpphp/|XMPPHP|Nathan Fritz, Stephan Wentz и сътрудници
 https://github.com/rgrove/jsmin-php|JSMin PHP|Douglas Crockford, Ryan Grove, Steve Clay
+https://github.com/tedious/JShrink|JShrink|Robert Hafner и сътрудници
 https://github.com/tubalmartin/YUI-CSS-compressor-PHP-port|CSS Minifier|Tubal Martin и сътрудници
 https://tesseract-ocr.github.io/|Tesseract OCR|Екипа на Tesseract
 https://poppler.freedesktop.org/|Poppler|Екипа на Poppler
@@ -65,9 +79,11 @@ https://github.com/pqina/tick/|Tick и Flip|PQINA
 https://github.com/PButcher/flipdown|FlipDown|Peter Butcher
 https://github.com/jackmoore/wheelzoom|Wheelzoom|Jack Moore
 https://github.com/jaywcjlove/hotkeys-js|Hotkeys.js|Kenny Wong
-https://github.com/arlocarreon|PHP Colors|Arlo Carreon
+https://github.com/michaelcbrook/simpleUpload.js|SimpleUpload|Michael Brook
+https://github.com/darkskyapp/skycons|Skycons|The Dark Sky Company; Adam Whitcroft (Climacons)
+https://github.com/mexitek/phpColors|PHP Colors|Arlo Carreon
 https://github.com/niallkennedy/open-graph-protocol-tools|Open Graph Protocol Tools|Niall Kennedy
-https://github.com/ltoscano/ponvif|ponvif / PHP ONVIF|Lorenzo Toscano, KuroNeko-san, Rick и сътрудници
+https://github.com/KuroNeko-san/ponvif|ponvif / PHP ONVIF|Lorenzo Toscano, KuroNeko-san, Rick и сътрудници
 https://github.com/minkphp/Mink|Mink|Екипа на Mink
 https://github.com/minkphp/MinkGoutteDriver|Mink Goutte Driver|Екипа на Mink
 http://led24.de/iconset/|LED Icon Set|Екипа на LED24
@@ -78,6 +94,7 @@ https://fasticon.com/|Fast Icon|Fast Icon
 https://bannerflow.com/|Bannerflow|Екипа на Nordic Factory
 https://p.yusukekamiyamane.com/|Fugue icons|Yusuke Kamiyamane
 https://capricasoftware.co.uk/|Caprica Software|Екипа на Caprica Software Limited
+https://github.com/caprica/jquery-orgchart|jQuery OrgChart|Mark Lee, Caprica Software Limited, Paul Lautman
 https://heartinternet.co.uk/|Heart Internet|Екипа на Heart Internet
 https://dezinerfolio.com/|Dezinerfolio|Екипa на Dezinerfolio
 https://iconarchive.com/|IconArchive|IconArchive

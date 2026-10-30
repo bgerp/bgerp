@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -525,7 +525,14 @@ class cond_PaymentMethods extends embed_Manager
             $fields = $mvc->getDriverFields($Driver);
             if(is_array($fields)){
                 foreach ($fields as $field => $caption){
-                    $str = "<span class='quiet'>{$caption}</span>: {$data->row->{$field}}";
+
+                    // Групата от "Група->Поле" става заглавие на блока
+                    list($group, $label) = (strpos($caption, '->') !== false) ? explode('->', $caption, 2) : array('', $caption);
+                    if (!empty($group)) {
+                        $tpl->replace("<legend class='groupTitle'>" . tr($group) . '</legend>', 'DRIVER_LEGEND', true);
+                    }
+
+                    $str = "<li class='info'><span class='gray-title'>" . tr($label) . ": </span> " . ($data->row->{$field} ?? '') . '</li>';
                     $tpl->append($str, 'DRIVER_DATA');
                 }
             }

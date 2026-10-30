@@ -96,6 +96,25 @@ check(!$nearest->pinChanges && $nearest->scheduled->assets[1]->packageLinks === 
 $moved = proposal($context, 3, '2026-10-08 10:30:00', 'move');
 feasible($moved, 'Foreign fixed package may move only in the explicit move variant');
 check(!empty($moved->pinChanges[2]) && $moved->scheduled->assets[1]->packageLinks === array(2 => 1), 'Explicit variant lists the foreign pin change without splitting its package');
+ScenarioTargetTimes::$context = $context;
+planning_Tasks::$records = $context->baseline;
+$conflictForm = scenarioForm((object)array('id' => 3, 'assetId' => 1, 'timeStart' => '2026-10-08 10:30:00'));
+ScenarioTargetTimes::validateForm(new planning_Tasks(), $conflictForm);
+$report = $conflictForm->_targetTimesReport ?? array();
+check($conflictForm->gotErrors() && strpos($report['conflictText'] ?? '', 'Opr') !== false
+    && strpos($report['conflictText'] ?? '', 'При първоначалния опит') === false,
+    'The form identifies the conflict without a technical preamble');
+check(strpos($report['conflictText'] ?? '', 'пробен план') === false
+    && strpos($report['conflictText'] ?? '', 'ориентир за търсенето') === false,
+    'The form omits internal fallback diagnostics and shows only checked alternatives');
+$alternatives = array_column($report['alternatives'] ?? array(), null, 'mode');
+check(!empty($alternatives['nearest']['available']) && !empty($alternatives['move']['available']),
+    'Diagnostic clarification does not disable the independently checked alternatives');
+check(($alternatives['nearest']['report']['proposedStart'] ?? null) === dt::mysql2verbal($nearest->proposedStart ?? '', 'd.m.Y H:i')
+    && ($alternatives['move']['report']['proposedStart'] ?? null) === '08.10.2026 10:30',
+    'Each selected alternative retains its own checked proposal rather than the diagnostic date');
+check(serialize($context) === $snapshot && (planning_Tasks::$records[2]->timeStart ?? null) === '2026-10-08 11:00:00',
+    'Preparing clarified alternatives never changes foreign fixed starts or package links');
 $ownPackage = proposal($context, 1, '2026-10-08 14:00:00');
 check(!empty($ownPackage->conflicts), 'Fixing a package head after its fixed successor is refused');
 $ownNearest = proposal($context, 1, '2026-10-08 14:00:00', 'nearest');

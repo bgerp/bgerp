@@ -37,6 +37,11 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
 /**
+ * Bootstrap за CMS темите; запазва досегашните CSS 5.3.2 и JS 5.3.3.
+ */
+defIfNot('CMS_BOOTSTRAP_VERSION', 'legacy');
+
+/**
  * Дали да се показва менюто във футъра
  */
 defIfNot('CMS_FOOTER_MENU', 'no');
@@ -100,6 +105,8 @@ class cms_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'CMS_PAGE_WRAPPER' => array('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
+
+        'CMS_BOOTSTRAP_VERSION' => array('enum(legacy=CSS 5.3.2 / JS 5.3.3,5.3.8=5.3.8)', 'caption=Външен изглед->Bootstrap'),
 
         'CMS_FOOTER_MENU' => array('enum(yes=Да, no=Не)', 'caption=Външен изглед->Меню във футъра'),
 

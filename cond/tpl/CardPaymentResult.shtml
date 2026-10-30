@@ -1,0 +1,16 @@
+<div class="cpr-box">
+    <div class="cpr-icon [#CLASS#]">[#ICON#]</div>
+    <h2>[#TITLE#]</h2>
+    <!--ET_BEGIN NOTE--><p class="cpr-note">[#NOTE#]</p><!--ET_END NOTE-->
+    <!--ET_BEGIN cardholderInfo--><p class="cpr-bank">[#cardholderInfo#]</p><!--ET_END cardholderInfo-->
+    <div class="cpr-amount">[#amount#] <span>[#currencyCode#]</span></div>
+    <table class="cpr-info">
+        <tr><td>|Номер на плащането|*</td><td>[#orderNum#]</td></tr>
+        <!--ET_BEGIN transactionRef--><tr><td>|Трансакция|*</td><td>[#transactionRef#]</td></tr><!--ET_END transactionRef-->
+        <!--ET_BEGIN cardNumber--><tr><td>|Карта|*</td><td>[#cardNumber#]</td></tr><!--ET_END cardNumber-->
+        <!--ET_BEGIN approvalCode--><tr><td>|Код за одобрение|*</td><td>[#approvalCode#]</td></tr><!--ET_END approvalCode-->
+        <!--ET_BEGIN paidOn--><tr><td>|Дата|*</td><td>[#paidOn#]</td></tr><!--ET_END paidOn-->
+    </table>
+    <!--ET_BEGIN LINKS--><div class="cpr-links">[#LINKS#]</div><!--ET_END LINKS-->
+    <!--ET_BEGIN BTN--><div class="cpr-btn">[#BTN#]</div><!--ET_END BTN-->
+</div>

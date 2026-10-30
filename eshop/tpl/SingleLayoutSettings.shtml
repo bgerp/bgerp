@@ -78,6 +78,7 @@
          </table>
       </div>
    </fieldset>
+   [#ADDITIONAL_BLOCK#]
 
    <!--ET_BEGIN DELIVERY_BLOCK-->[#DELIVERY_BLOCK#]
    <fieldset class="detail-info">

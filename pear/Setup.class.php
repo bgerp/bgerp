@@ -1,17 +1,18 @@
 <?php
 
+defIfNot('PEAR_FILE_IMC_VERSION', 'legacy');
 
 /**
  * Клас 'pear_Setup'
  *
- * Исталиране/деинсталиране на Apachetika
+ * Настройки за File_IMC
  *
  *
  * @category  bgerp
  * @package   pear
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -35,4 +36,10 @@ class pear_Setup extends core_ProtoSetup
      * Пакет без инсталация
      */
     public $noInstall = true;
+
+
+    /** Досегашното местно копие остава default. */
+    public $configDescription = array(
+        'PEAR_FILE_IMC_VERSION' => array('enum(legacy=Досегашна,0.6.1)', 'mandatory,caption=File_IMC->Версия'),
+    );
 }

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.2" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+ <name>File_IMC</name>
+ <channel>pear.php.net</channel>
+ <summary>Create and parse Internet Mail Consortium-style files (like vCard and vCalendar)</summary>
+ <description>Allows you to programmatically create a vCard or vCalendar, and fetch the text.
+
+IMPORTANT: The array structure has changed slightly from Contact_Vcard_Parse.
+See the example output for the new structure.  Also different from Contact_Vcard
+is the use of a factory pattern.  Again, see the examples.</description>
+ <lead>
+  <name>Marshall Roch</name>
+  <user>mroch</user>
+  <email>mroch@php.net</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Paul Jones</name>
+  <user>pmjones</user>
+  <email>pmjones88@gmail.com</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Till Klampaeckel</name>
+  <user>till</user>
+  <email>till@php.net</email>
+  <active>yes</active>
+ </lead>
+ <date>2012-08-15</date>
+ <time>14:30:00</time>
+ <version>
+  <release>0.5.0</release>
+  <api>0.5.0</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.opensource.org/licenses/bsd-license.php">The BSD License</license>
+ <notes>
+* various bug fixes and improvements by Brad Kent: https://github.com/pear/File_IMC/pull/5
+ </notes>
+ <contents>
+  <dir name="/">
+   <dir name="docs">
+    <file name="sample.vcf" role="doc" />
+    <file name="sample.vcs" role="doc" />
+    <file name="vcalendar_parse_example.php" role="doc" />
+    <file name="vcard_build_example.php" role="doc" />
+    <file name="vcard_parse_example.php" role="doc" />
+   </dir> <!-- /docs -->
+   <dir name="File">
+    <dir name="IMC">
+     <dir name="Build">
+      <file name="Vcard.php" role="php">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+     </dir> <!-- /File/IMC/Build -->
+     <dir name="Parse">
+      <dir name="Vcalendar">
+       <file name="Event.php" role="php">
+        <tasks:replace from="@package_version@" to="version" type="package-info" />
+       </file>
+       <file name="Events.php" role="php">
+        <tasks:replace from="@package_version@" to="version" type="package-info" />
+       </file>
+      </dir> <!-- /File/IMC/Parse/Vcalendar -->
+      <file name="Vcalendar.php" role="php">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+      <file name="Vcard.php" role="php">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+     </dir> <!-- /File/IMC/Parse -->
+     <file name="Build.php" role="php">
+      <tasks:replace from="@package_version@" to="version" type="package-info" />
+     </file>
+     <file name="Exception.php" role="php">
+      <tasks:replace from="@package_version@" to="version" type="package-info" />
+     </file>
+     <file name="Parse.php" role="php">
+      <tasks:replace from="@package_version@" to="version" type="package-info" />
+     </file>
+    </dir> <!-- /File/IMC -->
+    <file name="IMC.php" role="php">
+     <tasks:replace from="@package_version@" to="version" type="package-info" />
+    </file>
+   </dir> <!-- /File -->
+   <dir name="tests">
+    <file name="AllTests.php" role="test">
+     <tasks:replace from="@package_version@" to="version" type="package-info" />
+    </file>
+    <dir name="File">
+     <dir name="IMC">
+      <file name="BugsTest.php" role="test">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+      <file name="BuildTest.php" role="test">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+      <file name="ParseTest.php" role="test">
+       <tasks:replace from="@package_version@" to="version" type="package-info" />
+      </file>
+      <dir name="Parse">
+       <file name="VcalendarTest.php" role="test">
+        <tasks:replace from="@package_version@" to="version" type="package-info" />
+       </file>
+      </dir>
+     </dir>
+    </dir>
+    <file name="sample.vcf" role="test" />
+    <file name="sample.vcs" role="test" />
+    <file name="vcard-parse.phpt" role="test" />
+   </dir> <!-- /tests -->
+  </dir> <!-- / -->
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>5.0.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.6.0</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <phprelease />
+ <changelog>
+  <release>
+   <version>
+    <release>0.5.0</release>
+    <api>0.5.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-08-15</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">The BSD License</license>
+   <notes>
+* various bug fixes and improvements by Brad Kent: https://github.com/pear/File_IMC/pull/5
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.4.3</release>
+    <api>0.4.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2011-10-30</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">The BSD License</license>
+   <notes>
+* Fix Bug #17656: New Lines [till]
+ * Fix Bug #18375: Undefined index EMAIL in Build/Vcard.php on line 1155 [till]
+ * Fix Bug #18802: Undefined index [till]
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.4.2</release>
+    <api>0.4.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2010-06-29</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">The BSD License</license>
+   <notes>
+* Fix Bug #15608: IMC.php can&apos;t locate drivers [till]
+ * Fix Bug #16637: Does not handle Carriage Return (\r) [till]
+ * Fix Bug #17115: Tests fail [till]
+ * Implement Feature #17080: Avoid setting include path in unit tests [till]
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.4.1</release>
+    <api>0.4.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2009-06-29</date>
+   <license uri="http://www.opensource.org/licenses/bsd-license.php">The BSD License</license>
+   <notes>
+* #15608: fixed file loading (again)
+* fixed class-/file-naming (a slight BC break)
+* raised dependency to PHP5
+* changed license from PHP to BSD
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.3</release>
+    <api>0.3</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-09-30</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+* Added file_exists() check to prevent E_NOTICE errors in factory if file doesnt exist (thanks, Davey)
+* Cleaned up error handling to let the user app have control (File_IMC_Build::raiseError() no longer passes a PEAR_ERROR_* to PEAR::raiseError()) (thanks, Greg)
+* Minor documentation additions/modifications (thanks, Greg)
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.2</release>
+    <api>0.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-09-22</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+* Added preliminary vCalendar parsing support.  Has yet to be tested with complex input files.
+* Added vCard build support from Contact_Vcard_Build.
+* File_IMC_Parse can now handle nested BEGIN/END blocks (to support vCal).
+* Included example scripts and sample vCard and vCalendar files.
+
+IMPORTANT: The array structure has changed slightly from Contact_Vcard_Parse.
+See the example output for the new structure.  Also different from Contact_Vcard
+is the use of a factory pattern.  Again, see the examples.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.1</release>
+    <api>0.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-09-20</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+Initial release, moved from Contact_Vcard_Parse
+   </notes>
+  </release>
+ </changelog>
+</package>

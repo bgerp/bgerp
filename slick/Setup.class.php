@@ -16,10 +16,10 @@ defIfNot('SLICK_VERSION', '1.9');
  * @package   slick
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
- * @link      http://fancybox.net/
+ * @link      https://github.com/kenwheeler/slick
  */
 class slick_Setup extends core_ProtoSetup
 {
@@ -40,7 +40,7 @@ class slick_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'SLICK_VERSION' => array('enum(1.8,1.9)', 'mandatory, caption=Версията на програмата->Версия')
+        'SLICK_VERSION' => array('enum(1.8,1.9,2.0.1)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
 }

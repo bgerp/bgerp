@@ -8,10 +8,7 @@ body.b2b-theme.executive-theme.eshop-public .eshop-product-list {
     background: #fff;
     box-shadow: 0 4px 24px #292c2b08;
 }
-body.b2b-theme.executive-theme.eshop-public .eshop-product-list:is(:hover, :focus-within) {
-    border-color: var(--c-accent-line-strong);
-    box-shadow: 0 6px 22px #573c2e12;
-}
+
 body.b2b-theme.executive-theme.eshop-public .executive-card-code {
     padding: 16px 20px;
     text-align: center;
@@ -35,10 +32,7 @@ body.b2b-theme.executive-theme.eshop-public .eshop-product-list .eshop-product-l
 }
 body.b2b-theme.executive-theme.eshop-public .b2b-card-hover-image { inset: 24px; }
 body.b2b-theme.executive-theme.eshop-public .eshop-card-content { padding: 24px 24px 32px; }
-body.b2b-theme.executive-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard):hover {
-    background: #414941 !important;
-    border-color: #414941 !important;
-}
+
 body.b2b-theme.executive-theme.eshop-public #cmsNavigation .commerce-shortcuts .favouriteNavigationLink {
     border: 1px solid var(--c-line);
     border-radius: 20px;
@@ -84,11 +78,7 @@ body.b2b-theme.executive-theme.eshop-public .eshop-group-button {
     background: transparent;
     overflow: visible;
 }
-body.b2b-theme.executive-theme.eshop-public .eshop-group-button:is(:hover, :focus-within) {
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-}
+
 body.b2b-theme.executive-theme.eshop-public .eshop-group-button .eshop-group-button-img {
     width: 100%;
     max-width: none;
@@ -114,10 +104,7 @@ body.b2b-theme.executive-theme.eshop-public .eshop-group-button .eshop-group-but
     text-align: center;
     font: 400 1.125rem/1.4 Arial, Helvetica, sans-serif;
 }
-body.b2b-theme.executive-theme.eshop-public .eshop-group-button:is(:hover, :focus-within) .eshop-group-button-img {
-    background: var(--c-accent-soft-2);
-    box-shadow: 0 0 0 3px var(--c-accent-line);
-}
+
 body.b2b-theme.executive-theme.eshop-public .eshop-card-actions .productBtn { border-radius: 24px; }
 @media (max-width: 1100px) {
     body.commerce-theme.b2b-theme.executive-theme.eshop-public .eshop-content .eshop-product-list-holder { grid-template-columns: repeat(2, minmax(0, 1fr)); }
