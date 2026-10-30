@@ -43,7 +43,7 @@ $setup = new backup_Setup();
 $check(BACKUP_AWS_VERSION === '3.272.2' && BACKUP_STORAGE_TYPE === 'local' && $setup->version === '0.1', 'Defaults unchanged');
 $error = backup_Setup::getPhpVersionError($version);
 if ($error) {
-    $check(PHP_VERSION_ID < 80200 && $version === '3.402.3', 'PHP version guard');
+    $check(PHP_VERSION_ID < 80200 && in_array($version, array('3.402.3', '3.402.4'), true), 'PHP version guard');
     $check($setup->checkConfig() === $error, 'Standard setup error');
     $check(strpos($setup->install(), $error) !== false && !core_Composer::$calls, 'Unsupported SDK does not touch Composer');
     $blocked = false;

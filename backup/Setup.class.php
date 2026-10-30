@@ -175,7 +175,7 @@ class backup_Setup extends core_ProtoSetup
         
         'BACKUP_PREFIX' => array('varchar', 'caption=Имена на архивираните файлове->Префикс'),
         'BACKUP_STORAGE_TYPE' => array('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
-        'BACKUP_AWS_VERSION' => array('enum(3.272.2,3.337.3,3.402.3=3.402.3 (PHP 8.2+))', 'mandatory,caption=Амазон->AWS SDK версия'),
+        'BACKUP_AWS_VERSION' => array('enum(3.272.2,3.337.3,3.402.3=3.402.3 (PHP 8.2+),3.402.4=3.402.4 (PHP 8.2+))', 'mandatory,caption=Амазон->AWS SDK версия'),
         'BACKUP_LOCAL_PATH' => array('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
         'BACKUP_FILEMAN_COUNT_FILES' => array('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
         'BACKUP_MYSQL_USER_NAME' => array('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
@@ -211,8 +211,8 @@ class backup_Setup extends core_ProtoSetup
     /** Проверява PHP преди зареждане на Composer или промяна на настройката. */
     public static function getPhpVersionError($version)
     {
-        if ($version === '3.402.3' && PHP_VERSION_ID < 80200) {
-            return 'AWS SDK 3.402.3 изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 3.337.3.';
+        if (in_array($version, array('3.402.3', '3.402.4'), true) && PHP_VERSION_ID < 80200) {
+            return "AWS SDK {$version} изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 3.337.3.";
         }
     }
 
