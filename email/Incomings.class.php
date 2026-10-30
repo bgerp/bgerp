@@ -2865,7 +2865,7 @@ class email_Incomings extends core_Master
                     }
                 }
                 
-                if (!empty($ratingsArr) && $rec->folderId) {
+                if (!empty($ratingsArr) && !empty($rec->folderId)) {
                     
                     return $rec->folderId;
                 }

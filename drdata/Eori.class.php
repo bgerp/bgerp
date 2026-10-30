@@ -389,7 +389,7 @@ class drdata_Eori extends core_Manager
         
         $data->listFilter->input('eoriNum');
         
-        if ($data->listFilter->rec->eoriNum) {
+        if (!empty($data->listFilter->rec->eoriNum)) {
             $data->query->like('eori', $data->listFilter->rec->eoriNum);
         }
         

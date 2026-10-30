@@ -1037,6 +1037,15 @@ class eshop_Carts extends core_Master
         }
 
         $fields['priceListId'] = $priceListId;
+
+        // Нашата фирма е запомнена в количката, а по-старите колички я взимат от настройките
+        if (core_Packs::isInstalled('holding')) {
+            $ownCompanyId = !empty($rec->ownCompanyId) ? $rec->ownCompanyId : holding_plg_EshopCarts::getOwnCompanyId($settings);
+            if ($ownCompanyId != crm_Setup::BGERP_OWN_COMPANY_ID) {
+                $fields[cls::get('sales_Sales')->ownCompanyFieldName ?? 'ownCompanyId'] = $ownCompanyId;
+            }
+        }
+
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;

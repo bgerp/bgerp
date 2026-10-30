@@ -24,6 +24,12 @@
                <td>[#domainId#]</td>
             </tr>
             <!--ET_END domainId-->
+            <!--ET_BEGIN ownCompanyId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Наша фирма|*:</td>
+               <td>[#ownCompanyId#]</td>
+            </tr>
+            <!--ET_END ownCompanyId-->
             
             <!--ET_BEGIN userId-->
             <tr>
