@@ -9,7 +9,7 @@
  * @package   phpmailer
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,7 +74,7 @@ class phpmailer_Instance extends core_BaseClass
         if (!empty($params['emailTo'])) {
             list($user, $domain) = explode('@', $params['emailTo']);
             if ($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
-                if (countR($mxhosts) && ! $params['Host']) {
+                if (countR($mxhosts) && empty($params['Host'])) {
                     $params['Host'] = $mxhosts[0];
                     $params['SMTPAuth'] = false;
                     $params['SMTPSecure'] = false;
