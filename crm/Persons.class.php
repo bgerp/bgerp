@@ -1625,14 +1625,15 @@ class crm_Persons extends core_Master
 
                 if (is_array($address)) {
                     // За сега използваме първия адрес от първия възможен тип:
-                    $address = reset($address);
+                    $addresses = reset($address);
+                    $address = is_array($addresses) ? (reset($addresses) ?: array()) : array();
 
-                    $rec->place = $address['locality'];
+                    $rec->place = $address['locality'] ?? '';
 
                     //
                     // {{{ Извличане на държавата
                     //
-                    $country = $address['country'];
+                    $country = $address['country'] ?? '';
                     if (!empty($country) &&
                         !($rec->country = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $country), 'id')) &&
                         !($rec->country = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $country), 'id'))) {
@@ -1644,8 +1645,8 @@ class crm_Persons extends core_Master
                     //
                     // Край с държавата }}}
                     //
-                    $rec->pCode = $address['code'];
-                    $rec->address = $address['street'];
+                    $rec->pCode = $address['code'] ?? '';
+                    $rec->address = $address['street'] ?? '';
                 }
 
 
