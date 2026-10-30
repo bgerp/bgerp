@@ -287,7 +287,7 @@ class File_IMC_Build_Vcard extends File_IMC_Build
 	* @return mixed Void on success
 	* @throws File_IMC_Exception ... on failure.
 	*/
-	protected function _setFN($text=null, $iter)
+	protected function _setFN($text=null, $iter=0)
 	{
 		if ( $text === null ) {
 			// no text was specified for the FN, so build it
