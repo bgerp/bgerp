@@ -80,4 +80,37 @@ class bgfisc_plg_EshopSettings extends core_Plugin
             $form->setError('n18ShopUrl', 'При онлайн платформа трябва да се посочи адресът на магазина в нея|*!');
         }
     }
+
+    /**
+     * Колона за режима по Н-18 след домейна
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        arr::placeInAssocArray($data->listFields, array('n18Mode' => 'Н-18'), null, 'objectId');
+    }
+
+
+    /**
+     * Показване на настройките по Н-18 в сингъла
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        $row = $data->row;
+        $block = new ET(tr("|*<fieldset class='detail-info'><legend class='groupTitle'>|Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)|*</legend><div class='groupList'><table class='noBorder' style='width:99%'>
+            <tr><td class='title-style' style='width:150px'>|Режим|*:</td><td>[#n18Mode#]</td></tr>
+            <!--ET_BEGIN n18ShopNumber--><tr><td class='title-style' style='width:150px'>|Номер от НАП|*:</td><td>[#n18ShopNumber#]</td></tr><!--ET_END n18ShopNumber-->
+            <!--ET_BEGIN n18ShopType--><tr><td class='title-style' style='width:150px'>|Вид|*:</td><td>[#n18ShopType#]</td></tr><!--ET_END n18ShopType-->
+            <!--ET_BEGIN n18ShopUrl--><tr><td class='title-style' style='width:150px'>|Уеб адрес|*:</td><td>[#n18ShopUrl#]</td></tr><!--ET_END n18ShopUrl-->
+            </table></div></fieldset>"));
+
+        $block->replace($row->n18Mode ?? '', 'n18Mode');
+        if (($data->rec->n18Mode ?? null) == 'yes') {
+            foreach (array('n18ShopNumber', 'n18ShopType', 'n18ShopUrl') as $field) {
+                $block->replace($row->{$field} ?? null, $field);
+            }
+        }
+
+        $block->removeBlocksAndPlaces();
+        $tpl->append($block, 'ADDITIONAL_BLOCK');
+    }
 }
