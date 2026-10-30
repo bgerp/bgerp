@@ -1938,4 +1938,18 @@ foreach (array('out', 'in') as $direction) {
     }
 }
 
+// Реален BCKP пример: CSV трябва да съдържа показаните стотинки, без скрити дробни части.
+foreach (array('no', 'yes') as $corrections) {
+    $rec = reportRec('in', 'all');
+    $rec->accountingCorrections = $corrections;
+    $detail = (object) array('className' => 'purchase_Invoices', 'invoiceId' => 1, 'invoiceNo' => '0417542287',
+        'invoiceDate' => '2025-11-13', 'dueDate' => '2025-11-24', 'currencyId' => 'BGN', 'rate' => 1.95583,
+        'invoiceValue' => 1858.505085, 'invoicePayout' => 1858.505085 / 1.95583, 'invoiceCurrentSumm' => 0,
+        'type' => 'invoice', 'contragent' => 'CSV precision');
+    $export = $driver->exportRow($rec, $detail);
+    check(closeAmount($export->invoiceValue, 3634.92), 'CSV закръгля и стойността във валутата на фактурата: ' . $corrections);
+    check(closeAmount($export->paidAmount, 1858.51) && closeAmount($export->invoiceValueBaseCurr, 1858.51), 'CSV няма скрита точност в стойността и платеното: ' . $corrections);
+    check(closeAmount($export->paidAmount + $export->paidAmount, 3717.02), 'Сборът на изнесените плащания е сбор на показаните стотинки: ' . $corrections);
+}
+
 echo "OK: {$checks} invoice report checks\n";
