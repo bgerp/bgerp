@@ -1,0 +1,28 @@
+<div class="tcg-page">
+    <div class="tcg-box">
+        <div class="tcg-head">
+            <span class="tcg-lock">&#128274;</span> |Сигурно плащане с карта|*
+            <span class="tcg-badge">TEST</span>
+        </div>
+        <div class="tcg-body">
+            <div class="tcg-amount">[#AMOUNT#] <span>[#CURRENCY#]</span></div>
+            <table class="tcg-info">
+                <tr><td>|Поръчка|*</td><td>[#ORDER#]</td></tr>
+                <tr><td>|Търговец|*</td><td>[#MERCHANT#]</td></tr>
+                <tr><td>|Терминал|*</td><td>[#TERMINAL#]</td></tr>
+            </table>
+            <div class="tcg-card">
+                <div class="tcg-chip"></div>
+                <div class="tcg-number">4341 79&bull;&bull; &bull;&bull;&bull;&bull; 0044</div>
+                <div class="tcg-card-foot"><span>TEST CARDHOLDER</span><span>12/30</span></div>
+            </div>
+            [#PAY#]
+            <div class="tcg-scenarios">
+                <div class="tcg-caption">|Сценарии за тест|*</div>
+                [#SCENARIOS#]
+            </div>
+            [#DECLINE#]
+        </div>
+        <div class="tcg-foot">|Не се плаща нищо - отговорът е подписан като от истински шлюз|*. |Повторен отговор|*: |назад в браузъра и същия бутон|*.</div>
+    </div>
+</div>

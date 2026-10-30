@@ -4238,3 +4238,69 @@ en,Документ за регистриране на продажбата,Sale
 en,Документът не е създаден при плащането - нов опит със запазените данни,The document was not created at payment - retry with the saved data
 en,Код на плащането (PAYM),Payment code (PAYM)
 en,Н-18,N-18
+en,Плащания с карта,Card payments
+en,Плащане с карта,Card payment
+en,Номер в шлюза,Gateway order number
+en,Код за одобрение,Approval code
+en,Платено на,Paid on
+en,Отговор на шлюза,Gateway response
+en,Отказано,Declined
+en,Терминал (TID),Terminal (TID)
+en,Вид по Н-18,Type under N-18
+en,Доставчик на платежни услуги,Payment service provider
+en,Пренасочване към страницата за плащане с карта,Redirecting to the card payment page
+en,Към плащането,Proceed to payment
+en,Плащане с банкова карта,Payment by bank card
+en,"Моля, завършете поръчката, като платите от бутона",Please complete the order by paying with the button
+en,Тестово плащане с карта,Test card payment
+en,Тестов шлюз за плащане с карта,Test card payment gateway
+en,сума,amount
+en,терминал,terminal
+en,Не се плаща нищо - отговорът е подписан като от истински шлюз,Nothing is charged - the response is signed like a real gateway
+en,Плати без референция,Pay without reference
+en,Откажи,Decline
+en,Невалиден отговор от шлюза,Invalid gateway response
+en,Непознато плащане,Unknown payment
+en,Методът на плащане не е картов,The payment method is not a card payment
+en,Невалиден подпис на заявката,Invalid request signature
+en,Сума в основна валута,Amount in base currency
+en,Отразено на,Recorded on
+en,Опити за отразяване,Recording attempts
+en,Плащането не е прието,The payment was not accepted
+en,Плащането е получено,The payment was received
+en,Поръчката ще бъде потвърдена допълнително - не плащайте повторно,The order will be confirmed later - do not pay again
+en,Плащането се обработва в момента,The payment is being processed right now
+en,Платеното е отразено,The payment was recorded
+en,Платеното пак не е отразено - причината е в лога,The payment is still not recorded - the reason is in the log
+en,Повторен опит за отразяване на платеното в поръчката,Retry recording the payment in the order
+en,Поръчката не очаква плащане с карта,The order does not expect a card payment
+en,Плати с грешка при отразяване,Pay with a recording error
+en,Плати друга сума,Pay a different amount
+en,Повторен отговор,Repeated response
+en,назад в браузъра и същия бутон,back in the browser and the same button
+en,Сигурно плащане с карта,Secure card payment
+en,Сценарии за тест,Test scenarios
+en,Номер на плащането,Payment number
+en,Плащането е успешно,The payment was successful
+en,Платено с карта,Paid by card
+en,Не е фискален бон,Not a fiscal receipt
+en,Дан. група,Tax group
+en,Обща сума за плащане,Total amount paid
+en,"Документ по чл. 52о от Наредба № Н-18 за регистриране и отчитане на продажби в търговските обекти, издаден по електронен път","Document under Art. 52o of Ordinance No. N-18 on the registration and reporting of sales in retail outlets, issued electronically"
+en,Електронен магазин,Online shop
+en,Няма такъв документ,No such document
+en,Плащането не е завършено автоматично,The payment was not completed automatically
+en,"Ако сумата е изтеглена от картата Ви, ще се свържем с Вас - не плащайте повторно","If the amount was charged to your card, we will contact you - do not pay again"
+en,За купувача,For the buyer
+en,Публичният изглед - адресът от имейла за поръчката,The public view - the address from the order email
+en,Отмяна,Reversal
+en,Към плащане,To payment
+en,Статус в шлюза,Gateway status
+en,Съобщение от банката,Message from the bank
+en,Плащането е отказано,The payment was declined
+en,Обратно към поръчката,Back to the order
+en,Плащането се обработва,The payment is being processed
+en,"Ще получите имейл, когато плащането приключи - не плащайте повторно","You will receive an email when the payment completes - do not pay again"
+en,Отговор в обработка,Response in progress
+en,Чл. 52о,Art. 52o
+en,Платено и неотразено,Paid but not recorded
