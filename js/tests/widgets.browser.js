@@ -49,3 +49,29 @@ async function checkOptionalWidgets(modern, regressions) {
     }
     return {modern:modern,checks:checks};
 }
+
+/** Regression fixed upstream in Hotkeys 4.0.9: single with a custom separator. */
+function checkHotkeysSingle() {
+    var calls = [];
+    var options = {splitKey: '-', single: true, scope: 'qa-single'};
+    hotkeys('ctrl-a', options, function () { calls.push('previous'); });
+    hotkeys('ctrl-a', options, function () { calls.push('replacement'); });
+    hotkeys.setScope('qa-single');
+    try {
+        var target = document.getElementById('hotkeys-target');
+        target.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'a', code: 'KeyA', keyCode: 65, which: 65, ctrlKey: true, bubbles: true
+        }));
+        target.dispatchEvent(new KeyboardEvent('keyup', {
+            key: 'a', code: 'KeyA', keyCode: 65, which: 65, bubbles: true
+        }));
+        if (JSON.stringify(calls) !== '["replacement"]') {
+            throw Error('single + splitKey invoked: ' + JSON.stringify(calls));
+        }
+        return {checks: 1, calls: calls};
+    } finally {
+        hotkeys.unbind();
+        hotkeys.deleteScope('qa-single');
+        hotkeys.setScope('all');
+    }
+}
