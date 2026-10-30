@@ -185,6 +185,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form->layout = $form->renderLayout();
         $form->layout->append(' invoicesByContragentForm', 'CLASS');
         $form->layout->push('acc/css/InvoicesByContragent.css', 'CSS');
+        $form->appendSuggestions('changeFields', array('accountingCorrections' => 'Отчитане на корекции с МО'));
+        $form->setFieldTypeParams('changeFields', array('maxChars' => 60));
 
         // Начални стойности и видимост на полетата според избрания режим (всички / неплатени).
         $form->setDefault('seeProformаs', null);

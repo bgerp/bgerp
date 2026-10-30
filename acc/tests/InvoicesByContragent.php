@@ -441,11 +441,14 @@ class InvoiceDateForm {
     public $errors = array();
     public $values = array();
     public $fieldParams = array();
+    public $suggestions = array();
     public $submitted = false;
     public function __construct($rec) { $this->rec = $rec; }
     public function renderLayout() { return new core_ET(''); }
     public function setDefault($name, $value) { if (!isset($this->rec->{$name})) $this->rec->{$name} = $value; }
     public function setField($name, $value) { $this->fieldParams[$name] = $value; }
+    public function appendSuggestions($name, $suggestions) { $this->suggestions[$name] = array_merge($this->suggestions[$name] ?? array(), $suggestions); }
+    public function setFieldTypeParams($name, $params) { $this->fieldParams[$name] = array_merge($this->fieldParams[$name] ?? array(), $params); }
     public function input($names = null, $mode = null) {
         foreach ($this->values as $name => $value) {
             if ($names === null || $names === $name) $this->rec->{$name} = $value;
