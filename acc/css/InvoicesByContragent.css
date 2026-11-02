@@ -35,6 +35,11 @@
     max-width: 32em;
 }
 
+/* Ограничението важи и преди Select2 да скрие първоначалния списък. */
+.invoicesByContragentForm select[multiple] {
+    width: 100%;
+}
+
 /* select2 записва естествената ширина на дългия списък и избутва полетата извън формата */
 .wide #main-container .invoicesByContragentForm select[multiple] + .select2-container {
     width: 100% !important;
@@ -63,7 +68,13 @@
 
 .invoicesByContragentInfo .invoice-report-filter {
     flex: 0 1 auto;
+    /* Дългите имена се пренасят, вместо сами да разтягат целия блок. */
+    width: min-content;
     max-width: 40%;
+}
+
+.invoicesByContragentInfo .invoice-report-results > .small > div:first-child b > span {
+    white-space: nowrap;
 }
 
 .invoicesByContragentInfo .invoice-report-filter:only-child {
@@ -77,11 +88,16 @@
     overflow-wrap: break-word;
 }
 
+.invoicesByContragentInfo .invoice-report-filter > .small > .invoice-report-filter-row:nth-child(2) {
+    padding-bottom: 3px;
+    border-bottom: 1px solid #ccc;
+}
+
 .invoicesByContragentInfo .invoice-report-filter-options {
     display: flex;
+    width: max-content;
+    max-width: 100%;
     column-gap: 8px;
-    margin-top: 3px;
-    border-top: 1px solid #ccc;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-main {
@@ -111,6 +127,7 @@
 }
 
 .narrow .invoicesByContragentInfo .invoice-report-filter {
+    width: auto;
     max-width: 100%;
 }
 
