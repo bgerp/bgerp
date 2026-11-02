@@ -128,6 +128,18 @@ defIfNot('CORE_COOKIE_SECURE', 'no');
 
 
 /**
+ * Колко секунди след последното действие на потребителя ще се пази неговата сесия
+ */
+defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
+
+
+/**
+ * Максимална продължителност на сесията, независимо от активността
+ */
+defIfNot('EF_USERS_SESS_LIFETIME', 10 * 3600);
+
+
+/**
  * Колко дълго да се пазят файловете в temp директорията
  * 10 дни
  */
@@ -396,6 +408,10 @@ class core_Setup extends core_ProtoSetup
         'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
 
         'CORE_COOKIE_SECURE' => array('enum(no=Не,yes=Да)', 'caption=Сигурност на кукитата->Само през HTTPS,hint=За brid и сесията. При задължителен HTTPS винаги е включено.'),
+
+        'EF_USERS_SESS_TIMEOUT' => array('time(min=300,suggestions=30 мин|1 час|2 часа|3 часа|4 часа|8 часа)', 'caption=Сесия на потребителя->Изход след неактивност'),
+
+        'EF_USERS_SESS_LIFETIME' => array('time(min=3600,suggestions=3 часа|8 часа|10 часа|12 часа|24 часа)', 'caption=Сесия на потребителя->Максимална продължителност,hint=Важи при сесии в базата данни (BGERP_MYSQL_SESSION)'),
         
         'CORE_TEMP_PATH_MAX_AGE' => array('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
         
