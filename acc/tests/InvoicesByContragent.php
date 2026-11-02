@@ -1380,8 +1380,8 @@ foreach (array('out', 'in', 'all') as $direction) {
         $row = $driver->verbal($rec, $detail);
         $summary = $direction == 'all' ? $row->combinedSummary : $row->invoiceSummary;
         $info = $driver->info($rec, $data);
-        $plainSummary = strip_tags($summary);
-        $plainInfo = strip_tags($info);
+        $plainSummary = str_replace('&nbsp;', ' ', strip_tags($summary));
+        $plainInfo = str_replace('&nbsp;', ' ', strip_tags($info));
         $formula = $direction == 'out' ? 'Стойност: 100.00 - Корекции: 10.00 - Платено: 20.00 = Остатък: 70.00 EUR'
             : ($direction == 'in' ? 'Стойност: 200.00 - Корекции: 30.00 - Платено: 50.00 = Остатък: 120.00 EUR'
                 : 'Стойност: -100.00 - Корекции: (-20.00) - Платено: (-30.00) = Остатък: -50.00 EUR');
