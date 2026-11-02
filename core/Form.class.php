@@ -419,7 +419,7 @@ class core_Form extends core_FieldSet
             
             $captions = str_replace('->', '|* » |', $field->caption);
             
-            if ($value === '' && $field->mandatory) {
+            if ($value === '' && ($field->mandatory ?? null)) {
                 $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
@@ -496,7 +496,7 @@ class core_Form extends core_FieldSet
                     continue;
                 }
                 
-                if (($value === null || $value === '') && $field->mandatory) {
+                if (($value === null || $value === '') && ($field->mandatory ?? null)) {
                     $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
