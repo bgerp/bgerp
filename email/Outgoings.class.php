@@ -1377,8 +1377,8 @@ class email_Outgoings extends core_Master
                         $className = $fileInfo['className'];
                         $hRec = $className::fetchByHandle($fileInfo);
 
-                        if (($form->rec->threadId && (($form->rec->threadId != $hRec->threadId))) ||
-                            ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
+                        if ((!empty($form->rec->threadId) && ($form->rec->threadId != ($hRec->threadId ?? null))) ||
+                            (!empty($form->rec->folderId) && ($form->rec->folderId != ($hRec->folderId ?? null)))) {
                             $quotOtherArr[$hnd] = $hnd;
                         }
                     }

@@ -2703,7 +2703,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $parts[] = ($plain ? $caption : '<span class="quiet">' . $caption . '</span>') . $verbal;
         }
 
-        return $parts[0] . ' - ' . $parts[1] . ' - ' . $parts[2] . ' = ' . $parts[3] . ' ' . $currency;
+        return $parts[0] . ' - ' . $parts[1] . ' - ' . $parts[2] . ' = ' . $parts[3] . ($plain ? ' ' : '&nbsp;') . $currency;
     }
 
 
