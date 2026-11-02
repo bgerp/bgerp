@@ -238,6 +238,7 @@ class doc_DocumentPlg extends core_Plugin
             $d->localUrl = toUrl(getCurrentUrl(), 'local');
         }
         
+        $className = '';
         if (Mode::is('screenMode', 'wide')) {
             $className = "class='floatedElement'";
         }

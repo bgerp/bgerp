@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1271,7 +1271,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if ($data->toolbar->haveButton('btnConto')) {
-            if (!$data->toolbar->isErrorBtn('btnConto')) {
+            // Блокиращата грешка вече е в onclick, а не в error на бутона - проверява се директно
+            if (empty($mvc->getContoBtnErrStr($rec))) {
                 if ($mvc->haveRightFor('adddebitamount', $rec)) {
                     $data->toolbar->removeBtn('btnConto');
                     $attr = array();
@@ -1395,10 +1396,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
 
-        $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
+        // Грешките и предупрежденията при контиране излизат при натискане на бутона във формата
+        $contoError = $this->getContoBtnErrStr($rec);
+        if (!empty($contoError)) {
+            $onclick = acc_plg_Contable::buildContoAlertJs($contoError);
+        } else {
+            $warning = $this->getContoWarning($rec->id, $rec->isContable);
+            $onclick = acc_plg_Contable::buildContoConfirmJs($warning['text'], $warning['severity']);
+        }
+        $form->toolbar->addSbBtn('Контиране', 'save', array('onclick' => $onclick), 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
-        $tpl = $this->renderWrapping($form->renderHtml());
+        $formHtml = $form->renderHtml();
+        $tpl = $this->renderWrapping($formHtml);
         core_Form::preventDoubleSubmission($tpl, $form);
 
         return $tpl;
