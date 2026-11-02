@@ -2120,6 +2120,7 @@ class sales_Sales extends deals_DealMaster
     {
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
+            $res['onlinePostal'] = 'Онлайн продажби с ППП';
         }
 
         if (core_Packs::isInstalled('voucher')) {
@@ -2137,9 +2138,49 @@ class sales_Sales extends deals_DealMaster
             $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
             $query->where('#cartId IS NOT NULL');
         }
+        if ($option == 'onlinePostal') {
+            self::filterOnlinePostalSales($query);
+        }
         if ($option == 'voucher') {
             $query->where('#voucherId IS NOT NULL');
         }
+    }
+
+
+    /**
+     * Оставя продажбите от количка, платени с контиран ПБД по сметка за пощенски паричен превод
+     *
+     * @param core_Query $query - заявка към продажбите
+     * @return void
+     */
+    public static function filterOnlinePostalSales(core_Query &$query)
+    {
+        $accounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
+        if (!countR($accounts)) {
+            $query->where('1=2');
+
+            return;
+        }
+
+        // Нишките с контиран ПБД по някоя от сметките
+        $threads = array();
+        $bQuery = bank_IncomeDocuments::getQuery();
+        $bQuery->where("#state = 'active'");
+        $bQuery->in('ownAccount', $accounts);
+        $bQuery->show('threadId');
+        while ($bRec = $bQuery->fetch()) {
+            $threads[$bRec->threadId] = $bRec->threadId;
+        }
+
+        if (!countR($threads)) {
+            $query->where('1=2');
+
+            return;
+        }
+
+        $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+        $query->where('#cartId IS NOT NULL');
+        $query->in('threadId', $threads);
     }
     
     

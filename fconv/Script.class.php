@@ -387,6 +387,11 @@ class fconv_Script
         // Възможност за логване на грешките при изпълняване на скрипт
         if ($params['errFilePath'] ?? null) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
+
+            // Убит процес (OOM, timelimit) не пише в stderr - оставяме поне кода на изход
+            if (!stristr(PHP_OS, 'WIN')) {
+                $cmdLine .= ' || echo "Exit code: $?" >> ' . escapeshellarg($params['errFilePath']);
+            }
         }
         
         $this->script .= $this->nl($cmdLine);
@@ -562,7 +567,12 @@ class fconv_Script
         }
         
         if (!stristr(PHP_OS, 'WIN')) {
-            $this->script = "#!/bin/bash \n" . $this->script;
+            // Временните файлове на ImageMagick (magick-*) са в папка на процеса, която се трие при излизане от скрипта
+            $magickTmpDir = escapeshellarg(rtrim($this->tempDir, '/') . '.magick');
+            $this->script = "#!/bin/bash \n" .
+                "export MAGICK_TMPDIR={$magickTmpDir}\n" .
+                "mkdir -p \"\$MAGICK_TMPDIR\"\n" .
+                "trap 'rm -rf \"\$MAGICK_TMPDIR\"' EXIT\n" . $this->script;
         }
  
         core_Os::requireDir($this->tempDir);
