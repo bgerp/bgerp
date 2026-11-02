@@ -416,6 +416,70 @@ class fileman_Setup extends core_ProtoSetup
                 return 'Версията на GhostScript "' . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e {$versionArr['version']}.{$versionArr['subVersion']}. С тази версия има проблеми. Моля да я обновите.";
             }
         }
+
+        return static::checkGhostscriptAccess();
+    }
+
+
+    /**
+     * Проверява дали AppArmor позволява на GhostScript да чете качените файлове
+     * и да пише във временната папка на fconv (профилът /etc/apparmor.d/gs в Ubuntu 26.04)
+     *
+     * @return string|null - съобщение с командата за поправка или null
+     */
+    public static function checkGhostscriptAccess()
+    {
+        if (!@file_exists('/etc/apparmor.d/gs') || !defined('FILEMAN_UPLOADS_PATH') || !defined('EF_TEMP_PATH')) {
+
+            return;
+        }
+
+        $conf = core_Packs::getConfig('fileman');
+        $tempPath = defined('FCONV_TEMP_PATH') ? FCONV_TEMP_PATH : EF_TEMP_PATH . '/fconv';
+        $rand = str::getRand();
+        $dir = rtrim($tempPath, '/') . '/gsCheck' . $rand;
+
+        // Без разширение като файловете в качените - профилът разрешава някои разширения в HOME
+        $src = rtrim(FILEMAN_UPLOADS_PATH, '/') . '/.gsCheck' . $rand;
+
+        if (!core_Os::forceDir($dir) || !@file_put_contents($src, "%!PS\nshowpage\n")) {
+            if (is_dir($dir)) {
+                core_Os::deleteDir($dir);
+            }
+
+            return;
+        }
+
+        // Както във fconv_Script - входът е символна връзка към файла в качените
+        $link = $dir . '/check.ps';
+        $out = $dir . '/check.jpg';
+        @symlink($src, $link);
+
+        $cmd = escapeshellcmd($conf->FILEMAN_GHOSTSCRIPT_PATH) . ' -q -dSAFER -dBATCH -dNOPAUSE -sDEVICE=jpeg -r10 -sOutputFile=' . escapeshellarg($out) . ' ' . escapeshellarg($link) . ' 2>&1';
+        @exec($cmd, $output, $code);
+        $isOk = ($code === 0) && @filesize($out);
+
+        @unlink($src);
+        core_Os::deleteDir($dir);
+
+        if ($isOk) {
+
+            return;
+        }
+
+        // AppArmor проверява реалния път, затова правилата са за него
+        $uploadsPath = @realpath(FILEMAN_UPLOADS_PATH) ?: FILEMAN_UPLOADS_PATH;
+        $rules = 'file r ' . rtrim($uploadsPath, '/') . '/**,';
+
+        // /tmp и /var/tmp са разрешени от профила за файлове на собственика
+        $realTempPath = @realpath($tempPath) ?: $tempPath;
+        if (!preg_match('#^/(var/)?tmp/#', rtrim($realTempPath, '/') . '/')) {
+            $rules .= '\n' . 'file rw ' . rtrim($realTempPath, '/') . '/**,';
+        }
+
+        $fix = "printf '" . $rules . "\\n' >> /etc/apparmor.d/local/gs && apparmor_parser -r /etc/apparmor.d/gs";
+
+        return 'GhostScript няма достъп до качените файлове или временната папка (AppArmor профил "gs") и прегледите на PDF не се генерират. Поправка като root: ' . type_Varchar::escape($fix);
     }
     
     
