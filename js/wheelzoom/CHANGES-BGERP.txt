@@ -1,0 +1,48 @@
+Wheelzoom 4.0.1
+================
+
+Официален пакет: https://registry.npmjs.org/wheelzoom/-/wheelzoom-4.0.1.tgz
+Проект: https://github.com/jackmoore/wheelzoom
+Проверен npm SHA-512 integrity:
+sha512-I3C55jdNgFujMAF58O5eI5VDTLn99+G0RGRD1/eJOdUepdrdhhaIuw/K1XeWCdhD6e/94yk5n3C6GQuEMy3Qsw==
+MIT, Copyright 2015 Jack Moore; LICENSE.md е запазен.
+Git tags стигат до 4.0.0, но публикуваният npm пакет, неговият manifest,
+source header и официалният changelog потвърждават 4.0.1.
+
+Спрямо старото копие 3.1.2 има initialZoom, initialX и initialY за начално
+увеличение и позиция. Прозрачният placeholder е SVG вместо canvas.
+За изрично използване:
+  $tpl->push('js/wheelzoom/4.0.1/wheelzoom.js', 'JS');
+Библиотеката няма jQuery/Composer/PHP зависимости. Старият js/wheelzoom.js
+е запазен. Не са намерени текущи извиквания в основното хранилище и
+активните частни пакети; няма автоматично зареждане или промяна на
+настройки/defaults. Не е добавен core_Packs избор без реален потребител.
+
+Местни поправки само в новото копие
+---------------------------------
+1. При NodeList/масив forEach предаваше индекса вместо options на main().
+   Всеки елемент вече получава подадените zoom/maxZoom/initial* options.
+2. При wheelzoom.destroy по време на влачене mousemove/mouseup listeners
+   са премахвани от img, въпреки че са закачени на document.
+   Използва се съществуващият removeDrag(), за да се освободят правилно.
+Двата случая са възпроизведени с upstream кода в браузъра. Не са правени
+други промени в алгоритъма за увеличение. При следващо обновяване тези
+две поправки трябва да се сравнят с новия upstream source.
+
+Тестове и ограничения
+--------------------
+Fixture-ът и извикването на js/tests/widgets.browser.js са описани в
+js/hotkeys/CHANGES-BGERP.txt. Синтетичните изображения се създават в теста,
+без мрежови изображения или потребителски файлове.
+
+20 проверки за старите копия и 24 за новите преминават в Chromium
+през PHP 7.4.33 и 8.2.34, включително двата regression случая.
+Обхват на Wheelzoom: оригинални размери, custom zoom, максимум/минимум,
+reset, destroy, възстановен src, премахнат wheel listener, повторно
+създаване, initialZoom/initialX/initialY, NodeList и destroy при drag.
+JavaScript syntax check преминава. Няма нов PHP runtime код.
+
+Новата версия не поддържа IE9. Safari/Firefox, физически trackpad/touch,
+responsive resize на вече увеличено изображение и всички възможни
+CSS background настройки не са проверени. Библиотеката не е включена
+автоматично в прегледите на файлове или галериите на bgERP.

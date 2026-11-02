@@ -1,0 +1,67 @@
+Bootstrap за CMS: 5.3.8
+=======================
+
+Източник и лиценз
+-----------------
+Официален release: https://github.com/twbs/bootstrap/releases/tag/v5.3.8
+Новости: https://blog.getbootstrap.com/2025/08/25/bootstrap-5-3-8/
+Пакет: https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.8.tgz
+Проверен npm SHA-512 integrity:
+sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==
+
+Включени са немодифицираните официални bootstrap.min.css,
+bootstrap.bundle.min.js и техните самодостатъчни source maps.
+Bootstrap: MIT, Copyright 2011-2025 The Bootstrap Authors.
+Bundle включва Popper 2.11.8, също MIT. Двата лиценза са запазени
+в 5.3.8/LICENSE и 5.3.8/LICENSE-POPPER.md. Лицензът на Popper идва от
+https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz.
+Не се изискват Composer, npm или отделен Popper на инсталацията.
+
+Избор и съвместимост
+-------------------
+core_Packs -> настройки на cms -> Външен изглед -> Bootstrap.
+CMS_BOOTSTRAP_VERSION по подразбиране е legacy: досегашните CSS 5.3.2
+(cms/css/bootstrap.css) и JS 5.3.3 (cms/js/bootstrap.min.js).
+Тези файлове не са променяни. cms_Setup::$version остава 0.1.
+Новият избор е 5.3.8. Записването през стандартната форма важи само за
+съответната инсталация; кодът не сменя стойностите на други инсталации.
+
+cms_Bootstrap::enable($tpl) добавя избрания CSS и JS към стандартните
+ресурси на шаблона. Старите директни включвания не се пренасочват
+автоматично. Темата KnightOne в частния пакет използва този адаптер.
+Другите CMS теми, които не ползват Bootstrap, не се променят.
+Bootstrap 4 в ztm е отделна интеграция и не се сменя с тази настройка.
+
+PHP адаптерът поддържа 7.4 и 8.2. Bootstrap 5 е браузърна библиотека
+и не налага по-нова PHP версия. Старият JS не включва Popper; оставен е
+с това ограничение. При 5.3.8 падащите менюта и подсказките имат наличен
+Popper в bundle, без второ зареждане на библиотеката.
+
+Новости
+-------
+5.3.8 включва корекция на фокуса при dropdown, CSS корекции при spinner
+във flex контейнери и указател при изчистване на search поле. Поправката
+на Sass color-contrast е част от upstream, но тук се използва готов CSS,
+без прекомпилиране на Sass или промяна на цветовете на CMS темите.
+
+Проверки
+--------
+От корена на bgERP: php cms/tests/bootstrap.php
+42 проверки на PHP 7.4.33 и 8.2.34: defaults, настройката, старите и
+новите ресурси, повторно превключване, fallback и source maps.
+PHP lint и локалният checkRedirectCatches.php преминават.
+
+Интеграционните тестове с действителната KnightOne обвивка и синтетични
+статии са описани в нейния CHANGES-BGERP.txt. Старите файлове са проверени
+срещу HEAD; локалното копие на JS 5.3.3 в KnightOne съвпада с това в cms.
+Тестовете минават и през стандартния cms_page_External output, SBF,
+отложените скриптове и инсталирания compactor, на двете PHP версии.
+Не са променяни действителни домейни, менюта, статии или избраните им теми.
+Не са нужни миграция, нов cron или инициализация на всички пакети.
+
+Ограничения
+-----------
+Браузърните проверки са в Chromium, при ширини 1280 и 375 px.
+Firefox, Safari, физически мобилни устройства, RTL и всички Bootstrap
+компоненти не са проверени. Не е заявена съвместимост с Internet Explorer.
+Лицензът на Bootstrap не заменя отделния лиценз на използвана CMS тема.

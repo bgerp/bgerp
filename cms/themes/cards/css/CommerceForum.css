@@ -75,8 +75,11 @@ body.commerce-forum { background: var(--c-surface); color: var(--c-ink); min-wid
     text-shadow: none;
     text-decoration: none !important;
 }
-.commerce-forum .forum-index .forumbtn:hover,
-.commerce-forum .forum-index .forumbtn:focus-visible { background-color: var(--c-accent-soft) !important; border-color: var(--c-accent-line-strong) !important; }
+
+.commerce-forum .forum-index .forumbtn:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+}
 .commerce-forum .forum-index .forumbtn.new,
 .commerce-forum .forum-index .forumbtn.posting,
 .commerce-forum .forum-index .forumbtn.addComment {
@@ -84,9 +87,7 @@ body.commerce-forum { background: var(--c-surface); color: var(--c-ink); min-wid
     border-color: var(--c-accent) !important;
     color: #fff !important;
 }
-.commerce-forum .forum-index .forumbtn.new:hover,
-.commerce-forum .forum-index .forumbtn.posting:hover,
-.commerce-forum .forum-index .forumbtn.addComment:hover { background-color: #0e4557 !important; }
+
 .commerce-forum .forum-index > .fleft.toolbar { float: none; }
 .commerce-forum #simpleSearch.forumSearch {
     float: none !important;
@@ -132,7 +133,7 @@ body.commerce-forum { background: var(--c-surface); color: var(--c-ink); min-wid
     position: static;
     cursor: pointer;
 }
-.commerce-forum #simpleSearch input[type=submit]:hover { background-color: #d7e8ee !important; border-color: var(--c-accent) !important; }
+
 .commerce-forum .results-row { display: flow-root; margin: 0 0 16px; }
 .commerce-forum .results-row .results { float: none; margin: 0 0 12px; font-size: 1.125rem; font-weight: 600; }
 .commerce-forum .results-row .search-text { color: var(--c-accent); }
@@ -351,8 +352,7 @@ body.commerce-forum { background: var(--c-surface); color: var(--c-ink); min-wid
     text-shadow: none;
     cursor: pointer;
 }
-.commerce-forum .comment-form input[type=submit]:hover,
-.commerce-forum .topic-form input[type=submit]:hover { background-color: #0e4557 !important; }
+
 .commerce-forum .form-labels { color: var(--c-text); font-size: 0.875rem; font-weight: 600; }
 
 /* Phones */

@@ -75,15 +75,18 @@ class File_IMC_Parse_Vcalendar_Events extends ArrayIterator
         $this->index = 0;
     }
 
+    #[\ReturnTypeWillChange]
     public function append($value)
     {
     }
 
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->data);
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return new File_IMC_Parse_Vcalendar_Event($this->data[$this->index]);
@@ -99,26 +102,31 @@ class File_IMC_Parse_Vcalendar_Events extends ArrayIterator
     }
     */
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->index;
     }
 
+    #[\ReturnTypeWillChange]
     public function next()
     {
         ++$this->index;
     }
 
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->index = 0;
     }
 
+    #[\ReturnTypeWillChange]
     public function seek($position)
     {
         $this->index = $position;
     }
 
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         if (isset($this->data[$this->index])) {

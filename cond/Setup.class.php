@@ -18,7 +18,7 @@ defIfNot('COND_CARD_PAYMENT_METHOD_ID', '');
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -72,7 +72,8 @@ class cond_Setup extends core_ProtoSetup
         'cond_Ranges',
         'cond_Allergens',
         'cond_TariffCodes',
-        'cond_VatExceptions'
+        'cond_VatExceptions',
+        'cond_CardPayments',
     );
     
     
@@ -109,6 +110,15 @@ class cond_Setup extends core_ProtoSetup
             'action' => 'CloseExceptions',
             'period' => 1440,
             'offset' => 60,
+        ),
+        array(
+            'systemId' => 'CheckPendingCardPayments',
+            'description' => 'Проверка в шлюза на плащанията с карта без окончателен отговор',
+            'controller' => 'cond_CardPayments',
+            'action' => 'CheckPending',
+            'period' => 10,
+            'offset' => 3,
+            'timeLimit' => 120,
         ),
     );
 

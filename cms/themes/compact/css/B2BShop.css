@@ -15,11 +15,7 @@ body.b2b-theme.eshop-public .eshop-product-list {
     overflow: hidden;
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-body.b2b-theme.eshop-public .eshop-product-list:hover,
-body.b2b-theme.eshop-public .eshop-product-list:focus-within {
-    border-color: var(--c-accent-line-strong);
-    box-shadow: 0 8px 24px #18233218;
-}
+
 /* Stretch the title link, leaving the other controls above its hit area. */
 body.b2b-theme.eshop-public .b2b-card-title a::after {
     content: "";
@@ -32,9 +28,7 @@ body.b2b-theme.eshop-public .eshop-product-list-name > a {
     position: relative;
     z-index: 2;
 }
-body.b2b-theme.eshop-public .eshop-product-list:is(:hover, :focus-within) .b2b-card-title a {
-    color: var(--c-accent);
-}
+
 body.b2b-theme.eshop-public .eshop-product-list:has(.b2b-card-title a:focus-visible) {
     outline: 2px solid var(--c-accent);
     outline-offset: 3px;
@@ -60,10 +54,7 @@ body.b2b-theme.eshop-public .b2b-card-hover-image {
 body.b2b-theme.eshop-public .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink {
     transition: opacity 180ms ease;
 }
-@media (hover: hover) {
-    body.b2b-theme.eshop-public .eshop-product-list:hover .b2b-card-hover-image { opacity: 1; }
-    body.b2b-theme.eshop-public .eshop-product-list:hover .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink { opacity: 0; }
-}
+
 @media (prefers-reduced-motion: reduce) {
     body.b2b-theme.eshop-public .b2b-card-hover-image,
     body.b2b-theme.eshop-public .eshop-card-media:has(.b2b-card-hover-image) > .eshopLink { transition: none; }
@@ -143,14 +134,7 @@ body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard) {
     background: var(--c-ink) !important;
     border-color: var(--c-ink) !important;
 }
-body.b2b-theme.eshop-public .eshop-card-actions .productBtn.addToCard:hover {
-    background: var(--c-accent-dark) !important;
-    border-color: var(--c-accent-dark) !important;
-}
-body.b2b-theme.eshop-public .eshop-card-actions .productBtn:not(.addToCard):is(:hover, :focus-visible) {
-    background: color-mix(in srgb, var(--c-ink) 94%, white) !important;
-    border-color: color-mix(in srgb, var(--c-ink) 94%, white) !important;
-}
+
 body.commerce-theme.b2b-theme.eshop-public .productHolder {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     gap: 16px;
@@ -169,12 +153,7 @@ body.b2b-theme.eshop-public .eshop-group-button {
     overflow: hidden;
     isolation: isolate;
 }
-body.b2b-theme.eshop-public .eshop-group-button:hover,
-body.b2b-theme.eshop-public .eshop-group-button:focus-within {
-    background: #fff;
-    border-color: var(--c-accent-line-strong);
-    border-top-color: var(--c-accent);
-}
+
 body.b2b-theme.eshop-public .eshop-group-button .eshop-group-button-img {
     grid-column: 1 / -1;
     grid-row: 1;
@@ -213,7 +192,6 @@ body.b2b-theme.eshop-public .eshop-group-button .eshop-group-button-title {
 }
 body.b2b-theme.eshop-public .b2b-group .eshop-group-button-title a::after { border-radius: 0; }
 body.b2b-theme.eshop-public .b2b-group:focus-within { outline: 2px solid var(--c-accent); outline-offset: 3px; }
-body.b2b-theme.eshop-public .b2b-group:hover .eshop-group-button-title a { color: var(--c-accent); }
 
 @media (max-width: 600px) {
     body.b2b-theme.eshop-public .eshop-card-media { height: 220px; }

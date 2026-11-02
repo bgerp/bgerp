@@ -1,0 +1,53 @@
+<div class="srd">
+    <table class="srd-head">
+        <tr>
+            <td class="srd-company">
+                <div class="srd-company-name">[#companyName#]</div>
+                <!--ET_BEGIN companyUicId--><div>|ЕИК|*: [#companyUicId#]</div><!--ET_END companyUicId-->
+                <!--ET_BEGIN companyAddress--><div>[#companyAddress#]</div><!--ET_END companyAddress-->
+                <!--ET_BEGIN companyContact--><div>[#companyContact#]</div><!--ET_END companyContact-->
+            </td>
+            <td class="srd-title">
+                <div class="srd-title-name">|Документ за регистриране на продажба|*</div>
+                <div class="srd-number">№ [#number#]</div>
+                <div class="srd-date">[#issuedOn#]</div>
+                <div class="srd-nofisc">|Не е фискален бон|*</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="srd-meta">
+        <tr>
+            <td><span>|Поръчка|*</span>[#orderNumber#]</td>
+            <td><span>|Трансакция|*</span>[#transactionRef#]</td>
+            <td><span>|Начин на плащане|*</span>[#paymentMethodId#]</td>
+            <!--ET_BEGIN posId--><td><span>|Виртуален ПОС|*</span>[#posId#]</td><!--ET_END posId-->
+        </tr>
+    </table>
+
+    <table class="srd-lines">
+        <thead>
+            <tr>
+                <th class="srd-left">|Стока/услуга|*</th>
+                <th>|Дан. група|*</th>
+                <th class="srd-right">|Количество|*</th>
+                <th class="srd-right">|Ед. цена|*</th>
+                <th class="srd-right">|Стойност|*</th>
+            </tr>
+        </thead>
+        <tbody>[#LINES#]</tbody>
+    </table>
+
+    <table class="srd-bottom">
+        <tr>
+            <td class="srd-qr">[#qr#]</td>
+            <td class="srd-total">
+                <div>|Обща сума за плащане|*</div>
+                <div class="srd-total-amount">[#total#] <span>[#currencyId#]</span></div>
+                <div class="srd-paid">|Платено с карта|*</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="srd-foot">|Документ по чл. 52о от Наредба № Н-18 за регистриране и отчитане на продажби в търговските обекти, издаден по електронен път|*.<!--ET_BEGIN shopNumber--> |Електронен магазин|* № [#shopNumber#].<!--ET_END shopNumber--></div>
+</div>

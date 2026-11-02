@@ -478,6 +478,14 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $form->rec;
         parent::inputInvoiceForm($mvc, $form);
 
+        // Грешката излиза още при отваряне; ключът не е поле, за да не се изпразни поле от формата
+        if (empty($rec->id) && ($rec->type ?? null) != 'dc_note' && !empty($rec->threadId)) {
+            $error = self::getEshopPersonInvoiceError($rec->threadId);
+            if (!empty($error)) {
+                $form->setError('eshopInvoice', $error);
+            }
+        }
+
         if ($form->isSubmitted()) {
 
             if(isset($rec->id)){
@@ -702,6 +710,24 @@ class sales_Invoices extends deals_InvoiceMaster
 
 
     /**
+     * Грешка, ако в нишката не може да се издаде фактура на лице по онлайн поръчка
+     *
+     * @param int $threadId
+     * @return string|null
+     */
+    public static function getEshopPersonInvoiceError($threadId)
+    {
+        if (!core_Packs::isInstalled('eshop')) return null;
+        if (eshop_Setup::get('RESTRICT_PERSON_INVOICES') != 'yes') return null;
+
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if (empty($firstDoc) || !$firstDoc->isInstanceOf('sales_Sales')) return null;
+
+        return eshop_Carts::getSaleInvoiceError($firstDoc->that);
+    }
+
+
+    /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
@@ -897,6 +923,32 @@ class sales_Invoices extends deals_InvoiceMaster
                     $res = "Невалиден ДДС № на клиент от чужбина - ЕС|*!";
                 }
             }
+        }
+
+        // Фактура на лице по онлайн поръчка без нужните данни
+        if (empty($res) && ($rec->type ?? null) == 'invoice' && !empty($rec->threadId)) {
+            $eshopError = self::getEshopPersonInvoiceError($rec->threadId);
+            if (!empty($eshopError)) {
+                $res = $eshopError;
+            }
+        }
+    }
+
+
+    /**
+     * Преди контиране на фактура на лице по онлайн поръчка
+     */
+    public static function on_BeforeConto($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (($rec->type ?? null) != 'invoice' || empty($rec->threadId)) return;
+
+        // Бутонът само показва грешката, затова контирането се спира и тук
+        $error = self::getEshopPersonInvoiceError($rec->threadId);
+        if (!empty($error)) {
+            core_Statuses::newStatus($error, 'error');
+
+            return false;
         }
     }
     

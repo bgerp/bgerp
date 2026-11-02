@@ -11,7 +11,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,6 +28,7 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('tags_Logs', 'Тагове->Логове', 'ceo, admin');
         $this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'ceo,admin');
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,admin');
+        $this->TAB('cond_CardPayments', 'Плащания->С карта', 'ceo,admin');
         $this->TAB('cond_Ranges', 'Диапазони', 'ceo,admin');
 
         $this->TAB('cond_TaxAndFees', 'Данъци и такси', 'ceo,admin');

@@ -90,6 +90,8 @@ function runDrawing($script, $canvasClass = 'cad2_SvgCanvas', $context = null, $
 
 // Относителни координати по подразбиране и изрично абсолютни координати.
 foreach (array('cad2_SvgCanvas', 'cad2_PdfCanvas') as $canvasClass) {
+    $canvas = new $canvasClass();
+    check($canvas->getAttr('fill') === 'none' && $canvas->getAttr('stroke-width') === 0.2, 'Default canvas draws outlines without fill');
     list($canvas) = runDrawing("MoveTo(10, 20)\nLineTo(5, 7)", $canvasClass);
     check($canvas->getCP() == array(15, 27), 'Relative LineTo');
     list($canvas) = runDrawing("MoveTo(10, 20)\nLineTo(5, 7, ABS)", $canvasClass);
@@ -102,6 +104,14 @@ foreach (array('cad2_SvgCanvas', 'cad2_PdfCanvas') as $canvasClass) {
     check($canvas->getCP() == array(15, 25), 'Absolute ArcTo uses fourth argument');
     list($canvas) = runDrawing("MoveTo(10, 20)\nArcTo(5, 5, 10)", $canvasClass);
     check($canvas->getCP() == array(15, 25), 'Relative ArcTo');
+    list($canvas) = runDrawing("MoveTo(0,0)\nLineTo(10,0,abs)\nLineTo(0,0,abs)\nMoveTo(2,2,subpath)\nLineTo(3,2,abs)\nClosePath()", $canvasClass);
+    if ($canvasClass === 'cad2_SvgCanvas') {
+        $svg = simplexml_load_string($canvas->render());
+        $paths = $svg->xpath('//*[local-name()="path"]');
+        check(count($paths) === 1 && substr_count((string) $paths[0]['d'], 'M') === 2, 'SVG inner contour stays in one path');
+    } else {
+        check(count($canvas->contents) === 1 && count(array_keys(array_column($canvas->contents[0]->data, 0), 'M')) === 2, 'PDF inner contour stays in one path');
+    }
 }
 list($canvas) = runDrawing("OpenLayer()\nOpenGroup(test)\nMoveTo(0, 0)\nLineTo(10, 5)\nClosePath()\nCloseGroup()\nMeasureLine(0, 0, 10, 0)\nCloseLayer()");
 $xml = $canvas->render();

@@ -1,0 +1,40 @@
+/* bgERP controls from the 1.9 theme, scoped to sliders. */
+.slick-slider .slick-prev,
+.slick-slider .slick-next {
+    z-index: 1;
+}
+.slick-slider button {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.slick-slider .slick-prev { left: 10px; }
+.slick-slider .slick-next { right: 10px; }
+.slick-slider .slick-prev:before,
+.slick-slider .slick-next:before { opacity: .4; }
+.slick-slider:hover .slick-prev:before,
+.slick-slider:hover .slick-next:before { opacity: .75; }
+.slick-slider .slick-prev:hover:before,
+.slick-slider .slick-prev:focus:before,
+.slick-slider .slick-next:hover:before,
+.slick-slider .slick-next:focus:before { opacity: 1 !important; }
+.slick-slider.outerArrows .slick-prev { left: -25px; }
+.slick-slider.outerArrows .slick-next { right: -25px; }
+.slick-slider[dir=rtl] .slick-prev { right: 10px; left: auto; }
+.slick-slider[dir=rtl] .slick-next { left: 10px; right: auto; }
+.slick-slider.outerArrows[dir=rtl] .slick-prev { right: -25px; }
+.slick-slider.outerArrows[dir=rtl] .slick-next { left: -25px; }
+.slick-slider.outerArrows .slick-prev:before,
+.slick-slider.outerArrows .slick-next:before { color: #333 !important; }
+.slick-slider .slick-dots { bottom: 10px; }
+.slick-slider .slick-dots li button:before {
+    font-size: 8px;
+    color: #fff;
+    opacity: .3;
+    text-shadow: 0 0 2px #fff;
+}
+.slick-slider .slick-dots li.slick-active button:before { color: #fff; opacity: .75; }
+.slick-slider .slick-dots li button:hover:before,
+.slick-slider .slick-dots li button:focus:before { opacity: 1; }
+.slick-slider.outerDots .slick-dots { bottom: -25px; }
+.slick-slider.outerDots .slick-dots li button:before { color: #000; }

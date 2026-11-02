@@ -49,11 +49,14 @@ class keyboard_Plugin extends core_Plugin
             return;
         }
         
-        $tpl->push("keyboard/{$conf->VKI_version}/keyboard.js", 'JS');
-        $tpl->push("keyboard/{$conf->VKI_version}/keyboard.css", 'CSS');
+        $version = $conf->VKI_version ?? VKI_version;
+        $tpl->push("keyboard/{$version}/keyboard.js", 'JS');
+        $tpl->push("keyboard/{$version}/keyboard.css", 'CSS');
         
-        if (cls::isSubclass($invoker, 'type_Richtext')) {
-            $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"if (typeof showKeyboard == 'function') showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . ' height=15 width=28 alt=""></a>', 'LEFT_TOOLBAR');
+        if (cls::isSubclass($invoker, 'type_Richtext') && !empty($attr['id'])) {
+            $onclick = "event.stopPropagation(); if (typeof showKeyboard == 'function') showKeyboard(document.getElementById(" . json_encode($attr['id']) . "))";
+            $icon = ht::createElement('img', array('src' => sbf('keyboard/keyboard.png', ''), 'height' => 15, 'width' => 28, 'alt' => ''));
+            $tpl->append(ht::createElement('a', array('class' => 'rtbutton', 'title' => tr('Клавиатура'), 'onclick' => $onclick), $icon), 'TBL_GROUP3');
         }
     }
     

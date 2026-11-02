@@ -9,13 +9,51 @@
  * @package   cms
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class cms_ProtoTheme extends core_ProtoInner
 {
+    /** Избираеми ефекти, съхранявани в настройките на темата за домейна. */
+    protected static $effectOptions = array(
+        'buttonEffect' => array('Бутони при посочване и натискане', 'none=Без ефект,glow=Светещ ореол,tilt=Леко завъртане,darken=Потъмняване,brighten=Изсветляване,underline=Подчертаване от центъра,sweep=Анимиран фон'),
+        'productHoverEffect' => array('Продуктови карти при посочване', 'none=Без ефект,zoom=Уголемяване на снимката,brighten=По-ярка снимка,border=Движещ се контур,bounce=Подскачаща снимка'),
+        'imageRevealEffect' => array('Появяване на снимки в блог и статии', 'none=Без ефект,fade=Плавно появяване,zoom=Уголемяване,left=Отляво,right=Отдясно'),
+        'productRevealEffect' => array('Появяване на продуктови карти', 'none=Без ефект,zoom=Уголемяване,fade=Плавно появяване,left=Отляво,right=Отдясно'),
+    );
+
+
+    public function addEmbeddedFields(core_FieldSet &$form)
+    {
+        foreach (self::$effectOptions as $field => $option) {
+            $form->FLD($field, 'enum(' . $option[1] . ')', 'caption=Ефекти->' . $option[0] . ',value=none');
+        }
+    }
+
+
+    /** Зарежда ефектите само при изричен избор; старите домейни остават без тях. */
+    protected function addEffectAssets($tpl, $section)
+    {
+        $fields = array('page' => array('buttonEffect'), 'shop' => array('productHoverEffect', 'productRevealEffect'), 'blog' => array('imageRevealEffect'), 'article' => array('imageRevealEffect'));
+        $effects = array();
+        foreach ($fields[$section] ?? array() as $field) {
+            $value = $this->innerForm->{$field} ?? 'none';
+            $options = arr::make(self::$effectOptions[$field][1], true);
+            if (is_string($value) && $value != 'none' && isset($options[$value])) {
+                $effects[$field] = $value;
+            }
+        }
+        if (!$effects) {
+            return;
+        }
+        $tpl->push('cms/css/ThemeEffects.css', 'CSS');
+        $tpl->push('cms/js/ThemeEffects.js', 'JS');
+        jquery_Jquery::run($tpl, 'cmsThemeEffects(' . json_encode($effects) . ');');
+    }
+
+
     /**
      * Темата на текущия домейн или празна тема, ако няма такава
      *
@@ -214,6 +252,7 @@ class cms_ProtoTheme extends core_ProtoInner
         foreach (array_diff_key($this->getScripts($section, $js), array_flip($excluded)) as $script) {
             jquery_Jquery::run($tpl, $script);
         }
+        $this->addEffectAssets($tpl, $section);
     }
 
 

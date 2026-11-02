@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -3994,7 +3994,7 @@ abstract class deals_Helper
             foreach ($recs as $dRec){
                 $clone = clone $masterRec;
                 foreach ($detailFields as $key){
-                    $clone->{$key} = $dRec->{$key};
+                    $clone->{$key} = $dRec->{$key} ?? null;
                 }
                 if(isset($clone->packagingId)){
                     $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');

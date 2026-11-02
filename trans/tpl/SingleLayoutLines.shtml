@@ -84,6 +84,7 @@
 		<!--ET_END description-->
 	</table>
 	<div class="lines"></div>
+    <div class="line-detail"><b>|Отчетен пробег|*: [#reportedDistance#]</b><!--ET_BEGIN tripSheets--><div>|Пътни листи|*: [#tripSheets#]</div><!--ET_END tripSheets--></div>
 	<div class='mergedDetailsholder'>
 		<!--ET_BEGIN TOTAL-->
 		<div class='line-detail'>

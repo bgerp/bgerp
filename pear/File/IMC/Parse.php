@@ -375,6 +375,7 @@ abstract class File_IMC_Parse
 	*/
 	protected function _parseBlock(array $source, $charset='UTF-8')
 	{
+		$block = array();
 		$max = count($source);
 
 		for ($this->count++; $this->count < $max; $this->count++) {

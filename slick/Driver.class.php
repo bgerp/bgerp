@@ -10,10 +10,10 @@
  * @package   slick
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
- * @link      http://idangero.us/slick/
+ * @link      https://github.com/kenwheeler/slick
  */
 class slick_Driver extends core_BaseClass
 {
@@ -60,7 +60,7 @@ class slick_Driver extends core_BaseClass
             return '';
         }
         
-        $images = keylist::toArray($rec->images);
+        $images = keylist::toArray($rec->images ?? '');
 
         // Ако няма картинки - да не сработва
         if (!is_array($images) || !countR($images)) {
@@ -68,22 +68,27 @@ class slick_Driver extends core_BaseClass
             return ;
         }
 
+        $id = ht::getUniqId('slick' . ($rec->id ?? ''));
+        $dots = $rec->dots ?? null;
+        $arrows = $rec->arrows ?? null;
+        $autoplay = $rec->autoplay ?? 0;
+        $maxSize = $rec->maxSize ?? 0;
         $tpl = new ET("
             <div>
-                <div id='slick{$rec->id}' class='[#OUTER_ARROWS#] [#OUTER_DOTS#]'>
+                <div id='{$id}' class='[#OUTER_ARROWS#] [#OUTER_DOTS#]'>
                 [#SLICK_SLIDES#]
                 </div>
             </div>
         ");
         
-        if ($rec->maxSize > 0) {
-            $maxwidth = $rec->maxSize;
+        if ($maxSize > 0) {
+            $maxwidth = $maxSize;
         }
-        if ($rec->arrows == 'out') {
+        if ($arrows == 'out') {
             $tpl->replace('outerArrows', 'OUTER_ARROWS');
         }
         
-        if ($rec->dots == 'out') {
+        if ($dots == 'out') {
             $tpl->replace('outerDots', 'OUTER_DOTS');
         }
         
@@ -106,21 +111,24 @@ class slick_Driver extends core_BaseClass
         // Включваме необходимия CSS
         $tpl->push("slick/{$ver}/css/slick.css", 'CSS');
         $tpl->push("slick/{$ver}/css/slick-theme.css", 'CSS');
+        if ($ver === '2.0.1') {
+            $tpl->push('slick/lib/bgerp.css', 'CSS');
+        }
         
         $options = array(
             'slidesToShow' => 1,
             'adaptiveHeight' => true,
             'slidesToScroll' => 1,
-            'dots' => $rec->dots != 'no',
-            'arrows' => $rec->arrows != 'no',
-            'autoplay' => $rec->autoplay > 0,
-            'autoplaySpeed' => 1000 * $rec->autoplay,
+            'dots' => $dots != 'no',
+            'arrows' => $arrows != 'no',
+            'autoplay' => $autoplay > 0,
+            'autoplaySpeed' => 1000 * $autoplay,
         );
         
         $options = json_encode($options);
         
         // Стартираме slick
-        jquery_Jquery::run($tpl, "$('#slick{$rec->id}').slick({$options});", true);
+        jquery_Jquery::run($tpl, "$('#{$id}').not('.slick-initialized').slick({$options});", true);
         
         $tpl->removeBlocks();
         

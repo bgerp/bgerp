@@ -1,6 +1,16 @@
 var isScannerRunning = false;
+var barcodeCameraChange = Promise.resolve();
+var barcodeScanCompleted = false;
+var barcodeScanner;
+
+/** Подготвя камерите и стартира избраната точно веднъж. */
 function barcodeActions() {
 
+    barcodeScanCompleted = false;
+    if (document.getElementById('barcodeSearch').value.trim()) {
+        document.getElementById('scanBtn').classList.remove('hiddenBtn');
+        return Promise.resolve();
+    }
     const cameraButtonsContainer = document.getElementById("camera-buttons");
     var cameraId = getCookie('selectedCamera');
 
@@ -8,28 +18,30 @@ function barcodeActions() {
         "reader", { fps: 10, qrbox: 250 }
     );
 
+    barcodeScanner = html5Qrcode;
+
     // Вземаме всички камери с Html5Qrcode.getCameras()
-    Html5Qrcode.getCameras().then(cameras => {
+    return Html5Qrcode.getCameras().then(cameras => {
         const scanBtn = document.getElementById("scanBtn");
+        if (!cameras.length) return;
         scanBtn.classList.remove("hiddenBtn");
+        cameraButtonsContainer.textContent = "";
+        if (cameras.length === 1) return switchCamera(cameras[0].id, html5Qrcode);
 
         var frontCounter = 1;
         var backCounter = 1;
         // Добавяме бутони за всяка камера
 
         cameras.forEach((camera, index) => {
-            if (cameras.length == 1) {
-                switchCamera(camera.id, html5Qrcode);
-                return;
-            }
             const cameraButton = document.createElement("button");
+            cameraButton.type = "button";
             cameraButton.textContent = camera.label;
 
             // Ако има Front/back в името на камерите, ги записваме F1,F2,B1,B2 .. или с пореден номер
-           if (camera.label.indexOf("front") != -1 ) {
+           if (/front/i.test(camera.label) ) {
                cameraButton.className = "front";
                cameraButton.textContent = "F" + frontCounter++;
-           } else if(camera.label.indexOf("back") != -1 || camera.label.indexOf("rare") != -1) {
+           } else if(/back|rear|rare/i.test(camera.label)) {
                cameraButton.className = "back";
                cameraButton.textContent = "B" + backCounter++;
            } else {
@@ -49,73 +61,73 @@ function barcodeActions() {
             // клас active на селектираната камера
             if (camera.id === cameraId && cameraId ) {
                 cameraButton.classList.add("active");
-                startScanning(cameraId, html5Qrcode);
             }
         });
 
-        if( $('.cameraSource.active').length == 0 &&  $('.cameraSource.back').length) {
-            $('.cameraSource.back').last().click();
-        } else {
-            $('.cameraSource').first().click();
-        }
+        var selected = $('.cameraSource.active').first();
+        if (!selected.length) selected = $('.cameraSource.back').last();
+        if (!selected.length) selected = $('.cameraSource').first();
+        return switchCamera(selected.val(), html5Qrcode);
     }).catch(err => {
         console.error("Error while getting cameras:", err);
     });
 }
+/** Отваря търсенето с празно поле за ново сканиране. */
 function openCamera() {
     document.getElementById('barcodeSearch').value = "";
     document.getElementById('filter').click();
 }
 
-// Сменяне на активната камера
+/** Изчаква текущото стартиране/спиране, преди да смени камерата. */
 function switchCamera(cameraId, html5Qrcode) {
-    // ако работи една камера, първо я спираме
-    if (isScannerRunning) {
-        html5Qrcode.stop().then(ignore => {
-            // Сканирането е спряно
-            console.log("QR Code scanning stopped.");
-            startScanning(cameraId, html5Qrcode);
-        }).catch(err => {
-            // Грешка при спиране
-            console.log("Unable to stop scanning.");
+    barcodeCameraChange = barcodeCameraChange.then(function () {
+        if (barcodeScanCompleted) return;
+        return stopBarcodeScanner(html5Qrcode).then(function () {
+            if (!barcodeScanCompleted) return startScanning(cameraId, html5Qrcode);
         });
-    } else {
-        startScanning(cameraId, html5Qrcode);
-    }
+    }).catch(function (err) {
+        console.error("Error switching camera:", err);
+    });
+    return barcodeCameraChange;
 }
 
-// Стартиране на камера с конкректа стойност
+/** Освобождава камерата, ако стартирането е завършило успешно. */
+function stopBarcodeScanner(html5Qrcode) {
+    if (!isScannerRunning) return Promise.resolve();
+    return html5Qrcode.stop().then(function () { isScannerRunning = false; });
+}
+
+/** Запазва избора след успешно стартиране и предава само един резултат. */
 function startScanning(cameraId, html5Qrcode) {
-    html5Qrcode.start(
+    return html5Qrcode.start(
         cameraId,
-        {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        },
-        (decodedText, decodedResult) => {
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        function (decodedText) {
+            if (barcodeScanCompleted) return;
+            barcodeScanCompleted = true;
             document.getElementById('barcodeSearch').value = decodedText;
-            document.getElementById('filter').click();
+            barcodeCameraChange = barcodeCameraChange.then(function () {
+                return stopBarcodeScanner(html5Qrcode);
+            }).then(function () {
+                document.getElementById('filter').click();
+            }).catch(function (err) {
+                console.error("Error stopping scanner:", err);
+            });
         },
-        (errorMessage) => {
-            document.getElementById("errors").value = errorMessage;
-        }
-    ).catch((err) => {
-        console.log("Error starting scanner:", err);
-
+        function () { /* Кадър без разпознат код е нормален при сканиране. */ }
+    ).then(function () {
+        isScannerRunning = true;
+        document.querySelectorAll('.cameraSource').forEach(function (button) {
+            button.classList.toggle('active', button.value === cameraId);
+        });
+        setCookie('selectedCamera', cameraId);
     });
-
-    // Махаме клас active от всички бутони
-    const cameraButtons = document.querySelectorAll(".cameraSource");
-    cameraButtons.forEach(button => {
-        button.classList.remove("active");
-    });
-
-    // Добавяме клас active на натиснатия бутон
-    const activeButton = document.querySelector(`.cameraSource[value="${cameraId}"]`);
-    if (activeButton) {
-        activeButton.classList.add("active");
-    }
-    // запазване на текущата камера в бисквитка
-    setCookie('selectedCamera', cameraId);
-    isScannerRunning = true;
 }
+
+/** Освобождава видеопотока и при напускане без разпознат код. */
+window.addEventListener('pagehide', function () {
+    barcodeScanCompleted = true;
+    barcodeCameraChange = barcodeCameraChange.then(function () {
+        if (barcodeScanner) return stopBarcodeScanner(barcodeScanner);
+    }).catch(function (err) { console.error("Error stopping scanner:", err); });
+});

@@ -1,0 +1,151 @@
+/* Документ за регистриране на продажба по чл. 52о */
+.srd {
+    max-width: 780px;
+    margin: 0 auto 24px;
+    padding: 28px 32px;
+    background: #fff;
+    border: 1px solid #dde3ea;
+    border-top: 5px solid #12355b;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #23303f;
+}
+.srd table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.srd td, .srd th {
+    vertical-align: top;
+}
+.srd-head td {
+    padding-bottom: 18px;
+}
+.srd-company {
+    line-height: 1.5;
+    color: #4a5868;
+}
+.srd-company-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #23303f;
+}
+.srd-title {
+    text-align: right;
+}
+.srd-title-name {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b7a8c;
+}
+.srd-number {
+    margin: 4px 0;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: monospace;
+    color: #12355b;
+}
+.srd-date {
+    color: #4a5868;
+}
+.srd-nofisc {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border: 1px solid #c0392b;
+    border-radius: 3px;
+    color: #c0392b;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.srd-meta {
+    margin-bottom: 18px;
+    background: #f4f7fa;
+}
+.srd-meta td {
+    padding: 10px 12px;
+    font-family: monospace;
+}
+.srd-meta span {
+    display: block;
+    margin-bottom: 3px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #6b7a8c;
+}
+.srd-lines th {
+    padding: 8px 6px;
+    border-bottom: 2px solid #12355b;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #6b7a8c;
+    text-align: center;
+}
+.srd-lines td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #e6ebf0;
+    text-align: center;
+}
+.srd-lines .srd-left {
+    text-align: left;
+}
+.srd-lines .srd-right {
+    text-align: right;
+    white-space: nowrap;
+}
+.srd-bottom td {
+    padding-top: 18px;
+}
+.srd-qr img {
+    width: 30mm;
+    height: 30mm;
+}
+.srd-total {
+    text-align: right;
+    color: #6b7a8c;
+}
+.srd-total-amount {
+    margin: 4px 0;
+    font-size: 26px;
+    font-weight: bold;
+    color: #23303f;
+}
+.srd-total-amount span {
+    font-size: 15px;
+    color: #6b7a8c;
+}
+.srd-paid {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: #e3f4ea;
+    color: #1f8f4e;
+    font-size: 12px;
+}
+.srd-foot {
+    margin-top: 22px;
+    padding-top: 12px;
+    border-top: 1px solid #e6ebf0;
+    font-size: 11px;
+    color: #6b7a8c;
+}
+.srd-actions {
+    max-width: 780px;
+    margin: 24px auto 12px;
+    text-align: right;
+}
+.srd-actions input,
+.srd-actions a {
+    margin: 0 0 0 8px !important;
+}
+@media print {
+    .srd {
+        border: 0;
+    }
+    .srd-actions {
+        display: none;
+    }
+}

@@ -269,11 +269,6 @@
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.eshop-public .eshop-product-list:hover {
-    border-color: var(--c-accent-line-strong);
-    box-shadow: 0 5px 18px rgba(var(--c-ink-rgb), 0.05);
-}
-
 .eshop-public .productHolder {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
     gap: 14px;
@@ -297,13 +292,6 @@
     border-bottom: 3px solid var(--c-accent-line-strong);
     border-radius: 6px;
     transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.eshop-public .eshop-group-button:hover,
-.eshop-public .eshop-group-button:focus-within {
-    background: var(--c-accent-soft-2);
-    border-color: var(--c-accent-line-strong);
-    border-left-color: var(--shop-accent);
 }
 
 .eshop-public .eshop-group-button .eshop-group-button-img {
@@ -346,12 +334,6 @@
     font-size: 1.5rem;
     line-height: 1;
     transition: transform 150ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .eshop-public .eshop-group-button:hover .eshop-group-arrow {
-        transform: translateX(3px);
-    }
 }
 
 @media (max-width: 480px) {
@@ -461,20 +443,14 @@ body.eshop-public .productBtn {
     vertical-align: middle;
     transition: background-color 150ms ease, border-color 150ms ease;
 }
-body.eshop-public .productBtn:hover {
-    background: var(--c-accent-soft-2) !important;
-    border-color: var(--c-accent) !important;
-}
+
 body.eshop-public .productBtn.addToCard {
     background: var(--c-accent) !important;
     color: #fff !important;
     border-color: var(--c-accent) !important;
     margin-right: 0 !important;
 }
-body.eshop-public .productBtn.addToCard:hover {
-    background: var(--c-accent-dark) !important;
-    border-color: var(--c-accent-dark) !important;
-}
+
 body.eshop-public .productBtn:focus-visible {
     outline: 2px solid var(--c-accent);
     outline-offset: 3px;
@@ -659,9 +635,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     .eshop-public .eshop-product-list {
         transition: none;
     }
-    .eshop-public .eshop-group-button:hover .eshop-group-arrow {
-        transform: none;
-    }
 }
 
 .eshop-public .eshop-product-labels a.productBtn {
@@ -790,24 +763,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     color: #fff;
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .eshop-related-card:hover {
-        transform: translateY(-4px);
-        border-color: var(--c-accent-line-strong);
-        box-shadow: 0 10px 24px rgba(var(--c-ink-rgb), 0.1);
-    }
-    .eshop-related-card:hover img {
-        transform: scale(1.045);
-    }
-    .eshop-related-card:hover .productName {
-        color: var(--shop-accent, var(--c-accent));
-    }
-    .eshop-related-card:hover .eshop-related-arrow {
-        background: var(--shop-accent, var(--c-accent));
-        color: #fff;
-    }
-}
-
 @media (max-width: 480px) {
     .eshop-related-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -839,10 +794,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     .eshop-related-card img,
     .eshop-related-arrow {
         transition: none;
-    }
-    .eshop-related-card:hover,
-    .eshop-related-card:hover img {
-        transform: none;
     }
 }
 
@@ -1018,10 +969,7 @@ body.eshop-public .eshop-new-product {
     text-shadow: none;
     cursor: pointer;
 }
-body.eshop-public .eshop-new-product:hover {
-    background-color: #e5f0f4 !important;
-    border-style: solid !important;
-}
+
 body.eshop-public .eshop-new-product:focus-visible {
     outline: 2px solid var(--c-accent);
     outline-offset: 3px;
@@ -1203,19 +1151,14 @@ body.eshop-public .cart-view-buttons-top .cart-back-link::before {
     border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
 }
-body.eshop-public .cart-view-buttons-top a.eshop-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
+
 body.eshop-public .cart-view-buttons-top a.cart-clear-link {
     margin-left: auto;
     color: #667781 !important;
     font-size: 0.8125rem;
     font-weight: 400;
 }
-body.eshop-public .cart-view-buttons-top a.cart-clear-link:hover {
-    color: #a33e49 !important;
-}
+
 body.eshop-public .cart-view-buttons-top a:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 4px;
@@ -1262,7 +1205,24 @@ body.eshop-public #cart-view-table input {
 }
 body.eshop-public .cart-holder-external .textInfo { font-size: 0.8125rem; line-height: 1.6; color: #566675; display: flex; flex-direction: column; gap: 0.75rem; }
 body.eshop-public .cart-holder-external .textInfo > div { margin: 0; }
-body.eshop-public .cart-holder-external .cart-vat-status { order: 2; color: var(--c-muted); font-size: 0.8125rem; }
+body.eshop-public .cart-holder-external .cart-vat-status {
+    order: 2; position: relative; padding-left: 1.5rem; color: var(--c-muted); font-size: 0.8125rem;
+}
+body.eshop-public .cart-holder-external .cart-vat-status::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23748391' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5M12 8h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* Предишната поръчка: известие с плик, имейлът се откроява */
+body.eshop-public .cart-holder-external .infoBlock {
+    position: relative; margin: 1rem 0 0; padding: 0.75rem 1rem 0.75rem 3.25rem;
+    border: 1px solid #f0d9a8; border-left: 4px solid #e39b1b; border-radius: 0.5rem;
+    background: #fdf6e7; color: var(--c-ink); font-size: 0.9375rem; line-height: 1.45;
+}
+body.eshop-public .cart-holder-external .infoBlock::before {
+    content: ""; position: absolute; left: 1rem; top: 50%; width: 1.5rem; height: 1.5rem; transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23b8740b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='m3 7 9 6 9-6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.eshop-public .cart-holder-external .infoBlock b { color: #8a5a06; overflow-wrap: anywhere; }
 /* Free delivery: a callout before the VAT note, not another line of fine print. */
 body.eshop-public .cart-holder-external .cart-free-delivery {
     order: 1; position: relative; padding: 0.75rem 1rem 0.75rem 3.25rem;
@@ -1316,9 +1276,14 @@ body.eshop-public .cart-view-buttons-right .eshop-btn {
     background: var(--c-accent) !important;
     color: #fff !important;
 }
-body.eshop-public .cart-view-buttons-right .eshop-btn:not([disabled]):hover {
-    background: var(--c-accent-dark) !important;
+/* Плащането с карта е основното действие - зелено, с иконка на карта */
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn {
+    padding-left: 46px !important;
+    border-color: #2f7d4f;
+    background: #2f7d4f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath d='M2 10h20M6 15h4'/%3E%3C/svg%3E") no-repeat 16px center / 22px 22px !important;
 }
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn:hover { background-color: #276a43 !important; }
+
 body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: var(--c-ink); }
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
@@ -1370,12 +1335,7 @@ body.commerce-theme a.commerce-filter-reset::before {
     font-size: 1.2em;
     line-height: 1.1667;
 }
-.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:hover,
-body.commerce-theme a.commerce-filter-reset:hover {
-    color: #a33e49;
-    text-decoration: underline;
-    text-underline-offset: 0.25rem;
-}
+
 .eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:focus-visible,
 body.commerce-theme a.commerce-filter-reset:focus-visible {
     outline: 2px solid currentColor;

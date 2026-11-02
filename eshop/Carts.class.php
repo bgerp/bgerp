@@ -932,10 +932,11 @@ class eshop_Carts extends core_Master
      * @param mixed $id
      * @param bool  $force
      * @param bool  $sendEmailIfNecessary
+     * @param array $paymentData - данни за картовото плащане (@see eshop_InitiatorPaymentIntf::receivePayment)
      *
      * @return stdClass $saleRec
      */
-    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
+    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true, $paymentData = array())
     {
         $rec = static::fetchRec($id);
 
@@ -1000,6 +1001,12 @@ class eshop_Carts extends core_Master
         if ($hasVoucher) {
             $endVoucher = substr(voucher_Cards::fetchField($rec->voucherId, 'number'), 12, 4);
             $notes .= "\n" . tr('Ваучер|*: ') . "*{$endVoucher}";
+        }
+
+        // Маскираната карта идва от шлюза - показват се само последните цифри
+        $cardDigits = preg_replace('/\D/', '', $paymentData['cardNumber'] ?? '');
+        if (!empty($cardDigits)) {
+            $notes .= "\n" . tr('Платено с карта|*: ') . '*' . substr($cardDigits, -4);
         }
 
         if(!empty($rec->instruction)){
@@ -1126,8 +1133,19 @@ class eshop_Carts extends core_Master
             $saleRec->contoActions = 'activate';
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
-            sales_Sales::conto($saleRec->id);
+
+            // Потвърденото от картов шлюз плащане не се спира от минималните цени
+            $isCardPayment = !empty($paymentData) && !empty($rec->paymentId) && is_object(cond_CardPayments::getDriver($rec->paymentId));
+            Mode::push('skipMinPriceCheck', $isCardPayment);
+            try {
+                sales_Sales::conto($saleRec->id);
+            } finally {
+                Mode::pop('skipMinPriceCheck');
+            }
             cls::get('sales_Sales')->updateMaster($saleRec->id);
+
+            // Записът отпреди контирането би върнал продажбата на чернова при следващия запис
+            $saleRec = sales_Sales::fetch($saleRec->id, '*', false);
             eshop_Carts::logDebug("Активиране на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         } else {
             
@@ -1140,6 +1158,9 @@ class eshop_Carts extends core_Master
         cls::get('sales_Sales')->updateMaster($saleRec);
         self::activate($rec, $saleRec->id);
         
+        // Преди имейла, за да може да се изпрати създаденото по продажбата (напр. документът по чл. 52о)
+        cls::get('eshop_Carts')->invoke('AfterForceSale', array($rec, $saleRec, $paymentData));
+
         doc_Threads::doUpdateThread($saleRec->threadId);
         if ($sendEmailIfNecessary === true) {
             self::sendEmail($rec, $saleRec);
@@ -1393,6 +1414,8 @@ class eshop_Carts extends core_Master
             Mode::pop('text');
         }
         
+        // Пакетите добавят към имейла свое (напр. документа по чл. 52о при плащане с карта)
+        cls::get('eshop_Carts')->invoke('AfterPrepareOrderEmailBody', array(&$body, $rec, $saleRec));
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
 
         // Подготовка на имейла
@@ -1901,6 +1924,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако се изисква онлайн плащане добавя се бутон към него
+        $isPaymentMandatory = false;
         if (isset($rec->paymentId)) {
             
             // Ако самия метод на плащане, добавяв текст показва се
@@ -1926,6 +1950,9 @@ class eshop_Carts extends core_Master
                     $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $rec->total, $settings->currencyId, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
                     $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
                 }
+
+                // Поръчката се завършва от самото плащане - неактивният бутон само обърква
+                $isPaymentMandatory = ($rec->paidOnline ?? null) != 'yes' && $PaymentDriver->isPaymentMandatory($rec->paymentId, 'eshop_Carts', $rec->id);
             }
         }
 
@@ -1944,7 +1971,7 @@ class eshop_Carts extends core_Master
             if(countR($productsWithoutPrice)){
                 $productErrorString = implode(',', $productsWithoutPrice);
                 $finBtn = ht::createErrBtn('Завършване', "Следните артикули нямат цена|*: {$productErrorString}", 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
-            } else {
+            } elseif (!$isPaymentMandatory) {
                 $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
             }
         }
@@ -2893,6 +2920,12 @@ class eshop_Carts extends core_Master
         // Проверка дали наистина е отказано плащане
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
+
+        // Картовото плащане е завършило поръчката още при отговора на шлюза
+        if ($rec->state != 'draft' && $rec->paidOnline == 'yes') {
+            redirect(array($this, 'finalize', $id));
+        }
+
         expect($description = Request::get('description', 'varchar'));
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         $this->requireRightFor('confirmpayment', $rec);
@@ -2916,10 +2949,11 @@ class eshop_Carts extends core_Master
      * @param string      $currencyCode      - валута за нареждане
      * @param int|NULL    $accountId         - ид на наша сметка, или NULL ако няма
      * @param int         $linkedContainerId - свързан контейнер
+     * @param array       $paymentData       - данни за картовото плащане: transactionRef, posId, merchantId, paidOn, amount, currencyCode, cardNumber
      *
-     * @return void
+     * @return bool - true, ако продажбата и банковият документ са създадени
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null, $paymentData = array())
     {
         $cartId = self::fetchField($objId, 'id');
 
@@ -2927,16 +2961,23 @@ class eshop_Carts extends core_Master
         if (!core_Locks::obtain("finalize_{$cartId}", 120, 20, 15)) {
             self::logWarning('Пристигнало плащане при заключена количка', $cartId);
 
-            return;
+            return false;
         }
 
         $rec = self::fetch($objId, '*', false);
         $rec->paidOnline = 'yes';
         self::save($rec, 'paidOnline');
         
+        $hadSale = !empty($rec->saleId);
+
         $saleRec = null;
         try {
-            $saleRec = self::forceSale($rec);
+            $saleRec = self::forceSale($rec, false, true, $paymentData);
+
+            // Продажбата е от преди плащането и forceSale() не е вдигнал събитието
+            if ($hadSale && is_object($saleRec)) {
+                $this->invoke('AfterForceSale', array($rec, $saleRec, $paymentData));
+            }
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
@@ -2944,7 +2985,7 @@ class eshop_Carts extends core_Master
         
         if (!is_object($saleRec)) {
             
-            return;
+            return false;
         }
         
         try {
@@ -2957,7 +2998,31 @@ class eshop_Carts extends core_Master
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
+
+            return false;
         }
+
+        return true;
+    }
+
+
+    /**
+     * Колко трябва да се плати онлайн в момента (@see eshop_InitiatorPaymentIntf)
+     *
+     * @param int $objId     - ид на количката
+     * @param int $paymentId - начин на плащане, с който се плаща
+     *
+     * @return float|null - сумата в основна валута или null, ако количката не очаква плащане с този метод
+     */
+    public function getAmountToPay($objId, $paymentId)
+    {
+        $rec = self::fetch($objId, '*', false);
+        if (!is_object($rec) || $rec->paymentId != $paymentId || $rec->paidOnline == 'yes' || !$this->haveRightFor('confirmpayment', $rec)) {
+
+            return null;
+        }
+
+        return round($rec->total, 2);
     }
     
     
@@ -3254,6 +3319,63 @@ class eshop_Carts extends core_Master
         self::requireRightFor('showlastorder');
 
         return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show', 'id' => static::LAST_SALES_SYSTEM_ID));
+    }
+
+
+    /**
+     * Защо към продажба от онлайн поръчка на лице не може да се издаде фактура
+     *
+     * @param int|stdClass $saleRec
+     * @return string|null
+     */
+    public static function getSaleInvoiceError($saleRec)
+    {
+        // Само за продажби в папка на лице
+        $saleRec = sales_Sales::fetchRec($saleRec);
+        if (empty($saleRec->id) || empty($saleRec->folderId)) return null;
+        if (doc_Folders::fetchCoverClassName($saleRec->folderId) != 'crm_Persons') return null;
+
+        // Само ако продажбата е създадена от количка
+        $cartRec = static::fetch(array("#saleId = '[#1#]'", $saleRec->id), 'id,makeInvoice,invoiceNames,invoiceUicNo,invoicePlace,invoiceAddress');
+        if (empty($cartRec)) return null;
+
+        $prefix = "Не може да се издаде фактура на лице по онлайн поръчка|* №{$cartRec->id}";
+
+        // Клиентът изрично трябва да е поискал фактура
+        if ($cartRec->makeInvoice == 'none') {
+
+            return $prefix . '|*: |клиентът е избрал "Без фактуриране"|*!';
+        }
+
+        if ($cartRec->makeInvoice != 'person') return null;
+
+        // SAF-T: фактура на лице само с три имена, ЕГН и постоянен адрес
+        $missing = array();
+
+        // Имената се броят по думи
+        $names = preg_split('/\s+/u', trim((string) $cartRec->invoiceNames), -1, PREG_SPLIT_NO_EMPTY);
+        if (countR($names) < 3) {
+            $missing[] = 'три имена';
+        }
+
+        // 1111111111 се въвежда, когато клиентът не иска да даде ЕГН
+        $egnCheck = cls::get('bglocal_EgnType')->isValid($cartRec->invoiceUicNo);
+        if (empty($cartRec->invoiceUicNo) || $cartRec->invoiceUicNo == '1111111111' || !empty($egnCheck['error'])) {
+            $missing[] = 'валидно ЕГН';
+        }
+
+        // Адресът е пълен само с град и улица
+        if (empty($cartRec->invoicePlace) || empty($cartRec->invoiceAddress)) {
+            $missing[] = 'постоянен адрес (град и адрес)';
+        }
+
+        // Текстът се превежда при показване, затова частите са разделени с |
+        if (countR($missing)) {
+
+            return $prefix . '|*: |клиентът не е посочил|* |' . implode('|*, |', $missing) . '|*!';
+        }
+
+        return null;
     }
 
 
