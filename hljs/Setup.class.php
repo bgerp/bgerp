@@ -14,7 +14,7 @@ defIfNot('HLJS_VERSION', '7.3');
  * @package   hljs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,6 +31,14 @@ class hljs_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Адаптер за highlightjs: Оцветяване на програмен код';
+
+
+    /**
+     * Избира библиотеката през стандартната конфигурация на пакета.
+     */
+    public $configDescription = array(
+        'HLJS_VERSION' => array('enum(7.3,9.15.9=9.15.9 - без езици,11.12.0)', 'caption=Версия на Highlight.js->Версия'),
+    );
     
     
     /**

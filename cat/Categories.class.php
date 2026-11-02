@@ -179,7 +179,7 @@ class cat_Categories extends core_Master
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory, translate=user|tr|transliterate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('useAsProto', 'enum(no=Не,yes=Да [за избиране],yesNoSelect=Да [без избиране])', 'caption=Дали всички артикули в папката да са шаблонни->Използване,notNull,value=no');
+        $this->FLD('useAsProto', 'enum(no=Не,yes=Да [за избиране],yesNoSelect=Да [няма да бъдат избирани])', 'caption=Дали всички артикули в папката да са шаблонни->Използване,notNull,value=no');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(32)', 'caption=Настройки - препоръчителни за артикулите в категорията->Представка код');
         $this->FLD('minCodePad', 'int(Min=0)', 'caption=Настройки - препоръчителни за артикулите в категорията->Мин. дължина на кода');
@@ -479,7 +479,7 @@ class cat_Categories extends core_Master
     {
         $rec = $this->fetchRec($id);
 
-        if ($rec->useAsProto == 'yes') return 'template';
+        if (in_array($rec->useAsProto ?? null, array('yes', 'yesNoSelect'), true)) return 'template';
         
         return 'public';
     }

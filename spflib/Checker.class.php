@@ -11,7 +11,7 @@ use SPFLib\Check\Environment;
  * @package   spflib
  *
  * @author    Dimitar Minekov <mitko@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -21,27 +21,18 @@ class spflib_Checker
     /**
      * Проверява SPF запис
      *
-     * @param string $ip  - IP адрес на изпращача
+     * @param string $IP - IP адрес на изпращача
      * @param string $heloDomain - домейн от helo командата
-     * @param string $senderDomain - домейн на изпращача
+     * @param string $senderDomain - адресът от MAIL FROM (историческо име на аргумента)
      *
-     * @return string - резултат от проверката
+     * @return \SPFLib\Check\Result - резултат от проверката, включително getCode()
      */
     public static function check($IP = '', $heloDomain = '', $senderDomain = '')
     {
-        
-        if (core_Composer::isInUse()) {
-            try {
-                // Инстанция на класа
-                $checker = new Checker();
-            } catch (core_exception_Redirect $e) {
-                throw $e;
-            } catch (Exception $e) {
-                reportException($e);
-            }
-        }
-        $res = $checker->check(new Environment($IP, $heloDomain, $senderDomain));
-        
-        return $res;
+        expect(core_Composer::isInUse() && class_exists(Checker::class),
+            'Липсва SPF Library. Инициализирайте пакета spflib.');
+        $checker = new Checker();
+
+        return $checker->check(new Environment($IP, $heloDomain, $senderDomain));
     }
 }

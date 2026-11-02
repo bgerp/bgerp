@@ -1,0 +1,309 @@
+HTML Virtual Keyboard Interface Script / User Javascript
+  Copyright (c) 2024 - GreyWyvern
+
+
+Full Changelog
+-----------------------------------------------------------------------
+
+Version 1.54 - November 26, 2024
+  - Virtual keyboard no longer works on inputs marked as "readonly"
+  - Removed support for all versions of Internet Explorer
+  - Removed support for Opera versions <= 12
+  - Updated Korean keyboard layout
+  - Added Tajik and Uyghur keyboard layouts
+  - Added Korean Jamo to Hangul input algorithm (VitaJane and Billy)
+  - Add button allowing dragging of the keyboard; can be disabled
+    (VitaJane and Billy)
+  - Second click on Keyboard Layout Selector will swap keyboard titles
+    to their English names and sort on it
+
+Version 1.53 - December 27, 2022
+  - Prevent showing mobile keyboard (if possible) when Virtual Keyboard
+    is attached
+  - Font size is now rem unit based instead of px based so it should
+    scale better.
+
+Version 1.52 - December 17, 2022
+  - More robust code for finding the keyboard image in the same
+    directory as keyboard.js
+
+Version 1.51 - October 13, 2022
+  - Add Numpad-only display support for inputs of type="number" or
+    class="keyboardInputNumbersOnly"
+
+Version 1.50 - October 6, 2022
+  - Add VKI_flashPassword: Flash last character of a password
+
+Version 1.49 - November 8, 2011
+  - Don't display language drop-down if only one keyboard available
+
+Version 1.48 - September 30, 2011
+  - Fix for Firefox 6 & 7 styling issue (userscript only)
+
+Version 1.47 - April 18, 2011
+  - Clicking focused input opens keyboard in imageless mode
+  - Add option to disable submitting form when pressing Enter (tommarracci)
+
+Version 1.46 - March 30, 2011
+  - Added Yiddish (Yidish Lebt) keyboard layout
+  - Fix and improve keyboard display in imageless mode
+
+Version 1.45 - February 15, 2011
+  - Added activeTab option - Tab key advances to next form input
+  - Fix for backwards character input in IE9
+  - User script version no longer hides static version keyboard icon
+  - Added Yiddish keyboard layout
+  - Added Urdu Phonetic keyboard layout
+
+Version 1.44 - December 24, 2010
+  - Fixed keyboard positioning for inputs within scrollable areas
+  - Fixed language adaptation selecting incorrect keyboards
+  - Added support for wider array of ISO language code formats
+  - Prevent entire script from being run twice on page load
+  - Partial fix for Firefox textarea scrolling bugs
+
+Version 1.43 - October 29, 2010
+  - Added Dingbats and Misc. Symbols layouts
+  - Keyboard closes if a non-active form element is clicked
+  - Added dropdown indicator arrow beside layout name
+
+Version 1.42 - October 27, 2010
+  - Added 36 new keyboard layouts (87 total):
+      Albanian, Azerbaijani Cyrillic, Azerbaijani Latin, Canadian
+      French, Chinese Bopomofo IME, Chinese Cangjie IME, Devanagari,
+      Divehi, Estonian, Faeroese, Finnish, Georgian, Gujarati,
+      Icelandic, Irish/Gaelic, Kannada, Korean, Kyrgyz, Latvian,
+      Malayalam, Maltese 48, Marathi, Mongolian Cyrillic, Polish
+      (214), Punjabi (Gurmukhi), Swiss French, Swiss German, Syriac,
+      Tamil, Tatar, Telugu, Thai Kedmanee, Thai Pattachote, Urdu,
+      Uzbek Cyrillic, Vietnamese
+  - Updated keyboard layout and dead key object format
+  - Number Pad is now a collapsible extension of the keyboard instead of its own layout
+  - New selection interface for keyboard layouts
+  - New button interface for keyboard size
+  - Click outside the keyboard or input to close
+
+Version 1.41 - October 21, 2010
+  - Added Bosnian keyboard layout
+  - Added Croatian keyboard layout
+  - Added Khmer keyboard layout
+  - Added NBSP and ZWSP symbol keys
+  - Fix double-spaced symbol keys in IE
+  - Clicking Enter on text/password input causes form submission if form does not contain a submit button
+  - Clear any "suggestion" dropdowns when opening the keyboard
+  - Allow hiding the dead keys checkbox (always on or always off)
+
+Version 1.40 - September 30, 2010
+  - Fix issue with spaced-out comma keys
+  - Added a bit more cascade-prevention CSS
+  - Clear Shift/Alt keys when Caps/AltLk key is pressed
+  - Fix double-click bugginess in Firefox
+
+Version 1.39 - September 7, 2010
+  - Assamese keyboard layout added
+  - Kurdish keyboard layout added
+  - Dari keyboard layout added
+
+Version 1.38 - August 19, 2010
+  - Restore correct WebKit detection
+  - Fix for uncloseable keyboard in IE8
+  - Prevent outside width and height CSS rules from bleeding into keyboard
+  - Tightened rules for readonly inputs, fixes WebKit Bksp issue
+
+Version 1.37 - July 28, 2010
+  - Fix user-specified default sizing
+  - Added imageless mode, display keyboard on focus (static version only)
+  - Minor update to Pashto keyboard layout
+  - Added Bulgarian BDS keyboard layout
+
+Version 1.36 - June 2, 2010
+  - Add user resize control
+  - Automatically choose keyboard layout based on lang attribute
+
+Version 1.35 - May 25, 2010
+  - Edit CSS to make it much easier to resize the keyboard
+
+Version 1.34 - May 21, 2010
+  - Added Basic Japanese Hiragana/Katakana keyboard layout
+  - Visual style changes, useability changes
+  - Dead key fixes for Opera style reflow bugs
+  - Added simple i18n object to user config
+
+Version 1.33 - May 10, 2010
+  - Automatically reposition keyboard if it is offscreen
+  - Remove manual position switcher function
+  - Add -moz- and -webkit- properties for border-radius and box-shadow
+
+Version 1.32 - December 31, 2009
+  - Added keyboard position switch function
+  - Added some CSS3 styles
+  - Added Pashto keyboard layout
+  - Added Macedonian keyboard layout
+  - Added Ukrainian keyboard layout
+
+Version 1.31 - October 15, 2009
+  - Armenian West/East keyboard layouts added
+
+Version 1.30 - October 9, 2009
+  - Added means to provide alternate display characters
+  - Bengali keyboard layout added
+  - Hindi keyboard layout added
+
+Version 1.29 - September 21, 2009
+  - Split and corrected Portuguese keyboard layout (Portugal & Brazil)
+  - Added "L with stroke" dead key
+
+Version 1.28 - July 17, 2009
+  - Fixed Opera issue with some special characters in the comments
+  - Added available AltGr Lock (AltLk) functionality
+  - Changed clickless setup (0 = disabled, > 0 = delay in ms)
+  - Macron deadkey added 
+  - Kazakh keyboard layout added
+  - Pinyin keyboard layout added
+
+Version 1.27 - June 11, 2009
+  - Danish keyboard layout added
+
+Version 1.26 - June 5, 2009
+  - Slovak keyboard layout added
+
+Version 1.25 - June 3, 2009
+  - Fix IE6 warning dialogue when used on https:// pages (Tomas Sergeant)
+  - Place keyboard icon to the left of rtl input elements
+
+Version 1.24 - May 12, 2009
+  - Belarusian, Serbian Cyrillic and Serbian Latin keyboard layouts added
+  - Fix for maxlength attribute on textareas
+
+Version 1.23 - April 22, 2009
+  - Bulgarian keyboard layout added
+
+Version 1.22 - March 30, 2009
+  - Added support for max-length on inputs (Olivier Désormeaux)
+  - Downgrade comma-below forms of S and T to cedilla for IE < 8
+  - Change exposed attachment function name to VKI_attach
+  - Exposed keyboard close function as VKI_close
+  - No longer expose any functions in the userscript version
+
+Version 1.21 - March 10, 2009
+  - Swedish keyboard layout added
+  - Corrected Czech keyboard layout
+
+Version 1.20 - March 2, 2009
+  - Fix keyboard positioning bug in IE6/IE7
+
+Version 1.19 - February 17, 2009
+  - Change some variable and function names to prevent UserScript/static-version conflicts 
+  - Fix bug if input's id is changed after applying keyboard 
+  - Expose keyboard attach function via VKI_attachKeyboardInterface
+  - Attach keyboard to inputs created after document load on double-click
+
+Version 1.18 - January 30, 2009
+  - Added clickless interface option; hover keys to activate them
+  - Romanian keyboard layout added
+
+Version 1.17 - January 23, 2009
+  - Changed root ID to prevent static/userscript CSS conflicts
+  - Corrected some hover state CSS quirks
+
+Version 1.16 - January 20, 2009
+  - Add option to clear password inputs on focus
+  - Add option to prevent display of the version number
+
+Version 1.15 - January 15, 2009
+  - Fix virtual keyboard edit of readonly inputs in Safari/Chrome
+  - Add some "basic" styles to prevent document CSS seepage
+
+Version 1.14 - January 14, 2009
+  - More fixes for IE readonly input cases (Nuno Pereira)
+  - Setting dead keys to On by default now works in IE
+  - Various IE fixes to prevent unwanted cursor movement
+  - Fixed "Illegal value" error in Firefox
+  - Moved "Dead keys: On/Off" text to title of checkbox
+
+Version 1.13 - January 13, 2009
+  - Fix virtual keyboard edit of readonly inputs in IE
+  - Czech keyboard layout added
+
+Version 1.12 - December 16, 2008
+  - Farsi (Persian) keyboard layout added
+  - Ensure keyboard is displayed in a LtR format (Kaveh Bakhtiyari)
+  - Changed default keyboard to US Int'l
+
+Version 1.11 - July 18, 2008
+  - Position:fixed tweaks for browser updates since first release
+  - Fix for IE6 bug with covering select elements
+  - Burmese keyboard layout added
+
+Version 1.10 - April 14, 2008
+  - Slovenian keyboard layout added
+
+Version 1.9 - April 3, 2008
+  - Hungarian keyboard layout added
+
+Version 1.8 - March 31, 2008
+  - Performance tweaks
+
+Version 1.7 - March 27, 2008
+  - Arabic keyboard layout added
+
+Version 1.6 - January 16, 2008
+  - Hebrew keyboard layout added
+
+Version 1.5 - January 7, 2008
+  - Italian and Spanish (Spain) keyboard layouts added
+
+Version 1.4a - October 15, 2007
+  - Keyboard is fully removed from document when hidden
+
+Version 1.4 - August 1, 2007
+  - Simplified layout syntax a bit
+  - Added version number to lower right of interface
+  - Various other small bug fixes
+
+Version 1.3 - July 30, 2007
+  - Interaction styling changes (Alt, AltGr, Shift)
+  - Justified keys - last key expands to fit width
+  - If no dead keys in layout, dead key checkbox is hidden
+  - Option to disable dead keys per keyboard
+  - Added the Number Pad layout
+  - Pulled all variations of script up to same version number
+
+
+
+Keyboard Credits
+-----------------------------------------------------------------------
+  - Korean, Tajik & Uyghur keyboard layouts by Billy & VitaJane
+  - Yiddish (Yidish Lebt) keyboard layout by Simche Taub (jidysz.net)
+  - Urdu Phonetic keyboard layout by Khalid Malik
+  - Yiddish keyboard layout by Helmut Wollmersdorfer
+  - Khmer keyboard layout by Sovann Heng (km-kh.com)
+  - Dari keyboard layout by Saif Fazel
+  - Kurdish keyboard layout by Ara Qadir
+  - Assamese keyboard layout by Kanchan Gogoi
+  - Bulgarian BDS keyboard layout by Milen Georgiev
+  - Basic Japanese Hiragana/Katakana keyboard layout by Damjan
+  - Ukrainian keyboard layout by Dmitry Nikitin
+  - Macedonian keyboard layout by Damjan Dimitrioski
+  - Pashto keyboard layout by Ahmad Wali Achakzai (qamosona.com)
+  - Armenian Eastern and Western keyboard layouts by Hayastan Project (www.hayastan.co.uk)
+  - Pinyin keyboard layout from a collaboration with Lou Winklemann
+  - Kazakh keyboard layout by Alex Madyankin
+  - Danish keyboard layout by Verner Kjærsgaard
+  - Slovak keyboard layout by Daniel Lara (www.learningslovak.com)
+  - Belarusian, Serbian Cyrillic and Serbian Latin keyboard layouts by Evgeniy Titov
+  - Bulgarian Phonetic keyboard layout by Samuil Gospodinov
+  - Swedish keyboard layout by Håkan Sandberg
+  - Romanian keyboard layout by Aurel
+  - Farsi (Persian) keyboard layout by Kaveh Bakhtiyari (www.bakhtiyari.com)
+  - Burmese keyboard layout by Cetanapa
+  - Slovenian keyboard layout by Miran Zeljko
+  - Hungarian keyboard layout by Antal Sall 'Hiromacu'
+  - Arabic keyboard layout by Srinivas Reddy
+  - Italian and Spanish (Spain) keyboard layouts by dictionarist.com
+  - Lithuanian and Russian keyboard layouts by Ramunas
+  - German keyboard layout by QuHno
+  - French keyboard layout by Hidden Evil
+  - Polish Programmers layout by moose
+  - Turkish keyboard layouts by offcu
+  - Dutch and US Int'l keyboard layouts by jerone

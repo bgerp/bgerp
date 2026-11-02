@@ -8,7 +8,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,6 +44,7 @@ class cms_FancyTheme extends cms_ProtoTheme
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
+        parent::addEmbeddedFields($form);
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1400x220px)->Изображение 1');
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1400x220px)->Изображение 2');
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1400x220px)->Изображение 3');

@@ -1,0 +1,71 @@
+/* Страница с резултата от плащане с карта */
+.cpr-box {
+    max-width: 420px;
+    margin: 30px auto;
+    padding: 24px;
+    border: 1px solid #dde3ea;
+    border-radius: 10px;
+    background: #fff;
+    text-align: center;
+}
+.cpr-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 30px;
+    line-height: 56px;
+}
+.cpr-icon.cpr-ok {
+    background: #1f8f4e;
+}
+.cpr-icon.cpr-wait {
+    background: #e39b1b;
+}
+.cpr-icon.cpr-fail {
+    background: #c0392b;
+}
+.cpr-bank {
+    padding: 8px;
+    border-radius: 5px;
+    background: #f4f7fa;
+}
+.cpr-box h2 {
+    margin: 0 0 6px;
+}
+.cpr-note {
+    color: #6b7a8c;
+}
+.cpr-amount {
+    margin: 14px 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+.cpr-amount span {
+    font-size: 16px;
+    color: #6b7a8c;
+}
+.cpr-info {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+.cpr-info td {
+    padding: 5px 0;
+    border-bottom: 1px solid #edf0f3;
+}
+.cpr-info td:first-child {
+    color: #6b7a8c;
+}
+.cpr-info td:last-child {
+    text-align: right;
+    font-family: monospace;
+}
+.cpr-links {
+    margin-top: 14px;
+}
+.cpr-btn {
+    margin-top: 18px;
+}

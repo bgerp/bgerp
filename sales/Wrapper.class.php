@@ -37,6 +37,7 @@ class sales_Wrapper extends plg_ProtoWrapper
         if(core_Packs::isInstalled('bgfisc')){
             $this->TAB('bgfisc_Register', 'УНП', 'sales,ceo');
             $this->TAB('bgfisc_PrintedReceipts', 'Фиск. бонове', 'sales,ceo');
+            $this->TAB('bgfisc_SaleRegDocs', 'Документи по чл. 52о', 'sales,eshop,ceo');
         }
 
         $this->TAB('sales_PrimeCostByDocument', 'Дебъг->Делти', 'admin,ceo,debug');

@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -108,5 +108,24 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     public function getPaymentType($id)
     {
         return $this->class->getPaymentType($id);
+    }
+
+
+    /**
+     * Код на картовото плащане по Наредба Н-18 (поле PAYM в одиторския файл): 2 - виртуален ПОС, 4 - доставчик на платежни услуги
+     *
+     * @param int $paymentId - начин на плащане
+     *
+     * @return int|null - null, ако плащането не е картово по Н-18
+     */
+    public function getN18PaymentCode($paymentId)
+    {
+        // Драйверите отпреди Н-18 не са картови
+        if (!method_exists($this->class, 'getN18PaymentCode')) {
+
+            return null;
+        }
+
+        return $this->class->getN18PaymentCode($paymentId);
     }
 }

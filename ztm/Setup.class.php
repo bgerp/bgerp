@@ -6,6 +6,11 @@
  */
 defIfNot('ZTM_FORCE_REGISTRY_SYNC', false);
 
+/**
+ * Bootstrap за контролното табло; запазва досегашната версия.
+ */
+defIfNot('ZTM_BOOTSTRAP_VERSION', '4.0.0-beta.2');
+
 
 /**
  * Клас 'ztm_Plugin'
@@ -14,7 +19,7 @@ defIfNot('ZTM_FORCE_REGISTRY_SYNC', false);
  *
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,6 +49,14 @@ class ztm_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Контролен панел';
+
+
+    /**
+     * Версия на ресурсите за самостоятелното табло.
+     */
+    public $configDescription = array(
+        'ZTM_BOOTSTRAP_VERSION' => array('enum(4.0.0-beta.2=4.0.0-beta.2,5.3.8=5.3.8)', 'caption=Контролно табло->Bootstrap'),
+    );
     
     
     /**

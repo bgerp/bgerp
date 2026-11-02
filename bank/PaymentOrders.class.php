@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -121,7 +121,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
             
             $form->setDefault('originClassId', $cClass::getClassId());
             $form->setDefault('currencyId', $docRec->currencyId);
-            $form->setDefault('amount', $docRec->amount);
+            $form->setDefault('amount', $docRec->amount ?? null);
             $form->setDefault('reason', $docRec->reason);
             $form->setDefault('valior', $docRec->valior);
 

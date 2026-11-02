@@ -6,7 +6,29 @@
 }
 
 .wide #main-container .invoicesByContragentForm .formTable .formElement {
-    min-width: 24em;
+    min-width: 0;
+}
+
+.invoicesByContragentForm .formElement input,
+.invoicesByContragentForm .formElement select,
+.invoicesByContragentForm .formElement .select2-container {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) td {
+    white-space: normal !important;
+}
+
+.invoicesByContragentForm .keylist:not(.shrinked) label {
+    max-width: calc(100% - 1.6em) !important;
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
 .wide .invoicesByContragentForm select[name="driverClass"] + .select2-container {
@@ -36,11 +58,17 @@
 }
 
 .invoicesByContragentInfo .invoice-report-results {
-    flex: 2 1 320px;
+    flex: 1 1 320px;
 }
 
 .invoicesByContragentInfo .invoice-report-filter {
-    flex: 1 1 260px;
+    flex: 0 1 auto;
+    max-width: 40%;
+}
+
+.invoicesByContragentInfo .invoice-report-filter:only-child {
+    flex: 1;
+    max-width: 100%;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-row {
@@ -51,17 +79,22 @@
 
 .invoicesByContragentInfo .invoice-report-filter-options {
     display: flex;
-    column-gap: 16px;
+    column-gap: 8px;
+    margin-top: 3px;
+    border-top: 1px solid #ccc;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-main {
     flex: 1;
     min-width: 0;
+    padding-top: 3px;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-flags {
     flex: 0 0 auto;
     max-width: 50%;
+    padding: 3px 0 0 8px;
+    border-left: 1px solid #ccc;
 }
 
 .acc_reports_InvoicesByContragent td.invoice-report-base-value {
@@ -75,6 +108,10 @@
 
 .narrow .invoicesByContragentInfo {
     display: block;
+}
+
+.narrow .invoicesByContragentInfo .invoice-report-filter {
+    max-width: 100%;
 }
 
 .invoice-report-as-of {
@@ -124,4 +161,6 @@
     content: '';
     position: absolute;
     inset: 0;
+    background: linear-gradient(225deg, #888 50%, transparent 50%) top right / 6px 6px no-repeat;
+    cursor: help;
 }

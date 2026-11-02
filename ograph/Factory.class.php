@@ -94,7 +94,7 @@ class ograph_Factory extends core_Master
         expect(method_exists('ograph_Factory', $method), "Не се поддържа обекта {$str} от Open Graph Protocol");
         
         // Извикваме метода за генериране на обекта
-        $ogp = call_user_func_array("static::{$method}", array($params));
+        $ogp = static::$method($params);
         
         return $ogp;
     }

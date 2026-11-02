@@ -1,12 +1,30 @@
 <?php
 
 
-require 'File/IMC.php';
-
-ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . __DIR__);
-
+/**
+ * Адаптер за vCard с избираема File_IMC библиотека
+ *
+ * @category  bgerp
+ * @package   pear
+ * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
+ * @copyright 2026 Experta EOOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class pear_Vcard
 {
+    /** Зарежда избраното копие; глобалните File_IMC класове са едни за заявката. */
+    public static function loadCode()
+    {
+        if (class_exists('File_IMC', false)) return;
+        if (pear_Setup::get('FILE_IMC_VERSION') === '0.6.1') {
+            require_once __DIR__ . '/0.6.1/File/IMC.php';
+        } else {
+            ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . __DIR__);
+            require_once __DIR__ . '/File/IMC.php';
+        }
+    }
+
     protected static $partMaps = array(
         
         'ADR' => array(
@@ -337,11 +355,11 @@ class pear_Vcard
     public function setName($name)
     {
         $this->builder->setName(
-            $name['surname'],
-            $name['given'],
-            $name['additional'],
-            $name['prefix'],
-            $name['suffix']
+            $name['surname'] ?? '',
+            $name['given'] ?? '',
+            $name['additional'] ?? '',
+            $name['prefix'] ?? '',
+            $name['suffix'] ?? ''
         );
     }
     
@@ -368,7 +386,10 @@ class pear_Vcard
     
     public function addAddress($addr, $params)
     {
-        $pob = $extend = $street = $locality = $region = $postcode = $country = '';
+        $street = $locality = $region = $country = '';
+        $pob = $addr['pobox'] ?? '';
+        $extend = $addr['ext'] ?? '';
+        $postcode = $addr['code'] ?? '';
         
         extract($addr, EXTR_OVERWRITE);
         
@@ -379,7 +400,7 @@ class pear_Vcard
     
     public function addAddressLabel($str, $params)
     {
-        $this->builder->addLabel($str);
+        $this->builder->addLabel($str ?? '');
         $this->addBuildParams($params);
     }
     
@@ -501,7 +522,7 @@ class pear_Vcard
             
             if (empty($entry['param']['TYPE'])) {
                 if (!empty($types)) {
-                    contunue;
+                    continue;
                 }
                 
                 $vtypes = array(0);
@@ -561,6 +582,7 @@ class pear_Vcard
      */
     public static function parseFile($fileName)
     {
+        self::loadCode();
         // create vCard parser
         $parse = File_IMC::parse('vCard');
         
@@ -584,6 +606,7 @@ class pear_Vcard
      */
     public static function parseString($str)
     {
+        self::loadCode();
         // create vCard parser
         $parse = File_IMC::parse('vCard');
         
@@ -606,7 +629,7 @@ class pear_Vcard
         
         
         header('Content-Type: text/vcard; charset=UTF-8');
-        header('Content-Length: ' . mb_strlen($out, 'utf-8'));
+        header('Content-Length: ' . strlen($out));
         header('Content-Disposition: attachment; filename="contacts.vcf"');
         
         echo $out;
@@ -615,6 +638,7 @@ class pear_Vcard
     
     protected function __construct($parsed = null)
     {
+        self::loadCode();
         $this->builder = File_IMC::build('vCard');
         $this->data = &$this->builder->value;
         
@@ -635,7 +659,7 @@ class pear_Vcard
     {
         $vcards = array();
 
-        if ($cardinfo && $cardinfo['VCARD']) {
+        if (!empty($cardinfo['VCARD'])) {
             foreach ((array) $cardinfo['VCARD'] as $c) {
                 $vcards[] = new self($c);
             }

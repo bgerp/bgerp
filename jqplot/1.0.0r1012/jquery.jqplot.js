@@ -337,7 +337,7 @@
         return $.jqplot.support_canvas_text.result;
     };
     
-    $.jqplot.use_excanvas = ($.browser.msie && !$.jqplot.support_canvas()) ? true : false;
+    $.jqplot.use_excanvas = ($.browser && $.browser.msie && !$.jqplot.support_canvas()) ? true : false;
     
     /**
      * 

@@ -10,14 +10,14 @@ defIfNot('MEJS_VERSION', '2.11.0.0');
 /**
  * Клас 'mejs_Setup'
  *
- * Исталиране/деинсталиране на Apachetika
+ * Инсталиране/деинсталиране на MediaElement.js
  *
  *
  * @category  bgerp
  * @package   mejs
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,7 +41,7 @@ class mejs_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'MEJS_VERSION' => array('enum(2.11.0.0, 2.20.0, 4.2.9)', 'caption=Версия на MEJS'),
+        'MEJS_VERSION' => array('enum(2.11.0.0, 2.20.0, 4.2.9, 7.1.0)', 'caption=Версия на MEJS'),
     );
 
     

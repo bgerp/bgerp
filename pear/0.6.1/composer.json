@@ -1,0 +1,38 @@
+{
+    "authors": [
+        {
+            "email": "mroch@php.net",
+            "name": "Marshall Roch",
+            "role": "Lead"
+        },
+        {
+            "email": "pmjones88@gmail.com",
+            "name": "Paul Jones",
+            "role": "Lead"
+        },
+        {
+            "email": "till@php.net",
+            "name": "Till Klampaeckel",
+            "role": "Lead"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "File": "./"
+        }
+    },
+    "description": "More info available on: http://pear.php.net/package/File_IMC",
+    "include-path": [
+        "./"
+    ],
+    "license": "BSD-2-Clause",
+    "name": "pear/file_imc",
+    "support": {
+        "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=File_IMC",
+        "source": "https://github.com/pear/File_IMC"
+    },
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}

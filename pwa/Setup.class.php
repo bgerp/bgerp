@@ -14,6 +14,10 @@ defIfNot('PWA_DOMAINS', '');
 defIfNot('PWA_MAILTO', '');
 
 
+/** Запазва досегашния автоматичен избор според PHP. */
+defIfNot('PWA_WEB_PUSH_VERSION', 'auto');
+
+
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
@@ -21,7 +25,7 @@ defIfNot('PWA_MAILTO', '');
  * @package   pwa
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -35,6 +39,77 @@ class pwa_Setup extends core_ProtoSetup
 
 
     public $info = 'bgERP progressive web application';
+
+
+    /** Точният избор е полезен и когато PHP 7.4/8.2 споделят един vendor. */
+    public $configDescription = array(
+        'PWA_WEB_PUSH_VERSION' => array('enum(auto=Автоматично според PHP,7.0.0,8.0.0=8.0.0 (PHP 8.0+),11.0.0=11.0.0 (PHP 8.2+))', 'mandatory,caption=Web Push->Версия'),
+    );
+
+
+    /** Връща избраната версия или досегашния автоматичен клон. */
+    public static function getLibraryVersion()
+    {
+        $version = self::get('WEB_PUSH_VERSION');
+        if ($version !== 'auto') return $version;
+        if (PHP_VERSION_ID >= 80000) return '8';
+        if (PHP_VERSION_ID >= 70300) return '7';
+        if (PHP_VERSION_ID >= 70200) return '6';
+        if (PHP_VERSION_ID >= 70100) return '5';
+
+        return '2';
+    }
+
+
+    /** Проверява PHP преди Composer/autoload и преди запис на настройките. */
+    public static function getPhpVersionError($version)
+    {
+        if ($version === '11.0.0' && PHP_VERSION_ID < 80200) {
+            return 'Web Push 11.0.0 изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 7.0.0.';
+        }
+        if ($version === '8.0.0' && PHP_VERSION_ID < 80000) {
+            return 'Web Push 8.0.0 изисква PHP 8.0 или по-нова версия. За PHP 7.4 изберете 7.0.0.';
+        }
+        if ($version === '7.0.0' && PHP_VERSION_ID < 70300) {
+            return 'Web Push 7.0.0 изисква PHP 7.3 или по-нова версия.';
+        }
+    }
+
+
+    /** Стандартна грешка към неподходящия PHP избор. */
+    public function inputConfigDescriptionForm(&$form)
+    {
+        if ($form->isSubmitted() && ($error = self::getPhpVersionError($form->rec->PWA_WEB_PUSH_VERSION ?? null))) {
+            $form->setError('PWA_WEB_PUSH_VERSION', $error);
+        }
+    }
+
+
+    /** Показва липсващата избрана зависимост, без да сменя общия Composer. */
+    public function checkConfig()
+    {
+        if ($error = self::getPhpVersionError(self::get('WEB_PUSH_VERSION'))) return $error;
+        if (!core_Composer::isInstalled('minishlink/web-push', self::getLibraryVersion(), self::get('WEB_PUSH_VERSION') !== 'auto')) {
+            $error = 'Липсва избраната Web Push версия. Инициализирайте пакета pwa.';
+            if (self::get('WEB_PUSH_VERSION') === '11.0.0') {
+                $error .= ' Web Push 11 изисква съвместими PSR-18/PSR-17 реализации и psr/log 2 или 3; заключените зависимости може да изискват отделно обновяване.';
+            }
+
+            return $error;
+        }
+        if (self::get('WEB_PUSH_VERSION') === '11.0.0') {
+            try {
+                if (!core_Composer::isInUse()) return 'Не може да се зареди Web Push чрез Composer.';
+                \Http\Discovery\Psr18ClientDiscovery::find();
+                \Http\Discovery\Psr17FactoryDiscovery::findRequestFactory();
+                \Http\Discovery\Psr17FactoryDiscovery::findStreamFactory();
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                return 'Web Push 11 изисква PSR-18 клиент и PSR-17 factories, например съвместими guzzlehttp/guzzle и guzzlehttp/psr7 в общия Composer.';
+            }
+        }
+    }
 
 
     /**
@@ -82,6 +157,9 @@ class pwa_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        if ($error = self::getPhpVersionError(self::get('WEB_PUSH_VERSION'))) {
+            return '<li class="red">' . $error . '</li>';
+        }
         $html = parent::install();
         
         // Зареждаме мениджъра на плъгините
@@ -153,23 +231,9 @@ class pwa_Setup extends core_ProtoSetup
             }
         }
 
-        $cVersion = 7;
-        $pVersion = phpversion();
-        if ((version_compare($pVersion, '7.3') < 0)) {
-            $cVersion = 6;
-        }
-        if ((version_compare($pVersion, '7.2') < 0)) {
-            $cVersion = 5;
-        }
-        if ((version_compare($pVersion, '7.1') < 0)) {
-            $cVersion = 2;
-        }
+        $cVersion = self::getLibraryVersion();
 
-        if ((version_compare($pVersion, '8') >= 0)) {
-            $cVersion = 8;
-        }
-
-        if ($cVersion <= 6) {
+        if (version_compare($cVersion, '7', '<')) {
             $html .= '<li class="red">Препоръчва се да се използва PHP 7.3 или по-нова версия.</li>';
         }
 
@@ -180,10 +244,13 @@ class pwa_Setup extends core_ProtoSetup
             // 3-5 -> PHP 7.1
             // 2 -> PHP 7.0
             // 1 -> PHP 5.6
-            $html .= core_Composer::install('minishlink/web-push', $cVersion);
+            $html .= core_Composer::install('minishlink/web-push', $cVersion, self::get('WEB_PUSH_VERSION') !== 'auto');
+            if (!empty(core_Composer::$error)) return $html;
 
-            if (!core_Composer::isInUse()) {
+            if (!core_Composer::isInUse() || !class_exists(VAPID::class)) {
                 $html .= "<li class='red'>Проблем при зареждането на composer</li>";
+
+                return $html;
             }
 
             $dQuery = cms_Domains::getQuery();

@@ -1,0 +1,5 @@
+<div class="singleView">
+   [#SingleToolbar#]
+   <!--ET_BEGIN saleId--><div style='margin:5px 0 10px'>|Продажба|*: [#saleId#]<!--ET_BEGIN cartId-->, |Кошница|*: [#cartId#]<!--ET_END cartId--></div><!--ET_END saleId-->
+   [#DOC#]
+</div>

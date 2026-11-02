@@ -8,7 +8,7 @@
 					<h1 id="currentTime"></h1>
 					<h2 class="currentDate">27 октомври, четв.</h2>
 					<div class="clearfix"></div>
-					<i class="fa fa-gear optionsBtn" data-toggle="modal" data-target="#toolsModal"></i>
+					<button type="button" class="optionsBtn" data-[#BS_DATA_PREFIX#]toggle="modal" data-[#BS_DATA_PREFIX#]target="#toolsModal" aria-label="Настройки">[#settings#]</button>
 				</div>
             </div>
         </div>
@@ -105,8 +105,8 @@
             <div class="modal-header">
                 <h2>Настойки</h2>
                 <div class="clearfix"></div>
-                <button type="button" class="close text-white-50" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="[#BS_CLOSE_CLASS#]" data-[#BS_DATA_PREFIX#]dismiss="modal" aria-label="Close">
+                    [#BS_CLOSE_ICON#]
                 </button>
             </div>
             <div class="modal-body">
@@ -114,7 +114,7 @@
                     <div>
                         <div class="card-header" role="tab" id="headingOne">
                             <h5 class="mb-0" style="position: relative;">
-                                <a data-toggle="collapse" href="#collapseOne" role="button" aria-expanded="true" aria-controls="collapseOne">
+                                <a data-[#BS_DATA_PREFIX#]toggle="collapse" href="#collapseOne" role="button" aria-expanded="true" aria-controls="collapseOne">
                                     Температура
                                 </a>
                                 <div class="onoffswitch tempSwitch">
@@ -126,37 +126,37 @@
                                 </div>
                             </h5>
                         </div>
-                        <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-[#BS_DATA_PREFIX#]parent="#accordion">
                             <div class="card-body changeOptions">
                                 <div class="row">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Работен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">24</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Почивен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">10</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>
@@ -166,42 +166,42 @@
                     <div>
                         <div class="card-header" role="tab" id="headingTwo">
                             <h5 class="mb-0">
-                                <a class="collapsed" data-toggle="collapse" href="#collapseTwo" role="button" aria-expanded="false" aria-controls="collapseTwo">
+                                <a class="collapsed" data-[#BS_DATA_PREFIX#]toggle="collapse" href="#collapseTwo" role="button" aria-expanded="false" aria-controls="collapseTwo">
                                     Вентилация
                                 </a>
                             </h5>
                         </div>
-                        <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-parent="#accordion">
+                        <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-[#BS_DATA_PREFIX#]parent="#accordion">
                             <div class="card-body changeOptions">
                                 <div class="row">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Работен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">50</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Почивен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">10</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>
@@ -211,42 +211,42 @@
                     <div>
                         <div class="card-header" role="tab" id="headingThree">
                             <h5 class="mb-0">
-                                <a class="collapsed" data-toggle="collapse" href="#collapseThree" role="button" aria-expanded="false" aria-controls="collapseThree">
+                                <a class="collapsed" data-[#BS_DATA_PREFIX#]toggle="collapse" href="#collapseThree" role="button" aria-expanded="false" aria-controls="collapseThree">
                                     Осветление
                                 </a>
                             </h5>
                         </div>
-                        <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-parent="#accordion">
+                        <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-[#BS_DATA_PREFIX#]parent="#accordion">
                             <div class="card-body changeOptions">
                                 <div class="row">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Работен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">200</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
-                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <div class="col-md-4 col-sm-4 col-[#BS_XS_PREFIX#]12">
                                         <label >
                                             Почивен ден
                                         </label>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
                                     </div>
-                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                    <div class="col-md-2 col-sm-4 col-[#BS_XS_PREFIX#]8 text-center">
                                         <span class="changeVal">20</span>
                                     </div>
-                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                    <div class="col-md-2 col-sm-2 col-[#BS_XS_PREFIX#]2 text-center">
                                         <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
                                     </div>
                                 </div>

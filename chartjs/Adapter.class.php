@@ -8,7 +8,7 @@
  * @package   chartjs
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,7 +48,9 @@ class chartjs_Adapter extends core_Mvc
         $tpl->append("<div class='chartHolder chart-{$chartType}'>" . $chart . '</div>');
         
         $tpl->push('chartjs/lib/preparechart.js', 'JS');
-        $tpl->push('chartjs/' . chartjs_Setup::get('VERSION') . '/Chart.min.js', 'JS');
+        $version = chartjs_Setup::get('VERSION');
+        $script = $version === '4.6.1' ? 'chart.umd.min.js' : 'Chart.min.js';
+        $tpl->push('chartjs/' . $version . '/' . $script, 'JS');
         $tpl->push('chartjs/lib/Chart.css', 'CSS');
         
         

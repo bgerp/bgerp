@@ -2150,8 +2150,9 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $mvc->fetchRec($id);
 
+        // Платената с карта онлайн поръчка се активира винаги - парите вече са взети
         $errorMsg = null;
-        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
+        if (!Mode::is('skipMinPriceCheck') && deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
             $rec->contoActions = null;
             $mvc->save_($rec, 'contoActions');
             core_Statuses::newStatus($errorMsg, 'error');

@@ -1,0 +1,36 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class="domestic-waybill">
+    <h2 class="centered">|ТОВАРИТЕЛНИЦА|* [#waybillNumber#]</h2>
+    <p class="centered">|За обществен автомобилен превоз в страната|*<br>|Приложение № 15 към Наредба № 33|*</p>
+    <!--ET_BEGIN documentStatus--><p class="centered"><b>[#documentStatus#]</b></p><!--ET_END documentStatus-->
+    <p>|Издадена в|*: [#issuePlace#] &nbsp; |на|* [#issueDate#] &nbsp; · &nbsp; [#lineId#]</p>
+    <table class="innerTable border-table paddingCells" style="width:100%">
+        <tr><th style="width:50%">|Изпращач|*</th><th>|Превозвач|*</th></tr>
+        <tr><td><b>[#senderName#]</b><br>[#senderAddress#]</td><td><b>[#carrierName#]</b><br>[#carrierAddress#]<br>|ЕИК|*: [#carrierNumber#]</td></tr>
+        <tr><th>|Получател|*</th><th>|Натоварване|*</th></tr>
+        <tr><td><b>[#recipientName#]</b><br>[#recipientAddress#]</td><td>[#loadingPlace#]<br>|Дата|*: [#loadingDate#]</td></tr>
+        <tr><th>|Разтоварване|*</th><th>|Пробег|*</th></tr>
+        <tr><td>[#unloadingPlace#]<br>|Дата|*: [#unloadingDate#]</td><td>[#distance#] |км|*</td></tr>
+    </table>
+    <h3>|Товар|*</h3>
+    [#goods#]
+    <p>|Общо бруто тегло|*: [#totalWeight#] kg</p>
+    <!--ET_BEGIN volume--><p>|Обем|*: [#volume#] m³</p><!--ET_END volume-->
+    <table class="innerTable border-table paddingCells" style="width:100%">
+        <tr><td>|Опасен товар — клас|*: [#dangerousClass#]</td><td>|Наименование|*: [#dangerousName#]</td></tr>
+        <tr><td>|Придружители|*: [#companions#]</td><td>|Брой|*: [#companionCount#]</td></tr>
+        <tr><td>|Превозна цена|*: [#freightPrice#] [#currencyId#]</td><td>|Допълнителни разходи|*: [#additionalCosts#] [#currencyId#]</td></tr>
+        <tr><td colspan="2">|Инструкции на превозвача|*:<br>[#instructions#]</td></tr>
+        <tr><td>|Автомобил — марка и модел|*: [#vehicleModel#]</td><td>|Регистрационен номер|*: [#vehicleNumber#]</td></tr>
+        <tr><td>|Пътен лист — серия, № и дата|*: [#tripReference#]</td><td>|Водач|*: [#driverName#]</td></tr>
+    </table>
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px;page-break-inside:avoid">
+        <tr><td colspan="2">|Натоварване — дата|*: ........................ |от час|*: ............ |до час|*: ............</td></tr>
+        <tr style="height:22mm"><td style="width:50%;vertical-align:top">|Изпращач — подпис и печат|*:</td><td style="vertical-align:top">|Превозвач — подпис и печат|*:</td></tr>
+        <tr><td colspan="2">|Разтоварване — дата|*: ........................ |от час|*: ............ |до час|*: ............</td></tr>
+        <tr style="height:22mm"><td colspan="2" style="vertical-align:top">|Получател — подпис и печат|*:</td></tr>
+    </table>
+    <!--ET_BEGIN sourceContainerId--><p>|Стоков документ|*: [#sourceContainerId#]</p><!--ET_END sourceContainerId-->
+    <p>|Забележки|*: [#notes#]<br>........................................................................................................................</p>
+</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

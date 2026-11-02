@@ -269,11 +269,6 @@
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.eshop-public .eshop-product-list:hover {
-    border-color: var(--c-accent-line-strong);
-    box-shadow: 0 5px 18px rgba(var(--c-ink-rgb), 0.05);
-}
-
 .eshop-public .productHolder {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
     gap: 14px;
@@ -297,13 +292,6 @@
     border-bottom: 3px solid var(--c-accent-line-strong);
     border-radius: 6px;
     transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.eshop-public .eshop-group-button:hover,
-.eshop-public .eshop-group-button:focus-within {
-    background: var(--c-accent-soft-2);
-    border-color: var(--c-accent-line-strong);
-    border-left-color: var(--shop-accent);
 }
 
 .eshop-public .eshop-group-button .eshop-group-button-img {
@@ -346,12 +334,6 @@
     font-size: 1.5rem;
     line-height: 1;
     transition: transform 150ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .eshop-public .eshop-group-button:hover .eshop-group-arrow {
-        transform: translateX(3px);
-    }
 }
 
 @media (max-width: 480px) {
@@ -461,20 +443,14 @@ body.eshop-public .productBtn {
     vertical-align: middle;
     transition: background-color 150ms ease, border-color 150ms ease;
 }
-body.eshop-public .productBtn:hover {
-    background: var(--c-accent-soft-2) !important;
-    border-color: var(--c-accent) !important;
-}
+
 body.eshop-public .productBtn.addToCard {
     background: var(--c-accent) !important;
     color: #fff !important;
     border-color: var(--c-accent) !important;
     margin-right: 0 !important;
 }
-body.eshop-public .productBtn.addToCard:hover {
-    background: var(--c-accent-dark) !important;
-    border-color: var(--c-accent-dark) !important;
-}
+
 body.eshop-public .productBtn:focus-visible {
     outline: 2px solid var(--c-accent);
     outline-offset: 3px;
@@ -659,9 +635,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     .eshop-public .eshop-product-list {
         transition: none;
     }
-    .eshop-public .eshop-group-button:hover .eshop-group-arrow {
-        transform: none;
-    }
 }
 
 .eshop-public .eshop-product-labels a.productBtn {
@@ -790,24 +763,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     color: #fff;
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .eshop-related-card:hover {
-        transform: translateY(-4px);
-        border-color: var(--c-accent-line-strong);
-        box-shadow: 0 10px 24px rgba(var(--c-ink-rgb), 0.1);
-    }
-    .eshop-related-card:hover img {
-        transform: scale(1.045);
-    }
-    .eshop-related-card:hover .productName {
-        color: var(--shop-accent, var(--c-accent));
-    }
-    .eshop-related-card:hover .eshop-related-arrow {
-        background: var(--shop-accent, var(--c-accent));
-        color: #fff;
-    }
-}
-
 @media (max-width: 480px) {
     .eshop-related-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -839,10 +794,6 @@ body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
     .eshop-related-card img,
     .eshop-related-arrow {
         transition: none;
-    }
-    .eshop-related-card:hover,
-    .eshop-related-card:hover img {
-        transform: none;
     }
 }
 
@@ -1018,10 +969,7 @@ body.eshop-public .eshop-new-product {
     text-shadow: none;
     cursor: pointer;
 }
-body.eshop-public .eshop-new-product:hover {
-    background-color: #e5f0f4 !important;
-    border-style: solid !important;
-}
+
 body.eshop-public .eshop-new-product:focus-visible {
     outline: 2px solid var(--c-accent);
     outline-offset: 3px;
@@ -1203,19 +1151,14 @@ body.eshop-public .cart-view-buttons-top .cart-back-link::before {
     border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
 }
-body.eshop-public .cart-view-buttons-top a.eshop-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
+
 body.eshop-public .cart-view-buttons-top a.cart-clear-link {
     margin-left: auto;
     color: #667781 !important;
     font-size: 0.8125rem;
     font-weight: 400;
 }
-body.eshop-public .cart-view-buttons-top a.cart-clear-link:hover {
-    color: #a33e49 !important;
-}
+
 body.eshop-public .cart-view-buttons-top a:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 4px;
@@ -1316,9 +1259,7 @@ body.eshop-public .cart-view-buttons-right .eshop-btn {
     background: var(--c-accent) !important;
     color: #fff !important;
 }
-body.eshop-public .cart-view-buttons-right .eshop-btn:not([disabled]):hover {
-    background: var(--c-accent-dark) !important;
-}
+
 body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: var(--c-ink); }
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
@@ -1370,12 +1311,7 @@ body.commerce-theme a.commerce-filter-reset::before {
     font-size: 1.2em;
     line-height: 1.1667;
 }
-.eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:hover,
-body.commerce-theme a.commerce-filter-reset:hover {
-    color: #a33e49;
-    text-decoration: underline;
-    text-underline-offset: 0.25rem;
-}
+
 .eshop-public :is(#cmsNavigation, #eshopParamFilterTop) a.eshop-param-filter-clear:focus-visible,
 body.commerce-theme a.commerce-filter-reset:focus-visible {
     outline: 2px solid currentColor;

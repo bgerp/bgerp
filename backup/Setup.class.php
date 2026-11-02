@@ -4,6 +4,9 @@
 
 use Aws\S3\S3Client;
 
+/** Досегашната AWS SDK версия остава default. */
+defIfNot('BACKUP_AWS_VERSION', '3.272.2');
+
 /**
  * Уникален префикс за имената на архивираните файлове
  */
@@ -140,7 +143,7 @@ defIfNot('AMAZON_BUCKET', '');
  * @package   backup
  *
  * @author    Dimitar Minekov<mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -172,6 +175,7 @@ class backup_Setup extends core_ProtoSetup
         
         'BACKUP_PREFIX' => array('varchar', 'caption=Имена на архивираните файлове->Префикс'),
         'BACKUP_STORAGE_TYPE' => array('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
+        'BACKUP_AWS_VERSION' => array('enum(3.272.2,3.337.3,3.402.3=3.402.3 (PHP 8.2+),3.402.4=3.402.4 (PHP 8.2+))', 'mandatory,caption=Амазон->AWS SDK версия'),
         'BACKUP_LOCAL_PATH' => array('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
         'BACKUP_FILEMAN_COUNT_FILES' => array('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
         'BACKUP_MYSQL_USER_NAME' => array('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
@@ -202,6 +206,24 @@ class backup_Setup extends core_ProtoSetup
         // Архивиране по rsync
         //'backup_Rsync',
     );
+
+
+    /** Проверява PHP преди зареждане на Composer или промяна на настройката. */
+    public static function getPhpVersionError($version)
+    {
+        if (in_array($version, array('3.402.3', '3.402.4'), true) && PHP_VERSION_ID < 80200) {
+            return "AWS SDK {$version} изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 3.337.3.";
+        }
+    }
+
+
+    /** Показва несъвместимия избор като стандартна грешка към полето. */
+    public function inputConfigDescriptionForm(&$form)
+    {
+        if ($form->isSubmitted() && ($error = self::getPhpVersionError($form->rec->BACKUP_AWS_VERSION ?? null))) {
+            $form->setError('BACKUP_AWS_VERSION', $error);
+        }
+    }
     
     
     /**
@@ -209,11 +231,16 @@ class backup_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        if ($error = self::getPhpVersionError(self::get('AWS_VERSION'))) {
+            return "<li class='red'>" . $error . '</li>';
+        }
         $html = parent::install();
         
-        $html .= core_Composer::install('aws/aws-sdk-php', '3.272.2');
-        if (!empty(core_Composer::$error)) {
-            return $html;
+        if (self::get('STORAGE_TYPE') === 'amazon') {
+            $html .= core_Composer::install('aws/aws-sdk-php', self::get('AWS_VERSION'), true);
+            if (!empty(core_Composer::$error)) {
+                return $html;
+            }
         }
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
@@ -283,6 +310,13 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig($fullCheck = false)
     {
+        if ($error = self::getPhpVersionError(self::get('AWS_VERSION'))) {
+            return $error;
+        }
+        if (self::get('STORAGE_TYPE') === 'amazon'
+            && !core_Composer::isInstalled('aws/aws-sdk-php', self::get('AWS_VERSION'), true)) {
+            return 'Липсва избраната AWS SDK версия. Инициализирайте пакета backup.';
+        }
         if (!$fullCheck) {
             
             return;

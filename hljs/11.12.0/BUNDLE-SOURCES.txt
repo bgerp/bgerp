@@ -1,0 +1,35 @@
+Official highlightjs/cdn-release tag 11.12.0, build/ directory.
+Concatenation order (no source changes):
+highlight.min.js
+languages/erlang.min.js
+languages/brainfuck.min.js
+languages/rib.min.js
+languages/rsl.min.js
+languages/lisp.min.js
+languages/profile.min.js
+languages/http.min.js
+languages/haskell.min.js
+languages/1c.min.js
+languages/smalltalk.min.js
+languages/latex.min.js
+languages/actionscript.min.js
+languages/vala.min.js
+languages/d.min.js
+languages/axapta.min.js
+languages/scala.min.js
+languages/cmake.min.js
+languages/avrasm.min.js
+languages/vhdl.min.js
+languages/coffeescript.min.js
+languages/nginx.min.js
+languages/erlang-repl.min.js
+languages/django.min.js
+languages/delphi.min.js
+languages/vbscript.min.js
+languages/mel.min.js
+languages/dos.min.js
+languages/apache.min.js
+languages/applescript.min.js
+languages/matlab.min.js
+languages/parser3.min.js
+languages/clojure.min.js

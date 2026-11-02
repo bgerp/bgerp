@@ -13,7 +13,7 @@
  * @package   jsgauge
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -301,8 +301,9 @@ class jsgauge_Gauge
             ", 'SCRIPTS');
         
         $conf = core_Packs::getConfig('jsgauge');
-        $tpl->push($conf->GAUGE_PATH . '/' . 'gauge.js', 'JS');
+        $path = $conf->GAUGE_PATH ?? GAUGE_PATH;
+        $tpl->push($path . '/gauge.js', 'JS');
         $tpl->appendOnce("\n" . '<!--[if IE]><script type="text/javascript" src="' .
-            GAUGE_PATH . '/' . 'excanvas.js"></script><![endif]-->', 'HEAD');
+            sbf($path . '/excanvas.js', '') . '"></script><![endif]-->', 'HEAD');
     }
 }

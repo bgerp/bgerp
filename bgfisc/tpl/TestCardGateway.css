@@ -1,0 +1,143 @@
+/* Страница на тестовия шлюз за плащане с карта */
+body {
+    margin: 0;
+    background: #eef1f5;
+}
+.tcg-page {
+    padding: 40px 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #23303f;
+}
+.tcg-box {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(20, 40, 70, .15);
+    overflow: hidden;
+}
+.tcg-head {
+    position: relative;
+    padding: 16px 20px;
+    background: #12355b;
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+}
+.tcg-badge {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #f5a623;
+    color: #12355b;
+    font-size: 11px;
+}
+.tcg-body {
+    padding: 20px;
+}
+.tcg-amount {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+}
+.tcg-amount span {
+    font-size: 18px;
+    color: #6b7a8c;
+}
+.tcg-info {
+    width: 100%;
+    margin: 12px 0 18px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.tcg-info td {
+    padding: 4px 0;
+    border-bottom: 1px solid #edf0f3;
+}
+.tcg-info td:first-child {
+    color: #6b7a8c;
+}
+.tcg-info td:last-child {
+    text-align: right;
+    font-family: monospace;
+}
+.tcg-card {
+    height: 150px;
+    margin-bottom: 18px;
+    padding: 18px 20px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1d4f86, #3a8fd6);
+    color: #fff;
+    font-family: monospace;
+}
+.tcg-chip {
+    width: 38px;
+    height: 28px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #f3d77a, #c9a440);
+}
+.tcg-number {
+    margin: 22px 0 16px;
+    font-size: 19px;
+    letter-spacing: 2px;
+}
+.tcg-card-foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: .9;
+}
+.tcg-page form {
+    margin: 0;
+}
+.tcg-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid #c9d2dc;
+    border-radius: 6px;
+    background: #fff;
+    color: #23303f;
+    font-size: 14px;
+    cursor: pointer;
+}
+.tcg-btn:hover {
+    background: #f3f6f9;
+}
+.tcg-pay {
+    padding: 13px;
+    border-color: #1f8f4e;
+    background: #1f8f4e;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+}
+.tcg-pay:hover {
+    background: #187a42;
+}
+.tcg-decline {
+    border-color: transparent;
+    color: #c0392b;
+}
+.tcg-decline:hover {
+    background: #fbeceb;
+}
+.tcg-scenarios {
+    margin-top: 16px;
+    padding-top: 10px;
+    border-top: 1px dashed #c9d2dc;
+}
+.tcg-caption {
+    color: #6b7a8c;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+.tcg-foot {
+    padding: 12px 20px;
+    background: #f6f8fa;
+    color: #6b7a8c;
+    font-size: 12px;
+}

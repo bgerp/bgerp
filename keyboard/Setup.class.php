@@ -15,7 +15,7 @@ defIfNot('VKI_version', '1.28');
  * @package   keyboard
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,7 +52,7 @@ class keyboard_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'VKI_version' => array('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
+        'VKI_version' => array('enum(1.28,1.54)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
     
@@ -86,7 +86,7 @@ class keyboard_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('keyboard');
         
-        return 'keyboard/' . $conf->VKI_version . '/keyboard.js';
+        return 'keyboard/' . ($conf->VKI_version ?? VKI_version) . '/keyboard.js';
     }
     
     
@@ -97,6 +97,6 @@ class keyboard_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('keyboard');
         
-        return 'keyboard/' . $conf->VKI_version . '/keyboard.css';
+        return 'keyboard/' . ($conf->VKI_version ?? VKI_version) . '/keyboard.css';
     }
 }

@@ -1,31 +1,45 @@
 <?php
 
 
-/**
- * Версията на програмата
- */
-defIfNot('PHPCOLOR_VERSION', '0.3');
-
-
-/**
- * Вкарваме файловете необходими за работа с програмата.
- */
-require_once PHPCOLOR_VERSION . '/Color.class.php';
-
-
 /** Библиотека за работа с цветове
  *
  * @category  bgerp
  * @package   phpcolor
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class phpcolor_Adapter extends core_Mvc
 {
+    /** Зарежда избраната библиотека и запазва нормализирането на цветовете. */
+    protected static function getColor($hexColor)
+    {
+        $version = phpcolor_Setup::get('VERSION');
+        if ($version === '1.0.4') {
+            require_once __DIR__ . '/1.0.4/Color.php';
+            $class = 'Mexitek\\PHPColors\\Color';
+        } else {
+            require_once __DIR__ . '/0.3/Color.class.php';
+            $class = 'Color';
+        }
+
+        $cObj = new color_Object($hexColor ?? '');
+        $hexColor = $cObj->getHex('');
+
+        try {
+            return new $class($hexColor);
+        } catch (ErrorException $e) {
+            reportException($e);
+            self::logErr($e->getMessage() . ' - ' . $hexColor);
+
+            return false;
+        }
+    }
+
+
     /**
      * промяна на цвета
      *
@@ -36,16 +50,8 @@ class phpcolor_Adapter extends core_Mvc
      */
     public static function changeColor($hexColor, $type = 'lighten', $ammount = 10, $mix = '#fff')
     {
-        $cObj = new color_Object($hexColor);
-        
-        $hexColor = $cObj->getHex('');
-        
-        try {
-            $myColor = new Color($hexColor);
-        } catch (ErrorException $e) {
-            reportException($e);
-            self::logErr($e->getMessage() . ' - ' . $hexColor);
-            
+        $myColor = self::getColor($hexColor);
+        if (!$myColor) {
             return false;
         }
         
@@ -59,9 +65,7 @@ class phpcolor_Adapter extends core_Mvc
                 return $myColor->darken($ammount);
             
             case 'gradient':
-                $myColor->makeGradient($ammount);
-                
-                return $myColor->getCssGradient($myColor);
+                return $myColor->getCssGradient($ammount);
             
             case 'mix':
                 
@@ -82,16 +86,8 @@ class phpcolor_Adapter extends core_Mvc
      */
     public static function checkColor($hexColor, $type = 'light')
     {
-        $cObj = new color_Object($hexColor);
-        
-        $hexColor = $cObj->getHex('');
-        
-        try {
-            $myColor = new Color($hexColor);
-        } catch (ErrorException $e) {
-            reportException($e);
-            self::logErr($e->getMessage() . ' - ' . $hexColor);
-            
+        $myColor = self::getColor($hexColor);
+        if (!$myColor) {
             return false;
         }
         
