@@ -4306,3 +4306,10 @@ en,"Ще получите имейл, когато плащането прикл
 en,Отговор в обработка,Response in progress
 en,Чл. 52о,Art. 52o
 en,Платено и неотразено,Paid but not recorded
+en,три имена,full name (three names)
+en,Забрана на фактура на лице по онлайн поръчка без заявка или без три имена / ЕГН / адрес,Block invoices to individuals for online orders without a request or without full name / personal ID / address
+en,Не може да се издаде фактура на лице по онлайн поръчка,Cannot issue an invoice to an individual for online order
+en,"клиентът е избрал ""Без фактуриране""","the customer chose ""No invoice"""
+en,клиентът не е посочил,the customer did not provide
+en,валидно ЕГН,a valid personal ID number
+en,постоянен адрес (град и адрес),permanent address (city and street)
