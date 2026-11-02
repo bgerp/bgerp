@@ -44,6 +44,56 @@ class bgfisc_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
 
 
     /**
+     * Терминалът и търговецът като при виртуален ПОС на банка
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        parent::addFields($fieldset);
+        $fieldset->FLD('merchantId', 'varchar(32)', 'caption=Плащане с карта->Merchant ID,mandatory,after=ownAccountId');
+        $fieldset->FLD('terminalId', 'varchar(32)', 'caption=Плащане с карта->Терминал (TID),mandatory,after=merchantId');
+    }
+
+
+    /**
+     * Номерът като при БОРИКА - 6 цифри, уникален за терминала в рамките на 24 часа
+     *
+     * @param stdClass $rec
+     *
+     * @return string
+     */
+    public function getOrderNum($rec)
+    {
+        return str_pad($rec->id % 1000000, 6, '0', STR_PAD_LEFT);
+    }
+
+
+    /**
+     * Проверката на статус: висящото плащане завършва успешно, изоставеното - с отказ
+     *
+     * @param stdClass $rec
+     * @param stdClass $methodRec
+     *
+     * @return array
+     */
+    public function checkStatus($rec, $methodRec)
+    {
+        expect(isDebug());
+        $isPaid = (($rec->response['RESULT'] ?? null) == 'pending');
+        $res = array('ORDER' => $rec->orderNum, 'NONCE' => $rec->nonce, 'RESULT' => $isPaid ? 'approved' : 'declined',
+            'AMOUNT' => number_format($rec->amount, 2, '.', ''), 'CURRENCY' => $rec->currencyCode, 'TERMINAL' => $rec->config['terminalId'] ?? '',
+            'RRN' => $isPaid ? 'T' . date('ymdHis') . $rec->orderNum : '',
+            'APPROVAL' => $isPaid ? strtoupper(substr(md5($rec->orderNum . microtime()), 0, 6)) : '',
+            'CARD' => $isPaid ? '434179XXXXXX0044' : '',
+            'CARDHOLDERINFO' => $isPaid ? '' : 'Изоставено плащане (тест)');
+        $res['P_SIGN'] = self::sign($res, self::RESPONSE_FIELDS);
+
+        return $res;
+    }
+
+
+    /**
      * Заявката към шлюза за опита за плащане
      *
      * @param stdClass $rec
