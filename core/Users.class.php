@@ -1553,7 +1553,7 @@ class core_Users extends core_Manager
                 '|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
         }
         
-        if (($userRec->state ?? null) != 'active' || ($userRec->maxIdleTime ?? 0) > EF_USERS_SESS_TIMEOUT) {
+        if (($userRec->state ?? null) != 'active' || ($userRec->maxIdleTime ?? 0) > core_Setup::get('EF_USERS_SESS_TIMEOUT', true)) {
             $Users->logout();
             redirect(getCurrentUrl());
         }
