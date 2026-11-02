@@ -4354,6 +4354,16 @@ table .eshop-btn {
     padding-left: 20px !important;
     margin: 10px 0; }
 
+.order-btn.eshop-btn.eshop-cardPayBtn {
+  padding-left: 44px !important;
+  box-shadow: inset 0px 1px 0px 0px #5fcf7d;
+  background: url('../img/16/credit_card_white.png') no-repeat 18px center, linear-gradient(to bottom, #2e9e4f 5%, #23843f 100%);
+  background-color: #2e9e4f;
+  filter: none; }
+  .order-btn.eshop-btn.eshop-cardPayBtn:hover {
+    background: url('../img/16/credit_card_white.png') no-repeat 18px center, linear-gradient(to bottom, #23843f 5%, #2e9e4f 100%);
+    background-color: #23843f; }
+
 .narrow .cart-view-buttons-top span {
   margin: 0 3px; }
 

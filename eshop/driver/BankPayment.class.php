@@ -8,7 +8,7 @@
  * @package   epay
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title     Банково плащане за е-магазина
  * 
@@ -165,6 +165,8 @@ class eshop_driver_BankPayment extends core_BaseClass
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amount= str_replace('&nbsp;', '', $amount);
         $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
+        $res['AMOUNT_VALUE'] = $amount;
+        $res['CURRENCY'] = $settings->currencyId;
         
         $fields = array('bic' => $res['BIC'], 'bank' => $res['BANK'], 'ownAccount' => $rec->ownAccount, 'amount' => $amount,'currencyCode' => $settings->currencyId);
         $name = "po_{$res['REASON']}";
@@ -201,14 +203,16 @@ class eshop_driver_BankPayment extends core_BaseClass
         $tpl->placeObject($data);
         
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
-        $shopLink = ht::createLink(tr("|*« |Към магазина|*"), $shopUrl);
-        $tpl->replace($shopLink, 'BACK_BTN');
+        $tpl->replace(ht::createBtn('Към магазина', $shopUrl, false, false, 'class=order-btn eshop-btn'), 'BACK_BTN');
 
         if(isset($data->PO_HND)){
             $blankDownloadUrl = fileman_Download::getDownloadUrl($data->PO_HND);
-            $blankLink = ht::createLink(tr('тук'), $blankDownloadUrl);
+            $blankLink = ht::createLink(tr('Попълнено платежно нареждане'), $blankDownloadUrl, false, array('ef_icon' => 'img/16/doc_pdf.png'));
             $tpl->replace($blankLink, 'PO_LINK');
         }
+
+        // Същият вид като страницата след плащане с карта
+        $tpl->push('cond/tpl/CardPaymentResult.css', 'CSS');
         core_Lg::pop($lang);
         
         return $tpl;

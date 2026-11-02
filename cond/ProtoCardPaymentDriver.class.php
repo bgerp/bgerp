@@ -260,7 +260,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
         // Сумата се взема от поръчката при натискането - стар бутон не плаща стара сума
         $url = cond_CardPayments::getPayUrl($paymentId, $okUrl, $cancelUrl, $initiatorClass, $initiatorId);
 
-        return ht::createBtn('Плащане с карта', $url, null, null, 'title=Плащане с банкова карта,class=order-btn eshop-btn,rel=nofollow');
+        return ht::createBtn('Плащане с карта', $url, null, null, 'title=Плащане с банкова карта,class=order-btn eshop-btn eshop-cardPayBtn,rel=nofollow');
     }
 
 

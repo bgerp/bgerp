@@ -1259,6 +1259,13 @@ body.eshop-public .cart-view-buttons-right .eshop-btn {
     background: var(--c-accent) !important;
     color: #fff !important;
 }
+/* Плащането с карта е основното действие - зелено, с иконка на карта */
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn {
+    padding-left: 46px !important;
+    border-color: #2f7d4f;
+    background: #2f7d4f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath d='M2 10h20M6 15h4'/%3E%3C/svg%3E") no-repeat 16px center / 22px 22px !important;
+}
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn:hover { background-color: #276a43 !important; }
 
 body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: var(--c-ink); }
 
