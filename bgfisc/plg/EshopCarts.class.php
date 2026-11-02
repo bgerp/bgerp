@@ -64,6 +64,40 @@ class bgfisc_plg_EshopCarts extends core_Plugin
 
 
     /**
+     * Документът по чл. 52о се предоставя на купувача с имейла за поръчката - линк и прикачен PDF
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $body    - тялото на имейла (richtext)
+     * @param stdClass $rec     - количката
+     * @param stdClass $saleRec - продажбата
+     */
+    public static function on_AfterPrepareOrderEmailBody($mvc, &$body, $rec, $saleRec)
+    {
+        $docRec = bgfisc_SaleRegDocs::fetch("#cartId = {$rec->id}");
+        if (!is_object($docRec)) {
+
+            return;
+        }
+
+        $number = bgfisc_SaleRegDocs::formatNumber($docRec->number);
+        $text = "\n\n[b]" . tr('Документ за регистриране на продажбата') . '[/b]: [link=' . bgfisc_SaleRegDocs::getPublicUrl($docRec) . "]№ {$number}[/link]";
+
+        // Без PDF имейлът пак тръгва - линкът е достатъчен
+        try {
+            $fh = bgfisc_SaleRegDocs::getPdf($docRec);
+            $text .= "\n[file={$fh}]" . fileman_Files::fetchByFh($fh, 'name') . '[/file]';
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            reportException($e);
+            $mvc->logErr('PDF на документа по чл. 52о не е прикачен към имейла: ' . $e->getMessage(), $rec->id);
+        }
+
+        $body->append($text);
+    }
+
+
+    /**
      * Създава документа по запазените в количката данни за плащането
      *
      * @param core_Mvc $mvc

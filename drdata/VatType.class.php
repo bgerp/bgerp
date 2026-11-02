@@ -38,6 +38,20 @@ class drdata_VatType extends type_Varchar
     
     
     /**
+     * Бележки за модела в LLM експорта по статус; валидният номер е без бележка
+     */
+    public $llmNotes = array(
+        'not_vat' => 'VAT number not confirmed: no EU prefix',
+        'bulstat' => 'Malformed VAT number: UIC without the BG prefix',
+        'syntax' => 'Malformed VAT number',
+        'invalid' => 'Invalid VAT number',
+        'unknown' => 'VAT number not confirmed',
+        'valid' => '',
+        '' => 'VAT number not confirmed'
+    );
+    
+    
+    /**
      * Работен кеш
      */
     protected static $cache = array();
@@ -101,17 +115,20 @@ class drdata_VatType extends type_Varchar
         
         $value = parent::escape($value);
         
+        // Цветът и хинтът се губят в LLM експорта, затова статусът се изписва като бележка
+        if (Mode::is('renderForLlm')) {
+            list($status, ) = $this->getStatus($value);
+            $note = $this->llmNotes[$status] ?? $this->llmNotes[''];
+            
+            return $note === '' ? $value : $value . ' ' . doc_plg_LlmExportable::systemNote($note);
+        }
+        
         if (Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing')) {
             
             return $value;
         }
         
-        $Vats = cls::get('drdata_Vats');
-        if (!array_key_exists($value, static::$cache)) {
-            static::$cache[$value] = $Vats->check($value);
-        }
-        
-        list($status, $info) = static::$cache[$value];
+        list($status, $info) = $this->getStatus($value);
         
         $status = $this->statuses[$status];
         
@@ -127,5 +144,18 @@ class drdata_VatType extends type_Varchar
         $attr['class'] = $status[1];
         
         return ht::createElement('span', $attr, $value);
+    }
+    
+    
+    /**
+     * Статус и информация за номера, кеширани за заявката
+     */
+    protected function getStatus($value)
+    {
+        if (!array_key_exists($value, static::$cache)) {
+            static::$cache[$value] = cls::get('drdata_Vats')->check($value);
+        }
+        
+        return static::$cache[$value];
     }
 }

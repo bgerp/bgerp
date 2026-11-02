@@ -31,7 +31,7 @@ class bgfisc_SaleRegDocs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, plg_Created, plg_Sorting, plg_Search, plg_Printing';
+    public $loadList = 'sales_Wrapper, plg_Created, plg_Sorting, plg_SelectPeriod, plg_Search, plg_Printing';
 
 
     /**
@@ -43,7 +43,7 @@ class bgfisc_SaleRegDocs extends core_Master
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'number, issuedOn, ownCompanyId, orderNumber, saleId, transactionRef, total, currencyId';
+    public $listFields = 'issuedOn, number, ownCompanyId, orderNumber, saleId, transactionRef, total, currencyId';
 
 
     /**
@@ -74,6 +74,13 @@ class bgfisc_SaleRegDocs extends core_Master
      * Кой може да създаде документа отново, ако не е създаден при плащането
      */
     public $canCreateforcart = 'ceo,eshop';
+
+
+    /**
+     * Публичният изглед и PDF-ът са за купувача - достъпът е по подписания адрес
+     */
+    public $canShow = 'every_one';
+    public $canPdf = 'every_one';
 
 
     /**
@@ -111,7 +118,7 @@ class bgfisc_SaleRegDocs extends core_Master
      *
      * @param stdClass $cartRec     - количката
      * @param stdClass $saleRec     - продажбата по нея
-     * @param array    $paymentData - transactionRef, posId, merchantId, paidOn, amount (платената сума във валутата на продажбата)
+     * @param array    $paymentData - transactionRef, posId, merchantId, paidOn, amount, currencyCode (валутата на сумата, ако не е тази на продажбата)
      *
      * @return stdClass
      */
@@ -193,6 +200,125 @@ class bgfisc_SaleRegDocs extends core_Master
 
 
     /**
+     * Публичен изглед за купувача
+     */
+    public function act_Show()
+    {
+        $rec = $this->fetchByPublicKey();
+        $this->requireRightFor('show', $rec);
+
+        $actions = new ET("<div class='srd-actions'>[#PRINT#] [#PDF#]</div>");
+        $actions->replace(ht::createFnBtn('Печат', 'window.print();', false, array('ef_icon' => 'img/16/printer.png')), 'PRINT');
+        $actions->replace(ht::createBtn('PDF', static::getPublicUrl($rec, 'pdf'), false, false, 'ef_icon=img/16/doc_pdf.png'), 'PDF');
+        $tpl = new ET('[#1#][#2#]', $actions, static::renderDoc($rec));
+        $this->logRead('Публичен изглед', $rec->id);
+        Mode::set('wrapper', 'cms_page_External');
+
+        return $tpl;
+    }
+
+
+    /**
+     * PDF за купувача
+     */
+    public function act_Pdf()
+    {
+        $rec = $this->fetchByPublicKey();
+        $this->requireRightFor('pdf', $rec);
+        $this->logRead('PDF', $rec->id);
+
+        return new Redirect(fileman_Download::getDownloadUrl(static::getPdf($rec)));
+    }
+
+
+    /**
+     * Документът по подписания ключ от публичния адрес
+     *
+     * @return stdClass
+     */
+    protected function fetchByPublicKey()
+    {
+        Request::setProtected('doc');
+        $id = Request::get('doc', 'int');
+        Request::removeProtected('doc');
+        expect($id && ($rec = $this->fetch($id)), 'Няма такъв документ');
+
+        return $rec;
+    }
+
+
+    /**
+     * Публичен адрес на документа - отваря се без вход, но не може да се налучка
+     *
+     * @param stdClass $rec
+     * @param string   $action - show или pdf
+     *
+     * @return string
+     */
+    public static function getPublicUrl($rec, $action = 'show')
+    {
+        Request::setProtected('doc');
+        $url = toUrl(array(get_called_class(), $action, 'doc' => $rec->id), 'absolute');
+        Request::removeProtected('doc');
+
+        return $url;
+    }
+
+
+    /**
+     * PDF на документа
+     *
+     * @param stdClass $rec
+     *
+     * @return string - манипулатор на файла
+     */
+    public static function getPdf($rec)
+    {
+        $name = 'Doc52o_' . static::formatNumber($rec->number) . '.pdf';
+
+        return doc_PdfCreator::convert(static::renderDoc($rec), $name);
+    }
+
+
+    /**
+     * Самият документ - еднакъв в системата, публичния изглед и PDF-а
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public static function renderDoc($rec)
+    {
+        // Документът е по българска наредба - еднакъв за всеки купувач и в PDF-а
+        core_Lg::push('bg');
+        try {
+            $me = cls::get(get_called_class());
+            $fields = arr::make('number,issuedOn,orderNumber,transactionRef,paymentMethodId,posId,shopNumber,total,currencyId', true);
+            $fields['-single'] = true;
+            $row = $me->recToVerbal($rec, $fields);
+            $row->issuedOn = dt::mysql2verbal($rec->issuedOn, 'd.m.Y H:i:s');
+
+            $tpl = getTplFromFile('bgfisc/tpl/SaleRegDoc.shtml');
+            $tpl->placeObject($row);
+
+            $Double = core_Type::getByName('double(decimals=2)');
+            $Quantity = core_Type::getByName('double(smartRound)');
+            foreach ((array) $rec->lines as $line) {
+                $line = (object) $line;
+                $tpl->append('<tr><td class="srd-left">' . core_Type::escape($line->name ?? '') . '</td><td>' . core_Type::escape($line->vatGroup ?? '') . '</td>'
+                    . '<td class="srd-right">' . $Quantity->toVerbal($line->quantity ?? 0) . ' ' . cat_UoM::getShortName($line->packagingId ?? null) . '</td>'
+                    . '<td class="srd-right">' . $Double->toVerbal($line->price ?? 0) . '</td><td class="srd-right">' . $Double->toVerbal($line->amount ?? 0) . '</td></tr>', 'LINES');
+            }
+            $tpl->push('bgfisc/tpl/SaleRegDoc.css', 'CSS');
+        } finally {
+            core_Lg::pop();
+        }
+
+        return $tpl;
+    }
+
+
+    /**
      * Права за действията
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
@@ -221,8 +347,15 @@ class bgfisc_SaleRegDocs extends core_Master
     {
         // Шлюзът знае точно колко е платено
         if (isset($paymentData['amount']) && is_numeric($paymentData['amount'])) {
+            $amount = $paymentData['amount'];
 
-            return round(round($paymentData['amount'], 10), 2);
+            // Шлюзът плаща във валутата на сметката, а документът е във валутата на продажбата
+            $currencyCode = $paymentData['currencyCode'] ?? null;
+            if (!empty($currencyCode) && !empty($saleRec->currencyId) && $currencyCode != $saleRec->currencyId) {
+                $amount = currency_CurrencyRates::convertAmount($amount, !empty($paymentData['paidOn']) ? substr($paymentData['paidOn'], 0, 10) : null, $currencyCode, $saleRec->currencyId);
+            }
+
+            return round(round($amount, 10), 2);
         }
 
         // Сумата в количката е в основна валута - превръща се с курса на продажбата, както редовете
@@ -330,6 +463,16 @@ class bgfisc_SaleRegDocs extends core_Master
         $row->number = static::formatNumber($rec->number);
         if (isset($fields['-list'])) {
             $row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
+            if (!empty($rec->ownCompanyId)) {
+                $row->ownCompanyId = crm_Companies::getHyperlink($rec->ownCompanyId, true);
+            }
+            if (!empty($rec->cartId)) {
+                $row->orderNumber = eshop_Carts::getHyperlink($rec->cartId, true);
+            }
+        }
+
+        if ((isset($fields['-list']) || isset($fields['-single'])) && !empty($rec->saleId)) {
+            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
         }
 
         if (isset($fields['-single'])) {
@@ -339,32 +482,82 @@ class bgfisc_SaleRegDocs extends core_Master
             $row->companyAddress = core_Type::escape(trim(implode(', ', array_filter(array($company->pCode ?? '', $company->place ?? '', $company->address ?? ''))), ', '));
             $row->companyContact = core_Type::escape(implode(', ', array_filter(array($company->email ?? '', $company->tel ?? ''))));
 
-            $qrUrl = barcode_Qr::getUrl(static::getQrText($rec), false, 4);
-            $row->qr = ht::createElement('img', array('src' => $qrUrl, 'alt' => 'QR', 'style' => 'width:30mm;height:30mm'));
+            $qrUrl = barcode_Qr::getUrl(static::getQrText($rec), true, 4);
+            $row->qr = ht::createElement('img', array('src' => $qrUrl, 'alt' => 'QR'));
         }
     }
 
 
     /**
-     * Рендиране на единичния изглед - добавят се редовете
+     * Пълният номер (с водещите нули) също се търси - така е изписан в документа
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $number = !empty($rec->number) ? $rec->number : (isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : null);
+        if (!empty($number)) {
+            $res .= ' ' . plg_Search::normalizeText(static::formatNumber($number));
+        }
+    }
+
+
+    /**
+     * Филтър на списъка - търсене, период и наша фирма
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $form = $data->listFilter;
+        $form->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $form->FLD('from', 'date', 'caption=От,silent');
+        $form->FLD('to', 'date', 'caption=До,silent');
+        $showFields = 'search,selectPeriod,from,to';
+
+        // Само фирмите с документи - номерацията е отделна за всяка
+        $cQuery = $mvc->getQuery();
+        $cQuery->groupBy('ownCompanyId');
+        $cQuery->show('ownCompanyId');
+        $companies = array();
+        while ($cRec = $cQuery->fetch()) {
+            $companies[$cRec->ownCompanyId] = crm_Companies::getTitleById($cRec->ownCompanyId, false);
+        }
+        if (countR($companies) > 1) {
+            $form->FLD('company', 'int', 'caption=Наша фирма,placeholder=Всички,silent');
+            $form->setOptions('company', array('' => '') + $companies);
+            $showFields .= ',company';
+        }
+
+        $form->showFields = $showFields;
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->input(null, 'silent');
+        $form->input();
+
+        $filter = $form->rec;
+        if (!empty($filter->from)) {
+            $data->query->where(array("#issuedOn >= '[#1#]'", "{$filter->from} 00:00:00"));
+        }
+        if (!empty($filter->to)) {
+            $data->query->where(array("#issuedOn <= '[#1#]'", "{$filter->to} 23:59:59"));
+        }
+        if (!empty($filter->company) && isset($companies[$filter->company])) {
+            $data->query->where(array('#ownCompanyId = [#1#]', $filter->company));
+        }
+        $data->query->orderBy('issuedOn', 'DESC');
+    }
+
+
+    /**
+     * Рендиране на единичния изглед - самият документ
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $rows = array();
-        $Double = core_Type::getByName('double(decimals=2)');
-        $Quantity = core_Type::getByName('double(smartRound)');
-        foreach ((array) $data->rec->lines as $line) {
-            $rows[] = (object) array(
-                'name' => core_Type::escape($line->name),
-                'vatGroup' => core_Type::escape($line->vatGroup),
-                'quantity' => $Quantity->toVerbal($line->quantity) . ' ' . cat_UoM::getShortName($line->packagingId),
-                'price' => $Double->toVerbal($line->price),
-                'amount' => $Double->toVerbal($line->amount),
-            );
-        }
+        $tpl->replace(static::renderDoc($data->rec), 'DOC');
+    }
 
-        $table = cls::get('core_TableView', array('mvc' => $mvc));
-        $fields = arr::make('name=Стока/услуга,vatGroup=Данъчна група,quantity=Количество,price=Ед. цена,amount=Стойност', true);
-        $tpl->replace($table->get($rows, $fields), 'LINES');
+
+    /**
+     * Бутон към публичния изглед, както го вижда купувачът
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $data->toolbar->addBtn('За купувача', static::getPublicUrl($data->rec), 'ef_icon=img/16/world_link.png,title=Публичният изглед - адресът от имейла за поръчката', array('target' => '_blank'));
     }
 }

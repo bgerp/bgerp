@@ -109,7 +109,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
+    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност,reportedDistance=Пробег, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
 
 
     /**
@@ -231,6 +231,7 @@ class trans_Lines extends core_Master
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
         $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
         $this->FLD('places', 'varchar(255)', 'caption=Населени места,input=none');
+        $this->FNC('reportedDistance', 'int', 'caption=Отчетен пробег,input=none,unit=км');
 
         $this->XPR('shipmentOnCalc', 'date', "COALESCE(#shipmentOn, #start)", 'caption=Експедиране');
     }
@@ -373,6 +374,17 @@ class trans_Lines extends core_Master
     {
         $rec = $data->rec;
 
+        $tripRec = (object) array('lineId' => $rec->id ?? null, 'threadId' => $rec->threadId ?? null);
+        if (trans_TripSheets::haveRightFor('add', $tripRec)) {
+            $tripToolbar = $data->toolbar ?? null;
+            $tripToolbar->addBtn('Пътен лист', array('trans_TripSheets', 'add', 'originId' => $rec->containerId ?? null,
+                'threadId' => $rec->threadId ?? null, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry_go.png');
+        }
+        if (trans_Waybills::haveRightFor('add', $tripRec)) {
+            $data->toolbar->addBtn('Товарителница', array('trans_Waybills', 'add', 'originId' => $rec->containerId,
+                'threadId' => $rec->threadId, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry.png');
+        }
+
         if (!$data->toolbar->haveButton("btnOpen_{$rec->containerId}")) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
                 $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нея|*!', 'title' => 'Затваряне на транспортна линия'));
@@ -484,6 +496,23 @@ class trans_Lines extends core_Master
         $rec = $mvc->fetchRec($rec);
         $transUnitsTotal = array();
 
+        if (isset($fields['-single']) || isset($fields['-list'])) {
+            $tripSummary = trans_TripSheets::getLineSummary($rec->id ?? null);
+            $reportedDistance = $tripSummary->distance ?? null;
+            $row->reportedDistance = $reportedDistance === null ? tr('Неотчетен пробег')
+                : core_Type::getByName('int')->toVerbal($reportedDistance) . ' ' . tr('км');
+            if (!empty($tripSummary->unreported) && $reportedDistance !== null) {
+                $row->reportedDistance .= ' (' . tr('частичен') . ')';
+            }
+            if (isset($fields['-single'])) {
+                $links = array();
+                foreach (($tripSummary->sheets ?? array()) as $sheet) {
+                    if (trans_TripSheets::haveRightFor('single', $sheet)) $links[] = trans_TripSheets::getLink($sheet->id ?? null, 0);
+                }
+                $row->tripSheets = implode(', ', $links);
+            }
+        }
+
         if (isset($fields['-single'])) {
             if (isset($rec->defaultCaseId)) {
                 $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
@@ -544,9 +573,9 @@ class trans_Lines extends core_Master
         // Показване на готовността
         $row->created = "{$mvc->getVerbal($rec, 'createdOn')}</br>" . tr('от') . "" . crm_Profiles::createLink($rec->createdBy);
         $row->countStoreDocuments = $mvc->getVerbal($rec, 'countStoreDocuments');
-        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой складови документи', 'noicon', false);
+        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой товарни документи (складови и товарителници)', 'noicon', false);
         $row->countActiveDocuments = $mvc->getVerbal($rec, 'countActiveDocuments');
-        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани складови документи', 'noicon', false);
+        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани товарни документи', 'noicon', false);
         $row->countReadyDocuments = $mvc->getVerbal($rec, 'countReadyDocuments');
         $row->countReadyDocuments = ht::createHint($row->countReadyDocuments, 'Брой нагласени складови документи', 'noicon', false);
 
@@ -593,9 +622,9 @@ class trans_Lines extends core_Master
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($rec->id);
-            $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
+            $isCargoDocument = trans_LineDocuments::isCargoDocument($Document);
 
-            if (!$isStoreDocument) {
+            if (!$isCargoDocument) {
                 $toBaseAmount = deals_Helper::getSmartBaseCurrency($transInfo['baseAmount'], $transInfo['valior'], $today);
 
                 if ($toBaseAmount < 0) {
@@ -614,7 +643,7 @@ class trans_Lines extends core_Master
             if ($sumWeight === true) {
                 if (!empty($transInfo['weight'])) {
                     $weight += $transInfo['weight'];
-                } elseif ($isStoreDocument) {
+                } elseif ($isCargoDocument) {
                     unset($weight);
                     $sumWeight = false;
                 }
@@ -624,7 +653,7 @@ class trans_Lines extends core_Master
             if ($sumVolume === true) {
                 if (!empty($transInfo['volume'])) {
                     $volume += $transInfo['volume'];
-                } elseif ($isStoreDocument) {
+                } elseif ($isCargoDocument) {
                     unset($volume);
                     $sumVolume = false;
                 }
@@ -707,6 +736,7 @@ class trans_Lines extends core_Master
 
         if ($interface) {
             $iOptions = array_keys(core_Classes::getOptionsByInterface($interface));
+            if ($interface == 'store_iface_DocumentIntf') $iOptions[] = trans_Waybills::getClassId();
             if (countR($iOptions)) {
                 $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
                 $query->in('docClass', $iOptions);
@@ -730,6 +760,8 @@ class trans_Lines extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
+        // A document may have changed earlier in the same request.
+        $this->cacheLineInfo = array();
 
         // Изчисляване на готовите и не-готовите редове
         $dQuery = trans_LineDetails::getQuery();
@@ -754,7 +786,7 @@ class trans_Lines extends core_Master
                 $countries[$lineInfo['countryId']] = $lineInfo['countryId'];
             }
 
-            if ($Doc->haveInterface('store_iface_DocumentIntf')) {
+            if (trans_LineDocuments::isCargoDocument($Doc)) {
                 $rec->countStoreDocuments++;
                 if ($dRec->containerState == 'active') {
                     $rec->countActiveDocuments++;
