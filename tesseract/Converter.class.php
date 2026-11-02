@@ -277,7 +277,18 @@ class tesseract_Converter extends core_Manager
                 $exec = $timeLimit . ' ' . $exec;
             }
 
-            exec($exec);
+            // Временните файлове на ImageMagick в отделна папка, която се трие и при убит процес
+            $magickTmpDir = $pdfPath . '-magick';
+            core_Os::requireDir($magickTmpDir);
+            $exec = 'MAGICK_TMPDIR=' . escapeshellarg($magickTmpDir) . ' ' . $exec;
+
+            $execOut = array();
+            $execCode = 0;
+            exec($exec . ' 2>&1', $execOut, $execCode);
+            core_Os::deleteDir($magickTmpDir);
+            if ($execCode) {
+                log_System::add(get_called_class(), "Грешка при конвертиране на PDF към TIFF (exit code {$execCode}): " . implode("\n", $execOut), null, 'warning');
+            }
             
             $dir = dirname($pdfPath);
             

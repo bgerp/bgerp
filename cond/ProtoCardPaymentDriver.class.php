@@ -4,8 +4,9 @@
 /**
  * Базов драйвер за плащане с карта през онлайн шлюз (виртуален ПОС)
  *
- * Наследникът описва само обмена с конкретния шлюз - заявката, отговора и номера на поръчката.
- * Опитите, повторните известия и предаването на платеното към поръчката са в cond_CardPayments.
+ * Наследникът описва само обмена с конкретния шлюз - пренасочване с подписана форма (БОРИКА),
+ * сесия през API на шлюза (Stripe, PayPal) или вградена форма. Опитите, повторните известия,
+ * проверката на висящите и предаването на платеното към поръчката са в cond_CardPayments.
  *
  *
  * @category  bgerp
@@ -28,26 +29,26 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
 
 
     /**
+     * Код по Н-18 по подразбиране: 2 - виртуален ПОС на банка, 4 - доставчик на платежни услуги (Stripe, PayPal)
+     */
+    public $defaultN18PaymentCode = 2;
+
+
+    /**
      * Заявката към шлюза за опита за плащане
      *
      * @param stdClass $rec       - опитът (cond_CardPayments)
      * @param stdClass $methodRec - начинът на плащане с полетата на драйвера
      *
-     * @return array - [url] адрес на шлюза, [fields] полета на формата
+     * @return array - [url] адрес на шлюза, [fields] полета на формата, [method] POST (по подразбиране) или GET - пренасочване;
+     *               или [html] вградена форма на шлюза на нашата страница;
+     *               [gatewayRef] - ид на сесията, създадена през API на шлюза, по което после идва отговорът
      */
     abstract public function getGatewayRequest($rec, $methodRec);
 
 
     /**
-     * Полетата, които шлюзът връща към BACKREF
-     *
-     * @return array
-     */
-    abstract public function getResponseFields();
-
-
-    /**
-     * Проверява подписа и нормализира отговора - еднакво за BACKREF и за проверката на статус
+     * Проверява подписа и нормализира отговора - еднакво за връщането, известието и проверката на статус
      *
      * @param stdClass $methodRec - начинът на плащане с полетата на драйвера
      * @param array    $data      - получените полета
@@ -55,22 +56,70 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      * @return array|null - null при невалиден подпис, иначе:
      *                    [status] approved - успешно; declined - окончателен отказ;
      *                             pending - междинен статус или техническа грешка, след която може да дойде друг отговор
-     *                    [orderNum], [nonce] и [operation] (payment/refund) - за съпоставяне с изпратеното,
-     *                    [gatewayStatus] кодът от шлюза, [message], [cardholderInfo] - за показване на картодържателя,
+     *                    за съпоставяне с изпратеното - едно от: [id] опитът, само ако е потвърден от шлюза;
+     *                             [gatewayRef] сесията от getGatewayRequest; [orderNum] и [nonce];
+     *                    [operation] (payment/refund), [gatewayStatus] кодът от шлюза, [message],
+     *                    [cardholderInfo] - за показване на картодържателя,
      *                    [transactionRef], [approvalCode], [cardNumber] маскиран, [posId] терминалът от подписания отговор,
-     *                    [amount], [currencyCode], [paidOn], [raw] - целият отговор
-     *                    При одобрено плащане сумата, валутата и терминалът са задължителни.
+     *                    [amount] в единици на валутата (не в стотинки), [currencyCode] ISO с главни букви, [paidOn], [raw] - целият отговор
+     *                    При одобрено плащане сумата и валутата са задължителни, а терминалът - ако е в настройките.
      */
     abstract public function parseResponse($methodRec, $data);
 
 
     /**
-     * Полетата от проверката на статус направо в шлюза (напр. TRTYPE=90 при БОРИКА)
+     * Полетата, които шлюзът връща с купувача (BACKREF)
+     *
+     * @return array
+     */
+    public function getResponseFields()
+    {
+        return array();
+    }
+
+
+    /**
+     * Отговорът при връщането на купувача от шлюза
+     *
+     * Шлюзовете с API (Stripe, PayPal) връщат само ид на сесията - тогава тук се взема резултатът
+     * от шлюза (или се финализира плащането) и се подава на parseResponse().
+     *
+     * @param stdClass      $methodRec - начинът на плащане
+     * @param stdClass|null $rec       - опитът от защитения адрес за връщане (@see getResponseUrl), ако е в него
+     *
+     * @return array|null - нормализиран отговор или null при невалиден
+     */
+    public function readResponse($methodRec, $rec = null)
+    {
+        $data = array();
+        foreach ($this->getResponseFields() as $field) {
+            $data[$field] = Request::get($field, 'varchar');
+        }
+
+        return $this->parseResponse($methodRec, $data);
+    }
+
+
+    /**
+     * Известие от сървъра на шлюза (webhook) - чете суровото тяло и заглавките и проверява подписа им
+     *
+     * @param stdClass $methodRec - начинът на плащане
+     *
+     * @return array|null - нормализиран отговор, false - събитие, което не засяга плащането, или null при невалидно
+     */
+    public function readNotification($methodRec)
+    {
+        return null;
+    }
+
+
+    /**
+     * Полетата от проверката на статус направо в шлюза (TRTYPE=90 при БОРИКА, сесията при Stripe и PayPal)
      *
      * @param stdClass $rec       - опитът (cond_CardPayments)
      * @param stdClass $methodRec - начинът на плащане
      *
-     * @return array|null - null, ако шлюзът не поддържа проверка
+     * @return array|null - данните за parseResponse() или null, ако шлюзът не поддържа проверка
      */
     public function checkStatus($rec, $methodRec)
     {
@@ -79,7 +128,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
 
 
     /**
-     * Номерът на опита в шлюза - 6 цифри, уникален за терминала в рамките на 24 часа
+     * Номерът на опита в шлюза - шлюзовете с ограничение на дължината (БОРИКА - 6 цифри) го предефинират
      *
      * @param stdClass $rec - опитът (cond_CardPayments)
      *
@@ -87,7 +136,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getOrderNum($rec)
     {
-        return str_pad($rec->id % 1000000, 6, '0', STR_PAD_LEFT);
+        return (string) $rec->id;
     }
 
 
@@ -132,17 +181,35 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
 
 
     /**
-     * Адрес за отговора на шлюза (BACKREF)
+     * Адрес за връщането на купувача от шлюза (BACKREF, success_url, return_url)
+     *
+     * @param int      $paymentId
+     * @param int|null $id        - опитът; без него, ако адресът е общ за метода (БОРИКА го иска фиксиран)
+     *
+     * @return string
+     */
+    public function getResponseUrl($paymentId, $id = null)
+    {
+        // Методът и опитът не се виждат в адреса и не могат да се подменят
+        Request::setProtected('pm,cp');
+        $url = toUrl(array('cond_CardPayments', 'response', 'pm' => $paymentId, 'cp' => $id), 'absolute');
+        Request::removeProtected('pm,cp');
+
+        return $url;
+    }
+
+
+    /**
+     * Адрес за известията от сървъра на шлюза (webhook) - въвежда се в профила на търговеца
      *
      * @param int $paymentId
      *
      * @return string
      */
-    public function getResponseUrl($paymentId)
+    public function getNotifyUrl($paymentId)
     {
-        // Методът не се вижда в адреса и не може да се подмени
         Request::setProtected('pm');
-        $url = toUrl(array('cond_CardPayments', 'response', 'pm' => $paymentId), 'absolute');
+        $url = toUrl(array('cond_CardPayments', 'notify', 'pm' => $paymentId), 'absolute');
         Request::removeProtected('pm');
 
         return $url;
@@ -150,16 +217,27 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
 
 
     /**
-     * Добавя полетата на драйвера към Fieldset
+     * Настройките на метода, които се запазват в опита при изпращането - по тях се проверява отговорът
+     *
+     * @param stdClass $methodRec
+     *
+     * @return array - [ownAccountId], [merchantId], [terminalId] и други на драйвера
+     */
+    public function getConfig($methodRec)
+    {
+        return array('ownAccountId' => $methodRec->ownAccountId ?? null, 'terminalId' => $methodRec->terminalId ?? null, 'merchantId' => $methodRec->merchantId ?? null);
+    }
+
+
+    /**
+     * Добавя полетата на драйвера към Fieldset - общите за всички шлюзове, ключовете и терминалите са в наследника
      *
      * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('ownAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Виртуален ПОС->Банкова сметка,mandatory,after=onlinePaymentText');
-        $fieldset->FLD('merchantId', 'varchar(32)', 'caption=Виртуален ПОС->Merchant ID,mandatory,after=ownAccountId');
-        $fieldset->FLD('terminalId', 'varchar(32)', 'caption=Виртуален ПОС->Терминал (TID),mandatory,after=merchantId');
-        $fieldset->FLD('n18PaymentCode', 'enum(2=Виртуален ПОС,4=Доставчик на платежни услуги)', 'caption=Виртуален ПОС->Вид по Н-18,notNull,value=2,after=terminalId');
+        $fieldset->FLD('ownAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане с карта->Банкова сметка,mandatory,after=onlinePaymentText');
+        $fieldset->FLD('n18PaymentCode', "enum(2=Виртуален ПОС,4=Доставчик на платежни услуги)", "caption=Плащане с карта->Вид по Н-18,notNull,value={$this->defaultN18PaymentCode},after=ownAccountId");
     }
 
 
@@ -182,7 +260,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
         // Сумата се взема от поръчката при натискането - стар бутон не плаща стара сума
         $url = cond_CardPayments::getPayUrl($paymentId, $okUrl, $cancelUrl, $initiatorClass, $initiatorId);
 
-        return ht::createBtn('Плащане с карта', $url, null, null, 'title=Плащане с банкова карта,class=order-btn eshop-btn,rel=nofollow');
+        return ht::createBtn('Плащане с карта', $url, null, null, 'title=Плащане с банкова карта,class=order-btn eshop-btn eshop-cardPayBtn,rel=nofollow');
     }
 
 
@@ -262,6 +340,6 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     {
         $code = cond_PaymentMethods::fetch($paymentId)->n18PaymentCode ?? null;
 
-        return !empty($code) ? (int) $code : 2;
+        return !empty($code) ? (int) $code : (int) $this->defaultN18PaymentCode;
     }
 }
