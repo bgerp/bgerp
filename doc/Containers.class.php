@@ -394,8 +394,8 @@ class doc_Containers extends core_Manager
                     $contRec->searchKeywords = $generatedKeywords;
                     $docContainers->save_($contRec, 'searchKeywords');
                     
-                    $resArr[$rec->docClass]++;
-                    $resArr[0]++;
+                    $resArr[$rec->docClass] = ($resArr[$rec->docClass] ?? 0) + 1;
+                    $resArr[0] = ($resArr[0] ?? 0) + 1;
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     continue;

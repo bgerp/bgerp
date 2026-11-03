@@ -282,7 +282,7 @@ class cond_CardPayments extends core_Manager
 
         http_response_code($code);
         echo ($code == 200) ? 'OK' : 'ERROR';
-        core_App::shutdown(false);
+        core_App::shutdown();
     }
 
 

@@ -55,7 +55,7 @@ class archive_Adapter
         // Вкарваме пакета
         require_once getFullPath('archive/7z/7z.php');
         
-        if ($fArr['fileHnd']) {
+        if (!empty($fArr['fileHnd'])) {
             // Пътя до файла
             $this->path = fileman::extract($fArr['fileHnd']);
         } else {

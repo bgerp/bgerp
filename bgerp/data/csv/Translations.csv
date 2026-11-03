@@ -4314,3 +4314,32 @@ en,клиентът не е посочил,the customer did not provide
 en,валидно ЕГН,a valid personal ID number
 en,постоянен адрес (град и адрес),permanent address (city and street)
 en,Онлайн продажби с ППП за ФЛ,Online sales to individuals with postal money transfer
+en,XML файл,XML file
+en,Не е създаден,Not created
+en,Документ (бон),Document (receipt)
+en,Н-18 е-магазин - месечен одиторски файл,N-18 e-shop - monthly audit file
+en,Доставката няма редове,The delivery has no lines
+en,Сумите на редовете не дават общата сума,The line amounts do not add up to the total
+en,Документът по чл. 52о е без код на плащането,The Art. 52o document has no payment code
+en,Липсва идентификаторът на доставчика на платежни услуги,The payment service provider ID is missing
+en,"Поръчката има и документ по чл. 52о, и фискален бон","The order has both an Art. 52o document and a fiscal receipt"
+en,"Плащането не е отразено - няма документ по чл. 52о, фискален бон или ПБД","The payment is not recorded - no Art. 52o document, fiscal receipt or bank receipt"
+en,"Има поръчки с грешки - виж ""n/a"" в колоната ""Код""","There are orders with errors - see ""n/a"" in the ""Code"" column"
+en,"Няма поръчки с доставка през месеца, а схемата на НАП изисква поне една","No orders delivered in the month, and the NRA schema requires at least one"
+en,Поръчките са на различни наши фирми - магазинът трябва да е на една,The orders belong to different own companies - the shop must belong to one
+en,Липсва номерът на магазина от НАП в настройките му,The shop's NRA number is missing in its settings
+en,Нашата фирма е без валиден ЕИК,Our company has no valid UIC
+en,Освободено по чл. 3 плащане без ППП,"Exempt under Art. 3, payment without postal money transfer"
+en,Наложен платеж с ППП,Cash on delivery by postal money transfer
+en,Друго плащане без фискален бон,Other payment without a fiscal receipt
+en,"Плащане, отразено с фискален бон",Payment recorded with a fiscal receipt
+en,По платежна сметка,To a payment account
+en,По карта,To a card
+en,Друг начин,Other method
+en,Включени са само онлайн поръчките от избрания домейн с доставка през месеца,Only online orders from the selected domain delivered during the month are included
+en,Документ по чл. 52о (плащане с карта),Art. 52o document (card payment)
+en,Касов бон,Cash receipt
+en,Документ/Бон,Document/Receipt
+en,При виртуален ПОС липсва номерът на ПОС или на трансакцията,The virtual POS number or the transaction number is missing
+en,Изчакване на ресурсите на страницата преди печат,Waiting for page resources before printing
+en,Секунди,Seconds
