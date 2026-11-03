@@ -624,11 +624,14 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $fld->FLD('saleId', 'varchar', 'caption=Продажба');
         $fld->FLD('cartId', 'varchar', 'caption=Поръчка');
         $fld->FLD('orderDate', 'date', 'caption=Дата');
-        $fld->FLD('net', 'double(decimals=2)', 'caption=Без ДДС');
-        $fld->FLD('vat', 'double(decimals=2)', 'caption=ДДС');
-        $fld->FLD('total2', 'double(decimals=2)', 'caption=Общо');
+        // Сумите са в основната валута на месеца, както в XML файла
+        $baseCurrencyId = acc_Periods::fetchField($rec->periodId ?? null, 'baseCurrencyId');
+        $currency = !empty($baseCurrencyId) ? currency_Currencies::getCodeById($baseCurrencyId) : '';
+        $fld->FLD('net', 'double(decimals=2)', "caption=Стойност|* {$currency}->Без ДДС,tdClass=stageCol");
+        $fld->FLD('vat', 'double(decimals=2)', "caption=Стойност|* {$currency}->ДДС,tdClass=stageCol");
+        $fld->FLD('total2', 'double(decimals=2)', "caption=Стойност|* {$currency}->Общо,tdClass=stageCol");
         $fld->FLD('docs', 'varchar', 'caption=Документи');
-        $fld->FLD('paymName', 'varchar', 'caption=Плащане->Начин');
+        $fld->FLD('paymName', 'varchar', 'caption=Плащане->Начин,smartCenter');
         $fld->FLD('docNum', 'varchar', 'caption=Плащане->Документ/Бон,tdClass=rightCol');
         if ($export) {
             $fld->FLD('transactionRef', 'varchar', 'caption=Плащане->Трансакция');
@@ -769,14 +772,32 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                                     <div class='small'>
                                         <div>|Магазин|*: [#domainId#]</div>
                                         <div>|Месец|*: [#periodId#]</div>
-                                        <div>|XML файл|*: [#file#]</div>
+                                        <div>|Наша фирма|*: [#ownCompanyId#]</div>
                                         <div><b>|Включени са само онлайн поръчките от избрания домейн с доставка през месеца|*</b></div>
                                     </div>
+                                </fieldset>
+                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|XML файл за НАП|*</b></small></legend>
+                                    <div class='small'>[#file#]</div>
                                 </fieldset>"));
 
         $rec = $data->rec;
         $fieldTpl->replace('<b>' . cms_Domains::getHyperlink($rec->domainId ?? null, true) . '</b>', 'domainId');
-        $fieldTpl->replace('<b>' . (acc_Periods::fetchField($rec->periodId ?? null, 'title') ?? '') . '</b>', 'periodId');
+        // Месецът води към онлайн продажбите с вальор в него
+        $periodRec = acc_Periods::fetch($rec->periodId ?? null);
+        $period = is_object($periodRec) ? core_Type::escape($periodRec->title) : '';
+        if (is_object($periodRec) && sales_Sales::haveRightFor('list')) {
+            $period = ht::createLink($period, array('sales_Sales', 'list', 'type' => 'onlineSale', 'users' => 'all_users', 'filterDateField' => 'valior',
+                'selectPeriod' => 'select', 'from' => $periodRec->start, 'to' => $periodRec->end));
+        }
+        $fieldTpl->replace("<b>{$period}</b>", 'periodId');
+
+        // Нашата фирма от настройките на магазина към края на месеца (при holding - избраната там, иначе основната)
+        if (!empty($rec->domainId)) {
+            $periodEnd = acc_Periods::fetchField($rec->periodId ?? null, 'end');
+            $settings = cms_Domains::getSettings($rec->domainId, $periodEnd ?: null);
+            $ownCompanyId = cls::load('holding_plg_EshopCarts', true) ? holding_plg_EshopCarts::getOwnCompanyId($settings) : crm_Setup::BGERP_OWN_COMPANY_ID;
+            $fieldTpl->replace('<b>' . crm_Companies::getHyperlink($ownCompanyId, true) . '</b>', 'ownCompanyId');
+        }
 
         $reportData = $rec->data ?? null;
         $fh = is_object($reportData) ? ($reportData->n18FileHnd ?? null) : null;
