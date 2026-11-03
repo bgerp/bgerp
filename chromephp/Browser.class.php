@@ -120,7 +120,12 @@ class chromephp_Browser
             new Message('Emulation.setEmulatedMedia', array('media' => 'print'))
         )->waitForResponse();
 
-        $page->setHtml($html, 10000);
+        // Съдържанието е заредено, а таймаутът е от бавен ресурс (картинка, скрипт) - печата се каквото е заредено
+        try {
+            $page->setHtml($html, max(1, (int) chromephp_Setup::get('LOAD_TIMEOUT')) * 1000);
+        } catch (HeadlessChromium\Exception\OperationTimedOut $e) {
+            log_System::add(get_called_class(), 'PDF без изчакване на всички ресурси: ' . $e->getMessage(), null, 'warning');
+        }
 
         $reportColumnCount = (int) $page->evaluate(
             "(() => {
