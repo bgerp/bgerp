@@ -24,7 +24,8 @@ class pixlr_Plugin extends core_Plugin
     public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
         $rec = $data->rec ?? null;
-        if (is_object($rec) && $mvc->haveRightFor('single', $rec)) {
+        $toolbar = $data->toolbar ?? null;
+        if (is_object($rec) && $toolbar && $mvc->haveRightFor('single', $rec)) {
             try {
                 //Разширението на файла
                 $ext = fileman_Files::getExt($rec->name ?? '');
@@ -40,7 +41,7 @@ class pixlr_Plugin extends core_Plugin
                     ), '', '&', PHP_QUERY_RFC3986);
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn(
+                    $toolbar->addBtn(
                         'Pixlr',
                         $url,
                         "id='btn-pixlr', checkPrivateHost, ef_icon=pixlr/img/pixlr.png",
