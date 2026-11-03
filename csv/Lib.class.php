@@ -9,7 +9,7 @@
  * @package   csv
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -630,8 +630,8 @@ class csv_Lib
                 continue;
             }
 
-            // Пропускаме редовете със знака указан в $skip
-            if (($data[0][0] ?? null) == $params['skip']) {
+            // Пропускаме редовете със знака указан в $skip (false - без пропускане)
+            if ($params['skip'] !== false && ($data[0][0] ?? null) == $params['skip']) {
                 continue;
             }
             
