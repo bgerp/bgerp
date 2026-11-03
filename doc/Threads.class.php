@@ -2542,9 +2542,14 @@ class doc_Threads extends core_Manager
         }
         
         if ($action == 'single') {
-            if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+            // При непълен запис (без папка) се зарежда целият
+            if (!isset($rec->folderId) && !empty($rec->id)) {
+                $rec = $mvc->fetch((int) $rec->id);
+            }
+
+            if (doc_Folders::haveRightToFolder($rec->folderId ?? null, $userId)) {
                 $res = 'powerUser';
-            } elseif (keylist::isIn($userId, $rec->shared)) {
+            } elseif (keylist::isIn($userId, $rec->shared ?? null)) {
                 $res = 'powerUser';
             } else {
                 $res = 'no_one';

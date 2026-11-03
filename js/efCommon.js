@@ -2414,8 +2414,8 @@ function setFormElementsWidth() {
                 $(this).parent().css('white-space', "nowrap");
             }
             // ако етикета е много широк, режем го и слагаме хинт
-            if ($(this).width() > 450) {
-                $(this).css('max-width', "450px");
+            if ($(this).width() > 700) {
+                $(this).css('max-width', "700px");
                 $(this).css('position', "relative");
                 $(this).css('top', "3px");
                 $(this).css('overflow', "hidden");

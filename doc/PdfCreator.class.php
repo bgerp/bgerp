@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -155,13 +155,18 @@ class doc_PdfCreator extends core_Manager
             // Връщаме предишната стойност
             Mode::pop('text');
             
-            //Записваме данните за текущия файл
-            $rec = new stdClass();
-            $rec->name = $name;
-            $rec->md5 = $md5;
-            $rec->fileHnd = $fileHnd;
-            
-            doc_PdfCreator::save($rec);
+            // Неуспешното конвертиране не се записва - иначе заема md5-а и следващите опити падат
+            if (!empty($fileHnd)) {
+                doc_PdfCreator::delete(array("#md5 = '[#1#]'", $md5));
+
+                //Записваме данните за текущия файл
+                $rec = new stdClass();
+                $rec->name = $name;
+                $rec->md5 = $md5;
+                $rec->fileHnd = $fileHnd;
+
+                doc_PdfCreator::save($rec);
+            }
         }
         
         return $fileHnd;

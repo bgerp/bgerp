@@ -224,6 +224,20 @@ class chromephp_Browser
             }
         }
 
+        // ЧМР е едностраничен формуляр; мащабираме и по височина, без да изрязваме данни.
+        $cmrScale = (float) $page->evaluate(
+            "(() => {
+                if (document.querySelectorAll('.cmr-holder .cmr-form').length !== 1) return 1;
+                const body = document.body;
+                const width = Math.max(body.scrollWidth, body.getBoundingClientRect().right);
+                const height = Math.max(body.scrollHeight, body.getBoundingClientRect().bottom);
+                return Math.min(1, 0.97 * {$portraitWidth} / width, 0.97 * {$portraitHeight} / height);
+            })()"
+        )->getReturnValue();
+        if ($cmrScale > 0 && $cmrScale < 1) {
+            $optArr['scale'] = max(0.1, floor($cmrScale * 1000) / 1000);
+        }
+
         if (chromephp_Setup::get('SHOW_PAGE_NUMBERS') == 'yes') {
             $optArr['displayHeaderFooter'] = true;
             $optArr['footerTemplate'] = '<style type="text/css">.footer{font-size:8px;width:100%;text-align:center;color:#000;padding-left:0.65cm;}</style><div class="footer"><span class="pageNumber"></span> / <span class="totalPages"></span></div>';

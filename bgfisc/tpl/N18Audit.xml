@@ -1,0 +1,45 @@
+<audit>
+	<eik>[#eik#]</eik>
+	<e_shop_n>[#e_shop_n#]</e_shop_n>
+	<domain_name>[#domain_name#]</domain_name>
+	<e_shop_type>[#e_shop_type#]</e_shop_type>
+	<creation_date>[#creation_date#]</creation_date>
+	<mon>[#mon#]</mon>
+	<god>[#god#]</god>
+	<order>[#ORDERS#]<!--ET_BEGIN ORDER-->[#ORDER#]
+		<orderenum>
+			<ord_n>[#ord_n#]</ord_n>
+			<ord_d>[#ord_d#]</ord_d>
+			<doc_n>[#doc_n#]</doc_n>
+			<doc_date>[#doc_date#]</doc_date>
+			<art>[#ARTS#]<!--ET_BEGIN ART-->[#ART#]
+				<artenum>
+					<art_name>[#art_name#]</art_name>
+					<art_quant>[#art_quant#]</art_quant>
+					<art_price>[#art_price#]</art_price>
+					<art_vat_rate>[#art_vat_rate#]</art_vat_rate>
+					<art_vat>[#art_vat#]</art_vat>
+					<art_sum>[#art_sum#]</art_sum>
+				</artenum><!--ET_END ART-->
+			</art>
+			<ord_total1>[#ord_total1#]</ord_total1>
+			<ord_disc>[#ord_disc#]</ord_disc>
+			<ord_vat>[#ord_vat#]</ord_vat>
+			<ord_total2>[#ord_total2#]</ord_total2>
+			<paym>[#paym#]</paym>
+			<pos_n>[#pos_n#]</pos_n>
+			<trans_n>[#trans_n#]</trans_n>
+			<proc_id>[#proc_id#]</proc_id>
+		</orderenum><!--ET_END ORDER-->
+	</order>
+	<r_ord>[#r_ord#]</r_ord>
+	<rorder>[#RORDERS#]<!--ET_BEGIN RORDER-->[#RORDER#]
+		<rorderenum>
+			<r_ord_n>[#r_ord_n#]</r_ord_n>
+			<r_amount>[#r_amount#]</r_amount>
+			<r_date>[#r_date#]</r_date>
+			<r_paym>[#r_paym#]</r_paym>
+		</rorderenum><!--ET_END RORDER-->
+	</rorder>
+	<r_total>[#r_total#]</r_total>
+</audit>

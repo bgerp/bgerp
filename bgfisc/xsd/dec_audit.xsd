@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!-- edited with XMLSpy v2011 sp1 (http://www.altova.com) by End User (free.org) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="audit">
+		<xs:annotation>
+			<xs:documentation>Стандартизиран одиторски файл, съдържащ информация за направените в електронния магазин поръчки, по които са извършени доставки на стоки/услуги през календарния месец</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all minOccurs="1">
+				<xs:element name="eik" minOccurs="1">
+					<xs:annotation>
+						<xs:documentation>ЕИК на ЗЛ</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:minLength value="9"/>
+							<xs:maxLength value="13"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="e_shop_n">
+					<xs:annotation>
+						<xs:documentation>Уникален номер на електронния магазин</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:maxLength value="10"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="domain_name">
+					<xs:annotation>
+						<xs:documentation>Уеб адрес на електронния магазин</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:maxLength value="200"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="e_shop_type">
+					<xs:annotation>
+						<xs:documentation>Индикатор за собствен домейн или ползване на онлайн платформа за продажба на стоки/предоставяне на услуги, стойности 1 и 2</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:integer">
+							<xs:enumeration value="1"/>
+							<xs:enumeration value="2"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="creation_date" type="xs:date">
+					<xs:annotation>
+						<xs:documentation>Дата на създаване на файла</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="mon">
+					<xs:annotation>
+						<xs:documentation>Календарен месец, за който се подава информацията</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:length value="2"/>
+							<xs:enumeration value="01"/>
+							<xs:enumeration value="02"/>
+							<xs:enumeration value="03"/>
+							<xs:enumeration value="04"/>
+							<xs:enumeration value="05"/>
+							<xs:enumeration value="06"/>
+							<xs:enumeration value="07"/>
+							<xs:enumeration value="08"/>
+							<xs:enumeration value="09"/>
+							<xs:enumeration value="10"/>
+							<xs:enumeration value="11"/>
+							<xs:enumeration value="12"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="god">
+					<xs:annotation>
+						<xs:documentation>Календарна година, за която се подава информацията</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:integer">
+							<xs:minInclusive value="2020"/>
+							<xs:totalDigits value="4"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="order">
+					<xs:annotation>
+						<xs:documentation>Поръчки</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="orderenum" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="ord_n">
+											<xs:annotation>
+												<xs:documentation>Уникален номер на поръчка в софтуера на е-магазина</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:maxLength value="300"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ord_d" type="xs:date">
+											<xs:annotation>
+												<xs:documentation>Дата на поръчка</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="doc_n" type="xs:integer">
+											<xs:annotation>
+												<xs:documentation>Номер на документа по чл. 52о, ал. 1, т. 1</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="doc_date" type="xs:date">
+											<xs:annotation>
+												<xs:documentation>Дата на документа по чл. 52о, ал.1, т.1</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="art">
+											<xs:annotation>
+												<xs:documentation>Артикули</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="artenum" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:all>
+																<xs:element name="art_name">
+																	<xs:annotation>
+																		<xs:documentation>Наименование на стоката/услугата</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:string">
+																			<xs:maxLength value="200"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="art_quant">
+																	<xs:annotation>
+																		<xs:documentation>Количество</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:decimal">
+																			<xs:fractionDigits value="2"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="art_price">
+																	<xs:annotation>
+																		<xs:documentation>Единична цена (без отстъпка) без ДДС – в лв.</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:decimal">
+																			<xs:fractionDigits value="2"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="art_vat_rate">
+																	<xs:annotation>
+																		<xs:documentation>ДДС-ставка</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:integer">
+																			<xs:maxInclusive value="100"/>
+																			<xs:minInclusive value="0"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="art_vat">
+																	<xs:annotation>
+																		<xs:documentation>ДДС – обща сума, в лв.</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:decimal">
+																			<xs:fractionDigits value="2"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="art_sum">
+																	<xs:annotation>
+																		<xs:documentation>Обща сума с ДДС - в лв.</xs:documentation>
+																	</xs:annotation>
+																	<xs:simpleType>
+																		<xs:restriction base="xs:decimal">
+																			<xs:fractionDigits value="2"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+															</xs:all>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="ord_total1">
+											<xs:annotation>
+												<xs:documentation>Обща стойност на доставените стоки предоставените услуги – без ДДС</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:fractionDigits value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ord_disc">
+											<xs:annotation>
+												<xs:documentation>Отстъпка (сума) – в лв.</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:fractionDigits value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ord_vat">
+											<xs:annotation>
+												<xs:documentation>ДДС – сума в лв.</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:fractionDigits value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ord_total2">
+											<xs:annotation>
+												<xs:documentation>Обща стойност на доставените стоки/предоставени услуги – с ДДС</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:fractionDigits value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="paym">
+											<xs:annotation>
+												<xs:documentation>Начин на плащане на поръчка: 1 - Освободено по чл. 3 плащане без ППП; 2 - Виртуален ПОС - терминал; 3 - Наложен платеж с ППП; 4 - Доставчик на платежни услуги; 5 - Друг вид плащане, неизискващо издаване на фискален бон извън
+посочените в т. 1 – 4; 6 - плащане, отразено с фискален бон.</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:integer">
+													<xs:enumeration value="1"/>
+													<xs:enumeration value="2"/>
+													<xs:enumeration value="3"/>
+													<xs:enumeration value="4"/>
+													<xs:enumeration value="5"/>
+													<xs:enumeration value="6"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="pos_n" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Номер на виртуален ПОС терминал</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:maxLength value="200"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="trans_n" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Референтен номер на финансовата транзакция</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:maxLength value="200"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="proc_id" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Идентификатор на доставчика на платежни услуги</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:maxLength value="200"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="r_ord" type="xs:integer" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Брой изцяло или частично върнати поръчки през периода </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="rorder" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Списък с върнати поръчки</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="rorderenum" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="r_ord_n">
+											<xs:annotation>
+												<xs:documentation>Номер на Върната поръчка (уникален номер на поръчката в софтуера на емагазин) </xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:maxLength value="300"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="r_amount">
+											<xs:annotation>
+												<xs:documentation>Върната сума на клиента - в лв. </xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:fractionDigits value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="r_date" type="xs:date">
+											<xs:annotation>
+												<xs:documentation>Дата на връщане на сумата </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="r_paym">
+											<xs:annotation>
+												<xs:documentation>Начин на връщане на сумата: 1 - по платежна сметка; 2 - по карта; 3 - в брой; 4 - Друг. </xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:integer">
+													<xs:enumeration value="1"/>
+													<xs:enumeration value="2"/>
+													<xs:enumeration value="3"/>
+													<xs:enumeration value="4"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="r_total" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Обща стойност с ДДС на всички изцяло или частично върнати поръчки през периода</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:decimal">
+							<xs:fractionDigits value="2"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

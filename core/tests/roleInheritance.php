@@ -30,7 +30,16 @@ class core_Manager
 {
     public static $records = array();
     public static $user;
+    public static $roleListener;
     public $core_Roles;
+    public function invoke($event, $args = array())
+    {
+        check($event === 'AfterPrepareUserRoles', 'Unexpected user role event');
+        if (self::$roleListener) {
+            return call_user_func_array(self::$roleListener, array_merge(array($this), $args));
+        }
+        return -1;
+    }
     public static function fetch($condition, $fields = '*', $cache = true)
     {
         if (get_called_class() === 'core_Users') return clone self::$user;
@@ -91,6 +100,7 @@ function roleFixture($id, $name, $input = '', $inherit = '')
 }
 function resetRoles()
 {
+    core_Manager::$roleListener = null;
     core_Manager::$records = array(
         1 => roleFixture(1, 'user'),
         2 => roleFixture(2, 'powerUser'),
@@ -195,6 +205,33 @@ core_Roles::on_Shutdown($rolesMvc);
 check(core_Manager::$user->roles === '|1|2|3|9|13|14|', 'Role shutdown rebuild repairs existing users as well as the role graph');
 check(!$rolesMvc->recalcRoles, 'Role shutdown clears the pending rebuild flag');
 echo "PASS: cycles, full rebuild, removal and idempotence\n";
+
+// The extension sees final inherited roles and filters them before change detection.
+resetRoles();
+core_Manager::$records[14]->inheritInput = '|13|15|';
+$seen = array();
+core_Manager::$roleListener = function ($mvc, &$roles, $rec, $fields) use (&$seen) {
+    $seen[] = array(get_class($mvc), $rec->id ?? null, $rec->nick ?? null, $fields);
+    check(isset($roles[1], $roles[2], $roles[13], $roles[15]), 'The event must receive base and inherited roles');
+    unset($roles[15]);
+};
+$rec = recalculateUser('|3|9|14|', '|1|2|3|9|13|14|15|');
+check($rec->roles === '|1|2|3|9|13|14|', 'The event filters inherited roles before serialization');
+check($rec->rolesInput === '|3|9|14|', 'Filtering effective roles leaves direct assignments intact');
+check(!empty($rec->__updateRoleLogs), 'The final filtered roles drive the role-change log');
+check($seen === array(array('core_Users', 100, null, array('roles'))), 'The event receives the partial user and save fields');
+core_Manager::$user = clone $rec;
+core_Users::rebuildRoles();
+check(core_Manager::$user->roles === $rec->roles && count($seen) === 2, 'Full user rebuild invokes the same filter');
+core_Users::addRole(100, 15);
+check(core_Manager::$user->roles === $rec->roles && keylist::isIn(15, core_Manager::$user->rolesInput), 'addRole reaches the filter without changing other direct roles');
+check($seen[2][3] === array('rolesInput', 'roles'), 'addRole preserves the explicit save scope');
+core_Users::save(clone core_Manager::$user);
+check($seen[3][3] === null && core_Manager::$user->roles === $rec->roles, 'An ordinary full save reaches the same filter');
+core_Manager::$roleListener = null;
+core_Users::rebuildRoles();
+check(core_Manager::$user->roles === '|1|2|3|9|13|14|15|', 'Without a listener the original role graph is unchanged');
+echo "PASS: neutral user-role event, inherited filtering, partial records and rebuild\n";
 
 // Compare with an independent iterative reachability oracle, including cycles and missing nodes.
 mt_srand(20261023);

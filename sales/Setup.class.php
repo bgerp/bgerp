@@ -280,6 +280,12 @@ defIfNot('SALES_SHOW_NEXT_PACK_UNIT', 'no');
 
 
 /**
+ * Строга проверка на данните при издаване на фактура на физическо лице
+ */
+defIfNot('SALES_STRICT_PERSON_INVOICE_CHECK', 'yes');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -456,6 +462,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
         'SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES' => array('enum(no=Не,yes=Да)', 'caption=Показване на двойни цени Евро/Лева в изходящите оферти за фирми->Избор'),
         'SALES_SHOW_NEXT_PACK_UNIT' =>array('enum(no=Не,yes=Да)', 'caption=Показване на подсказка за едрово количество в продажбите->Избор'),
+        'SALES_STRICT_PERSON_INVOICE_CHECK' => array('enum(no=Не,yes=Да)', 'caption=Строга проверка на данните при издаване на фактура на физическо лице->Избор'),
     );
     
     
