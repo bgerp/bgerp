@@ -620,17 +620,17 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        $fld->FLD('kind', 'varchar', 'caption=Вид');
         $fld->FLD('saleId', 'varchar', 'caption=Продажба');
         $fld->FLD('cartId', 'varchar', 'caption=Поръчка');
         $fld->FLD('orderDate', 'date', 'caption=Дата');
+        $fld->FLD('kind', 'varchar', 'caption=Вид,smartCenter');
         // Сумите са в основната валута на месеца, както в XML файла
         $baseCurrencyId = acc_Periods::fetchField($rec->periodId ?? null, 'baseCurrencyId');
         $currency = !empty($baseCurrencyId) ? currency_Currencies::getCodeById($baseCurrencyId) : '';
         $fld->FLD('net', 'double(decimals=2)', "caption=Стойност|* {$currency}->Без ДДС,tdClass=stageCol");
         $fld->FLD('vat', 'double(decimals=2)', "caption=Стойност|* {$currency}->ДДС,tdClass=stageCol");
         $fld->FLD('total2', 'double(decimals=2)', "caption=Стойност|* {$currency}->Общо,tdClass=stageCol");
-        $fld->FLD('docs', 'varchar', 'caption=Документи');
+        $fld->FLD('docs', 'varchar', 'caption=Документи,tdClass=rightCol');
         $fld->FLD('paymName', 'varchar', 'caption=Плащане->Начин,smartCenter');
         $fld->FLD('docNum', 'varchar', 'caption=Плащане->Документ/Бон,tdClass=rightCol');
         if ($export) {
@@ -660,8 +660,9 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         if (!empty($saleState)) {
             $row->ROW_ATTR['class'] = "state-{$saleState}";
         }
-        $row->kind = ($dRec->kind == 'order') ? tr('Поръчка') : tr('Връщане');
-        $row->cartId = eshop_Carts::haveRightFor('single', $dRec->cartId) ? ht::createLink("№{$dRec->cartId}", array('eshop_Carts', 'single', $dRec->cartId)) : "№{$dRec->cartId}";
+        $row->kind = ($dRec->kind == 'order') ? static::renderBadge(tr('Поръчка')) : static::renderBadge(tr('Връщане'), false, 'amber');
+        $canLink = static::canLink();
+        $row->cartId = ($canLink && eshop_Carts::haveRightFor('single', $dRec->cartId)) ? ht::createLink("№{$dRec->cartId}", array('eshop_Carts', 'single', $dRec->cartId)) : "№{$dRec->cartId}";
         if (!empty($dRec->saleId)) {
             $row->saleId = sales_Sales::getLink($dRec->saleId, 0);
         }
@@ -684,13 +685,16 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         if (!empty($dRec->docNum)) {
             $row->docNum = core_Type::escape($dRec->docNum);
             if (!empty($dRec->regDocId)) {
-                $row->docNum = ht::createLink(bgfisc_SaleRegDocs::formatNumber($dRec->docNum), array('bgfisc_SaleRegDocs', 'single', $dRec->regDocId));
+                $row->docNum = bgfisc_SaleRegDocs::formatNumber($dRec->docNum);
+                if ($canLink) {
+                    $row->docNum = ht::createLink($row->docNum, array('bgfisc_SaleRegDocs', 'single', $dRec->regDocId));
+                }
 
                 // Трансакцията е в хинта като HTML, за да остане линкът към плащането с карта
                 $hint = tr('Документ по чл. 52о (плащане с карта)');
                 if (!empty($dRec->transactionRef)) {
                     $transaction = core_Type::escape($dRec->transactionRef);
-                    if (cond_CardPayments::haveRightFor('list')) {
+                    if ($canLink && cond_CardPayments::haveRightFor('list')) {
                         $transaction = ht::createLink($transaction, array('cond_CardPayments', 'list', 'selectPeriod' => 'gr0', 'search' => $dRec->transactionRef));
                     }
                     $hint .= '<br>' . tr('Трансакция') . ': ' . $transaction;
@@ -698,7 +702,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                 $row->docNum = ht::createHint($row->docNum, new core_ET($hint), 'notice', false,
                     array('isHtml' => true, 'aiHint' => 'Art. 52o card payment document' . (!empty($dRec->transactionRef) ? ", transaction {$dRec->transactionRef}" : '')));
             } elseif (($dRec->paym ?? null) == 6) {
-                if (bgfisc_PrintedReceipts::haveRightFor('list')) {
+                if ($canLink && bgfisc_PrintedReceipts::haveRightFor('list')) {
                     $row->docNum = ht::createLink($row->docNum, array('bgfisc_PrintedReceipts', 'list', 'selectPeriod' => 'gr0', 'search' => $dRec->docNum));
                 }
                 $row->docNum = ht::createHint($row->docNum, 'Касов бон', 'notice', false, array('aiHint' => 'Fiscal receipt'));
@@ -714,11 +718,11 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             core_Lg::push('en');
             $aiHint = 'Error: ' . implode('; ', array_map('tr', $dRec->errors));
             core_Lg::pop();
-            $row->paymName = ht::createHint(cat_Boms::renderBadge('n/a', true), '|*' . implode('. ', array_map('tr', $dRec->errors)), 'noicon', false, array('aiHint' => $aiHint));
+            $row->paymName = ht::createHint(static::renderBadge('n/a', true), '|*' . implode('. ', array_map('tr', $dRec->errors)), 'noicon', false, array('aiHint' => $aiHint));
             $row->paymName = "<span class='type-badge-hint'>{$row->paymName}</span>";
         } elseif (isset(static::$paymentCodes[$kind][$code])) {
             $xmlField = ($kind == 'order') ? 'PAYM' : 'R_PAYM';
-            $badge = cat_Boms::renderBadge(tr(static::$paymentShort[$kind][$code]), false, static::$paymentColors[$code] ?? null);
+            $badge = static::renderBadge(tr(static::$paymentShort[$kind][$code]), false, static::$paymentColors[$code] ?? null);
             $row->paymName = ht::createHint($badge, '|*' . tr(static::$paymentCodes[$kind][$code]) . " ({$xmlField} = {$code})", 'noicon', false,
                 array('aiHint' => "{$xmlField} {$code}: " . static::$paymentCodesAi[$kind][$code]));
             $row->paymName = "<span class='type-badge-hint'>{$row->paymName}</span>";
@@ -759,6 +763,43 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
 
 
     /**
+     * Балонче на екрана, обикновен текст при печат, PDF и текстов режим
+     *
+     * @param string      $text
+     * @param bool        $isRed
+     * @param string|null $color
+     *
+     * @return string
+     */
+    protected static function renderBadge($text, $isRed = false, $color = null)
+    {
+        return static::isPlainMode() ? $text : cat_Boms::renderBadge($text, $isRed, $color);
+    }
+
+
+    /**
+     * Линкове само за влязъл потребител на екрана - не при печат, PDF и публичния изглед на документа
+     *
+     * @return bool
+     */
+    protected static function canLink()
+    {
+        return !static::isPlainMode() && haveRole('user');
+    }
+
+
+    /**
+     * Печат, PDF или текстов режим - без балончета и линкове
+     *
+     * @return bool
+     */
+    protected static function isPlainMode()
+    {
+        return Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+    }
+
+
+    /**
      * Файлът и общите грешки над таблицата
      *
      * @param frame2_driver_Proto $Driver
@@ -781,11 +822,13 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                                 </fieldset>"));
 
         $rec = $data->rec;
-        $fieldTpl->replace('<b>' . cms_Domains::getHyperlink($rec->domainId ?? null, true) . '</b>', 'domainId');
+        $isPlain = !static::canLink();
+        $domain = $isPlain ? cms_Domains::getTitleById($rec->domainId ?? null) : cms_Domains::getHyperlink($rec->domainId ?? null, true);
+        $fieldTpl->replace("<b>{$domain}</b>", 'domainId');
         // Месецът води към онлайн продажбите с вальор в него
         $periodRec = acc_Periods::fetch($rec->periodId ?? null);
         $period = is_object($periodRec) ? core_Type::escape($periodRec->title) : '';
-        if (is_object($periodRec) && sales_Sales::haveRightFor('list')) {
+        if (is_object($periodRec) && !$isPlain && sales_Sales::haveRightFor('list')) {
             $period = ht::createLink($period, array('sales_Sales', 'list', 'type' => 'onlineSale', 'users' => 'all_users', 'filterDateField' => 'valior',
                 'selectPeriod' => 'select', 'from' => $periodRec->start, 'to' => $periodRec->end));
         }
@@ -796,14 +839,15 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             $periodEnd = acc_Periods::fetchField($rec->periodId ?? null, 'end');
             $settings = cms_Domains::getSettings($rec->domainId, $periodEnd ?: null);
             $ownCompanyId = cls::load('holding_plg_EshopCarts', true) ? holding_plg_EshopCarts::getOwnCompanyId($settings) : crm_Setup::BGERP_OWN_COMPANY_ID;
-            $fieldTpl->replace('<b>' . crm_Companies::getHyperlink($ownCompanyId, true) . '</b>', 'ownCompanyId');
+            $company = $isPlain ? crm_Companies::getTitleById($ownCompanyId) : crm_Companies::getHyperlink($ownCompanyId, true);
+            $fieldTpl->replace("<b>{$company}</b>", 'ownCompanyId');
         }
 
         $reportData = $rec->data ?? null;
         $fh = is_object($reportData) ? ($reportData->n18FileHnd ?? null) : null;
         $errors = is_object($reportData) ? ($reportData->n18Errors ?? array()) : array();
         if (!empty($fh)) {
-            $fieldTpl->replace(fileman::getLinkToSingle($fh), 'file');
+            $fieldTpl->replace($isPlain ? core_Type::escape(fileman_Files::fetchByFh($fh, 'name')) : fileman::getLinkToSingle($fh), 'file');
         } elseif (countR($errors)) {
             $fieldTpl->replace("<span class='red'>" . tr('Не е създаден') . ':<br>' . implode('<br>', array_map(function ($e) {
                 return core_Type::escape(tr($e));
