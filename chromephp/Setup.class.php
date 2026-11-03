@@ -20,6 +20,12 @@ defIfNot('CHROMEPHP_VERSION', 'shared');
 
 
 /**
+ * Колко секунди се чакат ресурсите на страницата (картинки, скриптове) преди печата на PDF
+ */
+defIfNot('CHROMEPHP_LOAD_TIMEOUT', 20);
+
+
+/**
  *
  *
  * @package   chromephp
@@ -54,6 +60,7 @@ class chromephp_Setup extends core_ProtoSetup
         'CHROMEPHP_VERSION' => array('enum(shared=Общ Composer пакет,1.16.1)', 'mandatory, caption=Chrome PHP->Версия'),
         'CHROMEPHP_SHOW_PAGE_NUMBERS' => array('enum(no=Не,yes=Да)', 'caption=Дали да се показват броя на страниците->Избор'),
         'CHROMEPHP_BIN_PATH' => array('varchar', 'caption=Път до изпълнимия файл на Chrome->Път'),
+        'CHROMEPHP_LOAD_TIMEOUT' => array('int(min=1,max=120)', 'caption=Изчакване на ресурсите на страницата преди печат->Секунди'),
     );
 
 
