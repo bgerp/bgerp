@@ -469,7 +469,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
             
             $row->basicColor = '#000';
             if (!empty($rec->establishedDate)) {
-                $row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
+                $row->establishedDate = dt::mysql2verbal($rec->establishedDate, 'd.m.Y');
             }
             
             if (!empty($rec->loadingDate)) {
@@ -594,6 +594,9 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
 
         $tpl = parent::renderSingleLayout_($data);
         $tpl->push('trans/tpl/Cmr.css', 'CSS');
+        if (Request::get('Printing')) {
+            $tpl->push('trans/js/Cmr.js', 'JS');
+        }
 
         if(Mode::is('printing')){
             core_Lg::pop();

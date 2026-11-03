@@ -41,7 +41,7 @@
 .cmr-form .cmr-number .cmr-value { font-size: 22px; }
 .cmr-form .cmr-convention { font-size: 10px; margin: 0; }
 .cmr-form .cmr-date { white-space: nowrap; }
-.cmr-form .cmr-carrier { position: relative; }
+.cmr-form .cmr-carrier { position: relative; height: 150px; }
 .cmr-form .cmr-carrier-data { min-height: 56px; }
 .cmr-form .cmr-vehicle { margin-top: 5px; }
 .cmr-form .cmr-vehicle-label { white-space: nowrap; }
@@ -87,12 +87,29 @@
 .cmr-form .cmr-goods .cmr-goods-heading { font-size: 10px; height: 30px; }
 .cmr-form .cmr-goods .cmr-adr { border-top: 1px solid; height: 12px; font-size: 10px; }
 .cmr-form .cmr-payments td { height: 17px; }
-.cmr-form .cmr-signatures td { width: 33.333%; height: 130px; }
+.cmr-form .cmr-signatures td { width: 33.333%; height: 150px; }
 .cmr-form .cmr-signatures b { display: block; }
 
 .cmr-red .cmr-form td { border-color: #ed1748; }
 .cmr-blue .cmr-form td { border-color: #0082c8; }
 .cmr-green .cmr-form td { border-color: #00a94f; }
-.cmr-copy { height: 32px; font-size: 12px; }
+.cmr-copy { height: 32px; line-height: 32px; font-size: 12px; overflow: hidden; }
 .cmr-copy span { font-size: 26px; }
 .cmr-holder .cmr-footer { margin-top: 3px; font-size: 10px; }
+
+@page cmr {
+    size: A4 portrait;
+    margin: 10mm;
+}
+
+@media print {
+    .printing.cmr-printing { page: cmr; }
+    .printing .cmr-print-page {
+        width: 840px !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        zoom: var(--cmr-print-scale, 1);
+        break-inside: avoid;
+    }
+}
