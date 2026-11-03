@@ -11,7 +11,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -593,6 +593,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         }
 
         $tpl = parent::renderSingleLayout_($data);
+        $tpl->push('trans/tpl/Cmr.css', 'CSS');
 
         if(Mode::is('printing')){
             core_Lg::pop();

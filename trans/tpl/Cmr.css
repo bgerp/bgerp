@@ -1,0 +1,98 @@
+.cmr-holder .cmr-form {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.2;
+    page-break-inside: avoid;
+}
+
+.cmr-form td {
+    border: 1px solid;
+    padding: 5px 7px;
+    vertical-align: top;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.cmr-form .cmr-value {
+    color: #333;
+    font-family: 'Lucida Console', monospace;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.cmr-form div.cmr-value {
+    margin-top: 4px;
+}
+
+.cmr-form .cmr-address { height: 100px; }
+.cmr-form .cmr-place { height: 70px; }
+.cmr-form .cmr-short { height: 45px; }
+.cmr-form .cmr-instructions { height: 60px; }
+
+.cmr-form .cmr-number {
+    font-size: 18px;
+    margin: 14px 0;
+    text-align: center;
+}
+
+.cmr-form .cmr-number .cmr-value { font-size: 22px; }
+.cmr-form .cmr-convention { font-size: 10px; margin: 0; }
+.cmr-form .cmr-date { white-space: nowrap; }
+.cmr-form .cmr-carrier { position: relative; }
+.cmr-form .cmr-carrier-data { min-height: 56px; }
+.cmr-form .cmr-vehicle { margin-top: 5px; }
+.cmr-form .cmr-vehicle-label { white-space: nowrap; }
+.cmr-form .cmr-vehicle .cmr-value { font-size: 16px; }
+
+.cmr-form b,
+.cmr-form div.cmr-value,
+.cmr-form .cmr-vehicle {
+    position: relative;
+    z-index: 2;
+}
+
+.cmr-form .documentSignatureHolder { z-index: 1; }
+
+.cmr-form .cmr-stamp {
+    position: absolute;
+    z-index: 1;
+    top: 25px;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+
+.cmr-form .cmr-heavy-top { border-top-width: 3px; }
+.cmr-form .cmr-heavy-bottom { border-bottom-width: 3px; }
+.cmr-form .cmr-heavy-sides { border-left-width: 3px; border-right-width: 3px; }
+.cmr-form .cmr-nested { padding: 0; }
+
+.cmr-form table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.cmr-form table td { padding: 3px 5px; }
+.cmr-form table tr:first-child td { border-top: 0; }
+.cmr-form table tr:last-child td { border-bottom: 0; }
+.cmr-form table td:first-child { border-left: 0; }
+.cmr-form table td:last-child { border-right: 0; }
+.cmr-form .cmr-goods td { height: 20px; border-top: 0; border-bottom: 0; }
+.cmr-form .cmr-goods .cmr-goods-heading { font-size: 10px; height: 30px; }
+.cmr-form .cmr-goods .cmr-adr { border-top: 1px solid; height: 12px; font-size: 10px; }
+.cmr-form .cmr-payments td { height: 17px; }
+.cmr-form .cmr-signatures td { width: 33.333%; height: 130px; }
+.cmr-form .cmr-signatures b { display: block; }
+
+.cmr-red .cmr-form td { border-color: #ed1748; }
+.cmr-blue .cmr-form td { border-color: #0082c8; }
+.cmr-green .cmr-form td { border-color: #00a94f; }
+.cmr-copy { height: 32px; font-size: 12px; }
+.cmr-copy span { font-size: 26px; }
+.cmr-holder .cmr-footer { margin-top: 3px; font-size: 10px; }
