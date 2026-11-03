@@ -1,0 +1,6 @@
+<div style="padding: 8px;">
+    [#BACK#] &nbsp; <strong>[#FILE_NAME#]</strong><br>
+    |След редактиране свалете файла чрез File - Export as в Photopea и го качете обратно в bgERP|.
+    <div id="photopea-status" role="status" data-error="|Файлът не беше зареден. Презаредете страницата или го свалете и отворете ръчно в Photopea|.">|Зареждане на Photopea|...</div>
+</div>
+<iframe id="photopea-editor" title="Photopea" data-file-url="[#FILE_URL#]" style="width: 100%; height: calc(100vh - 100px); min-height: 400px; border: 0;"></iframe>
