@@ -2413,14 +2413,6 @@ function setFormElementsWidth() {
             if ($(this).parent().is('td')) {
                 $(this).parent().css('white-space', "nowrap");
             }
-            // ако етикета е много широк, режем го и слагаме хинт
-            if ($(this).width() > 700) {
-                $(this).css('max-width', "700px");
-                $(this).css('position', "relative");
-                $(this).css('top', "3px");
-                $(this).css('overflow', "hidden");
-                $(this).attr('title', $(this).text());
-            }
         });
         if ($('.typeTable .batchNameTd').length) {
             $('.typeTable').width("100%");
