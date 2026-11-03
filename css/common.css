@@ -2623,6 +2623,38 @@ div.alphabet.twoRows {
   background: #fdecea;
   color: #b71c1c; }
 
+.type-badge-blue {
+  border-color: #64b5f6;
+  background: #e3f2fd;
+  color: #0d47a1; }
+
+.type-badge-amber {
+  border-color: #ffb74d;
+  background: #fff3e0;
+  color: #e65100; }
+
+.type-badge-purple {
+  border-color: #ba68c8;
+  background: #f3e5f5;
+  color: #4a148c; }
+
+.type-badge-teal {
+  border-color: #4db6ac;
+  background: #e0f2f1;
+  color: #004d40; }
+
+.type-badge-gray {
+  border-color: #bdbdbd;
+  background: whitesmoke;
+  color: #424242; }
+
+/*
+ * Хинт върху балонче - без подчертаване, балончето показва, че има хинт
+ */
+.type-badge-hint .textHint {
+  border-bottom: none;
+  cursor: help; }
+
 /*
  * Стилове за елемента 'RichEdit'
  */
