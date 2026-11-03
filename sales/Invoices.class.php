@@ -925,18 +925,60 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
 
-        // Фактура на лице по онлайн поръчка без нужните данни
+        // Фактура на лице по онлайн поръчка без заявена фактура
         if (empty($res) && ($rec->type ?? null) == 'invoice' && !empty($rec->threadId)) {
             $eshopError = self::getEshopPersonInvoiceError($rec->threadId);
             if (!empty($eshopError)) {
                 $res = $eshopError;
             }
         }
+
+        if (empty($res)) {
+            $personError = self::getStrictPersonInvoiceError($rec);
+            if (!empty($personError)) {
+                $res = $personError;
+            }
+        }
     }
 
 
     /**
-     * Преди контиране на фактура на лице по онлайн поръчка
+     * Грешка в данните на физическо лице при строга проверка на фактурата
+     *
+     * @param stdClass $rec
+     * @return string|null
+     */
+    public static function getStrictPersonInvoiceError($rec)
+    {
+        if (sales_Setup::get('STRICT_PERSON_INVOICE_CHECK') != 'yes') return null;
+        if (($rec->type ?? null) != 'invoice') return null;
+
+        // Контрагентът е лице, ако е избрано друго лице или фактурата е в папка на лице без друг контрагент
+        $displayClass = $rec->displayContragentClassId ?? null;
+        $isPerson = ($displayClass == 'crm_Persons' && !empty($rec->displayContragentId));
+        if (!$isPerson && empty($rec->displayContragentId) && $displayClass != 'newCompany') {
+            $isPerson = (doc_Folders::fetchCoverClassName($rec->folderId ?? null) == 'crm_Persons');
+        }
+        if (!$isPerson) return null;
+
+        $names = preg_split('/\s+/u', trim((string) ($rec->contragentName ?? '')), -1, PREG_SPLIT_NO_EMPTY);
+        if (countR($names) < 2) {
+
+            return 'Името на лицето трябва да е от поне две думи|*!';
+        }
+
+        $uicNo = trim((string) ($rec->uicNo ?? ''));
+        if ($uicNo !== '' && !bglocal_EgnType::isReal($uicNo)) {
+
+            return 'ЕГН/ЛНЧ на лицето не изглежда истинско|*!';
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Преди контиране на фактура на лице
      */
     public static function on_BeforeConto($mvc, &$res, $id)
     {
@@ -945,6 +987,9 @@ class sales_Invoices extends deals_InvoiceMaster
 
         // Бутонът само показва грешката, затова контирането се спира и тук
         $error = self::getEshopPersonInvoiceError($rec->threadId);
+        if (empty($error)) {
+            $error = self::getStrictPersonInvoiceError($rec);
+        }
         if (!empty($error)) {
             core_Statuses::newStatus($error, 'error');
 

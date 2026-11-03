@@ -4306,13 +4306,9 @@ en,"Ще получите имейл, когато плащането прикл
 en,Отговор в обработка,Response in progress
 en,Чл. 52о,Art. 52o
 en,Платено и неотразено,Paid but not recorded
-en,три имена,full name (three names)
-en,Забрана на фактура на лице по онлайн поръчка без заявка или без три имена / ЕГН / адрес,Block invoices to individuals for online orders without a request or without full name / personal ID / address
+en,Забрана на фактура на лице по онлайн поръчка без заявена фактура,Block invoices to individuals for online orders without a requested invoice
 en,Не може да се издаде фактура на лице по онлайн поръчка,Cannot issue an invoice to an individual for online order
-en,"клиентът е избрал ""Без фактуриране""","the customer chose ""No invoice"""
-en,клиентът не е посочил,the customer did not provide
-en,валидно ЕГН,a valid personal ID number
-en,постоянен адрес (град и адрес),permanent address (city and street)
+en,"Ако все пак се иска фактура, променете ""Фактуриране"" в продажбата на ""Да""","If an invoice is still required, change ""Invoicing"" in the sale to ""Yes"""
 en,Онлайн продажби с ППП за ФЛ,Online sales to individuals with postal money transfer
 en,XML файл,XML file
 en,Не е създаден,Not created
@@ -4351,3 +4347,6 @@ en,Вирт. ПОС,Virtual POS
 en,ППП,PMT
 en,ДПУ,PSP
 en,XML файл за НАП,XML file for the NRA
+en,Строга проверка на данните при издаване на фактура на физическо лице,Strict data check when issuing an invoice to an individual
+en,Името на лицето трябва да е от поне две думи,The individual's name must consist of at least two words
+en,ЕГН/ЛНЧ на лицето не изглежда истинско,The individual's personal ID / foreigner ID does not look genuine
