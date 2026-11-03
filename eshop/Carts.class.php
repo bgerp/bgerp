@@ -2487,6 +2487,13 @@ class eshop_Carts extends core_Master
             if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
                 drdata_type_Uic::check($form, $rec->invoiceUicNo, $rec->invoiceCountry, 'invoiceUicNo');
             }
+
+            // Същата проверка като при фактурата, за да не се спре тя по-късно
+            if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'person' && sales_Setup::get('STRICT_PERSON_INVOICE_CHECK') == 'yes') {
+                if (!bglocal_EgnType::isReal(trim($rec->invoiceUicNo))) {
+                    $form->setError('invoiceUicNo', 'Невалидно ЕГН/ЛНЧ');
+                }
+            }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
                 if (!preg_match('/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu', $rec->invoiceNames)) {

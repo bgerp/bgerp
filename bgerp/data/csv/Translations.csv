@@ -4350,3 +4350,4 @@ en,XML файл за НАП,XML file for the NRA
 en,Строга проверка на данните при издаване на фактура на физическо лице,Strict data check when issuing an invoice to an individual
 en,Името на лицето трябва да е от поне две думи,The individual's name must consist of at least two words
 en,ЕГН/ЛНЧ на лицето не изглежда истинско,The individual's personal ID / foreigner ID does not look genuine
+en,Невалидно ЕГН/ЛНЧ,Invalid personal ID / foreigner ID
