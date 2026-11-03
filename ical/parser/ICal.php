@@ -1562,6 +1562,30 @@ class ICal
             }
         }
 
-        return (isset($valid[$timezone]));
+        // Старите имена може да ги няма в системната база на часовите зони
+        $legacyTimeZones = array(
+            'Asia/Calcutta' => 'Asia/Kolkata',
+            'Asia/Saigon' => 'Asia/Ho_Chi_Minh',
+            'Asia/Katmandu' => 'Asia/Kathmandu',
+            'Asia/Rangoon' => 'Asia/Yangon',
+            'Europe/Kiev' => 'Europe/Kyiv',
+        );
+        if (isset($legacyTimeZones[$timezone])) {
+            $timezone = $legacyTimeZones[$timezone];
+        }
+
+        if (!isset($valid[$timezone]) && !in_array($timezone, \DateTimeZone::listIdentifiers())) {
+
+            return false;
+        }
+
+        try {
+            new \DateTimeZone($timezone);
+        } catch (\Exception $e) {
+
+            return false;
+        }
+
+        return true;
     }
 }
