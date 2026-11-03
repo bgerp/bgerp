@@ -1239,6 +1239,9 @@ class core_Users extends core_Manager
             $userRoleId = $mvc->core_Roles->fetchByName('user');
             
             $rolesArr[$userRoleId] = $userRoleId;
+
+            // Политиките получават разширените роли преди записа и дневника на промените.
+            $mvc->invoke('AfterPrepareUserRoles', array(&$rolesArr, $rec, $fields));
             
             $rec->roles = keylist::fromArray($rolesArr);
         }
