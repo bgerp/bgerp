@@ -880,16 +880,16 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
 
         foreach ($bommMaterials as $material) {
-            if (cat_Products::getLastActiveBom($material->productId)) {
-                $lastActivBomm = cat_Products::getLastActiveBom($material->productId);
-
-                self::getBaseMaterialFromBoms($lastActivBomm, $arr, $arr1);
+            $materialBom = cat_Products::getLastActiveBom($material->productId);
+            if ($materialBom) {
+                self::getBaseMaterialFromBoms($materialBom, $arr, $arr1);
 
             } else {
 
                 $id = $material->productId;
 
-                $jobsQuantityMaterial = (double)$arr1[$lastActivBomm->productId] * $material->quantity / $lastActivBomm->quantity;
+                // Продуктът на основната рецепта не е в $arr1 - материалите ѝ влизат без преизчисляване
+                $jobsQuantityMaterial = (double)($arr1[$lastActivBomm->productId] ?? $lastActivBomm->quantity) * $material->quantity / $lastActivBomm->quantity;
 
                 if (!array_key_exists($id, $arr)) {
                     $arr[$id] = (object)array(

@@ -597,8 +597,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                                 }
                             } else {
                                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
-                                $serialInfo = $availableSerialsToInput[$rec->serial];
-                                $form->setDefault('quantity', $serialInfo['quantity']);
+                                if (isset($availableSerialsToInput[$rec->serial])) {
+                                    $form->setDefault('quantity', $availableSerialsToInput[$rec->serial]['quantity']);
+                                }
                             }
                         }
                     } else {
