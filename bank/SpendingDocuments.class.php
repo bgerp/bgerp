@@ -8,7 +8,7 @@
  * @package   bank
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -236,11 +236,13 @@ class bank_SpendingDocuments extends bank_Document
                 $row->earlyPaymentInfo = ($row->earlyPaymentInfo ?? '') . " (" . tr('изтекло') . ")";
             } else {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
+            }
 
-                // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
+            // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена (само ако сумата се показва)
+            if ($valior <= $rec->earlyPaymentUntil && isset($row->amount)) {
                 $amountWithoutDiscount = round($rec->amount * (1 - $rec->earlyPaymentPercent), 2);
                 $amountWithoutDiscountVerbal = $mvc->getFieldType('amount')->toVerbal($amountWithoutDiscount);
-                if(in_array($rec->state, array('draft', 'pending'))){
+                if(in_array($rec->state ?? null, array('draft', 'pending'))){
                     $icon = isset($fields['-list']) ? 'notice' : 'noicon';
                     $hintColor = '#3939ef;';
                     $infoSuffix = " |при плащане до|* {$row->earlyPaymentUntil}";
@@ -250,8 +252,8 @@ class bank_SpendingDocuments extends bank_Document
                     $infoSuffix = '';
                 }
 
-                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true) . $infoSuffix, $icon, false);
-                if(in_array($rec->state, array('draft', 'pending')) && isset($fields['-list'])){
+                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId ?? null, true) . $infoSuffix, $icon, false);
+                if(in_array($rec->state ?? null, array('draft', 'pending')) && isset($fields['-list'])){
                     $row->amount = ht::createElement('div', array('class' => 'amountBadge'), $row->amount, true);
                 }
                 // Ако сме в сингъла да се показва и намалената сума
