@@ -385,7 +385,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             // Редовете на КИ и ДИ , коитпо неямат промяна се прескачат
             if ($invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE ||
                 $invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE) {
-                if (!$dRec->changedQuantity && !$dRec->changedPrice) {
+                if (empty($dRec->changedQuantity) && empty($dRec->changedPrice)) {
                     continue;
                 }
             }
