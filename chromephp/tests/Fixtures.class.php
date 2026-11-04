@@ -24,12 +24,14 @@ class chromephp_tests_Fixtures
             for ($i = 1; $i <= 12; $i++) $html .= '<td>Стойност ' . $i . '</td>';
             return $html . '</tr></tbody></table></div><p>Край на широката таблица</p>';
         }
-        $html .= '<table><thead><tr><th>Код</th><th>Описание</th><th>Сума EUR</th></tr></thead><tbody>';
-        $rows = $name === 'large' ? 600 : 2;
+        $html .= $name === 'cmr' ? '<div class="cmr-holder"><table class="cmr-form" style="height:1600px;width:840px">' : '<table>';
+        $html .= '<thead><tr><th>Код</th><th>Описание</th><th>Сума EUR</th></tr></thead><tbody>';
+        $rows = $name === 'large' ? 600 : ($name === 'cmr' ? 20 : 2);
         for ($i = 1; $i <= $rows; $i++) {
             $html .= '<tr><td>' . sprintf('%05d', $i) . '</td><td>Артикул ' . $i . '</td><td class="amount">' . ($i === 1 ? '12,50' : '25,00') . '</td></tr>';
         }
         $html .= '</tbody><tfoot><tr class="total"><td colspan="2">Общо</td><td class="amount">37,50</td></tr></tfoot></table><p>Край на документа</p>';
+        if ($name === 'cmr') $html .= '</div>';
         if ($name === 'javascript') {
             $html .= '<p id="script-result">WAITING_SENTINEL</p><script>window.addEventListener("load",function(){document.getElementById("script-result").textContent="JavaScript готов";});</script>';
         }

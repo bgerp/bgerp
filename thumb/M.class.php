@@ -9,7 +9,7 @@
  * @package   thumb
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,7 +42,12 @@ class thumb_M extends core_Mvc
         $arguments = core_Crypt::decodeVar($id, thumb_Img::getCryptKey());
         expect404($arguments);
         
-        $this->thumb = new thumb_Img($arguments);
+        $thumb = new thumb_Img($arguments);
+        $url = $thumb->getPreviewUrlOverride();
+        if ($url !== null) {
+            return new Redirect($url);
+        }
+        $this->thumb = $thumb;
         
         if (file_exists($file = $this->thumb->getThumbPath())) {
             $ext = fileman_Files::getExt($file);

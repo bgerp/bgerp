@@ -4306,13 +4306,9 @@ en,"Ще получите имейл, когато плащането прикл
 en,Отговор в обработка,Response in progress
 en,Чл. 52о,Art. 52o
 en,Платено и неотразено,Paid but not recorded
-en,три имена,full name (three names)
-en,Забрана на фактура на лице по онлайн поръчка без заявка или без три имена / ЕГН / адрес,Block invoices to individuals for online orders without a request or without full name / personal ID / address
+en,Забрана на фактура на лице по онлайн поръчка без заявена фактура,Block invoices to individuals for online orders without a requested invoice
 en,Не може да се издаде фактура на лице по онлайн поръчка,Cannot issue an invoice to an individual for online order
-en,"клиентът е избрал ""Без фактуриране""","the customer chose ""No invoice"""
-en,клиентът не е посочил,the customer did not provide
-en,валидно ЕГН,a valid personal ID number
-en,постоянен адрес (град и адрес),permanent address (city and street)
+en,"Ако все пак се иска фактура, променете ""Фактуриране"" в продажбата на ""Да""","If an invoice is still required, change ""Invoicing"" in the sale to ""Yes"""
 en,Онлайн продажби с ППП за ФЛ,Online sales to individuals with postal money transfer
 en,XML файл,XML file
 en,Не е създаден,Not created
@@ -4324,9 +4320,9 @@ en,Документът по чл. 52о е без код на плащането
 en,Липсва идентификаторът на доставчика на платежни услуги,The payment service provider ID is missing
 en,"Поръчката има и документ по чл. 52о, и фискален бон","The order has both an Art. 52o document and a fiscal receipt"
 en,"Плащането не е отразено - няма документ по чл. 52о, фискален бон или ПБД","The payment is not recorded - no Art. 52o document, fiscal receipt or bank receipt"
-en,"Има поръчки с грешки - виж ""n/a"" в колоната ""Код""","There are orders with errors - see ""n/a"" in the ""Code"" column"
+en,"Има поръчки с грешки - виж ""n/a"" в колоната ""Начин""","There are orders with errors - see ""n/a"" in the ""Method"" column"
 en,"Няма поръчки с доставка през месеца, а схемата на НАП изисква поне една","No orders delivered in the month, and the NRA schema requires at least one"
-en,Поръчките са на различни наши фирми - магазинът трябва да е на една,The orders belong to different own companies - the shop must belong to one
+en,Поръчките и връщанията са на различни наши фирми - магазинът трябва да е на една,The orders and refunds belong to different own companies - the shop must belong to one
 en,Липсва номерът на магазина от НАП в настройките му,The shop's NRA number is missing in its settings
 en,Нашата фирма е без валиден ЕИК,Our company has no valid UIC
 en,Освободено по чл. 3 плащане без ППП,"Exempt under Art. 3, payment without postal money transfer"
@@ -4343,3 +4339,21 @@ en,Документ/Бон,Document/Receipt
 en,При виртуален ПОС липсва номерът на ПОС или на трансакцията,The virtual POS number or the transaction number is missing
 en,Изчакване на ресурсите на страницата преди печат,Waiting for page resources before printing
 en,Секунди,Seconds
+en,Количество под 0.01 в мярката на реда - XML файлът го приема само с 2 знака,Quantity below 0.01 in the line unit - the XML file accepts only 2 decimals
+en,Сумата се разминава със сумата на документите за доставка,The amount differs from the amount of the delivery documents
+en,Платено с карта без документ по чл. 52о - създайте го от количката,Paid by card without an Art. 52o document - create it from the cart
+en,Код в XML файла,Code in the XML file
+en,Вирт. ПОС,Virtual POS
+en,ППП,PMT
+en,ДПУ,PSP
+en,XML файл за НАП,XML file for the NRA
+en,Строга проверка на данните при издаване на фактура на физическо лице,Strict data check when issuing an invoice to an individual
+en,Името на лицето трябва да е от поне две думи,The individual's name must consist of at least two words
+en,ЕГН/ЛНЧ на лицето не изглежда истинско,The individual's personal ID / foreigner ID does not look genuine
+en,Невалидно ЕГН/ЛНЧ,Invalid personal ID / foreigner ID
+en,Получено е повече от доставеното,Received more than delivered
+en,Получено е по-малко от доставеното,Received less than delivered
+en,Върнато,Returned
+en,Без ограничение,No restriction
+en,Бус,Van
+en,Камион,Truck

@@ -1400,7 +1400,26 @@ class pos_ReceiptDetails extends core_Detail
         $this->Master->flushUpdateQueue($receiptId);
         $paid = $this->Master->fetchField($receiptId, 'paid', false);
 
-        Mode::setPermanent("currentOperation{$receiptId}", (!isset($paid)) ? 'add' : 'payment');
+        $operation = (!isset($paid)) ? 'add' : 'payment';
+
+        // При зареждане на единичен ред, към плащането се минава само след последния артикул
+        if(isset($id) && $operation == 'payment'){
+            $loadedQuery = $this->getQuery();
+            $loadedQuery->where("#receiptId = {$receiptId} AND #revertRecId IS NOT NULL");
+            $loadedQuery->show('revertRecId');
+            $loadedIds = arr::extractValuesFromArray($loadedQuery->fetchAll(), 'revertRecId');
+
+            $remainingQuery = $this->getQuery();
+            $remainingQuery->where("#receiptId = {$receiptRec->revertId} AND #action = 'sale|code'");
+            if(countR($loadedIds)){
+                $remainingQuery->notIn('id', $loadedIds);
+            }
+            if($remainingQuery->count()){
+                $operation = 'add';
+            }
+        }
+
+        Mode::setPermanent("currentOperation{$receiptId}", $operation);
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
 
         if(Request::get('ajax_mode')){

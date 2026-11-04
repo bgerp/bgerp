@@ -85,7 +85,11 @@ class bgfisc_plg_EshopCarts extends core_Plugin
         // Без PDF имейлът пак тръгва - линкът е достатъчен
         try {
             $fh = bgfisc_SaleRegDocs::getPdf($docRec);
-            $text .= "\n[file={$fh}]" . fileman_Files::fetchByFh($fh, 'name') . '[/file]';
+            if (!empty($fh)) {
+                $text .= "\n[file={$fh}]" . fileman_Files::fetchByFh($fh, 'name') . '[/file]';
+            } else {
+                $mvc->logErr('PDF на документа по чл. 52о не е създаден и не е прикачен към имейла', $rec->id);
+            }
         } catch (core_exception_Redirect $e) {
             throw $e;
         } catch (Throwable $e) {

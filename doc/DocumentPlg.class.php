@@ -3787,44 +3787,50 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Преобразуваме в масив
         $res = (array) $res;
-        
-        if (!isset($fileName)) {
-            expect($mvc->abbr ?? null, 'Липсва зададена абревиатура за документния клас ' . get_class($mvc));
+        $scope = new stdClass();
+        try {
+            $mvc->invoke('BeginFileConversion', array($scope, $id, $type, $fileName));
 
-            $fileName = strtoupper($mvc->abbr ?? '');
-            if (!empty($type)) {
-                $fileName .= '.' . $type;
-            }
-        }
-        
-        switch (strtolower($type)) {
-            case 'pdf':
-                doclog_Documents::pushAction(
-                    array(
-                        'action' => doclog_Documents::ACTION_PDF,
-                        'containerId' => $mvc->getContainer($id)->id,
-                        'data' => (object) array(
-                            'sendedBy' => core_Users::getCurrent(),
-                        )
-                    )
-                );
-                
-                Mode::push('pdf', true);
-                
-                $html = $mvc->getDocumentBody($id, 'xhtml');
-                
-                Mode::pop('pdf');
-                
-                doclog_Documents::popAction();
-                
-                //Манипулатора на новосъздадения pdf файл
-                $fileHnd = doc_PdfCreator::convert($html, $fileName);
-                
-                if ($fileHnd) {
-                    $res[$fileHnd] = $fileHnd;
+            if (!isset($fileName)) {
+                expect($mvc->abbr ?? null, 'Липсва зададена абревиатура за документния клас ' . get_class($mvc));
+
+                $fileName = strtoupper($mvc->abbr ?? '');
+                if (!empty($type)) {
+                    $fileName .= '.' . $type;
                 }
-            
-            break;
+            }
+
+            switch (strtolower($type)) {
+                case 'pdf':
+                    doclog_Documents::pushAction(
+                        array(
+                            'action' => doclog_Documents::ACTION_PDF,
+                            'containerId' => $mvc->getContainer($id)->id,
+                            'data' => (object) array(
+                                'sendedBy' => core_Users::getCurrent(),
+                            )
+                        )
+                    );
+
+                    Mode::push('pdf', true);
+
+                    $html = $mvc->getDocumentBody($id, 'xhtml');
+
+                    Mode::pop('pdf');
+
+                    doclog_Documents::popAction();
+
+                    //Манипулатора на новосъздадения pdf файл
+                    $fileHnd = doc_PdfCreator::convert($html, $fileName);
+
+                    if ($fileHnd) {
+                        $res[$fileHnd] = $fileHnd;
+                    }
+
+                break;
+            }
+        } finally {
+            $mvc->invoke('EndFileConversion', array($scope, &$res));
         }
     }
     
@@ -3850,51 +3856,58 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
-        //Емулираме режим 'xhtml', за да покажем статичните изображения
-        Mode::push('text', 'xhtml');
-        
-        //Вземаме информация за документа, от имена на файла - името на класа и id' to
-        $fileInfo = doc_RichTextPlg::getFileInfo($fileName);
-        
-        //Ако не може да се намери информация, тогава се прескача
-        if (!$fileInfo) {
-            
-            return;
+        $scope = new stdClass();
+        try {
+            $mvc->invoke('BeginFileConversion', array($scope, $id, $type, $fileName));
+
+            //Емулираме режим 'xhtml', за да покажем статичните изображения
+            Mode::push('text', 'xhtml');
+
+            //Вземаме информация за документа, от имена на файла - името на класа и id' to
+            $fileInfo = doc_RichTextPlg::getFileInfo($fileName);
+
+            //Ако не може да се намери информация, тогава се прескача
+            if (!$fileInfo) {
+
+                return;
+            }
+
+            //Името на класа
+            $className = $fileInfo['className'];
+
+            $rec = $className::fetchByHandle($fileInfo);
+
+            //Вземаме containerId' то на документа
+            $containerId = $rec->containerId;
+
+            //Ако няма containerId - прескачаме
+            if (!$containerId) {
+
+                return;
+            }
+
+            //Вземаме документа
+            $document = doc_Containers::getDocument($containerId);
+
+            //Данните на документа
+            $data = $document->prepareDocument();
+
+            //Рендираме документа
+            $html = $document->renderDocument($data);
+
+            $html = $mvc->getDocumentBody($id, 'xhtml');
+
+            //Манипулатора на новосъздадения pdf файл
+            $fh = doc_PdfCreator::convert($html, $fileName);
+
+            //масив с всички pdf документи и имената им
+            $res[$fh] = $fh;
+
+            //Връщаме старата стойност на 'text'
+            Mode::pop('text');
+        } finally {
+            $mvc->invoke('EndFileConversion', array($scope, &$res));
         }
-        
-        //Името на класа
-        $className = $fileInfo['className'];
-        
-        $rec = $className::fetchByHandle($fileInfo);
-        
-        //Вземаме containerId' то на документа
-        $containerId = $rec->containerId;
-        
-        //Ако няма containerId - прескачаме
-        if (!$containerId) {
-            
-            return;
-        }
-        
-        //Вземаме документа
-        $document = doc_Containers::getDocument($containerId);
-        
-        //Данните на документа
-        $data = $document->prepareDocument();
-        
-        //Рендираме документа
-        $html = $document->renderDocument($data);
-        
-        $html = $mvc->getDocumentBody($id, 'xhtml');
-        
-        //Манипулатора на новосъздадения pdf файл
-        $fh = doc_PdfCreator::convert($html, $fileName);
-        
-        //масив с всички pdf документи и имената им
-        $res[$fh] = $fh;
-        
-        //Връщаме старата стойност на 'text'
-        Mode::pop('text');
     }
     
     

@@ -59,11 +59,14 @@ class transpress_Adapter extends core_BaseClass
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        // Езикът на PDF-ите от print.svc се определя само от Accept-Language, не от locale
+        $headers = array('Accept-Language: bg-BG,bg');
         if($method == 'POST'){
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $query);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=UTF-8'));
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8';
         }
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
         if($auth){
             $login = self::getLoginData($userId);

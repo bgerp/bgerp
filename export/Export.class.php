@@ -8,7 +8,7 @@
  * @package   export
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -268,18 +268,22 @@ class export_Export extends core_Mvc
         $form = $clsInst->getForm();
         
         $mRec->__mid = $mid;
+
+        $this->invoke('BeforeExternalExport', array($clsInst, $mRec));
         
         $su = null;
-        if (!empty($action->createdBy)) {
-            $su = core_Users::sudo($action->createdBy);
-        }
+        try {
+            if (!empty($action->createdBy)) {
+                $su = core_Users::sudo($action->createdBy);
+            }
 
-        Mode::set('exporting', true);
-
-        $fileHnd = $typeClsInst->makeExport($form, $clsId, $mRec);
-        
-        if (isset($su)) {
-            core_Users::exitSudo($su);
+            Mode::set('exporting', true);
+            $exporter = cls::getInterface('export_ExportTypeIntf', $typeClsInst);
+            $fileHnd = $exporter->makeExport($form, $clsId, $mRec);
+        } finally {
+            if (isset($su)) {
+                core_Users::exitSudo($su);
+            }
         }
         
         if ($fileHnd) {

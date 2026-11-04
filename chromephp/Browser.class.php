@@ -78,6 +78,8 @@ class chromephp_Browser
         $browserFactory->addOptions([
             'ignoreCertificateErrors' => true,
             'enableImages' => true,
+            // Под натоварване новият таб отговаря по-бавно от стандартните 5 секунди
+            'sendSyncDefaultTimeout' => 30000,
             // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
             // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
             'customFlags' => ['--remote-allow-origins=*'],
@@ -222,6 +224,20 @@ class chromephp_Browser
                     $optArr["scale"] = round(max(0.1, $landscapeScale), 3);
                 }
             }
+        }
+
+        // ЧМР е едностраничен формуляр; мащабираме и по височина, без да изрязваме данни.
+        $cmrScale = (float) $page->evaluate(
+            "(() => {
+                if (document.querySelectorAll('.cmr-holder .cmr-form').length !== 1) return 1;
+                const body = document.body;
+                const width = Math.max(body.scrollWidth, body.getBoundingClientRect().right);
+                const height = Math.max(body.scrollHeight, body.getBoundingClientRect().bottom);
+                return Math.min(1, 0.97 * {$portraitWidth} / width, 0.97 * {$portraitHeight} / height);
+            })()"
+        )->getReturnValue();
+        if ($cmrScale > 0 && $cmrScale < 1) {
+            $optArr['scale'] = max(0.1, floor($cmrScale * 1000) / 1000);
         }
 
         if (chromephp_Setup::get('SHOW_PAGE_NUMBERS') == 'yes') {

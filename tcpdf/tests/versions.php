@@ -36,17 +36,21 @@ $form = new class {
     /** Формата е подадена за запис. */ public function isSubmitted() { return true; }
     /** Запазва стандартната грешка по поле. */ public function setError($field, $message) { $this->errors[$field] = $message; }
 };
-$form->rec = (object) array('TCPDF_VERSION' => '7.0.20');
-$setup->inputConfigDescriptionForm($form);
-expect(isset($form->errors['TCPDF_VERSION']) === (PHP_VERSION_ID < 80200), 'PHP form guard');
-if (PHP_VERSION_ID < 80200) {
-    expect(strpos($setup->checkConfig(), 'PHP 8.2') !== false, 'Missing PHP diagnostic');
-    expect(strpos($setup->install(), "class='red'") !== false, 'Install must reject before Composer');
-    $failed = false;
-    try { tcpdf_Setup::loadLibrary(); } catch (RuntimeException $e) { $failed = strpos($e->getMessage(), 'PHP 8.2') !== false; }
-    expect($failed, 'Runtime must reject before autoload');
-} else {
-    expect(strpos($setup->checkConfig(), 'Липсва') !== false, 'Missing library diagnostic');
+foreach (array('7.0.20', '7.0.21') as $version) {
+    core_ProtoSetup::$selected = $version;
+    $form->errors = array();
+    $form->rec = (object) array('TCPDF_VERSION' => $version);
+    $setup->inputConfigDescriptionForm($form);
+    expect(isset($form->errors['TCPDF_VERSION']) === (PHP_VERSION_ID < 80200), 'PHP form guard');
+    if (PHP_VERSION_ID < 80200) {
+        expect(strpos($setup->checkConfig(), 'PHP 8.2') !== false, 'Missing PHP diagnostic');
+        expect(strpos($setup->install(), "class='red'") !== false, 'Install must reject before Composer');
+        $failed = false;
+        try { tcpdf_Setup::loadLibrary(); } catch (RuntimeException $e) { $failed = strpos($e->getMessage(), 'PHP 8.2') !== false; }
+        expect($failed, 'Runtime must reject before autoload');
+    } else {
+        expect(strpos($setup->checkConfig(), 'Липсва') !== false, 'Missing library diagnostic');
+    }
 }
 foreach (array('6.2.13', '6.11.4') as $version) {
     core_ProtoSetup::$selected = $version;

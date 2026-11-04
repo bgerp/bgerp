@@ -1499,10 +1499,27 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
         grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
     }
 }
+.eshop-public #eshopParamFilterTop .eshop-param-filter {
+    position: relative;
+}
+.eshop-public #eshopParamFilterTop .eshop-param-filter > legend .eshop-param-filter-clear {
+    position: absolute;
+    top: 1.4em;
+    right: 1em;
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+}
+.eshop-public #eshopParamFilterTop .eshop-param-filter:has(.eshop-param-filter-clear) {
+    padding-top: 1em;
+}
+.eshop-public #eshopParamFilterTop .eshop-param-filter > legend .eshop-param-filter-clear:hover {
+    text-decoration: none;
+}
 /* The legend sits in the frame above the filter buttons. */
 .eshop-public #eshopParamFilterTop .eshop-param-filter > legend.eshop-param-filter-title {
     display: inline-flex;
-    width: 100%;
+    width: auto;
     max-width: 100%;
     box-sizing: border-box;
     margin: 0;

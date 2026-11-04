@@ -26,8 +26,8 @@ class ckeditor_CKeditor extends core_BaseClass
     {
         $id = $attr['id'] ?? '';
         $version = ckeditor_Setup::get('VERSION');
-        expect(in_array($version, array('5.0.1', '49.0.1'), true), 'Неподдържана версия на CKEditor');
-        if ($version === '49.0.1') {
+        expect(in_array($version, array('5.0.1', '49.0.1', '49.1.0'), true), 'Неподдържана версия на CKEditor');
+        if ($version !== '5.0.1') {
             return $this->renderModernHtml($tpl, $attr);
         }
 //        $tpl = new ET();
@@ -153,7 +153,7 @@ class ckeditor_CKeditor extends core_BaseClass
      */
     protected function renderModernHtml($tpl, $attr)
     {
-        $path = 'ckeditor/49.0.1';
+        $path = 'ckeditor/' . ckeditor_Setup::get('VERSION');
         $language = $attr['lang'] ?? core_Lg::getCurrent();
         if (!preg_match('/^[a-z]{2}(?:-[a-z]{2,4})?$/D', $language ?? '') || !getFullPath("{$path}/translations/{$language}.umd.js")) {
             $language = 'en';
