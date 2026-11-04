@@ -11,7 +11,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -519,6 +519,12 @@ class doc_FolderPlg extends core_Plugin
 
         if ((!$fields || !empty($fArr['state'])) && !($rec->state ?? null)) {
             $rec->state = 'active';
+        }
+        
+        // При частичен запис без отговорник, той не се променя
+        if (!property_exists($rec, 'inCharge')) {
+            
+            return;
         }
         
         // Партньорите да не са собственици на папки

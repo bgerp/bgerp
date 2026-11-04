@@ -8,7 +8,7 @@
  * @package   fileman
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -76,7 +76,8 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         
         $content = i18n_Charset::convertToUtf8($content);
         
-        $res = csv_Lib::getCsvRowsFromFile($content);
+        // Прегледът показва файла както е - редовете с # в началото (напр. хендлър #Sal123) не са коментари
+        $res = csv_Lib::getCsvRowsFromFile($content, array('skip' => false));
         
         if ($res === false) {
             

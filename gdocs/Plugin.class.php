@@ -11,7 +11,7 @@
  * @package   gdocs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,16 +24,21 @@ class gdocs_Plugin extends core_Plugin
     public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
         $rec = $data->rec ?? null;
-        if (is_object($rec) && $mvc->haveRightFor('single', $rec)) {
+        $toolbar = $data->toolbar ?? null;
+        if (is_object($rec) && $toolbar && $mvc->haveRightFor('single', $rec)) {
             try {
                 //Разширението на файла
                 $ext = fileman_Files::getExt($rec->name ?? '');
                 
                 if (in_array($ext, arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar,pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
-                    $url = 'https://docs.google.com/viewer?url=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1);
+                    $downloadUrl = fileman_Download::getDownloadUrl($rec->fileHnd ?? '', 1);
+                    if (!$downloadUrl) {
+                        return;
+                    }
+                    $url = 'https://docs.google.com/viewer?url=' . rawurlencode($downloadUrl);
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn(
+                    $toolbar->addBtn(
                         'Отвори',
                         $url,
                         "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/drive.png, title=Разглеждане с GOOGLE DOCS",

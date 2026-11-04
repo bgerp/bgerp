@@ -27,7 +27,7 @@ defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
  * @package   fileman
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -112,6 +112,12 @@ class fileman_Download extends core_Manager
         if (!trim($src)) {
             
             return false;
+        }
+
+        $res = null;
+        $mvc = cls::get(get_called_class());
+        if ($mvc->invoke('BeforeGetDownloadUrl', array(&$res, $src, $lifeTime, $type, $isAbsolute)) === false) {
+            return $res;
         }
         
         // Ако типа е URL
@@ -427,16 +433,21 @@ class fileman_Download extends core_Manager
             ob_end_clean();
         }
 
-        $mimeType = fileman::getType($fRec->name);
-        header("Content-Type: " . $mimeType);
-        header("Content-Length: " . $fRec->fileLen);
-        header("Content-Disposition: inline; filename=\"" . addslashes($fRec->name) . "\"");
-        header("Cache-Control: public, max-age=3600");
-        header("Pragma: public");
+        $headers = array(
+            'Content-Type' => fileman::getType($fRec->name ?? ''),
+            'Content-Length' => $fRec->fileLen ?? 0,
+            'Content-Disposition' => 'inline; filename="' . addslashes($fRec->name ?? '') . '"',
+            'Cache-Control' => 'public, max-age=3600',
+            'Pragma' => 'public',
+        );
+        $this->invoke('BeforeServeFile', array($fRec, &$headers));
+        foreach ($headers as $name => $value) {
+            header($name . ': ' . $value);
+        }
 
-        readfile(fileman::extract($fRec->fileHnd));
+        readfile(fileman::extract($fRec->fileHnd ?? null));
 
-        fileman::logRead('Сваляне', $fRec->id);
+        fileman::logRead('Сваляне', $fRec->id ?? null);
 
         shutdown();
     }
@@ -578,6 +589,107 @@ class fileman_Download extends core_Manager
         $dir = EF_DOWNLOAD_DIR . '/' . $rec->prefix;
         
         return $dir;
+    }
+
+
+    /**
+     * Отменя публичните копия на файл, без да премахва оригинала или други файлове.
+     *
+     * @param int|string $fileId Идентификатор от fileman_Files или MD5 за източник по път
+     * @return int Брой премахнати записи за публични адреси
+     */
+    public static function revokePublicFile($fileId)
+    {
+        expect(is_int($fileId) || is_string($fileId), 'Невалиден идентификатор на файл');
+        $fileId = (string) $fileId;
+        expect(preg_match('/^(?:[1-9][0-9]*|[a-f0-9]{32})$/D', $fileId), 'Невалиден идентификатор на файл');
+        $query = static::getQuery();
+        $query->where(array("#fileId = '[#1#]'", $fileId));
+        $query->show('id,prefix,fileName');
+        $count = 0;
+        while ($rec = $query->fetch()) {
+            $path = self::getPublicCopyPath($rec);
+            if ($path !== null && is_dir($dir = dirname($path))) {
+                if (file_exists($path) || is_link($path)) {
+                    expect((is_file($path) || is_link($path)) && @unlink($path), 'Неуспешно премахване на публичния файл');
+                }
+                $entries = scandir($dir);
+                expect($entries !== false, 'Недостъпна директория за сваляне');
+                if (count($entries) === 2) {
+                    expect(@rmdir($dir), 'Неуспешно премахване на директорията за сваляне');
+                }
+            }
+            $id = (int) ($rec->id ?? 0);
+            expect($id > 0, 'Невалиден запис за сваляне');
+            $count += static::delete(array("#id = '[#1#]'", $id));
+        }
+
+        return $count;
+    }
+
+
+    /**
+     * Отменя и старите копия, публикувани от друг временен път към същото съдържание.
+     *
+     * @param string $sourcePath Каноничен изходен файл извън публичната директория
+     * @return int Брой премахнати записи за публични адреси
+     */
+    public static function revokePublicContent($sourcePath)
+    {
+        expect(is_string($sourcePath) && is_file($sourcePath), 'Невалиден изходен файл');
+        $sourcePath = realpath($sourcePath);
+        $root = realpath(EF_DOWNLOAD_DIR);
+        expect($sourcePath !== false && ($root === false || strpos($sourcePath . '/', $root . '/') !== 0), 'Невалиден изходен файл');
+        $size = filesize($sourcePath);
+        $hash = md5_file($sourcePath);
+        expect($size !== false && $hash !== false, 'Недостъпен изходен файл');
+        $query = static::getQuery();
+        $query->show('fileId,prefix,fileName');
+        $matches = array();
+        while ($rec = $query->fetch()) {
+            $path = self::getPublicCopyPath($rec);
+            if ($path === null || (!file_exists($path) && !is_link($path))) continue;
+            expect(!is_link($path) && is_file($path), 'Невалиден публичен файл');
+            $copySize = filesize($path);
+            expect($copySize !== false, 'Недостъпен публичен файл');
+            if ($copySize !== $size) continue;
+            $copyHash = md5_file($path);
+            expect($copyHash !== false, 'Недостъпен публичен файл');
+            if ($copyHash === $hash) $matches[$rec->fileId ?? ''] = $rec->fileId ?? '';
+        }
+        $count = 0;
+        foreach ($matches as $fileId) $count += static::revokePublicFile($fileId);
+
+        return $count;
+    }
+
+
+    /**
+     * Проверява пътя само в директорията с генерирани публични копия.
+     *
+     * @param stdClass $rec
+     * @return string|null null при липсваща публична директория
+     */
+    private static function getPublicCopyPath($rec)
+    {
+        $prefix = $rec->prefix ?? '';
+        $name = $rec->fileName ?? '';
+        expect(is_string($prefix) && preg_match('/^[a-zA-Z0-9]+$/D', $prefix)
+            && strlen($prefix) === strlen(EF_DOWNLOAD_PREFIX_PTR), 'Невалиден адрес за сваляне');
+        expect(is_string($name) && $name !== '' && $name !== '.' && $name !== '..'
+            && strpbrk($name, "/\\\0") === false, 'Невалидно име на публичен файл');
+        $root = realpath(EF_DOWNLOAD_DIR);
+        if ($root === false) {
+            expect(!file_exists(EF_DOWNLOAD_DIR) && !is_link(EF_DOWNLOAD_DIR), 'Недостъпна директория за сваляне');
+
+            return null;
+        }
+        expect(is_dir($root), 'Невалидна директория за сваляне');
+        $dir = $root . '/' . $prefix;
+        expect(!is_link($dir), 'Невалидна директория за сваляне');
+        if (file_exists($dir)) expect(is_dir($dir) && realpath($dir) === $dir, 'Невалидна директория за сваляне');
+
+        return $dir . '/' . $name;
     }
     
     

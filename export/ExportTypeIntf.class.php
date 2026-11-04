@@ -9,7 +9,7 @@
  * @package   export
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,7 +52,7 @@ class export_ExportTypeIntf
     
     
     /**
-     * Импортиране на csv-файл в даден мениджър
+     * Изпълнява експорта в общ обхват, който приключва и при грешка или redirect.
      *
      * @param core_Form    $form
      * @param int          $clsId
@@ -62,7 +62,17 @@ class export_ExportTypeIntf
      */
     public function makeExport($form, $clsId, $objId)
     {
-        return $this->class->makeExport($form, $clsId, $objId);
+        $scope = new stdClass();
+        $result = null;
+        $dispatcher = cls::get('export_Export');
+        try {
+            $dispatcher->invoke('BeginExport', array($scope, $form, $clsId, $objId));
+            $result = $this->class->makeExport($form, $clsId, $objId);
+        } finally {
+            $dispatcher->invoke('EndExport', array($scope, &$result));
+        }
+
+        return $result;
     }
     
     

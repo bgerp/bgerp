@@ -8,7 +8,7 @@
  * @package   logs
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -840,6 +840,7 @@ class log_Data extends core_Manager
         }
         
         $objSuggArr = array();
+        $rec->object ??= '';
         
         // Подготваме данните и филтрираме по обект
         if (!trim($rec->class ?? '')) {

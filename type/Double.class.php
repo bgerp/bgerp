@@ -15,7 +15,7 @@ defIfNot('EF_NUMBER_DECIMALS', 4);
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,7 +161,7 @@ class type_Double extends core_Type
     {
         // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
         if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', (string) $value)){
-            if(!$this->formWithErrors){
+            if(empty($this->formWithErrors)){
                 $value = rtrim(sprintf("%.9f", $value), "0");
             }
         }

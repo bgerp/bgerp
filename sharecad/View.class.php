@@ -8,7 +8,7 @@
  * @package   sharecad
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -27,7 +27,7 @@ class sharecad_View
      */
     public static function getFrame($fileHnd, $paramsArr = array())
     {
-        if (!trim($fileHnd)) {
+        if (!trim($fileHnd ?? '')) {
 
             return false;
         }
@@ -41,7 +41,7 @@ class sharecad_View
         $defPArr['style'] = 'width: 100%; height: 100%;';
 
         foreach ($defPArr as $n => $v) {
-            setIfNot($paramsArr[$n], $v);
+            $paramsArr[$n] = $paramsArr[$n] ?? $v;
         }
 
         $link = self::getLink($fileHnd);
@@ -51,7 +51,9 @@ class sharecad_View
             return false;
         }
 
-        return "<iframe src='//sharecad.org/cadframe/load?url={$link}' scrolling='{$paramsArr["scrolling"]}' frameBorder='{$paramsArr["frameBorder"]}' ALLOWTRANSPARENCY='{$paramsArr["ALLOWTRANSPARENCY"]}' class='{$paramsArr["class"]}' id='{$paramsArr["id"]}' style='{$paramsArr["style"]}'></iframe>";
+        $paramsArr['src'] = 'https://iframe.sharecad.org/cadframe/load?url=' . rawurlencode($link);
+
+        return ht::createElement('iframe', $paramsArr, '')->getContent();
 
     }
 
@@ -64,7 +66,7 @@ class sharecad_View
      */
     protected static function getLink($fileHnd)
     {
-        if (!trim($fileHnd)) {
+        if (!trim($fileHnd ?? '')) {
 
             return false;
         }
@@ -76,7 +78,7 @@ class sharecad_View
             return false;
         }
 
-        return bgerp_F::getShortLink($fRec->fileHnd, $fRec->name);
+        return fileman_Download::getDownloadUrl($fRec->fileHnd ?? '', 1);
     }
 
 }

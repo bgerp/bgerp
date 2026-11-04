@@ -1732,6 +1732,9 @@ class core_Manager extends core_Mvc
         $query->limit(50);
         
         $query->show($show);
+
+        // Правата за опциите се прилагат преди извличането, без да засягат другите заявки.
+        $this->invoke('BeforeFetchOptionsQuery', array(&$query));
         
         $options = array(
             '' => '&nbsp;'

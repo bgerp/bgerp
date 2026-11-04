@@ -51,7 +51,7 @@ spl_autoload_register(function ($class) {
 $dir = $argv[2] ?? '';
 expect(is_dir($dir), 'Usage: php tcpdf/tests/render.php VERSION OUTPUT_DIRECTORY');
 // Новият двигател допуска изрично само директорията на тестовия шрифт.
-if (($argv[1] ?? null) === '7.0.20') define('K_ALLOWED_PATHS', array(realpath($dir)));
+if (in_array($argv[1] ?? null, array('7.0.20', '7.0.21'), true)) define('K_ALLOWED_PATHS', array(realpath($dir)));
 require dirname(__DIR__) . '/Setup.class.php';
 expect(TCPDF_VERSION === '6.2.13', 'Default must stay 6.2.13');
 $orientationPdf = new tcpdf_Instance('', 'mm', array(140, 100));
@@ -74,7 +74,7 @@ $fontFile = $dir . '/custom' . uniqid() . '.ttf';
 file_put_contents($fontFile, gzuncompress(file_get_contents(dirname(__DIR__) . '/fonts/dejavusans.z')));
 $pdf = new tcpdf_Instance();
 $font = $pdf->addTTFfont($fontFile, 'TrueTypeUnicode', '', 32, $dir . '/');
-$extension = tcpdf_Setup::get('VERSION') === '7.0.20' ? '.json' : '.php';
+$extension = tcpdf_Setup::usesComposer() ? '.json' : '.php';
 expect($font && is_file($dir . '/' . $font . $extension), 'TTF conversion failed');
 $pdf->AddFont($font, '', $dir . '/' . $font . $extension);
 $pdf->setPrintHeader(false);
@@ -84,5 +84,5 @@ $pdf->SetFont($font, '', 12);
 $pdf->Text(10, 20, 'Собствен шрифт - България');
 file_put_contents($dir . '/font.pdf', $pdf->Output('', 'S'));
 echo "TTF adapter: OK\n";
-if (tcpdf_Setup::get('VERSION') !== '7.0.20') expect(!class_exists('Composer\\InstalledVersions', false), 'Bundled TCPDF must not load Composer');
+if (!tcpdf_Setup::usesComposer()) expect(!class_exists('Composer\\InstalledVersions', false), 'Bundled TCPDF must not load Composer');
 echo 'Version: ' . tcpdf_Setup::getLoadedVersion() . '; default: ' . TCPDF_VERSION . "; OK\n";

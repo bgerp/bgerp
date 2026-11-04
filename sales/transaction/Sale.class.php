@@ -85,7 +85,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         // Ако няма вальор е СЕГА, ако няма ръчно въведен курс - ВИНАГИ се взима този към вальора
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         $newRate = !empty($rec->currencyManualRate) ? $rec->currencyManualRate : currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-        if($rec->currencyRate != $newRate){
+        if(($rec->currencyRate ?? null) != $newRate){
             $rec->_newCurrencyRate = $newRate;
         }
 

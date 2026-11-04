@@ -8,7 +8,7 @@
  * @package   crm
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,11 +52,17 @@ class crm_ContragentGroupsPlg extends core_Plugin
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
         $oCountryId = null;
+        $countryId = $rec->{$mvc->countryFieldName} ?? null;
 
         if (!empty($rec->id)) {
             $oCountryId = $mvc->fetchField($rec->id, $mvc->countryFieldName);
 
-            if ($oCountryId != $rec->{$mvc->countryFieldName}) {
+            // При частичен запис (напр. само групите) държавата не се променя
+            if (!property_exists($rec, $mvc->countryFieldName)) {
+                $countryId = $oCountryId;
+            }
+
+            if ($oCountryId != $countryId) {
                 $oCountryId = $oCountryId;
             }
         }
@@ -64,8 +70,8 @@ class crm_ContragentGroupsPlg extends core_Plugin
         $gIdArr = self::getGroupsId();
 
         $gForAdd = array();
-        if ($rec->{$mvc->countryFieldName}) {
-            $gForAdd = drdata_CountryGroups::getGroupsArr($rec->{$mvc->countryFieldName});
+        if ($countryId) {
+            $gForAdd = drdata_CountryGroups::getGroupsArr($countryId);
         }
 
         if ($oCountryId) {

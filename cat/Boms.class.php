@@ -1118,14 +1118,18 @@ class cat_Boms extends core_Master
      *
      * @param string|null $text
      * @param bool        $isRed
+     * @param string|null $color - друг цвят: blue, amber, purple, teal или gray
      *
      * @return string|null
      */
-    public static function renderBadge($text, $isRed = false)
+    public static function renderBadge($text, $isRed = false, $color = null)
     {
         if (empty($text)) return $text;
 
         $class = $isRed ? 'type-badge type-badge-red' : 'type-badge';
+        if (!$isRed && in_array($color, array('blue', 'amber', 'purple', 'teal', 'gray'), true)) {
+            $class .= " type-badge-{$color}";
+        }
 
         return "<span class='{$class}'>{$text}</span>";
     }

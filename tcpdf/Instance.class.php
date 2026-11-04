@@ -21,7 +21,7 @@ class tcpdf_Instance extends tcpdf
     /** Запазва автоматичната ориентация на CAD форматите и при TCPDF 7. */
     public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false)
     {
-        if (tcpdf_Setup::get('VERSION') === '7.0.20' && $orientation === '' && is_array($format)
+        if (tcpdf_Setup::usesComposer() && $orientation === '' && is_array($format)
             && isset($format[0], $format[1])) {
             $orientation = $format[0] > $format[1] ? 'L' : 'P';
         }
@@ -32,7 +32,7 @@ class tcpdf_Instance extends tcpdf
     /** Изчертава CAD път чрез избраната TCPDF библиотека. */
     public function drawPath($commands, $style = '', $line_style = array(), $fill_color = array())
     {
-        $modern = tcpdf_Setup::get('VERSION') === '7.0.20';
+        $modern = tcpdf_Setup::usesComposer();
         if (($modern ? $this->docstate : $this->state) != 2) {
             
             return;
@@ -73,7 +73,7 @@ class tcpdf_Instance extends tcpdf
     /** Генерира шрифт във формата на избраната библиотека: PHP за 6.x, JSON за 7.x. */
     public function addTTFfont($fontfile, $fonttype = '', $enc = '', $flags = 32, $outpath = '', $platid = 3, $encid = 1, $addcbbox = false, $link = false)
     {
-        if (tcpdf_Setup::get('VERSION') === '7.0.20') {
+        if (tcpdf_Setup::usesComposer()) {
             $font = new \Com\Tecnick\Pdf\Font\Import($fontfile, $outpath, $fonttype, $enc, $flags, $platid, $encid, $link);
 
             return $font->getFontName();
