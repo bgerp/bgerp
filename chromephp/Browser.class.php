@@ -78,6 +78,8 @@ class chromephp_Browser
         $browserFactory->addOptions([
             'ignoreCertificateErrors' => true,
             'enableImages' => true,
+            // Под натоварване новият таб отговаря по-бавно от стандартните 5 секунди
+            'sendSyncDefaultTimeout' => 30000,
             // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
             // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
             'customFlags' => ['--remote-allow-origins=*'],
