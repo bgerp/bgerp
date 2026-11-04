@@ -4351,3 +4351,5 @@ en,Строга проверка на данните при издаване н�
 en,Името на лицето трябва да е от поне две думи,The individual's name must consist of at least two words
 en,ЕГН/ЛНЧ на лицето не изглежда истинско,The individual's personal ID / foreigner ID does not look genuine
 en,Невалидно ЕГН/ЛНЧ,Invalid personal ID / foreigner ID
+en,Получено е повече от доставеното,Received more than delivered
+en,Получено е по-малко от доставеното,Received less than delivered
