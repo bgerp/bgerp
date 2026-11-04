@@ -27,7 +27,7 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @package   core
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -903,7 +903,7 @@ class core_Mvc extends core_FieldSet
         
         expect(is_scalar($fieldName));
         
-        expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
+        expect($me->fields[$fieldName] ?? null, 'Не съществуващо поле: ' . $fieldName);
         
         $value = $rec->{$fieldName} ?? null;
         

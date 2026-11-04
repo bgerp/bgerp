@@ -2047,8 +2047,8 @@ class doc_Containers extends core_Manager
         }
         
         try {
-            // Ако не е зададено поле
-            if ($field) {
+            // Полето може да е само в $row (напр. title на документите), а не в модела
+            if ($field && $ctrInst->getField($field, false)) {
                 
                 // Стойността на полето на текстовата част
                 $title = $ctrInst->getVerbal($params['id'], $field);
