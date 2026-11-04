@@ -328,8 +328,8 @@ class eshop_Groups extends core_Master
             $menuId = Request::get('cMenuId', 'int');
             cms_Content::setCurrent($menuId ? $menuId : cms_Content::getDefaultMenuId($this));
 
-            // Без навигация избор във филтъра на каталога също показва намерените
-            if (eshop_ParamFilter::isEnabled() && $hasFilter && (strlen($q) || !self::mustShowSideNavigation())) {
+            // Изборът в хоризонталните филтри на каталога също показва намерените
+            if (eshop_ParamFilter::isEnabled() && $hasFilter && (strlen($q) || !self::mustShowSideNavigation() || self::getFilterPosition() == 'top')) {
                 Request::push(array('id' => self::SEARCH_SYSTEM_ID));
 
                 return $this->act_Show();

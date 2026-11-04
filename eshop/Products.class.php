@@ -766,8 +766,8 @@ class eshop_Products extends core_Master
             $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
 
             $pQuery->where("#state = 'active' AND #saleState != 'closed'");
-            // Без търсене са всички - каталогът с филтри, когато няма навигация
-            if (countR($groupIds) && (strlen($data->q ?? '') || !eshop_Groups::mustShowSideNavigation())) {
+            // Без търсене са всички - каталогът без навигация или с хоризонтални филтри
+            if (countR($groupIds) && (strlen($data->q ?? '') || !eshop_Groups::mustShowSideNavigation() || eshop_Groups::getFilterPosition() == 'top')) {
                 $pQuery->in('groupId', $groupIds);
                 $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
                 if (strlen($data->q ?? '')) {
