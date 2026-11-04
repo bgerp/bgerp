@@ -598,6 +598,11 @@ class thumb_Img
      */
     public function forceDownload()
     {
+        $url = $this->getPreviewUrlOverride();
+        if ($url !== null) {
+            redirect($url);
+        }
+
         // Записваме картинакта
         $this->saveThumb();
 
@@ -674,6 +679,23 @@ class thumb_Img
 
 
     /**
+     * Позволява на файловата политика да замени публичното превю с контролиран адрес.
+     *
+     * @return string|null null запазва стандартното генериране и кеширане
+     */
+    public function getPreviewUrlOverride()
+    {
+        $url = null;
+        if (cls::get('fileman_Files')->invoke('BeforeGetPreviewUrl',
+            array(&$url, $this->source, $this->sourceType, $this->isAbsolute)) === false) {
+            return $url;
+        }
+
+        return null;
+    }
+
+
+    /**
      * Връща урл към умаленото изображение
      *
      * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced', 'forceDeferred'
@@ -682,6 +704,11 @@ class thumb_Img
      */
     public function getUrl($mode = 'auto')
     {
+        $url = $this->getPreviewUrlOverride();
+        if ($url !== null) {
+            return $url;
+        }
+
         if ($mode == 'forced') {
             // Предизвикваме взимането на път от конфигурацията
             unset($this->thumbPath);
