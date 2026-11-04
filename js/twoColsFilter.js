@@ -203,6 +203,12 @@ function render_setTwoColsFilterWidth() {
         var $datePart = $(this).parent('.twoColsFilterDateInput');
         var $timePart = $time.parent('.twoColsFilterComboInput');
 
+        // Календарите без отделен бутон и обикновените дати също участват в групата.
+        if (!$datePart.length && $timePart.length) {
+            $(this).wrap('<span class="twoColsFilterDateInput"></span>');
+            $datePart = $(this).parent();
+        }
+
         if ($datePart.length && $timePart.length &&
             !$datePart.parent().hasClass('twoColsFilterDateTimeInput')) {
             // Разделителят от type_Datetime иначе остава извън групата и
