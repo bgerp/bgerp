@@ -682,6 +682,9 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                 $row->{$fld} = $Double->toVerbal($dRec->{$fld});
             }
         }
+        if (isset($row->total2)) {
+            $row->total2 = "<b>{$row->total2}</b>";
+        }
         if (!empty($dRec->docNum)) {
             $row->docNum = core_Type::escape($dRec->docNum);
             if (!empty($dRec->regDocId)) {
