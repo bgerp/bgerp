@@ -82,7 +82,7 @@ document.getElementById('test').addEventListener('click', async function () {
             check(first.getData().includes('<strong>'), 'Redo');
         }
         first.setData(fixture);
-        output.textContent = 'PASS: ' + count + ' assertions; CKEditor ' + (modern ? '49.0.1' : '24.0.0 (5.0.1)');
+        output.textContent = 'PASS: ' + count + ' assertions; CKEditor ' + window.CKEDITOR_VERSION;
     } catch (error) {
         output.textContent = 'FAIL after ' + count + ' assertions: ' + error.message;
         console.error(error);

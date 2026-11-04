@@ -1,3 +1,34 @@
+Hotkeys 4.1.1 - допълнение от 04.11.2026
+======================================
+
+Официален пакет: https://registry.npmjs.org/hotkeys-js/-/hotkeys-js-4.1.1.tgz
+Промени: https://github.com/jaywcjlove/hotkeys-js/compare/v4.0.9...v4.1.1
+Проверен SHA-512 integrity:
+sha512-iAMCfVZB02XDH/dXB4EZBxD95fRDLkwU4nN8TdbCFl6/78cc7olYQmiGcYpXcjsf0DYvb9rJVjT6npoSqHX+wQ==
+
+Добавени са оригиналните IIFE build, source map и MIT LICENSE в 4.1.1/.
+Старите копия, зареждания и defaults са запазени. За изрично използване:
+  $tpl->push('js/hotkeys/4.1.1/hotkeys-js.min.js', 'JS');
+Не е добавен изкуствен core_Packs избор за библиотека без текущ потребител.
+Няма PHP или Composer зависимости; лицензът MIT е непроменен.
+
+Промените включват по-точно премахване на комбинации с unbind, обработка
+на splitKey, изчистване на задържани клавиши след печат, глобален wildcard
+в именуван scope, филтриране на input в Shadow DOM и цифрова клавиатура.
+
+checkHotkeys411() в js/tests/widgets.browser.js добавя 7 проверки към
+съществуващите 24 общи и 1 за single/splitKey. На 4.0.9 новият тест
+възпроизвежда премахването на чужда комбинация: unbind на a+b премахва и c+b.
+На 4.1.1 минава със стандартен и многосимволен разделител. Проверени са
+и afterprint, numpad, wildcard scope и Shadow DOM input.
+
+В Chromium през PHP 7.4.33 и 8.2.34 новото копие преминава 32 проверки;
+реална Q комбинация извън input се изпълнява, а вътре в input се игнорира.
+Старият 3.7.2 минава по 20, а 4.0.9 - по 24 общи проверки на двата runtime-а.
+За повторение заредете 4.1.1 в описания по-долу fixture и извикайте от
+бутони checkOptionalWidgets(true, true), checkHotkeysSingle(), checkHotkeys411().
+Ограниченията на браузърното покритие по-долу остават в сила.
+
 Hotkeys 4.0.9 - допълнение от 30.10.2026
 ======================================
 

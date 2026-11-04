@@ -75,3 +75,66 @@ function checkHotkeysSingle() {
         hotkeys.setScope('all');
     }
 }
+
+/** Exercises the keyboard regressions fixed between Hotkeys 4.0.9 and 4.1.1. */
+function checkHotkeys411() {
+    var checks = 0, calls = [], target = document.getElementById('hotkeys-target');
+    function check(ok, name) { if (!ok) throw Error(name); checks++; }
+    function key(type, name, code, number, extra, node) {
+        (node || target).dispatchEvent(new KeyboardEvent(type, Object.assign({key: name, code: code,
+            keyCode: number, which: number, bubbles: true, composed: true}, extra)));
+    }
+    function press(name, code, number, node) {
+        key('keydown', name, code, number, {}, node); key('keyup', name, code, number, {}, node);
+    }
+    function chord(first, number) {
+        key('keydown', first, 'Key' + first.toUpperCase(), number);
+        press('b', 'KeyB', 66); key('keyup', first, 'Key' + first.toUpperCase(), number);
+    }
+    var host = document.createElement('div');
+    hotkeys.unbind(); hotkeys.setScope('all');
+    try {
+        ['+', '::'].forEach(function (separator) {
+            calls = [];
+            var options = {scope: 'qa-chords', splitKey: separator};
+            hotkeys('a' + separator + 'b', options, function () { calls.push('removed'); });
+            hotkeys('c' + separator + 'b', options, function () { calls.push('other'); });
+            hotkeys.setScope('qa-chords');
+            hotkeys.unbind({key: 'a' + separator + 'b', scope: 'qa-chords', splitKey: separator});
+            chord('a', 65); chord('c', 67);
+            check(JSON.stringify(calls) === '["other"]', 'Distinct chords survive unbind: ' + separator);
+            hotkeys.deleteScope('qa-chords');
+        });
+        hotkeys.setScope('all'); calls = [];
+        ['num_0', 'num_decimal', 'num_subtract', 'num_divide', '0'].forEach(function (name) {
+            hotkeys(name, function () { calls.push(name); });
+        });
+        press('0', 'Numpad0', 96); press('.', 'NumpadDecimal', 110);
+        press('-', 'NumpadSubtract', 109); press('/', 'NumpadDivide', 111); press('0', 'Digit0', 48);
+        check(JSON.stringify(calls) === '["num_0","num_decimal","num_subtract","num_divide","0"]', 'Numpad remains distinct');
+        hotkeys.unbind(); calls = [];
+        hotkeys('ctrl+p', function () { calls.push('print'); });
+        hotkeys('a', function () { calls.push('a'); });
+        key('keydown', 'Control', 'ControlLeft', 17, {ctrlKey: true});
+        key('keydown', 'p', 'KeyP', 80, {ctrlKey: true});
+        window.dispatchEvent(new Event('afterprint'));
+        check(hotkeys.getPressedKeyCodes().length === 0 && !hotkeys.ctrl, 'Print clears swallowed keyup');
+        press('a', 'KeyA', 65);
+        check(JSON.stringify(calls) === '["print","a"]', 'Shortcuts work after print');
+        hotkeys.unbind(); calls = [];
+        hotkeys('*', function () { calls.push('global'); });
+        hotkeys('*', {scope: 'qa-wild'}, function () { calls.push('scoped'); });
+        hotkeys.setScope('qa-wild'); press('a', 'KeyA', 65);
+        check(JSON.stringify(calls) === '["global","scoped"]', 'Global wildcard in named scope');
+        hotkeys.unbind(); hotkeys.setScope('all'); calls = [];
+        document.body.appendChild(host);
+        var root = host.attachShadow({mode: 'open'}), field = document.createElement('input');
+        field.value = 'Кирилица'; root.appendChild(field);
+        hotkeys('a', function () { calls.push('a'); }); press('a', 'KeyA', 65, field);
+        check(calls.length === 0 && field.value === 'Кирилица', 'Shadow text field is filtered');
+        return {checks: checks};
+    } finally {
+        hotkeys.unbind(); hotkeys.deleteScope('qa-chords'); hotkeys.deleteScope('qa-wild');
+        hotkeys.setScope('all'); window.dispatchEvent(new Event('focus')); host.remove();
+    }
+}
