@@ -129,6 +129,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
         $form->FLD('targetPCode', 'varchar(16)', 'caption=Доставка->Населено място,class=w25,placeholder=П.К');
         $form->FLD('targetPlace', 'varchar', 'caption=Доставка->-,class=w75,placeholder=Населено място,inlineTo=targetPCode');
         $form->FLD('targetAddress', 'varchar', 'caption=Доставка->Адрес');
+        $form->FLD('targetAccess', 'enum(none=Без ограничение,VAN=Бус,TRUCK=Камион)', 'caption=Доставка->Достъп,maxRadio=3,columns=3');
         $form->FLD('targetInstructions', 'text(rows=2)', 'caption=Доставка->Указания');
 
         $form->FLD('service', 'varchar', 'caption=Параметри на пратката->Услуга');
@@ -213,7 +214,7 @@ class transpress_interface_CourierImpl extends core_BaseClass
         if($formRec->deliveryType == 'office'){
             $form->setOptions('targetStation', array('' => '') + $officeOptions);
             $form->setField('targetStation', 'mandatory');
-            $hideFields = array_merge($hideFields, $targetAddressFields);
+            $hideFields = array_merge($hideFields, $targetAddressFields, array('targetAccess'));
         } else {
             foreach ($targetAddressFields as $fld){
                 $form->setField($fld, 'mandatory');
@@ -404,6 +405,9 @@ class transpress_interface_CourierImpl extends core_BaseClass
             $res['target_post_code'] = $rec->targetPCode;
             $res['target_settlement'] = $rec->targetPlace;
             $res['target_street'] = $rec->targetAddress;
+            if(!empty($rec->targetAccess) && $rec->targetAccess != 'none'){
+                $res['target_access'] = $rec->targetAccess;
+            }
         }
 
         // Групите пакети: теглото е общо за групата, размерите са на един пакет в метри

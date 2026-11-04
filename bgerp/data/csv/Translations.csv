@@ -4354,3 +4354,6 @@ en,Невалидно ЕГН/ЛНЧ,Invalid personal ID / foreigner ID
 en,Получено е повече от доставеното,Received more than delivered
 en,Получено е по-малко от доставеното,Received less than delivered
 en,Върнато,Returned
+en,Без ограничение,No restriction
+en,Бус,Van
+en,Камион,Truck
