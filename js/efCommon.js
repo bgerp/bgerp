@@ -6891,8 +6891,8 @@ function focusOnce(id, force) {
     var pendingTwoColsFilter = elem.closest('.wide .twoColsFilter:not(.twoColsFilterReady)');
 
     if (pendingTwoColsFilter.length) {
-        // Двуколонният филтър е скрит до приключване на измерването и браузърът
-        // не може да фокусира полето. Повтаряме същата заявка веднага след това.
+        // Изчакваме окончателното подравняване, за да не се премести
+        // фокусираното поле при превключването на колоните.
         pendingTwoColsFilter.one('twoColsFilterReady.focusOnce', function () {
             focusOnce(id, force);
         });

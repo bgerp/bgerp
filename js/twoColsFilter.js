@@ -277,8 +277,8 @@ function render_setTwoColsFilterWidth() {
         var $measureFields = $measure.children('.formFields');
 
         // Копията са извън двуколонния контейнер и запазват стандартните размери на полетата
-        function getTableCopy(indexes) {
-            var $copy = $fieldTable.clone().css({
+        function getTableCopy(indexes, $source) {
+            var $copy = ($source || $fieldTable).clone().css({
                 display: 'table',
                 width: 'auto',
                 maxWidth: 'none',
@@ -291,7 +291,7 @@ function render_setTwoColsFilterWidth() {
                 columnWidth: 'auto',
                 columnGap: 'normal'
             }).children('tr').each(function (index) {
-                if ($.inArray(index, indexes) == -1) {
+                if ($.inArray($source ? rowIndexes[index] : index, indexes) == -1) {
                     $(this).remove();
                 } else {
                     $(this).css({display: 'table-row', width: 'auto', transform: 'none'});
@@ -303,6 +303,11 @@ function render_setTwoColsFilterWidth() {
             $copy.find('select.combo').css({width: '', clip: '', visibility: 'hidden'});
             $copy.find('[id]').removeAttr('id');
             $measureFields.append($copy);
+
+            // Колоните използват вече измерените опции от общото копие.
+            if ($source) {
+                return $copy;
+            }
 
             // Затвореният Select2 не показва широчината на неизбраните опции.
             $copy.find('select').not('.combo').each(function () {
@@ -318,17 +323,18 @@ function render_setTwoColsFilterWidth() {
                 var optionsWidth = Math.ceil($optionsCopy.outerWidth());
                 $optionsCopy.remove();
                 var $control = $select.next('.select2-container');
-                if ($control.length) {
+                if ($control.length && optionsWidth < 400) {
                     // Select2 добавя цветен маркер, отстъпи и скролбар към текста на опцията.
                     var $results = $('<ul class="select2-results__options"></ul>').css({
                         width: 'max-content', overflowY: 'scroll', maxHeight: '200px'
                     }).appendTo($measureFields);
-                    var $option = $('<li class="select2-results__option"></li>').css({
-                        width: 'max-content', whiteSpace: 'nowrap'
-                    }).appendTo($results);
-                    var scrollbarWidth = $results[0].offsetWidth - $results[0].clientWidth;
+                    // Създаваме всички етикети преди измерването, за да не
+                    // преизчислява браузърът layout за всяка отделна опция.
+                    var fragment = document.createDocumentFragment();
                     $select.find('option').each(function () {
-                        $option.empty();
+                        var $option = $('<li class="select2-results__option"></li>').css({
+                            width: 'max-content', whiteSpace: 'nowrap'
+                        }).appendTo(fragment);
                         var $label = $('<span></span>').text(this.text).appendTo($option);
                         var color = $(this).attr('data-color');
                         if (color) {
@@ -336,8 +342,13 @@ function render_setTwoColsFilterWidth() {
                             $('<div class="color-preview"></div>').css('background-color', color)
                                 .prependTo($label);
                         }
+                    });
+                    $results.append(fragment);
+                    var scrollbarWidth = $results[0].offsetWidth - $results[0].clientWidth;
+                    $results.children().each(function () {
                         optionsWidth = Math.max(optionsWidth,
-                            Math.ceil($option.outerWidth()) + scrollbarWidth + 2);
+                            Math.ceil($(this).outerWidth()) + scrollbarWidth + 2);
+                        return optionsWidth < 400;
                     });
                     $results.remove();
                 }
@@ -367,20 +378,21 @@ function render_setTwoColsFilterWidth() {
 
         var $singleColumnCopy = getTableCopy(rowIndexes);
         var singleSize = getCopySize($singleColumnCopy, true);
-        $singleColumnCopy.remove();
 
         var rowsInFirstColumn = Math.ceil(rowIndexes.length / 2);
         var leftSize = singleSize;
         var rightSize = singleSize;
         if (rowIndexes.length > 5) {
-            var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn));
+            var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn), $singleColumnCopy);
             leftSize = getCopySize($leftColumnCopy, true);
             $leftColumnCopy.remove();
 
-            var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn));
+            var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn), $singleColumnCopy);
             rightSize = getCopySize($rightColumnCopy, true);
             $rightColumnCopy.remove();
         }
+
+        $singleColumnCopy.remove();
 
         var $summary = $filter.children('.summary-block').first();
         var summaryWidth = 0;
@@ -460,8 +472,7 @@ function render_setTwoColsFilterWidth() {
 
     updateTwoColsFilterModes();
 
-    // Показваме филтъра и списъка едва след прилагането на окончателния изглед.
-    // Така при първоначално зареждане не се вижда междинният едноколонен кадър.
+    // Известяваме чакащите обработчици, че окончателният изглед е приложен.
     var $pendingFilters = $filters.not('.twoColsFilterReady');
     $filters.addClass('twoColsFilterReady');
     $pendingFilters.trigger('twoColsFilterReady');
