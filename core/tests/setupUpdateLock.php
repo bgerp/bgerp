@@ -184,21 +184,23 @@ checkUpdate(strpos($result['html'], "id='lockUpdate'") !== false && strpos($resu
 
 // Записът описва натиснатия бутон, включително когато последващият Git опит се провали.
 $auditCases = array(
-    array(array('update' => 'private_a'), 'Обновяване на системата - хранилище: private_a'),
-    array(array('update' => 'bgerp'), 'Обновяване на системата - хранилище: bgerp'),
-    array(array('update' => 'all'), 'Обновяване на системата - всички хранилища'),
-    array(array('update' => '', 'checkoutMaxVersion' => ''), 'Обновяване на системата - следваща версия на bgerp'),
+    array(array('update' => 'private_a'), 'Обновяване на системата - хранилище: private_a', array('със заключване', 'без заключване')),
+    array(array('update' => 'bgerp'), 'Обновяване на системата - хранилище: bgerp', array('със заключване', 'без заключване')),
+    array(array('update' => 'all'), 'Обновяване на системата - всички хранилища', array('със заключване', 'със заключване')),
+    array(array('update' => '', 'checkoutMaxVersion' => ''), 'Обновяване на системата - следваща версия на bgerp', array('без заключване', 'без заключване')),
 );
-foreach ($auditCases as list($request, $message)) {
-    foreach (array('1', '0') as $lockUpdate) {
+foreach ($auditCases as list($request, $message, $lockModes)) {
+    foreach (array('1', '0') as $index => $lockUpdate) {
         $result = runUpdateCase($request + array('lockUpdate' => $lockUpdate));
-        checkUpdate($result['audit'] === array($message), 'Persist exactly one audit record naming the selected button');
-        checkUpdate(array_slice($result['calls'], 0, 2) === array(array('audit', $message), array('flush', null)), 'Flush the audit before branch switches, pulls or release changes');
+        $expectedMessage = $message . ' - ' . $lockModes[$index];
+        checkUpdate($result['audit'] === array($expectedMessage), 'Persist one audit record naming the selected button and effective lock mode');
+        checkUpdate(array_slice($result['calls'], 0, 2) === array(array('audit', $expectedMessage), array('flush', null)), 'Flush the audit before branch switches, pulls or release changes');
+        checkUpdate((bool) updateCallsOf($result, 'lock') === ($lockModes[$index] === 'със заключване'), 'Audit lock mode must match the executed operation');
     }
 }
 foreach (array('switch', 'pull') as $failedOperation) {
     $result = runUpdateCase(array('update' => 'private_a'), false, $failedOperation);
-    checkUpdate($result['audit'] === array('Обновяване на системата - хранилище: private_a'), 'A failed Git attempt retains the clicked update action');
+    checkUpdate($result['audit'] === array('Обновяване на системата - хранилище: private_a - със заключване'), 'A failed Git attempt retains the clicked update action');
 }
 foreach (array(array(), array('update' => ''), array('update' => 'unknown'), array('update' => array('private_a')), array('revert' => 'private_a'), array('checkout' => '1')) as $request) {
     $result = runUpdateCase($request);

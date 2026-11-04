@@ -633,6 +633,7 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 $updateAction = 'Обновяване на системата - хранилище: ' . $update;
             }
             if ($updateAction && !core_Packs::isFirstSetup()) {
+                $updateAction .= ($updateWithoutLock || $checkoutMaxVersion) ? ' - без заключване' : ' - със заключване';
                 core_Packs::logWrite($updateAction);
                 // Setup приключва без стандартното събитие Shutdown.
                 log_Data::flush();
