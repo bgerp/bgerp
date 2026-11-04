@@ -83,11 +83,13 @@
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterComboInput,
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateTimeInput,
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterComboInput,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateTimeInput,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput {
     box-sizing: border-box;
     width: 100% !important;
@@ -104,11 +106,13 @@
     .narrow .doc_Search .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
     .narrow .doc_Search .twoColsFilter .formCell > .select2-container,
     .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterComboInput,
+    .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterDateTimeInput,
     .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterDateInput,
     .narrow .cal_Tasks .twoColsFilter .formCell > input[type="text"],
     .narrow .cal_Tasks .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
     .narrow .cal_Tasks .twoColsFilter .formCell > .select2-container,
     .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterComboInput,
+    .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterDateTimeInput,
     .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterDateInput {
       box-sizing: border-box;
       width: 100% !important;
@@ -183,6 +187,7 @@
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > textarea,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .select2-container,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterComboInput,
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterDateTimeInput,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterDateInput {
   box-sizing: border-box;
   width: 100% !important;
@@ -225,3 +230,27 @@
   flex-shrink: 0;
   margin: 0; }
 
+
+/* Дата и час на един ред, с обща широчина за полето. */
+.twoColsFilterDateTimeInput {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.3em;
+    vertical-align: top;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterDateInput {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterDateInput > input {
+    width: 100%;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterComboInput {
+    flex: 0 0 auto;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterComboInput > input {
+    box-sizing: border-box;
+}
+.wide .twoColsFilter.twoColsFilterActive .formElement {
+    vertical-align: top;
+}
