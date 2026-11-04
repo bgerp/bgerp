@@ -596,16 +596,13 @@ if ($step == 2) {
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
             $checkout = $_GET['checkout'] ?? null;
 
-            $updateWithoutLock = false;
-            if (!$lockUpdate && is_string($update) && $update !== 'all' && !$doRevert && !$doCheckout && !$checkoutMaxVersion) {
-                $selectedRepos = array();
-                foreach ($repos as $repoPath => $branch) {
-                    if (basename($repoPath) === $update) {
-                        $selectedRepos[] = $repoPath;
-                    }
+            $selectedRepos = array();
+            foreach ($repos as $repoPath => $branch) {
+                if (basename($repoPath) === $update) {
+                    $selectedRepos[] = $repoPath;
                 }
-                $updateWithoutLock = count($selectedRepos) === 1;
             }
+            $updateWithoutLock = !$lockUpdate && $update !== 'all' && !$doRevert && !$doCheckout && !$checkoutMaxVersion && count($selectedRepos) === 1;
 
             // Ако PHP е по-старо от минималната версия, забраняваме обновяване на кода
             $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout);
@@ -627,6 +624,21 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 break;
             }
             
+            $updateAction = null;
+            if ($checkoutMaxVersion) {
+                $updateAction = 'Обновяване на системата - следваща версия на bgerp';
+            } elseif ($update === 'all') {
+                $updateAction = 'Обновяване на системата - всички хранилища';
+            } elseif (count($selectedRepos)) {
+                $updateAction = 'Обновяване на системата - хранилище: ' . $update;
+            }
+            if ($updateAction && !core_Packs::isFirstSetup()) {
+                $updateAction .= ($updateWithoutLock || $checkoutMaxVersion) ? ' - без заключване' : ' - със заключване';
+                core_Packs::logWrite($updateAction);
+                // Setup приключва без стандартното събитие Shutdown.
+                log_Data::flush();
+            }
+
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
                 // $links[] = $log;
@@ -703,7 +715,7 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
     $lockChecked = $lockUpdate ? " checked='checked'" : '';
     $texts['body'] = "<div style='margin-bottom: 15px;'>
         <label><input type='checkbox' id='lockUpdate'{$lockChecked}> Заключване при обновяване</label>
-        <div style='font-size: 0.9em; margin-top: 5px;'>При обновяване на цялата система и при инициализация заключването е задължително.</div>
+        <div style='font-size: 0.9em; margin-top: 5px;'>При обновяване на всички хранилища или инициализация системата се заключва автоматично, независимо от отметката.</div>
         </div><div id='setupUpdateLinks'>" . linksToHtml($links) . '</div>';
     $texts['body'] .= "<script>
         (function () {
