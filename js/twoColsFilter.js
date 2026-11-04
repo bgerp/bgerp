@@ -195,6 +195,27 @@ function render_setTwoColsFilterWidth() {
         }
     });
 
+    // Датата и часът са едно поле: разтягаме цялата група, а часът остава компактен.
+    $('.twoColsFilter .listFilter input[name$="[d]"]').each(function () {
+        var name = this.name.slice(0, -3) + '[t]';
+        var $cell = $(this).closest('.formElement');
+        var $time = $cell.find('input').filter(function () { return this.name === name; });
+        var $datePart = $(this).parent('.twoColsFilterDateInput');
+        var $timePart = $time.parent('.twoColsFilterComboInput');
+
+        if ($datePart.length && $timePart.length &&
+            !$datePart.parent().hasClass('twoColsFilterDateTimeInput')) {
+            // Разделителят от type_Datetime иначе остава извън групата и
+            // образува празен втори ред при широчина 100%.
+            var separator = $datePart[0].nextSibling;
+            if (separator && separator.nodeType === 3 && !separator.nodeValue.trim()) {
+                separator.parentNode.removeChild(separator);
+            }
+            $timePart.css('width', $time[0].style.maxWidth || '6em');
+            $datePart.add($timePart).wrapAll('<span class="twoColsFilterDateTimeInput"></span>');
+        }
+    });
+
     var $filters = $('.wide .twoColsFilter');
     if (!$filters.length) {
         return;
