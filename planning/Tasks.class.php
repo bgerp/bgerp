@@ -2437,6 +2437,30 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('assetId');
         }
 
+        $filter = $data->listFilter->rec;
+        if (!Mode::is('isReorder') && (!empty($filter->assetId) || !empty($filter->folders))) {
+            $scope = array(
+                'taskAssetId' => $filter->assetId ?? null,
+                'taskFolders' => $filter->folders ?? null,
+                'taskRejected' => (bool) Request::get('Rejected', 'int'),
+            );
+            $stepField = $data->listFilter->getField('productId');
+            $stepField->type = clone $stepField->type;
+            $data->listFilter->setFieldTypeParams('productId', $scope + array(
+                'selectSourceArr' => 'planning_Tasks::getListStepOptions',
+            ));
+
+            // При смяна на машина или център старият етап може вече да не е приложим.
+            if (!empty($filter->productId)) {
+                $stepQuery = self::getListStepQuery($scope);
+                $stepQuery->where("#productId = {$filter->productId}");
+                $stepQuery->show('id')->limit(1);
+                if (!$stepQuery->fetch()) {
+                    unset($filter->productId);
+                }
+            }
+        }
+
         $mvc->listItemsPerPage = 20;
         if ($filter = $data->listFilter->rec) {
             if (isset($filter->assetId)) {
@@ -2468,7 +2492,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С бездействие/престой', true);
+        $stateOptions = arr::make('activeAndPending=Активни+Събудени+Заявки+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С бездействие/престой', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -2556,6 +2580,56 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Операции, използвани в документи за избраните оборудване и центрове
+     */
+    private static function getListStepQuery($scope)
+    {
+        $query = static::getQuery();
+        doc_Threads::restrictAccess($query, null, $query->mvc->haveRightFor('viewpsingle'));
+        if (!empty($scope['taskAssetId'])) {
+            $query->where(array("#assetId = '[#1#]'", $scope['taskAssetId']));
+        }
+        $query->in('folderId', $scope['taskFolders'] ?? null);
+        $query->where(!empty($scope['taskRejected']) ? "#state = 'rejected'" : "#state != 'rejected'");
+
+        return $query;
+    }
+
+
+    /**
+     * Опции и търсене за полето „Операция“ в списъка
+     */
+    public static function getListStepOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        // Текущият избор вече е проверен при подготовката на филтъра.
+        if (!(is_int($onlyIds) || (is_string($onlyIds) && ctype_digit($onlyIds)))) {
+            $query = self::getListStepQuery($params);
+            $query->where('#productId IS NOT NULL')->show('productId')->groupBy('productId');
+            $productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+            $onlyIds = is_array($onlyIds) ? array_intersect($onlyIds, $productIds) : $productIds;
+        }
+
+        return planning_Steps::getSelectableSteps($params, $limit, $q, $onlyIds, $includeHiddens);
+    }
+
+
+    /**
+     * Обновява зависимите опции при промяна на центровете
+     */
+    protected static function on_AfterRenderListFilter($mvc, &$tpl, $data)
+    {
+        if ($tpl && !Mode::is('isReorder')) {
+            jquery_Jquery::run($tpl, <<<'JS'
+$("select[name='folders[]'], input[type='checkbox'][name^='folders[']").on('change', function () {
+    this.form.submit();
+});
+JS
+            );
+        }
+    }
+
+
+    /**
      * Добавя реално приложените филтри към адреса за периодично обновяване
      */
     protected static function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
@@ -2570,13 +2644,129 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * След рендиране на List Summary-то
+     * Обобщение на целия филтриран списък преди странирането
      */
-    public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    public function prepareListSummary_(&$data)
     {
-        if(Mode::get('isReorder')) {
-            $tpl = new core_ET("");
+        if (empty($data->query) || Mode::is('isReorder') || Mode::is('printing')) {
+            return;
         }
+
+        $query = clone $data->query;
+        $query->orderBy = $query->show = array();
+        $states = array(
+            'active' => 'Активни',
+            'wakeup' => 'Събудени',
+            'pending' => 'Заявки',
+            'waiting' => 'Чакащи',
+            'stopped' => 'Спрени',
+            'draft' => 'Чернови',
+            'closed' => 'Приключени',
+        );
+        $filter = $data->listFilter->rec;
+        if (Request::get('Rejected', 'int')) {
+            $query->where("#state = 'rejected'");
+            $states = array('rejected' => 'Оттеглено');
+        } else {
+            $query->where("#state != 'rejected' OR #state IS NULL");
+            $state = $filter->state ?? 'activeAndPending';
+            if ($state == 'activeAndPending') {
+                unset($states['waiting'], $states['draft'], $states['closed']);
+            } elseif (isset($states[$state])) {
+                $states = array($state => $states[$state]);
+            }
+        }
+
+        $sumPlannedQuantity = !empty($filter->productId);
+        $query->XPR('taskCount', 'int', 'COUNT(#id)');
+        $query->show('state,taskCount')->groupBy($query->getMysqlField('state'));
+        if ($sumPlannedQuantity) {
+            $query->XPR('plannedTotal', 'double', 'SUM(#plannedQuantity)');
+            $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
+        }
+
+        $counts = array_fill_keys(array_keys($states), 0);
+        $quantities = array();
+        while ($rec = $query->fetch(null, true)) {
+            if (isset($counts[$rec->state])) {
+                $counts[$rec->state] += $rec->taskCount;
+            }
+            if ($sumPlannedQuantity) {
+                $quantities[$rec->measureId] = ($quantities[$rec->measureId] ?? 0) + ($rec->plannedTotal ?? 0);
+            }
+        }
+        if ($sumPlannedQuantity && !$quantities) {
+            $quantities[cat_Products::fetchField($filter->productId, 'measureId')] = 0;
+        }
+
+        $int = core_Type::getByName('int');
+        $stateRows = $totalRows = array();
+        $pieces = tr('бр') . '.';
+        foreach ($states as $state => $caption) {
+            $stateRows[] = array(tr($caption), $int->toVerbal($counts[$state]), $pieces);
+        }
+        if (countR($states) > 1) {
+            $totalRows[] = array(tr('Общо'), $int->toVerbal(array_sum($counts)), $pieces, true);
+        }
+        $quantityType = $this->getFieldType('plannedQuantity');
+        $first = true;
+        foreach ($quantities as $measureId => $quantity) {
+            $totalRows[] = array(tr('Общ Тираж (ПО)'), $quantityType->toVerbal($quantity), cat_UoM::getShortName($measureId), $first);
+            $first = false;
+        }
+        $data->taskSummaryStates = $stateRows;
+        $data->taskSummaryTotals = $totalRows;
+    }
+
+
+    /**
+     * Показва статистиката вдясно от филтъра
+     */
+    public function renderListSummary_($data)
+    {
+        $tpl = new ET('');
+        if (empty($data->taskSummaryStates)) {
+            return $tpl;
+        }
+
+        $states = $data->taskSummaryStates;
+        $twoColumns = countR($states) == 7;
+        $rowCount = $twoColumns ? 4 : countR($states);
+        $columnSpan = $twoColumns ? 4 : 2;
+        $renderCells = static function ($row, $isTotal = false, $rightColumn = false) use ($twoColumns) {
+            list($caption, $quantity, $measure) = $row;
+            $value = "<b>{$quantity}</b> {$measure}";
+
+            if ($twoColumns && $isTotal) {
+                return "<td colspan='4' style='text-align:right'><span class='quiet' style='margin-inline-end:2px'>{$caption}:</span> {$value}</td>";
+            }
+
+            $captionStart = $rightColumn ? 8 : 0;
+            $captionPadding = $twoColumns ? "padding-inline:{$captionStart}px 5px" : 'padding-inline-end:5px';
+            $valuePadding = $twoColumns ? ';padding-inline:0' : '';
+
+            return "<td class='quiet' style='text-align:right;{$captionPadding}'>{$caption}:</td>"
+                . "<td style='text-align:right;white-space:nowrap{$valuePadding}'>{$value}</td>";
+        };
+
+        $tpl->append('<div class="summary-block" style="font-size:0.97em"><table>');
+        for ($i = 0; $i < $rowCount; $i++) {
+            $cells = $renderCells($states[$i]);
+            if ($twoColumns) {
+                $right = $states[$i + $rowCount] ?? null;
+                $cells .= $right ? $renderCells($right, false, true) : '<td colspan="2"></td>';
+            }
+            $tpl->append("<tr>{$cells}</tr>");
+        }
+        foreach ($data->taskSummaryTotals as $row) {
+            if ($row[3]) {
+                $tpl->append("<tr><td colspan='{$columnSpan}' style='padding:0px 3px'><hr style='margin:0.15em 0'></td></tr>");
+            }
+            $tpl->append('<tr>' . $renderCells($row, true) . '</tr>');
+        }
+        $tpl->append('</table></div>');
+
+        return $tpl;
     }
 
 
