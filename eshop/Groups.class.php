@@ -366,7 +366,7 @@ class eshop_Groups extends core_Master
                 eshop_Products::prepareGroupList($searchFilterData);
 
                 // Без навигация филтрите са лента над резултатите - след replace() мястото не приема добавяне
-                if (!self::mustShowSideNavigation()) {
+                if (!self::mustShowSideNavigation() || self::getFilterPosition() == 'top') {
                     $resultsTpl = new ET('[#1#][#2#]', eshop_ParamFilter::renderTop($searchFilterData), $resultsTpl);
                 }
             }
@@ -394,6 +394,11 @@ class eshop_Groups extends core_Master
             $seoRec->seoTitle = $menuTitle;
             cms_Content::prepareSeo($seoRec);
             $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($menuTitle) . '</h1>', 'PAGE_CONTENT');
+            if (self::getFilterPosition() == 'top' && eshop_ParamFilter::isEnabled() && !isset($searchFilterData)) {
+                $filterData = (object) array('groupId' => self::SEARCH_SYSTEM_ID, 'menuId' => $menuId, 'withParamFilter' => true, 'onlyParamFilter' => true);
+                eshop_Products::prepareGroupList($filterData);
+                $layout->append(eshop_ParamFilter::renderTop($filterData), 'PAGE_CONTENT');
+            }
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
@@ -405,13 +410,19 @@ class eshop_Groups extends core_Master
             }
             eshop_Products::prepareAllProducts($data);
 
-            // Без навигация филтрите по всички е-артикули от менюто са над тях
+            $contentFilters = '';
             if (eshop_ParamFilter::isEnabled() && !isset($searchFilterData)) {
                 $filterData = (object) array('groupId' => self::SEARCH_SYSTEM_ID, 'menuId' => $data->menuId, 'withParamFilter' => true, 'onlyParamFilter' => true);
                 eshop_Products::prepareGroupList($filterData);
-                $layout->append(eshop_ParamFilter::renderTop($filterData), 'PAGE_CONTENT');
+                $contentFilters = eshop_ParamFilter::renderTop($filterData);
+            }
+            if (self::getFilterPosition() != 'below') {
+                $layout->append($contentFilters, 'PAGE_CONTENT');
             }
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
+            if (self::getFilterPosition() == 'below') {
+                $layout->append($contentFilters, 'PAGE_CONTENT');
+            }
         }
         
         // Добавя канонично URL
@@ -439,6 +450,16 @@ class eshop_Groups extends core_Master
     }
     
     
+    /** Действителното място на филтрите, включително за старите настройки. */
+    public static function getFilterPosition()
+    {
+        $position = cms_Domains::getSettings()->filterPosition ?? 'auto';
+
+        return in_array($position, array('above', 'below', 'top'))
+            ? $position : (self::mustShowSideNavigation() ? 'below' : 'top');
+    }
+
+
     /**
      * Връща дали е необходимо да се показва навигация на групите
      */
@@ -732,7 +753,9 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         
         // Без навигация филтрите са над подгрупите и артикулите
-        if (!self::mustShowSideNavigation()) {
+        $showContentFilters = !self::mustShowSideNavigation() || self::getFilterPosition() == 'top';
+        $filtersBelow = self::getFilterPosition() == 'below';
+        if ($showContentFilters && !$filtersBelow) {
             $groupTpl->append(eshop_ParamFilter::renderTop($data->products), 'PRODUCTS');
         }
 
@@ -743,6 +766,10 @@ class eshop_Groups extends core_Master
             $groupTpl->append('</div>', 'PRODUCTS');
         }
         
+        if ($showContentFilters && $filtersBelow) {
+            $groupTpl->append(eshop_ParamFilter::renderTop($data->products), 'PRODUCTS');
+        }
+
         $rec = $data->rec ?? null;
         
         // Подготвяме данните за SEO
@@ -816,7 +843,12 @@ class eshop_Groups extends core_Master
     {
         $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
-        $layout->append($filtersTpl, 'NAVIGATION_FILTERS');
+        $position = self::getFilterPosition();
+        if ($position == 'below') {
+            $layout->append($filtersTpl, 'NAVIGATION_FILTERS');
+        } elseif ($position == 'above') {
+            $layout->append($filtersTpl, 'NAVIGATION');
+        }
         $groups = cms_Domains::getNavigationPosition() == 'top' ? self::renderTopNavigation($navData) : cms_Articles::renderNavigation($navData);
         $layout->append(new ET('<div class="eshop-group-navigation">[#1#]</div>', $groups), 'NAVIGATION');
     }
