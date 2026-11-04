@@ -89,11 +89,13 @@ core_Os::requireDir($javaDir);
 $previousPath = getenv('PATH');
 try {
     putenv('PATH=' . $javaDir);
-    core_ProtoSetup::$selected = '4.1.0';
+    core_ProtoSetup::$selected = '4.2.0';
     expect(strpos($setup->checkConfig() ?? '', 'липсва') !== false, 'Missing Java was accepted');
     expect(strpos($setup->install(), 'debug-error') !== false && !file_exists(EF_VENDOR_PATH . '/vendor/bgerp/tika-app'), 'Missing Java must stop installation before Composer');
     foreach (array(
         array('4.1.0', 'openjdk version "11.0.29"', 'Java 17'),
+        array('4.2.0', 'openjdk version "11.0.29"', 'Java 17'),
+        array('4.2.0', 'openjdk version "17.0.21"', null),
         array('3.3.3', 'openjdk version "11.0.29"', null),
         array('3.3.3', 'java version "1.8.0_472"', 'Java 11'),
         array('4.1.0', 'java version "17.0.21"', null),
@@ -112,13 +114,14 @@ try {
 } finally {
     putenv($previousPath === false ? 'PATH' : 'PATH=' . $previousPath);
 }
-foreach (array('3.3.3', '4.1.0', '3.3.3', '1.24.1', '4.1.0') as $version) {
+foreach (array('3.3.3', '4.1.0', '4.2.0', '4.1.0', '1.24.1', '4.2.0') as $version) {
     core_ProtoSetup::$selected = $version;
     $result = $setup->install();
     expect(strpos($result, 'debug-error') === false, strip_tags($result));
     $jar = apachetika_Setup::getJarPath();
-    $other = $version === '3.3.3' ? '4.1.0' : '3.3.3';
-    expect(!is_file(EF_VENDOR_PATH . '/vendor/bgerp/tika-app/tika-app-' . $other . '.jar'), 'Unselected version remained in vendor');
+    foreach (array('3.3.3', '4.1.0', '4.2.0') as $other) {
+        if ($other !== $version) expect(!is_file(EF_VENDOR_PATH . '/vendor/bgerp/tika-app/tika-app-' . $other . '.jar'), 'Unselected version remained in vendor');
+    }
     if ($version === '1.24.1') expect(!is_dir(EF_VENDOR_PATH . '/vendor/bgerp/tika-app'), 'Vendor retained Tika after selecting bundled version');
     exec('java -jar ' . escapeshellarg($jar) . ' --version 2>&1', $output, $code);
     expect($code === 0 && strpos(implode("\n", $output), $version) !== false, 'Wrong Java distribution');
@@ -138,6 +141,6 @@ $repository['package'][0]['dist']['url'] = 'file://' . EF_VENDOR_PATH . '/bad.ja
 file_put_contents(EF_VENDOR_PATH . '/bad.jar', 'Synthetic invalid archive');
 $result = core_Composer::install('bgerp/tika-app', '3.3.3', true, $repository);
 expect(strpos($result, 'debug-error') !== false && stripos($result, 'checksum') !== false, 'Bad checksum accepted');
-expect(is_file(apachetika_Setup::getJarPath('4.1.0')), 'Working distribution lost on failed download');
+expect(is_file(apachetika_Setup::getJarPath('4.2.0')), 'Working distribution lost on failed download');
 expect(core_Composer::isInstalled('psr/log', '1.1.4', true), 'Unrelated package changed after failure');
 echo 'PHP ' . PHP_VERSION . "; requirements, defaults, shared install, switch/remove/reinstall, checksums: OK\n";

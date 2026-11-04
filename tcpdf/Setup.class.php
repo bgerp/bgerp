@@ -22,15 +22,22 @@ class tcpdf_Setup extends core_ProtoSetup
     public $info = 'Генериране на PDF и CAD чертежи с TCPDF';
 
     public $configDescription = array(
-        'TCPDF_VERSION' => array('enum(6.2.13,6.11.4,7.0.20=7.0.20 (PHP 8.2+ / Composer))', 'mandatory, caption=TCPDF->Версия'),
+        'TCPDF_VERSION' => array('enum(6.2.13,6.11.4,7.0.20=7.0.20 (PHP 8.2+ / Composer),7.0.21=7.0.21 (PHP 8.2+ / Composer))', 'mandatory, caption=TCPDF->Версия'),
     );
+
+
+    /** Разграничава новия Composer двигател от запазените вградени копия. */
+    public static function usesComposer($version = null)
+    {
+        return in_array($version ?? self::get('VERSION'), array('7.0.20', '7.0.21'), true);
+    }
 
 
     /** Проверява средата преди зареждане или инсталиране на PHP 8 библиотеката. */
     public static function getPhpVersionError($version)
     {
-        if ($version === '7.0.20' && PHP_VERSION_ID < 80200) {
-            return 'TCPDF 7.0.20 изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 6.11.4.';
+        if (self::usesComposer($version) && PHP_VERSION_ID < 80200) {
+            return "TCPDF {$version} изисква PHP 8.2 или по-нова версия. За PHP 7.4 изберете 6.11.4.";
         }
     }
 
@@ -50,11 +57,11 @@ class tcpdf_Setup extends core_ProtoSetup
         if ($error = self::getPhpVersionError(self::get('VERSION'))) {
             return $error;
         }
-        if (self::get('VERSION') === '7.0.20'
+        if (self::usesComposer()
             && !core_Composer::isInstalled('tecnickcom/tcpdf', self::get('VERSION'), true)) {
             return 'Липсва избраната версия на TCPDF. Инициализирайте пакета tcpdf.';
         }
-        if (self::get('VERSION') === '7.0.20') return self::getFontError();
+        if (self::usesComposer()) return self::getFontError();
     }
 
 
@@ -81,7 +88,7 @@ class tcpdf_Setup extends core_ProtoSetup
             return "<li class='red'>" . $error . '</li>';
         }
         $html = parent::install();
-        if (self::get('VERSION') === '7.0.20') {
+        if (self::usesComposer()) {
             $html .= core_Composer::install('tecnickcom/tcpdf', self::get('VERSION'), true);
             if ($error = self::getFontError()) $html .= "<li class='red'>" . $error . '</li>';
         }
@@ -105,7 +112,7 @@ class tcpdf_Setup extends core_ProtoSetup
     public static function loadLibrary()
     {
         $version = self::get('VERSION');
-        expect(in_array($version, array('6.2.13', '6.11.4', '7.0.20'), true), 'Неподдържана TCPDF версия');
+        expect(in_array($version, array('6.2.13', '6.11.4', '7.0.20', '7.0.21'), true), 'Неподдържана TCPDF версия');
         $error = self::getPhpVersionError($version);
         expect(!$error, $error);
         if (class_exists('TCPDF', false)) {
@@ -114,7 +121,7 @@ class tcpdf_Setup extends core_ProtoSetup
             return;
         }
 
-        if ($version === '7.0.20') {
+        if (self::usesComposer($version)) {
             expect(core_Composer::isInUse() && class_exists('TCPDF') && self::getLoadedVersion() === $version,
                 'Липсва избраната версия на TCPDF. Инициализирайте пакета tcpdf.');
             $error = self::getFontError();

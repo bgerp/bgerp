@@ -621,7 +621,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         $fld->FLD('saleId', 'varchar', 'caption=Продажба');
-        $fld->FLD('cartId', 'varchar', 'caption=Поръчка');
+        $fld->FLD('cartId', 'varchar', 'caption=Поръчка,tdClass=aright');
         $fld->FLD('orderDate', 'date', 'caption=Дата');
         $fld->FLD('kind', 'varchar', 'caption=Вид,smartCenter');
         // Сумите са в основната валута на месеца, както в XML файла
@@ -662,7 +662,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         }
         $row->kind = ($dRec->kind == 'order') ? static::renderBadge(tr('Поръчка')) : static::renderBadge(tr('Връщане'), false, 'amber');
         $canLink = static::canLink();
-        $row->cartId = ($canLink && eshop_Carts::haveRightFor('single', $dRec->cartId)) ? ht::createLink("№{$dRec->cartId}", array('eshop_Carts', 'single', $dRec->cartId)) : "№{$dRec->cartId}";
+        $row->cartId = ($canLink && eshop_Carts::haveRightFor('single', $dRec->cartId)) ? ht::createLink($dRec->cartId, array('eshop_Carts', 'single', $dRec->cartId)) : $dRec->cartId;
         if (!empty($dRec->saleId)) {
             $row->saleId = sales_Sales::getLink($dRec->saleId, 0);
         }
@@ -681,6 +681,9 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             if (isset($dRec->{$fld})) {
                 $row->{$fld} = $Double->toVerbal($dRec->{$fld});
             }
+        }
+        if (isset($row->total2)) {
+            $row->total2 = "<b>{$row->total2}</b>";
         }
         if (!empty($dRec->docNum)) {
             $row->docNum = core_Type::escape($dRec->docNum);
