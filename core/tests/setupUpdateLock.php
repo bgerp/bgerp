@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Изолирани проверки на заключването при обновяване, без Git, bootstrap и база.
+ * Изолирани проверки на заключването и лога при обновяване, без Git, bootstrap и база.
  *
  * @category tests
  * @package core
@@ -54,6 +54,23 @@ class core_App
     public static function getRepos() { return self::$repos; }
 }
 class core_Updates { public static function getNewVersionTag() { return false; } }
+class core_Packs
+{
+    public static $firstSetup = false;
+    public static function isFirstSetup() { return self::$firstSetup; }
+    public static function logWrite($message) { log_Data::$pending[] = $message; recordUpdateCall('audit', $message); }
+}
+class log_Data
+{
+    public static $pending = array();
+    public static $saved = array();
+    public static function flush()
+    {
+        self::$saved = array_merge(self::$saved, self::$pending);
+        self::$pending = array();
+        recordUpdateCall('flush', null);
+    }
+}
 class core_SystemLock
 {
     public static $locked = false;
@@ -63,18 +80,20 @@ class core_SystemLock
 function recordUpdateCall($operation, $value) { $GLOBALS['updateCalls'][] = array($operation, $value); }
 function gitCurrentBranch($path, &$log) { return 'old-branch'; }
 function gitLastCommitDate($path, &$log) { return '2026-01-01'; }
-function gitSetBranch($path, &$log, $branch) { recordUpdateCall('switch', $path); return true; }
-function gitPullRepo($path, &$log, $branch) { recordUpdateCall('pull', $path); return true; }
+function gitSetBranch($path, &$log, $branch) { recordUpdateCall('switch', $path); return ($GLOBALS['failingUpdateOperation'] ?? null) !== 'switch'; }
+function gitPullRepo($path, &$log, $branch) { recordUpdateCall('pull', $path); return ($GLOBALS['failingUpdateOperation'] ?? null) !== 'pull'; }
 function gitRevertRepo($path, &$log) { recordUpdateCall('revert', $path); return true; }
 function gitHasChanges($path, &$log) { return false; }
 function gitHasNewVersion($path, &$log, $branch) { return true; }
 function checkoutMaxVersion(&$log) { recordUpdateCall('release', null); }
 
-function runUpdateCase($request, $alreadyLocked = false)
+function runUpdateCase($request, $alreadyLocked = false, $failingOperation = null)
 {
     global $updateSource, $updateCalls;
     $_GET = $request;
     $updateCalls = array();
+    $GLOBALS['failingUpdateOperation'] = $failingOperation;
+    log_Data::$pending = log_Data::$saved = array();
     core_SystemLock::$locked = $alreadyLocked;
     $step = 2;
     $links = $texts = array();
@@ -82,7 +101,7 @@ function runUpdateCase($request, $alreadyLocked = false)
     $nextUrl = 'https://example.invalid/setup?step=3';
     eval($updateSource);
 
-    return array('calls' => $updateCalls, 'html' => $texts['body'] ?? '', 'locked' => core_SystemLock::$locked);
+    return array('calls' => $updateCalls, 'html' => $texts['body'] ?? '', 'locked' => core_SystemLock::$locked, 'audit' => log_Data::$saved);
 }
 function updateCallsOf($result, $operation)
 {
@@ -163,8 +182,41 @@ $result = runUpdateCase(array());
 checkUpdate(updateCallsOf($result, 'lock') === array() && updateCallsOf($result, 'pull') === array(), 'Displaying the update page must not update or lock');
 checkUpdate(strpos($result['html'], "id='lockUpdate'") !== false && strpos($result['html'], "id='setupUpdateLinks'") !== false, 'Render checkbox and action container');
 
+// Записът описва натиснатия бутон, включително когато последващият Git опит се провали.
+$auditCases = array(
+    array(array('update' => 'private_a'), 'Обновяване на системата - хранилище: private_a'),
+    array(array('update' => 'bgerp'), 'Обновяване на системата - хранилище: bgerp'),
+    array(array('update' => 'all'), 'Обновяване на системата - всички хранилища'),
+    array(array('update' => '', 'checkoutMaxVersion' => ''), 'Обновяване на системата - следваща версия на bgerp'),
+);
+foreach ($auditCases as list($request, $message)) {
+    foreach (array('1', '0') as $lockUpdate) {
+        $result = runUpdateCase($request + array('lockUpdate' => $lockUpdate));
+        checkUpdate($result['audit'] === array($message), 'Persist exactly one audit record naming the selected button');
+        checkUpdate(array_slice($result['calls'], 0, 2) === array(array('audit', $message), array('flush', null)), 'Flush the audit before branch switches, pulls or release changes');
+    }
+}
+foreach (array('switch', 'pull') as $failedOperation) {
+    $result = runUpdateCase(array('update' => 'private_a'), false, $failedOperation);
+    checkUpdate($result['audit'] === array('Обновяване на системата - хранилище: private_a'), 'A failed Git attempt retains the clicked update action');
+}
+foreach (array(array(), array('update' => ''), array('update' => 'unknown'), array('update' => array('private_a')), array('revert' => 'private_a'), array('checkout' => '1')) as $request) {
+    $result = runUpdateCase($request);
+    checkUpdate(updateCallsOf($result, 'audit') === array() && updateCallsOf($result, 'flush') === array(), 'Opening, checking or unrelated actions must not log an update');
+}
+core_Packs::$firstSetup = true;
+$result = runUpdateCase(array('update' => 'all'));
+checkUpdate(updateCallsOf($result, 'audit') === array() && updateCallsOf($result, 'flush') === array(), 'First installation must not require log tables');
+checkUpdate(updateCallsOf($result, 'pull') === array_keys(core_App::$repos), 'First installation retains its update behavior');
+core_Packs::$firstSetup = false;
+$packsSource = file_get_contents(dirname(__DIR__) . '/Packs.class.php');
+$actionStart = strpos($packsSource, 'public function act_systemUpdate()');
+$actionEnd = strpos($packsSource, 'public function systemUpdate()', $actionStart);
+if ($actionStart === false || $actionEnd === false) throw new RuntimeException('Missing update entry action');
+checkUpdate(strpos(substr($packsSource, $actionStart, $actionEnd - $actionStart), 'logRead(') === false, 'The wizard entry must not add a premature update record');
+
 // Това е проверка на границата в кода, а не изпълнение на пълна инициализация.
 $remainingSource = substr($source, $end);
 checkUpdate(strpos($remainingSource, 'lockUpdate') === false, 'Later setup steps must not consume the update checkbox');
 checkUpdate(strpos($remainingSource, "\$Packs->setupPack('bgerp')") !== false, 'Full initialization keeps the bgerp setup entry');
-echo "OK: {$checks} isolated update-lock checks; no Git, database or live setup executed.\n";
+echo "OK: {$checks} isolated update lock/audit checks; no Git, database or live setup executed.\n";
