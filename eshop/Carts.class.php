@@ -1957,7 +1957,7 @@ class eshop_Carts extends core_Master
         }
 
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
+            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-finalizeBtn,rel=nofollow');
         } else{
 
             // Ако има в количката артикули с нулева цена - не може да се приключи
@@ -1972,7 +1972,7 @@ class eshop_Carts extends core_Master
                 $productErrorString = implode(',', $productsWithoutPrice);
                 $finBtn = ht::createErrBtn('Завършване', "Следните артикули нямат цена|*: {$productErrorString}", 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
             } elseif (!$isPaymentMandatory) {
-                $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
+                $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn eshop-finalizeBtn,rel=nofollow,disabled');
             }
         }
         
