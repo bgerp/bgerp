@@ -13,7 +13,7 @@ defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
  * @package   core
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -50,11 +50,14 @@ class core_Sbf extends core_Mvc
             }
         }
         
-        if (@file_put_contents($path, $content) !== false) {
+        // През временен файл, за да не се сервира/кешира наполовина записан файл при паралелни заявки
+        $tmpPath = $path . '.' . getmypid() . '_' . mt_rand() . '.tmp';
+        if (@file_put_contents($tmpPath, $content) !== false && @rename($tmpPath, $path)) {
             usleep(1000);
             
             return $path;
         }
+        @unlink($tmpPath);
         
         return false;
     }
