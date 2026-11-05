@@ -45,4 +45,16 @@ class rack_Wrapper extends plg_ProtoWrapper
         
         $this->title = 'Палетен склад';
     }
+
+
+    /**
+     * Зарежда общите стилове на палетния склад.
+     */
+    public function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = null)
+    {
+        parent::on_AfterRenderWrapping($invoker, $tpl, $blankTpl, $data);
+
+        $tpl = new ET($tpl);
+        $tpl->push('rack/css/common.css', 'CSS');
+    }
 }
