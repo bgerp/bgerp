@@ -11,12 +11,12 @@ class trans_TripSheets extends core_Master
     public $abbr = 'Ts';
     public $interfaces = 'doc_DocumentIntf';
     public $loadList = 'plg_RowTools2, trans_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, plg_Search, plg_Sorting';
-    public $canList = 'ceo,trans';
-    public $canSingle = 'ceo,trans';
+    public $canList = 'ceo,trans,seePrice';
+    public $canSingle = 'ceo,trans,seePrice';
     public $canAdd = 'ceo,trans';
     public $canEdit = 'ceo,trans';
     public $canPending = 'ceo,trans';
-    public $canReport = 'ceo,trans';
+    public $canReport = 'ceo,acc';
     public $canReject = 'ceo,trans';
     public $canRestore = 'ceo,trans';
     public $canActivate = 'no_one';
@@ -33,7 +33,9 @@ class trans_TripSheets extends core_Master
     public $listFields = 'title=Документ,lineId,departure,vehicleNumber,driverName,distance,state,createdOn,createdBy';
     public $searchFields = 'companyName,vehicleNumber,driverName,route,cargo,transportDocuments';
 
-    const REPORT_FIELDS = 'odometerStart,odometerEnd,departedOn,returnedOn,reportNotes,signedSheet';
+    const REPORT_FIELDS = 'odometerStart,odometerEnd,departedOn,returnedOn,expenseCurrencyId,expenses,reportNotes,signedSheet';
+    const PRIVATE_REPORT_FIELDS = self::REPORT_FIELDS . ',reportedOn,reportedBy,reporterName,distance';
+    public $priceFields = self::PRIVATE_REPORT_FIELDS;
     const ISSUE_FIELDS = 'lineId,originId,threadId,folderId,series,transportType,companyName,companyAddress,companyNumber,companyPhone,vehicleId,vehicleModel,vehicleNumber,driverId,driverName,secondDriver,companions,departure,expectedReturn,route,cargo,transportDocuments,cargoManifest,lineNotes,sourceData,authorizedBy,authorization,issuedOn,issuedBy,issuerName';
 
 
@@ -57,10 +59,10 @@ class trans_TripSheets extends core_Master
         $this->FLD('departure', 'datetime(requireTime)', 'caption=Курс->Тръгване,mandatory');
         $this->FLD('expectedReturn', 'datetime(requireTime)', 'caption=Курс->Връщане');
         $this->FLD('route', 'text(rows=4)', 'caption=Курс->Маршрут,mandatory');
-        $this->FLD('cargo', 'text(rows=3)', 'caption=Курс->Вид на товара,mandatory');
+        $this->FLD('cargo', 'text(rows=2)', 'caption=Курс->Вид на товара,mandatory,hint=Кратко общо описание. Например: опаковки и консумативи. Посочете опасността само след проверка');
         $this->FLD('transportDocuments', 'text(rows=3)', 'caption=Курс->Документи за товара,mandatory');
         $this->FLD('cargoManifest', 'text(rows=10)', 'caption=От транспортната линия->Маршрут и товари');
-        $this->FLD('lineNotes', 'richtext(rows=3,bucket=Notes)', 'caption=От транспортната линия->Бележки');
+        $this->FLD('lineNotes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Бележки');
         $this->FLD('sourceData', 'blob(serialize,compress)', 'input=none');
         $this->FLD('authorizedBy', 'varchar(128)', 'caption=Разрешил превоза->Имена,mandatory');
         $this->FLD('authorization', 'varchar(255)', 'caption=Разрешил превоза->Заповед за упълномощаване');
@@ -71,6 +73,8 @@ class trans_TripSheets extends core_Master
         $this->FLD('odometerEnd', 'int(min=0)', 'caption=Отчет->Краен километраж,unit=км,input=none');
         $this->FLD('departedOn', 'datetime(requireTime)', 'caption=Отчет->Тръгване,input=none');
         $this->FLD('returnedOn', 'datetime(requireTime)', 'caption=Отчет->Връщане,input=none');
+        $this->FLD('expenses', trans_TripExpenses::getType(), 'caption=Разходи->По пера,input=none');
+        $this->FLD('expenseCurrencyId', 'key(mvc=currency_Currencies,select=code)', 'caption=Разходи->Валута,input=none');
         $this->FLD('reportNotes', 'text(rows=3)', 'caption=Отчет->Отклонения и бележки,input=none');
         $this->FLD('signedSheet', 'fileman_FileType(bucket=Notes)', 'caption=Отчет->Подписан лист,input=none');
         $this->FLD('reportedOn', 'datetime', 'caption=Проверен на,input=none');
@@ -118,8 +122,12 @@ class trans_TripSheets extends core_Master
         $form = $data->form ?? null;
         $rec = $form->rec;
         $form->setOptions('driverId', trans_Vehicles::getDriverOptions());
+        $form->setDefault('authorizedBy', core_Users::fetchField(core_Users::getCurrent(), 'names'));
         $refresh = !empty($rec->id) && Request::get('fromLine', 'int') && $mvc->haveRightFor('edit', $rec);
-        if (!empty($rec->id) && !$refresh) return;
+        if (!empty($rec->id) && !$refresh) {
+            self::prepareCargoSummaryForm($form);
+            return;
+        }
         $form->setDefault('series', 'ТЛ');
         if ($refresh) {
             $form->FLD('fromLine', 'int', 'input=hidden,silent');
@@ -132,10 +140,13 @@ class trans_TripSheets extends core_Master
         trans_Lines::requireRightFor('single', $line);
         $form->setDefault('lineId', $line->id ?? null);
         $form->setDefault('originId', $line->containerId ?? null);
-        foreach (trans_LineDocuments::getTripDefaults($line->id) as $field => $value) {
+        $previous = clone $rec;
+        $defaults = trans_LineDocuments::getTripDefaults($line->id);
+        foreach ($defaults as $field => $value) {
             if ($refresh) $rec->{$field} = $value;
             else $form->setDefault($field, $value);
         }
+        if ($refresh && ($previous->sourceData['manifestVersion'] ?? 0) >= 2) $rec->cargo = $previous->cargo ?? '';
         $company = crm_Companies::fetchOwnCompany();
         $form->setDefault('companyName', $company->company ?? '');
         $form->setDefault('companyNumber', $company->uicId ?? '');
@@ -143,7 +154,131 @@ class trans_TripSheets extends core_Master
         $form->setDefault('companyPhone', $company->tel ?? '');
 
         $form->setField('route', 'unit=Подредете реалните посещения и добавете началния и крайния пункт. Предложението е по реда на документите');
-        if ($refresh) $form->info = 'Данните са предложени от текущата транспортна линия. Прегледайте ги и запишете промените.';
+        if ($refresh) {
+            $form->info = 'Данните са предложени от текущата транспортна линия. Прегледайте ги и запишете промените.';
+        }
+        self::prepareCargoSummaryForm($form);
+    }
+
+
+    private static function prepareCargoSummaryForm($form)
+    {
+        $rec = $form->rec;
+        if (($rec->sourceData['manifestVersion'] ?? 0) < 2) return;
+        // Already issued snapshots keep their original presentation. Drafts use
+        // the short description and source references required for the journey.
+        $rec->sourceData['manifestVersion'] = 4;
+        $form->setField('cargoManifest,transportDocuments', 'input=none');
+        $form->FLD('cargoSourceHash', 'varchar(32)', 'input=hidden');
+        $form->setDefault('cargoSourceHash', $rec->sourceData['hash'] ?? '');
+        if (($rec->transportType ?? null) == 'mixed') {
+            $form->setField('cargo', 'hint=Общ кратък вид на товара приложим и за собствените стоки в заповедта за превоз');
+        }
+    }
+
+
+    public static function getCargoFieldName($item, $field)
+    {
+        return 'cargo_' . $field . '_' . (!empty($item['containerId']) ? (int) $item['containerId'] : md5($item['reference']));
+    }
+
+
+    private static function getCargoReference($item)
+    {
+        return ($item['reference'] ?? '') . (!empty($item['documentDate']) ? ' / ' . dt::mysql2verbal($item['documentDate'], 'd.m.Y') : '');
+    }
+
+
+    /**
+     * Retain corrections by source identity; unchanged values follow the source.
+     * Null is a deliberate clearing, distinct from an absent override.
+     */
+    public static function mergeCargoSummary($summary, $previous)
+    {
+        $saved = $baseline = array();
+        foreach ($previous->sourceData['cargoSummary'] ?? array() as $item) {
+            $saved[$item['containerId'] ?? $item['reference']] = $item;
+        }
+        foreach ($previous->sourceData['cargoSource'] ?? array() as $item) {
+            $baseline[$item['containerId'] ?? $item['reference']] = $item;
+        }
+        foreach ($summary as &$item) {
+            $key = isset($saved[$item['containerId']]) ? $item['containerId'] : $item['reference'];
+            if (!isset($saved[$key])) continue;
+            $old = $saved[$key];
+            $base = $baseline[$key] ?? $old;
+            foreach (array('packaging', 'totalWeight', 'volume', 'description') as $field) {
+                if (!array_key_exists($field, $old)) continue;
+                $value = $old[$field];
+                $original = $base[$field] ?? null;
+                $same = in_array($field, array('totalWeight', 'volume'))
+                    ? (($value === null || $value === '') ? ($original === null || $original === '') : ($original !== null && $original !== '' && (double) $value === (double) $original))
+                    : (string) $value === (string) $original;
+                if (!$same || $field == 'description') $item[$field] = $value;
+            }
+            if (($previous->sourceData['manifestVersion'] ?? 0) == 2) $item['description'] = $previous->cargo ?? '';
+        }
+        unset($item);
+
+        return $summary;
+    }
+
+
+    /**
+     * Derived text remains useful for search and the own-account transport order.
+     * The source hash and original values never include the user's corrections.
+     */
+    private static function updateCargoSummary($rec)
+    {
+        if (($rec->sourceData['manifestVersion'] ?? 0) < 3) return;
+        if ($rec->sourceData['manifestVersion'] >= 4) {
+            $rec->transportDocuments = implode('; ', array_map(array(__CLASS__, 'getCargoReference'), $rec->sourceData['cargoSummary'] ?? array()));
+            $rec->cargoManifest = '';
+            $rec->sourceData['own']['cargo'] = $rec->cargo ?? '';
+
+            return;
+        }
+        $descriptions = $ownDescriptions = $manifest = $references = array();
+        foreach ($rec->sourceData['cargoSummary'] ?? array() as $item) {
+            $description = trim($item['description'] ?? '');
+            if ($description !== '') {
+                $descriptions[$description] = $description;
+                if (!empty($item['isOwn'])) $ownDescriptions[$description] = $description;
+            }
+            $reference = self::getCargoReference($item);
+            $references[] = $reference;
+            $manifest[] = trans_LineDocuments::getManifestText($reference, $item);
+        }
+        $rec->cargo = implode('; ', $descriptions);
+        $rec->cargoManifest = implode("\n", $manifest);
+        $rec->transportDocuments = implode("\n", $references);
+        $rec->sourceData['own']['cargo'] = implode('; ', $ownDescriptions);
+    }
+
+
+    /**
+     * Render only saved summary values, so issued sheets never reread source cargo.
+     */
+    public static function renderCargoSummary($summary, $withDescription = false)
+    {
+        if (!$summary) return '';
+        $number = core_Type::getByName('double(smartRound)');
+        $html = '<table class="innerTable border-table paddingCells trip-cargo-summary" style="width:100%"><thead><tr>';
+        $captions = array('Документ', 'Пакетаж', 'Бруто, kg', 'Обем, m³');
+        if ($withDescription) $captions[] = 'Вид';
+        foreach ($captions as $caption) $html .= '<th>' . tr($caption) . '</th>';
+        $html .= '</tr></thead><tbody>';
+        foreach ($summary as $item) {
+            $html .= '<tr style="page-break-inside:avoid"><td>' . type_Varchar::escape(self::getCargoReference($item)) . '</td><td>'
+                . type_Varchar::escape(strlen($item['packaging'] ?? '') ? $item['packaging'] : tr('неуточнен')) . '</td>';
+            foreach (array('totalWeight', 'volume') as $field) {
+                $html .= '<td style="text-align:right">' . (isset($item[$field]) ? $number->toVerbal($item[$field]) : '—') . '</td>';
+            }
+            if ($withDescription) $html .= '<td>' . type_Varchar::escape($item['description'] ?? '') . '</td>';
+            $html .= '</tr>';
+        }
+
+        return $html . '</tbody></table>';
     }
 
 
@@ -151,6 +286,12 @@ class trans_TripSheets extends core_Master
     {
         if (!$form->isSubmitted()) return;
         $rec = $form->rec;
+        if (($rec->sourceData['manifestVersion'] ?? 0) >= 3) {
+            if (($rec->cargoSourceHash ?? '') !== ($rec->sourceData['hash'] ?? '')) {
+                $form->setError('route', 'Транспортната линия е променена след отваряне на формата. Отворете отново Обновяване от ТЛ и прегледайте данните');
+            }
+            self::updateCargoSummary($rec);
+        }
         if (!empty($rec->expectedReturn) && (($rec->expectedReturn ?? '') < ($rec->departure ?? ''))) {
             $form->setError('expectedReturn', 'Връщането не може да предхожда тръгването');
         }
@@ -171,7 +312,7 @@ class trans_TripSheets extends core_Master
             if (($saved->state ?? 'draft') != 'draft' || !empty($saved->issuedOn)) $roles = 'no_one';
         }
         if ($action == 'pending' && ($state != 'draft' || !empty($rec->issuedOn))) $roles = 'no_one';
-        if ($action == 'report' && ($state != 'pending' || empty($rec->issuedOn))) $roles = 'no_one';
+        if ($action == 'report' && (!in_array($state, array('pending', 'active')) || empty($rec->issuedOn) || !self::canViewReport($userId))) $roles = 'no_one';
         if ($action == 'order' && (empty($rec->issuedOn) || !in_array($rec->transportType ?? null, array('own', 'mixed')) || $state == 'rejected')) $roles = 'no_one';
         if (in_array($action, array('report', 'order')) && !empty($rec->id) && !$mvc->haveRightFor('single', $rec, $userId)) $roles = 'no_one';
         if ($action == 'restore' && ($rec->brState ?? null) == 'active' && $mvc->getOverlap($rec)) $roles = 'no_one';
@@ -183,7 +324,7 @@ class trans_TripSheets extends core_Master
             }
             if ($lineId) {
                 $line = trans_Lines::fetch($lineId);
-                if (!$line || ($line->state ?? null) == 'rejected' || !trans_Lines::haveRightFor('single', $line, $userId)) $roles = 'no_one';
+                if (!$line || ($line->state ?? null) == 'rejected' || ($action != 'report' && !trans_Lines::haveRightFor('single', $line, $userId))) $roles = 'no_one';
             } elseif ($action != 'add' || !empty($rec->threadId)) {
                 $roles = 'no_one';
             }
@@ -195,6 +336,7 @@ class trans_TripSheets extends core_Master
     {
         unset($rec->_attachWaybills);
         $old = !empty($rec->id) ? $mvc->fetch($rec->id ?? null, '*', false) : null;
+        if (!empty($rec->_tripReport) && (!$old || !$mvc->haveRightFor('report', $old))) return false;
         if (!empty($old->issuedOn)) {
             foreach (arr::make(self::ISSUE_FIELDS) as $field) $rec->{$field} = $old->{$field} ?? null;
             if (empty($rec->_tripReport)) {
@@ -202,6 +344,11 @@ class trans_TripSheets extends core_Master
             }
         }
         $full = (object) array_merge((array) $old, (array) $rec);
+        if (empty($full->issuedOn) && ($full->sourceData['manifestVersion'] ?? 0) >= 3) {
+            self::updateCargoSummary($full);
+            foreach (array('cargo', 'cargoManifest', 'transportDocuments', 'sourceData') as $field) $rec->{$field} = $full->{$field};
+            if ($fields !== null) $fields = arr::make($fields, true) + arr::make('cargo,cargoManifest,transportDocuments,sourceData', true);
+        }
         $line = trans_Lines::fetch($full->lineId ?? null);
         expect($line && ($line->containerId ?? null) == ($full->originId ?? null)
             && ($line->threadId ?? null) == ($full->threadId ?? null), 'Невалидна транспортна линия');
@@ -225,6 +372,9 @@ class trans_TripSheets extends core_Master
         }
         if (($full->state ?? null) == 'active') {
             if (empty($full->issuedOn)) return false;
+            if (!empty($rec->_tripReport)) {
+                $rec->expenses = $full->expenses = trans_TripExpenses::normalize($full->expenses ?? null, substr($full->departedOn ?? $full->departure ?? dt::today(), 0, 10));
+            }
             $lock = 'transTripVehicle' . ($full->vehicleId ?? 0);
             if (!core_Locks::obtain($lock, 30, 3, 3)) {
                 core_Statuses::newStatus('Друг потребител отчита същото МПС. Опитайте отново', 'warning');
@@ -252,6 +402,14 @@ class trans_TripSheets extends core_Master
         }
         foreach (arr::make('series,companyName,companyNumber,companyAddress,vehicleModel,departure,route,cargo,transportDocuments,authorizedBy') as $field) {
             if (trim($rec->{$field} ?? '') === '') $errors[$field] = 'Попълнете реквизитите преди издаване на пътния лист';
+        }
+        if (($rec->sourceData['manifestVersion'] ?? 0) == 3) {
+            foreach ($rec->sourceData['cargoSummary'] ?? array() as $item) {
+                if (trim($item['description'] ?? '') === '') $errors[self::getCargoFieldName($item, 'description')] = 'Попълнете кратък вид на товара за документа преди издаване';
+                foreach (array('totalWeight', 'volume') as $field) {
+                    if (isset($item[$field]) && (!is_numeric($item[$field]) || $item[$field] < 0)) $errors[self::getCargoFieldName($item, $field)] = 'Въведете неотрицателно число';
+                }
+            }
         }
         $vehicle = !empty($rec->vehicleId) ? trans_Vehicles::fetch($rec->vehicleId ?? null) : null;
         if (empty($vehicle->number)) $errors['vehicleId'] = 'Изберете МПС с попълнен регистрационен номер';
@@ -289,6 +447,10 @@ class trans_TripSheets extends core_Master
         if (!empty($rec->departedOn) && !empty($rec->returnedOn) && ($rec->returnedOn ?? '') < ($rec->departedOn ?? '')) {
             $errors['departedOn,returnedOn'] = 'Връщането не може да предхожда тръгването';
         }
+        $errors += trans_TripExpenses::getErrors($rec->expenses ?? null);
+        if (!isset($errors['expenses']) && countR(type_Table::toArray(trans_TripExpenses::normalize($rec->expenses ?? null))) && (empty($rec->expenseCurrencyId) || !currency_Currencies::fetch($rec->expenseCurrencyId))) {
+            $errors['expenseCurrencyId'] = 'Изберете валута за разходите';
+        }
 
         return $errors;
     }
@@ -313,24 +475,38 @@ class trans_TripSheets extends core_Master
         $this->requireRightFor('report', $rec);
         $form = cls::get('core_Form');
         $form->setAction(array($this, 'report', $id));
-        foreach (arr::make(self::REPORT_FIELDS) as $field) {
+        $reportFields = array_diff(arr::make(self::REPORT_FIELDS), array('signedSheet'));
+        foreach ($reportFields as $field) {
             $definition = $this->getField($field);
             $type = $definition->type ?? null;
             $form->FLD($field, clone $type, array('caption' => $definition->caption ?? $field));
+            $form->setDefault($field, $rec->{$field} ?? null);
         }
         $form->FLD('id', 'int', 'input=hidden,silent');
         $form->setDefault('id', $id);
+        $form->FLD('reportHash', 'varchar(32)', 'input=hidden');
+        $form->setDefault('reportHash', self::getReportHash($rec));
+        $form->setDefault('departedOn', $rec->departure ?? null);
+        $form->setDefault('returnedOn', $rec->expectedReturn ?? null);
+        $form->setField('departedOn', 'hint=Предложено от планираното тръгване. Проверете действителните дата и час');
+        $form->setField('returnedOn', 'hint=Когато има планирано връщане то се предлага за проверка');
+        $form->setDefault('expenseCurrencyId', currency_Currencies::getIdByCode(acc_Periods::getBaseCurrencyCode($rec->departure ?? dt::today())));
+        $form->setField('expenses', 'hint=Незадължително. Всяко зареждане или разход е отделен ред. Мярката се определя от перото; сумите са с ДДС');
         foreach (arr::make('odometerStart,odometerEnd,departedOn,returnedOn') as $field) $form->setField($field, 'mandatory');
         $previousQuery = $this->getQuery();
-        $previousQuery->where(array("#vehicleId = [#1#] AND #state = 'active' AND #returnedOn <= '[#2#]'", (int) ($rec->vehicleId ?? 0), $rec->departure ?? ''));
+        $previousQuery->where(array("#vehicleId = [#1#] AND #state = 'active' AND #returnedOn <= '[#2#]' AND #id != [#3#]", (int) ($rec->vehicleId ?? 0), $rec->departedOn ?? $rec->departure ?? '', (int) $id));
         $previousQuery->orderBy('returnedOn', 'DESC');
         $previous = $previousQuery->fetch();
-        if ($previous) $form->setSuggestions('odometerStart', array(($previous->odometerEnd ?? 0) => ($previous->odometerEnd ?? 0)));
-        $form->title = 'Отчитане на|* ' . $this->getLink($id, 0);
+        if ($previous) {
+            $form->setDefault('odometerStart', $previous->odometerEnd ?? null);
+            $form->setSuggestions('odometerStart', array(($previous->odometerEnd ?? 0) => ($previous->odometerEnd ?? 0)));
+        }
+        $form->title = 'Пробег и разходи към|* ' . $this->getLink($id, 0);
         $form->input();
         if ($form->isSubmitted()) {
             $report = clone $rec;
-            foreach (arr::make(self::REPORT_FIELDS) as $field) $report->{$field} = $form->rec->{$field} ?? null;
+            foreach ($reportFields as $field) $report->{$field} = $form->rec->{$field} ?? null;
+            $report->expenses = trans_TripExpenses::normalize($report->expenses ?? null, substr($report->departedOn ?? $rec->departure ?? dt::today(), 0, 10));
             foreach (self::getReportErrors($report) as $field => $message) $form->setError($field, $message);
             if (!$form->gotErrors() && $this->getOverlap($report)) $form->setError('odometerStart,odometerEnd,departedOn,returnedOn', 'Пробегът или времето се припокрива с друг отчетен пътен лист');
             if ($previous && isset($report->odometerStart) && ($report->odometerStart ?? null) != ($previous->odometerEnd ?? null)) {
@@ -342,15 +518,19 @@ class trans_TripSheets extends core_Master
                     try {
                         $current = $this->fetch($id, '*', false);
                         $this->requireRightFor('report', $current);
-                        $report->state = 'active';
-                        $report->reportedOn = dt::now();
-                        $report->reportedBy = core_Users::getCurrent();
-                        $report->reporterName = core_Users::fetchField($report->reportedBy ?? null, 'names');
-                        $report->_tripReport = true;
-                        $report->_isActivated = true;
-                        if ($this->save($report)) {
-                            $this->logWrite('Отчитане на пробег', $id);
-                            return new Redirect(array($this, 'single', $id));
+                        if ($form->rec->reportHash !== self::getReportHash($current)) {
+                            $form->setError('odometerStart,expenses', 'Друг потребител е променил отчета. Отворете го отново преди запис');
+                        } else {
+                            $report->state = 'active';
+                            $report->reportedOn = dt::now();
+                            $report->reportedBy = core_Users::getCurrent();
+                            $report->reporterName = core_Users::fetchField($report->reportedBy ?? null, 'names');
+                            $report->_tripReport = true;
+                            $report->_isActivated = empty($current->reportedOn);
+                            if ($this->save($report)) {
+                                $this->logWrite('Отчитане на пробег и разходи', $id);
+                                return new Redirect(array($this, 'single', $id));
+                            }
                         }
                     } finally {
                         core_Locks::release($lock);
@@ -359,10 +539,54 @@ class trans_TripSheets extends core_Master
                 $form->setError('odometerStart,odometerEnd', 'Отчетът не е записан. Проверете данните и опитайте отново');
             }
         }
-        $form->toolbar->addSbBtn('Отчитане', 'save', 'ef_icon=img/16/tick.png');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon=img/16/tick.png');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon=img/16/close-red.png');
 
-        return $this->renderWrapping($form->renderHtml());
+        $tpl = $form->renderHtml();
+        $tpl->push('trans/js/TripExpenses.js', 'JS');
+        $expenseDate = substr($form->rec->departedOn ?? $rec->departedOn ?? $rec->departure ?? dt::today(), 0, 10);
+        jquery_Jquery::run($tpl, 'transTripExpensesInit(' . json_encode(trans_TripExpenses::getCategoryUnits()) . ', ' . json_encode(dt::mysql2verbal($expenseDate, 'd.m.Y')) . ');');
+
+        return $this->renderWrapping($tpl);
+    }
+
+
+    private static function getReportHash($rec)
+    {
+        $values = array();
+        foreach (arr::make(self::PRIVATE_REPORT_FIELDS . ',state') as $field) $values[$field] = $rec->{$field} ?? null;
+
+        return md5(serialize($values));
+    }
+
+
+    public static function canViewReport($userId = null)
+    {
+        return !core_Users::haveRole('noPrice', $userId) && core_Users::haveRole('ceo,seePrice', $userId);
+    }
+
+
+    protected static function on_BeforeGetVerbal($mvc, &$res, $rec, $fieldName)
+    {
+        if (!self::canViewReport() && in_array($fieldName, arr::make(self::PRIVATE_REPORT_FIELDS))) {
+            $res = doc_plg_HidePrices::getBuriedElement();
+
+            return false;
+        }
+    }
+
+
+    protected static function on_AfterGetLinkedFiles($mvc, &$res, $rec)
+    {
+        if (self::canViewReport()) return;
+        $rec = $mvc->fetchRec($rec);
+        if (!empty($rec->signedSheet) && is_array($res)) unset($res[$rec->signedSheet]);
+    }
+
+
+    protected static function on_AfterGetAttachments($mvc, &$res, $rec)
+    {
+        self::on_AfterGetLinkedFiles($mvc, $res, $rec);
     }
 
 
@@ -371,7 +595,7 @@ class trans_TripSheets extends core_Master
         $rec = $data->rec ?? null;
         $toolbar = $data->toolbar ?? null;
         if ($mvc->haveRightFor('edit', $rec)) $toolbar->addBtn('Обновяване от ТЛ', array($mvc, 'edit', $rec->id, 'fromLine' => 1, 'ret_url' => true), 'row=2,ef_icon=img/16/arrow_refresh.png,title=Предлагане на актуалните данни от линията за преглед и запис');
-        if ($mvc->haveRightFor('report', $rec)) $toolbar->addBtn('Отчитане', array($mvc, 'report', $rec->id ?? null), 'ef_icon=img/16/tick.png');
+        if ($mvc->haveRightFor('report', $rec)) $toolbar->addBtn('Пробег и разходи', array($mvc, 'report', $rec->id ?? null), 'ef_icon=img/16/tick.png');
         if ($mvc->haveRightFor('order', $rec)) $toolbar->addBtn('Печат заповед', array($mvc, 'single', $rec->id ?? null, 'Printing' => 'yes', 'tripView' => 'order'), 'target=_blank,ef_icon=img/16/printer.png');
         if (!empty($rec->issuedOn)) $toolbar->addBtn('Издаден лист', array($mvc, 'single', $rec->id ?? null, 'Printing' => 'yes', 'tripView' => 'issued'), 'row=2,target=_blank,ef_icon=img/16/printer.png');
     }
@@ -387,7 +611,17 @@ class trans_TripSheets extends core_Master
                 return getTplFromFile('trans/tpl/TripOrder.shtml');
             }
 
-            return parent::renderSingleLayout_($data);
+            $tpl = parent::renderSingleLayout_($data);
+            if (($data->rec->sourceData['manifestVersion'] ?? 0) >= 4) {
+                $tpl->removeBlock('cargoManifest');
+                $tpl->removeBlock('cargoSummary');
+            } elseif (($data->rec->sourceData['manifestVersion'] ?? 0) >= 2) {
+                $tpl->removeBlock('cargoManifest');
+                $tpl->removeBlock('transportDocuments');
+                if ($data->rec->sourceData['manifestVersion'] >= 3) $tpl->removeBlock('cargo');
+            }
+
+            return $tpl;
         } finally {
             if ($printing) core_Lg::pop();
         }
@@ -398,7 +632,9 @@ class trans_TripSheets extends core_Master
     {
         $row->title = $mvc->getLink($rec->id ?? null, 0);
         if (!empty($rec->lineId)) $row->lineId = trans_Lines::getHyperlink($rec->lineId ?? null, true);
-        if (($rec->state ?? null) != 'active') $row->distance = tr('Неотчетен');
+        $canViewReport = self::canViewReport();
+        if (!$canViewReport) $row->distance = doc_plg_HidePrices::getBuriedElement();
+        elseif (($rec->state ?? null) != 'active') $row->distance = tr('Неотчетен');
         if (isset($fields['-single'])) {
             $row->sheetNumber = str_pad((string) ($rec->id ?? ''), 10, '0', STR_PAD_LEFT);
             $row->issueDate = !empty($rec->issuedOn) ? dt::mysql2verbal($rec->issuedOn ?? '', 'd.m.Y') : tr('ЧЕРНОВА');
@@ -407,13 +643,31 @@ class trans_TripSheets extends core_Master
             }
             $row->driverName = $row->driverName ?? $mvc->getVerbal($rec, 'driverId');
             $row->documentStatus = $row->state ?? '';
+            if (in_array($rec->sourceData['manifestVersion'] ?? 0, array(2, 3)) && Request::get('tripView') != 'order') {
+                $row->cargoSummary = self::renderCargoSummary($rec->sourceData['cargoSummary'] ?? array(), $rec->sourceData['manifestVersion'] >= 3);
+                $row->cargoManifest = $row->transportDocuments = '';
+            }
             if (Request::get('tripView') == 'order' && ($rec->transportType ?? null) == 'mixed') {
-                foreach (arr::make('route,cargo,transportDocuments') as $field) $row->{$field} = $mvc->getFieldType($field)->toVerbal($rec->sourceData['own'][$field] ?? '');
+                $ownFields = ($rec->sourceData['manifestVersion'] ?? null) == 2 ? 'route,transportDocuments' : 'route,cargo,transportDocuments';
+                foreach (arr::make($ownFields) as $field) $row->{$field} = $mvc->getFieldType($field)->toVerbal($rec->sourceData['own'][$field] ?? '');
             }
             if (Mode::is('printing') && ($rec->state ?? null) != 'active') $row->distance = '';
-            if (Request::get('tripView') == 'issued') {
-                foreach (arr::make(self::REPORT_FIELDS . ',reportedOn,reporterName,distance') as $field) $row->{$field} = '';
+            $showReport = $canViewReport && Request::get('tripView') != 'issued';
+            $currency = !empty($rec->expenseCurrencyId) && $showReport
+                ? currency_Currencies::fetchField($rec->expenseCurrencyId, 'code')
+                : acc_Periods::getBaseCurrencyCode($rec->departure ?? dt::today());
+            $row->expenseReport = $showReport && !empty($rec->expenses) ? trans_TripExpenses::render($rec->expenses, $currency) : '';
+            if (!$showReport) {
+                foreach (arr::make(self::PRIVATE_REPORT_FIELDS) as $field) $row->{$field} = '';
             }
+            $places = array();
+            foreach ($rec->sourceData['cargoSummary'] ?? array() as $item) {
+                foreach (array('loadingPlace', 'unloadingPlace') as $field) {
+                    if (!empty($item[$field])) $places[$item[$field]] = true;
+                }
+            }
+            $movementRows = ($rec->sourceData['manifestVersion'] ?? 0) >= 4 ? max(4, count($places) + 1) : 4;
+            $row->movementRows = str_repeat('<tr style="height:35px;page-break-inside:avoid"><td>&nbsp;</td><td style="width:35%"></td><td></td><td></td><td></td><td></td></tr>', $movementRows);
             foreach (arr::make('odometerStart,odometerEnd,departedOn,returnedOn,reportedOn,reporterName,secondDriver,companions,distance') as $field) {
                 if (!isset($row->{$field}) || $row->{$field} === '') $row->{$field} = '................................';
             }
@@ -428,9 +682,13 @@ class trans_TripSheets extends core_Master
         $query->where(array("#lineId = [#1#] AND #state != 'rejected'", (int) $lineId));
         $query->orderBy('id', 'ASC');
         while ($rec = $query->fetch()) {
-            $res->sheets[] = $rec;
+            $sheet = clone $rec;
+            if (!self::canViewReport()) {
+                foreach (arr::make(self::PRIVATE_REPORT_FIELDS) as $field) unset($sheet->{$field});
+            }
+            $res->sheets[] = $sheet;
             if (($rec->state ?? null) == 'active') {
-                $res->distance = ($res->distance ?? 0) + ($rec->odometerEnd ?? 0) - ($rec->odometerStart ?? 0);
+                if (self::canViewReport()) $res->distance = ($res->distance ?? 0) + ($rec->odometerEnd ?? 0) - ($rec->odometerStart ?? 0);
             } else {
                 $res->unreported++;
             }

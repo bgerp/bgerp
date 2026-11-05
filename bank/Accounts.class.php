@@ -497,6 +497,31 @@ class bank_Accounts extends core_Master
     
     
     /**
+     * Намира банкова сметка по IBAN, без значение от интервалите, тиретата и регистъра в записа
+     *
+     * @param string $iban - IBAN или номер извън стандарта, започващ с '#'
+     *
+     * @return stdClass|false
+     */
+    public static function fetchByIban($iban)
+    {
+        $iban = strtoupper(str_replace(array(' ', '-'), '', $iban ?? ''));
+        if ($iban === '') {
+
+            return false;
+        }
+
+        // Първо по уникалния индекс; записите, въведени с интервали, се намират с обхождане
+        $rec = static::fetch(array("#iban = '[#1#]'", $iban));
+        if (!$rec) {
+            $rec = static::fetch(array("UPPER(REPLACE(REPLACE(#iban, ' ', ''), '-', '')) = '[#1#]'", $iban));
+        }
+
+        return $rec;
+    }
+    
+    
+    /**
      * Добавя нова банкова сметка на контрагента
      *
      * @param iban_Type $iban            - iban
@@ -515,7 +540,7 @@ class bank_Accounts extends core_Master
 
         // Сравнява се без интервали и тирета, иначе същият IBAN в друг формат става нова сметка
         $canonicalIban = $IbanType->canonize($iban);
-        if (static::fetch(array("REPLACE(REPLACE(#iban, ' ', ''), '-', '') = '[#1#]'", $canonicalIban)))  return null;
+        if (static::fetchByIban($canonicalIban))  return null;
 
         $rec = (object) array('iban'          => $iban,
                               'contragentCls' => $contragentClsId,

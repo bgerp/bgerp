@@ -126,4 +126,22 @@ $previousLibxml = libxml_use_internal_errors(false);
 payment_ParserUC::getRecs('<APAccounts>');
 check(libxml_use_internal_errors() === false, 'libxml error mode restored');
 libxml_use_internal_errors($previousLibxml);
+
+// Собствената сметка е въведена с интервали, тирета или малки букви
+$spacedMt = ":20:SYNTHETIC-SPACED\n:25:BG00TEST00000000000000\n:28C:1\n:60F:C261028EUR0,00\n:61:261028C15,25NTRFNONREF//BANKREF1\n:86:Invoice 001\n:62F:C261028EUR15,25\n";
+foreach (array('BG00 TEST 0000 0000 0000 00', 'bg00-test-0000-0000-0000-00') as $stored) {
+    core_Master::$ibans = array(5 => $stored);
+    $result = payment_ParserIso20022::getRecs($xml52);
+    check(count($result->recs) === 1 && !$result->warnings && $result->recs[0]->ownAccountId === 2, 'camt.052 own account saved as ' . $stored);
+    check(count(payment_ParserUC::getRecs($uc)->recs) === 1, 'Unicredit own account saved as ' . $stored);
+    $result = payment_ParserMt940::getRecs($spacedMt);
+    check(count($result->recs) === 1 && !$result->errors, 'MT940 own account saved as ' . $stored);
+}
+core_Master::$ibans = array(5 => 'BG00TEST00000000000000');
+core_Master::$conditions = array();
+check(count(payment_ParserIso20022::getRecs($xml)->recs) === 1 && core_Master::$conditions === array("#iban = '[#1#]'"), 'machine-format IBAN found by the unique index only');
+core_Master::$ibans = array(5 => 'BG00 TEST 0000 0000 0000 01');
+$result = payment_ParserIso20022::getRecs($xml);
+check(!$result->recs && strpos(implode(' ', $result->warnings), 'липсва в списъка') !== false, 'different IBAN is still missing');
+core_Master::$ibans = null;
 echo "Grouped CAMT and Unicredit checks passed\n";

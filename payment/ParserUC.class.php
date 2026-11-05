@@ -58,7 +58,7 @@ class payment_ParserUC
                 $res->warnings[] = 'Празен IBAN';
                 continue;
             }
-            $bankAccRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban));
+            $bankAccRec = bank_Accounts::fetchByIban($iban);
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
                 continue;
