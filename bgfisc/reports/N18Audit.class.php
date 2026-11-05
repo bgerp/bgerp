@@ -468,7 +468,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             $query->in('threadId', array_keys($carts));
             while ($dRec = $query->fetch()) {
                 $cartRec = $carts[$dRec->threadId];
-                $saleRec = sales_Sales::fetch($cartRec->saleId, 'state,ownCompanyId');
+                $saleRec = sales_Sales::fetch($cartRec->saleId);
                 $recs["r{$class}{$dRec->id}"] = (object) array('kind' => 'refund', 'cartId' => $cartRec->id, 'saleId' => $cartRec->saleId,
                     'saleState' => $saleRec->state ?? null, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
                     'orderDate' => $dRec->valior, 'docs' => $returns[$dRec->threadId] ?? array(), 'payDocs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
