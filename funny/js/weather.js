@@ -31,7 +31,7 @@
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
             var frequent = options.frequency === 'frequent';
-            var remaining = frequent ? 5000 + Math.random() * 7000 : 20000 + Math.random() * 40000;
+            var remaining = initialDelay();
             var lastFrame = 0, lastLayout = 0, width = 0, height = 0, weather = '';
             var elapsed = 0, lastProgress = 0, maxParticles = 0;
             var particles = [], banks = [];
@@ -41,8 +41,12 @@
             // Bearings describe where wind comes from; without a saved bearing keep one gentle heading per page.
             var bearing = typeof options.windDirection === 'number' ? options.windDirection * Math.PI / 180 : (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (Math.random() - 0.5) * 0.6;
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
-            // Clicks can summon more visitors without interrupting an existing weather scene.
-            var inputs = ['pointermove', 'keydown', 'wheel', 'touchmove', 'scroll'];
+            var inputs = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'];
+
+            /** Every new idle period starts with the same interval as a freshly loaded page. */
+            function initialDelay() {
+                return frequent ? 5000 + Math.random() * 7000 : 20000 + Math.random() * 40000;
+            }
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
             function active() {
@@ -384,15 +388,22 @@
                 }, remaining);
             }
 
-            /** Passive listeners leave native mouse, keyboard and touch behavior unchanged. */
+            /** Input restarts idle waiting even before the first scene; clicks preserve an already running scene. */
             function activity(event) {
+                if (!active()) return;
                 if (event.type === 'pointermove' && typeof event.clientX === 'number') {
                     var unchanged = lastPointer && lastPointer.x === event.clientX && lastPointer.y === event.clientY;
                     lastPointer = {x: event.clientX, y: event.clientY};
                     // Browsers may emit a move at the same coordinates before a click.
                     if (unchanged) return;
                 }
-                if (layer) { stop(true); schedule(); }
+                appearances = 0;
+                remaining = initialDelay();
+                if (layer) {
+                    if (event.type === 'pointerdown') return;
+                    stop(true);
+                } else { window.clearTimeout(timer); timer = 0; }
+                schedule();
             }
 
             /** Background time never advances the standalone countdown or replays old effects. */

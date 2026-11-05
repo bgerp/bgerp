@@ -20,7 +20,8 @@
             var gentle = options.strength === 'gentle';
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
-            var remaining = frequent ? random(5000, 12000) : random(20000, 60000), appearances = 0, lastAppearance = -Infinity;
+            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null;
+            var remaining = nextDelay();
             var audio = null, printing = false;
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
             var counter = document.getElementById('nCntLink');
@@ -61,12 +62,13 @@
             }
 
             function nextDelay() {
+                if (!appearances) return frequent ? random(5000, 12000) : random(20000, 60000);
                 if (frequent) return random(15000, 30000);
                 var max = Math.min(600000, 60000 * Math.pow(2, Math.min(appearances, 4)));
                 return random(max / 2, max);
             }
 
-            /** Counts only focused time and keeps automatic appearances out of manual groups. */
+            /** Counts focused idle time and keeps automatic appearances out of manual groups. */
             function schedule() {
                 if (!automatic || timer || visitors.length || portals.length || peeker || !active()) return;
                 due = performance.now() + remaining;
@@ -76,6 +78,20 @@
                     if (appearances && performance.now() > 90000 && !peeked && Math.random() < 0.25 && showPeek()) return;
                     if (!summon('random')) schedule();
                 }, remaining);
+            }
+
+            /** User input starts a fresh idle interval without interrupting existing visitors or manual launches. */
+            function activity(event) {
+                if (!automatic || !active()) return;
+                if (event.type === 'pointermove') {
+                    var unchanged = lastActivityPointer && lastActivityPointer.x === event.clientX && lastActivityPointer.y === event.clientY;
+                    lastActivityPointer = {x: event.clientX, y: event.clientY};
+                    if (unchanged) return;
+                }
+                appearances = 0;
+                remaining = nextDelay();
+                window.clearTimeout(timer); timer = 0;
+                schedule();
             }
 
             function stopSound() {
@@ -689,6 +705,9 @@
                 };
             }
 
+            ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'].forEach(function (name) {
+                document.addEventListener(name, activity, {passive: true, capture: true});
+            });
             document.addEventListener('pointermove', function (event) {
                 if (event.pointerType !== 'touch') movePointer(event);
             }, {passive: true});

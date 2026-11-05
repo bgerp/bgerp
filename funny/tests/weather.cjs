@@ -71,13 +71,23 @@ function environment(config = {}) {
 }
 let checks=0;
 function check(name,fn) {fn();checks++;console.log('PASS '+name);}
-check('standalone weather repeats on growing character intervals and stops immediately on movement',()=>{
+check('movement fades standalone weather and restarts its initial idle interval',()=>{
     const e=environment();let due=[...e.timers.values()][0].at;assert(due>=20000 && due<=60000);assert.equal(e.frames.size,0);
     e.tick(due);assert(e.layer());assert.equal(e.layer().attrs['aria-hidden'],'true');
     for(let i=0;i<6;i++) {
         e.document.emit('pointermove');assert(!e.layer());assert.equal(e.frames.size,0);
-        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=60000 && next<=600000);if(i>=3) assert(next>=300000);
+        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=20000 && next<=60000);
         e.tick(next);assert(e.layer());
+    }
+});
+check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{
+    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
+        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,{clientX:100+i,clientY:50,key:'a'});assert(!e.layer(),type);assert.equal(e.timers.size,1);}
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert(!e.layer());e.tick(delay-(min-100)+20);assert(e.layer());
+        e.document.emit('keydown');e.tick(1100);assert(!e.layer());
+        const restarted=[...e.timers.values()][0].at-e.now()+1100;assert(restarted>=min && restarted<=max);
     }
 });
 check('disabled, embedded and reduced-motion pages stay idle',()=>{
