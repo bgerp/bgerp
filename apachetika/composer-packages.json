@@ -20,6 +20,16 @@
                 "type": "zip",
                 "shasum": "b6a6f37720f82537f0ba8f9e75dda5dca518f1bb"
             }
+        },
+        {
+            "name": "bgerp/tika-app",
+            "version": "4.2.0",
+            "license": "Apache-2.0",
+            "dist": {
+                "url": "https://archive.apache.org/dist/tika/4.2.0/tika-app-4.2.0.zip",
+                "type": "zip",
+                "shasum": "2b0435cbb919b41d3082ed9f17a604b6387bfb9e"
+            }
         }
     ]
 }

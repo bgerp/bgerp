@@ -1,42 +1,16 @@
-<div class = "cms-row">
-<div style="display: inline-block; padding: 0 2%">
-    <h2 style='margin-top: 5px;'>|Поръчката е направена успешно|*</h2>
-    <p>|Информация за плащането|*:<p>
-
-    <div class="summary-block" style="display: inline-block; float: none; border: 1px solid #bbb;">
-        <table>
-            <tr>
-                <td class='aright' style="padding-right: 10px;">IBAN:</td>
-                <td><b>[#IBAN#]</b></td>
-            </tr>
-            <tr>
-                <td class='aright' style="padding-right: 10px;">|Банка|*:</td>
-                <td>[#BANK#], BIC: [#BIC#]</td>
-            </tr>
-
-            <tr>
-                <td class='aright' style="padding-right: 10px;">|Сума|*:</td>
-                <td><b>[#AMOUNT#]</b></td>
-            </tr>
-            <tr>
-                <td class='aright' style="padding-right: 10px;">|Основание|*:</td>
-                <td><b>[#REASON#]</b></td>
-            </tr>
-            <tr>
-                <td class='aright' style="padding-right: 10px;">|Титуляр|*:</td>
-                <td>[#MyCompany#]</td>
-            </tr>
-        </table>
-    </div>
-    <p>|Може да свалите попълнено платежно нареждане|*: [#PO_LINK#].</p>
-
-    <p>|Поръчката ще бъде изпълнена след получаване на плащането|*.</p>
-
-    <p>[#BACK_BTN#]</p>
-
-
-</div>
-
-
-
+<div class="cpr-box">
+    <div class="cpr-icon cpr-ok">&#10004;</div>
+    <h2>|Поръчката е направена успешно|*</h2>
+    <p class="cpr-note">|Поръчката ще бъде изпълнена след получаване на плащането|*</p>
+    <div class="cpr-amount">[#AMOUNT_VALUE#] <span>[#CURRENCY#]</span></div>
+    <p class="cpr-bank">|Информация за плащането|*</p>
+    <table class="cpr-info">
+        <tr><td>IBAN</td><td>[#IBAN#]</td></tr>
+        <tr><td>|Банка|*</td><td>[#BANK#]</td></tr>
+        <tr><td>BIC</td><td>[#BIC#]</td></tr>
+        <tr><td>|Основание|*</td><td>[#REASON#]</td></tr>
+        <tr><td>|Титуляр|*</td><td>[#MyCompany#]</td></tr>
+    </table>
+    <!--ET_BEGIN PO_LINK--><div class="cpr-links">[#PO_LINK#]</div><!--ET_END PO_LINK-->
+    <div class="cpr-btn">[#BACK_BTN#]</div>
 </div>

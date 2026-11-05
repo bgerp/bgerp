@@ -59,11 +59,14 @@ class transpress_Adapter extends core_BaseClass
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        // Езикът на PDF-ите от print.svc се определя само от Accept-Language, не от locale
+        $headers = array('Accept-Language: bg-BG,bg');
         if($method == 'POST'){
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $query);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=UTF-8'));
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8';
         }
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
         if($auth){
             $login = self::getLoginData($userId);
@@ -461,6 +464,40 @@ class transpress_Adapter extends core_BaseClass
 
 
     /**
+     * Дните, в които Transpress обслужва селището
+     *
+     * @param string $countryCode - код на държавата (alpha-2)
+     * @param string $pCode       - пощенски код
+     * @param string $place       - име на селището
+     * @return array|null - courier и cargo (номера на дните, 1 = понеделник) или null, ако селището не е намерено
+     */
+    public static function getServicingDays($countryCode, $pCode, $place)
+    {
+        // Каталогът не намира селището с "гр." или "с." отпред
+        $place = trim(preg_replace('/^(гр|с|град|село)\.?\s+/iu', '', trim((string)$place)));
+        if(!strlen($place) || empty($countryCode)) return null;
+
+        $items = self::getCatalog('settlement-by-country.do', array('pattern' => $place, 'countryCode' => $countryCode, 'servicing' => 'true'));
+
+        // Едноименните селища се различават по пощенския код в името: [BG-9000] Варна (Варненска)
+        $found = null;
+        $pCode = trim((string)$pCode);
+        foreach ($items as $item){
+            if(strlen($pCode) && strpos((string)($item['name'] ?? ''), "[{$countryCode}-{$pCode}]") === 0){
+                $found = $item;
+                break;
+            }
+        }
+        if(!isset($found) && countR($items) == 1){
+            $found = $items[0];
+        }
+        if(!isset($found)) return null;
+
+        return array('courier' => (string)($found['attributes']['servicing_courier'] ?? ''), 'cargo' => (string)($found['attributes']['servicing_cargo'] ?? ''));
+    }
+
+
+    /**
      * Запазените адреси за вземане на акаунта
      *
      * @return array - код на адреса => описание
@@ -507,7 +544,7 @@ class transpress_Adapter extends core_BaseClass
     private static function getCatalog($name, $params = array())
     {
         // Без locale каталозите са на английски и търсят само по английските имена
-        $params = array('pattern' => '?', 'view' => 'json', 'locale' => 'bg') + $params;
+        $params = $params + array('pattern' => '?', 'view' => 'json', 'locale' => 'bg');
         $cacheKey = md5(self::getBaseUrl() . "|{$name}|" . serialize($params));
         $items = core_Cache::get('transpress', $cacheKey);
         if(is_array($items)) return $items;

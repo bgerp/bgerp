@@ -235,6 +235,8 @@ class fileman_Files extends core_Master
             // Обновяваме лога за използване на файла
             fileman_Log::updateLogInfo($fh, 'upload');
         }
+
+        $me->invoke('AfterAbsorbFile', array($fh, $bucketId, $dataId));
         
         return $fh;
     }

@@ -9,15 +9,6 @@
     min-width: 0;
 }
 
-.wide .invoicesByContragentForm .formFields > table {
-    table-layout: fixed;
-}
-
-.wide .invoicesByContragentForm .formFieldCaption {
-    width: 11em;
-    white-space: normal;
-}
-
 .invoicesByContragentForm .formElement input,
 .invoicesByContragentForm .formElement select,
 .invoicesByContragentForm .formElement .select2-container {
@@ -44,6 +35,11 @@
     max-width: 32em;
 }
 
+/* Ограничението важи и преди Select2 да скрие първоначалния списък. */
+.invoicesByContragentForm select[multiple] {
+    width: 100%;
+}
+
 /* select2 записва естествената ширина на дългия списък и избутва полетата извън формата */
 .wide #main-container .invoicesByContragentForm select[multiple] + .select2-container {
     width: 100% !important;
@@ -67,11 +63,23 @@
 }
 
 .invoicesByContragentInfo .invoice-report-results {
-    flex: 2 1 320px;
+    flex: 1 1 320px;
 }
 
 .invoicesByContragentInfo .invoice-report-filter {
-    flex: 1 1 260px;
+    flex: 0 1 auto;
+    /* Дългите имена се пренасят, вместо сами да разтягат целия блок. */
+    width: min-content;
+    max-width: 40%;
+}
+
+.invoicesByContragentInfo .invoice-report-results > .small > div:first-child b > span {
+    white-space: nowrap;
+}
+
+.invoicesByContragentInfo .invoice-report-filter:only-child {
+    flex: 1;
+    max-width: 100%;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-row {
@@ -80,19 +88,29 @@
     overflow-wrap: break-word;
 }
 
+.invoicesByContragentInfo .invoice-report-filter > .small > .invoice-report-filter-row:nth-child(2) {
+    padding-bottom: 3px;
+    border-bottom: 1px solid #ccc;
+}
+
 .invoicesByContragentInfo .invoice-report-filter-options {
     display: flex;
-    column-gap: 16px;
+    width: max-content;
+    max-width: 100%;
+    column-gap: 8px;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-main {
     flex: 1;
     min-width: 0;
+    padding-top: 3px;
 }
 
 .invoicesByContragentInfo .invoice-report-filter-flags {
     flex: 0 0 auto;
     max-width: 50%;
+    padding: 3px 0 0 8px;
+    border-left: 1px solid #ccc;
 }
 
 .acc_reports_InvoicesByContragent td.invoice-report-base-value {
@@ -106,6 +124,11 @@
 
 .narrow .invoicesByContragentInfo {
     display: block;
+}
+
+.narrow .invoicesByContragentInfo .invoice-report-filter {
+    width: auto;
+    max-width: 100%;
 }
 
 .invoice-report-as-of {

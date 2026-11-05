@@ -1924,6 +1924,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако се изисква онлайн плащане добавя се бутон към него
+        $isPaymentMandatory = false;
         if (isset($rec->paymentId)) {
             
             // Ако самия метод на плащане, добавяв текст показва се
@@ -1936,7 +1937,7 @@ class eshop_Carts extends core_Master
             if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
                 
                 // Ако драйвера на метода на плащане добавя текст, показва се и той
-                $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec);
+                $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec, 'eshop_Carts', $rec->id);
                 if (!empty($paymentDriverText)) {
                     $tpl->append($paymentDriverText, 'PAYMENT_TEXT_RIGHT');
                 }
@@ -1949,11 +1950,14 @@ class eshop_Carts extends core_Master
                     $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $rec->total, $settings->currencyId, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
                     $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
                 }
+
+                // Поръчката се завършва от самото плащане - неактивният бутон само обърква
+                $isPaymentMandatory = ($rec->paidOnline ?? null) != 'yes' && $PaymentDriver->isPaymentMandatory($rec->paymentId, 'eshop_Carts', $rec->id);
             }
         }
 
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
+            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-finalizeBtn,rel=nofollow');
         } else{
 
             // Ако има в количката артикули с нулева цена - не може да се приключи
@@ -1967,8 +1971,8 @@ class eshop_Carts extends core_Master
             if(countR($productsWithoutPrice)){
                 $productErrorString = implode(',', $productsWithoutPrice);
                 $finBtn = ht::createErrBtn('Завършване', "Следните артикули нямат цена|*: {$productErrorString}", 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
-            } else {
-                $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
+            } elseif (!$isPaymentMandatory) {
+                $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn eshop-finalizeBtn,rel=nofollow,disabled');
             }
         }
         
@@ -2482,6 +2486,13 @@ class eshop_Carts extends core_Master
             
             if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
                 drdata_type_Uic::check($form, $rec->invoiceUicNo, $rec->invoiceCountry, 'invoiceUicNo');
+            }
+
+            // Същата проверка като при фактурата, за да не се спре тя по-късно
+            if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'person' && sales_Setup::get('STRICT_PERSON_INVOICE_CHECK') == 'yes') {
+                if (!bglocal_EgnType::isReal(trim($rec->invoiceUicNo))) {
+                    $form->setError('invoiceUicNo', 'Невалидно ЕГН/ЛНЧ');
+                }
             }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
@@ -3315,6 +3326,35 @@ class eshop_Carts extends core_Master
         self::requireRightFor('showlastorder');
 
         return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show', 'id' => static::LAST_SALES_SYSTEM_ID));
+    }
+
+
+    /**
+     * Защо към продажба от онлайн поръчка на лице не може да се издаде фактура
+     *
+     * @param int|stdClass $saleRec
+     * @return string|null
+     */
+    public static function getSaleInvoiceError($saleRec)
+    {
+        // Само за продажби в папка на лице
+        $saleRec = sales_Sales::fetchRec($saleRec);
+        if (empty($saleRec->id) || empty($saleRec->folderId)) return null;
+        if (doc_Folders::fetchCoverClassName($saleRec->folderId) != 'crm_Persons') return null;
+
+        // Само ако продажбата е създадена от количка
+        $cartRec = static::fetch(array("#saleId = '[#1#]'", $saleRec->id), 'id');
+        if (empty($cartRec)) return null;
+
+        $prefix = "Не може да се издаде фактура на лице по онлайн поръчка|* №{$cartRec->id}";
+
+        // Фактурирането се разрешава с промяна на продажбата, ако клиентът поиска фактура по-късно
+        if (($saleRec->makeInvoice ?? null) == 'no') {
+
+            return $prefix . '|*. |Ако все пак се иска фактура, променете "Фактуриране" в продажбата на "Да"|*!';
+        }
+
+        return null;
     }
 
 

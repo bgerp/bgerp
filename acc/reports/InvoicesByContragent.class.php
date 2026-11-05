@@ -112,7 +112,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         // --- Тип документи и режим на плащане ---
         $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи,all=Всички)', 'caption=Фактури,after=crmGroup,maxRadio=3,columns=3,mandatory,single=none');
-        $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени,overdue=Просрочени)', 'caption=Платено,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
+        $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени,overdue=Просрочени)', 'caption=Платено,after=typeOfInvoice,maxRadio=3,columns=3,removeAndRefreshForm,single=none,mandatory,silent');
 
         // --- Период и допълнителни филтри ---
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
@@ -2703,7 +2703,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $parts[] = ($plain ? $caption : '<span class="quiet">' . $caption . '</span>') . $verbal;
         }
 
-        return $parts[0] . ' - ' . $parts[1] . ' - ' . $parts[2] . ' = ' . $parts[3] . ' ' . $currency;
+        return $parts[0] . ' - ' . $parts[1] . ' - ' . $parts[2] . ' = ' . $parts[3] . ($plain ? ' ' : '&nbsp;') . $currency;
     }
 
 

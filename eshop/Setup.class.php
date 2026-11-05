@@ -182,6 +182,12 @@ defIfNot('ESHOP_PARAM_FILTER_PARAMS', '');
 
 
 /**
+ * Без фактура на лице по онлайн поръчка без пълни данни
+ */
+defIfNot('ESHOP_RESTRICT_PERSON_INVOICES', 'no');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -192,7 +198,7 @@ defIfNot('ESHOP_PARAM_FILTER_PARAMS', '');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -289,6 +295,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати групи в навигацията->Избор'),
         'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption="Очаква се доставка" в онлайн магазина се показва само ако очакваната доставка е със срок до->Избор'),
         'ESHOP_PARAM_FILTER_PARAMS' => array('table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)','caption=Филтри по параметри в навигацията (в този ред)->Параметри'),
+        'ESHOP_RESTRICT_PERSON_INVOICES' => array('enum(no=Не,yes=Да)', 'caption=Забрана на фактура на лице по онлайн поръчка без заявена фактура->Избор'),
     );
 
 

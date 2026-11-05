@@ -87,7 +87,7 @@ core_Composer::isInUse();
 if (interface_exists('Psr\\Log\\LoggerInterface')) new Psr\Log\NullLogger();
 $converter = new chromephp_Browser();
 $results = array();
-foreach (array('invoice', 'wide', 'large', 'javascript', 'image', 'numbered') as $fixture) {
+foreach (array('invoice', 'wide', 'large', 'javascript', 'image', 'numbered', 'cmr') as $fixture) {
     core_ProtoSetup::$settings['SHOW_PAGE_NUMBERS'] = $fixture === 'numbered' ? 'yes' : 'no';
     $start = microtime(true);
     $file = $converter->convert(chromephp_tests_Fixtures::html($fixture), $fixture . '.pdf', 'test', array('JS' => array()));
@@ -100,6 +100,12 @@ foreach (array('invoice', 'wide', 'large', 'javascript', 'image', 'numbered') as
     if ($fixture === 'javascript') expect(strpos($text, 'JavaScript готов') !== false && strpos($text, 'WAITING_SENTINEL') === false, 'JavaScript not ready');
     if ($fixture === 'large') expect(preg_match_all('/Артикул [0-9]+/', $text) === 600 && strpos($text, 'Артикул 600') !== false, 'Missing large-document rows');
     if ($fixture === 'numbered') expect(preg_match('/1\s*\/\s*1/', $text), 'Missing page number');
+    if ($fixture === 'cmr') {
+        expect(preg_match_all('/Артикул [0-9]+/', $text) === 20 && strpos($text, 'Край на документа') !== false, 'Missing CMR content');
+        $info = array();
+        exec('pdfinfo ' . escapeshellarg($file), $info, $code);
+        expect($code === 0 && preg_match('/^Pages:\s+1\s*$/m', implode("\n", $info)), 'CMR must fit on one page');
+    }
     expect(!core_Debug::$timers, 'Leaked timer');
     $results[$fixture] = array('seconds' => round(microtime(true) - $start, 2), 'bytes' => filesize($file));
     echo $fixture . ": OK\n";

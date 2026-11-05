@@ -2,6 +2,12 @@
 
 
 /**
+ * Наши банкови сметки за плащания с пощенски паричен превод
+ */
+defIfNot('BANK_POSTAL_TRANSFER_ACCOUNTS', '');
+
+
+/**
  * class bank_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -12,7 +18,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -72,6 +78,7 @@ class bank_Setup extends core_ProtoSetup
         'migrate::recontoExchangeDocuments2601',
         'migrate::recontoDocs2620',
         'migrate::fixPaymentUntil2623',
+        'migrate::setPostalTransferAccounts2645',
     );
 
 
@@ -81,6 +88,14 @@ class bank_Setup extends core_ProtoSetup
     public $roles = array(
         array('bank', 'seePrice'),
         array('bankMaster', 'bank'),
+    );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'BANK_POSTAL_TRANSFER_ACCOUNTS' => array('keylist(mvc=bank_OwnAccounts,select=title)', 'caption=Пощенски паричен превод->Банкови сметки'),
     );
 
 
@@ -126,5 +141,26 @@ class bank_Setup extends core_ProtoSetup
         $earlyPaymentUntilColName = str::phpToMysqlName('earlyPaymentUntil');
         $query = "UPDATE {$Spending->dbTableName} SET {$earlyPaymentUntilColName} = NULL WHERE {$earlyPaymentUntilColName} = '0000-00-00'";
         $Spending->db->query($query);
+    }
+
+
+    /**
+     * Сметките с "ППП" в името стават сметки за пощенски паричен превод, ако не са зададени
+     */
+    public function setPostalTransferAccounts2645()
+    {
+        if (!empty(core_Packs::getConfigValue('bank', 'BANK_POSTAL_TRANSFER_ACCOUNTS'))) return;
+
+        $accounts = array();
+        $query = bank_OwnAccounts::getQuery();
+        $query->like('title', 'ППП');
+        $query->show('id');
+        while ($rec = $query->fetch()) {
+            $accounts[$rec->id] = $rec->id;
+        }
+
+        if (!countR($accounts)) return;
+
+        core_Packs::setConfig('bank', array('BANK_POSTAL_TRANSFER_ACCOUNTS' => keylist::fromArray($accounts)));
     }
 }

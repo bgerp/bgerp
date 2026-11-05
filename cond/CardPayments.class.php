@@ -43,7 +43,7 @@ class cond_CardPayments extends core_Manager
     /**
      * Полета за търсене
      */
-    public $searchFields = 'orderNum, transactionRef, approvalCode';
+    public $searchFields = 'orderNum, gatewayRef, transactionRef, approvalCode';
 
 
     /**
@@ -83,9 +83,21 @@ class cond_CardPayments extends core_Manager
 
 
     /**
+     * Кой може да изпраща известия - сървърът на шлюза, проверката е по подписа
+     */
+    public $canNotify = 'every_one';
+
+
+    /**
      * Кой може да повтори отразяването на платеното
      */
     public $canRetry = 'ceo,admin';
+
+
+    /**
+     * Колко пъти общо се опитва отразяването на платеното, преди да се известят отговорните
+     */
+    const MAX_NOTIFY_TRIES = 5;
 
 
     /**
@@ -101,6 +113,7 @@ class cond_CardPayments extends core_Manager
         $this->FLD('originId', 'key(mvc=cond_CardPayments)', 'caption=Към плащане');
         $this->FLD('orderNum', 'varchar(32)', 'caption=Номер в шлюза');
         $this->FLD('nonce', 'varchar(64)', 'caption=Nonce,column=none');
+        $this->FLD('gatewayRef', 'varchar(128)', 'caption=Сесия в шлюза,column=none');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=Сума в основна валута');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
         $this->FLD('currencyCode', 'varchar(3)', 'caption=Валута');
@@ -122,6 +135,7 @@ class cond_CardPayments extends core_Manager
         $this->FLD('response', 'blob(serialize, compress)', 'caption=Отговор на шлюза,column=none');
 
         $this->setDbIndex('paymentId,orderNum,operation');
+        $this->setDbIndex('paymentId,gatewayRef');
         $this->setDbIndex('initiatorClassId,initiatorId');
     }
 
@@ -171,6 +185,13 @@ class cond_CardPayments extends core_Manager
         $Driver = self::getDriver($paymentId);
         expect($Driver, 'Методът на плащане не е картов');
 
+        // Платеното, но неотразено не се плаща втори път - купувачът вижда, че плащането е получено
+        $paidRec = self::fetchUnreflected($initiatorClassId, $initiatorId);
+        if (is_object($paidRec)) {
+
+            return new Redirect(array($this, 'result', $paidRec->id));
+        }
+
         // Сумата е тази на поръчката в момента, а не при показването на бутона
         $baseAmount = cls::getInterface('eshop_InitiatorPaymentIntf', $initiatorClassId)->getAmountToPay($initiatorId, $paymentId);
         expect(isset($baseAmount) && $baseAmount > 0, 'Поръчката не очаква плащане с карта');
@@ -180,44 +201,61 @@ class cond_CardPayments extends core_Manager
 
         $rec = (object) array('paymentId' => $paymentId, 'domainId' => cms_Domains::getPublicDomain('id'), 'initiatorClassId' => $initiatorClassId, 'initiatorId' => $initiatorId, 'baseAmount' => $baseAmount,
             'amount' => $amount, 'currencyCode' => $currencyCode, 'state' => 'pending', 'okUrl' => $okUrl, 'cancelUrl' => $cancelUrl,
-            'config' => array('ownAccountId' => $methodRec->ownAccountId ?? null, 'terminalId' => $methodRec->terminalId ?? null, 'merchantId' => $methodRec->merchantId ?? null));
+            'config' => $Driver->getConfig($methodRec));
         $this->save($rec);
 
         // Шлюзът съпоставя отговора по терминал, номер и nonce - номерът може да се повтори след 24 часа
         $rec->orderNum = $Driver->getOrderNum($rec);
         $rec->nonce = $Driver->getNonce($rec);
         $this->save($rec, 'orderNum,nonce');
-        $this->logInfo('Изпращане към шлюза за плащане с карта', $rec->id);
 
         $request = $Driver->getGatewayRequest($rec, $methodRec);
+
+        // Шлюзовете с API (Stripe, PayPal) създават сесия, по която после се познава отговорът
+        if (!empty($request['gatewayRef'])) {
+            $rec->gatewayRef = $request['gatewayRef'];
+            $this->save($rec, 'gatewayRef');
+        }
+        $this->logInfo('Изпращане към шлюза за плащане с карта', $rec->id);
+        Mode::set('wrapper', 'cms_page_External');
+
+        // Вградена форма на шлюза на нашата страница
+        if (isset($request['html'])) {
+
+            return $request['html'];
+        }
+
+        if (strtoupper($request['method'] ?? 'POST') == 'GET') {
+
+            return new Redirect($request['url']);
+        }
 
         $tpl = new ET(tr("|*<div style='margin:2em;text-align:center'><form method='POST' action='[#url#]' id='cardPaymentForm'>[#fields#]<p>|Пренасочване към страницата за плащане с карта|*...</p>[#btn#]</form></div>"));
         $tpl->replace($request['url'], 'url');
         $tpl->replace(ht::createHidden($request['fields']), 'fields');
         $tpl->replace(ht::createSbBtn('Към плащането'), 'btn');
         jquery_Jquery::run($tpl, "$('#cardPaymentForm').submit();");
-        Mode::set('wrapper', 'cms_page_External');
 
         return $tpl;
     }
 
 
     /**
-     * Отговор от шлюза (BACKREF) - идва с POST през браузъра на купувача, без сесия
+     * Връщане на купувача от шлюза (BACKREF, success_url) - през браузъра му, без сесия
      */
     public function act_Response()
     {
-        Request::setProtected('pm');
+        Request::setProtected('pm,cp');
         expect($paymentId = Request::get('pm', 'int'));
+        $id = Request::get('cp', 'int');
+        Request::removeProtected('pm,cp');
         $Driver = self::getDriver($paymentId);
         expect($Driver, 'Методът на плащане не е картов');
 
-        $data = array();
-        foreach ($Driver->getResponseFields() as $field) {
-            $data[$field] = Request::get($field, 'varchar');
-        }
+        $rec = !empty($id) ? $this->fetch($id) : null;
+        expect(!is_object($rec) || $rec->paymentId == $paymentId);
 
-        $result = $Driver->parseResponse(cond_PaymentMethods::fetch($paymentId), $data);
+        $result = $Driver->readResponse(cond_PaymentMethods::fetch($paymentId), $rec);
         if (!is_array($result)) {
             $this->logWarning('Отговор от шлюза с невалиден подпис');
             expect(false, 'Невалиден отговор от шлюза');
@@ -228,6 +266,36 @@ class cond_CardPayments extends core_Manager
 
         // Резултатът е на отделен адрес, за да не се изпраща отговорът повторно при презареждане
         return new Redirect(array($this, 'result', $rec->id));
+    }
+
+
+    /**
+     * Известие от сървъра на шлюза (webhook) - отговорът е само HTTP кодът
+     */
+    public function act_Notify()
+    {
+        $this->requireRightFor('notify');
+        Request::setProtected('pm');
+        $paymentId = Request::get('pm', 'int');
+        Request::removeProtected('pm');
+
+        $Driver = !empty($paymentId) ? self::getDriver($paymentId) : null;
+        $result = is_object($Driver) ? $Driver->readNotification(cond_PaymentMethods::fetch($paymentId)) : null;
+        if ($result === null) {
+            $this->logWarning('Известие от шлюза с невалиден подпис');
+        }
+
+        // Само непознатото известие се връща с грешка - шлюзът ще го изпрати повторно
+        $code = 200;
+        if (is_array($result)) {
+            $code = self::processResult($paymentId, $result) ? 200 : 503;
+        } elseif ($result === null) {
+            $code = 400;
+        }
+
+        http_response_code($code);
+        echo ($code == 200) ? 'OK' : 'ERROR';
+        core_App::shutdown();
     }
 
 
@@ -292,17 +360,10 @@ class cond_CardPayments extends core_Manager
         expect($rec = $this->fetch($id));
         $this->requireRightFor('retry', $rec);
 
-        $lockKey = self::getLockKey($rec->paymentId, $rec->orderNum);
-        if (!core_Locks::obtain($lockKey, 120, 20, 15)) {
+        $ok = self::retryNotify($rec->id);
+        if (!isset($ok)) {
 
             return new Redirect(array($this, 'list'), 'Плащането се обработва в момента|*!', 'warning');
-        }
-
-        try {
-            $rec = $this->fetch($id, '*', false);
-            $ok = (empty($rec->notifiedOn) && $rec->state == 'paid') ? self::notifyInitiator($rec) : true;
-        } finally {
-            core_Locks::release($lockKey);
         }
 
         if ($ok) {
@@ -311,6 +372,65 @@ class cond_CardPayments extends core_Manager
         }
 
         return new Redirect(array($this, 'list'), 'Платеното пак не е отразено - причината е в лога|*!', 'error');
+    }
+
+
+    /**
+     * Повторно отразяване на платеното в поръчката - от бутона и от cron-а
+     *
+     * @param int           $id  - опитът за плащане
+     * @param stdClass|null $rec - опитът след опита за отразяване
+     *
+     * @return bool|null - отразено ли е; null, ако опитът се обработва в момента
+     */
+    public static function retryNotify($id, &$rec = null)
+    {
+        $lockKey = self::getLockKey($id);
+        if (!core_Locks::obtain($lockKey, 120, 20, 15)) {
+
+            return null;
+        }
+
+        try {
+            $rec = self::fetch($id, '*', false);
+            $ok = (empty($rec->notifiedOn) && $rec->state == 'paid') ? self::notifyInitiator($rec) : true;
+        } finally {
+            core_Locks::release($lockKey);
+        }
+
+        // Известието е за всички неотразени - маха се, когато не остане нито едно
+        if ($ok && !self::count("#state = 'paid' AND #notifiedOn IS NULL AND #operation = 'payment'")) {
+            bgerp_Notifications::clear(self::getUnreflectedListUrl(), '*');
+        }
+
+        return $ok;
+    }
+
+
+    /**
+     * Платеният опит за поръчката, който още не е отразен в нея
+     *
+     * @param mixed $initiatorClass - класът инициатор (име или ид)
+     * @param int   $initiatorId    - ид на инициатора
+     *
+     * @return stdClass|false
+     */
+    public static function fetchUnreflected($initiatorClass, $initiatorId)
+    {
+        $initiatorClassId = core_Classes::getId($initiatorClass);
+
+        return self::fetch(array("#initiatorClassId = [#1#] AND #initiatorId = [#2#] AND #operation = 'payment' AND #state = 'paid' AND #notifiedOn IS NULL", (int) $initiatorClassId, (int) $initiatorId));
+    }
+
+
+    /**
+     * Списъкът с платеното и неотразеното - към него води известието
+     *
+     * @return array
+     */
+    protected static function getUnreflectedListUrl()
+    {
+        return array('cond_CardPayments', 'list', 'fState' => 'notNotified');
     }
 
 
@@ -324,32 +444,23 @@ class cond_CardPayments extends core_Manager
      */
     public static function processResult($paymentId, $result)
     {
-        $orderNum = (string) ($result['orderNum'] ?? '');
-        $operation = $result['operation'] ?? 'payment';
-        $lockKey = self::getLockKey($paymentId, $orderNum);
+        $id = self::findAttempt($paymentId, $result);
+        if (empty($id)) {
+            self::logWarning('Отговор от шлюза за непознато плащане ' . ($result['gatewayRef'] ?? $result['orderNum'] ?? ''));
+
+            return null;
+        }
+
+        // Връщането, известието и проверката на статус могат да дойдат едновременно
+        $lockKey = self::getLockKey($id);
         if (!core_Locks::obtain($lockKey, 120, 20, 15)) {
-            self::logWarning("Отговор от шлюза при заключено плащане {$orderNum}");
+            self::logWarning('Отговор от шлюза при заключено плащане', $id);
 
             return null;
         }
 
         try {
-            $query = self::getQuery();
-            $query->where(array("#paymentId = [#1#] AND #orderNum = '[#2#]' AND #operation = '[#3#]'", $paymentId, $orderNum, $operation));
-
-            // Номерът е уникален само за 24 часа - без nonce се търси само сред последните опити
-            if (!empty($result['nonce'])) {
-                $query->where(array("#nonce = '[#1#]'", $result['nonce']));
-            } else {
-                $query->where(array("#createdOn >= '[#1#]'", dt::addSecs(-2 * 86400)));
-            }
-            $query->orderBy('id', 'DESC');
-            $rec = $query->fetch();
-            if (!is_object($rec)) {
-                self::logWarning("Отговор от шлюза за непознато плащане {$orderNum}");
-
-                return null;
-            }
+            $rec = self::fetch($id, '*', false);
 
             // Повторното известие не плаща втори път, но довършва неотразеното
             if ($rec->state == 'paid') {
@@ -412,6 +523,45 @@ class cond_CardPayments extends core_Manager
 
 
     /**
+     * Опитът, за който е отговорът
+     *
+     * @param int   $paymentId - начин на плащане
+     * @param array $result    - нормализиран отговор
+     *
+     * @return int|null
+     */
+    protected static function findAttempt($paymentId, $result)
+    {
+        $operation = $result['operation'] ?? 'payment';
+        $query = self::getQuery();
+        $query->where(array("#paymentId = [#1#] AND #operation = '[#2#]'", $paymentId, $operation));
+        $query->show('id');
+
+        // Ид-то идва само от потвърдения от шлюза отговор, сесията - от API-то му, а номерът е за шлюзовете с подписана форма
+        if (!empty($result['id'])) {
+            $query->where(array('#id = [#1#]', (int) $result['id']));
+        } elseif (!empty($result['gatewayRef'])) {
+            $query->where(array("#gatewayRef = '[#1#]'", $result['gatewayRef']));
+        } elseif (isset($result['orderNum']) && strlen($result['orderNum'])) {
+            $query->where(array("#orderNum = '[#1#]'", $result['orderNum']));
+
+            // Номерът е уникален само за 24 часа - без nonce се търси само сред последните опити
+            if (!empty($result['nonce'])) {
+                $query->where(array("#nonce = '[#1#]'", $result['nonce']));
+            } else {
+                $query->where(array("#createdOn >= '[#1#]'", dt::addSecs(-2 * 86400)));
+            }
+        } else {
+
+            return null;
+        }
+        $query->orderBy('id', 'DESC');
+
+        return $query->fetch()->id ?? null;
+    }
+
+
+    /**
      * Проверка на статуса направо в шлюза - за опитите, чийто отговор през браузъра се е загубил
      *
      * @param stdClass $rec - опитът
@@ -433,6 +583,11 @@ class cond_CardPayments extends core_Manager
             self::logWarning('Отговор от проверката на статус с невалиден подпис', $rec->id);
 
             return null;
+        }
+
+        // Шлюзът е питан за този опит - ако отговорът не го посочва сам
+        if (empty($result['gatewayRef']) && !isset($result['orderNum'])) {
+            $result['id'] = $result['id'] ?? $rec->id;
         }
 
         return self::processResult($rec->paymentId, $result);
@@ -486,6 +641,17 @@ class cond_CardPayments extends core_Manager
      */
     protected static function notifyInitiator($rec)
     {
+        // Поръчката е платена с друг опит - второто плащане е за връщане, не за отразяване
+        $otherCond = array("#initiatorClassId = [#1#] AND #initiatorId = [#2#] AND #operation = 'payment' AND #state = 'paid' AND #notifiedOn IS NOT NULL AND #id != [#3#]", (int) $rec->initiatorClassId, (int) $rec->initiatorId, (int) $rec->id);
+        if (self::count($otherCond)) {
+            $rec->state = 'error';
+            $rec->message = 'Поръчката вече е платена с друго плащане';
+            self::save($rec, 'state,message');
+            self::logErr("Одобрено плащане не е отразено: {$rec->message}", $rec->id);
+
+            return false;
+        }
+
         // Неплатената още поръчка не бива да е променена след плащането (напр. преди повторен опит)
         $current = cls::getInterface('eshop_InitiatorPaymentIntf', $rec->initiatorClassId)->getAmountToPay($rec->initiatorId, $rec->paymentId);
         if (isset($current) && abs($current - $rec->baseAmount) > 0.001) {
@@ -544,22 +710,78 @@ class cond_CardPayments extends core_Manager
 
         // Опитите отпреди запазването на настройките
         $methodRec = cond_PaymentMethods::fetch($rec->paymentId);
+        $Driver = self::getDriver($rec->paymentId);
 
-        return array('ownAccountId' => $methodRec->ownAccountId ?? null, 'terminalId' => $methodRec->terminalId ?? null, 'merchantId' => $methodRec->merchantId ?? null);
+        return is_object($Driver) ? $Driver->getConfig($methodRec) : array();
     }
 
 
     /**
-     * Ключ за заключване на опита - общ за отговора, проверката на статус и повторния опит
+     * Ключ за заключване на опита - общ за отговора, известието, проверката на статус и повторния опит
      *
-     * @param int    $paymentId
-     * @param string $orderNum
+     * @param int $id
      *
      * @return string
      */
-    protected static function getLockKey($paymentId, $orderNum)
+    protected static function getLockKey($id)
     {
-        return "cardPayment_{$paymentId}_{$orderNum}";
+        return "cardPayment_{$id}";
+    }
+
+
+    /**
+     * Проверка в шлюза на опитите без окончателен отговор - загубено връщане, изоставена или висяща сесия
+     */
+    public function cron_CheckPending()
+    {
+        $query = self::getQuery();
+        $query->where(array("#state = 'pending' AND #createdOn <= '[#1#]' AND #createdOn >= '[#2#]'", dt::addSecs(-15 * 60), dt::addSecs(-3 * 86400)));
+        $query->orderBy('id', 'ASC');
+        $query->limit(100);
+        while ($rec = $query->fetch()) {
+            try {
+                self::checkStatus($rec);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                reportException($e);
+                self::logErr('Грешка при проверка на статуса в шлюза: ' . $e->getMessage(), $rec->id);
+            }
+        }
+
+        // Платеното, но неотразено се опитва пак; минутата пази от отговора, който още се отразява
+        $query = self::getQuery();
+        $query->where(array("#state = 'paid' AND #operation = 'payment' AND #notifiedOn IS NULL AND #notifyTries < [#1#] AND #paidOn <= '[#2#]' AND #createdOn >= '[#3#]'", self::MAX_NOTIFY_TRIES, dt::addSecs(-60), dt::addSecs(-3 * 86400)));
+        $query->orderBy('id', 'ASC');
+        $query->limit(100);
+        while ($rec = $query->fetch()) {
+            try {
+                $ok = self::retryNotify($rec->id, $rec);
+                if ($ok === false && ($rec->notifyTries ?? 0) >= self::MAX_NOTIFY_TRIES) {
+                    self::notifyResponsible($rec);
+                }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                reportException($e);
+                self::logErr('Грешка при повторно отразяване на платеното: ' . $e->getMessage(), $rec->id);
+            }
+        }
+    }
+
+
+    /**
+     * Известие до тези, които могат да довършат платеното, но неотразено
+     *
+     * @param stdClass $rec - опитът за плащане
+     */
+    protected static function notifyResponsible($rec)
+    {
+        $users = core_Users::getByRole('ceo') + core_Users::getByRole('admin');
+        foreach ($users as $userId) {
+            bgerp_Notifications::add('|Плащане с карта не е отразено в поръчката|*', self::getUnreflectedListUrl(), $userId, 'warning');
+        }
+        self::logErr('Платеното с карта не е отразено след ' . self::MAX_NOTIFY_TRIES . ' опита', $rec->id);
     }
 
 
@@ -627,8 +849,9 @@ class cond_CardPayments extends core_Manager
             }
         }
 
-        if ($mvc->haveRightFor('retry', $rec)) {
-            $row->state .= ' ' . ht::createLink('', array($mvc, 'retry', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Повторен опит за отразяване на платеното в поръчката');
+        // Повторният опит е само в списъка, не и на страницата за купувача
+        if (isset($fields['-list']) && $mvc->haveRightFor('retry', $rec)) {
+            $row->state = ($row->state ?? '') . ' ' . ht::createLink('', array($mvc, 'retry', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Повторен опит за отразяване на платеното в поръчката');
         }
     }
 
@@ -681,6 +904,7 @@ class cond_CardPayments extends core_Manager
         if (!empty($filter->fState) && $filter->fState != 'all') {
             if ($filter->fState == 'notNotified') {
                 $data->query->where("#state = 'paid' AND #notifiedOn IS NULL AND #operation = 'payment'");
+                bgerp_Notifications::clear(self::getUnreflectedListUrl());
             } else {
                 $data->query->where(array("#state = '[#1#]'", $filter->fState));
             }

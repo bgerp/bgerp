@@ -2120,6 +2120,7 @@ class sales_Sales extends deals_DealMaster
     {
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
+            $res['onlinePostal'] = 'Онлайн продажби с ППП за ФЛ';
         }
 
         if (core_Packs::isInstalled('voucher')) {
@@ -2137,9 +2138,51 @@ class sales_Sales extends deals_DealMaster
             $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
             $query->where('#cartId IS NOT NULL');
         }
+        if ($option == 'onlinePostal') {
+            self::filterOnlinePostalPersonSales($query);
+        }
         if ($option == 'voucher') {
             $query->where('#voucherId IS NOT NULL');
         }
+    }
+
+
+    /**
+     * Оставя продажбите в папки на лица от количка, платени с контиран ПБД по сметка за пощенски паричен превод
+     *
+     * @param core_Query $query - заявка към продажбите
+     * @return void
+     */
+    public static function filterOnlinePostalPersonSales(core_Query &$query)
+    {
+        $accounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
+        if (!countR($accounts)) {
+            $query->where('1=2');
+
+            return;
+        }
+
+        // Нишките с контиран ПБД по някоя от сметките
+        $threads = array();
+        $bQuery = bank_IncomeDocuments::getQuery();
+        $bQuery->where("#state = 'active'");
+        $bQuery->in('ownAccount', $accounts);
+        $bQuery->show('threadId');
+        while ($bRec = $bQuery->fetch()) {
+            $threads[$bRec->threadId] = $bRec->threadId;
+        }
+
+        if (!countR($threads)) {
+            $query->where('1=2');
+
+            return;
+        }
+
+        $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+        $query->where('#cartId IS NOT NULL');
+        $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+        $query->where(array("#coverClass = '[#1#]'", crm_Persons::getClassId()));
+        $query->in('threadId', $threads);
     }
     
     

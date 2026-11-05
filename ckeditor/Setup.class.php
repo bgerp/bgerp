@@ -41,7 +41,7 @@ class ckeditor_Setup extends core_ProtoSetup
      * Избор на локално доставената библиотека.
      */
     public $configDescription = array(
-        'CKEDITOR_VERSION' => array('enum(5.0.1, 49.0.1)', 'caption=CKEditor->Версия'),
+        'CKEDITOR_VERSION' => array('enum(5.0.1, 49.0.1, 49.1.0)', 'caption=CKEditor->Версия'),
     );
 
 

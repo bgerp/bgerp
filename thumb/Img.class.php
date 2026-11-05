@@ -18,7 +18,7 @@ defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]')
  * @package   img
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -510,6 +510,7 @@ class thumb_Img
     public function getThumbFormat($isForSave = false)
     {
         if (!$this->format) {
+            $uri = '';
             switch ($this->sourceType) {
                 case 'url':
                 case 'path':
@@ -523,14 +524,14 @@ class thumb_Img
             }
 
             // Ако от името не можем да опрределим формата - пробваме съдържанието
-            if (strlen($uri) && is_readable($uri)) {
+            if (strlen($uri ?? '') && is_readable($uri)) {
                 $fimg = new thumb_FastImageSize($uri);
                 $format = $fimg->getType();
                 if ($format) {
                     $this->format = $format;
                 }
             } else {
-                if (strlen($uri) && $this->sourceType != 'url') {
+                if (strlen($uri ?? '') && $this->sourceType != 'url') {
                     log_System::add('thumb_Img', 'Грешка при прочитане на URI: ' . $uri, null, 'warning');
                 }
             }
@@ -597,6 +598,11 @@ class thumb_Img
      */
     public function forceDownload()
     {
+        $url = $this->getPreviewUrlOverride();
+        if ($url !== null) {
+            redirect($url);
+        }
+
         // Записваме картинакта
         $this->saveThumb();
 
@@ -673,6 +679,23 @@ class thumb_Img
 
 
     /**
+     * Позволява на файловата политика да замени публичното превю с контролиран адрес.
+     *
+     * @return string|null null запазва стандартното генериране и кеширане
+     */
+    public function getPreviewUrlOverride()
+    {
+        $url = null;
+        if (cls::get('fileman_Files')->invoke('BeforeGetPreviewUrl',
+            array(&$url, $this->source, $this->sourceType, $this->isAbsolute)) === false) {
+            return $url;
+        }
+
+        return null;
+    }
+
+
+    /**
      * Връща урл към умаленото изображение
      *
      * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced', 'forceDeferred'
@@ -681,6 +704,11 @@ class thumb_Img
      */
     public function getUrl($mode = 'auto')
     {
+        $url = $this->getPreviewUrlOverride();
+        if ($url !== null) {
+            return $url;
+        }
+
         if ($mode == 'forced') {
             // Предизвикваме взимането на път от конфигурацията
             unset($this->thumbPath);

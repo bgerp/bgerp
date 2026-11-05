@@ -13,13 +13,6 @@ $twoColsFilterWidth: unquote("var(--two-cols-filter-width, calc(800px + 12em + 3
 $twoColsFilterRowCount: unquote("var(--two-cols-filter-row-count, 3)");
 $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width, calc(100% - 400px - 6em - 1em - 20px))");
 
-// Първоначалното измерване се изпълнява при document.ready. До завършването му
-// скриваме и следващите части на списъка, за да няма видимо разместване.
-.wide .twoColsFilter:not(.twoColsFilterReady),
-.wide .twoColsFilter:not(.twoColsFilterReady) ~ * {
-	visibility: hidden;
-}
-
 .wide .twoColsFilter {
 	display: flex;
 	flex-wrap: wrap;
@@ -159,6 +152,7 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	> select:not(.select2-hidden-accessible),
 	> .select2-container,
 	> .twoColsFilterComboInput,
+	> .twoColsFilterDateTimeInput,
 	> .twoColsFilterDateInput {
 		box-sizing: border-box;
 		width: 100% !important;
@@ -180,6 +174,7 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 		> select:not(.select2-hidden-accessible),
 		> .select2-container,
 		> .twoColsFilterComboInput,
+		> .twoColsFilterDateTimeInput,
 		> .twoColsFilterDateInput {
 			box-sizing: border-box;
 			width: 100% !important;
@@ -279,6 +274,7 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > textarea,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .select2-container,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterComboInput,
+.wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterDateTimeInput,
 .wide .twoColsFilter.twoColsFilterReady .twoColsFilterSizedRow .formElement > .twoColsFilterDateInput {
     box-sizing: border-box;
     width: 100% !important;
@@ -323,4 +319,28 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 .wide .twoColsFilter .twoColsFilterRadioOption > input[type=radio] {
     flex-shrink: 0;
     margin: 0;
+}
+
+/* Дата и час на един ред, с обща широчина за полето. */
+.twoColsFilterDateTimeInput {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.3em;
+    vertical-align: top;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterDateInput {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterDateInput > input {
+    width: 100%;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterComboInput {
+    flex: 0 0 auto;
+}
+.twoColsFilterDateTimeInput > .twoColsFilterComboInput > input {
+    box-sizing: border-box;
+}
+.wide .twoColsFilter.twoColsFilterActive .formElement {
+    vertical-align: top;
 }

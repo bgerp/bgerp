@@ -478,6 +478,14 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $form->rec;
         parent::inputInvoiceForm($mvc, $form);
 
+        // Грешката излиза още при отваряне; ключът не е поле, за да не се изпразни поле от формата
+        if (empty($rec->id) && ($rec->type ?? null) != 'dc_note' && !empty($rec->threadId)) {
+            $error = self::getEshopPersonInvoiceError($rec->threadId);
+            if (!empty($error)) {
+                $form->setError('eshopInvoice', $error);
+            }
+        }
+
         if ($form->isSubmitted()) {
 
             if(isset($rec->id)){
@@ -702,6 +710,24 @@ class sales_Invoices extends deals_InvoiceMaster
 
 
     /**
+     * Грешка, ако в нишката не може да се издаде фактура на лице по онлайн поръчка
+     *
+     * @param int $threadId
+     * @return string|null
+     */
+    public static function getEshopPersonInvoiceError($threadId)
+    {
+        if (!core_Packs::isInstalled('eshop')) return null;
+        if (eshop_Setup::get('RESTRICT_PERSON_INVOICES') != 'yes') return null;
+
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if (empty($firstDoc) || !$firstDoc->isInstanceOf('sales_Sales')) return null;
+
+        return eshop_Carts::getSaleInvoiceError($firstDoc->that);
+    }
+
+
+    /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
@@ -897,6 +923,77 @@ class sales_Invoices extends deals_InvoiceMaster
                     $res = "Невалиден ДДС № на клиент от чужбина - ЕС|*!";
                 }
             }
+        }
+
+        // Фактура на лице по онлайн поръчка без заявена фактура
+        if (empty($res) && ($rec->type ?? null) == 'invoice' && !empty($rec->threadId)) {
+            $eshopError = self::getEshopPersonInvoiceError($rec->threadId);
+            if (!empty($eshopError)) {
+                $res = $eshopError;
+            }
+        }
+
+        if (empty($res)) {
+            $personError = self::getStrictPersonInvoiceError($rec);
+            if (!empty($personError)) {
+                $res = $personError;
+            }
+        }
+    }
+
+
+    /**
+     * Грешка в данните на физическо лице при строга проверка на фактурата
+     *
+     * @param stdClass $rec
+     * @return string|null
+     */
+    public static function getStrictPersonInvoiceError($rec)
+    {
+        if (sales_Setup::get('STRICT_PERSON_INVOICE_CHECK') != 'yes') return null;
+        if (($rec->type ?? null) != 'invoice') return null;
+
+        // Контрагентът е лице, ако е избрано друго лице или фактурата е в папка на лице без друг контрагент
+        $displayClass = $rec->displayContragentClassId ?? null;
+        $isPerson = ($displayClass == 'crm_Persons' && !empty($rec->displayContragentId));
+        if (!$isPerson && empty($rec->displayContragentId) && $displayClass != 'newCompany') {
+            $isPerson = (doc_Folders::fetchCoverClassName($rec->folderId ?? null) == 'crm_Persons');
+        }
+        if (!$isPerson) return null;
+
+        $names = preg_split('/\s+/u', trim((string) ($rec->contragentName ?? '')), -1, PREG_SPLIT_NO_EMPTY);
+        if (countR($names) < 2) {
+
+            return 'Името на лицето трябва да е от поне две думи|*!';
+        }
+
+        $uicNo = trim((string) ($rec->uicNo ?? ''));
+        if ($uicNo !== '' && !bglocal_EgnType::isReal($uicNo)) {
+
+            return 'ЕГН/ЛНЧ на лицето не изглежда истинско|*!';
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Преди контиране на фактура на лице
+     */
+    public static function on_BeforeConto($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (($rec->type ?? null) != 'invoice' || empty($rec->threadId)) return;
+
+        // Бутонът само показва грешката, затова контирането се спира и тук
+        $error = self::getEshopPersonInvoiceError($rec->threadId);
+        if (empty($error)) {
+            $error = self::getStrictPersonInvoiceError($rec);
+        }
+        if (!empty($error)) {
+            core_Statuses::newStatus($error, 'error');
+
+            return false;
         }
     }
     

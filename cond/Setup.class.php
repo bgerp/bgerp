@@ -111,6 +111,15 @@ class cond_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 60,
         ),
+        array(
+            'systemId' => 'CheckPendingCardPayments',
+            'description' => 'Проверка в шлюза на плащанията с карта без окончателен отговор',
+            'controller' => 'cond_CardPayments',
+            'action' => 'CheckPending',
+            'period' => 10,
+            'offset' => 3,
+            'timeLimit' => 120,
+        ),
     );
 
 

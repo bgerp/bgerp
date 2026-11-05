@@ -2413,14 +2413,6 @@ function setFormElementsWidth() {
             if ($(this).parent().is('td')) {
                 $(this).parent().css('white-space', "nowrap");
             }
-            // ако етикета е много широк, режем го и слагаме хинт
-            if ($(this).width() > 450) {
-                $(this).css('max-width', "450px");
-                $(this).css('position', "relative");
-                $(this).css('top', "3px");
-                $(this).css('overflow', "hidden");
-                $(this).attr('title', $(this).text());
-            }
         });
         if ($('.typeTable .batchNameTd').length) {
             $('.typeTable').width("100%");
@@ -6899,8 +6891,8 @@ function focusOnce(id, force) {
     var pendingTwoColsFilter = elem.closest('.wide .twoColsFilter:not(.twoColsFilterReady)');
 
     if (pendingTwoColsFilter.length) {
-        // Двуколонният филтър е скрит до приключване на измерването и браузърът
-        // не може да фокусира полето. Повтаряме същата заявка веднага след това.
+        // Изчакваме окончателното подравняване, за да не се премести
+        // фокусираното поле при превключването на колоните.
         pendingTwoColsFilter.one('twoColsFilterReady.focusOnce', function () {
             focusOnce(id, force);
         });

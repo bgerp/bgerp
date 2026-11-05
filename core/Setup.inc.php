@@ -536,6 +536,7 @@ if ($step == 1) {
 // Стъпка 2: Обновяване
 if ($step == 2) {
     $log = array();
+    $lockUpdate = ($_GET['lockUpdate'] ?? null) !== '0';
 
     // Минимална версия на PHP, при която е позволено обновяване / превключване към бранч (dev)
     // Заб.: При по-стар PHP НЕ позволяваме превключване от release tag (detached HEAD) към бранч,
@@ -595,6 +596,14 @@ if ($step == 2) {
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
             $checkout = $_GET['checkout'] ?? null;
 
+            $selectedRepos = array();
+            foreach ($repos as $repoPath => $branch) {
+                if (basename($repoPath) === $update) {
+                    $selectedRepos[] = $repoPath;
+                }
+            }
+            $updateWithoutLock = !$lockUpdate && $update !== 'all' && !$doRevert && !$doCheckout && !$checkoutMaxVersion && count($selectedRepos) === 1;
+
             // Ако PHP е по-старо от минималната версия, забраняваме обновяване на кода
             $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout);
             
@@ -615,6 +624,21 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 break;
             }
             
+            $updateAction = null;
+            if ($checkoutMaxVersion) {
+                $updateAction = 'Обновяване на системата - следваща версия на bgerp';
+            } elseif ($update === 'all') {
+                $updateAction = 'Обновяване на системата - всички хранилища';
+            } elseif (count($selectedRepos)) {
+                $updateAction = 'Обновяване на системата - хранилище: ' . $update;
+            }
+            if ($updateAction && !core_Packs::isFirstSetup()) {
+                $updateAction .= ($updateWithoutLock || $checkoutMaxVersion) ? ' - без заключване' : ' - със заключване';
+                core_Packs::logWrite($updateAction);
+                // Setup приключва без стандартното събитие Shutdown.
+                log_Data::flush();
+            }
+
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
                 // $links[] = $log;
@@ -643,8 +667,8 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                         $log[] = "wrn:[{$repoName}] PHP (" . PHP_VERSION . ") < {$minPhpForUpdate}. Репозиторито е на release tag (detached HEAD) – пропускаме превключване към бранч '{$branch}'.";
                     }
                 } else {
-                    // Превключваме репозиторито в зададения в конфигурацията бранч
-                    if ($branch && !gitSetBranch($repoPath, $log, $branch)) {
+                    // Без заключване променяме кода само на избраното хранилище.
+                    if ($branch && (!$updateWithoutLock || $update === $repoName) && !gitSetBranch($repoPath, $log, $branch)) {
                         continue;
                     }
                 }
@@ -655,8 +679,10 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 }
                 
                 // Ако имаме команда за обновяване на репозитори - изпълняваме я
-                if ($update == $repoName || $update == 'all') {
-                    core_SystemLock::block('Pulling new bgERP code...', 7);
+                if ($update === $repoName || $update === 'all') {
+                    if (!$updateWithoutLock) {
+                        core_SystemLock::block('Pulling new bgERP code...', 7);
+                    }
                     gitPullRepo($repoPath, $log, $branch);
                 }
                  
@@ -686,7 +712,28 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
             break;
     }
         
-    $texts['body'] = linksToHtml($links);
+    $lockChecked = $lockUpdate ? " checked='checked'" : '';
+    $texts['body'] = "<div style='margin-bottom: 15px;'>
+        <label><input type='checkbox' id='lockUpdate'{$lockChecked}> Заключване при обновяване</label>
+        <div style='font-size: 0.9em; margin-top: 5px;'>При обновяване на всички хранилища или инициализация системата се заключва автоматично, независимо от отметката.</div>
+        </div><div id='setupUpdateLinks'>" . linksToHtml($links) . '</div>';
+    $texts['body'] .= "<script>
+        (function () {
+            var checkbox = document.getElementById('lockUpdate');
+            var links = document.querySelectorAll('#setupUpdateLinks a');
+            function updateLockLinks() {
+                for (var i = 0; i < links.length; i++) {
+                    var url = new URL(links[i].href);
+                    if (url.searchParams.get('step') === '2' && url.searchParams.has('update')) {
+                        url.searchParams.set('lockUpdate', checkbox.checked ? '1' : '0');
+                        links[i].href = url.href;
+                    }
+                }
+            }
+            checkbox.addEventListener('change', updateLockLinks);
+            updateLockLinks();
+        }());
+        </script>";
             
     // Статистика за различните класове съобщения
     $stat = array();

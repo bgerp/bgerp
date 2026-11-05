@@ -537,7 +537,7 @@ class eshop_ParamFilter
 
 
     /**
-     * Филтрите като лента над артикулите, когато няма странична навигация
+     * Филтрите като хоризонтална лента над артикулите
      *
      * @param stdClass $data - данните от eshop_Products::prepareGroupList()
      *
@@ -547,7 +547,10 @@ class eshop_ParamFilter
     {
         // Без стойности лентата не се показва, вместо да подсказва като колоната
         $filter = $data->paramFilter ?? null;
-        if (!is_object($filter) || !countR(cat_products_ParamFilter::getDisplayParams($filter))) return '';
+        if (!is_object($filter)) return '';
+        $groups = $filter->groups ?? null;
+        $hasGroups = is_object($groups) && (countR($groups->counts ?? array()) >= 2 || countR($groups->selected ?? array()));
+        if (!$hasGroups && !countR(cat_products_ParamFilter::getDisplayParams($filter))) return '';
 
         $tpl = new core_ET("<div id='eshopParamFilterTop' class='eshop-param-filter-top'>[#FILTER#]</div>");
 

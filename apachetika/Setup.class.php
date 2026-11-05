@@ -48,7 +48,7 @@ class apachetika_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1, 2.6.0, 2.9.2, 3.3.3, 4.1.0)', 'caption=Версия на програмата'),
+        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1, 2.6.0, 2.9.2, 3.3.3, 4.1.0, 4.2.0)', 'caption=Версия на програмата'),
     
     );
 
@@ -84,7 +84,7 @@ class apachetika_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         $version = self::get('APACHE_TIKA_VERSION', true);
-        $minimumJava = array('3.3.3' => 11, '4.1.0' => 17);
+        $minimumJava = array('3.3.3' => 11, '4.1.0' => 17, '4.2.0' => 17);
         if (!isset($minimumJava[$version])) {
             return;
         }
@@ -116,13 +116,13 @@ class apachetika_Setup extends core_ProtoSetup
     public static function getJarPath($version = null)
     {
         $version = $version ?? self::get('APACHE_TIKA_VERSION', true);
-        if (in_array($version, array('3.3.3', '4.1.0'), true)) {
+        if (in_array($version, array('3.3.3', '4.1.0', '4.2.0'), true)) {
             $path = self::getComposerDir() . "/vendor/bgerp/tika-app/tika-app-{$version}.jar";
         } else {
             $path = getFullPath("apachetika/{$version}/tika-app.jar");
         }
         expect($path && is_file($path), 'Липсва избраната Apache Tika библиотека. Инициализирайте пакета apachetika', $version);
-        if ($version === '4.1.0') {
+        if (in_array($version, array('4.1.0', '4.2.0'), true)) {
             expect(is_dir(dirname($path) . '/lib'), 'Липсват зависимостите lib/ на Apache Tika', $version);
         }
 

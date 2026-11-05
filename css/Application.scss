@@ -2601,7 +2601,7 @@ color: #666;
 }
 
 .document-title{
-font-size: 16pt;
+font-size: 1.25em;
 font-weight: bold;
 line-height: 120%;
 margin-top: 4px;
@@ -5090,6 +5090,19 @@ table .eshop-btn {
 		clear: both;
 		padding-left: 20px !important;
 		margin: 10px 0;
+	}
+}
+
+// Плащането с карта е основното действие в количката - отделен цвят и иконка
+.order-btn.eshop-btn.eshop-cardPayBtn {
+	padding-left: 44px !important;
+	box-shadow: inset 0px 1px 0px 0px #5fcf7d;
+	background: url('../img/16/credit_card_white.png') no-repeat 18px center, linear-gradient(to bottom, #2e9e4f 5%, #23843f 100%);
+	background-color: #2e9e4f;
+	filter: none;
+	&:hover {
+		background: url('../img/16/credit_card_white.png') no-repeat 18px center, linear-gradient(to bottom, #23843f 5%, #2e9e4f 100%);
+		background-color: #23843f;
 	}
 }
 

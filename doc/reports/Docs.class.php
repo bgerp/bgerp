@@ -13,7 +13,7 @@
  * @package   doc
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -220,6 +220,8 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     protected function getVerbal_($rec)
     {
+        $rows = array();
+
         $Class = cls::get('type_Class');
         $Class->params['interface'] = 'doc_DocumentIntf';
         $Class->params['select'] = 'title';
@@ -282,7 +284,7 @@ class doc_reports_Docs extends frame_BaseDriver
         
         $this->prependStaticForm($tpl, 'FORM');
         
-        $tpl->placeObject($data->row);
+        $tpl->placeObject($data->row ?? null);
         
         $f = $this->getFields();
         

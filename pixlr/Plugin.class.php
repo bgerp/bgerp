@@ -11,7 +11,7 @@
  * @package   pixlr
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -23,18 +23,25 @@ class pixlr_Plugin extends core_Plugin
      */
     public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
-        if ($mvc->haveRightFor('single', $data->rec)) {
+        $rec = $data->rec ?? null;
+        $toolbar = $data->toolbar ?? null;
+        if (is_object($rec) && $toolbar && $mvc->haveRightFor('single', $rec)) {
             try {
-                $rec = $data->rec;
-                
                 //Разширението на файла
-                $ext = fileman_Files::getExt($rec->name);
+                $ext = fileman_Files::getExt($rec->name ?? '');
                 
                 if (in_array($ext, arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) {
-                    $url = 'http://pixlr.com/editor/?s=c&image=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . '&title=' . urlencode($rec->name) . '&target=' . '' . '&exit=' . '' . '';
+                    $downloadUrl = fileman_Download::getDownloadUrl($rec->fileHnd ?? '', 1);
+                    if (!$downloadUrl) {
+                        return;
+                    }
+                    $url = 'https://pixlr.com/editor/?' . http_build_query(array(
+                        'file' => $downloadUrl,
+                        'name' => $rec->name ?? '',
+                    ), '', '&', PHP_QUERY_RFC3986);
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn(
+                    $toolbar->addBtn(
                         'Pixlr',
                         $url,
                         "id='btn-pixlr', checkPrivateHost, ef_icon=pixlr/img/pixlr.png",

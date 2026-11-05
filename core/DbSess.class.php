@@ -38,6 +38,7 @@ class core_DbSess extends core_Manager
     protected $maxLifetime = EF_USERS_SESS_LIFETIME;
     protected $maxInactiveTime = EF_USERS_SESS_TIMEOUT;
     protected $singleUseTimeout = EF_USERS_SESS_SINGLE_USE_TIMEOUT;
+    protected $timeoutsPrepared = false;
 
 
     /** Алгоритъмът за хеширане на sessId в БД: 'md5', 'sha256', ... */
@@ -126,6 +127,7 @@ class core_DbSess extends core_Manager
     public function readDb()
     {
         expect(isset($this->sessId));
+        $this->prepareTimeouts();
 
         $query = self::getQuery();
         $query->show('key,type,value,longValue');
@@ -215,6 +217,8 @@ class core_DbSess extends core_Manager
      */
     public function cron_ClearSess()
     {
+        $this->prepareTimeouts();
+
         // Изтриваме сесиите, за които е изтекло времето им за живот
         if ($this->maxLifetime) {
             $lateStartOn = time() - $this->maxLifetime;
@@ -244,6 +248,24 @@ class core_DbSess extends core_Manager
                     $this->delete(array("#sessId = '[#1#]'", $recStartOn->sessId));
                 }
             }
+        }
+    }
+
+    /**
+     * Зарежда времената за живот на сесията от настройките на пакета core
+     */
+    private function prepareTimeouts()
+    {
+        if ($this->timeoutsPrepared) return;
+
+        // Флагът се вдига преди четенето, за да не се зацикли, ако настройките стигнат до сесията
+        $this->timeoutsPrepared = true;
+
+        // Без достъп до настройките остават стойностите на константите
+        try {
+            $this->maxLifetime = (int) core_Setup::get('EF_USERS_SESS_LIFETIME', true);
+            $this->maxInactiveTime = (int) core_Setup::get('EF_USERS_SESS_TIMEOUT', true);
+        } catch (core_exception_Expect $e) {
         }
     }
 

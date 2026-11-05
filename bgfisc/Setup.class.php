@@ -103,7 +103,7 @@ class bgfisc_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'bgfisc_reports_SalesPayments,bgfisc_reports_AggregateSalesData,bgfisc_reports_DetailedSalesData,bgfisc_reports_ReversedSales,
-                          bgfisc_reports_CanceledSales,bgfisc_reports_SummaryPurchasesData,bgfisc_reports_DetailedPurchasesData,bgfisc_reports_MovementOfGoodsForAPeriod,bgfisc_driver_TestCardPayment';
+                          bgfisc_reports_CanceledSales,bgfisc_reports_SummaryPurchasesData,bgfisc_reports_DetailedPurchasesData,bgfisc_reports_MovementOfGoodsForAPeriod,bgfisc_driver_TestCardPayment,bgfisc_reports_N18Audit';
 
     /**
      * Описание на конфигурационните константи за този модул

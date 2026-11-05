@@ -7,7 +7,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -73,12 +73,17 @@ class cat_Listings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'doc=Документ,title, folderId, modifiedOn,modifiedBy';
+    public $listFields = 'doc=Документ,title,currencyId,folderId, modifiedOn,modifiedBy';
 
     /**
      * Кой може да го промени?
      */
     public $canEdit = 'listArt,ceo';
+
+    /**
+     * Кой може да превалутира листа от лева в евро?
+     */
+    public $canConverttoeur = 'listArt,ceo';
 
     /**
      * Кой има право да добавя?
@@ -220,6 +225,47 @@ class cat_Listings extends core_Master
                 }
             }
         }
+
+        // Превалутират се само листове в лева
+        if ($action == 'converttoeur' && isset($rec)) {
+            if (($rec->currencyId ?? null) != 'BGN' || ($rec->state ?? null) == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Превалутиране на лист от лева в евро с преизчисляване на цените
+     */
+    public function act_ConvertToEur()
+    {
+        $this->requireRightFor('converttoeur');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('converttoeur', $rec);
+
+        $Details = cls::get('cat_ListingDetails');
+        $saveRecs = array();
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#listId = {$rec->id} AND #price IS NOT NULL");
+        $dQuery->show('id,price');
+        while ($dRec = $dQuery->fetch()) {
+            // Поне 2 знака, но не по-малко от записаните, за да не се губи точност при малки цени
+            $decimals = max(2, strlen(substr(strrchr(rtrim(sprintf('%.6F', $dRec->price), '0'), '.'), 1)));
+            $dRec->price = round($dRec->price / 1.95583, $decimals);
+            $saveRecs[$dRec->id] = $dRec;
+        }
+
+        if (countR($saveRecs)) {
+            $Details->saveArray($saveRecs, 'id,price');
+        }
+
+        $rec->currencyId = 'EUR';
+        $this->save($rec, 'currencyId');
+        $this->logWrite('Смяна на валутата от BGN на EUR', $rec->id);
+
+        followRetUrl(array($this, 'single', $rec->id), 'Листът е превалутиран в евро');
     }
 
     /**
@@ -382,6 +428,10 @@ class cat_Listings extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->doc = $mvc->getLink($rec->id, 0);
+
+        if (isset($fields['-single']) && $mvc->haveRightFor('converttoeur', $rec)) {
+            $row->convertToEur = ht::createLink('', array($mvc, 'convertToEur', $rec->id, 'ret_url' => true), 'Цените на артикулите ще бъдат преизчислени от лева в евро|*!', 'ef_icon=img/16/arrow_refresh.png,title=Превалутиране в евро');
+        }
     }
     
     

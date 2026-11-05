@@ -905,8 +905,6 @@ class core_Packs extends core_Manager
     {
         requireRole('admin');
         
-        self::logRead('Обновяване на системата');
-        
         return self::systemUpdate();
     }
     
