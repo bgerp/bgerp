@@ -9,7 +9,7 @@
  * @package   sens2
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,11 +63,17 @@ class sens2_script_ActionSignal
      */
     public static function getOutputOpts()
     {
+        $opt = array();
         $cQuery = sens2_Controllers::getQuery();
         while ($cRec = $cQuery->fetch("#state = 'active'")) {
-            $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
+            $controllerId = $cRec->id ?? null;
+            if (!$controllerId) continue;
+            $ports = sens2_Controllers::getActivePorts($controllerId, 'outputs');
             foreach ($ports as $port => $pObj) {
-                $opt[$pObj->title] = $pObj->title;
+                $title = $pObj->title ?? null;
+                if (is_string($title) && $title !== '') {
+                    $opt[$title] = $title;
+                }
             }
         }
         
