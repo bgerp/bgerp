@@ -468,7 +468,7 @@ class bgfisc_SaleRegDocs extends core_Master
                 $row->ownCompanyId = crm_Companies::getHyperlink($rec->ownCompanyId, true);
             }
             if (!empty($rec->cartId)) {
-                $row->orderNumber = eshop_Carts::getHyperlink($rec->cartId, true);
+                $row->orderNumber = ht::createLink($row->orderNumber, eshop_Carts::getSingleUrlArray($rec->cartId));
             }
         }
 
