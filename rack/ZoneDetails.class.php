@@ -708,14 +708,14 @@ class rack_ZoneDetails extends core_Detail
                                 'Общо на позицията: ' . round($positionInfo->totalQuantity, 5),
                                 "Активни записи: {$positionRows}",
                             );
-                            $hint->append("<br><small style='display:inline-block; margin-top:5px; color:#757575; font-size:12px; white-space:normal; overflow-wrap:anywhere;'>"
+                            $hint->append("<br><small class='rack-quantity-diagnostics'>"
                                 . implode('<br>', $diagnosticRows) . '</small>');
                         }
 
                         $rRow->movement = preg_replace_callback(
                             '/\(([^)]+)\)(?=.*»)/u',
                             function ($matches) use ($hint) {
-                                $quantity = '<span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;">' . $matches[1] . '</span>';
+                                $quantity = '<span class="rack-full-quantity">' . $matches[1] . '</span>';
                                 $quantityHint = ht::createHint($quantity, $hint, 'noicon', false, array('isHtml' => true));
 
                                 return '( ' . $quantityHint->getContent() . ' )';
@@ -741,6 +741,7 @@ class rack_ZoneDetails extends core_Detail
             core_Debug::stopTimer("GET_MOVEMENTS_RENDER_TABLE");
 
             $tpl->append("style='width:100%;'", 'TABLE_ATTR');
+            $tpl->push('rack/css/common.css', 'CSS');
             $tpl->push('rack/css/ZoneDetails.css', 'CSS');
         }
         
