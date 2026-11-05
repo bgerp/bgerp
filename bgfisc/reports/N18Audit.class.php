@@ -324,6 +324,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $oRec->docDate = null;
         $oRec->paym = null;
         $oRec->posId = $oRec->transactionRef = $oRec->procId = '';
+        $oRec->payDocs = array();
 
         // Платеното с карта има документ по чл. 52о
         $regDoc = bgfisc_SaleRegDocs::fetch("#saleId = {$saleRec->id}");
@@ -367,9 +368,10 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $postalAccounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
         $bQuery = bank_IncomeDocuments::getQuery();
         $bQuery->where("#state = 'active' AND #threadId = {$saleRec->threadId}");
-        $bQuery->show('ownAccount');
+        $bQuery->show('id,ownAccount');
         while ($bRec = $bQuery->fetch()) {
             $oRec->paym = in_array($bRec->ownAccount, $postalAccounts) ? 3 : ($oRec->paym ?? 1);
+            $oRec->payDocs[] = array('bank_IncomeDocuments', $bRec->id);
         }
 
         if (empty($oRec->paym)) {
@@ -446,6 +448,18 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             'bank_SpendingDocuments' => array(array('bank2customer', 'bank2customerRet', 'bankAdvance2customer', 'bankAdvance2customerRet'), 1),
             'cash_Rko' => array(array('case2customer', 'case2customerRet', 'caseAdvance2customer', 'caseAdvance2customerRet'), 3),
         );
+        // Документите за връщане на стоката по нишки
+        $returns = array();
+        foreach (static::$deliveryDocs as $masterClass => $detailClass) {
+            $rQuery = $masterClass::getQuery();
+            $rQuery->where("#state = 'active' AND #isReverse = 'yes'");
+            $rQuery->in('threadId', array_keys($carts));
+            $rQuery->show('id,threadId');
+            while ($rRec = $rQuery->fetch()) {
+                $returns[$rRec->threadId][] = array($masterClass, $rRec->id);
+            }
+        }
+
         foreach ($docs as $class => $params) {
             list($operations, $rPaym) = $params;
             $query = $class::getQuery();
@@ -457,7 +471,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                 $saleRec = sales_Sales::fetch($cartRec->saleId, 'state,ownCompanyId');
                 $recs["r{$class}{$dRec->id}"] = (object) array('kind' => 'refund', 'cartId' => $cartRec->id, 'saleId' => $cartRec->saleId,
                     'saleState' => $saleRec->state ?? null, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
-                    'orderDate' => $dRec->valior, 'docs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
+                    'orderDate' => $dRec->valior, 'docs' => $returns[$dRec->threadId] ?? array(), 'payDocs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
                     'total2' => round($dRec->amount * (!empty($dRec->rate) ? $dRec->rate : 1), 2));
             }
         }
@@ -712,6 +726,16 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             }
         }
 
+        // Без документ по чл. 52о и бон се показват платежните документи - само на екрана, в XML файла номерът остава 0
+        if (empty($dRec->docNum) && countR($dRec->payDocs ?? null)) {
+            $payDocs = array();
+            foreach ($dRec->payDocs as $doc) {
+                list($class, $id) = $doc;
+                $payDocs[] = $class::getLink($id, 0);
+            }
+            $row->docNum = implode('<br>', $payDocs);
+        }
+
         // Начинът на плащане - цветно балонче с кода от XML файла в хинта
         $kind = ($dRec->kind == 'order') ? 'order' : 'refund';
         $code = $dRec->paym ?? null;
@@ -758,6 +782,11 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $res->docs = implode(', ', $docs);
         $res->net = isset($dRec->total1) ? round($dRec->total1 - ($dRec->disc ?? 0), 2) : null;
         $res->docNum = !empty($dRec->regDocId) ? bgfisc_SaleRegDocs::formatNumber($dRec->docNum) : (!empty($dRec->docNum) ? $dRec->docNum : null);
+        if (empty($res->docNum) && countR($dRec->payDocs ?? null)) {
+            $res->docNum = implode(', ', array_map(function ($doc) {
+                return '#' . $doc[0]::getHandle($doc[1]);
+            }, $dRec->payDocs));
+        }
         $res->paym = countR($dRec->errors ?? array()) ? 'n/a' : ($dRec->paym ?? null);
         $kind = (($dRec->kind ?? null) == 'order') ? 'order' : 'refund';
         $res->paymName = isset(static::$paymentCodes[$kind][$dRec->paym ?? null]) ? tr(static::$paymentCodes[$kind][$dRec->paym]) : null;
