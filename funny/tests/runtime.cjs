@@ -235,7 +235,22 @@ check('nearby visitors repel after emerging instead of converging through each o
     }
     e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
-check('background and unfocused tabs pause and close sound without replay', () => {
+check('returning to a visible focused tab restarts the full initial interval, even one second before a due appearance',()=>{
+    for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
+        const e=environment({frequency,sound:'no'},{weather:'clouds'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        e.tick([...e.timers.values()][0].at-1000);
+        if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
+        e.tick(60000);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);
+        e.document.visibilityState='visible';e.document.focused=false;e.document.emit('visibilitychange');assert.equal(e.timers.size,0,'visibility alone is not focus');
+        e.document.focused=true;e.window.emit('focus');
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        e.tick(delay-(min-100)+20);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
+        e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);
+        e.document.focused=true;e.window.emit('focus');const next=[...e.timers.values()][0].at-e.now();assert(next>=min && next<=max);
+    }
+});
+check('background and unfocused tabs stop effects and close sound without replay', () => {
     const e=environment();e.click();assert(e.sounds.length>0);
     e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);assert.equal(e.audio[0].state,'closed');
     const count=e.sounds.length;e.tick(900000);assert.equal(e.sounds.length,count);assert.equal(e.timers.size,0);

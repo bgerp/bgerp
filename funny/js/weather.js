@@ -26,7 +26,7 @@
             initialized = true;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
             var layer = null, canvas = null, context = null, audio = null;
-            var timer = 0, frame = 0, printing = false, appearances = 0, due = 0;
+            var timer = 0, frame = 0, printing = false, appearances = 0;
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
@@ -380,7 +380,6 @@
             /** Disabled characters leave weather its own timer with the same growing intervals. */
             function schedule() {
                 if (!options.standalone || layer || timer || !active() || !forecast()) return;
-                due = performance.now() + remaining;
                 timer = window.setTimeout(function () {
                     timer = 0;
                     if (!active()) return;
@@ -406,10 +405,10 @@
                 schedule();
             }
 
-            /** Background time never advances the standalone countdown or replays old effects. */
+            /** Focus starts a fresh idle interval instead of resuming a nearly expired countdown. */
             function focusChanged() {
-                if (timer && !layer) remaining = Math.max(1000, due - performance.now());
-                stop(); schedule();
+                stop();
+                activity({type: 'focus'});
             }
             window.funnyWeather.current = function () { return active() ? forecast() : ''; };
             window.funnyWeather.trace = trace;

@@ -103,13 +103,17 @@ check('all provider icon names map to the expected weather',()=>{
         snow:['snow','snow-showers-day','snow-showers-night','hail','sleet','rain-snow','rain-snow-showers-day','rain-snow-showers-night']};
     for(const [kind,icons] of Object.entries(groups)) for(const icon of icons) {const e=environment({icon});e.tick(51000);assert(e.layer().attrs['data-weather'].includes(kind),icon);}
 });
-check('blur and hidden tabs pause the countdown and stop visuals without replaying them',()=>{
-    for(const hidden of [false,true]) {
-        const e=environment();const first=[...e.timers.values()][0].at;e.tick(10000);
+check('returning from blur or a hidden tab gives standalone weather a full initial idle interval',()=>{
+    for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
+        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        e.tick([...e.timers.values()][0].at-1000);
         if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
         e.tick(60000);assert(!e.layer());assert.equal(e.timers.size,0);
-        e.document.visibilityState='visible';e.document.focused=true;e.window.emit('focus');assert(!e.layer());e.tick(first-10000);assert(e.layer());
-        e.document.focused=false;e.window.emit('blur');assert(!e.layer());e.document.focused=true;e.window.emit('focus');e.tick(1000);assert(!e.layer());
+        e.document.visibilityState='visible';e.document.focused=false;e.document.emit('visibilitychange');assert.equal(e.timers.size,0);
+        e.document.focused=true;e.window.emit('focus');const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert(!e.layer());e.tick(delay-(min-100)+20);assert(e.layer());
+        e.document.focused=false;e.window.emit('blur');assert(!e.layer());e.document.focused=true;e.window.emit('focus');
+        const next=[...e.timers.values()][0].at-e.now();assert(next>=min && next<=max);e.tick(1000);assert(!e.layer());
     }
 });
 check('typing, scroll, touch movement, resizing, printing and page exit stop animation',()=>{
