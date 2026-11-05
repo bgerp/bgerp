@@ -55,7 +55,7 @@ function environment(config = {}) {
     window.self=window;window.top=config.iframe?{}:window;
     const math=Object.create(Math);math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     const options={mode:config.mode || 'on',icon:config.icon || 'rain',strength:config.strength,temperature:config.temperature,wind:config.wind,windDirection:config.windDirection,standalone:config.standalone !== false,frequency:config.frequency || 'normal',expires:config.expires || 86400000};
-    class ClockDate extends Date { constructor(){super(config.date || '2026-10-30T12:00:00');} static now(){return now;} }
+    class ClockDate extends Date { constructor(){super(new Date(config.date || '2026-10-30T12:00:00').getTime()+now);} static now(){return now;} }
     vm.runInNewContext(source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
     window.funnyWeather.init(options);
     function tick(ms) {
@@ -102,6 +102,23 @@ check('all provider icon names map to the expected weather',()=>{
         rain:['rain','showers-day','showers-night','thunder','thunder-rain','thunder-showers-day','thunder-showers-night'],
         snow:['snow','snow-showers-day','snow-showers-night','hail','sleet','rain-snow','rain-snow-showers-day','rain-snow-showers-night']};
     for(const [kind,icons] of Object.entries(groups)) for(const icon of icons) {const e=environment({icon});e.tick(51000);assert(e.layer().attrs['data-weather'].includes(kind),icon);}
+});
+check('sun follows local time from right through high noon to left, stays in the viewport and updates while visible',()=>{
+    for(const width of [320,1000]) for(const icon of ['clear-day','partly-cloudy-day','showers-day']) {
+        const positions={};
+        for(const hour of ['00','08','12','17','23']) {
+            const e=environment({icon,width,date:'2026-10-30T'+hour+':00:00'});e.window.funnyWeather.trigger('manual');
+            const sun=e.layer().children.find(n=>n.className==='funny-weather-sun');
+            const x=parseFloat(sun.style.left),y=parseFloat(sun.style.top);positions[hour]={x,y};
+            assert(x>=0 && x+90<=width);assert(y>=0 && y+90<=e.window.innerHeight);
+        }
+        assert(positions['08'].x+45>width/2);assert.equal(positions['12'].x+45,width/2);assert(positions['17'].x+45<width/2);
+        assert(positions['12'].y<positions['08'].y && positions['12'].y<positions['17'].y);
+    }
+    const e=environment({icon:'clear-day',date:'2026-10-30T11:59:58'});e.window.funnyWeather.trigger('manual');
+    const sun=e.layer().children.find(n=>n.className==='funny-weather-sun'),before=parseFloat(sun.style.left);
+    e.tick(4000);assert(parseFloat(sun.style.left)<before);assert(e.layer().children.includes(sun));
+    e.document.emit('pointermove');e.tick(1100);assert(!e.layer());assert.equal(e.timers.size,1);assert.equal(e.frames.size,0);
 });
 check('returning from blur or a hidden tab gives standalone weather a full initial idle interval',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
