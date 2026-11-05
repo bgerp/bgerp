@@ -374,8 +374,23 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             $oRec->payDocs[] = array('bank_IncomeDocuments', $bRec->id);
         }
 
-        if (empty($oRec->paym)) {
-            $oRec->errors[] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон или ПБД';
+        // ПКО без бон - наложеният платеж с ППП, внесен от куриера в касата
+        $cQuery = cash_Pko::getQuery();
+        $cQuery->where("#state = 'active' AND #threadId = {$saleRec->threadId}");
+        $cQuery->show('id');
+        while ($cRec = $cQuery->fetch()) {
+            $oRec->payDocs[] = array('cash_Pko', $cRec->id);
+            if (empty($oRec->paym)) {
+                if (($saleRec->paymentType ?? null) == 'postal') {
+                    $oRec->paym = 3;
+                } else {
+                    $oRec->errors['cash'] = 'Плащане в брой без фискален бон';
+                }
+            }
+        }
+
+        if (empty($oRec->paym) && empty($oRec->errors['cash'])) {
+            $oRec->errors[] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон, ПБД или ПКО';
         }
     }
 
