@@ -4274,6 +4274,7 @@ en,Поръчката ще бъде потвърдена допълнителн�
 en,Плащането се обработва в момента,The payment is being processed right now
 en,Платеното е отразено,The payment was recorded
 en,Платеното пак не е отразено - причината е в лога,The payment is still not recorded - the reason is in the log
+en,Плащане с карта не е отразено в поръчката,A card payment is not recorded in the order
 en,Повторен опит за отразяване на платеното в поръчката,Retry recording the payment in the order
 en,Поръчката не очаква плащане с карта,The order does not expect a card payment
 en,Плати с грешка при отразяване,Pay with a recording error

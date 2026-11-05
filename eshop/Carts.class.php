@@ -1937,7 +1937,7 @@ class eshop_Carts extends core_Master
             if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
                 
                 // Ако драйвера на метода на плащане добавя текст, показва се и той
-                $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec);
+                $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec, 'eshop_Carts', $rec->id);
                 if (!empty($paymentDriverText)) {
                     $tpl->append($paymentDriverText, 'PAYMENT_TEXT_RIGHT');
                 }

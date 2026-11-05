@@ -95,6 +95,12 @@ class cond_CardPayments extends core_Manager
 
 
     /**
+     * Колко пъти общо се опитва отразяването на платеното, преди да се известят отговорните
+     */
+    const MAX_NOTIFY_TRIES = 5;
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -178,6 +184,13 @@ class cond_CardPayments extends core_Manager
 
         $Driver = self::getDriver($paymentId);
         expect($Driver, 'Методът на плащане не е картов');
+
+        // Платеното, но неотразено не се плаща втори път - купувачът вижда, че плащането е получено
+        $paidRec = self::fetchUnreflected($initiatorClassId, $initiatorId);
+        if (is_object($paidRec)) {
+
+            return new Redirect(array($this, 'result', $paidRec->id));
+        }
 
         // Сумата е тази на поръчката в момента, а не при показването на бутона
         $baseAmount = cls::getInterface('eshop_InitiatorPaymentIntf', $initiatorClassId)->getAmountToPay($initiatorId, $paymentId);
@@ -347,17 +360,10 @@ class cond_CardPayments extends core_Manager
         expect($rec = $this->fetch($id));
         $this->requireRightFor('retry', $rec);
 
-        $lockKey = self::getLockKey($rec->id);
-        if (!core_Locks::obtain($lockKey, 120, 20, 15)) {
+        $ok = self::retryNotify($rec->id);
+        if (!isset($ok)) {
 
             return new Redirect(array($this, 'list'), 'Плащането се обработва в момента|*!', 'warning');
-        }
-
-        try {
-            $rec = $this->fetch($id, '*', false);
-            $ok = (empty($rec->notifiedOn) && $rec->state == 'paid') ? self::notifyInitiator($rec) : true;
-        } finally {
-            core_Locks::release($lockKey);
         }
 
         if ($ok) {
@@ -366,6 +372,65 @@ class cond_CardPayments extends core_Manager
         }
 
         return new Redirect(array($this, 'list'), 'Платеното пак не е отразено - причината е в лога|*!', 'error');
+    }
+
+
+    /**
+     * Повторно отразяване на платеното в поръчката - от бутона и от cron-а
+     *
+     * @param int           $id  - опитът за плащане
+     * @param stdClass|null $rec - опитът след опита за отразяване
+     *
+     * @return bool|null - отразено ли е; null, ако опитът се обработва в момента
+     */
+    public static function retryNotify($id, &$rec = null)
+    {
+        $lockKey = self::getLockKey($id);
+        if (!core_Locks::obtain($lockKey, 120, 20, 15)) {
+
+            return null;
+        }
+
+        try {
+            $rec = self::fetch($id, '*', false);
+            $ok = (empty($rec->notifiedOn) && $rec->state == 'paid') ? self::notifyInitiator($rec) : true;
+        } finally {
+            core_Locks::release($lockKey);
+        }
+
+        // Известието е за всички неотразени - маха се, когато не остане нито едно
+        if ($ok && !self::count("#state = 'paid' AND #notifiedOn IS NULL AND #operation = 'payment'")) {
+            bgerp_Notifications::clear(self::getUnreflectedListUrl(), '*');
+        }
+
+        return $ok;
+    }
+
+
+    /**
+     * Платеният опит за поръчката, който още не е отразен в нея
+     *
+     * @param mixed $initiatorClass - класът инициатор (име или ид)
+     * @param int   $initiatorId    - ид на инициатора
+     *
+     * @return stdClass|false
+     */
+    public static function fetchUnreflected($initiatorClass, $initiatorId)
+    {
+        $initiatorClassId = core_Classes::getId($initiatorClass);
+
+        return self::fetch(array("#initiatorClassId = [#1#] AND #initiatorId = [#2#] AND #operation = 'payment' AND #state = 'paid' AND #notifiedOn IS NULL", (int) $initiatorClassId, (int) $initiatorId));
+    }
+
+
+    /**
+     * Списъкът с платеното и неотразеното - към него води известието
+     *
+     * @return array
+     */
+    protected static function getUnreflectedListUrl()
+    {
+        return array('cond_CardPayments', 'list', 'fState' => 'notNotified');
     }
 
 
@@ -576,6 +641,17 @@ class cond_CardPayments extends core_Manager
      */
     protected static function notifyInitiator($rec)
     {
+        // Поръчката е платена с друг опит - второто плащане е за връщане, не за отразяване
+        $otherCond = array("#initiatorClassId = [#1#] AND #initiatorId = [#2#] AND #operation = 'payment' AND #state = 'paid' AND #notifiedOn IS NOT NULL AND #id != [#3#]", (int) $rec->initiatorClassId, (int) $rec->initiatorId, (int) $rec->id);
+        if (self::count($otherCond)) {
+            $rec->state = 'error';
+            $rec->message = 'Поръчката вече е платена с друго плащане';
+            self::save($rec, 'state,message');
+            self::logErr("Одобрено плащане не е отразено: {$rec->message}", $rec->id);
+
+            return false;
+        }
+
         // Неплатената още поръчка не бива да е променена след плащането (напр. преди повторен опит)
         $current = cls::getInterface('eshop_InitiatorPaymentIntf', $rec->initiatorClassId)->getAmountToPay($rec->initiatorId, $rec->paymentId);
         if (isset($current) && abs($current - $rec->baseAmount) > 0.001) {
@@ -672,6 +748,40 @@ class cond_CardPayments extends core_Manager
                 self::logErr('Грешка при проверка на статуса в шлюза: ' . $e->getMessage(), $rec->id);
             }
         }
+
+        // Платеното, но неотразено се опитва пак; минутата пази от отговора, който още се отразява
+        $query = self::getQuery();
+        $query->where(array("#state = 'paid' AND #operation = 'payment' AND #notifiedOn IS NULL AND #notifyTries < [#1#] AND #paidOn <= '[#2#]' AND #createdOn >= '[#3#]'", self::MAX_NOTIFY_TRIES, dt::addSecs(-60), dt::addSecs(-3 * 86400)));
+        $query->orderBy('id', 'ASC');
+        $query->limit(100);
+        while ($rec = $query->fetch()) {
+            try {
+                $ok = self::retryNotify($rec->id, $rec);
+                if ($ok === false && ($rec->notifyTries ?? 0) >= self::MAX_NOTIFY_TRIES) {
+                    self::notifyResponsible($rec);
+                }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                reportException($e);
+                self::logErr('Грешка при повторно отразяване на платеното: ' . $e->getMessage(), $rec->id);
+            }
+        }
+    }
+
+
+    /**
+     * Известие до тези, които могат да довършат платеното, но неотразено
+     *
+     * @param stdClass $rec - опитът за плащане
+     */
+    protected static function notifyResponsible($rec)
+    {
+        $users = core_Users::getByRole('ceo') + core_Users::getByRole('admin');
+        foreach ($users as $userId) {
+            bgerp_Notifications::add('|Плащане с карта не е отразено в поръчката|*', self::getUnreflectedListUrl(), $userId, 'warning');
+        }
+        self::logErr('Платеното с карта не е отразено след ' . self::MAX_NOTIFY_TRIES . ' опита', $rec->id);
     }
 
 
@@ -739,8 +849,9 @@ class cond_CardPayments extends core_Manager
             }
         }
 
-        if ($mvc->haveRightFor('retry', $rec)) {
-            $row->state .= ' ' . ht::createLink('', array($mvc, 'retry', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Повторен опит за отразяване на платеното в поръчката');
+        // Повторният опит е само в списъка, не и на страницата за купувача
+        if (isset($fields['-list']) && $mvc->haveRightFor('retry', $rec)) {
+            $row->state = ($row->state ?? '') . ' ' . ht::createLink('', array($mvc, 'retry', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Повторен опит за отразяване на платеното в поръчката');
         }
     }
 
@@ -793,6 +904,7 @@ class cond_CardPayments extends core_Manager
         if (!empty($filter->fState) && $filter->fState != 'all') {
             if ($filter->fState == 'notNotified') {
                 $data->query->where("#state = 'paid' AND #notifiedOn IS NULL AND #operation = 'payment'");
+                bgerp_Notifications::clear(self::getUnreflectedListUrl());
             } else {
                 $data->query->where(array("#state = '[#1#]'", $filter->fState));
             }
