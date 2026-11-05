@@ -690,7 +690,7 @@ class rack_ZoneDetails extends core_Detail
 
                 if (!empty($availableQtyBeforeStart) && abs($mRec->quantity - $availableQtyBeforeStart) < 0.0001) {
                     if (!empty($rRow->movement)) {
-                        $hint = new core_ET('Цялото налично количество на позицията!');
+                        $hint = new core_ET("<span class='rack-full-quantity-hint'>Цялото налично количество на позицията!</span>");
                         if (haveRole('debug')) {
                             $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
                             $positionRows = array();
@@ -708,7 +708,8 @@ class rack_ZoneDetails extends core_Detail
                                 'Общо на позицията: ' . round($positionInfo->totalQuantity, 5),
                                 "Активни записи: {$positionRows}",
                             );
-                            $hint->append("<br><small class='quiet'>" . implode('<br>', $diagnosticRows) . '</small>');
+                            $hint->append("<br><small style='display:inline-block; margin-top:5px; color:#757575; font-size:12px; white-space:normal; overflow-wrap:anywhere;'>"
+                                . implode('<br>', $diagnosticRows) . '</small>');
                         }
 
                         $rRow->movement = preg_replace_callback(
@@ -740,6 +741,7 @@ class rack_ZoneDetails extends core_Detail
             core_Debug::stopTimer("GET_MOVEMENTS_RENDER_TABLE");
 
             $tpl->append("style='width:100%;'", 'TABLE_ATTR');
+            $tpl->push('rack/css/ZoneDetails.css', 'CSS');
         }
         
         $tpl->removePendings('COMMON_ROW_ATTR');

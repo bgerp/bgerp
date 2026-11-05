@@ -1,0 +1,5 @@
+.additionalInfo-holder .additionalInfo:has(> .rack-full-quantity-hint),
+.fuiHintLayer:has(> .rack-full-quantity-hint) {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
