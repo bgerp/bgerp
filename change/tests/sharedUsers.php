@@ -81,7 +81,11 @@ class cls
     public static function get($class) { return self::$document; }
     public static function haveInterface($interface, $mvc) { return true; }
 }
-class Request { public static function get($key) { return null; } }
+class Request
+{
+    public static $values = array();
+    public static function get($key) { return self::$values[$key] ?? null; }
+}
 class Mode
 {
     public static $values = array();
@@ -96,8 +100,14 @@ class dt
     public static function verbal2Mysql() { return self::now(); }
 }
 class core_DateTime extends dt {}
-class core_Users { public static function getCurrent() { return 9; } }
+class core_Users
+{
+    public static $current = 9;
+    public static function getCurrent() { return self::$current; }
+}
 class Users extends core_Users {}
+class core_Cache { public static function remove($type, $key) {} }
+class doc_DocumentCache { public static function addToInvalidateCId($id) {} }
 class crm_Profiles
 {
     public static function createLink($id) { return '<a>User' . (int) $id . '</a>'; }
@@ -114,7 +124,7 @@ class SharingType
 }
 class SharingDocument extends core_Mvc
 {
-    public $className = 'SharingDocument', $fields = array(), $changableFields = 'body';
+    public $className = 'SharingDocument', $fields = array(), $changableFields = 'body', $writes = 0;
     public function __construct($hasAssign = true)
     {
         foreach ($hasAssign ? array('body', 'sharedUsers', 'assign') : array('body', 'sharedUsers') as $field) {
@@ -125,15 +135,26 @@ class SharingDocument extends core_Mvc
     public function getField($field, $strict = true) { return $this->fields[$field] ?? false; }
     public function getFieldType($field) { return $this->fields[$field]->type ?? null; }
     public function fetch($id) { return clone SharingFixture::$documents[$id]; }
+    public function fetchField($id, $field) { return SharingFixture::$documents[$id]->{$field} ?? null; }
     public function getShared($id)
     {
-        $rec = $this->fetch($id);
-        return keylist::fromArray(keylist::toArray($rec->sharedUsers ?? null) + keylist::toArray($rec->assign ?? null));
+        $shared = null;
+        (new doc_SharablePlg())->on_AfterGetShared($this, $shared, $id);
+        if ($this->getField('assign', false)) (new doc_AssignPlg())->on_AfterGetShared($this, $shared, $id);
+        return $shared;
+    }
+    public function save_($rec, $fields)
+    {
+        if ($fields !== 'sharedViews') throw new RuntimeException('Viewing may only save sharedViews');
+        SharingFixture::$documents[$rec->id ?? null]->sharedViews = $rec->sharedViews ?? null;
+        $this->writes++;
+        return $rec->id ?? null;
     }
 }
 require $root . '/change/Log.class.php';
 require $root . '/change/Plugin.class.php';
 require $root . '/doc/SharablePlg.class.php';
+require $root . '/doc/AssignPlg.class.php';
 
 function prepareSharing($id, $selection, $history, $current, $hasAssign = true)
 {
@@ -206,5 +227,56 @@ $saved = change_Log::getRecForVersion(501, 17, '501.17.2', array('sharedUsers' =
 SharingFixture::check(($saved['sharedUsers']->value ?? null) === '|3|5|' && ($saved['assign']->value ?? null) === '|6|', 'Every new document version must snapshot recipients, including non-editable fields');
 SharingFixture::check(!change_Log::getRecForVersion(501, 17, '501.17.0', 'sharedUsers'), 'Newly tracked recipients must not be attached to the first old version');
 SharingFixture::check(change_Plugin::getAllowedFields(cls::$document->getForm(), 'body') === array('body' => 'body'), 'Recording recipients must not expand edit permissions');
+
+// Общият footer и двата собствени шаблона използват едно и също място за получателите.
+$id = 100;
+foreach (array('doc/tpl/DocumentsSingleLayoutFooter.shtml', 'blast/tpl/SingleLayoutLists.shtml', 'blast/tpl/SingleLayoutEmails.shtml') as $path) {
+    preg_match('/<!--ET_BEGIN shareLog-->(.*?)<!--ET_END shareLog-->/s', file_get_contents($root . '/' . $path), $block);
+    SharingFixture::check(isset($block[0]), 'Missing sharing block in ' . $path);
+    foreach (array(false, true) as $hasAssign) {
+        foreach (array(array(), array('current')) as $selection) {
+            $data = prepareSharing($id++, $selection, $history, $current, $hasAssign);
+            $tpl = new ET($block[0]);
+            doc_SharablePlg::on_AfterRenderSingle(cls::$document, $tpl, $data);
+            change_Plugin::on_AfterRenderSingle(cls::$document, $tpl, $data);
+            $html = $tpl->getContent();
+            SharingFixture::check(strpos($html, 'User2</a></span> (2026-01-01 12:30:00)') !== false &&
+                strpos($html, 'User3</a></span> (2026-01-02 12:30:00)') !== false, 'Seen recipients must retain their dates, including removed users: ' . $path);
+            SharingFixture::check(strpos($html, 'User5</a></span>') !== false, 'Current unseen recipients must remain visible: ' . $path);
+            SharingFixture::check(strpos($html, 'User4') === false && (strpos($html, 'User6') !== false) === $hasAssign, 'Removed unseen users disappear; current assignees are shared only where supported: ' . $path);
+        }
+    }
+}
+
+// Реалният обработчик за виждане: споделяне, възлагане, премахване и състояния на документа.
+foreach (array(false, true) as $hasAssign) {
+    foreach (array('draft', 'rejected', 'active', 'closed') as $state) {
+        foreach (array(2, 3, 5, 6, 7) as $userId) {
+            $mvc = new SharingDocument($hasAssign);
+            $rec = (object) ($current + array('id' => $id++, 'containerId' => 200, 'state' => $state));
+            SharingFixture::$documents[$rec->id ?? null] = clone $rec;
+            $data = (object) array('rec' => clone $rec);
+            $tpl = new ET('Document');
+            core_Users::$current = $userId;
+            doc_SharablePlg::on_AfterRenderDocument($mvc, $tpl, $rec->id ?? null, $data);
+            $shouldWrite = !in_array($state, array('draft', 'rejected')) && ($userId === 5 || ($hasAssign && $userId === 6));
+            SharingFixture::check($mvc->writes === (int) $shouldWrite, 'Unexpected view write for state/user/assignment ' . $state . '/' . $userId . '/' . (int) $hasAssign);
+            $stored = $mvc->fetch($rec->id ?? null);
+            $views = unserialize($stored->sharedViews ?? '');
+            SharingFixture::check(($views[2] ?? null) === '2026-01-01 12:30:00' && ($views[3] ?? null) === '2026-01-02 12:30:00' &&
+                (!$shouldWrite || ($views[$userId] ?? null) === dt::now()), 'First viewing times must be preserved');
+            SharingFixture::check(($stored->sharedUsers ?? null) === ($rec->sharedUsers ?? null) && ($stored->assign ?? null) === ($rec->assign ?? null), 'Viewing must not change recipients');
+        }
+    }
+}
+
+// Печатният изглед също отбелязва виждането по текущите получатели.
+core_Users::$current = 5;
+Request::$values['Printing'] = true;
+$data = prepareSharing($id++, array('current'), $history, $current + array('state' => 'active', 'containerId' => 200), false);
+renderSharing($data);
+SharingFixture::check(cls::$document->writes === 1, 'Print preview must still record a first view');
+unset(Request::$values['Printing']);
+core_Users::$current = 9;
 
 echo 'PASS: ' . SharingFixture::$checks . " checks\n";
