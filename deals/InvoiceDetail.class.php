@@ -739,6 +739,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     if (!isset($policyInfo->price)) {
                         $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
                         $form->setError('packPrice', $errorMsg);
+                        return;
                     } else {
 
                         // Ако се обновява запис се взима цената от него, ако не от политиката

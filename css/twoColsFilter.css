@@ -230,27 +230,28 @@
   flex-shrink: 0;
   margin: 0; }
 
-
-/* Дата и час на един ред, с обща широчина за полето. */
+/*
+ * Дата и час на един ред, с обща широчина за полето.
+ */
 .twoColsFilterDateTimeInput {
-    display: inline-flex;
-    align-items: flex-start;
-    gap: 0.3em;
-    vertical-align: top;
-}
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.3em;
+  vertical-align: top; }
+
 .twoColsFilterDateTimeInput > .twoColsFilterDateInput {
-    flex: 1 1 auto;
-    min-width: 0;
-}
+  flex: 1 1 auto;
+  min-width: 0; }
+
 .twoColsFilterDateTimeInput > .twoColsFilterDateInput > input {
-    width: 100%;
-}
+  width: 100%; }
+
 .twoColsFilterDateTimeInput > .twoColsFilterComboInput {
-    flex: 0 0 auto;
-}
+  flex: 0 0 auto; }
+
 .twoColsFilterDateTimeInput > .twoColsFilterComboInput > input {
-    box-sizing: border-box;
-}
+  box-sizing: border-box; }
+
 .wide .twoColsFilter.twoColsFilterActive .formElement {
-    vertical-align: top;
-}
+  vertical-align: top; }
+

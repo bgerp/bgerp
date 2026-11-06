@@ -8,7 +8,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -118,7 +118,22 @@ abstract class deals_PaymentDocument extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($fields['-list'])){
-            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId, array(), true);
+            // За LLM - видът пред номера, за да се различава проформата от фактурата и известията
+            if (Mode::is('renderForLlm')) {
+                $invoicesArr = array();
+                foreach (deals_InvoicesToDocuments::getInvoiceArr($rec->containerId) as $iRec) {
+                    $Document = doc_Containers::getDocument($iRec->containerId);
+                    $dRec = $Document->fetch();
+                    $type = $dRec->type ?? 'invoice';
+                    if ($type == 'dc_note') {
+                        $type = (($dRec->dealValue ?? 0) <= 0) ? 'credit_note' : 'debit_note';
+                    }
+                    $kind = $Document->isInstanceOf('sales_Proformas') ? 'Proforma' : (($type == 'credit_note') ? 'Credit note' : (($type == 'debit_note') ? 'Debit note' : 'Invoice'));
+                    $invoicesArr[] = $kind . ' ' . $Document->getInstance()->getVerbal($dRec, 'number');
+                }
+            } else {
+                $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId, array(), true);
+            }
             if(countR($invoicesArr)){
                 $row->invoices = implode(',', $invoicesArr);
             }

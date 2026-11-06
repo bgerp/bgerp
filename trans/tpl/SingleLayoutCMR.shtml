@@ -59,7 +59,7 @@
         <tr>
             <td colspan="2" class="cmr-nested">
                 <table class="cmr-goods">
-                    <colgroup><col style="width: 14%"><col style="width: 12%"><col style="width: 13%"><col style="width: 25%"><col style="width: 12%"><col style="width: 13%"><col style="width: 11%"></colgroup>
+                    <colgroup><col span="7" style="width: 14.285714%"></colgroup>
                     <tr>
                         <td class="cmr-goods-heading"><b>6. Marks and numbers</b></td>
                         <td class="cmr-goods-heading"><b>7. Number of packages</b></td>
