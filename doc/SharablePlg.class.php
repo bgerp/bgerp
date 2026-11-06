@@ -8,7 +8,7 @@
  * @package   doc
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -125,7 +125,7 @@ class doc_SharablePlg extends core_Plugin
         }
         
         // Ако не сме в xhtml режим
-        if (!Mode::is('text', 'xhtml')) {
+        if (!Mode::is('text', 'xhtml') && empty($data->versionUserFields)) {
             $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
             $history = static::prepareHistory($data->rec);
 
