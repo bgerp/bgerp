@@ -84,6 +84,8 @@ try {
 (() => {
     const errors = [];
     document.querySelectorAll('.cmr-form img').forEach(img => {
+        // Печатите запазват естествения си размер и могат да излизат от клетката.
+        if (img.classList.contains('documentSignStamp')) return;
         const r = img.getBoundingClientRect(), c = img.closest('td').getBoundingClientRect();
         if (r.left < c.left - 1 || r.right > c.right + 1 || r.top < c.top - 1 || r.bottom > c.bottom + 1) errors.push('Image outside cell');
     });

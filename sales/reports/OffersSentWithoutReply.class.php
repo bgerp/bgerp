@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -185,27 +185,36 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
             $dealerEmails[$dil][$dil . '|' . $email->folderId] = $email;
         }
 
-        $lastOutEmails = array();
+        $lastOutEmails = $offerFolders = array();
+        $minOfferOn = null;
         foreach ($dealerEmails as $emails) {
             $lastOutEmails += $emails;
+            foreach ($emails as $email) {
+                $offerFolders[$email->folderId] = $email->folderId;
+                if (!isset($minOfferOn) || $email->createdOn < $minOfferOn) {
+                    $minOfferOn = $email->createdOn;
+                }
+            }
         }
         self::addReportStat($data, 'lastOutMails', microtime(true) - $timer, countR($outgoingMailsArr));
         self::addReportStat($data, 'noOfferInBody', 0, $skipped['noOfferInBody']);
 
-        //Определяме последния входящ имейл в папките на избраните дилъри
-        $mInQuery = email_Incomings::getQuery();
-        $mInQuery->in('folderId',$foldersForChek);
-        $mInQuery->where(array(
-            "#createdOn >= '[#1#]'", $periodEnd . ' 00:00:00'));
-
-        // Само датата на последния входящ имейл в папка - без тежките колони на имейлите
-        $mInQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
-        $mInQuery->groupBy('folderId');
-        $mInQuery->show('folderId, maxCreatedOn');
-
+        // Последният входящ имейл - само в папките с оферта и след най-ранната от тях,
+        // по-старите не могат да са отговор
         $timer = microtime(true);
-        while ($mInRec = $mInQuery->fetch()) {
-            $incomingMailsArr[$mInRec->folderId] = $mInRec->maxCreatedOn;
+        if (!empty($offerFolders)) {
+            $mInQuery = email_Incomings::getQuery();
+            $mInQuery->in('folderId', $offerFolders);
+            $mInQuery->where(array("#createdOn >= '[#1#]'", $minOfferOn));
+
+            // Само датата на последния входящ имейл в папка - без тежките колони на имейлите
+            $mInQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+            $mInQuery->groupBy('folderId');
+            $mInQuery->show('folderId, maxCreatedOn');
+
+            while ($mInRec = $mInQuery->fetch()) {
+                $incomingMailsArr[$mInRec->folderId] = $mInRec->maxCreatedOn;
+            }
         }
         self::addReportStat($data, 'inMails', microtime(true) - $timer, countR($incomingMailsArr));
 
