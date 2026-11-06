@@ -1,36 +1,69 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class="domestic-waybill">
-    <h2 class="centered">|ТОВАРИТЕЛНИЦА|* [#waybillNumber#]</h2>
-    <p class="centered">|За обществен автомобилен превоз в страната|*<br>|Приложение № 15 към Наредба № 33|*</p>
-    <!--ET_BEGIN documentStatus--><p class="centered"><b>[#documentStatus#]</b></p><!--ET_END documentStatus-->
-    <p>|Издадена в|*: [#issuePlace#] &nbsp; |на|* [#issueDate#] &nbsp; · &nbsp; [#lineId#]</p>
-    <table class="innerTable border-table paddingCells" style="width:100%">
-        <tr><th style="width:50%">|Изпращач|*</th><th>|Превозвач|*</th></tr>
-        <tr><td><b>[#senderName#]</b><br>[#senderAddress#]</td><td><b>[#carrierName#]</b><br>[#carrierAddress#]<br>|ЕИК|*: [#carrierNumber#]</td></tr>
-        <tr><th>|Получател|*</th><th>|Натоварване|*</th></tr>
-        <tr><td><b>[#recipientName#]</b><br>[#recipientAddress#]</td><td>[#loadingPlace#]<br>|Дата|*: [#loadingDate#]</td></tr>
-        <tr><th>|Разтоварване|*</th><th>|Пробег|*</th></tr>
-        <tr><td>[#unloadingPlace#]<br>|Дата|*: [#unloadingDate#]</td><td>[#distance#] |км|*</td></tr>
+    <h2 class="centered" style="margin-bottom:2px">|ТОВАРИТЕЛНИЦА|* [#waybillNumber#]</h2>
+    <div class="centered quiet small">|За обществен автомобилен превоз в страната|* &nbsp;·&nbsp; |Приложение № 15 към Наредба № 33|*</div>
+    <!--ET_BEGIN documentStatus--><div class="centered" style="margin-top:6px"><b style="color:#c00">[#documentStatus#]</b></div><!--ET_END documentStatus-->
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:10px">
+        <tr>
+            <td style="width:50%"><span class="quiet">|Издадена в|*:</span> <b>[#issuePlace#]</b> &nbsp; <span class="quiet">|на|*</span> <b>[#issueDate#]</b></td>
+            <td><span class="quiet">|Транспортна линия|*:</span> [#lineId#]</td>
+        </tr>
     </table>
-    <h3>|Товар|*</h3>
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:10px">
+        <tr><th style="width:33%">|Изпращач|*</th><th style="width:33%">|Получател|*</th><th>|Превозвач|*</th></tr>
+        <tr style="vertical-align:top">
+            <td><b>[#senderName#]</b><br>[#senderAddress#]</td>
+            <td><b>[#recipientName#]</b><br>[#recipientAddress#]</td>
+            <td><b>[#carrierName#]</b><br>[#carrierAddress#]<br><span class="quiet">|ЕИК|*:</span> [#carrierNumber#]</td>
+        </tr>
+    </table>
+    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:10px">
+        <tr><th style="width:42%">|Натоварване|*</th><th style="width:42%">|Разтоварване|*</th><th>|Пробег|*</th></tr>
+        <tr style="vertical-align:top">
+            <td>[#loadingPlace#]<br><span class="quiet">|Дата|*:</span> <b>[#loadingDate#]</b></td>
+            <td>[#unloadingPlace#]<br><span class="quiet">|Дата|*:</span> <b>[#unloadingDate#]</b></td>
+            <td class="nowrap"><b>[#distance#]</b> |км|*</td>
+        </tr>
+    </table>
+    <h3 style="margin:12px 0 4px">|Товар|*</h3>
     [#goods#]
-    <p>|Общо бруто тегло|*: [#totalWeight#] kg</p>
-    <!--ET_BEGIN volume--><p>|Обем|*: [#volume#] m³</p><!--ET_END volume-->
+    <table class="innerTable border-table paddingCells" style="width:100%;border-top:none">
+        <tr>
+            <td style="width:50%"><span class="quiet">|Общо бруто тегло|*:</span> <b>[#totalWeight#]</b> kg</td>
+            <td><!--ET_BEGIN volume--><span class="quiet">|Обем|*:</span> <b>[#volume#]</b> m³<!--ET_END volume--></td>
+        </tr>
+        <tr>
+            <td><span class="quiet">|Опасен товар - клас|*:</span> [#dangerousClass#]</td>
+            <td><span class="quiet">|Наименование|*:</span> [#dangerousName#]</td>
+        </tr>
+    </table>
+    <h3 style="margin:12px 0 4px">|Превоз|*</h3>
     <table class="innerTable border-table paddingCells" style="width:100%">
-        <tr><td>|Опасен товар — клас|*: [#dangerousClass#]</td><td>|Наименование|*: [#dangerousName#]</td></tr>
-        <tr><td>|Придружители|*: [#companions#]</td><td>|Брой|*: [#companionCount#]</td></tr>
-        <tr><td>|Превозна цена|*: [#freightPrice#] [#currencyId#]</td><td>|Допълнителни разходи|*: [#additionalCosts#] [#currencyId#]</td></tr>
-        <tr><td colspan="2">|Инструкции на превозвача|*:<br>[#instructions#]</td></tr>
-        <tr><td>|Автомобил — марка и модел|*: [#vehicleModel#]</td><td>|Регистрационен номер|*: [#vehicleNumber#]</td></tr>
-        <tr><td>|Пътен лист — серия, № и дата|*: [#tripReference#]</td><td>|Водач|*: [#driverName#]</td></tr>
+        <tr>
+            <td style="width:50%"><span class="quiet">|Автомобил - марка и модел|*:</span> <b>[#vehicleModel#]</b></td>
+            <td><span class="quiet">|Регистрационен номер|*:</span> <b>[#vehicleNumber#]</b></td>
+        </tr>
+        <tr>
+            <td><span class="quiet">|Водач|*:</span> <b>[#driverName#]</b></td>
+            <td><span class="quiet">|Пътен лист - серия, № и дата|*:</span> [#tripReference#]</td>
+        </tr>
+        <tr>
+            <td><span class="quiet">|Придружители|*:</span> [#companions#]</td>
+            <td><span class="quiet">|Брой|*:</span> [#companionCount#]</td>
+        </tr>
+        <tr>
+            <td><span class="quiet">|Превозна цена|*:</span> <b>[#freightPrice#]</b> [#currencyId#]</td>
+            <td><span class="quiet">|Допълнителни разходи|*:</span> [#additionalCosts#] [#currencyId#]</td>
+        </tr>
+        <tr><td colspan="2"><span class="quiet">|Инструкции на превозвача|*:</span><br>[#instructions#]</td></tr>
     </table>
     <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px;page-break-inside:avoid">
-        <tr><td colspan="2">|Натоварване — дата|*: ........................ |от час|*: ............ |до час|*: ............</td></tr>
-        <tr style="height:22mm"><td style="width:50%;vertical-align:top">|Изпращач — подпис и печат|*:</td><td style="vertical-align:top">|Превозвач — подпис и печат|*:</td></tr>
-        <tr><td colspan="2">|Разтоварване — дата|*: ........................ |от час|*: ............ |до час|*: ............</td></tr>
-        <tr style="height:22mm"><td colspan="2" style="vertical-align:top">|Получател — подпис и печат|*:</td></tr>
+        <tr><td colspan="2"><span class="quiet">|Натоварване - дата|*:</span> ........................ <span class="quiet">|от час|*:</span> ............ <span class="quiet">|до час|*:</span> ............</td></tr>
+        <tr style="height:22mm"><td style="width:50%;vertical-align:top">|Изпращач - подпис и печат|*:</td><td style="vertical-align:top">|Превозвач - подпис и печат|*:</td></tr>
+        <tr><td colspan="2"><span class="quiet">|Разтоварване - дата|*:</span> ........................ <span class="quiet">|от час|*:</span> ............ <span class="quiet">|до час|*:</span> ............</td></tr>
+        <tr style="height:22mm"><td colspan="2" style="vertical-align:top">|Получател - подпис и печат|*:</td></tr>
     </table>
-    <!--ET_BEGIN sourceContainerId--><p>|Стоков документ|*: [#sourceContainerId#]</p><!--ET_END sourceContainerId-->
-    <p>|Забележки|*: [#notes#]<br>........................................................................................................................</p>
+    <!--ET_BEGIN sourceContainerId--><p><span class="quiet">|Стоков документ|*:</span> [#sourceContainerId#]</p><!--ET_END sourceContainerId-->
+    <p><span class="quiet">|Забележки|*:</span> [#notes#]<br>........................................................................................................................</p>
 </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
