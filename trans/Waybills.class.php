@@ -14,6 +14,7 @@ class trans_Waybills extends core_Master
     public $canList = 'ceo,trans';
     public $canSingle = 'ceo,trans';
     public $canAdd = 'ceo,trans';
+    public $listAddBtn = false;
     public $canEdit = 'ceo,trans';
     public $canActivate = 'ceo,trans';
     public $canReject = 'ceo,trans';
