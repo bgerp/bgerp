@@ -2657,6 +2657,20 @@ JS
         core_Debug::startTimer('RENDER_SUMMARY');
         $query = clone $data->query;
         $query->orderBy = $query->show = array();
+        $threadShared = $query->fields['threadShared'] ?? null;
+        if ($threadShared && $threadShared->kind == 'EXT' &&
+            $threadShared->externalClass == 'doc_Threads' &&
+            $threadShared->externalName == 'shared' && $threadShared->externalKey == 'threadId') {
+            $threadTable = cls::get('doc_Threads')->dbTableName;
+            $sharedColumn = str::phpToMysqlName($threadShared->externalName);
+            $threadColumn = str::phpToMysqlName($threadShared->externalFieldName ?? 'id');
+            $taskThread = $query->getMysqlField($threadShared->externalKey);
+            // Индексната връзка запазва съществуването на нишката, а shared се чете само при нужда от OR-условието за достъп.
+            $sharedSql = "(SELECT `{$threadTable}`.`{$sharedColumn}` FROM `{$threadTable}` WHERE `{$threadTable}`.`{$threadColumn}` = {$taskThread})";
+            $query->where = preg_replace('/#threadShared\b/', $sharedSql, $query->where);
+            $query->fields['threadShared'] = clone $threadShared;
+            $query->fields['threadShared']->externalName = $threadShared->externalFieldName ?? 'id';
+        }
         $states = array(
             'active' => 'Активни',
             'wakeup' => 'Събудени',
@@ -2681,16 +2695,6 @@ JS
         }
 
         $sumPlannedQuantity = !empty($filter->productId);
-        // При широк период избягваме индекса само по състояние, който изисква четене на целите записи.
-        if (($state ?? null) == 'all' &&
-            ($filter->filterDateField ?? null) == 'expectedTimeStart' &&
-            ($filter->isFinalSelect ?? 'all') == 'all' &&
-            empty($filter->assetId) && empty($filter->folders) &&
-            !$sumPlannedQuantity && empty($filter->search) &&
-            empty($filter->saleId) && empty($filter->purchaseId)) {
-            $query->useIndex('expected_time_start_state');
-        }
-
         // Броим състоянията в един проход без групиране/сортиране по тях.
         $countFields = array();
         foreach ($states as $state => $caption) {
