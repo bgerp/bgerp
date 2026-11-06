@@ -11,6 +11,12 @@
                             <td class='dt'>|Рег. номер|*:</td>
                             <td> [#number#]</td>
                         </tr>
+                        <!--ET_BEGIN trailerNumber-->
+                        <tr>
+                            <td class='dt'>|Рег. номер ремарке|*:</td>
+                            <td> [#trailerNumber#]</td>
+                        </tr>
+                        <!--ET_END trailerNumber-->
                         <!--ET_BEGIN load-->
                         <tr>
                             <td class='dt'>|Товароносимост|*:</td>

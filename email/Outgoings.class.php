@@ -466,7 +466,7 @@ class email_Outgoings extends core_Master
             $originDoc = doc_Containers::getDocument($rec->originId);
             if ($originDoc->instance instanceof email_Incomings) {
                 $iRec = $originDoc->fetch();
-                $messageIdArr = (array) $iRec->headers['message-id'];
+                $messageIdArr = (array) ($iRec->headers['message-id'] ?? array());
                 $messageId = reset($messageIdArr);
                 if ($messageId) {
                     $rec->__inReplyTo = trim($messageId, '<>');
