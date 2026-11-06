@@ -2367,12 +2367,13 @@ class planning_Tasks extends core_Master
         }
 
         // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
-        // от core_Users::forceLogin() при изтекла сесия. Във втория случай формата
+        // от core_Users::forceLogin() самостоятелно или заедно с Cmd[default]. Тогава формата
         // показва стойностите, но refresh-командата не прилага целия листов филтър.
         // При обикновено зареждане го третираме като нормално изпращане на филтъра.
         $cmd = Request::get('Cmd', false);
         $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
-            is_array($cmd) && isset($cmd['refresh']) && countR($cmd) == 1;
+            is_array($cmd) && isset($cmd['refresh']) &&
+            !array_diff_key($cmd, array('default' => true, 'refresh' => true));
 
         if (($hasExplicitValues || countR($restoreValues)) &&
             ($cmd === null || $isFullPageRefresh)) {
