@@ -404,7 +404,8 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
-        $this->setDbIndex('expectedTimeStart,state');
+        // Покрива броячите и ключовете за връзките им при филтриране по планирано начало.
+        $this->setDbIndex('expectedTimeStart,state,folderId,threadId,originId,id', 'expected_time_start_state');
         $this->setDbIndex('saoOrder');
         $this->setDbIndex('state');
     }
