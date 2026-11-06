@@ -135,7 +135,7 @@ class trans_TripSheets extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/lorry_go.png';
+    public $singleIcon = 'img/16/trip_sheet.png';
 
 
     /**
@@ -634,6 +634,9 @@ class trans_TripSheets extends core_Master
                 if (!$line || ($line->state ?? null) == 'rejected' || ($action != 'report' && !trans_Lines::haveRightFor('single', $line, $userId))) {
                     $roles = 'no_one';
                 }
+                if ($action == 'add' && ($line->state ?? null) != 'active') {
+                    $roles = 'no_one';
+                }
             } elseif ($action != 'add' || !empty($rec->threadId)) {
                 $roles = 'no_one';
             }
@@ -1039,7 +1042,7 @@ class trans_TripSheets extends core_Master
             $toolbar->addBtn('Обновяване от ТЛ', array($mvc, 'edit', $rec->id, 'fromLine' => 1, 'ret_url' => true), 'row=2,ef_icon=img/16/arrow_refresh.png,title=Предлагане на актуалните данни от линията за преглед и запис');
         }
         if ($mvc->haveRightFor('report', $rec)) {
-            $toolbar->addBtn('Пробег и разходи', array($mvc, 'report', $rec->id ?? null), 'ef_icon=img/16/tick.png');
+            $toolbar->addBtn('Пробег и разходи', array($mvc, 'report', $rec->id ?? null), 'ef_icon=img/16/lightning.png');
         }
         if ($mvc->haveRightFor('order', $rec)) {
             $toolbar->addBtn('Печат заповед', array($mvc, 'single', $rec->id ?? null, 'Printing' => 'yes', 'tripView' => 'order'), 'target=_blank,ef_icon=img/16/printer.png');

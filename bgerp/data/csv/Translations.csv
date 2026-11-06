@@ -4368,3 +4368,4 @@ en,Плащане в брой без фискален бон,Cash payment withou
 en,За плащане с карта трябва да е инсталиран пакетът,Card payments require the package
 en,При изключен режим по Н-18 трябва да се махнат методите за плащане с карта,Card payment methods must be removed when the N-18 mode is off
 en,"Пакетът не може да бъде де-инсталиран, докато в настройките на онлайн магазина има избрани методи за плащане с карта.","The package cannot be uninstalled while card payment methods are selected in the online shop settings."
+en,Изберете МПС от регистъра в транспортната линия,Choose a registered vehicle in the transport line

@@ -129,7 +129,7 @@ class trans_Waybills extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/shipment.png';
+    public $singleIcon = 'img/16/waybill.png';
 
 
     /**
@@ -177,6 +177,12 @@ class trans_Waybills extends core_Master
     /**
      * Полетата, които не се променят след издаване
      */
+    /**
+     * Полетата, които се вземат от транспортната линия и не се променят ръчно
+     */
+    const LINE_FIELDS = 'vehicleModel,vehicleNumber,driverName';
+
+
     const ISSUE_FIELDS = 'originId,threadId,folderId,series,issueDate,issuePlace,senderCompanyId,recipientCompanyId,loadingLocationId,unloadingLocationId,senderName,senderAddress,recipientName,recipientAddress,carrierName,carrierAddress,carrierNumber,loadingPlace,loadingDate,unloadingPlace,unloadingDate,goods,totalWeight,volume,distance,dangerousClass,dangerousName,companions,companionCount,freightPrice,additionalCosts,currencyId,instructions,vehicleModel,vehicleNumber,driverName,tripSheetId,tripReference,sourceContainerId,notes,issuedOn';
 
 
@@ -208,12 +214,12 @@ class trans_Waybills extends core_Master
         $this->FLD('unloadingLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Разтоварване->Склад/обект,silent,removeAndRefreshForm=unloadingPlace');
         $this->FLD('unloadingPlace', 'varchar(255)', 'caption=Разтоварване->Адрес,mandatory');
         $this->FLD('unloadingDate', 'date', 'caption=Разтоварване->Дата');
-        $this->FLD('distance', 'double(min=0)', 'caption=Разтоварване->Пробег,unit=км');
+        $this->FLD('distance', 'double(min=0,smartRound)', 'caption=Разтоварване->Пробег,unit=км');
 
         // Непълните редове остават, за да се покаже грешка, вместо да изчезнат
         $this->FLD('goods', 'table(columns=name|packaging|marks|quantity|weight,captions=Наименование|Опаковка/мярка|Маркировка/№|Брой/количество|Тегло kg,mandatory=mandatory,render=trans_Waybills::renderGoods)', 'caption=Товар->Стоки,mandatory');
-        $this->FLD('totalWeight', 'double(min=0)', 'caption=Товар->Общо бруто тегло,unit=kg');
-        $this->FLD('volume', 'double(min=0)', 'caption=Товар->Обем,unit=m³');
+        $this->FLD('totalWeight', 'double(min=0,smartRound)', 'caption=Товар->Общо бруто тегло,unit=kg');
+        $this->FLD('volume', 'double(min=0,smartRound)', 'caption=Товар->Обем,unit=m³');
         $this->FLD('dangerousClass', 'varchar(32)', 'caption=Опасен товар->Клас');
         $this->FLD('dangerousName', 'varchar(255)', 'caption=Опасен товар->Наименование');
         $this->FLD('companions', 'varchar(255)', 'caption=Придружители->Имена');
@@ -356,8 +362,18 @@ class trans_Waybills extends core_Master
         $form->setDefault('carrierAddress', trim(($own->pCode ?? '') . ' ' . ($own->place ?? '') . ', ' . ($own->address ?? ''), ', '));
         if (!empty($rec->lineId)) {
             trans_Lines::requireRightFor('single', $rec->lineId);
+            $lineFields = arr::make(self::LINE_FIELDS, true);
             foreach (self::getLineDefaults($rec->lineId) as $field => $value) {
-                $form->setDefault($field, $value);
+                if (isset($lineFields[$field]) && empty($rec->issuedOn)) {
+                    $rec->{$field} = $value;
+                } else {
+                    $form->setDefault($field, $value);
+                }
+            }
+
+            // Поотделно, защото setReadOnly() преизползва стойността на първото поле
+            foreach ($lineFields as $field) {
+                $form->setReadOnly($field);
             }
         }
         $form->setDefault('loadingDate', dt::today());
@@ -379,11 +395,15 @@ class trans_Waybills extends core_Master
             return array();
         }
 
-        $result = array('loadingDate' => substr($line->start, 0, 10));
+        $result = array('loadingDate' => substr($line->start ?? '', 0, 10), 'vehicleModel' => '', 'vehicleNumber' => '', 'driverName' => '');
         $vehicle = trans_Vehicles::fetch(array("#name = '[#1#]' OR #number = '[#1#]'", $line->vehicle ?? ''));
         if ($vehicle) {
             $result['vehicleModel'] = $vehicle->name;
             $result['vehicleNumber'] = $vehicle->number;
+        } elseif (!empty($line->vehicle)) {
+
+            // МПС извън регистъра - само текстът от линията, без номер
+            $result['vehicleModel'] = $line->vehicle;
         }
         if (!empty($line->forwarderPersonId)) {
             $result['driverName'] = crm_Persons::fetchField($line->forwarderPersonId, 'name');
@@ -472,6 +492,9 @@ class trans_Waybills extends core_Master
             foreach (arr::make('series,issueDate,issuePlace,senderName,senderAddress,recipientName,recipientAddress,carrierName,carrierAddress,loadingPlace,loadingDate,unloadingPlace,vehicleModel,vehicleNumber') as $field) {
                 if (trim($rec->{$field} ?? '') === '') {
                     $errors[$field] = 'Попълнете реквизитите преди активиране';
+                    if (!empty($rec->lineId) && in_array($field, arr::make(self::LINE_FIELDS))) {
+                        $errors[$field] = 'Изберете МПС от регистъра в транспортната линия';
+                    }
                 }
             }
         }
@@ -528,7 +551,7 @@ class trans_Waybills extends core_Master
         $full = (object) array_merge((array) $old, (array) $rec);
         if (!empty($full->lineId) && empty($old->issuedOn)) {
             foreach (self::getLineDefaults($full->lineId) as $field => $value) {
-                if (empty($full->{$field})) {
+                if (empty($full->{$field}) || in_array($field, arr::make(self::LINE_FIELDS))) {
                     $full->{$field} = $rec->{$field} = $value;
                     if ($fields !== null) {
                         $fields = arr::make($fields, true) + array($field => $field);
@@ -619,7 +642,8 @@ class trans_Waybills extends core_Master
         foreach (type_Table::toArray($value) as $item) {
             $html .= '<tr>';
             foreach ($type->getColumns() as $field => $column) {
-                $html .= '<td>' . htmlspecialchars((string) ($item->{$field} ?? ''), ENT_QUOTES, 'UTF-8') . '</td>';
+                $class = in_array($field, array('quantity', 'weight')) ? ' class="aright"' : '';
+                $html .= "<td{$class}>" . htmlspecialchars((string) ($item->{$field} ?? ''), ENT_QUOTES, 'UTF-8') . '</td>';
             }
             $html .= '</tr>';
         }
