@@ -2681,6 +2681,16 @@ JS
         }
 
         $sumPlannedQuantity = !empty($filter->productId);
+        // При широк период избягваме индекса само по състояние, който изисква четене на целите записи.
+        if (($state ?? null) == 'all' &&
+            ($filter->filterDateField ?? null) == 'expectedTimeStart' &&
+            ($filter->isFinalSelect ?? 'all') == 'all' &&
+            empty($filter->assetId) && empty($filter->folders) &&
+            !$sumPlannedQuantity && empty($filter->search) &&
+            empty($filter->saleId) && empty($filter->purchaseId)) {
+            $query->useIndex('expected_time_start_state');
+        }
+
         // Броим състоянията в един проход без групиране/сортиране по тях.
         $countFields = array();
         foreach ($states as $state => $caption) {
