@@ -161,7 +161,7 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
     assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
     assert(e.document.body.children.every(n=>n.className==='funny-stats'));
 });
-check('page score counts each catch once, counts exits and ignores tab switches or Escape', () => {
+check('focused score counts each catch once, counts exits and ignores Escape', () => {
     const e=environment({trigger:'manual',mode:'selected',characters:['ghost']});
     const score=()=>e.document.body.children.find(n=>n.className==='funny-stats').children.slice(0,2).map(n=>n.textContent);
     e.click();e.tick(40000);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
@@ -169,12 +169,29 @@ check('page score counts each catch once, counts exits and ignores tab switches 
     const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
     e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);
     assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
-    e.click();e.document.focused=false;e.window.emit('blur');e.tick(5000);e.document.focused=true;e.window.emit('focus');
-    assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
     e.click();e.document.emit('keydown',{key:'Escape'});e.tick(3000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
     e.click();e.tick(40000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 1']);assert.equal(e.raf.size,0);
     const reset=environment({trigger:'manual'});reset.click();
     assert(!reset.document.body.children.some(n=>n.className==='funny-stats'));
+});
+check('blur or a hidden tab resets the score, blocks background catches and starts a fresh score on return',()=>{
+    for(const hidden of [false,true]) {
+        const storage=new Map(),key='funny.best.focus.fixture';
+        const e=environment({trigger:'manual',mode:'selected',characters:['ghost'],scoreKey:key},{storage});
+        const stats=()=>e.document.body.children.find(n=>n.className==='funny-stats');
+        function catchOne(){e.click();e.tick(700);const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);}
+        catchOne();catchOne();e.click();e.tick(40000);assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 2','Избягали: 1','Рекорд: 2']);
+        e.click();e.tick(700);const p=e.center(e.visitors()[0]);
+        if(hidden)e.document.visibilityState='hidden';else e.document.focused=false;
+        // Input queued before the blur/visibility handler must not count as a catch.
+        e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert.equal(stats().children[0].textContent,'Уцелени: 2');
+        if(hidden)e.document.emit('visibilitychange');else e.window.emit('blur');
+        assert(!stats());assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+        e.click();e.tick(900000);assert(!stats());assert.equal(e.visitors().length,0);assert.equal(storage.get(key),'2');
+        e.document.visibilityState='visible';e.document.focused=true;e.window.emit('focus');assert(!stats());
+        e.click();e.tick(40000);assert(!stats());catchOne();
+        assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 1','Избягали: 0','Рекорд: 2']);
+    }
 });
 check('personal best survives refresh, stays per user, tolerates invalid or blocked storage and starts on first catch', () => {
     const storage=new Map(),settings={trigger:'manual',mode:'selected',characters:['ghost'],scoreKey:'funny.best.fixture.1'};
