@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class bgfisc_plg_EshopSettings extends core_Plugin
+class eshopn18_plg_EshopSettings extends core_Plugin
 {
     /**
      * След дефиниране на полетата на модела
@@ -66,7 +66,17 @@ class bgfisc_plg_EshopSettings extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        if (!$form->isSubmitted() || ($rec->n18Mode ?? null) != 'yes') {
+        if (!$form->isSubmitted()) {
+
+            return;
+        }
+
+        // Плащането с карта без касов бон е само в режим по Н-18
+        if (($rec->n18Mode ?? null) != 'yes') {
+            $cardMethods = eshop_Settings::getCardPaymentMethods(keylist::toArray($rec->payments ?? ''));
+            if (countR($cardMethods)) {
+                $form->setError('n18Mode,payments', 'При изключен режим по Н-18 трябва да се махнат методите за плащане с карта|*: ' . implode(', ', $cardMethods) . '|*!');
+            }
 
             return;
         }

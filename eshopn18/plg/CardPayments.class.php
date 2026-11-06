@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class bgfisc_plg_CardPayments extends core_Plugin
+class eshopn18_plg_CardPayments extends core_Plugin
 {
     /**
      * Купувачът получава документа в момента на плащането (чл. 52о, ал. 5)
@@ -30,14 +30,14 @@ class bgfisc_plg_CardPayments extends core_Plugin
             return;
         }
 
-        $docRec = bgfisc_SaleRegDocs::fetch(array("#cartId = [#1#]", $rec->initiatorId));
+        $docRec = eshopn18_SaleRegDocs::fetch(array("#cartId = [#1#]", $rec->initiatorId));
         if (!is_object($docRec)) {
 
             return;
         }
 
-        $caption = tr('Документ за регистриране на продажбата') . ' №' . bgfisc_SaleRegDocs::formatNumber($docRec->number);
-        $tpl->append(ht::createLink($caption, bgfisc_SaleRegDocs::getPublicUrl($docRec), false, array('ef_icon' => 'img/16/page_white_text.png', 'target' => '_blank')), 'LINKS');
+        $caption = tr('Документ за регистриране на продажбата') . ' №' . eshopn18_SaleRegDocs::formatNumber($docRec->number);
+        $tpl->append(ht::createLink($caption, eshopn18_SaleRegDocs::getPublicUrl($docRec), false, array('ef_icon' => 'img/16/page_white_text.png', 'target' => '_blank')), 'LINKS');
     }
 
 
@@ -60,9 +60,9 @@ class bgfisc_plg_CardPayments extends core_Plugin
             return;
         }
 
-        $docRec = bgfisc_SaleRegDocs::fetch(array("#cartId = [#1#]", $rec->initiatorId));
-        if (is_object($docRec) && bgfisc_SaleRegDocs::haveRightFor('single', $docRec)) {
-            $row->n18Doc = ht::createLink('', array('bgfisc_SaleRegDocs', 'single', $docRec->id, 'ret_url' => true), false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Документ за регистриране на продажбата'));
+        $docRec = eshopn18_SaleRegDocs::fetch(array("#cartId = [#1#]", $rec->initiatorId));
+        if (is_object($docRec) && eshopn18_SaleRegDocs::haveRightFor('single', $docRec)) {
+            $row->n18Doc = ht::createLink('', array('eshopn18_SaleRegDocs', 'single', $docRec->id, 'ret_url' => true), false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Документ за регистриране на продажбата'));
         }
     }
 }
