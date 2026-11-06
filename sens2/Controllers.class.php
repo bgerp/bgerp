@@ -9,7 +9,7 @@
  * @package   sens2
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -206,25 +206,30 @@ class sens2_Controllers extends core_Master
         if (empty($ap[$controllerId . '_' . $type])) {
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
-            $drv = self::getDriver($controllerId);
+            $drv = self::getDriver($controllerId, true);
+            if (!$rec || !$drv) {
+
+                return array();
+            }
             
             $ports = array();
+            $config = $rec->config ?? null;
+            $name = $rec->name ?? '';
             
             if ($type != 'outputs') {
-                $ports = $drv->getInputPorts($rec->config);
+                $ports = $drv->getInputPorts($config);
             }
             
             if ($type != 'inputs') {
-                $ports += $drv->getOutputPorts($rec->config);
+                $ports += $drv->getOutputPorts($config);
             }
             
-            $config = $rec->config;
             foreach ($ports as $port => $params) {
                 $partName = $port . '_name';
                 $partNameValue = $config->{$partName} ?? null;
                 if ($partNameValue) {
                     $caption = $port . ' ('. $partNameValue . ')';
-                    $title = '$' . $rec->name . '.' . $partNameValue;
+                    $title = '$' . $name . '.' . $partNameValue;
                 } else {
                     $caption = new stdClass();
                     $caption->title = $port;
@@ -233,7 +238,7 @@ class sens2_Controllers extends core_Master
                         $caption->title .= ' ('. $portCaption . ')';
                     }
                     $caption->attr = array('style' => 'color:#999;');
-                    $title = '$' . $rec->name . '.' . $port;
+                    $title = '$' . $name . '.' . $port;
                 }
                 $partUom = $port . '_uom';
                 $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom} ?? null, 'title' => $title);

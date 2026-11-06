@@ -2001,13 +2001,6 @@ a.tUnsighted {
   #packWrapper > .tab-control .tab-page .floatedElement.preview-holder:not(.palletInfoBlock) {
     margin-top: -20px !important;
     min-width: 800px; }
-  #packWrapper > .floatedElement.palletInfoBlock,
-  #packWrapper > .tab-control .tab-page .floatedElement.palletInfoBlock {
-    margin-top: -10px !important; }
-
-.palletInfoBlock {
-  display: inline-block; }
-
 #packWrapper form.floatedElement {
   margin-right: 20px; }
 
@@ -3148,52 +3141,12 @@ table.mc-header a {
 /*
  * край на стилове за счетоводството
  */
-/*
- * стилове за палети
- */
-.pallet-table {
-  clear: left;
-  border-collapse: separate;
-  border-spacing: 1px; }
-
 input.inplace {
   border: none;
   background-color: #ffffcc; }
   input.inplace .number {
     text-align: right; }
 
-td.pallet_place {
-  font-size: 14px;
-  text-align: center;
-  width: 32px;
-  color: #999999;
-  background: #eeeeee; }
-  td.pallet_place.outofuse {
-    text-decoration: line-through;
-    color: #333333; }
-  td.pallet_place.reserved {
-    color: #b80000;
-    background: #eeeeee; }
-  td.pallet_place.in_use {
-    background: #00ff55;
-    font-weight: bold; }
-  td.pallet_place.movement_waiting {
-    background: #00dd55; }
-  td.pallet_place.movement_active {
-    background: #00dd55;
-    text-decoration: blink; }
-  td.pallet_place.out_of_filter {
-    background: #777777 !important; }
-
-td.constrColumnRight {
-  border-right: solid 3px #777777 !important; }
-
-td.constrColumnLeft {
-  border-left: solid 3px #777777 !important; }
-
-/*
- * край на стилове за палети
- */
 /*
  * стилове за нотификация
  */
@@ -6726,12 +6679,6 @@ only screen and (max-width: 760px) {
 tr.zeroQuantityRow .mainQuantityCol {
   background-color: rgba(0, 0, 0, 0); }
 
-td.rack-hl {
-  background-color: red; }
-
-td.rack-same {
-  background-color: yellow; }
-
 .app-name {
   display: block;
   color: #42477f;
@@ -6756,9 +6703,6 @@ td.rack-same {
   left: 2%;
   top: 55%;
   font-family: Times New Roman, Georgia, serif; }
-
-.movement-position-notice {
-  font-weight: bold; }
 
 .wide .app-name {
   left: 3%;
@@ -8406,12 +8350,6 @@ legend .endTooltip {
   padding: 2px;
   text-indent: 5px;
   font-weight: bold; }
-
-.rackRevisionRow {
-  background-color: #ff6b4b; }
-
-.rack_ZoneDetails .listTable {
-  width: 100%; }
 
 .workingTimeBlock table.typeTable {
   width: 100%; }

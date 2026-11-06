@@ -257,6 +257,12 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
+        // Платеното, но неотразено не се плаща втори път
+        if (cond_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
+
+            return null;
+        }
+
         // Сумата се взема от поръчката при натискането - стар бутон не плаща стара сума
         $url = cond_CardPayments::getPayUrl($paymentId, $okUrl, $cancelUrl, $initiatorClass, $initiatorId);
 
@@ -295,11 +301,18 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Информативния текст за онлайн плащането
      *
-     * @param mixed $rec
+     * @param mixed      $rec            - начинът на плащане
+     * @param mixed|null $initiatorClass - класът инициатор
+     * @param int|null   $initiatorId    - ид на инициатора
      * @return string|null
      */
-    public function getDisplayHtml($rec)
+    public function getDisplayHtml($rec, $initiatorClass = null, $initiatorId = null)
     {
+        if (isset($initiatorClass, $initiatorId) && cond_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
+
+            return '<b>' . tr('Плащането е получено') . '</b>. ' . tr('Поръчката ще бъде потвърдена допълнително - не плащайте повторно');
+        }
+
         return tr('Моля, завършете поръчката, като платите от бутона') . ' <b>"' . tr('Плащане с карта') . '"</b>';
     }
 

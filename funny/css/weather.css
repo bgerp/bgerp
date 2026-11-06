@@ -3,7 +3,7 @@
 .funny-weather-layer * { pointer-events: none; }
 .funny-weather-layer canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .funny-weather-sun, .funny-weather-moon { position: absolute; right: 10%; top: 8%; width: 90px; height: 90px; border-radius: 50%; }
-.funny-weather-sun { background: radial-gradient(circle, #fff9ce 18%, #ffe792 46%, #ffe29100 70%); box-shadow: 0 0 100px 45px #ffe9a644; animation: funny-weather-glow 9s ease-in-out infinite alternate; }
+.funny-weather-sun { right: auto; background: radial-gradient(circle, #fff9ce 18%, #ffe792 46%, #ffe29100 70%); box-shadow: 0 0 100px 45px #ffe9a644; animation: funny-weather-glow 9s ease-in-out infinite alternate; }
 .funny-weather-moon { width: 52px; height: 52px; background: #f1f4eacc; box-shadow: 0 0 65px 20px #d4e1ed55; }
 .funny-weather-clouds { position: absolute; inset: 0; background: radial-gradient(ellipse 45vw 18vh at 18% 0%, #b7c8d955, transparent), radial-gradient(ellipse 45vw 24vh at 65% 0%, #e6edf288, transparent); }
 .funny-weather-clouds::before, .funny-weather-clouds::after { content: ''; position: absolute; top: var(--cloud-start-y); left: var(--cloud-start-x); width: clamp(170px,24vw,360px); height: 56px; border-radius: 50%; background: #b4c2d3; box-shadow: 30px -20px 0 -6px #c0cddd, 70px -34px 0 -9px #b4c2d3, 105px -14px 0 -4px #bdcad9, 0 8px 14px -6px #788ba4; opacity: .65; animation: funny-weather-cloud-wind var(--cloud-duration) linear infinite; animation-delay: calc(var(--cloud-duration) * -.25); }

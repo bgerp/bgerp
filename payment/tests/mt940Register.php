@@ -17,6 +17,7 @@ require dirname(__DIR__) . '/ParserMt940.class.php';
 class bank_Accounts {
     public static $found = true;
     public static function fetch($condition) { return self::$found ? (object) array('id' => 1) : false; }
+    public static function fetchByIban($iban) { return self::fetch($iban); }
 }
 class bank_OwnAccounts {
     public static $found = true;

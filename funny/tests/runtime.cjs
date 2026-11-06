@@ -10,7 +10,7 @@ function environment(settings = {}, config = {}) {
     class Target {
         constructor() { this.listeners = {}; }
         addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); }
-        emit(type, event = {}) { (this.listeners[type] || []).forEach(fn => fn(event)); }
+        emit(type, event = {}) { (this.listeners[type] || []).forEach(fn => fn({type,...event})); }
     }
     class Element extends Target {
         constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }}; }
@@ -83,12 +83,26 @@ check('first appearance within one minute and repeat intervals grow to 5-10 minu
         if(i>=3) assert(delay+40000>=300000);
     }
 });
+check('automatic appearances require uninterrupted inactivity after mouse, keyboard, touch and scroll input',()=>{
+    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
+        const e=environment({frequency,sound:'no'},{weather:'rain'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,e.event({clientX:100+i,clientY:50,key:'a'}));assert.equal(e.visitors().length,0,type);assert.equal(e.weatherTriggers.length,0);assert.equal(e.timers.size,1);}
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert.equal(e.visitors().length,0);e.tick(delay-(min-100)+20);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
+    }
+});
+check('activity restarts the initial interval after an appearance and repeated pointer coordinates do not postpone it',()=>{
+    const e=environment({frequency:'frequent',sound:'no'});e.tick([...e.timers.values()][0].at);e.tick(40000);
+    e.document.emit('pointermove',e.event({clientX:100,clientY:100}));const due=[...e.timers.values()][0].at;
+    assert(due-e.now()>=5000 && due-e.now()<=12000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
+    e.tick(due-e.now()+20);assert(e.visitors().length>0);
+});
 check('frequent, fully disabled and double-click-only modes keep their separate triggers', () => {
     const frequent=environment({frequency:'frequent'});
     const first=[...frequent.timers.values()][0].at;assert(first>=5000 && first<=12000);
     frequent.tick(first);assert.equal(frequent.visitors().length,1);frequent.tick(2000);
     frequent.document.emit('keydown',{key:'Escape'});
-    const next=[...frequent.timers.values()][0].at-frequent.now();assert(next>=15000 && next<=30000);
+    const next=[...frequent.timers.values()][0].at-frequent.now();assert(next>=5000 && next<=12000);
     frequent.tick(next);assert.equal(frequent.visitors().length,1);
     const off=environment({frequency:'off',trigger:'both'});assert.equal(off.timers.size,0);
     off.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});off.click();off.tick(900000);
@@ -221,7 +235,22 @@ check('nearby visitors repel after emerging instead of converging through each o
     }
     e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
-check('background and unfocused tabs pause and close sound without replay', () => {
+check('returning to a visible focused tab restarts the full initial interval, even one second before a due appearance',()=>{
+    for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
+        const e=environment({frequency,sound:'no'},{weather:'clouds'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        e.tick([...e.timers.values()][0].at-1000);
+        if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
+        e.tick(60000);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);
+        e.document.visibilityState='visible';e.document.focused=false;e.document.emit('visibilitychange');assert.equal(e.timers.size,0,'visibility alone is not focus');
+        e.document.focused=true;e.window.emit('focus');
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        e.tick(delay-(min-100)+20);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
+        e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);
+        e.document.focused=true;e.window.emit('focus');const next=[...e.timers.values()][0].at-e.now();assert(next>=min && next<=max);
+    }
+});
+check('background and unfocused tabs stop effects and close sound without replay', () => {
     const e=environment();e.click();assert(e.sounds.length>0);
     e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);assert.equal(e.audio[0].state,'closed');
     const count=e.sounds.length;e.tick(900000);assert.equal(e.sounds.length,count);assert.equal(e.timers.size,0);

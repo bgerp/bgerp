@@ -86,7 +86,7 @@ class payment_ParserMt940
                 $res->errors[] = $prefix . $error . '; извлечението не се импортира';
                 continue;
             }
-            $account = bank_Accounts::fetch(array("#iban = '[#1#]'", $parsed->iban));
+            $account = bank_Accounts::fetchByIban($parsed->iban);
             $own = $account ? bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $account->id ?? null)) : null;
             if (!$own) {
                 $res->errors[] = $prefix . 'IBAN ' . $parsed->iban . ' не е намерен сред собствените банкови сметки';

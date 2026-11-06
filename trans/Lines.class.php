@@ -382,7 +382,7 @@ class trans_Lines extends core_Master
         }
         if (trans_Waybills::haveRightFor('add', $tripRec)) {
             $data->toolbar->addBtn('Товарителница', array('trans_Waybills', 'add', 'originId' => $rec->containerId,
-                'threadId' => $rec->threadId, 'ret_url' => true), 'row=2,ef_icon=img/16/lorry.png');
+                'threadId' => $rec->threadId, 'ret_url' => true), 'row=2,ef_icon=img/16/shipment.png');
         }
 
         if (!$data->toolbar->haveButton("btnOpen_{$rec->containerId}")) {
@@ -418,7 +418,7 @@ class trans_Lines extends core_Master
     {
         $form = &$data->form;
         $form->setFieldTypeParams('start', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
-        $vehicleOptions = trans_Vehicles::makeArray4Select();
+        $vehicleOptions = trans_Vehicles::makeArray4Select(null, "#state = 'active'");
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
         }
@@ -504,6 +504,7 @@ class trans_Lines extends core_Master
             if (!empty($tripSummary->unreported) && $reportedDistance !== null) {
                 $row->reportedDistance .= ' (' . tr('частичен') . ')';
             }
+            if (!trans_TripSheets::canViewReport()) $row->reportedDistance = doc_plg_HidePrices::getBuriedElement();
             if (isset($fields['-single'])) {
                 $links = array();
                 foreach (($tripSummary->sheets ?? array()) as $sheet) {

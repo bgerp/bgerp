@@ -14,13 +14,14 @@
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
-            var visitors = [], portals = [], frame = 0, timer = 0, due = 0;
+            var visitors = [], portals = [], frame = 0, timer = 0;
             var bursts = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
-            var remaining = frequent ? random(5000, 12000) : random(20000, 60000), appearances = 0, lastAppearance = -Infinity;
+            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null;
+            var remaining = nextDelay();
             var audio = null, printing = false;
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
             var counter = document.getElementById('nCntLink');
@@ -61,21 +62,35 @@
             }
 
             function nextDelay() {
+                if (!appearances) return frequent ? random(5000, 12000) : random(20000, 60000);
                 if (frequent) return random(15000, 30000);
                 var max = Math.min(600000, 60000 * Math.pow(2, Math.min(appearances, 4)));
                 return random(max / 2, max);
             }
 
-            /** Counts only focused time and keeps automatic appearances out of manual groups. */
+            /** Counts focused idle time and keeps automatic appearances out of manual groups. */
             function schedule() {
                 if (!automatic || timer || visitors.length || portals.length || peeker || !active()) return;
-                due = performance.now() + remaining;
                 timer = window.setTimeout(function () {
                     timer = 0;
                     remaining = 1000;
                     if (appearances && performance.now() > 90000 && !peeked && Math.random() < 0.25 && showPeek()) return;
                     if (!summon('random')) schedule();
                 }, remaining);
+            }
+
+            /** User input starts a fresh idle interval without interrupting existing visitors or manual launches. */
+            function activity(event) {
+                if (!automatic || !active()) return;
+                if (event.type === 'pointermove') {
+                    var unchanged = lastActivityPointer && lastActivityPointer.x === event.clientX && lastActivityPointer.y === event.clientY;
+                    lastActivityPointer = {x: event.clientX, y: event.clientY};
+                    if (unchanged) return;
+                }
+                appearances = 0;
+                remaining = nextDelay();
+                window.clearTimeout(timer); timer = 0;
+                schedule();
             }
 
             function stopSound() {
@@ -578,16 +593,14 @@
                 if (peeker && Math.hypot(pointer.x - peeker.x, pointer.y - peeker.y) < 160) hidePeek();
             }
 
+            /** Returning to focus starts fresh, even if an automatic appearance was nearly due before leaving. */
             function syncActivity() {
                 if (!active()) {
-                    if (timer) {
-                        remaining = Math.max(1000, due - performance.now());
-                        window.clearTimeout(timer);
-                        timer = 0;
-                    }
+                    window.clearTimeout(timer);
+                    timer = 0;
                     clearVisitors();
                     stopSound();
-                } else schedule();
+                } else activity({type: 'focus'});
             }
 
             function isBlank(target) {
@@ -689,6 +702,9 @@
                 };
             }
 
+            ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'].forEach(function (name) {
+                document.addEventListener(name, activity, {passive: true, capture: true});
+            });
             document.addEventListener('pointermove', function (event) {
                 if (event.pointerType !== 'touch') movePointer(event);
             }, {passive: true});

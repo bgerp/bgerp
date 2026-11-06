@@ -1100,6 +1100,7 @@ body.eshop-public .cart-holder-external {
     grid-template-columns: minmax(0, 1fr) 340px;
     align-items: start;
     gap: 20px 28px;
+    margin-top: 10px; /* Заглавието започва на нивото на панелите в блога */
     padding: 0;
     background: transparent;
     border: 0;
@@ -1206,7 +1207,7 @@ body.eshop-public #cart-view-table input {
 body.eshop-public .cart-holder-external .textInfo { font-size: 0.8125rem; line-height: 1.6; color: #566675; display: flex; flex-direction: column; gap: 0.75rem; }
 body.eshop-public .cart-holder-external .textInfo > div { margin: 0; }
 body.eshop-public .cart-holder-external .cart-vat-status {
-    order: 2; position: relative; padding-left: 1.5rem; color: var(--c-muted); font-size: 0.8125rem;
+    order: 0; position: relative; padding-left: 1.5rem; color: var(--c-muted); font-size: 0.8125rem;
 }
 body.eshop-public .cart-holder-external .cart-vat-status::before {
     content: ""; position: absolute; left: 0; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%);
@@ -1223,7 +1224,7 @@ body.eshop-public .cart-holder-external .infoBlock::before {
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23b8740b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='m3 7 9 6 9-6'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 body.eshop-public .cart-holder-external .infoBlock b { color: #8a5a06; overflow-wrap: anywhere; }
-/* Free delivery: a callout before the VAT note, not another line of fine print. */
+/* Free delivery: a callout after the VAT note, not another line of fine print. */
 body.eshop-public .cart-holder-external .cart-free-delivery {
     order: 1; position: relative; padding: 0.75rem 1rem 0.75rem 3.25rem;
     border: 1px solid var(--c-accent-line); border-left: 4px solid var(--c-accent); border-radius: 0.5rem;
@@ -1239,12 +1240,47 @@ body.eshop-public .cart-holder-external .cart-free-delivery-won::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%232f7d4f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m8 12 3 3 5-6'/%3E%3C/svg%3E");
 }
 body.eshop-public .cart-holder-external .cart-free-delivery-won b { color: #2f7d4f !important; }
+/* Указанието за плащане е известие в зеления цвят на бутона за плащане */
+body.eshop-public .cart-holder-external .cart-payment-note {
+    order: 1; position: relative; padding: 0.75rem 1rem 0.75rem 3.25rem;
+    border: 1px solid #bfdcc9; border-left: 4px solid #2f7d4f; border-radius: 0.5rem;
+    background: #eef7f1; color: var(--c-ink); font-size: 0.9375rem; line-height: 1.45; font-weight: 400;
+}
+body.eshop-public .cart-holder-external .cart-payment-note::before {
+    content: ""; position: absolute; left: 1rem; top: 50%; width: 1.5rem; height: 1.5rem; transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%232f7d4f' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath d='M2 10h20M6 15h4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.eshop-public .cart-holder-external .cart-payment-note b { color: #2f7d4f; }
 body.eshop-public .cartInfoBlock .order-info { margin: 0; padding: 0; }
 body.eshop-public .cartInfoBlock h4 { background: none; color: var(--c-ink); font-size: 1.0625rem; }
 body.eshop-public .cartInfoBlock table { width: 100%; margin-left: 0 !important; }
 body.eshop-public .cartInfoBlock td { padding: 5px 3px; font-size: 0.875rem; overflow-wrap: anywhere; }
 body.eshop-public .cartInfoBlock td.aright { white-space: nowrap; overflow-wrap: normal; }
 body.eshop-public .cartInfoBlock .summary-holder { margin: 10px 0; padding: 10px 14px; border: 0; background: #eef4f6; }
+/* Попълнените данни за поръчката: раздели с разделител, етикети вляво, редакцията е бутон до заглавието */
+body.eshop-public .cartInfoBlock .order-info > table { border-collapse: collapse; margin-bottom: 6px !important; }
+body.eshop-public .cartInfoBlock .order-info > table td { padding: 4px 0; vertical-align: top; line-height: 1.45; }
+body.eshop-public .cartInfoBlock .order-info > table td.aright { width: 1%; padding-right: 14px; text-align: left; color: var(--c-muted); font-size: 0.8125rem; }
+body.eshop-public .cartInfoBlock .order-info > table td.aright + td { color: var(--c-ink); }
+body.eshop-public .cartInfoBlock .order-info > table .richtext { font-size: inherit; line-height: inherit; }
+body.eshop-public .cartInfoBlock .order-info > table h4 {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin: 0 0 6px !important; line-height: 1.3;
+}
+body.eshop-public .cartInfoBlock .order-info > table tr:not(:first-child) h4 {
+    margin: 10px 0 2px !important; padding-top: 14px; border-top: 1px solid var(--c-line-4);
+    color: var(--c-text-2); font-size: 0.75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+body.eshop-public .cartInfoBlock .order-info > table h4 a.linkWithIcon {
+    flex: none; width: 32px; height: 32px; padding: 0 !important; box-sizing: border-box;
+    border: 1px solid var(--c-line-strong-2); border-radius: 7px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23145b73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16z'/%3E%3Cpath d='m13.5 6.5 4 4'/%3E%3C/svg%3E") center / 16px 16px no-repeat !important;
+}
+body.eshop-public .cartInfoBlock .order-info > table h4 a.linkWithIcon:hover { border-color: var(--c-accent); background-color: var(--c-accent-soft) !important; }
+body.eshop-public .cartInfoBlock .order-info > table td[colspan] > div:only-child {
+    margin-top: 10px; padding: 12px 0 0 !important; border-top: 1px solid var(--c-line-4);
+    color: var(--c-muted); font-size: 0.8125rem;
+}
 body.eshop-public .cart-view-buttons-right { float: none; text-align: left; }
 body.eshop-public .cart-view-buttons-right .eshop-btn {
     width: 100%;
@@ -1283,6 +1319,12 @@ body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn {
     background: #2f7d4f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath d='M2 10h20M6 15h4'/%3E%3C/svg%3E") no-repeat 16px center / 22px 22px !important;
 }
 body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-cardPayBtn:hover { background-color: #276a43 !important; }
+/* Завършването е с иконка като плащането с карта, в основния цвят */
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-finalizeBtn {
+    padding-left: 46px !important;
+    background: var(--c-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m8 12 3 3 5-6'/%3E%3C/svg%3E") no-repeat 16px center / 22px 22px !important;
+}
+body.eshop-public .cart-view-buttons-right .eshop-btn.eshop-finalizeBtn:not([disabled]):hover { background-color: var(--c-accent-dark) !important; }
 
 body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: var(--c-ink); }
 
