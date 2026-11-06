@@ -2,8 +2,8 @@
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
+    font-family: Helvetica, Arial, Verdana, sans-serif;
+    font-size: 13.92px;
     line-height: 1.2;
     page-break-inside: avoid;
 }
@@ -19,7 +19,7 @@
 .cmr-form .cmr-value {
     color: #333;
     font-family: 'Lucida Console', monospace;
-    font-size: 12px;
+    font-size: 12.528px;
     line-height: 1.25;
 }
 
@@ -27,8 +27,8 @@
     margin-top: 4px;
 }
 
-.cmr-form .cmr-address { height: 100px; }
-.cmr-form .cmr-place { height: 70px; }
+.cmr-form .cmr-address { height: 110px; }
+.cmr-form .cmr-place { height: 110px; }
 .cmr-form .cmr-short { height: 45px; }
 .cmr-form .cmr-instructions { height: 60px; }
 
@@ -38,14 +38,14 @@
     text-align: center;
 }
 
-.cmr-form .cmr-number .cmr-value { font-size: 22px; }
+.cmr-form .cmr-number .cmr-value { font-size: 23.664px; }
 .cmr-form .cmr-convention { font-size: 10px; margin: 0; }
 .cmr-form .cmr-date { white-space: nowrap; }
-.cmr-form .cmr-carrier { position: relative; height: 150px; }
-.cmr-form .cmr-carrier-data { min-height: 56px; }
+.cmr-form .cmr-carrier { position: relative; }
+.cmr-form .cmr-carrier-data { min-height: 54px; }
 .cmr-form .cmr-vehicle { margin-top: 5px; }
-.cmr-form .cmr-vehicle-label { white-space: nowrap; }
-.cmr-form .cmr-vehicle .cmr-value { font-size: 16px; }
+.cmr-form .cmr-vehicle-label { white-space: nowrap; font-size: 16.704px; }
+.cmr-form .cmr-vehicle .cmr-value { font-size: 23.664px; }
 
 .cmr-form b,
 .cmr-form div.cmr-value,
@@ -58,11 +58,19 @@
 
 .cmr-form .cmr-stamp {
     position: absolute;
-    z-index: 1;
     top: 25px;
     left: 0;
     right: 0;
     text-align: center;
+}
+
+.cmr-form .cmr-stamp .signBtnHolder {
+    position: absolute;
+    top: 0;
+    right: 7px;
+    bottom: auto;
+    left: auto;
+    z-index: 3;
 }
 
 .cmr-form .cmr-heavy-top { border-top-width: 3px; }
@@ -74,7 +82,7 @@
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: inherit;
     line-height: 1.2;
 }
 
@@ -84,17 +92,19 @@
 .cmr-form table td:first-child { border-left: 0; }
 .cmr-form table td:last-child { border-right: 0; }
 .cmr-form .cmr-goods td { height: 20px; border-top: 0; border-bottom: 0; }
-.cmr-form .cmr-goods .cmr-goods-heading { font-size: 10px; height: 30px; }
-.cmr-form .cmr-goods .cmr-adr { border-top: 1px solid; height: 12px; font-size: 10px; }
+.cmr-form .cmr-goods .cmr-value { font-size: 14.4px; text-align: center; }
+.cmr-form .cmr-goods .cmr-goods-heading { font-size: 10.4px; height: 30px; padding-left: 1px; padding-right: 1px; white-space: nowrap; }
+.cmr-form .cmr-goods .cmr-adr { border-top: 1px solid; height: 12px; font-size: 10.4px; font-weight: bold; }
+.cmr-form .cmr-payments { font-size: 12.8px; }
 .cmr-form .cmr-payments td { height: 17px; }
-.cmr-form .cmr-signatures td { width: 33.333%; height: 150px; }
+.cmr-form .cmr-signatures td { width: 33.333%; height: 110px; }
 .cmr-form .cmr-signatures b { display: block; }
 
 .cmr-red .cmr-form td { border-color: #ed1748; }
 .cmr-blue .cmr-form td { border-color: #0082c8; }
 .cmr-green .cmr-form td { border-color: #00a94f; }
-.cmr-copy { height: 32px; line-height: 32px; font-size: 12px; overflow: hidden; }
-.cmr-copy span { font-size: 26px; }
+.cmr-copy { height: 42px; line-height: 42px; font-size: 16px; overflow: hidden; }
+.cmr-copy span { font-size: 35px; }
 .cmr-holder .cmr-footer { margin-top: 3px; font-size: 10px; }
 
 @page cmr {
