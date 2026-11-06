@@ -284,7 +284,7 @@ class doc_reports_Docs extends frame_BaseDriver
         
         $this->prependStaticForm($tpl, 'FORM');
         
-        $tpl->placeObject($data->row);
+        $tpl->placeObject($data->row ?? null);
         
         $f = $this->getFields();
         

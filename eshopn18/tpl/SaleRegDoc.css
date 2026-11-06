@@ -148,4 +148,21 @@
     .srd-actions {
         display: none;
     }
+
+    /* На публичната страница се печата само документът - без менюто, банера и футъра на сайта */
+    body:has(.srd-public) *:not(:has(.srd-public)):not(.srd-public):not(.srd-public *) {
+        display: none !important;
+    }
+    body:has(.srd-public),
+    body:has(.srd-public) :has(.srd-public) {
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
 }

@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class bgfisc_SaleRegDocs extends core_Master
+class eshopn18_SaleRegDocs extends core_Master
 {
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'bgfisc_SaleRegDocs';
+
+
     /**
      * Заглавие
      */
@@ -49,7 +55,7 @@ class bgfisc_SaleRegDocs extends core_Master
     /**
      * Файл с шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'bgfisc/tpl/SingleLayoutSaleRegDoc.shtml';
+    public $singleLayoutFile = 'eshopn18/tpl/SingleLayoutSaleRegDoc.shtml';
 
 
     /**
@@ -148,7 +154,7 @@ class bgfisc_SaleRegDocs extends core_Master
         );
 
         // Номерата нарастват със стъпка 1 без пропуски, затова се взимат под заключване
-        $lockKey = "bgfisc_SaleRegDocs_{$ownCompanyId}";
+        $lockKey = "eshopn18_SaleRegDocs_{$ownCompanyId}";
         expect(core_Locks::obtain($lockKey, 60, 20, 30), 'Номерът на документа е зает');
         try {
             // Повторно плащане за същата количка или трансакция не създава втори документ
@@ -188,7 +194,7 @@ class bgfisc_SaleRegDocs extends core_Master
         $this->requireRightFor('createforcart', $cartRec);
         expect(!empty($cartRec->saleId) && ($saleRec = sales_Sales::fetch($cartRec->saleId)), 'Количката няма продажба');
 
-        $docRec = bgfisc_plg_EshopCarts::createDoc(cls::get('eshop_Carts'), $cartRec, $saleRec);
+        $docRec = eshopn18_plg_EshopCarts::createDoc(cls::get('eshop_Carts'), $cartRec, $saleRec);
         if (!is_object($docRec)) {
 
             followRetUrl(null, 'Документът не е създаден - причината е в системния лог на количката|*!', 'error');
@@ -210,7 +216,8 @@ class bgfisc_SaleRegDocs extends core_Master
         $actions = new ET("<div class='srd-actions'>[#PRINT#] [#PDF#]</div>");
         $actions->replace(ht::createFnBtn('Печат', 'window.print();', false, array('ef_icon' => 'img/16/printer.png')), 'PRINT');
         $actions->replace(ht::createBtn('PDF', static::getPublicUrl($rec, 'pdf'), false, false, 'ef_icon=img/16/doc_pdf.png'), 'PDF');
-        $tpl = new ET('[#1#][#2#]', $actions, static::renderDoc($rec));
+        // Обвивката отличава публичната страница, за да се печата само документът без сайта
+        $tpl = new ET("<div class='srd-public'>[#1#][#2#]</div>", $actions, static::renderDoc($rec));
         $this->logRead('Публичен изглед', $rec->id);
         Mode::set('wrapper', 'cms_page_External');
 
@@ -298,7 +305,7 @@ class bgfisc_SaleRegDocs extends core_Master
             $row = $me->recToVerbal($rec, $fields);
             $row->issuedOn = dt::mysql2verbal($rec->issuedOn, 'd.m.Y H:i:s');
 
-            $tpl = getTplFromFile('bgfisc/tpl/SaleRegDoc.shtml');
+            $tpl = getTplFromFile('eshopn18/tpl/SaleRegDoc.shtml');
             $tpl->placeObject($row);
 
             $Double = core_Type::getByName('double(decimals=2)');
@@ -309,7 +316,7 @@ class bgfisc_SaleRegDocs extends core_Master
                     . '<td class="srd-right">' . $Quantity->toVerbal($line->quantity ?? 0) . ' ' . cat_UoM::getShortName($line->packagingId ?? null) . '</td>'
                     . '<td class="srd-right">' . $Double->toVerbal($line->price ?? 0) . '</td><td class="srd-right">' . $Double->toVerbal($line->amount ?? 0) . '</td></tr>', 'LINES');
             }
-            $tpl->push('bgfisc/tpl/SaleRegDoc.css', 'CSS');
+            $tpl->push('eshopn18/tpl/SaleRegDoc.css', 'CSS');
         } finally {
             core_Lg::pop();
         }
@@ -467,7 +474,7 @@ class bgfisc_SaleRegDocs extends core_Master
                 $row->ownCompanyId = crm_Companies::getHyperlink($rec->ownCompanyId, true);
             }
             if (!empty($rec->cartId)) {
-                $row->orderNumber = eshop_Carts::getHyperlink($rec->cartId, true);
+                $row->orderNumber = ht::createLink($row->orderNumber, eshop_Carts::getSingleUrlArray($rec->cartId));
             }
         }
 
@@ -476,6 +483,11 @@ class bgfisc_SaleRegDocs extends core_Master
         }
 
         if (isset($fields['-single'])) {
+            // Само номерът - надписът "Кошница" е в шаблона
+            if (!empty($rec->cartId)) {
+                $row->cartId = ht::createLink("№{$rec->cartId}", eshop_Carts::getSingleUrlArray($rec->cartId));
+            }
+
             $company = crm_Companies::fetchOwnCompany($rec->ownCompanyId, $rec->issuedOn);
             $row->companyName = core_Type::escape($company->companyVerb ?? $company->company ?? '');
             $row->companyUicId = core_Type::escape($company->uicId ?? '');

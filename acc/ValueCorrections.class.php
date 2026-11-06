@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -406,7 +406,7 @@ class acc_ValueCorrections extends core_Master
         }
 
         if (in_array($firstDocRec->chargeVat, array('yes', 'separate'))) {
-            if ($form->rec->amount) {
+            if (!empty($form->rec->amount)) {
                 $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec);
                 $form->rec->amount = $form->rec->amount * (1 + $averageRate);
                 $form->rec->amount = round($form->rec->amount, 2);

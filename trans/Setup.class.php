@@ -79,7 +79,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.31';
+    public $version = '0.32';
     
     
     /**
@@ -142,6 +142,7 @@ class trans_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(3.5, 'Логистика', 'Транспорт', 'trans_Lines', 'default', 'trans, ceo'),
+        array(3.51, 'Логистика', 'Пътни листи', 'trans_TripSheets', 'default', 'acc,seePrice'),
     );
 
 

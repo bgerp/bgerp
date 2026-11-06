@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class bgfisc_plg_EshopCarts extends core_Plugin
+class eshopn18_plg_EshopCarts extends core_Plugin
 {
     /**
      * След дефиниране на полетата на модела
@@ -73,18 +73,18 @@ class bgfisc_plg_EshopCarts extends core_Plugin
      */
     public static function on_AfterPrepareOrderEmailBody($mvc, &$body, $rec, $saleRec)
     {
-        $docRec = bgfisc_SaleRegDocs::fetch("#cartId = {$rec->id}");
+        $docRec = eshopn18_SaleRegDocs::fetch("#cartId = {$rec->id}");
         if (!is_object($docRec)) {
 
             return;
         }
 
-        $number = bgfisc_SaleRegDocs::formatNumber($docRec->number);
-        $text = "\n\n[b]" . tr('Документ за регистриране на продажбата') . '[/b]: [link=' . bgfisc_SaleRegDocs::getPublicUrl($docRec) . "]№ {$number}[/link]";
+        $number = eshopn18_SaleRegDocs::formatNumber($docRec->number);
+        $text = "\n\n[b]" . tr('Документ за регистриране на продажбата') . '[/b]: [link=' . eshopn18_SaleRegDocs::getPublicUrl($docRec) . "]№ {$number}[/link]";
 
         // Без PDF имейлът пак тръгва - линкът е достатъчен
         try {
-            $fh = bgfisc_SaleRegDocs::getPdf($docRec);
+            $fh = eshopn18_SaleRegDocs::getPdf($docRec);
             if (!empty($fh)) {
                 $text .= "\n[file={$fh}]" . fileman_Files::fetchByFh($fh, 'name') . '[/file]';
             } else {
@@ -123,8 +123,8 @@ class bgfisc_plg_EshopCarts extends core_Plugin
 
         // Неуспехът не бива да спира плащането и продажбата - документът се създава после от бутона в количката
         try {
-            $docRec = bgfisc_SaleRegDocs::create($rec, $saleRec, $paymentData);
-            $mvc->logDebug('Документ по чл. 52о №' . bgfisc_SaleRegDocs::formatNumber($docRec->number), $rec->id);
+            $docRec = eshopn18_SaleRegDocs::create($rec, $saleRec, $paymentData);
+            $mvc->logDebug('Документ по чл. 52о №' . eshopn18_SaleRegDocs::formatNumber($docRec->number), $rec->id);
 
             return $docRec;
         } catch (core_exception_Redirect $e) {
@@ -173,13 +173,13 @@ class bgfisc_plg_EshopCarts extends core_Plugin
             return;
         }
 
-        $docId = bgfisc_SaleRegDocs::fetchField("#cartId = {$rec->id}", 'id');
+        $docId = eshopn18_SaleRegDocs::fetchField("#cartId = {$rec->id}", 'id');
         if (!empty($docId)) {
-            if (bgfisc_SaleRegDocs::haveRightFor('single', $docId)) {
-                $data->toolbar->addBtn('Документ по чл. 52о', array('bgfisc_SaleRegDocs', 'single', $docId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Документ за регистриране на продажбата');
+            if (eshopn18_SaleRegDocs::haveRightFor('single', $docId)) {
+                $data->toolbar->addBtn('Документ по чл. 52о', array('eshopn18_SaleRegDocs', 'single', $docId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Документ за регистриране на продажбата');
             }
-        } elseif (bgfisc_SaleRegDocs::haveRightFor('createforcart', $rec)) {
-            $data->toolbar->addBtn('Документ по чл. 52о', array('bgfisc_SaleRegDocs', 'createforcart', $rec->id, 'ret_url' => true), 'ef_icon=img/16/error.png,title=Документът не е създаден при плащането - нов опит със запазените данни');
+        } elseif (eshopn18_SaleRegDocs::haveRightFor('createforcart', $rec)) {
+            $data->toolbar->addBtn('Документ по чл. 52о', array('eshopn18_SaleRegDocs', 'createforcart', $rec->id, 'ret_url' => true), 'ef_icon=img/16/error.png,title=Документът не е създаден при плащането - нов опит със запазените данни');
         }
     }
 }

@@ -233,6 +233,14 @@ class transpress_interface_CourierImpl extends core_BaseClass
             $form->setField($fld, 'input=none');
         }
 
+        // Дните, в които се обслужва селището - както под селището в портала на Transpress
+        if($formRec->pickupType == 'address'){
+            self::setServicingDays($form, 'sourcePlace', $formRec->sourceCountryId ?? null, $formRec->sourcePCode ?? null, $formRec->sourcePlace ?? null);
+        }
+        if($formRec->deliveryType == 'address'){
+            self::setServicingDays($form, 'targetPlace', $formRec->targetCountryId ?? null, $formRec->targetPCode ?? null, $formRec->targetPlace ?? null);
+        }
+
         // Услугите зависят от държавите; офисите са в България
         $fromCountry = ($formRec->pickupType == 'address') ? self::getCountryCode($formRec->sourceCountryId ?? null) : 'BG';
         $toCountry = ($formRec->deliveryType == 'address') ? self::getCountryCode($formRec->targetCountryId ?? null) : 'BG';
@@ -599,6 +607,35 @@ class transpress_interface_CourierImpl extends core_BaseClass
         if(transpress_Adapter::getEnvironment() != 'test') return '';
 
         return "<div class='richtext-message richtext-warning'><b>" . tr('ТЕСТОВА СРЕДА') . '</b>: ' . tr('|товарителниците се създават в тестовата система на|* <b>Transpress</b> |и не се изпълняват|*.') . '</div>';
+    }
+
+
+    /**
+     * Показва дните на обслужване на селището до полето му
+     *
+     * @param core_Form $form
+     * @param string    $field
+     * @param int|null  $countryId
+     * @param string|null $pCode
+     * @param string|null $place
+     */
+    private static function setServicingDays($form, $field, $countryId, $pCode, $place)
+    {
+        $days = transpress_Adapter::getServicingDays(self::getCountryCode($countryId), $pCode, $place);
+        if(!is_array($days)) return;
+
+        $dayNames = (core_Lg::getCurrent() == 'bg') ? dt::$weekDays : dt::$weekDaysShortEn;
+        $lines = array();
+        foreach (array('courier' => 'Куриерски', 'cargo' => 'Карго') as $type => $caption){
+            $verbal = array();
+            foreach ($dayNames as $i => $dayName){
+                $isServiced = (strpos($days[$type], (string)($i + 1)) !== false);
+                $verbal[] = $isServiced ? "<b style='color:green'>{$dayName}</b>" : "<span class='quiet'>{$dayName}</span>";
+            }
+            $lines[] = tr($caption) . ': ' . implode(' ', $verbal);
+        }
+
+        $form->setField($field, array('unit' => "|*<div class='small'>" . implode('<br>', $lines) . '</div>'));
     }
 
 

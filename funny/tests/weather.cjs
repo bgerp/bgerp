@@ -55,7 +55,7 @@ function environment(config = {}) {
     window.self=window;window.top=config.iframe?{}:window;
     const math=Object.create(Math);math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     const options={mode:config.mode || 'on',icon:config.icon || 'rain',strength:config.strength,temperature:config.temperature,wind:config.wind,windDirection:config.windDirection,standalone:config.standalone !== false,frequency:config.frequency || 'normal',expires:config.expires || 86400000};
-    class ClockDate extends Date { constructor(){super(config.date || '2026-10-30T12:00:00');} static now(){return now;} }
+    class ClockDate extends Date { constructor(){super(new Date(config.date || '2026-10-30T12:00:00').getTime()+now);} static now(){return now;} }
     vm.runInNewContext(source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
     window.funnyWeather.init(options);
     function tick(ms) {
@@ -71,13 +71,23 @@ function environment(config = {}) {
 }
 let checks=0;
 function check(name,fn) {fn();checks++;console.log('PASS '+name);}
-check('standalone weather repeats on growing character intervals and stops immediately on movement',()=>{
+check('movement fades standalone weather and restarts its initial idle interval',()=>{
     const e=environment();let due=[...e.timers.values()][0].at;assert(due>=20000 && due<=60000);assert.equal(e.frames.size,0);
     e.tick(due);assert(e.layer());assert.equal(e.layer().attrs['aria-hidden'],'true');
     for(let i=0;i<6;i++) {
         e.document.emit('pointermove');assert(!e.layer());assert.equal(e.frames.size,0);
-        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=60000 && next<=600000);if(i>=3) assert(next>=300000);
+        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=20000 && next<=60000);
         e.tick(next);assert(e.layer());
+    }
+});
+check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{
+    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
+        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,{clientX:100+i,clientY:50,key:'a'});assert(!e.layer(),type);assert.equal(e.timers.size,1);}
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert(!e.layer());e.tick(delay-(min-100)+20);assert(e.layer());
+        e.document.emit('keydown');e.tick(1100);assert(!e.layer());
+        const restarted=[...e.timers.values()][0].at-e.now()+1100;assert(restarted>=min && restarted<=max);
     }
 });
 check('disabled, embedded and reduced-motion pages stay idle',()=>{
@@ -93,13 +103,34 @@ check('all provider icon names map to the expected weather',()=>{
         snow:['snow','snow-showers-day','snow-showers-night','hail','sleet','rain-snow','rain-snow-showers-day','rain-snow-showers-night']};
     for(const [kind,icons] of Object.entries(groups)) for(const icon of icons) {const e=environment({icon});e.tick(51000);assert(e.layer().attrs['data-weather'].includes(kind),icon);}
 });
-check('blur and hidden tabs pause the countdown and stop visuals without replaying them',()=>{
-    for(const hidden of [false,true]) {
-        const e=environment();const first=[...e.timers.values()][0].at;e.tick(10000);
+check('sun follows local time from right through high noon to left, stays in the viewport and updates while visible',()=>{
+    for(const width of [320,1000]) for(const icon of ['clear-day','partly-cloudy-day','showers-day']) {
+        const positions={};
+        for(const hour of ['00','08','12','17','23']) {
+            const e=environment({icon,width,date:'2026-10-30T'+hour+':00:00'});e.window.funnyWeather.trigger('manual');
+            const sun=e.layer().children.find(n=>n.className==='funny-weather-sun');
+            const x=parseFloat(sun.style.left),y=parseFloat(sun.style.top);positions[hour]={x,y};
+            assert(x>=0 && x+90<=width);assert(y>=0 && y+90<=e.window.innerHeight);
+        }
+        assert(positions['08'].x+45>width/2);assert.equal(positions['12'].x+45,width/2);assert(positions['17'].x+45<width/2);
+        assert(positions['12'].y<positions['08'].y && positions['12'].y<positions['17'].y);
+    }
+    const e=environment({icon:'clear-day',date:'2026-10-30T11:59:58'});e.window.funnyWeather.trigger('manual');
+    const sun=e.layer().children.find(n=>n.className==='funny-weather-sun'),before=parseFloat(sun.style.left);
+    e.tick(4000);assert(parseFloat(sun.style.left)<before);assert(e.layer().children.includes(sun));
+    e.document.emit('pointermove');e.tick(1100);assert(!e.layer());assert.equal(e.timers.size,1);assert.equal(e.frames.size,0);
+});
+check('returning from blur or a hidden tab gives standalone weather a full initial idle interval',()=>{
+    for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
+        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        e.tick([...e.timers.values()][0].at-1000);
         if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
         e.tick(60000);assert(!e.layer());assert.equal(e.timers.size,0);
-        e.document.visibilityState='visible';e.document.focused=true;e.window.emit('focus');assert(!e.layer());e.tick(first-10000);assert(e.layer());
-        e.document.focused=false;e.window.emit('blur');assert(!e.layer());e.document.focused=true;e.window.emit('focus');e.tick(1000);assert(!e.layer());
+        e.document.visibilityState='visible';e.document.focused=false;e.document.emit('visibilitychange');assert.equal(e.timers.size,0);
+        e.document.focused=true;e.window.emit('focus');const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(min-100);assert(!e.layer());e.tick(delay-(min-100)+20);assert(e.layer());
+        e.document.focused=false;e.window.emit('blur');assert(!e.layer());e.document.focused=true;e.window.emit('focus');
+        const next=[...e.timers.values()][0].at-e.now();assert(next>=min && next<=max);e.tick(1000);assert(!e.layer());
     }
 });
 check('typing, scroll, touch movement, resizing, printing and page exit stop animation',()=>{

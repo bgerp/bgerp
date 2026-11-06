@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -739,6 +739,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     if (!isset($policyInfo->price)) {
                         $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
                         $form->setError('packPrice', $errorMsg);
+                        return;
                     } else {
 
                         // Ако се обновява запис се взима цената от него, ако не от политиката
@@ -871,6 +872,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         $rate = $masterRec->displayRate ?? $masterRec->rate;
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        $dRec->quantity = $row->quantity;
 
         if(isset($row->price)){
             $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->vatRate);
@@ -886,7 +888,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 foreach ($products as $p) {
                     if ($dRec->productId == $p->productId && $dRec->packagingId == $p->packagingId) {
                         $policyInfo = new stdClass();
-                        $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
+                        $policyInfo->price = deals_Helper::getDisplayPrice($p->price, null, $masterRec->rate, 'no');
                         $policyInfo->discount = $p->discount;
                         break;
                     }
@@ -903,7 +905,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $dRec->discount = $policyInfo->discount;
         }
 
-        $dRec->quantity = $row->quantity;
         $dRec->quantityInPack = $quantityInPack;
         $dRec->amount = $dRec->price * $dRec->quantity;
 

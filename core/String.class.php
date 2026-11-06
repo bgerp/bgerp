@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class core_String
         // Опитваме се да прихванем всички символи, които не са ASCII
         // Ако е подаден текст, който е изцяло от неаски символи, ще има само едно извикване на колбек функцията
         $me = get_called_class();
-        $text = preg_replace_callback('/([^\x21-\x7F]+)/u', array($me, 'convertToAscii'), $text);
+        $text = preg_replace_callback('/([^\x21-\x7F]+)/u', array($me, 'convertToAscii'), $text ?? '');
         
         return $text;
     }

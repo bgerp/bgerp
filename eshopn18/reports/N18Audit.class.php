@@ -5,7 +5,7 @@
  * Месечната справка по Наредба Н-18 за е-магазин и одиторският XML файл по приложение № 38
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,8 +14,14 @@
  * @since     v 0.1
  * @title     НАП » Н-18 е-магазин - месечен одиторски файл
  */
-class bgfisc_reports_N18Audit extends frame2_driver_TableData
+class eshopn18_reports_N18Audit extends frame2_driver_TableData
 {
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'bgfisc_reports_N18Audit';
+
+
     /**
      * Кой може да избира драйвъра
      */
@@ -324,9 +330,10 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $oRec->docDate = null;
         $oRec->paym = null;
         $oRec->posId = $oRec->transactionRef = $oRec->procId = '';
+        $oRec->payDocs = array();
 
         // Платеното с карта има документ по чл. 52о
-        $regDoc = bgfisc_SaleRegDocs::fetch("#saleId = {$saleRec->id}");
+        $regDoc = eshopn18_SaleRegDocs::fetch("#saleId = {$saleRec->id}");
         $receipt = $this->getFiscReceipt($saleRec);
         if (is_object($regDoc)) {
             $oRec->paym = $regDoc->paymentCode ?? null;
@@ -367,13 +374,29 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $postalAccounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
         $bQuery = bank_IncomeDocuments::getQuery();
         $bQuery->where("#state = 'active' AND #threadId = {$saleRec->threadId}");
-        $bQuery->show('ownAccount');
+        $bQuery->show('id,ownAccount');
         while ($bRec = $bQuery->fetch()) {
             $oRec->paym = in_array($bRec->ownAccount, $postalAccounts) ? 3 : ($oRec->paym ?? 1);
+            $oRec->payDocs[] = array('bank_IncomeDocuments', $bRec->id);
         }
 
-        if (empty($oRec->paym)) {
-            $oRec->errors[] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон или ПБД';
+        // ПКО без бон - наложеният платеж с ППП, внесен от куриера в касата
+        $cQuery = cash_Pko::getQuery();
+        $cQuery->where("#state = 'active' AND #threadId = {$saleRec->threadId}");
+        $cQuery->show('id');
+        while ($cRec = $cQuery->fetch()) {
+            $oRec->payDocs[] = array('cash_Pko', $cRec->id);
+            if (empty($oRec->paym)) {
+                if (($saleRec->paymentType ?? null) == 'postal') {
+                    $oRec->paym = 3;
+                } else {
+                    $oRec->errors['cash'] = 'Плащане в брой без фискален бон';
+                }
+            }
+        }
+
+        if (empty($oRec->paym) && empty($oRec->errors['cash'])) {
+            $oRec->errors[] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон, ПБД или ПКО';
         }
     }
 
@@ -409,6 +432,12 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
      */
     protected function getFiscReceipt($saleRec)
     {
+        // Касовите бонове са само при инсталиран bgfisc
+        if (!core_Packs::isInstalled('bgfisc')) {
+
+            return null;
+        }
+
         $regRec = bgfisc_Register::getRec('sales_Sales', $saleRec->id);
         if (!is_object($regRec)) {
 
@@ -446,6 +475,18 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             'bank_SpendingDocuments' => array(array('bank2customer', 'bank2customerRet', 'bankAdvance2customer', 'bankAdvance2customerRet'), 1),
             'cash_Rko' => array(array('case2customer', 'case2customerRet', 'caseAdvance2customer', 'caseAdvance2customerRet'), 3),
         );
+        // Документите за връщане на стоката по нишки
+        $returns = array();
+        foreach (static::$deliveryDocs as $masterClass => $detailClass) {
+            $rQuery = $masterClass::getQuery();
+            $rQuery->where("#state = 'active' AND #isReverse = 'yes'");
+            $rQuery->in('threadId', array_keys($carts));
+            $rQuery->show('id,threadId');
+            while ($rRec = $rQuery->fetch()) {
+                $returns[$rRec->threadId][] = array($masterClass, $rRec->id);
+            }
+        }
+
         foreach ($docs as $class => $params) {
             list($operations, $rPaym) = $params;
             $query = $class::getQuery();
@@ -454,10 +495,10 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
             $query->in('threadId', array_keys($carts));
             while ($dRec = $query->fetch()) {
                 $cartRec = $carts[$dRec->threadId];
-                $saleRec = sales_Sales::fetch($cartRec->saleId, 'state,ownCompanyId');
+                $saleRec = sales_Sales::fetch($cartRec->saleId);
                 $recs["r{$class}{$dRec->id}"] = (object) array('kind' => 'refund', 'cartId' => $cartRec->id, 'saleId' => $cartRec->saleId,
                     'saleState' => $saleRec->state ?? null, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
-                    'orderDate' => $dRec->valior, 'docs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
+                    'orderDate' => $dRec->valior, 'docs' => $returns[$dRec->threadId] ?? array(), 'payDocs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
                     'total2' => round($dRec->amount * (!empty($dRec->rate) ? $dRec->rate : 1), 2));
             }
         }
@@ -512,7 +553,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         }
 
         $domain = !empty($settings->n18ShopUrl) ? $settings->n18ShopUrl : cms_Domains::fetchField($rec->domainId, 'domain');
-        $tpl = getTplFromFile('bgfisc/tpl/N18Audit.xml');
+        $tpl = getTplFromFile('eshopn18/tpl/N18Audit.xml');
         $orderBlock = $tpl->getBlock('ORDER');
         $artBlock = $orderBlock->getBlock('ART');
         foreach ($orders as $oRec) {
@@ -525,7 +566,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                 $artTpl->removeBlocksAndPlaces();
                 $orderTpl->append($artTpl, 'ARTS');
             }
-            $orderTpl->placeArray(self::escapeXml(array('ord_n' => $oRec->cartId, 'ord_d' => $oRec->orderDate, 'doc_n' => !empty($oRec->regDocId) ? bgfisc_SaleRegDocs::formatNumber($oRec->docNum) : $oRec->docNum,
+            $orderTpl->placeArray(self::escapeXml(array('ord_n' => $oRec->cartId, 'ord_d' => $oRec->orderDate, 'doc_n' => !empty($oRec->regDocId) ? eshopn18_SaleRegDocs::formatNumber($oRec->docNum) : $oRec->docNum,
                 'doc_date' => $oRec->docDate ?? $oRec->deliveryDate, 'ord_total1' => self::num($oRec->total1), 'ord_disc' => self::num($oRec->disc),
                 'ord_vat' => self::num($oRec->vat), 'ord_total2' => self::num($oRec->total2), 'paym' => $oRec->paym,
                 'pos_n' => $oRec->posId, 'trans_n' => $oRec->transactionRef, 'proc_id' => $oRec->procId)));
@@ -558,7 +599,7 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         $prevUseErrors = libxml_use_internal_errors(true);
         libxml_clear_errors();
         try {
-            if (!$doc->loadXML('<?xml version="1.0" encoding="UTF-8"?>' . $tpl->getContent()) || !$doc->schemaValidate(getFullPath('bgfisc/xsd/dec_audit.xsd'))) {
+            if (!$doc->loadXML('<?xml version="1.0" encoding="UTF-8"?>' . $tpl->getContent()) || !$doc->schemaValidate(getFullPath('eshopn18/xsd/dec_audit.xsd'))) {
                 foreach (libxml_get_errors() as $xmlError) {
                     $errors[] = '|*XSD: ' . trim($xmlError->message);
                 }
@@ -688,9 +729,9 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         if (!empty($dRec->docNum)) {
             $row->docNum = core_Type::escape($dRec->docNum);
             if (!empty($dRec->regDocId)) {
-                $row->docNum = bgfisc_SaleRegDocs::formatNumber($dRec->docNum);
+                $row->docNum = eshopn18_SaleRegDocs::formatNumber($dRec->docNum);
                 if ($canLink) {
-                    $row->docNum = ht::createLink($row->docNum, array('bgfisc_SaleRegDocs', 'single', $dRec->regDocId));
+                    $row->docNum = ht::createLink($row->docNum, array('eshopn18_SaleRegDocs', 'single', $dRec->regDocId));
                 }
 
                 // Трансакцията е в хинта като HTML, за да остане линкът към плащането с карта
@@ -710,6 +751,16 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
                 }
                 $row->docNum = ht::createHint($row->docNum, 'Касов бон', 'notice', false, array('aiHint' => 'Fiscal receipt'));
             }
+        }
+
+        // Без документ по чл. 52о и бон се показват платежните документи - само на екрана, в XML файла номерът остава 0
+        if (empty($dRec->docNum) && countR($dRec->payDocs ?? null)) {
+            $payDocs = array();
+            foreach ($dRec->payDocs as $doc) {
+                list($class, $id) = $doc;
+                $payDocs[] = $class::getLink($id, 0);
+            }
+            $row->docNum = implode('<br>', $payDocs);
         }
 
         // Начинът на плащане - цветно балонче с кода от XML файла в хинта
@@ -757,7 +808,12 @@ class bgfisc_reports_N18Audit extends frame2_driver_TableData
         }
         $res->docs = implode(', ', $docs);
         $res->net = isset($dRec->total1) ? round($dRec->total1 - ($dRec->disc ?? 0), 2) : null;
-        $res->docNum = !empty($dRec->regDocId) ? bgfisc_SaleRegDocs::formatNumber($dRec->docNum) : (!empty($dRec->docNum) ? $dRec->docNum : null);
+        $res->docNum = !empty($dRec->regDocId) ? eshopn18_SaleRegDocs::formatNumber($dRec->docNum) : (!empty($dRec->docNum) ? $dRec->docNum : null);
+        if (empty($res->docNum) && countR($dRec->payDocs ?? null)) {
+            $res->docNum = implode(', ', array_map(function ($doc) {
+                return '#' . $doc[0]::getHandle($doc[1]);
+            }, $dRec->payDocs));
+        }
         $res->paym = countR($dRec->errors ?? array()) ? 'n/a' : ($dRec->paym ?? null);
         $kind = (($dRec->kind ?? null) == 'order') ? 'order' : 'refund';
         $res->paymName = isset(static::$paymentCodes[$kind][$dRec->paym ?? null]) ? tr(static::$paymentCodes[$kind][$dRec->paym]) : null;
