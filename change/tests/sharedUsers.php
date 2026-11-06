@@ -20,6 +20,7 @@ function countR($value) { return is_countable($value) ? count($value) : 0; }
 function expect($value) { if (!$value) throw new RuntimeException('Expectation failed'); }
 function tr($value) { return $value; }
 function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
+function getTplFromFile($path) { return new ET(file_get_contents(dirname(__DIR__, 2) . '/' . $path)); }
 
 $root = dirname(__DIR__, 2);
 foreach (array('core/BaseClass', 'core/Plugin', 'core/Type', 'core/Array', 'core/ET', 'type/Keylist', 'lib/Diff') as $file) {
@@ -75,10 +76,20 @@ class core_Manager extends core_Mvc
     }
 }
 class core_Classes { public static function getId($mvc) { return 501; } }
+class core_Master extends core_Manager {}
+class ContractSharingScript
+{
+    private $script;
+    public function __construct($script) { $this->script = $script; }
+    public function render($row) { return new ET($this->script); }
+}
 class cls
 {
     public static $document;
-    public static function get($class) { return self::$document; }
+    public static function get($class, $params = array())
+    {
+        return $class === 'legalscript_Engine' ? new ContractSharingScript($params['script'] ?? '') : self::$document;
+    }
     public static function haveInterface($interface, $mvc) { return true; }
 }
 class Request
@@ -155,6 +166,16 @@ require $root . '/change/Log.class.php';
 require $root . '/change/Plugin.class.php';
 require $root . '/doc/SharablePlg.class.php';
 require $root . '/doc/AssignPlg.class.php';
+require $root . '/hr/EmployeeContracts.class.php';
+
+class ContractSharingDocument extends hr_EmployeeContracts
+{
+    public $className = 'ContractSharingDocument';
+    public function __construct() { $this->_plugins = array(new doc_SharablePlg()); }
+    public function getShared($id) { return cls::$document->getShared($id); }
+    public function renderSingleToolbar($data) { return new ET(''); }
+    public function save_($rec, $fields) { return cls::$document->save_($rec, $fields); }
+}
 
 function prepareSharing($id, $selection, $history, $current, $hasAssign = true)
 {
@@ -277,6 +298,42 @@ $data = prepareSharing($id++, array('current'), $history, $current + array('stat
 renderSharing($data);
 SharingFixture::check(cls::$document->writes === 1, 'Print preview must still record a first view');
 unset(Request::$values['Printing']);
+core_Users::$current = 9;
+
+// Трудовият договор рендира собствен шаблон, който също трябва да има стандартното споделяне.
+foreach (array('html', 'xhtml') as $mode) {
+    Mode::$values['text'] = $mode;
+    $data = prepareSharing($id++, array(), $history, $current, false);
+    $data->row->script = '<p>Contract body</p>';
+    $tpl = (new ContractSharingDocument())->renderSingle($data);
+    SharingFixture::check(!$tpl->isPlaceholderExists('blank') && !$tpl->isPlaceholderExists('DETAILS'), 'Contract must not gain a letterhead or linked-document section');
+    $html = $tpl->getContent();
+    SharingFixture::check(strpos($html, '<p>Contract body</p>') !== false, 'Contract text must remain intact');
+    SharingFixture::check(substr_count($html, 'sharing-history clearfix21') === ($mode === 'html' ? 1 : 0), 'Contract must show one sharing footer only in HTML');
+    if ($mode === 'html') {
+        SharingFixture::check(strpos($html, 'User2') !== false && strpos($html, '2026-01-01 12:30:00') !== false, 'Contract must keep removed readers and their first-view dates');
+        SharingFixture::check(strpos($html, 'User3') !== false && strpos($html, '2026-01-02 12:30:00') !== false, 'Contract must keep current readers and their first-view dates');
+        SharingFixture::check(strpos($html, 'User5') !== false, 'Contract must show current recipients who have not viewed it');
+        SharingFixture::check(strpos($html, 'User4') === false, 'Contract must not show removed recipients who never viewed it');
+        SharingFixture::check(strpos($html, 'User6') === false, 'Contract must not acquire an assignment field');
+    }
+}
+unset(Mode::$values['text']);
+
+$data = prepareSharing($id++, array(), array(), array('sharedUsers' => '', 'sharedViews' => null), false);
+$data->row->script = '<p>Unshared contract</p>';
+$html = (new ContractSharingDocument())->renderSingle($data)->getContent();
+SharingFixture::check(strpos($html, 'sharing-history') === false, 'Unshared contract must not show an empty sharing block');
+
+core_Users::$current = 5;
+Request::$values['Printing'] = true;
+Mode::$values['text'] = 'xhtml';
+$data = prepareSharing($id++, array(), $history, $current + array('state' => 'active', 'containerId' => 200), false);
+$data->row->script = '<p>Printed contract</p>';
+$html = (new ContractSharingDocument())->renderSingle($data)->getContent();
+SharingFixture::check(cls::$document->writes === 1, 'Contract print preview must record its first view through the standard render hook');
+SharingFixture::check(strpos($html, 'sharing-history') === false && strpos($html, '<p>Printed contract</p>') !== false, 'Contract print output must keep its original content without the sharing block');
+unset(Request::$values['Printing'], Mode::$values['text']);
 core_Users::$current = 9;
 
 echo 'PASS: ' . SharingFixture::$checks . " checks\n";
