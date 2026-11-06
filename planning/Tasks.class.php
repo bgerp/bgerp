@@ -404,8 +404,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
-        // Покрива броячите и ключовете за връзките им при филтриране по планирано начало.
-        $this->setDbIndex('expectedTimeStart,state,folderId,threadId,originId,id', 'expected_time_start_state');
+        $this->setDbIndex('expectedTimeStart,state');
         $this->setDbIndex('saoOrder');
         $this->setDbIndex('state');
     }
@@ -2657,20 +2656,6 @@ JS
         core_Debug::startTimer('RENDER_SUMMARY');
         $query = clone $data->query;
         $query->orderBy = $query->show = array();
-        $threadShared = $query->fields['threadShared'] ?? null;
-        if ($threadShared && $threadShared->kind == 'EXT' &&
-            $threadShared->externalClass == 'doc_Threads' &&
-            $threadShared->externalName == 'shared' && $threadShared->externalKey == 'threadId') {
-            $threadTable = cls::get('doc_Threads')->dbTableName;
-            $sharedColumn = str::phpToMysqlName($threadShared->externalName);
-            $threadColumn = str::phpToMysqlName($threadShared->externalFieldName ?? 'id');
-            $taskThread = $query->getMysqlField($threadShared->externalKey);
-            // Индексната връзка запазва съществуването на нишката, а shared се чете само при нужда от OR-условието за достъп.
-            $sharedSql = "(SELECT `{$threadTable}`.`{$sharedColumn}` FROM `{$threadTable}` WHERE `{$threadTable}`.`{$threadColumn}` = {$taskThread})";
-            $query->where = preg_replace('/#threadShared\b/', $sharedSql, $query->where);
-            $query->fields['threadShared'] = clone $threadShared;
-            $query->fields['threadShared']->externalName = $threadShared->externalFieldName ?? 'id';
-        }
         $states = array(
             'active' => 'Активни',
             'wakeup' => 'Събудени',
