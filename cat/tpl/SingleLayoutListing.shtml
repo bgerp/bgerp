@@ -16,7 +16,7 @@
 			</tr>
             <tr>
                 <td class='quiet'>|Валута|*:</td>
-                <td><span class="cCode">[#currencyId#]</span></td>
+                <td><span class="cCode">[#currencyId#]</span> [#convertToEur#]</td>
             </tr>
 		</table>
 	</fieldset>

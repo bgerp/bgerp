@@ -1,0 +1,26 @@
+.additionalInfo-holder .additionalInfo:has(> .rack-full-quantity-hint),
+.fuiHintLayer:has(> .rack-full-quantity-hint) {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.rack-quantity-diagnostics {
+    display: inline-block;
+    margin-top: 5px;
+    color: #757575;
+    font-size: 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.rack-full-quantity {
+    background: #c0c0c0;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-weight: bold;
+    color: #000;
+}
+
+.rack_ZoneDetails .listTable {
+    width: 100%;
+}

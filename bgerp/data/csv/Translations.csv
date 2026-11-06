@@ -4274,6 +4274,7 @@ en,Поръчката ще бъде потвърдена допълнителн�
 en,Плащането се обработва в момента,The payment is being processed right now
 en,Платеното е отразено,The payment was recorded
 en,Платеното пак не е отразено - причината е в лога,The payment is still not recorded - the reason is in the log
+en,Плащане с карта не е отразено в поръчката,A card payment is not recorded in the order
 en,Повторен опит за отразяване на платеното в поръчката,Retry recording the payment in the order
 en,Поръчката не очаква плащане с карта,The order does not expect a card payment
 en,Плати с грешка при отразяване,Pay with a recording error
@@ -4319,7 +4320,7 @@ en,Сумите на редовете не дават общата сума,The 
 en,Документът по чл. 52о е без код на плащането,The Art. 52o document has no payment code
 en,Липсва идентификаторът на доставчика на платежни услуги,The payment service provider ID is missing
 en,"Поръчката има и документ по чл. 52о, и фискален бон","The order has both an Art. 52o document and a fiscal receipt"
-en,"Плащането не е отразено - няма документ по чл. 52о, фискален бон или ПБД","The payment is not recorded - no Art. 52o document, fiscal receipt or bank receipt"
+en,"Плащането не е отразено - няма документ по чл. 52о, фискален бон, ПБД или ПКО","The payment is not recorded - no Art. 52o document, fiscal receipt, bank receipt or cash receipt"
 en,"Има поръчки с грешки - виж ""n/a"" в колоната ""Начин""","There are orders with errors - see ""n/a"" in the ""Method"" column"
 en,"Няма поръчки с доставка през месеца, а схемата на НАП изисква поне една","No orders delivered in the month, and the NRA schema requires at least one"
 en,Поръчките и връщанията са на различни наши фирми - магазинът трябва да е на една,The orders and refunds belong to different own companies - the shop must belong to one
@@ -4357,3 +4358,9 @@ en,Върнато,Returned
 en,Без ограничение,No restriction
 en,Бус,Van
 en,Камион,Truck
+en,Цените на артикулите ще бъдат преизчислени от лева в евро,The item prices will be recalculated from BGN to EUR
+en,Листът е превалутиран в евро,The list has been converted to EUR
+en,Превалутиране в евро,Convert to EUR
+en,Куриерски,Courier
+en,Карго,Cargo
+en,Плащане в брой без фискален бон,Cash payment without a fiscal receipt

@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -417,10 +417,18 @@ class eshop_CartDetails extends core_Detail
             }
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->productId .= " <span class='small'>({$row->packagingId})</span>";
-            
+            // Последната дума, мярката и стрелката са неделими, за да не останат мярката и стрелката сами на нов ред
             $url = eshop_Products::getUrl($rec->eshopProductId);
-            $row->productId = ht::createLinkRef($row->productId, $url);
+            $packAndLink = ht::createLinkRef("<span class='small'>({$row->packagingId})</span>", $url);
+            $title = rtrim((string) $row->productId);
+            $lastSpace = strrpos($title, ' ');
+            $head = "{$title} ";
+            $lastWord = '';
+            if ($lastSpace !== false && strpbrk(substr($title, $lastSpace), '<>') === false) {
+                $head = substr($title, 0, $lastSpace + 1);
+                $lastWord = substr($title, $lastSpace + 1) . ' ';
+            }
+            $row->productId = "{$head}<span class='nowrap'>{$lastWord}{$packAndLink}</span>";
             
             // Показване на уникалните параметри под името на артикула
             $paramsText = self::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);

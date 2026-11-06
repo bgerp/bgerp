@@ -36,9 +36,22 @@ class fileman_webdrv_Generic {
     public static $passwords = array();
     public static function getPassword($fh) { return self::$passwords[$fh] ?? null; }
 }
-class bank_Accounts {
-    public static function fetch($where) { return (object) array('id' => 1, 'currencyId' => 1); }
+class core_Master {
+    // Сметки по id за проверка на търсенето по IBAN; null - всеки IBAN е на сметка 1
+    public static $ibans;
+    public static $conditions = array();
+    public static function fetch($where) {
+        if (!isset(self::$ibans)) return (object) array('id' => 1, 'currencyId' => 1);
+        self::$conditions[] = $where[0];
+        foreach (self::$ibans as $id => $iban) {
+            // Сравнение като в MySQL при utf8mb4_bin
+            if ($where[0] === "UPPER(REPLACE(REPLACE(#iban, ' ', ''), '-', '')) = '[#1#]'") $iban = strtoupper(str_replace(array(' ', '-'), '', $iban));
+            if ($iban === $where[1]) return (object) array('id' => $id, 'currencyId' => 1);
+        }
+        return false;
+    }
 }
+require dirname(__DIR__, 2) . '/bank/Accounts.class.php';
 class bank_OwnAccounts {
     public static function fetch($where) { return (object) array('id' => 2); }
     public static $historicalCurrency = false;

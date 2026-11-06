@@ -77,12 +77,14 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     /**
      * Информативния текст за онлайн плащането
      * 
-     * @param mixed $rec
+     * @param mixed      $rec            - начинът на плащане
+     * @param mixed|null $initiatorClass - класът инициатор
+     * @param int|null   $initiatorId    - ид на инициатора
      * @return string|null
      */
-    public function getDisplayHtml($rec)
+    public function getDisplayHtml($rec, $initiatorClass = null, $initiatorId = null)
     {
-        return $this->class->getDisplayHtml($rec);
+        return $this->class->getDisplayHtml($rec, $initiatorClass, $initiatorId);
     }
     
     

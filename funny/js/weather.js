@@ -25,13 +25,13 @@
             if (initialized || ['on', 'sound'].indexOf(options.mode) < 0 || window.self !== window.top) return;
             initialized = true;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var layer = null, canvas = null, context = null, audio = null;
-            var timer = 0, frame = 0, printing = false, appearances = 0, due = 0;
+            var layer = null, canvas = null, context = null, audio = null, sun = null;
+            var timer = 0, frame = 0, printing = false, appearances = 0;
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
             var frequent = options.frequency === 'frequent';
-            var remaining = frequent ? 5000 + Math.random() * 7000 : 20000 + Math.random() * 40000;
+            var remaining = initialDelay();
             var lastFrame = 0, lastLayout = 0, width = 0, height = 0, weather = '';
             var elapsed = 0, lastProgress = 0, maxParticles = 0;
             var particles = [], banks = [];
@@ -41,8 +41,12 @@
             // Bearings describe where wind comes from; without a saved bearing keep one gentle heading per page.
             var bearing = typeof options.windDirection === 'number' ? options.windDirection * Math.PI / 180 : (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (Math.random() - 0.5) * 0.6;
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
-            // Clicks can summon more visitors without interrupting an existing weather scene.
-            var inputs = ['pointermove', 'keydown', 'wheel', 'touchmove', 'scroll'];
+            var inputs = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'];
+
+            /** Every new idle period starts with the same interval as a freshly loaded page. */
+            function initialDelay() {
+                return frequent ? 5000 + Math.random() * 7000 : 20000 + Math.random() * 40000;
+            }
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
             function active() {
@@ -243,6 +247,15 @@
                 particle.phase = Math.random() * Math.PI * 2;
             }
 
+            /** A decorative 06:00-18:00 arc follows the device clock, from right to left, without requests. */
+            function positionSun() {
+                if (!sun) return;
+                var now = new Date(), hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+                var progress = Math.max(0, Math.min(1, (hour - 6) / 12));
+                sun.style.left = (Math.max(0, width - 90) * (0.9 - 0.8 * progress)).toFixed(2) + 'px';
+                sun.style.top = (Math.max(0, height - 90) * (0.08 + 0.3 * (1 - Math.sin(progress * Math.PI)))).toFixed(2) + 'px';
+            }
+
             /** One canvas, at most 90 particles and 30 painted frames per second. */
             function animate(time) {
                 frame = 0;
@@ -253,6 +266,7 @@
                 if (time - lastLayout >= 1000) {
                     if (forecast() !== weather) { stop(); return; }
                     if (canvas) updateBanks();
+                    positionSun();
                     layer.style.opacity = (Math.min(1, elapsed / 8000) * strength).toFixed(3);
                     document.body.style.setProperty('--funny-weather-exposure', (Math.min(1, elapsed / (weather.indexOf('rain') >= 0 ? 60000 : 90000)) * strength).toFixed(3));
                     lastLayout = time;
@@ -322,6 +336,7 @@
                 ['sun', 'moon', 'clouds', 'fog'].forEach(function (kind) {
                     if (weather.indexOf(kind) < 0) return;
                     var node = element(kind, layer);
+                    if (kind === 'sun') sun = node;
                     if (kind !== 'clouds') return;
                     // Both ends lie beyond the viewport, including the puff shadows, so loops cannot jump visibly.
                     // Keep clouds in the top strip, with only a small vertical component of the wind.
@@ -334,6 +349,7 @@
                     node.style.setProperty('--cloud-lane-y', '30px');
                     node.style.setProperty('--cloud-duration', Math.max(20000, distance / (16 + wind.speed * 1.4) * 1000) + 'ms');
                 });
+                positionSun();
                 if (/rain|snow/.test(weather)) {
                     canvas = document.createElement('canvas'); layer.appendChild(canvas);
                     canvas.width = width; canvas.height = height; context = canvas.getContext('2d');
@@ -369,14 +385,13 @@
                     if (layer) { layer.remove(); layer = null; }
                     finishFade();
                 }
-                particles = []; banks = []; canvas = context = null;
+                particles = []; banks = []; canvas = context = sun = null;
                 details = [];
             }
 
             /** Disabled characters leave weather its own timer with the same growing intervals. */
             function schedule() {
                 if (!options.standalone || layer || timer || !active() || !forecast()) return;
-                due = performance.now() + remaining;
                 timer = window.setTimeout(function () {
                     timer = 0;
                     if (!active()) return;
@@ -384,21 +399,28 @@
                 }, remaining);
             }
 
-            /** Passive listeners leave native mouse, keyboard and touch behavior unchanged. */
+            /** Input restarts idle waiting even before the first scene; clicks preserve an already running scene. */
             function activity(event) {
+                if (!active()) return;
                 if (event.type === 'pointermove' && typeof event.clientX === 'number') {
                     var unchanged = lastPointer && lastPointer.x === event.clientX && lastPointer.y === event.clientY;
                     lastPointer = {x: event.clientX, y: event.clientY};
                     // Browsers may emit a move at the same coordinates before a click.
                     if (unchanged) return;
                 }
-                if (layer) { stop(true); schedule(); }
+                appearances = 0;
+                remaining = initialDelay();
+                if (layer) {
+                    if (event.type === 'pointerdown') return;
+                    stop(true);
+                } else { window.clearTimeout(timer); timer = 0; }
+                schedule();
             }
 
-            /** Background time never advances the standalone countdown or replays old effects. */
+            /** Focus starts a fresh idle interval instead of resuming a nearly expired countdown. */
             function focusChanged() {
-                if (timer && !layer) remaining = Math.max(1000, due - performance.now());
-                stop(); schedule();
+                stop();
+                activity({type: 'focus'});
             }
             window.funnyWeather.current = function () { return active() ? forecast() : ''; };
             window.funnyWeather.trace = trace;

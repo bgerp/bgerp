@@ -7,7 +7,7 @@
    <div class = 'cart-view-buttons-top'>[#CART_TOOLBAR_TOP#]</div>
    <div class="clearfix21"></div>
    <!--ET_END CART_TOOLBAR_TOP-->
-         <div class="scrolling-holder" style="margin-bottom: 20px;">
+         <div class="scrolling-holder" style="margin-bottom: 10px;">
             [#CART_TABLE#]
          </div>
          <div class="textInfo">
@@ -24,7 +24,7 @@
             <!--ET_END COMMON_TEXT-->
 
             <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
-            <div class="attention"> [#PAYMENT_TEXT_RIGHT#]</div>
+            <div class="attention cart-payment-note"> [#PAYMENT_TEXT_RIGHT#]</div>
             <!--ET_END PAYMENT_TEXT_RIGHT-->
 
             <!--ET_BEGIN EXPECTED_DELIVERY-->

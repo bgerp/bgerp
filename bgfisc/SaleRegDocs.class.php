@@ -210,7 +210,8 @@ class bgfisc_SaleRegDocs extends core_Master
         $actions = new ET("<div class='srd-actions'>[#PRINT#] [#PDF#]</div>");
         $actions->replace(ht::createFnBtn('Печат', 'window.print();', false, array('ef_icon' => 'img/16/printer.png')), 'PRINT');
         $actions->replace(ht::createBtn('PDF', static::getPublicUrl($rec, 'pdf'), false, false, 'ef_icon=img/16/doc_pdf.png'), 'PDF');
-        $tpl = new ET('[#1#][#2#]', $actions, static::renderDoc($rec));
+        // Обвивката отличава публичната страница, за да се печата само документът без сайта
+        $tpl = new ET("<div class='srd-public'>[#1#][#2#]</div>", $actions, static::renderDoc($rec));
         $this->logRead('Публичен изглед', $rec->id);
         Mode::set('wrapper', 'cms_page_External');
 
@@ -467,7 +468,7 @@ class bgfisc_SaleRegDocs extends core_Master
                 $row->ownCompanyId = crm_Companies::getHyperlink($rec->ownCompanyId, true);
             }
             if (!empty($rec->cartId)) {
-                $row->orderNumber = eshop_Carts::getHyperlink($rec->cartId, true);
+                $row->orderNumber = ht::createLink($row->orderNumber, eshop_Carts::getSingleUrlArray($rec->cartId));
             }
         }
 

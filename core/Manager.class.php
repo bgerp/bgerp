@@ -1504,8 +1504,6 @@ class core_Manager extends core_Mvc
      */
     public static function haveRightFor($action, $rec = null, $userId = null)
     {
-        static $expiration;
- 
         $className = get_called_class();
         $self = cls::get($className);
 
@@ -1534,7 +1532,9 @@ class core_Manager extends core_Mvc
 
         $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
 
-        if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
+        // При нулев срок кешът важи само за текущия хит.
+        if (!isset(self::$cacheRights[$userId][$key]) || !isset($id) ||
+            ($duration > 0 && abs(self::$cacheRights[$userId][$key]) <= time())) {
 
             $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
 

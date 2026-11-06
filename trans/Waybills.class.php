@@ -23,7 +23,7 @@ class trans_Waybills extends core_Master
     public $canChangerec = 'no_one';
     public $canChangeline = 'ceo,trans';
     public $newBtnGroup = '4.9|Логистика';
-    public $singleIcon = 'img/16/lorry.png';
+    public $singleIcon = 'img/16/shipment.png';
     public $singleLayoutFile = 'trans/tpl/SingleLayoutWaybill.shtml';
     public $printBtnToolbarRow = 1;
     public $addLinkedDocumentToOriginId = true;
