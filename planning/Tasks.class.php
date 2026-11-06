@@ -404,6 +404,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('expectedTimeStart,state');
         $this->setDbIndex('saoOrder');
         $this->setDbIndex('state');
     }
@@ -2652,6 +2653,7 @@ JS
             return;
         }
 
+        core_Debug::startTimer('RENDER_SUMMARY');
         $query = clone $data->query;
         $query->orderBy = $query->show = array();
         $states = array(
@@ -2678,8 +2680,13 @@ JS
         }
 
         $sumPlannedQuantity = !empty($filter->productId);
-        $query->XPR('taskCount', 'int', 'COUNT(#id)');
-        $query->show('state,taskCount')->groupBy($query->getMysqlField('state'));
+        // Броим състоянията в един проход без групиране/сортиране по тях.
+        $countFields = array();
+        foreach ($states as $state => $caption) {
+            $countFields[$state] = $countField = 'taskCount' . ucfirst($state);
+            $query->XPR($countField, 'int', "COUNT(CASE WHEN #state = '{$state}' THEN 1 END)");
+            $query->show($countField);
+        }
         if ($sumPlannedQuantity) {
             $query->XPR('plannedTotal', 'double', 'SUM(#plannedQuantity)');
             $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
@@ -2688,8 +2695,8 @@ JS
         $counts = array_fill_keys(array_keys($states), 0);
         $quantities = array();
         while ($rec = $query->fetch(null, true)) {
-            if (isset($counts[$rec->state])) {
-                $counts[$rec->state] += $rec->taskCount;
+            foreach ($countFields as $state => $countField) {
+                $counts[$state] += $rec->{$countField};
             }
             if ($sumPlannedQuantity) {
                 $quantities[$rec->measureId] = ($quantities[$rec->measureId] ?? 0) + ($rec->plannedTotal ?? 0);
@@ -2698,6 +2705,7 @@ JS
         if ($sumPlannedQuantity && !$quantities) {
             $quantities[cat_Products::fetchField($filter->productId, 'measureId')] = 0;
         }
+        core_Debug::stopTimer('RENDER_SUMMARY');
 
         $int = core_Type::getByName('int');
         $stateRows = $totalRows = array();
