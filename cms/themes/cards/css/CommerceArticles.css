@@ -1,5 +1,5 @@
 /* CMS articles share the public blog's typography and navigation. */
-.commerce-article .commerce-article-layout:not(:has(> #cmsNavigation)) {
+.commerce-article .commerce-article-layout:not(:is(.cms-with-navigation, :has(> #cmsNavigation))) {
     grid-template-columns: minmax(0, 1fr);
 }
 .commerce-article .commerce-article-content {
