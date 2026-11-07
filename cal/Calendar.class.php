@@ -413,7 +413,7 @@ class cal_Calendar extends core_Master
     	    $row = parent::recToVerbal_($rec);
         }
     	
-    	$lowerType = strtolower($rec->type);
+    	$lowerType = strtolower($rec->type ?? '');
         
         $url = parseLocalUrl($rec->url, FALSE);
         
@@ -446,7 +446,7 @@ class cal_Calendar extends core_Master
         // TODO
         // картинката
         $attr = array();
-        if(!strpos($rec->type, '/')) {
+        if(!strpos($rec->type ?? '', '/')) {
          	$attr['ef_icon'] = "img/16/{$lowerType}.png";
          	
          	$i = "img/16/{$lowerType}.png";

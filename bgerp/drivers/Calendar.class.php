@@ -748,9 +748,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $orderH .= ' ' . ++$i;
             $expandType = strtolower($Calendar->blockExpandTypes);
             $expandTypeArr = arr::make($expandType, true);
-            $type = strtolower($rec->type);
+            $type = strtolower($rec->type ?? '');
 
-            if ($pArr['search'] || !empty($expandTypeArr[$type]) || $type[0] == '_') {
+            // Без тип няма икона, под която да се групират - показват се директно
+            if ($pArr['search'] || !strlen($type) || !empty($expandTypeArr[$type]) || strpos($type, '_') === 0) {
                 if ($oTime) {
                     $rec->title = $oTime . ' ' . $rec->title;
                 }
@@ -758,8 +759,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $cRec = $Calendar->recToVerbal($rec, 'title');
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {
-                $type = strtolower($rec->type);
-                
                 if (isset($cEventsTypeArr[$orderDate][$type])) {
                     continue;
                 }
