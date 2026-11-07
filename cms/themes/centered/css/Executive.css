@@ -98,7 +98,7 @@ body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce
 body.commerce-theme.b2b-theme.executive-theme header .narrowCenter:has(.commerce-default-banner) .app-subtitle { max-width: 85%; }
 body.commerce-theme.b2b-theme.executive-theme :is(#cmsNavigation, .eshop-group, .commerce-article-content) { border: 0; box-shadow: none; background: transparent; }
 body.commerce-theme.b2b-theme.executive-theme #cmsNavigation { border-right: 1px solid var(--c-line-4); padding-right: 24px; }
-body.commerce-theme.b2b-theme.executive-theme #cmsNavigation .nav_item { border-radius: 0; }
+body.commerce-theme.b2b-theme.executive-theme #cmsNavigation .nav_item { border-radius: 20px; }
 body.commerce-theme.b2b-theme.executive-theme #cmsNavigation .sel_page { border-left: 0; }
 body.commerce-theme.b2b-theme.executive-theme #cmsBottom a:focus-visible { outline-color: var(--c-accent); }
 @media (max-width: 900px) {

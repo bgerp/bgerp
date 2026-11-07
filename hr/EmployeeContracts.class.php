@@ -8,7 +8,7 @@
  * @package   hr
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -509,15 +509,14 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Render single
      *
-     * @param core_Mvc $mvc
-     * @param core_Et  $tpl
      * @param stdClass $data
+     * @return core_ET
      */
-    public static function on_BeforeRenderSingle($mvc, &$res, $data)
+    public function renderSingle_($data)
     {
-        $row = $data->row;
+        $row = $data->row ?? new stdClass();
 
-        $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script));
+        $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script ?? ''));
 
         unset($row->script);
         
@@ -525,18 +524,18 @@ class hr_EmployeeContracts extends core_Master
         
         $res = new ET("[#toolbar#]
         <div class='document'>
-        <!--ET_BEGIN blank-->[#blank#]<br><!--ET_END blank-->
-        [#contract#]</div> <div style='clear:both;'></div>
+        [#contract#]<!--ET_BEGIN shareLog-->[#footer#]<!--ET_END shareLog--></div> <div style='clear:both;'></div>
         
         ");
         
-        //$res->replace($mvc->renderSingleLayout($data), 'blank');
-        
         $res->replace($contract, 'contract');
+        // Само споделянето използва общия шаблон; печатният вид на договора се запазва.
+        $res->replace(getTplFromFile('doc/tpl/DocumentsSingleLayoutFooter.shtml')->getBlock('shareLog'), 'footer');
+        $res->setRemovableBlocks(array('shareLog'));
         
-        $res->replace($mvc->renderSingleToolbar($data), 'toolbar');
+        $res->replace($this->renderSingleToolbar($data), 'toolbar');
         
-        return false;
+        return $res;
     }
     
     

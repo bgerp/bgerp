@@ -208,8 +208,9 @@
                 return best;
             }
 
-            /** First-catch page score with a per-user browser record, never intercepting work-area clicks. */
+            /** First-catch focused-session score with a separate per-user browser record. */
             function updateStats() {
+                if (!active()) return;
                 bestCount = Math.max(bestCount, caughtCount);
                 // Storage is local to this origin, application and user; blocked/quota-full storage is optional.
                 if (options.scoreKey) {
@@ -239,8 +240,15 @@
                 bestLabel.textContent = (labels.best || 'Рекорд') + ': ' + bestCount;
             }
 
+            /** Leaving the active tab ends this score, while the personal record survives. */
+            function resetStats() {
+                if (stats) stats.remove();
+                stats = caughtLabel = escapedLabel = bestLabel = null;
+                caughtCount = escapedCount = 0;
+            }
+
             function removeVisitor(v, escaped) {
-                if (escaped && caughtCount > 0) { escapedCount++; updateStats(); }
+                if (escaped && active() && caughtCount > 0) { escapedCount++; updateStats(); }
                 v.node.remove();
                 visitors.splice(visitors.indexOf(v), 1);
                 if (!visitors.length) {
@@ -267,7 +275,7 @@
             }
 
             function catchVisitor(v) {
-                if (v.leaving) return;
+                if (!active() || v.leaving) return;
                 v.leaving = performance.now();
                 caughtCount++;
                 updateStats();
@@ -599,6 +607,8 @@
                     window.clearTimeout(timer);
                     timer = 0;
                     clearVisitors();
+                    resetStats();
+                    touchStart = lastTap = null;
                     stopSound();
                 } else activity({type: 'focus'});
             }
