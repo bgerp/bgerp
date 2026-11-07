@@ -7,7 +7,7 @@
  * @package   change
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -109,6 +109,21 @@ class change_Log extends core_Manager
             $docClassId = core_Classes::getId($docClass);
         }
         
+        $fieldsArr = arr::make($fieldsArr, true);
+        $mvc = cls::get($docClassId);
+        $userFields = array();
+        if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            foreach (array('sharedUsers', 'assign') as $field) {
+                if ($mvc->getField($field, false) && property_exists($oldRec, $field)) {
+                    $userFields[$field] = $fieldsArr[$field] = $field;
+                }
+            }
+        }
+
+        // Новодобавените полета трябва да следват индексите на вече записаните версии
+        $logRec = !empty($userFields) ? static::getRec($docClassId, $oldRec->id ?? null) : null;
+        $versionIndex = countR($logRec->value ?? null);
+
         // Обхождаме масива с полетата
         foreach ((array) $fieldsArr as $field) {
             
@@ -169,17 +184,22 @@ class change_Log extends core_Manager
             if ($sRec) {
                 
                 // Добавяме стойностите
-                $rec->id = $sRec->id;
-                $rec->docClass = $sRec->docClass;
-                $rec->docId = $sRec->docId;
+                $rec->id = $sRec->id ?? null;
+                $rec->docClass = $sRec->docClass ?? null;
+                $rec->docId = $sRec->docId ?? null;
                 $rec->field = $field;
-                $rec->value = $sRec->value;
-                $rec->value[] = $valueObj;
+                $rec->value = (array) ($sRec->value ?? null);
             } else {
                 $rec->docClass = $docClassId;
-                $rec->docId = $oldRec->id;
+                $rec->docId = $oldRec->id ?? null;
                 $rec->field = $field;
-                $rec->value = array($valueObj);
+                $rec->value = array();
+            }
+
+            if (isset($userFields[$field])) {
+                $rec->value[$versionIndex] = $valueObj;
+            } else {
+                $rec->value[] = $valueObj;
             }
             
             // Записваме
