@@ -473,7 +473,12 @@ class fconv_Script
         $url = toUrl(array('fconv_Processes',
             'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute-base');
 
-        $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
+        // В .bat единичните кавички не пазят & от разделяне, а % е променлива
+        if (stristr(PHP_OS, 'WIN')) {
+            $cmdLine = 'wget -q --spider --no-check-certificate "' . str_replace('%', '%%', $url) . '"';
+        } else {
+            $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
+        }
         $this->setCheckProgramsArr('wget');
         
         $this->lineExec($cmdLine, array('skipOnRemote' => true));
@@ -745,9 +750,10 @@ class fconv_Script
      */
     public function addRunAsinchronWin()
     {
+        // Първият аргумент в кавички е заглавието на прозореца; /B - без нов прозорец
         if (stristr(PHP_OS, 'WIN')) {
             
-            return 'start ';
+            return 'start "" /B ';
         }
         
         return '';

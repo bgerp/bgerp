@@ -102,6 +102,12 @@ defIfNot('FILEMAN_INKSCAPE_PATH', defined('INKSCAPE_PATH') ? INKSCAPE_PATH : 'in
 
 
 /**
+ * Версия на Inkscape: от 1.0 записът е с --export-filename вместо --export-png и подобните
+ */
+defIfNot('FILEMAN_INKSCAPE_VERSION', '0.92');
+
+
+/**
  * След колко време да се изтрие от индекса, записа (грешката) за съответния тип на файла
  */
 defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
