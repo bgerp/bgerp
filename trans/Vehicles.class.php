@@ -10,7 +10,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -102,6 +102,7 @@ class trans_Vehicles extends core_Master
     {
         $this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
         $this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
+        $this->FLD('trailerNumber', 'varchar(32)', 'caption=Рег. номер ремарке');
         $this->FLD('load', 'double(smartRound)', 'caption=Товароносимост');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
         $this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап,car=Лек автомобил,other=Друг)', 'caption=Вид');

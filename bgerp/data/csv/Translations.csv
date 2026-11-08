@@ -1767,6 +1767,7 @@ en,разширени настройки,Advanced Settings
 en,Разширено,Extensively
 en,Ранг,Rank
 en,Рег. номер,Reg. number
+en,Рег. номер ремарке,Trailer reg. number
 en,Регион,Region
 en,Регистрация,Registration
 en,Регистър за вербални id-та,Registers for verbal id
@@ -4364,3 +4365,7 @@ en,Превалутиране в евро,Convert to EUR
 en,Куриерски,Courier
 en,Карго,Cargo
 en,Плащане в брой без фискален бон,Cash payment without a fiscal receipt
+en,За плащане с карта трябва да е инсталиран пакетът,Card payments require the package
+en,При изключен режим по Н-18 трябва да се махнат методите за плащане с карта,Card payment methods must be removed when the N-18 mode is off
+en,"Пакетът не може да бъде де-инсталиран, докато в настройките на онлайн магазина има избрани методи за плащане с карта.","The package cannot be uninstalled while card payment methods are selected in the online shop settings."
+en,Изберете МПС от регистъра в транспортната линия,Choose a registered vehicle in the transport line

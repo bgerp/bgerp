@@ -25,7 +25,7 @@
             if (initialized || ['on', 'sound'].indexOf(options.mode) < 0 || window.self !== window.top) return;
             initialized = true;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var layer = null, canvas = null, context = null, audio = null, sun = null;
+            var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null;
             var timer = 0, frame = 0, printing = false, appearances = 0;
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
@@ -247,13 +247,25 @@
                 particle.phase = Math.random() * Math.PI * 2;
             }
 
-            /** A decorative 06:00-18:00 arc follows the device clock, from right to left, without requests. */
-            function positionSun() {
-                if (!sun) return;
+            /** Local decorative arcs run in opposite directions: sun 06:00-18:00, moon 18:00-06:00. */
+            function positionSky() {
+                var node = sun || moon;
+                if (!node) return;
                 var now = new Date(), hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
-                var progress = Math.max(0, Math.min(1, (hour - 6) / 12));
-                sun.style.left = (Math.max(0, width - 90) * (0.9 - 0.8 * progress)).toFixed(2) + 'px';
-                sun.style.top = (Math.max(0, height - 90) * (0.08 + 0.3 * (1 - Math.sin(progress * Math.PI)))).toFixed(2) + 'px';
+                var progress = Math.max(0, Math.min(1, moon ? (hour < 12 ? hour + 6 : hour - 18) / 12 : (hour - 6) / 12));
+                var size = moon ? 52 : 90, x = moon ? 0.1 + 0.8 * progress : 0.9 - 0.8 * progress;
+                node.style.left = (Math.max(0, width - size) * x).toFixed(2) + 'px';
+                node.style.top = (Math.max(0, height - size) * (0.08 + 0.3 * (1 - Math.sin(progress * Math.PI)))).toFixed(2) + 'px';
+                if (moon) {
+                    // Mean phase from NASA's 2000-01-06 18:14 UTC new moon; decorative, not an ephemeris.
+                    var cycles = (now.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / (29.530588 * 86400000);
+                    var phase = cycles - Math.floor(cycles), curve = Math.cos(phase * Math.PI * 2);
+                    moon.style.setProperty('--moon-lit-left', phase < 0.5 ? '50%' : '0%');
+                    moon.style.setProperty('--moon-curve', Math.abs(curve).toFixed(4));
+                    moon.style.setProperty('--moon-curve-color', curve >= 0 ? '#657184' : '#f1f4ea');
+                    moon.style.setProperty('--moon-glow', (0.08 + (1 - curve) * 0.12).toFixed(3));
+                    moon.setAttribute('data-moon-phase', phase.toFixed(4));
+                }
             }
 
             /** One canvas, at most 90 particles and 30 painted frames per second. */
@@ -266,7 +278,7 @@
                 if (time - lastLayout >= 1000) {
                     if (forecast() !== weather) { stop(); return; }
                     if (canvas) updateBanks();
-                    positionSun();
+                    positionSky();
                     layer.style.opacity = (Math.min(1, elapsed / 8000) * strength).toFixed(3);
                     document.body.style.setProperty('--funny-weather-exposure', (Math.min(1, elapsed / (weather.indexOf('rain') >= 0 ? 60000 : 90000)) * strength).toFixed(3));
                     lastLayout = time;
@@ -337,6 +349,7 @@
                     if (weather.indexOf(kind) < 0) return;
                     var node = element(kind, layer);
                     if (kind === 'sun') sun = node;
+                    if (kind === 'moon') moon = node;
                     if (kind !== 'clouds') return;
                     // Both ends lie beyond the viewport, including the puff shadows, so loops cannot jump visibly.
                     // Keep clouds in the top strip, with only a small vertical component of the wind.
@@ -349,7 +362,7 @@
                     node.style.setProperty('--cloud-lane-y', '30px');
                     node.style.setProperty('--cloud-duration', Math.max(20000, distance / (16 + wind.speed * 1.4) * 1000) + 'ms');
                 });
-                positionSun();
+                positionSky();
                 if (/rain|snow/.test(weather)) {
                     canvas = document.createElement('canvas'); layer.appendChild(canvas);
                     canvas.width = width; canvas.height = height; context = canvas.getContext('2d');
@@ -385,7 +398,7 @@
                     if (layer) { layer.remove(); layer = null; }
                     finishFade();
                 }
-                particles = []; banks = []; canvas = context = sun = null;
+                particles = []; banks = []; canvas = context = sun = moon = null;
                 details = [];
             }
 

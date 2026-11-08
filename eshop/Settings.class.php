@@ -382,6 +382,14 @@ class eshop_Settings extends core_Master
             if($rec->paramFilterMode == 'yes' && !countR(eshop_ParamFilter::getTableParamIds($rec->paramFilterParams))){
                 $form->setError('paramFilterParams', 'Не са избрани параметри за филтриране|*!');
             }
+
+            // Плащането с карта в онлайн магазина изисква пакета по Н-18
+            if (!core_Packs::isInstalled('eshopn18')) {
+                $cardMethods = static::getCardPaymentMethods($payments);
+                if (countR($cardMethods)) {
+                    $form->setError('payments', 'За плащане с карта трябва да е инсталиран пакетът|* <b>eshopn18</b>: ' . implode(', ', $cardMethods) . '|*!');
+                }
+            }
         }
     }
     
@@ -866,6 +874,26 @@ class eshop_Settings extends core_Master
     }
     
     
+    /**
+     * Избраните методи на плащане с картов драйвер
+     *
+     * @param array $payments - ид-та на методите
+     *
+     * @return array - [ид => наименование]
+     */
+    public static function getCardPaymentMethods($payments)
+    {
+        $res = array();
+        foreach ($payments as $paymentId) {
+            if (cond_CardPayments::getDriver($paymentId)) {
+                $res[$paymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

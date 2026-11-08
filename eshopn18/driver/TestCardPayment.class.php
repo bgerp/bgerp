@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   bgfisc
+ * @package   eshopn18
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -15,8 +15,14 @@
  *
  * @since     v 0.1
  */
-class bgfisc_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
+class eshopn18_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
 {
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'bgfisc_driver_TestCardPayment';
+
+
     /**
      * Заглавие
      */
@@ -187,7 +193,7 @@ class bgfisc_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
         Request::removeProtected('ORDER');
         expect(Request::get('P_SIGN', 'varchar') === self::sign($req, self::REQUEST_FIELDS), 'Невалиден подпис на заявката');
 
-        $tpl = getTplFromFile('bgfisc/tpl/TestCardGateway.shtml');
+        $tpl = getTplFromFile('eshopn18/tpl/TestCardGateway.shtml');
         $tpl->placeArray($req);
 
         // Изходите, които трябва да се изпробват при Н-18
@@ -212,7 +218,7 @@ class bgfisc_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
             $tpl->append(ht::createElement('form', array('method' => 'POST', 'action' => $req['BACKREF']), ht::createHidden($res) . $button, true), $place);
         }
 
-        $tpl->push('bgfisc/tpl/TestCardGateway.css', 'CSS');
+        $tpl->push('eshopn18/tpl/TestCardGateway.css', 'CSS');
         Mode::set('wrapper', 'page_Empty');
 
         return $tpl;
