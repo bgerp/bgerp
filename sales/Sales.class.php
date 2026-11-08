@@ -1136,15 +1136,20 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
-     * Добавя ценовата политика към LLM експорта
+     * Добавя ценовата политика и транспорта към LLM експорта
      */
     public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
     {
         if (empty($text)) return;
 
-        $note = price_Lists::getLlmNote($rec, $rec->valior ?? null);
-        if (!empty($note)) {
-            $text .= "\n\n" . $note;
+        $notes = array(price_Lists::getLlmNote($rec, $rec->valior ?? null));
+        if (sales_TransportValues::haveLlmNote($rec)) {
+            $notes[] = sales_TransportValues::getLlmNote($mvc, $rec, $mvc->getExpectedTransportCost($rec), $mvc->getVisibleTransportCost($rec), $mvc->getDeliveryCodeAndCountry($rec)['countryId'] ?? null);
+        }
+        foreach ($notes as $note) {
+            if (!empty($note)) {
+                $text .= "\n\n" . $note;
+            }
         }
 
         // Количката е само в таблицата със статистиката, където конверторът разбърква колоните
@@ -1518,6 +1523,21 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Пощенски код и държава на доставка на продажбата
+     *
+     * @param stdClass $rec - запис на продажбата
+     *
+     * @return array - ['pCode', 'countryId']
+     */
+    private function getDeliveryCodeAndCountry($rec)
+    {
+        $place = !empty($rec->deliveryLocationId) ? $rec->deliveryLocationId : ($rec->deliveryAdress ?? null);
+
+        return sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $place);
+    }
+
+
+    /**
      * Колко е сумата на очаквания транспорт
      *
      * @param stdClass $rec - запис на ред
@@ -1544,8 +1564,8 @@ class sales_Sales extends deals_DealMaster
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $query->where("#canStore = 'yes'");
         $products = $query->fetchAll();
-        
-        $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
+
+        $codeAndCountryArr = $this->getDeliveryCodeAndCountry($rec);
         $ourCompany = crm_Companies::fetchOurCompany('*', null, $rec->activatedOn);
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         if ($rec->deliveryData) {
