@@ -325,6 +325,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $sum = $net;
         }
 
+        // В XML файла редът е без отстъпка - тя е само в ORD_DISC, както на касовия бон
+        $fullSum = round(round($amount * (1 + $vatRate), 10), 2);
+        if (empty($vatRate) || $fullSum < $gross) {
+            $fullSum = $gross;
+        }
+
         // Името е текст (не HTML) и на български, както е в документа
         core_Lg::push('bg');
         $name = cat_Products::getDisplayName(cat_Products::fetch($lRec->productId, 'name,nameEn'));
@@ -339,6 +345,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             'disc' => round($gross - $net, 2),
             'vat' => round($sum - $net, 2),
             'sum' => $sum,
+            'fullVat' => round($fullSum - $gross, 2),
+            'fullSum' => $fullSum,
         );
     }
 
@@ -591,8 +599,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             foreach ($oRec->lines as $line) {
                 $artTpl = clone $artBlock;
                 $artTpl->placeArray(self::escapeXml(array('art_name' => $line['name'], 'art_quant' => self::num($line['quantity']),
-                    'art_price' => self::num($line['price']), 'art_vat_rate' => $line['vatRate'], 'art_vat' => self::num($line['vat']),
-                    'art_sum' => self::num($line['sum']))));
+                    'art_price' => self::num($line['price']), 'art_vat_rate' => $line['vatRate'], 'art_vat' => self::num($line['fullVat'] ?? $line['vat']),
+                    'art_sum' => self::num($line['fullSum'] ?? $line['sum']))));
                 $artTpl->removeBlocksAndPlaces();
                 $orderTpl->append($artTpl, 'ARTS');
             }
