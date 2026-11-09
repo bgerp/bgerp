@@ -16651,3 +16651,4 @@ en,Доставчик (ЕИК и име),Provider (ID and name)
 en,"ЕИК (за чуждестранен - ДДС или друг номер) и наименование на доставчика на платежни услуги","UIC (for a foreign one - VAT or other number) and name of the payment service provider"
 en,При доставчик на платежни услуги е задължителен идентификаторът му,The identifier is required for a payment service provider
 en,Тегло на произведеното,Weight of output
+en,Сума без отстъпка,Amount before discount

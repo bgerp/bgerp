@@ -42,6 +42,12 @@
         <tr>
             <td class="srd-qr">[#qr#]</td>
             <td class="srd-total">
+                <!--ET_BEGIN discountTotal-->
+                <table class="srd-subtotals">
+                    <tr><td>|Сума без отстъпка|*</td><td>[#grossTotal#]</td></tr>
+                    <tr><td>|Отстъпка|*</td><td>[#discountTotal#]</td></tr>
+                </table>
+                <!--ET_END discountTotal-->
                 <div>|Обща сума за плащане|*</div>
                 <div class="srd-total-amount">[#total#] <span>[#currencyId#]</span></div>
                 <div class="srd-paid">|Платено с карта|*</div>
