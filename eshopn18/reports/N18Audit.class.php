@@ -566,6 +566,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         }
         if (empty($settings->n18ShopNumber)) {
             $errors[] = 'Липсва номерът на магазина от НАП в настройките му';
+        } elseif (!preg_match('/^RF\d{7}$/', $settings->n18ShopNumber)) {
+            $errors[] = 'Номерът на магазина от НАП в настройките му трябва да е RF и 7 цифри';
         }
 
         $ownCompanyId = countR($ownCompanies) ? key($ownCompanies) : crm_Setup::BGERP_OWN_COMPANY_ID;
@@ -626,7 +628,19 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $prevUseErrors = libxml_use_internal_errors(true);
         libxml_clear_errors();
         try {
-            if (!$doc->loadXML('<?xml version="1.0" encoding="UTF-8"?>' . $tpl->getContent()) || !$doc->schemaValidate(getFullPath('eshopn18/xsd/dec_audit.xsd'))) {
+            $isValid = $doc->loadXML('<?xml version="1.0" encoding="UTF-8"?>' . $tpl->getContent());
+            if ($isValid) {
+
+                // Празните незадължителни полета не се подават - валидаторите ги приемат за грешка
+                $xpath = new DOMXPath($doc);
+                foreach ($xpath->query('//pos_n | //trans_n | //proc_id | //rorder') as $node) {
+                    if (trim($node->textContent) === '') {
+                        $node->parentNode->removeChild($node);
+                    }
+                }
+                $isValid = $doc->schemaValidate(getFullPath('eshopn18/xsd/dec_audit.xsd'));
+            }
+            if (!$isValid) {
                 foreach (libxml_get_errors() as $xmlError) {
                     $errors[] = '|*XSD: ' . trim($xmlError->message);
                 }
@@ -973,6 +987,11 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $errors = is_object($reportData) ? ($reportData->n18Errors ?? array()) : array();
         if (!empty($fh)) {
             $fieldTpl->replace($isPlain ? core_Type::escape(fileman_Files::fetchByFh($fh, 'name')) : fileman::getLinkToSingle($fh), 'file');
+
+            // НАП не приема файл, докато месецът не е приключил - може да липсват поръчки
+            if (is_object($periodRec) && $periodRec->end >= dt::today()) {
+                $fieldTpl->append("<br><span class='red'>" . tr('Месецът още не е приключил - файлът се подава след края му') . '</span>', 'file');
+            }
         } elseif (countR($errors)) {
             $fieldTpl->replace("<span class='red'>" . tr('Не е създаден') . ':<br>' . implode('<br>', array_map(function ($e) {
                 return core_Type::escape(tr($e));

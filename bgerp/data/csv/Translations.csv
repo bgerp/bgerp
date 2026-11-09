@@ -16644,3 +16644,5 @@ en,Краен,End
 en,Тръгване,Departure
 en,Отклонения,Deviations
 en,"За всеки ред от стоките са задължителни наименование, опаковка/мярка и брой/количество. Маркировката и теглото не са задължителни.","For each goods row, the name, packaging/unit and quantity are required. Marks and weight are optional."
+en,Номерът на магазина от НАП в настройките му трябва да е RF и 7 цифри,The shop number from the NRA in its settings must be RF followed by 7 digits
+en,Месецът още не е приключил - файлът се подава след края му,The month is not over yet - the file is submitted after it ends
