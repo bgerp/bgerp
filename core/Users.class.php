@@ -1290,6 +1290,26 @@ class core_Users extends core_Manager
     
     
     /**
+     * Дава възможност политиките да обвият самия запис след подготовката на ролите.
+     * BeforeSave и AfterSave запазват стандартния си ред и се изпълняват веднъж.
+     *
+     * @param stdClass $rec Подготвен потребителски запис.
+     * @param string|array|null $fields Полета за запис.
+     * @param string|null $mode Режим на native записа.
+     * @return int|false|null Резултат от записа.
+     */
+    public function save_(&$rec, $fields = null, $mode = null)
+    {
+        $operation = function () use (&$rec, $fields, $mode) {
+            return parent::save_($rec, $fields, $mode);
+        };
+        $this->invoke('PrepareSaveOperation', array(&$operation, $rec, $fields, $mode));
+
+        return $operation();
+    }
+
+
+    /**
      * Връща истина ако няма никакви регистрирани потребители до сега
      */
     public static function isUsersEmpty()

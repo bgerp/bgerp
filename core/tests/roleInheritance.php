@@ -34,6 +34,7 @@ class core_Manager
     public $core_Roles;
     public function invoke($event, $args = array())
     {
+        if ($event === 'PrepareSaveOperation') return -1;
         check($event === 'AfterPrepareUserRoles', 'Unexpected user role event');
         if (self::$roleListener) {
             return call_user_func_array(self::$roleListener, array_merge(array($this), $args));
@@ -71,7 +72,7 @@ class core_Manager
         core_Users::on_BeforeSave(cls::get('core_Users'), $id, $rec, $fields);
         self::$user = clone $rec;
     }
-    public function save_($rec, $fields = null) { self::$records[$rec->id] = clone $rec; }
+    public function save_(&$rec, $fields = null, $mode = null) { self::$records[$rec->id] = clone $rec; }
 }
 class RoleFixtureQuery
 {
