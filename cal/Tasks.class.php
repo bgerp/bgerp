@@ -399,6 +399,7 @@ class cal_Tasks extends embed_Manager
         $this->setDbIndex('createdBy');
         $this->setDbIndex('parentId');
         $this->setDbIndex('expectationTimeStart');
+        $this->setDbIndex('expectationTimeEnd');
     }
     
     

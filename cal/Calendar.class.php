@@ -195,6 +195,8 @@ class cal_Calendar extends core_Master
         $this->setDbIndex('time');
         $this->setDbIndex('time,type');
         $this->setDbIndex('type');
+        $this->setDbIndex('createdOn');
+        
     }
     
     
