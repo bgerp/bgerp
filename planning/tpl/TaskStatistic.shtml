@@ -1,4 +1,5 @@
 <div class="scrolling-holder">
+<div class="taskStatisticBlocks">
     <div class="sale-summary">
         <!--ET_BEGIN originProductId-->
         <div style="text-align:left;margin-bottom:5px">|За|*: [#originProductId#]</div>
@@ -41,9 +42,6 @@
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
-                  <!--ET_BEGIN wasteProductId-->
-                  <span style='font-weight:normal'>|Отпадък|*</span>: [#wasteProductId#]<br>
-                  <!--ET_END wasteProductId-->                  
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
@@ -72,27 +70,12 @@
 
                    <!--ET_END SUB_PRODUCT_BLOCK-->
                </td>
-               <td colspan="4" style="padding: 1px 0px 0px 0px;vertical-align: top !important;">
-                   <!--ET_BEGIN WASTE_BLOCK-->
-                   [#WASTE_BLOCK#]
-                   <table class="wasteBlockInThread">
-                       [#WASTE_BLOCK_TABLE_ROW#]
-                       <!--ET_BEGIN WASTE_BLOCK_ROW-->
-                       [#WASTE_BLOCK_ROW#]
-                       <tr class="[#wasteClass#] row-removed">
-                           <td class="leftCol">[#wasteProducedProductId#]</td><td class="rightCol">[#wasteQuantity#]</td>
-                           <!--ET_END WASTE_BLOCK_ROW-->
-                   </table>
-                    <!--ET_END WASTE_BLOCK-->
-               </td>
            </tr>
            <!--ET_END ADDITIONAL_BLOCK-->
        </table>
     </div>
-</div>
 
 <!--ET_BEGIN PREVIOUS_TASKS_BLOCK-->
-<div class="scrolling-holder">
     <div class='sale-summary'>
         <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
             <tr>
@@ -105,11 +88,9 @@
             </tr>
         </table>
     </div>
-</div>
 [#PREVIOUS_TASKS_BLOCK#]
 <!--ET_END PREVIOUS_TASKS_BLOCK-->
 
-<div class="scrolling-holder">
     <div class='sale-summary'>
         <table class='paddingCells' style='margin-bottom:0px;width:100%;margin-top:2px'>
             <tr>
@@ -152,4 +133,5 @@
             </tr>
 		</table>
     </div>
+</div>
 </div>

@@ -490,19 +490,6 @@ class planning_Tasks extends core_Master
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
-        // Показване на обобщението на отпадъка в статистиката
-        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
-        if(countR($wasteArr)){
-            foreach ($wasteArr as $wasteRow){
-                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
-                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
-                $cloneTpl->replace($wasteRow->class, 'wasteClass');
-                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
-                $cloneTpl->removeBlocksAndPlaces();
-                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
-            }
-        }
-
         $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
         if(countR($subProductArr)){
             foreach ($subProductArr as $subRow){
@@ -1174,7 +1161,7 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if ($canStore == 'yes') {
-            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
+            $resArr['additional'] = array('name' => tr('Тегло на произведеното'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <!--ET_BEGIN notifications--><tr><td colspan='2'>[#notifications#]</td></tr><!--ET_END notifications-->
@@ -1184,6 +1171,27 @@ class planning_Tasks extends core_Master
             if ($rec->showadditionalUom == 'yes') {
                 $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
             }
+        }
+
+        // Отпадъкът е до теглото, с което се сравнява процентът му
+        // След активиране избраният отпадък вече е в планираните артикули
+        $showWasteProduct = isset($rec->wasteProductId) && !in_array($rec->state, array('active', 'wakeup', 'stopped', 'closed'));
+        if (!$showWasteProduct) {
+            unset($row->wasteProductId);
+        }
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($rec->threadId);
+        if ($showWasteProduct || countR($wasteArr)) {
+            $wasteRows = '';
+            $wasteCaption = tr('Отпадък');
+            foreach ($wasteArr as $key => $wasteRow) {
+                if ($key === 'total') {
+                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    continue;
+                }
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}:</td><td>{$wasteRow->quantityVerbal}</td></tr>";
+            }
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
+                <!--ET_BEGIN wasteProductId--><tr><td style='font-weight:normal'>|Артикул|*:</td><td>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>

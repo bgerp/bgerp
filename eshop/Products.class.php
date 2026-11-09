@@ -664,7 +664,11 @@ class eshop_Products extends core_Master
             $image = $imageArr[$tact];
             $thumb = new thumb_Img($image, $width, $height);
         } else {
-            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $width, $height, 'path');
+            $lang = cms_Content::getLang() == 'bg' ? 'bg' : 'en';
+            core_Lg::push($lang);
+            $alt = tr('Продуктът няма изображение||This product has no image');
+            core_Lg::pop();
+            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . $lang . '.png'), $width, $height, 'path', $alt);
         }
         
         return $thumb;

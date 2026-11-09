@@ -327,7 +327,8 @@ class cms_themes_cards_Theme extends cms_FancyTheme
 
     public function wrapMenuTools($tools)
     {
-        $res = new core_ET('<span class="cms-menu-tools"><span id="cart-external-status">[#USERCART#]</span>[#TOOLS#]</span>');
+        $res = new core_ET('<span class="cms-menu-tools" role="navigation" aria-label="[#TOOLS_LABEL#]"><span id="cart-external-status">[#USERCART#]</span>[#TOOLS#]</span>');
+        $res->replace(ht::escapeAttr(tr('Профил, количка и език||Account, cart and language')), 'TOOLS_LABEL');
         $res->replace($tools, 'TOOLS');
 
         return $res;
@@ -380,6 +381,9 @@ class cms_themes_cards_Theme extends cms_FancyTheme
 
     public function getMenuLangContent($img, $lg)
     {
+        // Кодът на езика вече присъства в текста на връзката.
+        $img = preg_replace('/\balt="[^"]*"/', 'alt=""', (string) $img);
+
         return $img . ht::createElement('span', array('class' => 'cms-menu-label'), $lg == 'bg' ? 'БГ' : strtoupper($lg));
     }
 
