@@ -2909,6 +2909,7 @@ class email_Outgoings extends core_Master
     public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
+        expect($rec);
         
         $subject = $this->getVerbal($rec, 'subject');
         
