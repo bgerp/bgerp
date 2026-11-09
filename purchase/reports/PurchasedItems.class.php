@@ -942,7 +942,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $fld->FLD('quantityCompare', 'varchar', "smartCenter,caption={$name2}->Покупки,tdClass=newCol");
                     $fld->FLD('amountCompare', 'varchar', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
 
-                    $fld->FLD('changePurchases', 'varchar', 'smartCenter,caption=Промяна-> Стойност');
+                    $fld->FLD('changePurchases', 'varchar', 'smartCenter,caption=Промяна->Стойност');
                 } else {
 
                     //Когато е без сравнение
@@ -984,7 +984,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $fld->FLD('quantityCompare', 'double(decimals=2)', "smartCenter,caption={$name2}->Покупки,tdClass=newCol");
                     $fld->FLD('amountCompare', 'double(decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
 
-                    $fld->FLD('changePurchases', 'double(decimals=2)', 'smartCenter,caption=Промяна-> Стойност');
+                    $fld->FLD('changePurchases', 'double(decimals=2)', 'smartCenter,caption=Промяна->Стойност');
                 } else {
 
                     //Когато е без сравнение

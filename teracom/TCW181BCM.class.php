@@ -9,7 +9,7 @@
  * @package   sens
  *
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title     Тераком TCW181B-CM
  */

@@ -10,7 +10,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -515,7 +515,7 @@ abstract class deals_DealDetail extends doc_Detail
 
         if ($mvc->haveRightFor('copydetailsfromcloned', (object) array("{$mvc->masterKey}" => $data->masterId))) {
             $clonedFromHandle = $data->masterMvc->getHandle($data->masterData->rec->clonedFromId);
-            $data->toolbar->addBtn("От|* #{$clonedFromHandle}", array($mvc, 'copydetailsfromcloned', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true), "id=btnCloneImp-{$data->masterId},order=22,warning222222222222=Наистина ли желаете да копирате 1:1 артикулите и техните цени от клонирания документ?,title=Налични са разлики (актуализирани цени или други) спрямо клонирания договор! Копиране 1:1 от оригинал?", 'ef_icon = img/16/shopping.png');
+            $data->toolbar->addBtn("От|* #{$clonedFromHandle}", array($mvc, 'copydetailsfromcloned', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true), "id=btnCloneImp-{$data->masterId},order=22,warning222222222222=Наистина ли желаете да копирате 1:1 артикулите и техните цени от клонирания документ?,title=Налични са разлики (актуализирани цени или други) спрямо клонирания договор! Копиране|* 1:1 |от оригинал|*?", 'ef_icon = img/16/shopping.png');
         }
     }
     

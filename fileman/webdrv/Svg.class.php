@@ -62,7 +62,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в .svg формат
-        $Script->lineExec('inkscape [#INPUTF#] --export-plain-svg=[#OUTPUTF#] --export-area-drawing', array('errFilePath' => $errFilePath));
+        $Script->lineExec('inkscape [#INPUTF#] ' . self::getExportOption('plain-svg') . ' --export-area-drawing', array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(false);

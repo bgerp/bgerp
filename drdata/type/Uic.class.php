@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Ivelin Dimov
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -131,7 +131,7 @@ class drdata_type_Uic extends type_Varchar
 
                     return true;
                 }
-                $msg = 'ДДС номер (9,10 или 13 символа): въведени са 10 символа, които не са валидно ЕИК/ЕГН';
+                $msg = 'ДДС номер|* (9,10 |или|* 13 |символа): въведени са|* 10 |символа, които не са валидно ЕИК/ЕГН';
             } else {
                 $msg = 'Невалиден ЕИК';
             }

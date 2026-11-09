@@ -62,7 +62,7 @@ defIfNot('MARKITDOWN_USE_PLUGINS', 'no');
  * @package   markitdown
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -108,8 +108,8 @@ class markitdown_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'MARKITDOWN_PATH' => array('varchar', 'caption=Път до markitdown->Път'),
-        'MARKITDOWN_EXTENSIONS' => array('varchar', 'caption=Разширения на файловете|*&comma;| от които ще се извлича съдържание->Разширения'),
-        'MARKITDOWN_MAX_FILE_LEN' => array('fileman_FileSize', 'caption=Максимален размер на файловете|*&comma;| от които ще се извлича съдържание->Размер, suggestions=5 MB|10 MB|20 MB|50 MB'),
+        'MARKITDOWN_EXTENSIONS' => array('varchar', 'caption=Разширения на файловете|*&comma;|* |от които ще се извлича съдържание->Разширения'),
+        'MARKITDOWN_MAX_FILE_LEN' => array('fileman_FileSize', 'caption=Максимален размер на файловете|*&comma;|* |от които ще се извлича съдържание->Размер, suggestions=5 MB|10 MB|20 MB|50 MB'),
         'MARKITDOWN_MAX_CONTENT_LEN' => array('int(min=1000)', 'caption=Максимална дължина на извлеченото съдържание->Символи'),
 
         'MARKITDOWN_MAX_ARCHIVE_LEN' => array('fileman_FileSize', 'caption=Архиви->Максимален размер, suggestions=1 MB|5 MB|10 MB'),

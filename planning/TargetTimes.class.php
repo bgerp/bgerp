@@ -410,7 +410,7 @@ class planning_TargetTimes extends core_BaseClass
             || ($old->timeDuration ?? null) != ($rec->timeDuration ?? null);
         if (!$changed && empty($rec->timeStart)) return;
         if (static::needsDurationWarning($old->timeDuration ?? null, $rec->timeDuration ?? null, $old->state ?? null)) {
-            $form->setWarning('timeDuration', 'Целевата продължителност е за цялата операция при 0% прогрес, без планиращите действия, а не само за оставащата работа. Проверете въведената стойност.');
+            $form->setWarning('timeDuration', 'Целевата продължителност е за цялата операция при|* 0|% прогрес, без планиращите действия, а не само за оставащата работа. Проверете въведената стойност|*.');
         }
         if ($form->gotErrors()) return;
         if (empty($rec->assetId)) {

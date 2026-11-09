@@ -69,7 +69,7 @@ defIfNot('TRANS_ORDER_BY_LINE_DETAILS', 'containerId');
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -167,7 +167,7 @@ class trans_Setup extends core_ProtoSetup
     public $configDescription = array(
         'TRANS_LINES_ACTIVATED_AFTER' => array('time','caption=Автоматично затваряне на транспортни линии->Активни от'),
         'TRANS_LINES_PENDING_AFTER' => array('time','caption=Автоматично затваряне на транспортни линии->Чакащи с минала дата'),
-        'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
+        'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->|*13. |Инструкции на изпращача'),
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
         'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),
         'TRANS_SHOW_VOD_BTN' => array('enum(always=Винаги,auto=Условието на доставка + Чужбина ЕС,never=Никога)','caption=Показване на бутон за ВОД към ЕН->Избор'),

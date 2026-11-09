@@ -209,7 +209,7 @@ class cond_PaymentMethods extends embed_Manager
             $total = $rec->downpayment + $rec->paymentBeforeShipping + $rec->paymentOnDelivery;
             
             if ($total > 1) {
-                $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
+                $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават|* 100%');
             }
 
             if((!empty($rec->discountPeriod) && empty($rec->discountPercent)) || (empty($rec->discountPeriod) && !empty($rec->discountPercent))){

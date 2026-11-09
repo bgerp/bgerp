@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -177,12 +177,12 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
-                acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");
+                acc_journal_RejectRedirect::expect(false, "Артикулите:|* |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");
             }
             
             if (countR($errorArr2)) {
                 $errorArr = implode(', ', $errorArr2);
-                acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото не може да се определят количествата на вложените материали");
+                acc_journal_RejectRedirect::expect(false, "Артикулите:|* |{$errorArr}|* не могат да бъдат произведени, защото не може да се определят количествата на вложените материали");
             }
         }
         

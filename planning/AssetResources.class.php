@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -334,7 +334,7 @@ class planning_AssetResources extends core_Master
             }
 
             if(empty($rec->simultaneity) && !empty($rec->assetFolders)){
-                $form->setWarning('simultaneity', "Ако изберете '0' ресурсът няма да може да бъде избиран в производствени операции|*!");
+                $form->setWarning('simultaneity', "Ако изберете|* '0' |ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
 
             if (empty($rec->assetFolders) && !empty($rec->simultaneity)) {

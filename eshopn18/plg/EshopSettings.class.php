@@ -83,6 +83,13 @@ class eshopn18_plg_EshopSettings extends core_Plugin
 
         if (empty($rec->n18ShopNumber)) {
             $form->setError('n18ShopNumber', 'Номерът на магазина от НАП е задължителен при включен режим|*!');
+        } else {
+
+            // Номерът от регистрацията в НАП е RF и 7 цифри (както в примерния файл на НАП)
+            $rec->n18ShopNumber = strtoupper(trim($rec->n18ShopNumber));
+            if (!preg_match('/^RF\d{7}$/', $rec->n18ShopNumber)) {
+                $form->setError('n18ShopNumber', 'Номерът на магазина от НАП трябва да е RF и 7 цифри|*!');
+            }
         }
 
         // В НАП се подава адресът на магазина в платформата, а не нейният домейн

@@ -377,7 +377,8 @@ class trans_Waybills extends core_Master
             }
         }
         $form->setDefault('loadingDate', dt::today());
-        $form->info = 'Товарителницата описва външен товар. Включете я в транспортна линия чрез „Транспорт“ и я активирайте. Данните се пренасят от линията в пътния лист, а номерът му се попълва тук автоматично при издаването му.';
+        $form->info = "<div class='richtext-info-no-image'>" . tr('Товарителницата описва външен товар. Включете я в транспортна линия чрез „Транспорт“ и я активирайте. Данните се пренасят от линията в пътния лист, а номерът му се попълва тук автоматично при издаването му.')
+            . '<br>' . tr('За всеки ред от стоките са задължителни наименование, опаковка/мярка и брой/количество. Маркировката и теглото не са задължителни.') . '</div>';
     }
 
 
@@ -447,14 +448,34 @@ class trans_Waybills extends core_Master
         if (!$goods) {
             $errors['goods'] = 'Въведете поне един товар';
         }
+        // Грешките по редове - конкретно кое липсва или е грешно
+        $messages = array();
+        $rowNum = 0;
         foreach ($goods as $item) {
+            $rowNum++;
+            $rowErrors = array();
             $quantity = core_Type::getByName('double')->fromVerbal($item->quantity ?? '');
             $weight = core_Type::getByName('double')->fromVerbal($item->weight ?? '');
-            if (trim($item->name ?? '') === '' || trim($item->packaging ?? '') === ''
-                || $quantity === false || $quantity === null || $quantity <= 0
-                || (strlen((string) ($item->weight ?? '')) && ($weight === false || $weight < 0))) {
-                $errors['goods'] = 'Всеки ред трябва да има наименование, опаковка/мярка и положително количество; теглото не може да е отрицателно';
+            if (trim($item->name ?? '') === '') {
+                $rowErrors[] = 'въведете наименование';
             }
+            if (trim($item->packaging ?? '') === '') {
+                $rowErrors[] = 'въведете опаковка/мярка';
+            }
+            if (trim((string) ($item->quantity ?? '')) === '') {
+                $rowErrors[] = 'въведете брой/количество';
+            } elseif ($quantity === false || $quantity === null || $quantity <= 0) {
+                $rowErrors[] = 'брой/количество трябва да е положително число';
+            }
+            if (strlen((string) ($item->weight ?? '')) && ($weight === false || $weight < 0)) {
+                $rowErrors[] = 'теглото трябва да е число от 0 нагоре';
+            }
+            if ($rowErrors) {
+                $messages[] = 'Ред ' . $rowNum . ': ' . implode('; ', $rowErrors);
+            }
+        }
+        if ($messages) {
+            $errors['goods'] = implode("\n", $messages);
         }
 
         if (!empty($rec->unloadingDate) && ($rec->unloadingDate < ($rec->loadingDate ?? ''))) {

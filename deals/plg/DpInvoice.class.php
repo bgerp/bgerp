@@ -553,7 +553,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='padding:7px !important''>" . $deductCaption . ' ' . $reason . "</td><td style='text-align:right'>[#dpAmount#]</td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='padding:7px !important'>" . $deductCaption . ' ' . $reason . "</td><td style='text-align:right'>[#dpAmount#]</td></tr>");
         }
 
         // Начисляването показва вербалната сума, приспадането - оцветената, затова се заличават и двете

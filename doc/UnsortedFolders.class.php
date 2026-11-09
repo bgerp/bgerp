@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -306,10 +306,10 @@ class doc_UnsortedFolders extends core_Master
         if (!($data->listFilter->rec->search ?? null)) {
             $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->selectedUsers);
-            $data->title = 'Проектите на |*<span class="green">' .
+            $data->title = 'Проектите на|* <span class="green">' .
                     $data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
         } else {
-            $data->title = 'Търсене на проект отговарящи на |*<span class="green">"' .
+            $data->title = 'Търсене на проект отговарящи на|* <span class="green">"' .
                     $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
         }
         

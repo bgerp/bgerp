@@ -116,15 +116,15 @@ class acc_ArticleDetails extends doc_Detail
             'caption=Дебит->Сметка и пера,mandatory,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,tdClass=articleCell,silent'
         
         );
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,input=none');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,input=none');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,input=none');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо|* 1,remember,input=none');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо|* 2,remember,input=none');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо|* 3,remember,input=none');
         $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         $this->FLD('creditAccId', 'acc_type_Account(remember,allowEmpty)', 'caption=Кредит->Сметка и пера,mandatory,tdClass=articleCell,removeAndRefreshForm=creditEnt1|creditEnt2|creditEnt3|creditQuantity|creditPrice|amount,silent');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,input=none');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,input=none');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,input=none');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо|* 1,remember,input=none');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо|* 2,remember,input=none');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо|* 3,remember,input=none');
         $this->FLD('creditQuantity', 'double(smartRound)', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         

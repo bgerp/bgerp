@@ -258,7 +258,7 @@ class gs1_TypeEan extends type_Varchar
                     break;
                 case 8:
                     if (!$this->isValidEan($value, 8)) {
-                        $res->error = 'Невалиден EAN8 номер.';
+                        $res->error = 'Невалиден|* EAN8 |номер|*.';
                     }
                     break;
                 case 15:
@@ -278,8 +278,8 @@ class gs1_TypeEan extends type_Varchar
                     $res->warning = "Въвели сте само 12 цифри. Пълният EAN13 код {$res->value} ли е?";
                     break;
                 default:
-                    $res->error = 'Невалиден EAN13 номер. ';
-                    $res->error .= "Въведения номер има |*{$code}| цифри.";
+                    $res->error = 'Невалиден|* EAN13 |номер|*. ';
+                    $res->error .= "Въведения номер има|* {$code}|* |цифри.";
                     break;
             }
         }

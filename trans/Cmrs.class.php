@@ -136,12 +136,12 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     public function description()
     {
         $this->FLD('cmrNumber', 'varchar(12)', 'caption=ЧМР №,mandatory');
-        $this->FLD('senderData', 'text(rows=5)', 'caption=1. Изпращач,mandatory');
-        $this->FLD('consigneeData', 'text(rows=5)', 'caption=2. Получател,mandatory');
-        $this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
-        $this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
-        $this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
-        $this->FLD('documentsAttached', 'varchar', 'caption=5. Приложени документи');
+        $this->FLD('senderData', 'text(rows=5)', 'caption=|*1. |Изпращач,mandatory');
+        $this->FLD('consigneeData', 'text(rows=5)', 'caption=|*2. |Получател,mandatory');
+        $this->FLD('deliveryPlace', 'text(rows=2)', 'caption=|*3. |Разтоварен пункт,mandatory');
+        $this->FLD('loadingPlace', 'text(rows=2)', 'caption=|*4. |Товарен пункт,mandatory');
+        $this->FLD('loadingDate', 'date', 'caption=|*4. |Дата на товарене,mandatory');
+        $this->FLD('documentsAttached', 'varchar', 'caption=|*5. |Приложени документи');
         $this->FLD('goodsData', 'blob(1000000, serialize, compress)', 'input=none,column=none,single=none');
         
         $this->FLD('class', 'varchar(12)', 'caption=ADR->Клас,autohide');
@@ -149,18 +149,18 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква,autohide');
         $this->FLD('natureofGoods', 'varchar(12)', 'caption=ADR->Вид на стоката,autohide');
         
-        $this->FLD('senderInstructions', 'text(rows=2)', 'caption=Допълнително->13. Указания на изпращача');
-        $this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->14. Предп. плащане навло');
+        $this->FLD('senderInstructions', 'text(rows=2)', 'caption=Допълнително->|*13. |Указания на изпращача');
+        $this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->|*14. |Предп. плащане навло');
         $this->FLD('carragePaid', 'varchar(12)', 'caption=Допълнително->Предплатено');
         $this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
         
-        $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-        $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->16. Превозвач');
+        $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->|*15. |Наложен платеж');
+        $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->|*16. |Превозвач');
         $this->FLD('vehicleReg', 'varchar', 'caption=Допълнително->МПС рег. №');
-        $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
-        $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
-        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвен в');
-        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвен на');
+        $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->|*17. |Посл. превозвачи');
+        $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->|*19. |Спец. споразумения');
+        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->|*21. |Изготвен в');
+        $this->FLD('establishedDate', 'date', 'caption=Допълнително->|*21. |Изготвен на');
         
         $this->setDbUnique('cmrNumber');
     }

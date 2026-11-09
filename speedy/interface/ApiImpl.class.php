@@ -115,9 +115,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('floorNum', 'int', 'caption=Адрес за доставка->Качване до етаж');
         $form->FLD('service', 'varchar', 'caption=Описание на пратката->Услуга,mandatory,removeAndRefreshForm=date,silent');
         $form->FLD('date', 'date', 'caption=Описание на пратката->Изпращане на,mandatory');
-        $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory,silent,removeAndRefreshForm=thirdPayerRefId');
+        $form->FLD('payer', 'enum(sender=|*1.|Подател,receiver=|*2.|Получател,third=|*3.|Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory,silent,removeAndRefreshForm=thirdPayerRefId');
         $form->FLD('thirdPayerRefId', 'int', 'caption=Описание на пратката->Платец Офис,input=none');
-        $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
+        $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=|*1.|Подател,receiver=|*2.|Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,max=10)', 'caption=Описание на пратката->Бр. пакети');
         $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина [см]|Дълбочина [см]|Височина [см]|Тегло [кг],validate=speedy_interface_ApiImpl::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
@@ -129,11 +129,11 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=€,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП,cardPaymentAllowed=Разрешено плащане на НП с карта)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
         $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=€,silent,removeAndRefreshForm=insurancePayer|isFragile');
-        $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
+        $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=|*1.|Подател,receiver=|*2.|Получател)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Чупливост,input=none,maxRadio=2');
         $form->FLD('options', 'enum(no=Няма,open=Отваряне,test=Тест)', 'caption=Описание на пратката->Преди получаване/плащане,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
         $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
+        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=|*1.|Подател,receiver=|*2.|Получател)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
         $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обратни документи->Избор');
         $form->FLD('wrappingReturnServiceId', 'enum(601=Европалет,605=Нестандартен палет)', 'caption=Заявка за обратен амбалаж->Палет,autohide');
         $form->FLD('wrappingReturnQuantity', 'int(min=0)', 'caption=Заявка за обратен амбалаж->К-во,autohide,inlineTo=wrappingReturnServiceId');
@@ -484,7 +484,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             }
 
             if(isset($rec->amountInsurance) && ($rec->totalWeight ?? 0) > 32){
-                $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над 32 кг');
+                $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над|* 32 |кг');
             }
 
             if(!empty($rec->complexName) && empty($rec->complexType)){

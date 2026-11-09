@@ -455,7 +455,7 @@ class vtotal_Checks extends core_Master
                 $error = 'Няма валиден отговор от VirusTotal (' . gettype($result) . '): ' .
                     json_encode($diagnostics, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
             } elseif ($result->response_code == -1) {
-                $error = '403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal';
+                $error = '|*403: |Нямате права за достъп, моля прегледайте API ключа за VirusTotal';
                 $errorType = 'err';
             } elseif ($result->response_code == -3) {
                 $error = ($diagnostics['httpCode'] ?? 429) . ': Достигнат лимит на заявките към VirusTotal';

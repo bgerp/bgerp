@@ -330,14 +330,14 @@ class hr_HomeOffice extends core_Master
 
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
-                $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
+                $form->setError('leaveDays', 'Броят неприсъствени дни е|* 0');
             }
 
             $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
             if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+                $form->setError('startDate, toDate', "|Засичане по време с:|* " . implode('<br>', $iArr));
             }
         }
     }
@@ -541,7 +541,7 @@ class hr_HomeOffice extends core_Master
         if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                    $rec->message = '|Активирана е |* "' . self::getRecTitle($rec) . '"';
+                    $rec->message = '|Активирана е|*  "' . self::getRecTitle($rec) . '"';
                     $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $rec->customUrl = array($mvc, 'single', $rec->id);
                     $rec->priority = 0;
@@ -931,7 +931,7 @@ class hr_HomeOffice extends core_Master
         if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                    $rec->message = '|Отказана е |* "' . self::getRecTitle($rec) . '"';
+                    $rec->message = '|Отказана е|*  "' . self::getRecTitle($rec) . '"';
                     $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $rec->customUrl = array(get_called_class(), 'single', $rec->id);
                     $rec->priority = 0;

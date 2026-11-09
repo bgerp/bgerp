@@ -8,7 +8,7 @@
  * @package   tremol
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1323,7 +1323,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $fp->PrintOrStoreEJByRcpNum($reportStorage, $rec->fromNum, $rec->toNum);
                 }
                 
-                $msg = "|Успешно отпечатан {$rVerb} отчет";
+                $msg = "|Успешно отпечатан|* {$rVerb} отчет";
                 if (!empty($retUrl)) {
                     
                     return redirect($retUrl, false, $msg);
@@ -1480,13 +1480,13 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                  *  0x3f Insufficient conditions
                  */
                 if ($ste1 == 0x30 && $ste2 == 0x32) {
-                    $msg = "Грешка! ste1 == 0x30 - Командата е ОК и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
+                    $msg = "Грешка|*! ste1 == 0x30 - |Командата е ОК и|* ste2 == 0x32 - |Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x30 && $ste2 == 0x33) {
-                    $msg = "Грешка! ste1 == 0x30 - Командата е ОК и ste2 == 0x33 - Направете Z отчет";
+                    $msg = "Грешка|*! ste1 == 0x30 - |Командата е ОК и|* ste2 == 0x33 - |Направете Z отчет";
                 } else if ($ste1 == 0x34 && $ste2 == 0x32) {
-                    $msg = "Грешка! ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
+                    $msg = "Грешка|*! ste1 == 0x34 - |Отворен фискален бон и|* ste2 == 0x32 - |Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x39 && $ste2 == 0x32) {
-                    $msg = "Грешка! ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
+                    $msg = "Грешка|*! ste1 == 0x39 - |Грешна парола и|* ste2 == 0x32 - |Командата е непозволена";
                 } else if ($ste1 === 0x32 && $ste2 === 0x35) {
                     $msg = "Недостатъчна наличност в касата";
                 }else {

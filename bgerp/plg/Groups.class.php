@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -105,11 +105,11 @@ class bgerp_plg_Groups extends core_Plugin
             if ($selArrCnt == 1) {
                 $id = $selArr[$selOneKey];
                 $groups = $mvc->fetchField($id, $groupField);
-                $form->title = 'Промяна в групите на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($id) . '</i>';
+                $form->title = 'Промяна в групите на|* <i style="color:#ffffaa">' .  $mvc->getTitleById($id) . '</i>';
                 $form->FNC('groups', $mvc->getFieldType($groupField), 'caption=Групи,input');
                 $form->setDefault('groups', $groups);
             } else {
-                $form->title = 'Групиране на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
+                $form->title = 'Групиране на|* ' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
                 
                 if (countR($canAddGroups)) {
                     $addType = cls::get('type_Set');

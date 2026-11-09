@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -138,7 +138,7 @@ class rack_Logs extends core_Manager
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Логове в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->title = 'Логове в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('createdOn=DESC');
 
         $newOptions = array();

@@ -168,7 +168,7 @@ defIfNot('FSD_PURCHASE', '');
  * @package   bnav
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -232,8 +232,8 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_PURCHASE' => array('varchar', 'caption=Експорт сметки->Покупки'),
         'FSD_VAT_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Начислен ДДС за проджби'),
         'FSD_PBD_NUM' => array('int', 'caption=Приходни банкови документи->Последователен номер'),
-        'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл 163 А ЗДДС->FSD номер'),
-        'FSD_ZDDS_CHL163A_DEAL_TYPE' => array('int', 'caption=Сделка по чл 163 А ЗДДС->Тип сделка'),
+        'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл|* 163 |А ЗДДС->FSD номер'),
+        'FSD_ZDDS_CHL163A_DEAL_TYPE' => array('int', 'caption=Сделка по чл|* 163 |А ЗДДС->Тип сделка'),
         'BASE_GROUP' => array('keylist(mvc=cat_Groups,select=name)','caption=Артикули->Основна група'),
         'SYCODE_PRODCODE' => array('enum(no=Не,yes=Да)', 'caption=Артикули->Модифициране на кода,hint=Type: "synth" / '),
     );

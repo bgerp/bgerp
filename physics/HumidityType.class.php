@@ -15,7 +15,7 @@ defIfNot('EF_HUMIDITYTYPE_DECIMALS', 0);
  * @package   physics
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,7 +41,7 @@ class physics_HumidityType extends type_Percent
         $value = parent::fromVerbal($value);
         
         if (($value < 0) || ($value > 1)) {
-            $this->error = 'Стойността на полето трябва да е между 0 и 100%';
+            $this->error = 'Стойността на полето трябва да е между|* 0 |и|* 100%';
             
             return false;
         }

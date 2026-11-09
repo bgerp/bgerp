@@ -9,7 +9,7 @@
  * @package   sens2
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -475,6 +475,10 @@ class sens2_Indicators extends core_Detail
             $row->lastValue = ht::createElement('span', array('style' => "color:#{$color}"), $row->lastValue);
         }
         
+        if (!empty($rec->error)) {
+            // Съобщението е данни от драйвера, не шаблон с маркери за превод.
+            $row->error = tr($rec->error, $rec->error);
+        }
         if (!empty($rec->error) && !empty($rec->lastUpdate)) {
             $color = dt::getColorByTime($rec->lastUpdate);
             $row->error = ht::createElement('span', array('style' => "font-size:0.8em;color:#{$color}"), $row->error);
@@ -486,11 +490,13 @@ class sens2_Indicators extends core_Detail
             $configs[$rec->controllerId] = sens2_Controllers::fetchField($rec->controllerId, 'config');
         }
         
-        if (empty($params[$rec->controllerId])) {
-            $driver = sens2_Controllers::getDriver($rec->controllerId);
-            $ctrRec = sens2_Controllers::fetch($rec->controllerId);
-            $params[$rec->controllerId] = ($driver && $ctrRec)
-                ? arr::combine($driver->getInputPorts($ctrRec->config), $driver->getOutputPorts($ctrRec->config))
+        $controllerId = $rec->controllerId ?? null;
+        if (!isset($params[$controllerId])) {
+            $driver = sens2_Controllers::getDriver($controllerId, true);
+            $ctrRec = sens2_Controllers::fetch($controllerId);
+            $config = $ctrRec->config ?? null;
+            $params[$controllerId] = ($driver && $ctrRec)
+                ? arr::combine($driver->getInputPorts($config), $driver->getOutputPorts($config))
                 : array();
         }
         
@@ -499,7 +505,7 @@ class sens2_Indicators extends core_Detail
         if ($portName) {
             $row->port = type_Varchar::escape($rec->port . ' (' . $portName . ')');
         } elseif (!empty($params[$rec->controllerId][$rec->port]->caption)) {
-            $row->port = $rec->port . ' (' . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ')');
+            $row->port = $rec->port . ' (' . tr($params[$rec->controllerId][$rec->port]->caption) . ')';
         } else {
             $row->port = $rec->port;
         }

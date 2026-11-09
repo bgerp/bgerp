@@ -8,7 +8,7 @@
  * @package   crm
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -807,7 +807,7 @@ class crm_Profiles extends core_Master
         }
         
         if (($rec->isLenOK ?? null) == -1) {
-            $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+            $form->setError('passNew', 'Паролата трябва да е минимум|*  ' . EF_USERS_PASS_MIN_LEN . ' |символа');
         } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
             $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
         } elseif (empty($rec->passNewHash)) {

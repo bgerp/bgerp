@@ -7,7 +7,7 @@
  * @package   callcenter
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -576,7 +576,7 @@ class callcenter_SMS extends core_Master
                     if ($rec->encoding == 'utf-8') {
                         
                         // Сетвама грешката
-                        $form->setError('encoding', 'Не може да се използва UTF-8');
+                        $form->setError('encoding', 'Не може да се използва|* UTF-8');
                     }
                     
                     // Преобразуваме в ASCII

@@ -222,7 +222,7 @@ class cat_products_Packagings extends core_Detail
                         if ($notClosedFound) {
                             $notClosedFoundVerbal = core_Type::getByName('int')->toVerbal($notClosedFound);
                             $errorMsgPart = ($notClosedFound == 1) ? 'неприключена финална операция! За да редактирате количеството операцита трябва да бъде приключена и след промяната на количеството в мярката - създадена (без клониране) отново' : 'неприключени финални операции! За да редактирате количеството операциите трябва да бъдат приключени и след промяната на количеството в мярката - създадени (без клониране) отново';
-                            $form->setError('quantity', "За артикула има |{$notClosedFoundVerbal}|* {$errorMsgPart}!");
+                            $form->setError('quantity', "За артикула има|* |{$notClosedFoundVerbal}|* {$errorMsgPart}!");
                         }
                     }
                 }

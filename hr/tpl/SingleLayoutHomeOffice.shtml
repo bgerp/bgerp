@@ -48,7 +48,7 @@
 
 <br><br>
 
-<p class="indent">|Моля, да ми бъде разрешено да работя от вкъщи|*<!--ET_BEGIN leaveDays--> |за|* [#leaveDays#] |дни|*<!--ET_END leaveDays-->, |считано от|* <b>[#startDate#] |г|*.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|*.</b> |до|* <b>[#toDate#] |г|*.<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
+<p class="indent">|Моля, да ми бъде разрешено да работя от вкъщи|*<!--ET_BEGIN leaveDays--> |за|* [#leaveDays#] |дни|*<!--ET_END leaveDays-->, |считано от|* <b>[#startDate#] |г|*.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|*.</b> |до|* <b>[#toDate#] |г|*.<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>|* |включително|*.</p>
 
 <p>|По време на отсъствието ми от офиса|*:</p>
 <ul class='custom-ul'>
