@@ -234,7 +234,7 @@ class fileman_Buckets extends core_Manager
                 if ($ext && empty($extensions[$ext])) {
                     // Името идва от потребителя, а съобщението се показва като HTML
                     $extVerbal = type_Varchar::escape($ext);
-                    $err[] = "Разширението на файла |* <b>{$extVerbal}</b> | не е в допустимите|*: {$row->extensions}";
+                    $err[] = "Разширението на файла|*  <b>{$extVerbal}</b> |* |не е в допустимите|*: {$row->extensions}";
                 }
             }
         }

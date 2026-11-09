@@ -3098,7 +3098,7 @@ class eshop_Carts extends core_Master
         }
 
         $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
-        $subject = tr('Не пропускайте: Завършете поръчката си в ') . " {$domainName}";
+        $subject = tr('Не пропускайте: Завършете поръчката си в|* ') . " {$domainName}";
 
         // Опит за изпращане на имейл-а
         $error = null;

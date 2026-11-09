@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     НАП » Н-18 е-магазин - месечен одиторски файл
+ * @title     НАП » Н|*-18 |е-магазин - месечен одиторски файл
  */
 class eshopn18_reports_N18Audit extends frame2_driver_TableData
 {

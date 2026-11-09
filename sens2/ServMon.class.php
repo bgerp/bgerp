@@ -9,7 +9,7 @@
  * @package   sens
  *
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,17 +31,17 @@ class sens2_ServMon extends sens2_ProtoDriver
     
     public $inputs = array(
         'freeRam' => array('caption' => 'Свободна RAM', 'uom' => '%'),
-        'freeDir1' => array('caption' => 'Свободна памет в Dir1', 'uom' => 'B'),
-        'freeDir2' => array('caption' => 'Свободна памет в Dir2', 'uom' => 'B'),
+        'freeDir1' => array('caption' => 'Свободна памет в|* Dir1', 'uom' => 'B'),
+        'freeDir2' => array('caption' => 'Свободна памет в|* Dir2', 'uom' => 'B'),
         'mysqlCnt' => array('caption' => 'MySQL връзки'),
         
-        'proc1cnt' => array('caption' => 'Стартирани Proc1'),
-        'proc2cnt' => array('caption' => 'Стартирани Proc2'),
-        'proc3cnt' => array('caption' => 'Стартирани Proc3'),
+        'proc1cnt' => array('caption' => 'Стартирани|* Proc1'),
+        'proc2cnt' => array('caption' => 'Стартирани|* Proc2'),
+        'proc3cnt' => array('caption' => 'Стартирани|* Proc3'),
         
-        'conn1' => array('caption' => 'Връзка до conn1'),
-        'conn2' => array('caption' => 'Връзка до conn2'),
-        'conn3' => array('caption' => 'Връзка до conn3'),
+        'conn1' => array('caption' => 'Връзка до|* conn1'),
+        'conn2' => array('caption' => 'Връзка до|* conn2'),
+        'conn3' => array('caption' => 'Връзка до|* conn3'),
         
         'cpuLoad' => array('caption' => 'Натоварване процесор'),
         

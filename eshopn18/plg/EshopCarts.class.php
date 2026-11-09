@@ -176,10 +176,10 @@ class eshopn18_plg_EshopCarts extends core_Plugin
         $docId = eshopn18_SaleRegDocs::fetchField("#cartId = {$rec->id}", 'id');
         if (!empty($docId)) {
             if (eshopn18_SaleRegDocs::haveRightFor('single', $docId)) {
-                $data->toolbar->addBtn('Документ по чл. 52о', array('eshopn18_SaleRegDocs', 'single', $docId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Документ за регистриране на продажбата');
+                $data->toolbar->addBtn('Документ по чл.|* 52о', array('eshopn18_SaleRegDocs', 'single', $docId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Документ за регистриране на продажбата');
             }
         } elseif (eshopn18_SaleRegDocs::haveRightFor('createforcart', $rec)) {
-            $data->toolbar->addBtn('Документ по чл. 52о', array('eshopn18_SaleRegDocs', 'createforcart', $rec->id, 'ret_url' => true), 'ef_icon=img/16/error.png,title=Документът не е създаден при плащането - нов опит със запазените данни');
+            $data->toolbar->addBtn('Документ по чл.|* 52о', array('eshopn18_SaleRegDocs', 'createforcart', $rec->id, 'ret_url' => true), 'ef_icon=img/16/error.png,title=Документът не е създаден при плащането - нов опит със запазените данни');
         }
     }
 }

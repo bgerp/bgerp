@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -237,16 +237,16 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
             $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество -> по ЕН');
-            $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
-            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
+            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество->по ЕН');
+            $fld->FLD('storeQuantity', 'double', 'caption=Количество->в склада');
+            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество->общо');
             $fld->FLD('stopNot', 'text', 'caption=Стоп->нотиф.,tdClass=centered');
         } else {
             $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество-> по ЕН');
-            $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
-            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
+            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество->по ЕН');
+            $fld->FLD('storeQuantity', 'double', 'caption=Количество->в склада');
+            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество->общо');
 
 
         }

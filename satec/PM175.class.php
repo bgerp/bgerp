@@ -9,7 +9,7 @@
  * @package   satec
  *
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,9 +33,9 @@ class satec_PM175 extends sens2_ProtoDriver
         'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh'),
         'kvarhExport' => array('caption' => 'Реакт. изх. енергия', 'uom' => 'kVArh'),
         'kvarhImport' => array('caption' => 'Реакт. вх. енергия', 'uom' => 'kVArh'),
-        'kWTotal' => array('caption' => '1 сек. мощност', 'uom' => 'kW'),
-        'kvarTotal' => array('caption' => '1 сек. реакт. мощност', 'uom' => 'kVAr'),
-        'kVATotal' => array('caption' => '1 сек. акт. мощност', 'uom' => 'kVA'),
+        'kWTotal' => array('caption' => '|*1 |сек. мощност', 'uom' => 'kW'),
+        'kvarTotal' => array('caption' => '|*1 |сек. реакт. мощност', 'uom' => 'kVAr'),
+        'kVATotal' => array('caption' => '|*1 |сек. акт. мощност', 'uom' => 'kVA'),
         'PFTotal' => array('caption' => 'Косинус Фи', 'uom' => ''),
     );
     

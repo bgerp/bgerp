@@ -1135,7 +1135,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $form = cls::get('core_Form');
 
-        $form->title = "Филтър по служители и машини ";
+        $form->title = "Филтър по служители и машини|* ";
 
 
         if (!empty($rec->centre)) {

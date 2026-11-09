@@ -33,7 +33,7 @@ defIfNot('SBF_CAMS_MP4_PATH', EF_SBF_PATH . '/' . SBF_CAMS_MP4_DIR);
  * @package   cams
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -390,10 +390,10 @@ class cams_Records extends core_Master
             $this->logError('Грешка при пускане на прекодиране на видео');
             
             // Добавяме съобщение
-            status_Messages::newStatus('|Грешка при транскодиране на MP4', 'error');
+            status_Messages::newStatus('|Грешка при транскодиране на|* MP4', 'error');
         } else {
             // Добавяме съобщение
-            status_Messages::newStatus('|Стартирано е транскодиране на MP4', 'success');
+            status_Messages::newStatus('|Стартирано е транскодиране на|* MP4', 'success');
         }
     }
     

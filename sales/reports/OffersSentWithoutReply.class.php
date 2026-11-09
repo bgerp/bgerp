@@ -264,15 +264,15 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
             $fld->FLD('folderId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
-            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
-            $fld->FLD('outEmailDate', 'varchar', 'caption=Изх. имейл ->Дата');
+            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл->Оферта');
+            $fld->FLD('outEmailDate', 'varchar', 'caption=Изх. имейл->Дата');
 
         } else {
 
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
             $fld->FLD('folderId', 'varchar', 'caption=Контрагент');
-            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
-            $fld->FLD('outEmailDate', 'date', 'caption=Изх. имейл ->Дата');
+            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл->Оферта');
+            $fld->FLD('outEmailDate', 'date', 'caption=Изх. имейл->Дата');
 
         }
 

@@ -8,7 +8,7 @@
  * @package   crm
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -176,7 +176,7 @@ class crm_ext_CourtReg extends core_Detail
         }
         
         $form->setSuggestions('regCourt', $dcSug);
-        $data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+        $data->form->title = 'Съдебна регистрация на|* ' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
     
     

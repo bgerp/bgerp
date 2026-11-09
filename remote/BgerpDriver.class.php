@@ -9,7 +9,7 @@
  * @package   embed
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -225,7 +225,7 @@ class remote_BgerpDriver extends core_Mvc
         
         $form->title = 'Потвърждение на отдалечен потребител';
         $form->info = new ET(
-            tr('Желаете ли да оторизирате потребителя |*<b>[#1#]</b>| от |*<b>[#2#]</b>| да следи вашите съобщения?'),
+            tr('Желаете ли да оторизирате потребителя|* <b>[#1#]</b>| от |*<b>[#2#]</b>|* |да следи вашите съобщения?'),
                             type_Varchar::escape($params['nick']),
                             type_Varchar::escape($params['url'])
                             );

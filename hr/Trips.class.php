@@ -257,7 +257,7 @@ class hr_Trips extends core_Master
             $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id, get_called_class());
             if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+                $form->setError('startDate, toDate', "|Засичане по време с:|* " . implode('<br>', $iArr));
             }
 
             if(!empty($rec->currencyId) && empty($rec->amountRoad) && empty($rec->amountDaily) && empty($rec->amountHouse)) {

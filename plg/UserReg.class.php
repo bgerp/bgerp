@@ -79,7 +79,7 @@ defIfNot(
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -331,7 +331,7 @@ class plg_UserReg extends core_Plugin
                 core_Users::calcUserForm($form);
                 
                 if (($pRec->isLenOK ?? null) == -1) {
-                    $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+                    $form->setError('passNew', 'Паролата трябва да е минимум|*  ' . EF_USERS_PASS_MIN_LEN . ' |символа');
                 } elseif (empty($pRec->passNewHash)) {
                     $form->setError('passNew,passRe', 'Моля, въведете (и повторете) паролата');
                 } elseif (($pRec->passNew ?? null) != ($pRec->passRe ?? null)) {

@@ -11,7 +11,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,7 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
             if (!isset($rec->costPercent)) {
                 $remainder = round(1 - cat_plg_DisassemblyDoc::sumRowsPercent($mvc->Master, $masterId, $rec->id ?? null), 4);
                 if ($remainder < 0) {
-                    $form->setError('costPercent', 'Ръчно зададените проценти на другите редове вече надхвърлят 100%|*!');
+                    $form->setError('costPercent', 'Ръчно зададените проценти на другите редове вече надхвърлят|* 100%|*!');
                 } else {
                     $rec->costPercent = $remainder;
                 }
@@ -206,7 +206,7 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
 
         if (!$hasEmpty && abs($sum - 1) < 0.0001) return;
 
-        $btn = ht::createBtn('Изравняване', array($masterMvc, 'allocateManualPercents', $masterId, 'ret_url' => true), 'Ръчно въведените проценти ще бъдат преизчислени, за да правят точно 100%|*!', null, array('style' => $style, 'ef_icon' => 'img/16/calculator.png', 'title' => 'Изравняване на процентите от себестойността до 100%'));
+        $btn = ht::createBtn('Изравняване', array($masterMvc, 'allocateManualPercents', $masterId, 'ret_url' => true), 'Ръчно въведените проценти ще бъдат преизчислени, за да правят точно|* 100%|*!', null, array('style' => $style, 'ef_icon' => 'img/16/calculator.png', 'title' => 'Изравняване на процентите от себестойността до|* 100%'));
 
         $tpl->append($btn, $block);
     }

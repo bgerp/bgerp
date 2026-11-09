@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -458,10 +458,10 @@ class batch_BatchesInDocuments extends core_Manager
                         $imploded = implode(',', $intersectArr);
                         if ($intersect == 1) {
 
-                            return "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
+                            return "|Серийният номер|*: {$imploded}|* |се повтаря в документа|*";
                         }
 
-                        return "|Серийните номера|*: {$imploded}| се повтарят в документа|*";
+                        return "|Серийните номера|*: {$imploded}|* |се повтарят в документа|*";
                     }
                 }
             }

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -288,7 +288,7 @@ class planning_Steps extends core_Extender
             if(isset($rec->{"{$mvc->className}_labelPackagingId"})){
                 if(isset($rec->{"{$mvc->className}_labelQuantityInPack"})){
                     if($rec->{"{$mvc->className}_labelPackagingId"} == $rec->measureId && $rec->{"{$mvc->className}_labelQuantityInPack"} != 1){
-                        $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
+                        $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от|* 1|*!');
                     }
                 } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
                     $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въведено количество при добавяне на нова опаковка|*!');

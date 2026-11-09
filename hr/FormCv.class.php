@@ -9,7 +9,7 @@
  * @package   hr
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -196,7 +196,7 @@ class hr_FormCv extends core_Master
             $rec->state = 'active';
             $this->save($rec);
             
-            return followRetUrl(null, '|Вашето CV е прието. Благодарим за проявения интерес. ', 'success');
+            return followRetUrl(null, '|Вашето CV е прието. Благодарим за проявения интерес.|* ', 'success');
         }
         
         

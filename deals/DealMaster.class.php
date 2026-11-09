@@ -559,7 +559,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
-            $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от 1|*!");
+            $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от|* 1|*!");
         }
 
         // Какъв е новия курс
@@ -3562,7 +3562,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $CloseDoc = cls::get($mvc->closeDealDoc);
             $closedDocRec = $CloseDoc->fetch("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #state = 'active'");
             if($closedDocRec){
-                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($closedDocRec->id)}</b>", 'error');
+                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран|*  <b>#{$CloseDoc->getHandle($closedDocRec->id)}</b>", 'error');
 
                 return false;
             }

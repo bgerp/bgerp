@@ -223,15 +223,15 @@ class fileman_Setup extends core_ProtoSetup
         
         'LINK_NARROW_MIN_FILELEN_SHOW' => array('fileman_FileSize', 'caption=Показване размера на файла в мобилен режим при големина->Повече от, suggestions=50 KB|100 KB|200 KB|300 KB'),
         
-        'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в които ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
+        'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;|* |в които ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
         
-        'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в които ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+        'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;|* |в които ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
 
         'FILEMAN_MAX_BARCODE_AUTO_FIND' => array('fileman_FileSize', 'caption=Максимален размер на файловете в които автоматично ще се търси за баркод->Размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
 
-        'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;| в които няма да се търси баркод->Тип'),
+        'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;|* |в които няма да се търси баркод->Тип'),
         
-        'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
+        'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;|* |които ще се показват в изгледа->Брой'),
         
         'FILEMAN_WEBDRV_ERROR_CLEAN' => array('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
         

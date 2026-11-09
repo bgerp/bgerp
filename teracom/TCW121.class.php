@@ -10,7 +10,7 @@
  * @package   teracom
  *
  * @author    Dimiter Minekov <mitko@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title     Тераком TCW121
  */

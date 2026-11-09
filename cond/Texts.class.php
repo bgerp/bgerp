@@ -8,7 +8,7 @@
  * @package   cond
  *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -96,9 +96,9 @@ class cond_Texts extends core_Manager
         "\n{{IMAGE_3_BASE}}" . ', rows=7, hint=Използвайте {{CONTENT}} за съдържанието на пасажа' .
         "\n{{IMAGE_1}} {{IMAGE_2}} и {{IMAGE_3}} за позициониране на изображенията в текста" .
         "\n{{IMAGE_1_BASE}} {{IMAGE_2_BASE}} и {{IMAGE_3_BASE}} за base64 версия на изображенията");
-        $this->FLD('img1', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 1, autohide');
-        $this->FLD('img2', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 2, autohide');
-        $this->FLD('img3', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 3, autohide');
+        $this->FLD('img1', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение|* 1, autohide');
+        $this->FLD('img2', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение|* 2, autohide');
+        $this->FLD('img3', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение|* 3, autohide');
     }
     
     

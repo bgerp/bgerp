@@ -810,7 +810,7 @@ class planning_Tasks extends core_Master
             if ($rec->quantityInPack != $expectedMeasureQuantityInPack) {
                 $dUoms = cat_UoM::getShortName($rec->measureId) . "/" . cat_UoM::getShortName($compareMeasureId);
                 $quantityInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantityInPack);
-                $diffMsg = "Отношението на |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
+                $diffMsg = "Отношението на|* |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
                 $row->plannedQuantity = ht::createHint($row->plannedQuantity, $diffMsg, 'img/16/red-warning.png', false);
             }
 
@@ -6376,7 +6376,7 @@ JS
                 }
 
                 if($countSavedManualTasks){
-                    core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
+                    core_Statuses::newStatus("Задаване на желано начало на|*  {$countSavedManualTasks} |операции|*");
                 }
 
                 $this->reorderIdleBaseline = static::getIdleSecondsByAsset();

@@ -651,7 +651,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquivalentQuantityInMeasure);
             $equivalentMeasureIdVerbal = cat_UoM::getShortName($equivalentMeasureId);
 
-            $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* <b>{$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*</b>";
+            $msg = "Има разминаване от над|* {$allowedDiff} %, |спрямо очакваното от|* <b>{$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*</b>";
 
             return $msg;
         }
@@ -1358,7 +1358,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 if(isset($form->rec->debitPrice)) {
-                    $form->info = "<div class='formCustomInfo'>Себестойността на произвежданите по операции заготовки не може да бъде различна от '0'</div>";
+                    $form->info = tr("|*<div class='formCustomInfo'>|Себестойността на произвежданите по операции заготовки не може да бъде различна от|* '0'|*</div>");
                     $form->setReadOnly('debitPrice');
                 }
             }

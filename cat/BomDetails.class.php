@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -253,7 +253,7 @@ class cat_BomDetails extends doc_Detail
         $shortUom = cat_UoM::getShortName($pRec->measureId);
 
         if(!empty($rec->parentId)){
-            $form->setField('propQuantity', "caption=Количество->|За 1 от етапа");
+            $form->setField('propQuantity', "caption=Количество->|За единица от етапа");
         } else {
             $form->setField('propQuantity', "caption=Количество->|За|* |{$quantity}|* {$shortUom}");
         }

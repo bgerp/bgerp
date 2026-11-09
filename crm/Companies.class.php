@@ -2336,7 +2336,7 @@ class crm_Companies extends core_Master
             $rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
             
             if (haveRole('powerUser')) {
-                core_Statuses::newStatus("|Фирмата е включена в група |* '{$groupName}'");
+                core_Statuses::newStatus("|Фирмата е включена в група|*  '{$groupName}'");
             }
             
             return static::save($rec, $me->expandInputFieldName);

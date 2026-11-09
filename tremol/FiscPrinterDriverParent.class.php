@@ -8,7 +8,7 @@
  * @package   tremol
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -208,13 +208,13 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, notNull');
-        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 1');
-        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 2');
-        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 3');
-        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 4');
-        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 5');
-        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 6');
-        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 7');
+        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 1');
+        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 2');
+        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 3');
+        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 4');
+        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 5');
+        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 6');
+        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст|* 7');
         
         $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
         $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, notNull');
@@ -793,7 +793,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $form->toolbar->addSbBtn('Запис', 'save', "ef_icon = img/16/disk.png");
         $form->toolbar->addBtn("Отказ", $retUrl, 'ef_icon = img/16/close-red.png');
         
-        $form->title = 'Задаване на диапазон на фактирите за |* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
+        $form->title = 'Задаване на диапазон на фактирите за|*  ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
         
         $html = $form->renderHtml();
         

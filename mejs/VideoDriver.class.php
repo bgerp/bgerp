@@ -10,7 +10,7 @@
  * @package   mejs
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  */
@@ -34,8 +34,8 @@ class mejs_VideoDriver extends core_BaseClass
      */
     public static function addFields(&$form)
     {
-        $form->FLD('source1', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл 1');
-        $form->FLD('source2', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл 2');
+        $form->FLD('source1', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл|* 1');
+        $form->FLD('source2', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл|* 2');
         $form->FLD('width', 'int(min=10,max=1200)', 'caption=Широчина,placeholder=100%');
         $form->FLD('height', 'int(min=10,max=1200)', 'caption=Височина,placeholder=100%');
 

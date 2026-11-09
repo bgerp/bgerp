@@ -1216,7 +1216,7 @@ class cal_Tasks extends embed_Manager
         
         if ($haveRes && $limit < 0) {
             $link->append('<div>');
-            $link->append(tr('Още: ') . -1 * $limit);
+            $link->append(tr('Още:|* ') . -1 * $limit);
             $link->append('</div>');
         }
         
@@ -1691,8 +1691,8 @@ class cal_Tasks extends embed_Manager
             $chart = Request::get('Chart');
             
             // ако ще подреждаме по "начало" или "край" на задачата ще показваме и филтъра за дата
-            if ($filterRec->order == 'onStart' || $filterRec->order == 'onEnd') {
-                $data->listFilter->showFields .= 'search, from, to, selectedUsers, order, stateTask';
+            if (($filterRec->order ?? null) == 'onStart' || ($filterRec->order ?? null) == 'onEnd') {
+                $data->listFilter->showFields = ($data->listFilter->showFields ?? '') . ',search, from, to, selectedUsers, order, stateTask';
                 $data->listFilter->input('from, to', 'silent');
             }
 
@@ -1753,25 +1753,28 @@ class cal_Tasks extends embed_Manager
             }
 
             $driverId = $filterRec->{$mvc->driverClassField} ?? null;
-            $taskType = ($driverId == support_TaskType::getClassId()) ? 'сигнали' : 'задачи';
+            $isSignal = ($driverId == support_TaskType::getClassId());
 
             if (($filterRec->order ?? null) == 'onStart') {
-                $data->title = 'Търсене на ' . $taskType . ' по начало на задачата в периода |*<span class="green">"' .
-                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
-    			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
-            } elseif ($filterRec->order == 'onEnd') {
-                $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
-                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
-    			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
+                $title = $isSignal ? 'Търсене на сигнали по начало на задачата в периода [#VALUE#]' : 'Търсене на задачи по начало на задачата в периода [#VALUE#]';
+                $data->title = (new ET(tr($title)))->placeArray(array('VALUE' => '<span class="green">"' .
+                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from ?? null) . ' - ' .
+                    $data->listFilter->getFieldType('to')->toVerbal($filterRec->to ?? null) . '"</span>'));
+            } elseif (($filterRec->order ?? null) == 'onEnd') {
+                $data->title = (new ET(tr('Търсене на задачи по края на задачата в периода [#VALUE#]')))->placeArray(array('VALUE' => '<span class="green">"' .
+                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from ?? null) . ' - ' .
+                    $data->listFilter->getFieldType('to')->toVerbal($filterRec->to ?? null) . '"</span>'));
             } elseif (($filterRec->order ?? null) == 'noStartEnd') {
-                $data->title = 'Търсене на ' . $taskType . ' |*<span class="green">"' .
-                    'без начало и край"</span>';
+                $title = $isSignal ? 'Търсене на сигнали [#VALUE#]без начало и край[#END#]' : 'Търсене на задачи [#VALUE#]без начало и край[#END#]';
+                $data->title = (new ET(tr($title)))->placeArray(array('VALUE' => '<span class="green">"', 'END' => '"</span>'));
             } elseif ($filterRec->search ?? null) {
-                $data->title = 'Търсене на ' . $taskType . ' отговарящи на |*<span class="green">"' .
-                    $data->listFilter->getFieldType('search')->toVerbal($filterRec->search) . '"</span>';
+                $title = $isSignal ? 'Търсене на сигнали отговарящи на [#VALUE#]' : 'Търсене на задачи отговарящи на [#VALUE#]';
+                $data->title = (new ET(tr($title)))->placeArray(array('VALUE' => '<span class="green">"' .
+                    $data->listFilter->getFieldType('search')->toVerbal($filterRec->search ?? '') . '"</span>'));
             } else {
-                $data->title = str::mbUcfirst($taskType) . ' на |*<span class="green">' .
-                    $data->listFilter->getFieldType('selectedUsers')->toVerbal($filterRec->selectedUsers) . '</span>';
+                $title = $isSignal ? 'Сигнали на [#VALUE#]' : 'Задачи на [#VALUE#]';
+                $data->title = (new ET(tr($title)))->placeArray(array('VALUE' => '<span class="green">' .
+                    $data->listFilter->getFieldType('selectedUsers')->toVerbal($filterRec->selectedUsers ?? null) . '</span>'));
             }
             
             if ($chart == 'Gantt') {
