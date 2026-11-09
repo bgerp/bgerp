@@ -2915,9 +2915,9 @@ class email_Outgoings extends core_Master
         $row = new stdClass();
         $row->title = $subject;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->authorId = $rec->createdBy;
-        $row->state = $rec->state;
-        $row->recTitle = $rec->subject;
+        $row->authorId = $rec->createdBy ?? null;
+        $row->state = $rec->state ?? null;
+        $row->recTitle = $rec->subject ?? null;
         
         return $row;
     }
