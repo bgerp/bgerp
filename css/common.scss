@@ -4297,3 +4297,9 @@ $noticeColor = #1976D2;
 		}
 	}
 }
+
+// Блоковете над антетката на операцията са с обща ширина и общ скрол на тесен екран
+.taskStatisticBlocks {
+	width: min-content;
+	min-width: 100%;
+}

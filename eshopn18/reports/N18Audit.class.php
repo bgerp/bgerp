@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     НАП » Н|*-18 |е-магазин - месечен одиторски файл
+ * @title     НАП » Н-18 е-магазин - месечен одиторски файл
  */
 class eshopn18_reports_N18Audit extends frame2_driver_TableData
 {
@@ -38,6 +38,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
      * Кои полета се сумират в реда "ОБЩО"
      */
     protected $summaryListFields = 'net,vat,total2';
+
+
+    /**
+     * Колоните, по които може да се сортира
+     */
+    protected $sortableListFields = 'orderDate,cartId,saleId,kind,date,paymName,docNum,net,vat,total2';
 
 
     /**
@@ -325,6 +331,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $sum = $net;
         }
 
+        // В XML файла редът е без отстъпка - тя е само в ORD_DISC, както на касовия бон
+        $fullSum = round(round($amount * (1 + $vatRate), 10), 2);
+        if (empty($vatRate) || $fullSum < $gross) {
+            $fullSum = $gross;
+        }
+
         // Името е текст (не HTML) и на български, както е в документа
         core_Lg::push('bg');
         $name = cat_Products::getDisplayName(cat_Products::fetch($lRec->productId, 'name,nameEn'));
@@ -339,6 +351,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             'disc' => round($gross - $net, 2),
             'vat' => round($sum - $net, 2),
             'sum' => $sum,
+            'fullVat' => round($fullSum - $gross, 2),
+            'fullSum' => $fullSum,
         );
     }
 
@@ -591,8 +605,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             foreach ($oRec->lines as $line) {
                 $artTpl = clone $artBlock;
                 $artTpl->placeArray(self::escapeXml(array('art_name' => $line['name'], 'art_quant' => self::num($line['quantity']),
-                    'art_price' => self::num($line['price']), 'art_vat_rate' => $line['vatRate'], 'art_vat' => self::num($line['vat']),
-                    'art_sum' => self::num($line['sum']))));
+                    'art_price' => self::num($line['price']), 'art_vat_rate' => $line['vatRate'], 'art_vat' => self::num($line['fullVat'] ?? $line['vat']),
+                    'art_sum' => self::num($line['fullSum'] ?? $line['sum']))));
                 $artTpl->removeBlocksAndPlaces();
                 $orderTpl->append($artTpl, 'ARTS');
             }
@@ -723,6 +737,31 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $fld->FLD('total2', 'double(decimals=2)', "caption=Стойност|* {$currency}->Общо,tdClass=stageCol");
 
         return $fld;
+    }
+
+
+    /**
+     * Сортирането иска всяко поле на всеки ред - връщанията и по-старите изчисления нямат някои от тях
+     *
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
+     * @return core_ET
+     */
+    protected function renderTable($rec, &$data)
+    {
+        foreach ((array) ($data->recs ?? array()) as $dRec) {
+            $dRec->date = $dRec->date ?? ($dRec->deliveryDate ?? null);
+            $dRec->net = isset($dRec->total1) ? round($dRec->total1 - ($dRec->disc ?? 0), 2) : null;
+            $dRec->vat = $dRec->vat ?? null;
+            $dRec->docNum = $dRec->docNum ?? null;
+            $dRec->saleId = $dRec->saleId ?? null;
+
+            // По начина на плащане - поръчките преди връщанията, после по кода
+            $dRec->paymName = ((($dRec->kind ?? null) == 'order') ? 'o' : 'r') . ($dRec->paym ?? 0);
+        }
+
+        return parent::renderTable($rec, $data);
     }
 
 

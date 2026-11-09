@@ -524,7 +524,7 @@ class price_ListDocs extends core_Master
         }
         
         foreach (array('priceP', 'priceM') as $priceFld) {
-            if ($rec->{$priceFld}) {
+            if (!empty($rec->{$priceFld})) {
                 $row->{$priceFld} = $Double->toVerbal($rec->{$priceFld});
             }
         }
@@ -541,7 +541,7 @@ class price_ListDocs extends core_Master
             $row->eanCode = "<small>{$row->eanCode}</small>";
         }
         
-        if ($rec->measureId && $rec->priceM) {
+        if (!empty($rec->measureId) && !empty($rec->priceM)) {
             $row->measureId = cat_UoM::getShortName($rec->measureId);
         } else {
             unset($row->productId);
