@@ -269,9 +269,10 @@ abstract class bank_Document extends deals_PaymentDocument
         $dealCurrencyId = currency_Currencies::getIdByCode($dealInfo->currency);
         $currencyId = $dealCurrencyId;
         if (isset($fields['ownAccountId'])) {
-            $ownAccountInfo = bank_OwnAccounts::getOwnAccountInfo($fields['ownAccountId']);
-            expect($ownAccountInfo, "Няма наша сметка с ид|* {$fields['ownAccountId']}");
-            $currencyId = $ownAccountInfo->currencyId;
+            expect(bank_OwnAccounts::fetch($fields['ownAccountId']), "Няма наша сметка с ид|* {$fields['ownAccountId']}");
+
+            // Левовите сметки след приемането на еврото са в евро
+            $currencyId = bank_OwnAccounts::getDefaultCurrency($fields['ownAccountId'], $fields['valior'] ?? null);
         }
 
         if (isset($fields['contragentIban'])) {

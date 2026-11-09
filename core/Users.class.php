@@ -823,7 +823,7 @@ class core_Users extends core_Manager
         // Ако имаме въведена нова парола
         if (!empty($rec->passNewHash)) {
             if (($rec->isLenOK ?? null) == -1) {
-                $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
+                $form->setError('passNew', 'Паролата трябва да е минимум|*  ' . EF_USERS_PASS_MIN_LEN . ' |символа');
             } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
                 $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
             } else {

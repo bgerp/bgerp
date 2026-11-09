@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -210,7 +210,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
             $fld->FLD('creator', 'varchar', 'caption=Създател');
             $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност->без ДДС');
             $fld->FLD('salesCount', 'int', "smartCenter,caption=Продажби->Брой");
-            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност-> без ДДС');
+            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове->Стойност->без ДДС');
             $fld->FLD('detailsCount', 'double(int)', 'smartCenter,caption=Редове->Брой');
             $fld->FLD('delta', 'double(decimals=2)', 'smartCenter,caption=Редове->Делта');
 

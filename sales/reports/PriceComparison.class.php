@@ -8,7 +8,7 @@
  * @package   sales
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -314,21 +314,21 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Ниска');
-            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Висока');
-            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика -> Стойност');
+            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена->Ниска');
+            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена->Висока');
+            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика->Стойност');
             if ($rec->typePercent != 'none') {
-                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика -> Процент');
+                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика->Процент');
             }
         }else{
 
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Ниска');
-            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Висока');
-            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика -> Стойност');
+            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена->Ниска');
+            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена->Висока');
+            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика->Стойност');
             if ($rec->typePercent != 'none') {
-                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика -> Процент');
+                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика->Процент');
             }
 
         }

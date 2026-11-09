@@ -8,7 +8,7 @@
  * @package   colab
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.12
@@ -287,7 +287,7 @@ class colab_Folders extends core_Manager
         $names = core_Users::getVerbal($cuRec, 'names');
         $nick = core_Users::getVerbal($cuRec, 'nick');
         
-        $data->title = "|Папките на |* <span style='color:green'>{$names} ({$nick})</span>";
+        $data->title = "|Папките на|*  <span style='color:green'>{$names} ({$nick})</span>";
     }
     
     

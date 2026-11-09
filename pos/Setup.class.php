@@ -129,7 +129,7 @@ defIfNot('POS_ALLOW_DRAFT_RECEIPTS', 'yes');
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -183,9 +183,9 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени последни продажби'),
         'POS_TERMINAL_SEARCH_SECONDS' => array('int(min=500)', 'caption=Операции в POS терминала->Търсене след,unit=милисекунди'),
         'POS_MIN_WIDE_WIDTH' => array('int', 'caption=Под каква ширина да се смята за тесен режим->Под,unit=px'),
-        'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Добавяне'),
-        'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
-        'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
+        'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик|* (1),mouseclick=Клик|* (2),tap=Клик|* (3),terminal=Скенер|* (1),terminal2=Скенер|* (2))', 'caption=Звуци в терминала->Добавяне'),
+        'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик|* (1),mouseclick=Клик|* (2),tap=Клик|* (3),terminal=Скенер|* (1),terminal2=Скенер|* (2))', 'caption=Звуци в терминала->Редактиране'),
+        'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване|* (1),delete1=Изтриване|* (2),filedelete=Изтриване|* (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
         'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),

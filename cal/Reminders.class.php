@@ -1427,7 +1427,7 @@ class cal_Reminders extends core_Master
                     // месеци, като се спазва деня от седмицата
                 case 'weekDay':
                     $row->repetitionType = tr('месец');
-                    $row->repetitionTypeMonth = tr($rec->monthsWeek. ' ' .$rec->weekDayNames). tr(' от месеца');
+                    $row->repetitionTypeMonth = tr($rec->monthsWeek. ' ' .$rec->weekDayNames). tr('|* |от месеца');
                     break;
                     
                     // точния ден от месеца

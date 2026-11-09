@@ -2,7 +2,7 @@
 <h2 class="centered">|ЗАПОВЕД ЗА ПРЕВОЗ ЗА СОБСТВЕНА СМЕТКА|*</h2>
 <p class="centered">[#series#] № [#sheetNumber#] / [#issueDate#]</p>
 <p><b>[#companyName#]</b> · |ЕИК|*: [#companyNumber#]<br>[#companyAddress#]</p>
-<p>|На основание чл. 18, т. 4 от Наредба № Н-8 от 27.06.2008 г. възлагам извършването на следния превоз за собствена сметка:|*</p>
+<p>|На основание чл|*. 18, |т|*. 4 |от Наредба № Н|*-8 |от|* 27.06.2008 |г. възлагам извършването на следния превоз за собствена сметка|*:|*</p>
 <table class="innerTable border-table paddingCells" style="width:100%">
     <tr><td>|Водач|*</td><td>[#driverName#]</td></tr>
     <tr><td>|Автомобил|*</td><td>[#vehicleModel#] · [#vehicleNumber#]</td></tr>

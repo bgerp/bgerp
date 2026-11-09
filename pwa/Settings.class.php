@@ -160,11 +160,11 @@ class pwa_Settings extends core_Manager
         $this->FLD('scope', 'varchar(128)', 'caption=Обхват');
 
         for ($i = 1; $i <= $this->shortcutCnt; $i++) {
-            $this->FLD("sc{$i}Name", 'varchar(255)', "caption=Пряк път {$i}->Име");
-            $this->FLD("sc{$i}ShortName", 'varchar(128)', "caption=Пряк път {$i}->Кратко име");
-            $this->FLD("sc{$i}Description", 'varchar', "caption=Пряк път {$i}->Описание");
-            $this->FLD("sc{$i}Url", 'varchar(255)', "caption=Пряк път {$i}->URL");
-            $this->FLD("sc{$i}Icon", 'fileman_FileType(bucket=pwa)', "caption=Пряк път {$i}->Икона");
+            $this->FLD("sc{$i}Name", 'varchar(255)', "caption=Пряк път|* {$i}->Име");
+            $this->FLD("sc{$i}ShortName", 'varchar(128)', "caption=Пряк път|* {$i}->Кратко име");
+            $this->FLD("sc{$i}Description", 'varchar', "caption=Пряк път|* {$i}->Описание");
+            $this->FLD("sc{$i}Url", 'varchar(255)', "caption=Пряк път|* {$i}->URL");
+            $this->FLD("sc{$i}Icon", 'fileman_FileType(bucket=pwa)', "caption=Пряк път|* {$i}->Икона");
         }
 
         $this->setDbUnique('domainId');

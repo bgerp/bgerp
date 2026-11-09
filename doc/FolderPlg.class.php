@@ -784,7 +784,8 @@ class doc_FolderPlg extends core_Plugin
                             $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
                             $title = !empty($obj->caption) ? $obj->caption : $Cls->singleTitle;
-                            $row->_rowTools->addLink($title, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $hint = (new ET(tr('Създаване на [#VALUE#]')))->placeArray(array('VALUE' => mb_strtolower(tr($Cls->singleTitle ?? ''))));
+                            $row->_rowTools->addLink($title, $url, array('ef_icon' => $Cls->singleIcon ?? '', 'order' => 18, 'title' => $hint->getContent()));
                         }
                     }
                 }

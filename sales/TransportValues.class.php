@@ -629,7 +629,7 @@ class sales_TransportValues extends core_Manager
         $codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
         
         // Опит за изчисляване на транспорт
-        $totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
+        $totalWeight = self::getExpectedShippingWeight($contragentClassId, $contragentId, $codeAndCountryArr['countryId'] ?? null);
 
         if (!array_key_exists('ourCompany', self::$hitCache)) {
             self::$hitCache['ourCompany'] = crm_Companies::fetchOurCompany();
@@ -642,10 +642,86 @@ class sales_TransportValues extends core_Manager
             'fromPostalCode' => $ourCompany->pCode ?? null,
         );
         $feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $params, $valior);
-        
+
         return $feeArr;
     }
-    
+
+
+    /**
+     * Очакваното тегло на доставка от търговските условия на клиента
+     * Задава се за сборни доставки в държавата на клиента, затова до друга държава не важи
+     *
+     * @param mixed    $contragentClassId - клас на контрагента
+     * @param int      $contragentId      - ид на контрагента
+     * @param int|null $deliveryCountryId - държава на доставка
+     *
+     * @return float|null
+     */
+    public static function getExpectedShippingWeight($contragentClassId, $contragentId, $deliveryCountryId)
+    {
+        $contragentCountryId = self::getCodeAndCountryId($contragentClassId, $contragentId)['countryId'] ?? null;
+        if (!empty($deliveryCountryId) && !empty($contragentCountryId) && $deliveryCountryId != $contragentCountryId) return null;
+
+        return cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
+    }
+
+
+    /**
+     * Може ли оферта/продажба да има бележка за транспорта в LLM експорта
+     *
+     * @param stdClass $rec - запис на документа
+     *
+     * @return bool
+     */
+    public static function haveLlmNote($rec)
+    {
+        if (empty($rec->id) || empty($rec->deliveryTermId) || core_Users::haveRole('partner')) return false;
+
+        return is_object(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId));
+    }
+
+
+    /**
+     * Вътрешна бележка за транспорта на оферта/продажба, защото лентата с него не влиза в LLM експорта
+     *
+     * @param core_Mvc $mvc               - оферта или продажба
+     * @param stdClass $rec               - запис на документа
+     * @param float    $expected          - очакван транспорт, в основна валута без ДДС
+     * @param float    $visible           - явен транспорт, в основна валута без ДДС
+     * @param int|null $deliveryCountryId - държава на доставка
+     *
+     * @return string|null
+     */
+    public static function getLlmNote($mvc, $rec, $expected, $visible, $deliveryCountryId)
+    {
+        if ($expected == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) {
+
+            return doc_plg_LlmExportable::systemNote('Transport, internal: the expected transport cannot be calculated, some products have no transport weight');
+        }
+
+        // Липсваща зона се вижда от грешката в условията на документа
+        $hidden = self::calcInDocument($mvc, $rec->id);
+        if (empty($expected) && empty($hidden) && empty($visible)) return null;
+
+        $rate = !empty($rec->currencyRate) ? $rec->currencyRate : 1;
+        $amounts = array();
+        foreach (array('expected' => $expected, 'hidden' => $hidden, 'visible' => $visible, 'left' => $expected - $hidden - $visible) as $key => $value) {
+            $amounts[$key] = number_format(round($value / $rate, 2), 2, '.', '');
+        }
+        $currencyId = $rec->currencyId ?? '';
+        $note = "Transport, internal: expected {$amounts['expected']} {$currencyId} without VAT; ";
+        $note .= isset($hidden) ? "hidden in the prices {$amounts['hidden']}" : 'hidden in the prices: off';
+        $note .= ", visible as rows {$amounts['visible']}, not charged {$amounts['left']}";
+
+        // Очакваният е по теглото на артикулите, а скритият по редовете - по тарифата за очакваното тегло
+        $weight = isset($hidden) ? self::getExpectedShippingWeight($rec->contragentClassId ?? null, $rec->contragentId ?? null, $deliveryCountryId) : null;
+        if ($weight > 0) {
+            $note .= "; the hidden transport uses the rate for the customer's expected shipment weight of {$weight} kg from the commercial conditions, not the products' weight";
+        }
+
+        return doc_plg_LlmExportable::systemNote($note);
+    }
+
     
     /**
      * Връща вербалното показване на транспортните цени

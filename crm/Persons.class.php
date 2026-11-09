@@ -2894,7 +2894,7 @@ class crm_Persons extends core_Master
             $rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
 
             if (haveRole('powerUser')) {
-                core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
+                core_Statuses::newStatus("|Лицето е включено в група|*  '{$groupName}'");
             }
 
             return static::save($rec, $me->expandInputFieldName);

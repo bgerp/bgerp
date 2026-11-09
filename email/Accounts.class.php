@@ -9,7 +9,7 @@
  * @package   email
  *
  * @author    Milen Georgiev <milen@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -118,11 +118,11 @@ class email_Accounts extends core_Master
         
         // Изтегляне
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Изтегляне->Статус');
-        $this->FLD('fetchingPeriod', 'time(suggestions=30 секунди|1 минута|2 минути|5 минути|10 минути|30 минути|1 час,min=30)', 'caption=Изтегляне->Проверка през,placeholder=1 минута');
+        $this->FLD('fetchingPeriod', 'time(suggestions=30 секунди|1 минута|2 минути|5 минути|10 минути|30 минути|1 час,min=30)', 'caption=Изтегляне->Проверка през,placeholder=|*1 |минута');
         $this->FLD(
             'deleteAfterPeriod',
             'time(uom=minutes,suggestions=Веднага|2 часа|6 часа|1 ден|1 седмица|1 месец)',
-            'caption=Изтегляне->Изтриване,hint=Кога писмото да бъде изтрито от IMAP/POP3 сметката след получаване в системата?,placeholder=Никога,unit=след получаване,oldFiledName=datetime'
+            'caption=Изтегляне->Изтриване,hint=Кога писмото да бъде изтрито от|* IMAP/POP3 |сметката след получаване в системата|*?,placeholder=Никога,unit=след получаване,oldFiledName=datetime'
         );
         $this->FLD('imapFlag', 'enum(,seen=Като прочетени,unseen=Като непрочетени)', 'caption=Маркиране,placeholder=Без промяна');
         
@@ -483,7 +483,7 @@ class email_Accounts extends core_Master
                             $anchor = 'Dopalnitelni-nastroyki-v-sarvarite';
                         }
                     }
-                    $errMsg = 'Грешка при свързване|*: ' . $imapConn->getLastError() . '<br>|За повече информация|*: ' . ht::createLink('bgerp.com', "https://bgerp.com/Bg/Zadavane-na-IMAP-POP3-akaunt/#{$anchor}", false, array('target' => '_blank', 'title' => 'Задаване на IMAP/POP3 акаунт'));
+                    $errMsg = 'Грешка при свързване|*: ' . $imapConn->getLastError() . '<br>|За повече информация|*: ' . ht::createLink('bgerp.com', "https://bgerp.com/Bg/Zadavane-na-IMAP-POP3-akaunt/#{$anchor}", false, array('target' => '_blank', 'title' => 'Задаване на|* IMAP/POP3 |акаунт'));
                     
                     $form->setWarning('server', $errMsg);
                 }

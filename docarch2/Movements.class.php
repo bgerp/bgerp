@@ -474,7 +474,7 @@ class docarch2_Movements extends core_Master
         if ($countMovie > 0) {
             $count = cls::get('type_Int')->toVerbal($countMovie);
             $linkArr = array();
-            $actionVerbal = tr('архиви2');
+            $actionVerbal = tr('архиви|*2');
             $Document = doc_Containers::getDocument($containerId);
 
             if ($Document->haveRightFor('single')) {

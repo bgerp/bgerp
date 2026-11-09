@@ -37,7 +37,7 @@ class hljs_Setup extends core_ProtoSetup
      * Избира библиотеката през стандартната конфигурация на пакета.
      */
     public $configDescription = array(
-        'HLJS_VERSION' => array('enum(7.3,9.15.9=9.15.9 - без езици,11.12.0)', 'caption=Версия на Highlight.js->Версия'),
+        'HLJS_VERSION' => array('enum(7.3,9.15.9=|*9.15.9 - |без езици,11.12.0)', 'caption=Версия на Highlight.js->Версия'),
     );
     
     

@@ -10,7 +10,7 @@
  * @package   visualcrossing
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @title     Visualcrossing
  *
@@ -30,9 +30,9 @@ class visualcrossing_Sensor extends sens2_ProtoDriver
     public $inputs = array(
         'currentTempMin' => array('caption' => 'Текуща температура[min]', 'uom' => 'C'),
         'currentTempMax' => array('caption' => 'Текуща температура[max]', 'uom' => 'C'),
-        'tempAfter6HourMin' => array('caption' => 'Температура след 6ч[min]', 'uom' => 'C'),
-        'tempAfter6HourMax' => array('caption' => 'Температура след 6ч[max]', 'uom' => 'C'),
-        'windAfter2Uour' => array('caption' => 'Вятър след 2ч.', 'uom' => 'Km/h'),
+        'tempAfter6HourMin' => array('caption' => 'Температура след|* 6|ч[min|*]', 'uom' => 'C'),
+        'tempAfter6HourMax' => array('caption' => 'Температура след|* 6|ч[max|*]', 'uom' => 'C'),
+        'windAfter2Uour' => array('caption' => 'Вятър след|* 2|ч|*.', 'uom' => 'Km/h'),
 
     );
 

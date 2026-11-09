@@ -10,7 +10,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -551,7 +551,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight, 'noicon', false);
                 if($warningWeight){
                     $liveValueVerbal = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
-                    $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, "Има разлика от над 25% с изчисленото|* {$liveValueVerbal}", 'warning', false);
+                    $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, "Има разлика от над|* 25|% с изчисленото|* {$liveValueVerbal}", 'warning', false);
                 }
             }
 
@@ -618,7 +618,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
                 if($warningVolume){
                     $liveVolumeVerbal = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->calcedVolume);
-                    $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, "Има разлика от над 25% с изчисленото|* {$liveVolumeVerbal}", 'warning', false);
+                    $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, "Има разлика от над|* 25|% с изчисленото|* {$liveVolumeVerbal}", 'warning', false);
                 }
             }
 

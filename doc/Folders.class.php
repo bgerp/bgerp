@@ -349,7 +349,7 @@ class doc_Folders extends core_Master
             if (($data->listFilter->rec->order ?? null) != 'inCharge') {
                 $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
             }
-            $data->title = 'Папките на |*<span class="green">' .
+            $data->title = 'Папките на|* <span class="green">' .
             $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
         } else {
             $data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .

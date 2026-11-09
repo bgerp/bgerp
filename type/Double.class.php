@@ -148,7 +148,7 @@ class type_Double extends core_Type
             // Нищо не се прави - основно за PARSE_ERROR
         }
         
-        $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
+        $this->error = "Грешка при превръщане на|* <b>'" . parent::escape($originalVal) . "'</b> |в число";
         
         return false;
     }

@@ -752,6 +752,71 @@ class cms_Domains extends core_Embedder
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        if (!core_Packs::isInstalled('eshop')) {
+
+            return;
+        }
+
+        // Текущите настройки на онлайн магазина за домейна, а ако няма - нови
+        $settingRec = eshop_Settings::getSettings('cms_Domains', $data->rec->id);
+        if (is_object($settingRec) && !empty($settingRec->id)) {
+            if (eshop_Settings::haveRightFor('edit', $settingRec->id)) {
+                $data->toolbar->addBtn('Настройки (Е-маг)', array('eshop_Settings', 'edit', $settingRec->id, 'ret_url' => true), 'ef_icon=img/16/edit-icon.png,title=Редактиране на настройките на онлайн магазина');
+            }
+        } elseif (eshop_Settings::haveRightFor('add')) {
+            $data->toolbar->addBtn('Настройки (Е-маг)', array('eshop_Settings', 'add', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/cart.png,title=Добавяне на настройки на онлайн магазина');
+        }
+    }
+
+
+    /**
+     * Подготвя текущите настройки на онлайн магазина за показване в домейна
+     *
+     * @param core_Mvc $mvc
+     * @param mixed    $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        if (!core_Packs::isInstalled('eshop') || empty($data->rec->id)) {
+
+            return;
+        }
+
+        $settingRec = eshop_Settings::getSettings('cms_Domains', $data->rec->id);
+        if (!is_object($settingRec) || empty($settingRec->id) || !eshop_Settings::haveRightFor('single', $settingRec->id)) {
+
+            return;
+        }
+
+        // Бутонът за редакция е в лентата на домейна
+        $sData = new stdClass();
+        $sData->rec = eshop_Settings::fetch($settingRec->id);
+        $sData->noToolbar = true;
+        cls::get('eshop_Settings')->prepareSingle($sData);
+
+        // Домейнът е ясен от изгледа - заглавието на настройките се заменя с общ надпис
+        unset($sData->row->objectId);
+        $data->eshopSettingsData = $sData;
+    }
+
+
+    /**
+     * Показва настройките на онлайн магазина под данните на домейна
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (!empty($data->eshopSettingsData)) {
+            $state = $data->eshopSettingsData->rec->state ?? null;
+            $stateClass = !empty($state) ? "state-{$state}" : '';
+            $title = "<h3 style='padding: 5px; color:green;' class='{$stateClass}'><b>" . tr('Настройки (Е-маг)') . '</b></h3>';
+            $tpl->append($title, 'DETAILS');
+            $tpl->append(cls::get('eshop_Settings')->renderSingle($data->eshopSettingsData), 'DETAILS');
+        }
     }
     
     

@@ -9,7 +9,7 @@
  * @package   synck
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2020 - 2026 Experta OOD
+ * @copyright 2020 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -639,7 +639,7 @@ class sync_Helper extends core_Manager
         }
         if ($sent === false) {
             if ($errno === CURLE_OPERATION_TIMEDOUT) {
-                $message = 'Проверката не завърши до 5 секунди. Проверете достъпността и натоварването на експортиращата система';
+                $message = 'Проверката не завърши до|* 5 |секунди. Проверете достъпността и натоварването на експортиращата система';
             } elseif ($errno === CURLE_COULDNT_RESOLVE_HOST) {
                 $message = 'Адресът на експортиращата система не може да се намери в DNS';
             } elseif ($errno === CURLE_COULDNT_CONNECT) {

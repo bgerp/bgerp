@@ -8,7 +8,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -313,7 +313,7 @@ class rack_RackDetails extends core_Detail
         $storeId = store_Stores::getCurrent();
         $data->query->EXT('storeId', 'rack_Racks', 'externalName=storeId,externalKey=rackId');
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Детайли на стелажи в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->title = 'Детайли на стелажи в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('#rackId', 'ASC');
     }
 }

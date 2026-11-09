@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,6 +44,12 @@ class acc_CostAllocations extends core_Manager
      * Кой може да добавя?
      */
     public $canAdd = 'ceo, acc, purchase';
+
+
+    /**
+     * Разходите се отнасят от конкретен ред в документ.
+     */
+    public $listAddBtn = false;
     
     
     /**
@@ -258,6 +264,10 @@ class acc_CostAllocations extends core_Manager
     {
         $form = &$data->form;
         $rec = $data->form->rec;
+        if (empty($rec->detailClassId) || empty($rec->detailRecId) || empty($rec->containerId) || empty($rec->productId)) {
+            followRetUrl(array('purchase_Purchases', 'list'), 'Отнесете разхода от съответния ред в документа за покупка', 'warning');
+        }
+        $mvc->requireRightFor(empty($rec->id) ? 'add' : 'edit', $rec);
         $rec->_oldExpenceItemId = $rec->expenseItemId ?? null;
         
         // Какво к-во се очаква да се разпредели

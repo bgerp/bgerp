@@ -367,9 +367,9 @@ class core_Setup extends core_ProtoSetup
         
         'EF_USER_LANG' => array('enum()', 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
         
-        'TYPE_KEY_MAX_SUGGESTIONS' => array('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'),
+        'TYPE_KEY_MAX_SUGGESTIONS' => array('int', 'caption=Критичен брой опции|*&comma;|* |над които търсенето става по ajax->Опции'),
         
-        'CORE_MAX_OPT_FOR_OPEN_GROUPS' => array('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'),
+        'CORE_MAX_OPT_FOR_OPEN_GROUPS' => array('int', 'caption=Критичен брой опции|*&comma;|* |под който се отварят групите->Опции'),
         
         'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
         

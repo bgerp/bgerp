@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,6 +45,12 @@ class cond_ConditionsToCustomers extends core_Manager
      * Кой може да добавя
      */
     public $canAdd = 'powerUser';
+
+
+    /**
+     * Добавянето изисква избран контрагент.
+     */
+    public $listAddBtn = false;
     
     
     /**
@@ -94,6 +100,11 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        if (empty($rec->cClass) || empty($rec->cId)) {
+            followRetUrl(array('crm_Companies', 'list'), 'Добавете търговското условие от екрана на съответния контрагент', 'warning');
+        }
+        $mvc->requireRightFor(empty($rec->id) ? 'add' : 'edit', $rec);
         
         if (empty($form->rec->id)) {
             $options = static::getRemainingOptions($rec->cClass, $rec->cId);
@@ -129,7 +140,8 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id ?? null, 'за');
+        $title = empty($rec->id) ? 'Добавяне на търговско условие за [#CUSTOMER#]' : 'Редактиране на търговско условие за [#CUSTOMER#]';
+        $data->form->title = (new ET(tr($title)))->placeArray(array('CUSTOMER' => cls::get($rec->cClass ?? null)->getFormTitleLink($rec->cId ?? null)));
         
         // Маха се бутона запис и нов, ако е само едно търговското условие
         if (countR($data->form->conditionOptions ?? array()) <= 1) {
@@ -148,7 +160,7 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function getRemainingOptions($cClass, $cId)
     {
         $query = self::getQuery();
-        $query->where("#cClass = {$cClass} AND #cId = {$cId}");
+        $query->where(array("#cClass = '[#1#]' AND #cId = '[#2#]'", $cClass, $cId));
         $ids = arr::extractValuesFromArray($query->fetchAll(), 'conditionId');
 
         $where = '';
@@ -186,7 +198,7 @@ class cond_ConditionsToCustomers extends core_Manager
             // Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->conditionId] = $rec;
             $row = static::recToVerbal($rec);
-            $row->group = $rec->group;
+            $row->group = tr($rec->group ?? '');
             $row->order = $rec->order;
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $data->rows[$rec->conditionId] = $row;
@@ -218,7 +230,7 @@ class cond_ConditionsToCustomers extends core_Manager
             $caption = isset($countryRules[$condId]) ? ($cData->country ?? '') : "Всички държави";
             $data->recs[$condId] = $fRec;
             $dRow = cond_Countries::recToVerbal($fRec);
-            $dRow->group = $fRec->group;
+            $dRow->group = tr($fRec->group ?? '');
             $dRow->order = $fRec->order;
             $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$caption}\"", 'notice', true, array('iconAttr' => 'width=12px,height=12px'));
             unset($dRow->_rowTools);

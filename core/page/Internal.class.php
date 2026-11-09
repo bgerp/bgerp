@@ -239,12 +239,12 @@ class core_page_Internal extends core_page_Active
         
         if (Mode::is('screenMode', 'narrow')) {
             if ($nick) {
-                $tpl->append(ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, array('title' => 'Изход на |*' . $nick)));
+                $tpl->append(ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, array('title' => 'Изход на|* ' . $nick)));
             }
             
             if ($isGet) {
                 $tpl->append('&nbsp;<small>|</small>&nbsp;');
-                $tpl->append(ht::createLink(tr('Широк'), array('log_Browsers', 'setWideScreen', 'ret_url' => true), false, array('title' => ' Превключване на системата в десктоп режим')));
+                $tpl->append(ht::createLink(tr('Широк'), array('log_Browsers', 'setWideScreen', 'ret_url' => true), false, array('title' => '|* |Превключване на системата в десктоп режим')));
                 
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());

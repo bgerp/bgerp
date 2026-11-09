@@ -620,6 +620,8 @@ class crm_Companies extends core_Master
         
         $mvc->autoChangeFields($form);
 
+        $form->setFieldTypeParams('vatId', array('countryId' => Request::get('country', 'int') ?? ($form->rec->country ?? null)));
+
         if(empty($form->rec->id)){
             $form->setField('name', array('attr' => array('onchange' => 'checkVatAndTriger(this)')));
         }
@@ -635,6 +637,9 @@ class crm_Companies extends core_Master
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
+        // Типът валидира номера още при първоначалното тихо въвеждане.
+        $mvc->setFieldTypeParams('vatId', array('countryId' => Request::get('country', 'int')));
+
         if (!Request::get('id') && $country = Request::get('country', 'int')) {
             $tel = Request::get('tel');
             $fax = Request::get('fax');
@@ -987,7 +992,9 @@ class crm_Companies extends core_Master
      */
     protected static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $mvc->setFieldTypeParams('uicId', array('countryId' => $rec->country));
+        $countryId = $rec->country ?? null;
+        $mvc->setFieldTypeParams('uicId', array('countryId' => $countryId));
+        $mvc->setFieldTypeParams('vatId', array('countryId' => $countryId));
     }
 
 
@@ -1019,8 +1026,8 @@ class crm_Companies extends core_Master
                 $row->image = '<img class="hgsImage" src="' . $imgUrl . "\" alt='no image'>";
             }
             
-            $VatType = new drdata_VatType();
-            $row->vat = $VatType->toVerbal($rec->vatId);
+            $VatType = new drdata_VatType(array('countryId' => $rec->country ?? null));
+            $row->vat = $VatType->toVerbal($rec->vatId ?? null);
             
             if ($rec->folderName) {
                 $row->title = $row->name;
@@ -2336,7 +2343,7 @@ class crm_Companies extends core_Master
             $rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
             
             if (haveRole('powerUser')) {
-                core_Statuses::newStatus("|Фирмата е включена в група |* '{$groupName}'");
+                core_Statuses::newStatus("|Фирмата е включена в група|*  '{$groupName}'");
             }
             
             return static::save($rec, $me->expandInputFieldName);

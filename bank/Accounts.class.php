@@ -227,7 +227,7 @@ class bank_Accounts extends core_Master
                 $form->rec->bank = $bank;
             } else {
                 if (!empty($bank) && trim(mb_strtolower($form->rec->bank)) != trim(mb_strtolower($bank))) {
-                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
+                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте|* \"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка|* \"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
 
@@ -235,7 +235,7 @@ class bank_Accounts extends core_Master
                 $form->rec->bic = $bic;
             } else {
                 if (!empty($bic) && $form->rec->bic != $bic) {
-                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте, че искате да продължите?");
+                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте|* \"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC|* \"<b>{$bic}</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
         }

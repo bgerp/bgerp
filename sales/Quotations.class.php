@@ -435,18 +435,41 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
-     * Добавя ценовата политика към LLM експорта
+     * Добавя ценовата политика и транспорта към LLM експорта
      */
     public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
     {
         if (empty($text)) return;
 
-        $note = price_Lists::getLlmNote($rec, $rec->date ?? null);
-        if (!empty($note)) {
-            $text .= "\n\n" . $note;
+        $notes = array(price_Lists::getLlmNote($rec, $rec->date ?? null));
+        if (sales_TransportValues::haveLlmNote($rec)) {
+            $notes[] = sales_TransportValues::getLlmNote($mvc, $rec, $mvc->getExpectedTransportCost($rec), $mvc->getVisibleTransportCost($rec), $mvc->getDeliveryCodeAndCountry($rec)['countryId'] ?? null);
+        }
+        foreach ($notes as $note) {
+            if (!empty($note)) {
+                $text .= "\n\n" . $note;
+            }
         }
     }
-    
+
+
+    /**
+     * Пощенски код и държава на доставка на офертата
+     *
+     * @param stdClass $rec - запис на офертата
+     *
+     * @return array - ['pCode', 'countryId']
+     */
+    private function getDeliveryCodeAndCountry($rec)
+    {
+        $locationId = null;
+        if (isset($rec->deliveryPlaceId)) {
+            $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id');
+        }
+
+        return sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode ?? null, $rec->contragentCountryId ?? null, $locationId ? $locationId : ($rec->deliveryAdress ?? null));
+    }
+
     
     /**
      * Колко е сумата на очаквания транспорт.
@@ -477,13 +500,9 @@ class sales_Quotations extends deals_QuotationMaster
         $query->where("#canStore = 'yes'");
         
         $products = $query->fetchAll();
-        
-        $locationId = null;
-        if (isset($rec->deliveryPlaceId)) {
-            $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id');
-        }
-        $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
-        
+
+        $codeAndCountryArr = $this->getDeliveryCodeAndCountry($rec);
+
         $ourCompany = crm_Companies::fetchOurCompany('*', null, $rec->activatedOn);
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         

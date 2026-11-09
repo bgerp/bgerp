@@ -10,11 +10,11 @@
  * @package   sales
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Персонал » Присъствена форма 76
+ * @title     Персонал » Присъствена форма|* 76
  */
 class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 {

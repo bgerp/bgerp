@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -218,8 +218,8 @@ class pos_Points extends core_Master
                 $error[] = 'Не допустими символи в число/израз|*';
                 $errorFields['discount'][$k1] = 'Не е въведено число|*';
             } elseif($quantity < 0 || $quantity > 1) {
-                $error[] = 'Отстъпката трябва да е между 0 и 100%|*';
-                $errorFields['discount'][$k1] = 'Отстъпката трябва да е между 0 и 100%|*';
+                $error[] = 'Отстъпката трябва да е между|* 0 |и|* 100%|*';
+                $errorFields['discount'][$k1] = 'Отстъпката трябва да е между|* 0 |и|* 100%|*';
             }
         }
 

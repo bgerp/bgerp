@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -132,7 +132,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
-                acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
+                acc_journal_RejectRedirect::expect(false, "Артикулите:|* |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
             }
             
             $msg = "трябва да са вложими";

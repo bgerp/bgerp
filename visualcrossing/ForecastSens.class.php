@@ -8,7 +8,7 @@
  * @package   hr
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,7 +45,7 @@ class visualcrossing_ForecastSens extends sens2_ProtoDriver
     public function prepareConfigForm($form)
     {
         $form->FLD('location', 'varchar(64, ci)', 'caption=Локация, input, mandatory');
-        $form->FLD('period', 'enum(0=В момента, 3=След 3 часа, 6=След 6 часа, 12=След 12 часа, allDay=Цял ден)', 'caption=Период, input, mandatory');
+        $form->FLD('period', 'enum(0=В момента, 3=След|* 3 |часа, 6=След|* 6 |часа, 12=След|* 12 |часа, allDay=Цял ден)', 'caption=Период, input, mandatory');
 
         $query = visualcrossing_Forecasts::getQuery();
         $query->groupBy('location');

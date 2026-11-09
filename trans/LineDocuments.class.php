@@ -194,11 +194,12 @@ class trans_LineDocuments extends core_BaseClass
                 $reference = 'Товарителница ' . trans_Waybills::getNumber((object) $data) . ' / ' . $reference;
                 $waybillHashes[$document->that] = trans_Waybills::getCargoHash((object) $data);
             } else {
-                $ownRoutes[] = $route;
+                $ownRoutes[$route] = $route;
                 $ownCargo[] = self::getManifestText($reference, $data);
                 $ownReferences[] = $reference;
             }
-            $routes[] = $route;
+            // Документи до едно и също място са един маршрут
+            $routes[$route] = $route;
             $references[] = $reference;
             $manifest[] = self::getManifestText($reference, $data);
             $documentRec = $document->fetch();

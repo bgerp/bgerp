@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -171,7 +171,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
             // Бутони и заглавие на формата
             $name = cat_Products::getHyperlink($rec->{$mvc->replaceProductFieldName}, true);
-            $form->title = "Заместване на |* <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
+            $form->title = "Заместване на|*  <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
             $form->toolbar->addSbBtn('Заместване', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Заместване на артикула в реда на документа');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 

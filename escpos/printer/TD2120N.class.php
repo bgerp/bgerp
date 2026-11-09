@@ -8,7 +8,7 @@
  * @package   polygonteam
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,7 +17,7 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
 {
     public $interfaces = 'escpos_PrinterIntf';
     
-    public $title = 'Принтер Brother TD2120N';
+    public $title = 'Принтер Brother|* TD2120N';
     
     
     /**

@@ -312,7 +312,7 @@ defIfNot('EMAIL_DUPLICATE_INCOMING_HEADERS', '');
  * @package   email
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -400,7 +400,7 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_MAX_FETCHING_TIME' => array('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
         
         // Максималното време за изчакване на буфера
-        'EMAIL_POP3_TIMEOUT' => array('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
+        'EMAIL_POP3_TIMEOUT' => array('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на|* POP3 |сокета->Време'),
         
         // Максималната разрешена памет за използване
         'EMAIL_MAX_ALLOWED_MEMORY' => array('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
@@ -409,13 +409,13 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_UNSORTABLE_COUNTRY' => array('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
         
         // Потребител, който ще е отговорник на несортираните имейли
-        'EMAIL_UNSORTABLE_INCHARGE' => array('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
+        'EMAIL_UNSORTABLE_INCHARGE' => array('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;|* |който ще е отговорник на несортираните имейли->Потребител'),
         
         // Максималната големина на файловете, които ще се приемат за CID
-        'EMAIL_MAXIMUM_CID_LEN' => array('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
+        'EMAIL_MAXIMUM_CID_LEN' => array('int', 'caption=Максималната големина на файловете|*&comma;|* |които ще се приемат за вградени изображения->Размер'),
         
         // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
-        'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
+        'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;|* |след което се маркира "Преизпращане"->Време'),
 
         // Максимален брой символи в текстовата част на входящите имейли
         'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
@@ -424,10 +424,10 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_THREAD_HANDLE_POS' => array('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
         
         // Позиция на манипулатора в събджекта
-        'EMAIL_THREAD_HANDLE_TYPE' => array('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
+        'EMAIL_THREAD_HANDLE_TYPE' => array('enum(type0=Тип|* 0 <1234>,type1=Тип|* 1 #EML123DEW,type2=Тип|* 2 #123498,type3=Тип|* 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
         
         // Позиция на манипулатора в събджекта
-        'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
+        'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array('set(type0=Тип|* 0 <1234>,type1=Тип|* 1 #EML123DEW,type2=Тип|* 2 #123498,type3=Тип|* 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
         
         // Домейни за заменяне
         'EMAIL_REPLACE_DOMAINS' => array('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
@@ -465,7 +465,7 @@ class email_Setup extends core_ProtoSetup
         
         'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
 
-        'EMAIL_OUR_IMGS' => array('fileman_type_Files(bucket=Email)', 'caption=Наши файлове|*&comma;| които ще се игнорират във входящите имейли->Файлове'),
+        'EMAIL_OUR_IMGS' => array('fileman_type_Files(bucket=Email)', 'caption=Наши файлове|*&comma;|* |които ще се игнорират във входящите имейли->Файлове'),
 
         'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
         
@@ -485,7 +485,7 @@ class email_Setup extends core_ProtoSetup
 
         'EMAIL_IMPORT_FROM_DIRECTORY' => array('varchar', 'canView=debug, caption=Директория от която да се импортират имейли->Път'),
 
-        'EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS' => array('text(rows=4)', 'canView=debug, caption=Домейни на получателите във входящите имейли|*&comma;| които ще се записват като изходящи->Домейни'),
+        'EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS' => array('text(rows=4)', 'canView=debug, caption=Домейни на получателите във входящите имейли|*&comma;|* |които ще се записват като изходящи->Домейни'),
 
         'EMAIL_SHOW_HTML_IN_SINGLE' => array('enum(no=Не,yes=Да)', 'caption=Показване на HTML изгледа в сингъла на входящите имейли->Избор, customizeBy=user'),
 

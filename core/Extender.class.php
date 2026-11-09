@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Ivelin Dimov <ivelin_pdimob@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1

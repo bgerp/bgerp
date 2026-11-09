@@ -386,7 +386,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($rec->vatDate < $date && substr($rec->vatDate, 0, 7) === substr($date, 0, 7)) {
                 $form->setWarning('vatDate', '|Данъчното събитие е повече от 5 дни преди датата на фактурата, в същия данъчен период||The tax event is more than 5 days before the invoice date, in the same tax period|*');
             } else {
-                $form->setError('vatDate', '|Данъчното събитие трябва да е до 5 дни|* <b>|преди|*</b> |датата на фактурата|*');
+                $form->setError('vatDate', '|Данъчното събитие трябва да е до|* 5 |дни|* <b>|преди|*</b> |датата на фактурата|*');
             }
         }
     }

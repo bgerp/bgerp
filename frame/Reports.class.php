@@ -9,7 +9,7 @@
  * @package   frame
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -317,7 +317,7 @@ class frame_Reports extends core_Embedder
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля, запознайте се с нашата справка ') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата справка|* ') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

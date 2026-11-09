@@ -18,7 +18,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -380,7 +380,7 @@ class cat_DisassemblyBoms extends core_Master
     {
         $amount = static::getAmount($priceListId, $productId, $quantity, $date);
         if (!isset($amount)) {
-            $errorHint = 'Артикулът няма цена по избраната ценова политика|*! |За него се пада 0% от себестойността|*!';
+            $errorHint = 'Артикулът няма цена по избраната ценова политика|*! |За него се пада|* 0|% от себестойността|*!';
 
             return ht::createHint("<span class='red'>???</span>", $errorHint, 'warning', false);
         }
@@ -456,7 +456,7 @@ class cat_DisassemblyBoms extends core_Master
 
                 if (abs($sum - 1) > 0.0001) {
                     $percentVerbal = core_Type::getByName('percent')->toVerbal($sum);
-                    $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
+                    $statuses['error'] = "Сумата на процентите от себестойността трябва да е|* 100%|*, |а е|*: {$percentVerbal}";
                 }
             }
         }
@@ -513,7 +513,7 @@ class cat_DisassemblyBoms extends core_Master
         }
 
         if (countR($missingArr)) {
-            $statuses['warning'] = 'По ценова политика|* "' . $listTitle . '" |липсва цена за артикул|*: <b>' . implode(', ', $missingArr) . '</b>. |За тях се пада 0% от себестойността|*!';
+            $statuses['warning'] = 'По ценова политика|* "' . $listTitle . '" |липсва цена за артикул|*: <b>' . implode(', ', $missingArr) . '</b>. |За тях се пада|* 0|% от себестойността|*!';
         }
     }
 

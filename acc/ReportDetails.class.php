@@ -138,7 +138,7 @@ class acc_ReportDetails extends core_Manager
         $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
         // Полета за таблицата
-        $data->listFields = arr::make('tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
+        $data->listFields = arr::make('tools=Пулт,ent1Id=|Перо|*1,ent2Id=|Перо|*2,ent3Id=|Перо|*3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
         if ($data->canSeePrices === false) {
             unset($data->listFields['blPrice'], $data->listFields['blAmount']);
         }
