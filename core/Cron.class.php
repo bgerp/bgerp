@@ -13,7 +13,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -536,7 +536,13 @@ class core_Cron extends core_Manager
             return ;
         }
         $rec = $this->fetch($rec->id);
-        
+
+        // Записът може да е изтрит, докато процесът е работил
+        if (empty($rec)) {
+
+            return ;
+        }
+
         if ($rec->state == 'locked') {
             $rec->state = 'free';
             $rec->lastDone = dt::verbal2mysql();

@@ -26,6 +26,12 @@ class eshop_Carts extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'eshop_InitiatorPaymentIntf';
+
+
+    /**
+     * ПБД, което се контира автоматично от пристигнало онлайн плащане (парите вече са получени)
+     */
+    public static $autoContoIncomeDocumentId = null;
     
     
     /**
@@ -2997,7 +3003,12 @@ class eshop_Carts extends core_Master
         
         try {
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
-            bank_IncomeDocuments::conto($bankRec->id);
+            self::$autoContoIncomeDocumentId = $bankRec->id;
+            try {
+                bank_IncomeDocuments::conto($bankRec->id);
+            } finally {
+                self::$autoContoIncomeDocumentId = null;
+            }
             bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
             
             if (isset($linkedContainerId)) {

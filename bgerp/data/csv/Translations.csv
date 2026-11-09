@@ -4369,3 +4369,10 @@ en,За плащане с карта трябва да е инсталиран �
 en,При изключен режим по Н-18 трябва да се махнат методите за плащане с карта,Card payment methods must be removed when the N-18 mode is off
 en,"Пакетът не може да бъде де-инсталиран, докато в настройките на онлайн магазина има избрани методи за плащане с карта.","The package cannot be uninstalled while card payment methods are selected in the online shop settings."
 en,Изберете МПС от регистъра в транспортната линия,Choose a registered vehicle in the transport line
+en,По онлайн поръчката вече има контиран документ за доставка,A delivery document has already been posted for the online order
+en,По онлайн поръчката вече има контиран документ за плащане,A payment document has already been posted for the online order
+en,Във валутата на сделката,In the deal currency
+en,Номерът на магазина от НАП трябва да е RF и 7 цифри,The shop number from the NRA must be RF followed by 7 digits
+en,Редактиране на настройките на онлайн магазина,Edit the online shop settings
+en,Добавяне на настройки на онлайн магазина,Add online shop settings
+en,Настройки (Е-маг),Settings (E-shop)

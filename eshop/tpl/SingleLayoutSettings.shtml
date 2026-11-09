@@ -1,6 +1,8 @@
 <div class="singleView eshopProduct">
    [#SingleToolbar#]
+   <!--ET_BEGIN objectId-->
    <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-маг|*: <b style="color:green;display:inline-block;word-break:break-all">[#objectId#]</b></h2>
+   <!--ET_END objectId-->
    <fieldset class="detail-info">
       <legend class="groupTitle">|Информация|*</legend>
       <div class="groupList">

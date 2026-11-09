@@ -35,6 +35,18 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
 
 
     /**
+     * Кои полета се сумират в реда "ОБЩО"
+     */
+    protected $summaryListFields = 'net,vat,total2';
+
+
+    /**
+     * Основната валута по период на справката - кеш
+     */
+    protected static $baseCurrencies = array();
+
+
+    /**
      * Документите за доставка, от които се взимат редовете
      */
     protected static $deliveryDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'sales_Services' => 'sales_ServicesDetails');
@@ -168,6 +180,11 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $this->prepareRefunds($recs, $carts, $from, $to);
         }
 
+        // По дата във възходящ ред, при еднаква дата - по номера на поръчката
+        uasort($recs, function ($a, $b) {
+            return array($a->orderDate, $a->cartId) <=> array($b->orderDate, $b->cartId);
+        });
+
         $data->n18FileHnd = $this->generateXml($rec, $recs, $settings, $periodRec, $data->n18Errors);
 
         return $recs;
@@ -215,7 +232,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             if (!isset($recs[$key])) {
                 $recs[$key] = (object) array('kind' => 'order', 'cartId' => $cartRec->id, 'saleId' => $saleRec->id, 'saleState' => $saleRec->state, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
                     'orderDate' => dt::mysql2verbal(!empty($cartRec->activatedOn) ? $cartRec->activatedOn : $saleRec->valior, 'Y-m-d'), 'docs' => array(), 'lines' => array(), 'errors' => array(),
-                    'total1' => 0, 'disc' => 0, 'vat' => 0, 'total2' => 0, 'deliveryDate' => $dRec->valior);
+                    'total1' => 0, 'disc' => 0, 'vat' => 0, 'total2' => 0, 'deliveryDate' => $dRec->valior,
+                    'dealCurrency' => $saleRec->currencyId, 'dealRate' => $saleRec->currencyRate);
                 $this->preparePayment($recs[$key], $saleRec, $cartRec);
             }
             $oRec = $recs[$key];
@@ -245,6 +263,13 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         }
 
         foreach ($recs as $oRec) {
+            $oRec->date = $oRec->deliveryDate;
+
+            // Сумата, платена от клиента във валутата на сделката - от точната сума на документите
+            if (!empty($oRec->dealRate)) {
+                $oRec->dealAmount = round(($oRec->docsAmount ?? 0) / $oRec->dealRate, 2);
+            }
+            $oRec->net = round($oRec->total1 - $oRec->disc, 2);
             if (!countR($oRec->lines)) {
                 $oRec->errors[] = 'Доставката няма редове';
             }
@@ -396,7 +421,7 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         }
 
         if (empty($oRec->paym) && empty($oRec->errors['cash'])) {
-            $oRec->errors[] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон, ПБД или ПКО';
+            $oRec->errors['noPayment'] = 'Плащането не е отразено - няма документ по чл. 52о, фискален бон, ПБД или ПКО';
         }
     }
 
@@ -499,7 +524,9 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                 $recs["r{$class}{$dRec->id}"] = (object) array('kind' => 'refund', 'cartId' => $cartRec->id, 'saleId' => $cartRec->saleId,
                     'saleState' => $saleRec->state ?? null, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
                     'orderDate' => $dRec->valior, 'docs' => $returns[$dRec->threadId] ?? array(), 'payDocs' => array(array($class, $dRec->id)), 'paym' => $rPaym, 'errors' => array(),
-                    'total2' => round($dRec->amount * (!empty($dRec->rate) ? $dRec->rate : 1), 2));
+                    'total2' => -1 * round($dRec->amount * (!empty($dRec->rate) ? $dRec->rate : 1), 2),
+                    'dealCurrency' => !empty($dRec->dealCurrencyId) ? currency_Currencies::getCodeById($dRec->dealCurrencyId) : null,
+                    'dealAmount' => isset($dRec->amountDeal) ? -1 * round($dRec->amountDeal, 2) : null);
             }
         }
     }
@@ -579,9 +606,9 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $refundBlock = $tpl->getBlock('RORDER');
         foreach ($refunds as $rRec) {
             $rOrders[$rRec->cartId] = true;
-            $rTotal += $rRec->total2;
+            $rTotal += abs($rRec->total2);
             $refundTpl = clone $refundBlock;
-            $refundTpl->placeArray(self::escapeXml(array('r_ord_n' => $rRec->cartId, 'r_amount' => self::num($rRec->total2),
+            $refundTpl->placeArray(self::escapeXml(array('r_ord_n' => $rRec->cartId, 'r_amount' => self::num(abs($rRec->total2)),
                 'r_date' => $rRec->orderDate, 'r_paym' => $rRec->paym)));
             $refundTpl->removeBlocksAndPlaces();
             $tpl->append($refundTpl, 'RORDERS');
@@ -661,23 +688,24 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        $fld->FLD('orderDate', 'date', 'caption=Поръчка->Дата');
+        $fld->FLD('cartId', 'varchar', 'caption=Поръчка->№,tdClass=aright');
         $fld->FLD('saleId', 'varchar', 'caption=Продажба');
-        $fld->FLD('cartId', 'varchar', 'caption=Поръчка,tdClass=aright');
-        $fld->FLD('orderDate', 'date', 'caption=Дата');
         $fld->FLD('kind', 'varchar', 'caption=Вид,smartCenter');
-        // Сумите са в основната валута на месеца, както в XML файла
-        $baseCurrencyId = acc_Periods::fetchField($rec->periodId ?? null, 'baseCurrencyId');
-        $currency = !empty($baseCurrencyId) ? currency_Currencies::getCodeById($baseCurrencyId) : '';
-        $fld->FLD('net', 'double(decimals=2)', "caption=Стойност|* {$currency}->Без ДДС,tdClass=stageCol");
-        $fld->FLD('vat', 'double(decimals=2)', "caption=Стойност|* {$currency}->ДДС,tdClass=stageCol");
-        $fld->FLD('total2', 'double(decimals=2)', "caption=Стойност|* {$currency}->Общо,tdClass=stageCol");
-        $fld->FLD('docs', 'varchar', 'caption=Документи,tdClass=rightCol');
+        $fld->FLD('date', 'date', 'caption=Доставка->Дата');
+        $fld->FLD('docs', 'varchar', 'caption=Доставка->Документи,tdClass=rightCol');
         $fld->FLD('paymName', 'varchar', 'caption=Плащане->Начин,smartCenter');
         $fld->FLD('docNum', 'varchar', 'caption=Плащане->Документ/Бон,tdClass=rightCol');
         if ($export) {
             $fld->FLD('transactionRef', 'varchar', 'caption=Плащане->Трансакция');
             $fld->FLD('paym', 'varchar', 'caption=Плащане->Код');
         }
+
+        // Сумите са в основната валута на месеца, както в XML файла
+        $currency = static::getBaseCurrencyCode($rec);
+        $fld->FLD('net', 'double(decimals=2)', "caption=Стойност|* {$currency}->Без ДДС,tdClass=stageCol");
+        $fld->FLD('vat', 'double(decimals=2)', "caption=Стойност|* {$currency}->ДДС,tdClass=stageCol");
+        $fld->FLD('total2', 'double(decimals=2)', "caption=Стойност|* {$currency}->Общо,tdClass=stageCol");
 
         return $fld;
     }
@@ -701,6 +729,11 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         if (!empty($saleState)) {
             $row->ROW_ATTR['class'] = "state-{$saleState}";
         }
+
+        // Неотразеното плащане се откроява в целия ред
+        if (!empty($dRec->errors['noPayment'])) {
+            $row->ROW_ATTR['class'] = 'n18-no-payment';
+        }
         $row->kind = ($dRec->kind == 'order') ? static::renderBadge(tr('Поръчка')) : static::renderBadge(tr('Връщане'), false, 'amber');
         $canLink = static::canLink();
         $row->cartId = ($canLink && eshop_Carts::haveRightFor('single', $dRec->cartId)) ? ht::createLink($dRec->cartId, array('eshop_Carts', 'single', $dRec->cartId)) : $dRec->cartId;
@@ -708,6 +741,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $row->saleId = sales_Sales::getLink($dRec->saleId, 0);
         }
         $row->orderDate = dt::mysql2verbal($dRec->orderDate, 'smartDate');
+
+        // По-старите версии на справката нямат запазена дата на доставката
+        $deliveryDate = $dRec->date ?? ($dRec->deliveryDate ?? null);
+        if (!empty($deliveryDate)) {
+            $row->date = dt::mysql2verbal($deliveryDate, 'smartDate');
+        }
         $docs = array();
         foreach ((array) $dRec->docs as $doc) {
             list($class, $id) = $doc;
@@ -720,11 +759,19 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         }
         foreach (array('net', 'vat', 'total2') as $fld) {
             if (isset($dRec->{$fld})) {
-                $row->{$fld} = $Double->toVerbal($dRec->{$fld});
+                $row->{$fld} = ht::styleNumber($Double->toVerbal($dRec->{$fld}), $dRec->{$fld});
             }
         }
         if (isset($row->total2)) {
             $row->total2 = "<b>{$row->total2}</b>";
+
+            // При сделка в друга валута - колко е платил/получил клиентът в нея
+            $dealCurrency = $dRec->dealCurrency ?? null;
+            if (!empty($dealCurrency) && isset($dRec->dealAmount) && $dealCurrency != static::getBaseCurrencyCode($rec)) {
+                $dealAmount = $Double->toVerbal($dRec->dealAmount) . " {$dealCurrency}";
+                $row->total2 = ht::createHint($row->total2, '|Във валутата на сделката|*: ' . $dealAmount, 'notice', false,
+                    array('aiHint' => "{$dRec->dealAmount} {$dealCurrency} in deal currency"));
+            }
         }
         if (!empty($dRec->docNum)) {
             $row->docNum = core_Type::escape($dRec->docNum);
@@ -833,6 +880,25 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
     protected static function renderBadge($text, $isRed = false, $color = null)
     {
         return static::isPlainMode() ? $text : cat_Boms::renderBadge($text, $isRed, $color);
+    }
+
+
+    /**
+     * Кодът на основната валута за месеца на справката
+     *
+     * @param stdClass $rec - записът на справката
+     *
+     * @return string
+     */
+    protected static function getBaseCurrencyCode($rec)
+    {
+        $periodId = $rec->periodId ?? null;
+        if (!array_key_exists($periodId, static::$baseCurrencies)) {
+            $baseCurrencyId = !empty($periodId) ? acc_Periods::fetchField($periodId, 'baseCurrencyId') : null;
+            static::$baseCurrencies[$periodId] = !empty($baseCurrencyId) ? currency_Currencies::getCodeById($baseCurrencyId) : '';
+        }
+
+        return static::$baseCurrencies[$periodId];
     }
 
 
