@@ -76,7 +76,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $fieldset->FLD('type', 'enum(byWeeks=По седмици, bySales=По продажби)', 'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
         $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type');
-        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,single=none');
+        $fieldset->FLD('saleStates', 'set(active=Активни,draft=Чернова,pending=Заявка)', 'caption=Състояния на договорите,after=weeks,silent,refreshForm,single=none');
+        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=saleStates,single=none');
 
         // Групи артикули
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=slalesDog,single=none');
@@ -96,7 +97,19 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
             if (($form->rec->type ?? 'byWeeks') == 'bySales') {
+                $states = self::getSaleStates($form->rec);
+                $form->rec->saleStates = implode(',', $states);
                 $form->rec->period = 'all';
+
+                $saleIds = keylist::toArray($form->rec->slalesDog ?? null);
+                if (!empty($saleIds)) {
+                    $query = sales_Sales::getQuery();
+                    $query->in('id', $saleIds);
+                    $query->in('state', $states);
+                    if ($query->count() != count($saleIds)) {
+                        $form->setError('slalesDog', 'Изберете договори само от разрешените състояния');
+                    }
+                }
             }
         }
     }
@@ -117,6 +130,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $form->setDefault('weeks', 8);
         $form->setDefault('period', 'byWeeks');
         $form->setDefault('type', 'byWeeks');
+        $rec->saleStates = implode(',', self::getSaleStates($rec));
+        $form->getFieldType('saleStates')->setDisabled('active');
 
         if (($rec->type ?? null) == 'bySales') {
             $form->setField('weeks', 'input=hidden');
@@ -125,10 +140,11 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         }
         if (($rec->type ?? null) == 'byWeeks') {
             $form->setField('slalesDog', 'input=hidden');
+            $form->setField('saleStates', 'input=hidden');
         }
 
         $salesQuery = sales_Sales::getQuery();
-        $salesQuery->where("#state = 'active'");
+        $salesQuery->in('state', self::getSaleStates($rec));
 
         $suggestions = array();
         while ($salesDog = $salesQuery->fetch()) {
@@ -138,6 +154,17 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         asort($suggestions);
 
         $form->setSuggestions('slalesDog', $suggestions);
+    }
+
+
+    /**
+     * Активните договори винаги са допустими, включително за старите справки.
+     */
+    private static function getSaleStates($rec)
+    {
+        $selected = type_Set::toArray($rec->saleStates ?? '');
+
+        return array_keys(array('active' => 'active') + array_intersect_key($selected, array('draft' => true, 'pending' => true)));
     }
 
 
@@ -470,6 +497,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
+                                        <!--ET_BEGIN saleStates--><div>|Състояния на договорите|*: <b>[#saleStates#]</b></div><!--ET_END saleStates-->
                                         <!--ET_BEGIN groups--><div>|Групи продукти|*: <b>[#groups#]</b></div><!--ET_END groups-->
                                         <!--ET_BEGIN totalmaterialQuantiry--><div>|Общо тегло|*: <b>[#totalmaterialQuantiry#] кг.</b></div><!--ET_END totalmaterialQuantiry-->
                                     </div>
@@ -477,6 +505,11 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
         $marker = 0;
         $groupVerb = '';
+        $reportRec = $data->rec ?? new stdClass();
+        if (($reportRec->type ?? 'byWeeks') == 'bySales') {
+            $statesType = core_Type::getByName('set(active=Активни,draft=Чернова,pending=Заявка)');
+            $fieldTpl->append($statesType->toVerbal(implode(',', self::getSaleStates($reportRec))), 'saleStates');
+        }
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
