@@ -103,12 +103,6 @@ class trans_TripSheets extends core_Master
 
 
     /**
-     * Кой може да изтрива?
-     */
-    public $canDelete = 'no_one';
-
-
-    /**
      * Кой може да променя активирания документ?
      */
     public $canChangerec = 'no_one';

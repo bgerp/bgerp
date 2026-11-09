@@ -2601,62 +2601,89 @@ div.alphabet.twoRows {
   top: -2px; }
 
 /*
- * Пътен лист - етикетът е над стойността, секциите са отделени
+ * Пътен лист и товарителница - етикетът е над стойността, секциите са отделени
  */
-.trip-sheet {
+.trip-sheet,
+.domestic-waybill {
     /*
    * По-специфично от .document .paddingCells
    */ }
-  .trip-sheet h3 {
+  .trip-sheet h2,
+  .domestic-waybill h2 {
+    margin-bottom: 6px; }
+  .trip-sheet .trip-type,
+  .domestic-waybill .trip-type {
+    margin-bottom: 4px;
+    font-size: 0.95em;
+    letter-spacing: 0px; }
+  .trip-sheet h3,
+  .domestic-waybill h3 {
     margin: 16px 0 6px;
     padding: 4px 8px;
     border-left: 4px solid #66aa99;
     background-color: rgba(0, 0, 0, 0.04); }
-    .trip-sheet table.border-table.paddingCells th {
+    .trip-sheet table.border-table.paddingCells th,
+    .domestic-waybill table.border-table.paddingCells th {
       padding: 5px 8px;
       background-color: rgba(0, 0, 0, 0.06); }
     .trip-sheet table.border-table.paddingCells > tbody > tr > td,
-    .trip-sheet table.border-table.paddingCells > tfoot > tr > td {
+    .trip-sheet table.border-table.paddingCells > tfoot > tr > td,
+    .domestic-waybill table.border-table.paddingCells > tbody > tr > td,
+    .domestic-waybill table.border-table.paddingCells > tfoot > tr > td {
       padding: 6px 8px;
       vertical-align: top; }
-  .trip-sheet td > .quiet:first-child {
+  .trip-sheet td > .quiet:first-child,
+  .domestic-waybill td > .quiet:first-child {
     display: block;
     margin-bottom: 2px;
     font-size: 0.85em; }
-  .trip-sheet > table {
+  .trip-sheet > table,
+  .domestic-waybill > table {
     margin-top: 12px; }
-  .trip-sheet .trip-check {
+  .trip-sheet .trip-check,
+  .domestic-waybill .trip-check {
     height: 22mm; }
-  .trip-sheet .trip-control {
+  .trip-sheet .trip-control,
+  .domestic-waybill .trip-control {
     height: 18mm; }
 
 /*
- * Пътният лист се печата на един лист A4
+ * Пътният лист и товарителницата се печатат на един лист A4
  */
 @media print {
-  .trip-sheet {
+  .trip-sheet,
+  .domestic-waybill {
     font-size: 11pt;
     line-height: 1.25; }
-    .trip-sheet h2 {
-      margin: 0;
+    .trip-sheet h2,
+    .domestic-waybill h2 {
+      margin: 0 0 4px;
       font-size: 15pt; }
-    .trip-sheet h3 {
+    .trip-sheet h3,
+    .domestic-waybill h3 {
       margin: 8px 0 4px;
       padding: 2px 6px;
       font-size: 12pt; }
       .trip-sheet table.border-table.paddingCells th,
       .trip-sheet table.border-table.paddingCells > tbody > tr > td,
-      .trip-sheet table.border-table.paddingCells > tfoot > tr > td {
+      .trip-sheet table.border-table.paddingCells > tfoot > tr > td,
+      .domestic-waybill table.border-table.paddingCells th,
+      .domestic-waybill table.border-table.paddingCells > tbody > tr > td,
+      .domestic-waybill table.border-table.paddingCells > tfoot > tr > td {
         padding: 3px 6px; }
-    .trip-sheet td > .quiet:first-child {
+    .trip-sheet td > .quiet:first-child,
+    .domestic-waybill td > .quiet:first-child {
       display: inline;
       margin-bottom: 0;
       font-size: inherit; }
-    .trip-sheet > table {
+    .trip-sheet > table,
+    .domestic-waybill > table {
       margin-top: 8px; }
-    .trip-sheet .trip-check {
+    .trip-sheet .trip-check,
+    .domestic-waybill .trip-check {
       height: 18mm; }
-    .trip-sheet .trip-control {
+    .trip-sheet .trip-control,
+    .domestic-waybill .trip-control {
       height: 15mm; } }
 
 /*

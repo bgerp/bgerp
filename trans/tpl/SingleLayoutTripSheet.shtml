@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class="trip-sheet">
-    <h2 class="centered" style="margin-bottom:2px">|ПЪТЕН ЛИСТ|* [#series#] № [#sheetNumber#] / [#issueDate#]</h2>
-    <div class="centered quiet small">[#transportType#]</div>
+    <h2 class="centered">|ПЪТЕН ЛИСТ|* [#series#] № [#sheetNumber#] / [#issueDate#]</h2>
+    <div class="centered quiet trip-type">[#transportType#]</div>
     <table class="innerTable border-table paddingCells" style="width:100%">
         <tr><th style="width:50%">|Предприятие|*</th><th>|Транспортна линия|*</th></tr>
         <tr style="vertical-align:top">

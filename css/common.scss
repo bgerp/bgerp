@@ -2872,8 +2872,16 @@ div.alphabet.twoRows {
 	top: -2px;
 }
 
-/* Пътен лист - етикетът е над стойността, секциите са отделени */
-.trip-sheet {
+/* Пътен лист и товарителница - етикетът е над стойността, секциите са отделени */
+.trip-sheet, .domestic-waybill {
+	h2 {
+		margin-bottom: 6px;
+	}
+	.trip-type {
+		margin-bottom: 4px;
+		font-size: 0.95em;
+		letter-spacing: 0.5px;
+	}
 	h3 {
 		margin: 16px 0 6px;
 		padding: 4px 8px;
@@ -2907,13 +2915,13 @@ div.alphabet.twoRows {
 	}
 }
 
-/* Пътният лист се печата на един лист A4 */
+/* Пътният лист и товарителницата се печатат на един лист A4 */
 @media print {
-	.trip-sheet {
+	.trip-sheet, .domestic-waybill {
 		font-size: 11pt;
 		line-height: 1.25;
 		h2 {
-			margin: 0;
+			margin: 0 0 4px;
 			font-size: 15pt;
 		}
 		h3 {

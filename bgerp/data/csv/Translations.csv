@@ -16643,3 +16643,4 @@ en,Начален,Start
 en,Краен,End
 en,Тръгване,Departure
 en,Отклонения,Deviations
+en,"За всеки ред от стоките са задължителни наименование, опаковка/мярка и брой/количество. Маркировката и теглото не са задължителни.","For each goods row, the name, packaging/unit and quantity are required. Marks and weight are optional."
