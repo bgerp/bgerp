@@ -9,7 +9,7 @@
  * @package   docarch2
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -66,7 +66,7 @@ class docarch2_plg_Archiving extends core_Plugin
             //Ако има том който да отговатя на условията за него, показва бутон за архивиране
             if (!$isArchive && in_array($rec->state, array('active','closed')) && $volQuery->count() > 0) {
                 $data->toolbar->addBtn(
-                    'Архивиране2',
+                    'Архивиране|*2',
                     array(
                         'docarch2_Movements',
                         'Add',
@@ -89,7 +89,7 @@ class docarch2_plg_Archiving extends core_Plugin
 
             if ($isArchive && in_array($rec->state, array('active','closed')) && !empty($arrForReloc)) {
                 $data->toolbar->addBtn(
-                    'Преместване2',
+                    'Преместване|*2',
                     array(
                         'docarch2_Movements',
                         'docRelocation',
@@ -104,7 +104,7 @@ class docarch2_plg_Archiving extends core_Plugin
             if ($isArchive && !docarch2_Volumes::fetch($isArchive)->volumeId) {
 
                 $data->toolbar->addBtn(
-                    'Изваждане2',
+                    'Изваждане|*2',
                     array(
                         'docarch2_Movements',
                         'DocOut',

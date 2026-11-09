@@ -19,7 +19,7 @@
  * @package   acc
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -127,7 +127,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $fieldset->FLD('seeProformаs', 'set(yes=показват се и проформа фактурите)', 'caption=Разширена,after=sill,input,single=none');
         
-        $fieldset->FLD('accountingCorrections', 'enum(no=Не,yes=Да)', 'caption=Отчитане на корекции с Мемориален ордер по сметки 401 и 411->Избор,after=seeProformаs,maxRadio=2,columns=2,single=none');
+        $fieldset->FLD('accountingCorrections', 'enum(no=Не,yes=Да)', 'caption=Отчитане на корекции с Мемориален ордер по сметки|* 401 |и|* 411->Избор,after=seeProformаs,maxRadio=2,columns=2,single=none');
 
         // --- Обобщаващи суми (попълват се в prepareRecs, показват се в on_AfterRenderSingle) ---
         $fieldset->FNC('totalInvoiceValueAll', 'double', 'input=none,single=none');
@@ -427,7 +427,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $progress = acc_reports_InvoiceResult::progress($rec->data);
             $message = !empty($progress->error)
                 ? tr('Изчислението е прекъснато. „Обновяване“ повтаря незавършената порция.')
-                : tr('Справката се изчислява във фонов режим.') . '<br>' . tr('Отворете справката отново или рефрешнете браузъра (F5) след малко!');
+                : tr('Справката се изчислява във фонов режим.') . '<br>' . tr('Отворете справката отново или рефрешнете браузъра|* (F5) |след малко|*!');
             if (isset($progress->done, $progress->total)) $message .= '<br>' . tr('Обработени пакети') . ': ' . $progress->done . ' / ' . $progress->total;
 
             return new core_ET("<fieldset class='detail-info'><span class='red'>{$message}</span></fieldset>");
@@ -2563,7 +2563,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
             $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-            $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', "caption=Стойност-> Сума-> {$baseCurrency},smartCenter");
+            $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', "caption=Стойност->Сума->{$baseCurrency},smartCenter");
             $fld->FLD('invoiceDocuments', 'varchar', 'caption=Фактура и известия');
             $fld->FLD('invoiceFamilyTotal', 'double(decimals=2)', "caption=Общо фактура и известия $baseCurrency");
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');

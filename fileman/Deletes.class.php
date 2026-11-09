@@ -155,27 +155,80 @@ class fileman_Deletes extends core_Manager
     /**
      * Изтриване на старите файлове
      *
-     * @return void
+     * Обхожда данните на порции по id и продължава от там, където е спрял предишния път,
+     * защото при милиони записи един пълен обход не се побира във време-лимита
+     *
+     * @return string|null
      */
     function cron_DeleteOldFiles()
     {
         // @todo - дали не е добре, да има списък с изключения, които да не се трият - примерно по кофи??? или по разширения??? - dae?
         // @todo - дали за isUsing не трябва да се проверява и в други таблици, освен doc_Files??? - dae?
 
-        $dQuery = fileman_Data::getQuery();
-        $dQuery->where(array("#lastUse < '[#1#]'", dt::subtractSecs(fileman_Setup::get('DELETE_UNUSED_AFTER'))));
-        $dQuery->show('id, lastUse');
-        while ($dRec = $dQuery->fetch()) {
-            $rec = new stdClass();
-            if (doc_Files::fetch(array("#dataId = '[#1#]'", $dRec->id))) {
-                $rec->isUsing = 'yes';
-            } else {
-                $rec->isUsing = 'no';
-            }
-            $rec->dataId = $dRec->id;
-            $rec->lastUse = $dRec->lastUse;
+        // Спира преди време-лимита на процеса, за да не бъде прекъснат по средата
+        $cronRec = core_Cron::getRecForSystemId('DeleteOldFiles');
+        $deadline = time() + max(30, (int) (($cronRec->timeLimit ?? 0) * 0.8));
 
-            $this->save($rec, null, 'IGNORE');
-        }
+        $before = dt::subtractSecs(fileman_Setup::get('DELETE_UNUSED_AFTER'));
+        $lastIdKey = 'fileman_Deletes::lastDataId';
+        $lastId = (int) core_Permanent::get($lastIdKey);
+        $addCnt = 0;
+
+        do {
+            $dQuery = fileman_Data::getQuery();
+            $dQuery->where(array("#lastUse < '[#1#]' AND #id > '[#2#]'", $before, $lastId));
+            $dQuery->orderBy('id', 'ASC');
+            $dQuery->limit(1000);
+            $dQuery->show('id, lastUse');
+
+            $dataArr = array();
+            while ($dRec = $dQuery->fetch()) {
+                $dataArr[$dRec->id] = $dRec->lastUse;
+                $lastId = $dRec->id;
+            }
+
+            // Обходът е завършен - следващия път започва отначало, за да хване новоостарелите
+            if (empty($dataArr)) {
+                $lastId = 0;
+                break;
+            }
+
+            // Вече добавените не се обновяват
+            $exQuery = self::getQuery();
+            $exQuery->in('dataId', array_keys($dataArr));
+            $exQuery->show('dataId');
+            while ($exRec = $exQuery->fetch()) {
+                unset($dataArr[$exRec->dataId]);
+            }
+
+            if (empty($dataArr)) {
+                continue;
+            }
+
+            $usingArr = array();
+            $fQuery = doc_Files::getQuery();
+            $fQuery->in('dataId', array_keys($dataArr));
+            $fQuery->groupBy('dataId');
+            $fQuery->show('dataId');
+            while ($fRec = $fQuery->fetch()) {
+                $usingArr[$fRec->dataId] = true;
+            }
+
+            $recs = array();
+            foreach ($dataArr as $dataId => $lastUse) {
+                $recs[] = (object) array(
+                    'dataId' => $dataId,
+                    'lastUse' => $lastUse,
+                    'isUsing' => isset($usingArr[$dataId]) ? 'yes' : 'no',
+                );
+            }
+
+            $this->saveArray($recs, 'dataId, lastUse, isUsing');
+            $addCnt += countR($recs);
+        } while (time() < $deadline);
+
+        core_Permanent::set($lastIdKey, $lastId, core_Permanent::FOREVER_VALUE);
+
+        return "Добавени записи: {$addCnt}" . ($lastId ? ", продължава от id={$lastId}" : ', обходът е завършен');
     }
 }

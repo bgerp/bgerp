@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -815,7 +815,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if ($form->rec->volNewMax < $form->rec->volNewMin) {
 
-            $form->setError('volNewMin, volNewMax', ' Максималното количество не може да бъде по-малко от минималното ');
+            $form->setError('volNewMin, volNewMax', '|* |Максималното количество не може да бъде по-малко от минималното|* ');
         }
 
 

@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class drdata_Languages extends core_Manager
     {
         $this->FLD('languageName', 'varchar', 'caption=Име->Език');
         $this->FLD('nativeName', 'varchar', 'caption=Име->Собствено');
-        $this->FLD('code', 'varchar(2)', 'caption=ISO 639-1->2 буквен код,rem=ISO 639-1 2 буквен код,tdClass=centerCol');
+        $this->FLD('code', 'varchar(2)', 'caption=ISO 639-1->|*2 |буквен код,rem=ISO 639-1 2 буквен код,tdClass=centerCol');
         
         $this->load('plg_RowTools2');
         

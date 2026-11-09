@@ -26,6 +26,12 @@ class eshop_Carts extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'eshop_InitiatorPaymentIntf';
+
+
+    /**
+     * ПБД, което се контира автоматично от пристигнало онлайн плащане (парите вече са получени)
+     */
+    public static $autoContoIncomeDocumentId = null;
     
     
     /**
@@ -913,7 +919,7 @@ class eshop_Carts extends core_Master
         
         // Ако има сума, то сумата на ПБД-то се подменя с тази от пристигналото плащане
         if (isset($amount)) {
-            $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getOwnAccountInfo($accountId)->currencyCode : $saleRec->currencyId;
+            $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getDefaultCurrency($accountId, $bankRec->valior ?? null, true) : $saleRec->currencyId;
             $amountDeal = currency_CurrencyRates::convertAmount($amount, null, $fromCurrencyCode, $saleRec->currencyId);
             $bankRec->amount = $amount;
             $bankRec->amountDeal = $amountDeal;
@@ -2997,7 +3003,12 @@ class eshop_Carts extends core_Master
         
         try {
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
-            bank_IncomeDocuments::conto($bankRec->id);
+            self::$autoContoIncomeDocumentId = $bankRec->id;
+            try {
+                bank_IncomeDocuments::conto($bankRec->id);
+            } finally {
+                self::$autoContoIncomeDocumentId = null;
+            }
             bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
             
             if (isset($linkedContainerId)) {
@@ -3087,7 +3098,7 @@ class eshop_Carts extends core_Master
         }
 
         $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
-        $subject = tr('Не пропускайте: Завършете поръчката си в ') . " {$domainName}";
+        $subject = tr('Не пропускайте: Завършете поръчката си в|* ') . " {$domainName}";
 
         // Опит за изпращане на имейл-а
         $error = null;

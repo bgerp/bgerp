@@ -1802,7 +1802,7 @@ abstract class deals_Helper
         // Показване на предупреждение
         if ($warning === true) {
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
-            $valueRow = ht::createHint($valueRow, "Има разлика от над 25% с очакваното|* {$liveValueVerbal}", 'warning', false);
+            $valueRow = ht::createHint($valueRow, "Има разлика от над|* 25|% с очакваното|* {$liveValueVerbal}", 'warning', false);
         }
 
         return $valueRow;

@@ -185,6 +185,32 @@ class trans_TripExpenses extends core_BaseClass
 
 
     /**
+     * Таблицата за формата - датите като дд.мм.гггг, както се въвеждат
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public static function toFormValue($value)
+    {
+        $columns = is_string($value) ? json_decode($value, true) : $value;
+        if (!is_array($columns) || empty($columns['date']) || !is_array($columns['date'])) {
+
+            return $value;
+        }
+
+        foreach ($columns['date'] as $index => $date) {
+            $parsed = is_scalar($date) ? self::parseDate($date) : null;
+            if (!empty($parsed)) {
+                $columns['date'][$index] = dt::mysql2verbal($parsed, 'd.m.Y');
+            }
+        }
+
+        return is_string($value) ? json_encode($columns, JSON_UNESCAPED_UNICODE) : $columns;
+    }
+
+
+    /**
      * Нормализира таблицата: мярка по перото, датите и сумите в машинен вид
      *
      * @param mixed       $value
@@ -254,8 +280,10 @@ class trans_TripExpenses extends core_BaseClass
             if (!isset($categories[$category])) {
                 $errors[] = 'изберете перо';
             }
-            if ($amount === false || $amount === null || $amount < 0) {
-                $errors[] = 'сумата трябва да е неотрицателно число с до два десетични знака';
+            if ($amount === null) {
+                $errors[] = 'въведете сума';
+            } elseif ($amount === false || $amount < 0) {
+                $errors[] = 'сумата трябва да е число от 0 нагоре, с до два знака след десетичната запетая';
             } elseif ($amount > PHP_INT_MAX - $totalCents) {
                 $errors[] = 'общата сума е прекалено голяма';
             } else {

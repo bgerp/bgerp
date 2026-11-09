@@ -665,7 +665,8 @@ class cond_CardPayments extends core_Manager
 
         $config = self::getConfig($rec);
         $paymentData = array('transactionRef' => $rec->transactionRef, 'posId' => $rec->posId, 'merchantId' => $rec->merchantId,
-            'paidOn' => $rec->paidOn, 'amount' => $rec->amount, 'currencyCode' => $rec->currencyCode, 'cardNumber' => $rec->cardNumber ?? null);
+            'paidOn' => $rec->paidOn, 'amount' => $rec->amount, 'currencyCode' => $rec->currencyCode, 'cardNumber' => $rec->cardNumber ?? null,
+            'procId' => $config['procId'] ?? null);
         $reason = "Плащане с карта {$rec->orderNum}" . (!empty($rec->transactionRef) ? ", трансакция {$rec->transactionRef}" : '');
 
         $rec->notifyTries = ($rec->notifyTries ?? 0) + 1;
@@ -699,7 +700,7 @@ class cond_CardPayments extends core_Manager
      *
      * @param stdClass $rec - опитът
      *
-     * @return array - ownAccountId, terminalId, merchantId
+     * @return array - ownAccountId, terminalId, merchantId, procId
      */
     protected static function getConfig($rec)
     {

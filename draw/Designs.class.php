@@ -948,7 +948,7 @@ class draw_Designs extends core_Master
         }
 
         if ($rY == 0) {
-            $error = 'Радиусът по Y не може да е 0';
+            $error = 'Радиусът по Y не може да е|* 0';
 
             return false;
         }
@@ -993,7 +993,7 @@ class draw_Designs extends core_Master
         }
 
         if ($rY == 0) {
-            $error = 'Радиусът по Y не може да е 0';
+            $error = 'Радиусът по Y не може да е|* 0';
 
             return false;
         }

@@ -8,7 +8,7 @@
  * @package   sync
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -112,7 +112,7 @@ class sync_Settings extends core_Manager
         $this->FLD(
             'allowedIps',
             'varchar',
-            'caption=Импортираща система->IP,placeholder=203.0.113.10 или 203.0.113.0/24,hint=IPv4/IPv6 адреси и IPv4 CIDR мрежи на импортиращата система. Разделят се със запетая. Прокситата се задават в настройките на пакета sync'
+            'caption=Импортираща система->IP,placeholder=|*203.0.113.10 |или|* 203.0.113.0/24,hint=|*IPv4/IPv6 |адреси и|* IPv4 |CIDR мрежи на импортиращата система. Разделят се със запетая. Прокситата се задават в настройките на пакета sync'
         );
         $this->FLD('stores', 'keylist(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
         $this->FLD('cases', 'keylist(mvc=cash_Cases, select=name, allowEmpty)', 'caption=Каса');

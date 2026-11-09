@@ -2367,7 +2367,7 @@ class doc_Threads extends core_Manager
                             $bArr['btnTitle'] = ($obj->caption ?? null) ?: $Cls->singleTitle;
                             $bArr['url'] = (isset($obj->url)) ? $obj->url : array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
                             $bArr['ef_icon'] = $Cls->singleIcon;
-                            $bArr['title'] = 'Създаване на ' . mb_strtolower($Cls->singleTitle);
+                            $bArr['title'] = ((new ET(tr('Създаване на [#VALUE#]')))->placeArray(array('VALUE' => mb_strtolower(tr($Cls->singleTitle ?? '')))))->getContent();
                             
                             if (method_exists($Cls, 'getButtonParamsForNewInFolder')) {
                                 $bArr = array_merge($bArr, (array) $Cls->getButtonParamsForNewInFolder($data->folderId));

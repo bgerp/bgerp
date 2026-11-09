@@ -17,6 +17,18 @@
 class fconv_Script
 {
     /**
+     * Опити за обратното извикване, докато bgERP отговаря с 503 (заключена система)
+     */
+    const CALLBACK_TRIES = 30;
+
+
+    /**
+     * Секунди между опитите за обратното извикване
+     */
+    const CALLBACK_RETRY_SECS = 30;
+
+
+    /**
      * @param array files - Масив за входните файлове
      */
     public $files = array();
@@ -473,10 +485,23 @@ class fconv_Script
         $url = toUrl(array('fconv_Processes',
             'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute-base');
 
-        $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
-        $this->setCheckProgramsArr('wget');
+        // Докато системата е заключена (инициализация, архив), bgERP връща 503 - опитваме пак;
+        // при всеки друг отговор или грешка - само веднъж, както досега
+        $tries = self::CALLBACK_TRIES;
+        $wait = self::CALLBACK_RETRY_SECS;
+        if (stristr(PHP_OS, 'WIN')) {
+            // Вграденият curl, защото wget за Windows (GnuWin32) не поддържа съвременен TLS.
+            // В .bat единичните кавички не пазят & от разделяне, а % е променлива; timeout не работи без конзола.
+            // Без goto: обработката трие .bat файла и етикетът вече не може да се намери
+            $done = 'FCONV_CALLBACK_' . countR($this->callBack);
+            $cmdLine = "for /L %%n in (1,1,{$tries}) do if not defined {$done} (curl -s -k --ssl-no-revoke -I -o nul -w \"%%{http_code}\" \"" . str_replace('%', '%%', $url) . "\" | findstr /C:\"503\" >nul && ping -n " . ($wait + 1) . " 127.0.0.1 >nul || set \"{$done}=1\")";
+            $this->setCheckProgramsArr('curl');
+        } else {
+            $cmdLine = "for i in $(seq 1 {$tries}); do wget --spider -S --no-check-certificate '{$url}' 2>&1 | grep -q ' 503 ' && sleep {$wait} || break; done";
+            $this->setCheckProgramsArr('wget');
+        }
         
-        $this->lineExec($cmdLine, array('skipOnRemote' => true));
+        $this->lineExec($cmdLine, array('skipOnRemote' => true), false);
     }
     
     
@@ -633,6 +658,11 @@ class fconv_Script
         // Ако е зададено да се стартира асинхронно
         if ($asynch) {
             $shell = $this->addRunAsinchronWin() . escapeshellarg($shellName) . $this->addRunAsinchronLinux();
+
+            // Под Windows скриптът наследява канала на popen() и заявката би чакала края му
+            if (stristr(PHP_OS, 'WIN')) {
+                $shell .= ' <nul >nul 2>&1';
+            }
         } else {
             $shell = $shellName;
         }
@@ -745,9 +775,10 @@ class fconv_Script
      */
     public function addRunAsinchronWin()
     {
+        // Първият аргумент в кавички е заглавието на прозореца; /B - без нов прозорец
         if (stristr(PHP_OS, 'WIN')) {
             
-            return 'start ';
+            return 'start "" /B ';
         }
         
         return '';

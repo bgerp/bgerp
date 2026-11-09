@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,6 +32,7 @@ class drdata_VatType extends type_Varchar
         'syntax' => array('Невалиден/неподдържан формат на VAT номер (неправилен брой цифри и др.)', 'red'),
         'invalid' => array('Невалиден VAT номер', 'red'),
         'unknown' => array('VAT номер с неизвестна валидност', 'quiet'),
+        'unsupported' => array('За избраната държава bgERP не поддържа автоматична проверка на този данъчен номер. Валидността му не е потвърдена. Проверете го в съответния национален регистър.', 'quiet'),
         'valid' => array('Валиден VAT номер', ''),
         '' => array('Грешка при определяне на валидността', 'red')
     );
@@ -46,6 +47,7 @@ class drdata_VatType extends type_Varchar
         'syntax' => 'Malformed VAT number',
         'invalid' => 'Invalid VAT number',
         'unknown' => 'VAT number not confirmed',
+        'unsupported' => 'Tax number not confirmed: automatic validation is not supported for the selected country',
         'valid' => '',
         '' => 'VAT number not confirmed'
     );
@@ -80,24 +82,15 @@ class drdata_VatType extends type_Varchar
             return;
         }
         
-        $Vats = cls::get('drdata_Vats');
-        
-        $res = array();
-        
-        $res['value'] = $value = strtoupper(trim($value));
-        
-        list($status, ) = $Vats->check($value, true);
-        
-        $status = $this->statuses[$status];
-        
-        if ($status[1] == 'red') {
-            $res['warning'] = $status[0];
-            
-            return $res;
-        }
-        
-        $res = parent::isValid($value);
+        $value = strtoupper(trim($value));
+        list($statusCode, ) = $this->getStatus($value, true);
+        $status = $this->statuses[$statusCode] ?? $this->statuses[''];
+        $res = $status[1] == 'red' ? array() : (parent::isValid($value) ?? array());
         $res['value'] = $value;
+
+        if ($status[1] == 'red' || $statusCode == 'unsupported') {
+            $res['warning'] = $status[0];
+        }
         
         return $res;
     }
@@ -150,10 +143,19 @@ class drdata_VatType extends type_Varchar
     /**
      * Статус и информация за номера, кеширани за заявката
      */
-    protected function getStatus($value)
+    protected function getStatus($value, $force = false)
     {
-        if (!array_key_exists($value, static::$cache)) {
-            static::$cache[$value] = cls::get('drdata_Vats')->check($value);
+        $countryId = (int) ($this->params['countryId'] ?? 0);
+        $Vats = cls::get('drdata_Vats');
+
+        // Контекстният статус не се записва в общия кеш за номера.
+        if ($countryId > 0 && !drdata_Vats::isHaveVatPrefix($Vats->canonize($value)) &&
+            drdata_Countries::fetch($countryId) && !drdata_Countries::isEu($countryId)) {
+            return array('unsupported', null);
+        }
+
+        if ($force || !array_key_exists($value, static::$cache)) {
+            static::$cache[$value] = $Vats->check($value, $force);
         }
         
         return static::$cache[$value];

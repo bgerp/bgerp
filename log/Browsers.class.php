@@ -1196,36 +1196,75 @@ class log_Browsers extends core_Master
 
     /**
      * Изтрива стари записи
+     *
+     * Обхожда записите на порции по id и продължава от там, където е спрял предишния път,
+     * защото при милиони записи един пълен обход не се побира във време-лимита
      */
     public function cron_DeleteOldEmptyBrid()
     {
+        // Спира преди време-лимита на процеса, за да не бъде прекъснат по средата
+        $cronRec = core_Cron::getRecForSystemId('DeleteOldEmptyBrid');
+        $deadline = time() + max(30, (int) (($cronRec->timeLimit ?? 0) * 0.8));
+
         $before = dt::addDays(-1 * (log_Setup::get('EMPTY_BRID_KEEP_DAYS') / (24 * 3600)));
-
-        $query = $this->getQuery();
-        $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
-        $query->orWhere("#brid IS NULL");
-        $query->orWhere("#brid = ''");
-
-        $query->show('id, brid');
+        $lastIdKey = 'log_Browsers::lastEmptyBridId';
+        $lastId = (int) core_Permanent::get($lastIdKey);
         $rCnt = 0;
 
-        while ($rec = $query->fetch()) {
+        do {
+            $query = $this->getQuery();
+            $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
+            $query->orWhere("#brid IS NULL");
+            $query->orWhere("#brid = ''");
+            $query->where(array("#id > '[#1#]'", $lastId));
+            $query->orderBy('id', 'ASC');
+            $query->limit(1000);
+            $query->show('id, brid');
 
-            // Ако има история - да не се изтрива. Заявката нарочно хваща и
-            // записите с празен брид, затова се пази от null
-            if (strlen($rec->brid ?? '') && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
-
-                continue;
+            $bridArr = array();
+            while ($rec = $query->fetch()) {
+                $bridArr[$rec->id] = $rec->brid ?? '';
+                $lastId = $rec->id;
             }
 
-            // Ако има логване - да не се изтрива
-            if (strlen($rec->brid ?? '') && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
-
-                continue;
+            // Обходът е завършен - следващия път започва отначало, за да хване новоостарелите
+            if (empty($bridArr)) {
+                $lastId = 0;
+                break;
             }
 
-            $rCnt += $this->delete(array("#id = '[#1#]'", $rec->id));
-        }
+            // Ако има история или логване - да не се изтрива. Заявката нарочно хваща
+            // и записите с празен брид, а те се трият без проверка
+            $keepArr = array();
+            $bridsForCheck = array_unique(array_filter($bridArr, 'strlen'));
+            if (!empty($bridsForCheck)) {
+                foreach (array('vislog_History', 'core_LoginLog') as $clsName) {
+                    $kQuery = $clsName::getQuery();
+                    $kQuery->EXT('browserId', __CLASS__, 'externalName=id,externalKey=brid,externalFieldName=brid');
+                    $kQuery->in('brid', $bridsForCheck);
+                    $kQuery->groupBy('browserId');
+                    $kQuery->show('browserId');
+                    while ($kRec = $kQuery->fetch()) {
+
+                        // Съпоставянето на BRID следва колацията в MySQL
+                        $keepArr[$kRec->browserId ?? 0] = true;
+                    }
+                }
+            }
+
+            $delIds = array();
+            foreach ($bridArr as $id => $brid) {
+                if (!strlen($brid) || !isset($keepArr[$id])) {
+                    $delIds[] = (int) $id;
+                }
+            }
+
+            if (!empty($delIds)) {
+                $rCnt += $this->delete('#id IN (' . implode(',', $delIds) . ')');
+            }
+        } while (time() < $deadline);
+
+        core_Permanent::set($lastIdKey, $lastId, core_Permanent::FOREVER_VALUE);
 
         if ($rCnt) {
             $this->logNotice("Бяха изтрити {$rCnt} записа");

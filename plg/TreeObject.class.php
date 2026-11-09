@@ -361,11 +361,11 @@ class plg_TreeObject extends core_Plugin
                 $parentTitle = $rec->{$mvc->nameField} ?? '';
                 
                 if (!$mvc->hasPlugin('plg_RowTools2')) {
-                    $row->_addBtn = ht::createLink($img, $url, false, array('title' => "Добавяне на ново подниво на |*'{$parentTitle}'"));
+                    $row->_addBtn = ht::createLink($img, $url, false, array('title' => "Добавяне на ново подниво на|* '{$parentTitle}'"));
                 }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Подниво||Sublevel', $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на ново подниво на |*'{$parentTitle}'"));
+                $row->_rowTools->addLink('Подниво||Sublevel', $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на ново подниво на|* '{$parentTitle}'"));
             }
             
             // Ако записа е намерен при търсене добавяме му клас

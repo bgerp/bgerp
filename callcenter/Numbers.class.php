@@ -7,7 +7,7 @@
  * @package   callcenter
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -424,7 +424,7 @@ class callcenter_Numbers extends core_Manager
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search, type';
-        $data->listFilter->setField('search', 'hint=Телефон: *123 за край; +35988* за начало; *123* за част от номера');
+        $data->listFilter->setField('search', 'hint=Телефон|*: *123 |за край|*; +35988* |за начало|*; *123* |за част от номера');
         
         $data->listFilter->input('type', 'silent');
         

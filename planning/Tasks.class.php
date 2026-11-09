@@ -404,6 +404,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('expectedTimeStart,state');
         $this->setDbIndex('saoOrder');
         $this->setDbIndex('state');
     }
@@ -809,7 +810,7 @@ class planning_Tasks extends core_Master
             if ($rec->quantityInPack != $expectedMeasureQuantityInPack) {
                 $dUoms = cat_UoM::getShortName($rec->measureId) . "/" . cat_UoM::getShortName($compareMeasureId);
                 $quantityInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantityInPack);
-                $diffMsg = "Отношението на |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
+                $diffMsg = "Отношението на|* |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
                 $row->plannedQuantity = ht::createHint($row->plannedQuantity, $diffMsg, 'img/16/red-warning.png', false);
             }
 
@@ -2366,12 +2367,13 @@ class planning_Tasks extends core_Master
         }
 
         // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
-        // от core_Users::forceLogin() при изтекла сесия. Във втория случай формата
+        // от core_Users::forceLogin() самостоятелно или заедно с Cmd[default]. Тогава формата
         // показва стойностите, но refresh-командата не прилага целия листов филтър.
         // При обикновено зареждане го третираме като нормално изпращане на филтъра.
         $cmd = Request::get('Cmd', false);
         $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
-            is_array($cmd) && isset($cmd['refresh']) && countR($cmd) == 1;
+            is_array($cmd) && isset($cmd['refresh']) &&
+            !array_diff_key($cmd, array('default' => true, 'refresh' => true));
 
         if (($hasExplicitValues || countR($restoreValues)) &&
             ($cmd === null || $isFullPageRefresh)) {
@@ -2652,6 +2654,7 @@ JS
             return;
         }
 
+        core_Debug::startTimer('RENDER_SUMMARY');
         $query = clone $data->query;
         $query->orderBy = $query->show = array();
         $states = array(
@@ -2678,8 +2681,13 @@ JS
         }
 
         $sumPlannedQuantity = !empty($filter->productId);
-        $query->XPR('taskCount', 'int', 'COUNT(#id)');
-        $query->show('state,taskCount')->groupBy($query->getMysqlField('state'));
+        // Броим състоянията в един проход без групиране/сортиране по тях.
+        $countFields = array();
+        foreach ($states as $state => $caption) {
+            $countFields[$state] = $countField = 'taskCount' . ucfirst($state);
+            $query->XPR($countField, 'int', "COUNT(CASE WHEN #state = '{$state}' THEN 1 END)");
+            $query->show($countField);
+        }
         if ($sumPlannedQuantity) {
             $query->XPR('plannedTotal', 'double', 'SUM(#plannedQuantity)');
             $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
@@ -2688,8 +2696,8 @@ JS
         $counts = array_fill_keys(array_keys($states), 0);
         $quantities = array();
         while ($rec = $query->fetch(null, true)) {
-            if (isset($counts[$rec->state])) {
-                $counts[$rec->state] += $rec->taskCount;
+            foreach ($countFields as $state => $countField) {
+                $counts[$state] += $rec->{$countField};
             }
             if ($sumPlannedQuantity) {
                 $quantities[$rec->measureId] = ($quantities[$rec->measureId] ?? 0) + ($rec->plannedTotal ?? 0);
@@ -2698,6 +2706,7 @@ JS
         if ($sumPlannedQuantity && !$quantities) {
             $quantities[cat_Products::fetchField($filter->productId, 'measureId')] = 0;
         }
+        core_Debug::stopTimer('RENDER_SUMMARY');
 
         $int = core_Type::getByName('int');
         $stateRows = $totalRows = array();
@@ -6367,7 +6376,7 @@ JS
                 }
 
                 if($countSavedManualTasks){
-                    core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
+                    core_Statuses::newStatus("Задаване на желано начало на|*  {$countSavedManualTasks} |операции|*");
                 }
 
                 $this->reorderIdleBaseline = static::getIdleSecondsByAsset();

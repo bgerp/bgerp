@@ -425,7 +425,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             $countInvoices = countR($handles);
             if($countInvoices){
                 $caption = ($countInvoices == 1) ? 'приложената фактура' : 'приложените фактури';
-                $iTpl = new ET(tr("|*\n|Моля, запознайте се с {$caption}|*") . ': [#handles#]');
+                $iTpl = new ET(tr("|*\n|Моля, запознайте се с|* {$caption}|*") . ': [#handles#]');
                 $iTpl->replace(implode(', ', $handles), 'handles');
                 $tpl->append($iTpl);
             }

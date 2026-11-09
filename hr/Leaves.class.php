@@ -9,7 +9,7 @@
  * @package   hr
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -447,14 +447,14 @@ class hr_Leaves extends core_Master
             
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
-                $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
+                $form->setError('leaveDays', 'Броят неприсъствени дни е|* 0');
             }
 
             $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->leaveFrom, $form->rec->leaveTo, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
             if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('leaveFrom, leaveTo', "|Засичане по време с: |*" . implode('<br>', $iArr));
+                $form->setError('leaveFrom, leaveTo', "|Засичане по време с:|* " . implode('<br>', $iArr));
             }
         }
     }
@@ -624,7 +624,7 @@ class hr_Leaves extends core_Master
         if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                    $rec->message = '|Активирана е |* "' . self::getRecTitle($rec) . '"';
+                    $rec->message = '|Активирана е|*  "' . self::getRecTitle($rec) . '"';
                     $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $rec->customUrl = array($mvc, 'single',  $rec->id);
                     $rec->priority = 0;
@@ -1042,7 +1042,7 @@ class hr_Leaves extends core_Master
         if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                    $rec->message = '|Отказана е |* "' . self::getRecTitle($rec) . '"';
+                    $rec->message = '|Отказана е|*  "' . self::getRecTitle($rec) . '"';
                     $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
                     $rec->customUrl = array(get_called_class(), 'single',  $rec->id);
                     $rec->priority = 0;

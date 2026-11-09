@@ -9,7 +9,7 @@
  * @package   currency
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -428,7 +428,7 @@ class currency_Currencies extends core_Master
             } else {
                 if($currencyId != acc_Periods::getBaseCurrencyCode($date)){
                     $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
-                    $error = "Валутата |*<b>{$currencyId}</b> |не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
+                    $error = "Валутата|* <b>{$currencyId}</b> |не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
 
                     return false;
                 }

@@ -290,13 +290,13 @@ class sens2_Controllers extends core_Master
             expect(is_array($ports));
             
             foreach ($ports as $port => $params) {
-                $caption = $params->caption ?? null;
-                $uom = $params->uom ?? null;
+                $caption = tr($params->caption ?? '');
+                $uom = $params->uom ?? '';
                 $prefix = $port . ($caption ? " ({$caption})" : '');
                 
                 $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
                 $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-                $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
+                $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*|*50|` или `|*X/2`");
                 $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
                 $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
                 if (trim($uom)) {
@@ -311,8 +311,8 @@ class sens2_Controllers extends core_Master
             }
             
             foreach ($ports as $port => $params) {
-                $caption = $params->caption ?? null;
-                $uom = $params->uom ?? null;
+                $caption = tr($params->caption ?? '');
+                $uom = $params->uom ?? '';
                 $prefix = $port . ($caption ? " ({$caption})" : '');
                 
                 $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");

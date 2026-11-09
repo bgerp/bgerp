@@ -94,6 +94,26 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 
         return self::convertTo($file, 'svg', $type, $name, false, $otherParam);
     }
+
+
+    /**
+     * Опцията за запис в [#OUTPUTF#] според версията на Inkscape (FILEMAN_INKSCAPE_VERSION):
+     * 1.x няма --export-png=, --export-pdf= и --export-plain-svg= от 0.92
+     *
+     * @param string $type - png, pdf или plain-svg
+     *
+     * @return string
+     */
+    public static function getExportOption($type)
+    {
+        expect(in_array($type, array('png', 'pdf', 'plain-svg')), $type);
+        if (version_compare((string) fileman_Setup::get('INKSCAPE_VERSION'), '1.0', '<')) {
+
+            return "--export-{$type}=[#OUTPUTF#]";
+        }
+
+        return ($type == 'plain-svg') ? '--export-plain-svg --export-type=svg --export-filename=[#OUTPUTF#]' : "--export-type={$type} --export-filename=[#OUTPUTF#]";
+    }
     
     
     /**
@@ -117,11 +137,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         expect(in_array($to, array('pdf', 'png', 'jpg', 'jpeg', 'svg')));
         
-        $lineExec = 'inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page';
+        $lineExec = 'inkscape [#INPUTF#]  --export-text-to-path  ' . self::getExportOption('pdf') . ' --export-area-page';
 
         if ($to == 'png') {
             $height = static::$pngExportHeight;
-            $lineExec = 'inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing';
+            $lineExec = 'inkscape [#INPUTF#] ' . self::getExportOption('png') . ' --export-area-drawing';
             if (!empty($otherParam['exportHeight'])) {
                 $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
             }
@@ -145,7 +165,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         }
 
         if ($to == 'svg') {
-            $lineExec = 'inkscape [#INPUTF#] --export-text-to-path --export-plain-svg=[#OUTPUTF#] --export-area-page';
+            $lineExec = 'inkscape [#INPUTF#] --export-text-to-path ' . self::getExportOption('plain-svg') . ' --export-area-page';
         }
         
         cls::load('fileman_Files');
@@ -335,7 +355,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}", array('errFilePath' => $errFilePath));
+        $Script->lineExec('inkscape [#INPUTF#] ' . self::getExportOption('png') . " --export-area-drawing --export-height={$height}", array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);

@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -138,17 +138,17 @@ class acc_Accounts extends core_Manager
         $this->FLD(
             'groupId1',
             'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-            'caption=Разбивка по номенклатури->Ном. 1,remember, export'
+            'caption=Разбивка по номенклатури->Ном.|* 1,remember, export'
         );
         $this->FLD(
             'groupId2',
             'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-            'caption=Разбивка по номенклатури->Ном. 2,remember, export'
+            'caption=Разбивка по номенклатури->Ном.|* 2,remember, export'
         );
         $this->FLD(
             'groupId3',
             'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-            'caption=Разбивка по номенклатури->Ном. 3,remember, export'
+            'caption=Разбивка по номенклатури->Ном.|* 3,remember, export'
         );
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
         $this->FLD('systemId', 'varchar(5)', 'caption=System ID, export, mandatory');

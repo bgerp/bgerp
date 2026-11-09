@@ -9,11 +9,11 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title Цифри(255)
+ * @title Цифри|*(255)
  */
 class batch_definitions_Digits extends batch_definitions_Proto
 {

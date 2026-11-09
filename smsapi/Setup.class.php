@@ -46,7 +46,7 @@ defIfNot('SMSAPI_TOKEN', '');
  * @package   smsapi
  *
  * @author    Dimitar Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,7 +69,7 @@ class smsapi_Setup extends core_ProtoSetup
         'SMSAPI_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS-и през smsapi->URL адрес'),
         'SMSAPI_NOTIFY_URL' => array('url', 'mandatory, caption=Адрес за Delivery report->URL адрес'),
         'SMSAPI_TOKEN' => array('varchar', 'mandatory, caption=Токън за изпращане на SMS-и през smsapi->Токън'),
-        'SMSAPI_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
+        'SMSAPI_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа|* UTF-8->Да/Не'),
         'SMSAPI_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),
         'SMSAPI_ALLOWED_USER_NAMES' => array('text(rows=1)', 'caption=Стринг с позволените имена за изпращач->Списък с имена'),
     );

@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -133,14 +133,14 @@ class acc_BalanceTransfers extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('fromAccount', 'acc_type_Account(allowEmpty)', 'mandatory,caption=От->Сметка,removeAndRefreshForm=ent1Id|ent2Id|ent3Id|toAccount|toEnt1Id|toEnt2Id|toEnt3Id,silent');
-        $this->FLD('fromEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 1,input=none,removeAndRefreshForm=toEnt1Id');
-        $this->FLD('fromEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 2,input=none,removeAndRefreshForm=toEnt2Id');
-        $this->FLD('fromEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 3,input=none,removeAndRefreshForm=toEnt3Id');
+        $this->FLD('fromEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо|* 1,input=none,removeAndRefreshForm=toEnt1Id');
+        $this->FLD('fromEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо|* 2,input=none,removeAndRefreshForm=toEnt2Id');
+        $this->FLD('fromEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо|* 3,input=none,removeAndRefreshForm=toEnt3Id');
         
         $this->FLD('toAccount', 'acc_type_Account(allowEmpty)', 'mandatory,caption=Към->Сметка,silent,removeAndRefreshForm=toEnt1Id|toEnt2Id|toEnt3Id');
-        $this->FLD('toEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 1,input=none');
-        $this->FLD('toEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 2,input=none');
-        $this->FLD('toEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 3,input=none');
+        $this->FLD('toEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо|* 1,input=none');
+        $this->FLD('toEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо|* 2,input=none');
+        $this->FLD('toEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо|* 3,input=none');
     }
     
     

@@ -538,9 +538,18 @@ class change_Plugin extends core_Plugin
             if ($firstSelectedVersion) {
                 $lastArr = array();
                 $noLast = false;
+
+                $userFields = array();
+                if ($isDocument) {
+                    foreach (array('sharedUsers', 'assign') as $field) {
+                        if ($mvc->getField($field, false)) {
+                            $userFields[$field] = $allowedFieldsArr[$field] = $field;
+                        }
+                    }
+                }
                 
                 // Вземаме стойността за съответното поле, за първата версия
-                $firstArr = change_Log::getVerbalValue($classId, $res->rec->id, $firstSelectedVersion, $allowedFieldsArr);
+                $firstArr = (array) change_Log::getVerbalValue($classId, $res->rec->id ?? null, $firstSelectedVersion, $allowedFieldsArr);
                 
                 // Ако има последна версия
                 if ($lastSelectedVersion) {
@@ -556,11 +565,14 @@ class change_Plugin extends core_Plugin
                             
                             // Добавяме в масива
                             $lastArr[$allowedField] = $res->row->$allowedField ?? null;
+                            if (isset($userFields[$allowedField])) {
+                                $lastArr[$allowedField] = $mvc->getFieldType($allowedField)->toVerbal($res->rec->{$allowedField} ?? null);
+                            }
                         }
                     } else {
                         
                         // Вземаме стойността за съответното поле, за последната версия
-                        $lastArr = change_Log::getVerbalValue($classId, $res->rec->id, $lastSelectedVersion, $allowedFieldsArr);
+                        $lastArr = (array) change_Log::getVerbalValue($classId, $res->rec->id ?? null, $lastSelectedVersion, $allowedFieldsArr);
                     }
                 } else {
                     
@@ -573,6 +585,9 @@ class change_Plugin extends core_Plugin
                     
                     // Вземаме първата версия
                     $first = $firstArr[$allowedField] ?? null;
+                    if (isset($userFields[$allowedField])) {
+                        $first = array_key_exists($allowedField, $firstArr) ? ($first ?: tr('Няма')) : tr('Няма данни');
+                    }
                     
                     // Ако няма последна версия
                     if ($noLast) {
@@ -583,6 +598,9 @@ class change_Plugin extends core_Plugin
                         
                         // Вземаме последната версия
                         $last = $lastArr[$allowedField] ?? null;
+                        if (isset($userFields[$allowedField])) {
+                            $last = array_key_exists($allowedField, $lastArr) ? ($last ?: tr('Няма')) : tr('Няма данни');
+                        }
                         
                         // Сравняваме двата варианта
                         $newFieldVal = lib_Diff::getDiff($first, $last);
@@ -604,6 +622,10 @@ class change_Plugin extends core_Plugin
                         }
                         
                         $res->row->$allowedField = $newFieldVal;
+                    }
+
+                    if (isset($userFields[$allowedField])) {
+                        $res->versionUserFields[$allowedField] = $res->row->$allowedField ?? '';
                     }
                 }
             }
@@ -712,6 +734,19 @@ class change_Plugin extends core_Plugin
     }
     
     
+    /**
+     * Историческите получатели се показват отделно от текущите виждания
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (!isset($data->versionUserFields['sharedUsers']) || Mode::is('text', 'xhtml')) {
+            return;
+        }
+
+        $tpl->replace($data->versionUserFields['sharedUsers'] ?? '', 'shareLog');
+    }
+
+
     /**
      * Връща масив с всички полета, които ще се променят
      *

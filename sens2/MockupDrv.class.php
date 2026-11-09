@@ -9,7 +9,7 @@
  * @package   sens
  *
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,7 +32,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     public function getInputPorts($config = null)
     {
         return array(
-            'Temp1' => (object) array('caption' => 'Температура 1', 'uom' => 'ºC'),
+            'Temp1' => (object) array('caption' => 'Температура|* 1', 'uom' => 'ºC'),
             'Memory' => (object) array('caption' => 'Свободна памет', 'uom' => 'B')
         );
     }
@@ -40,7 +40,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     
     public function getOutputPorts()
     {
-        return array('D1' => (object) array('caption' => 'Цифров изход 1', 'uom' => ''));
+        return array('D1' => (object) array('caption' => 'Цифров изход|* 1', 'uom' => ''));
     }
     
     
@@ -52,7 +52,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     public function checkConfigForm($form)
     {
         if (isset($form->rec->ip[0]) && $form->rec->ip[0] == '2') {
-            $form->setError('ip', 'Ip-то не трябва да започва с 2');
+            $form->setError('ip', 'Ip-то не трябва да започва с|* 2');
         }
     }
     

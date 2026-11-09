@@ -344,9 +344,9 @@ class email_ServiceRules extends embed_Manager
         $form->info .= "<br>";
         $form->info .= tr("Със звезда (*) може да се зададат  неограничен брой символи в началото, края или по средата");
         $form->info .= "<br>";
-        $form->info .= tr("Пример 1: *Експерта * документ номер *");
+        $form->info .= tr("Пример|* 1: *Експерта * документ номер *");
         $form->info .= "<br>";
-        $form->info .= tr("Пример 2: *@experta.bg");
+        $form->info .= tr("Пример|* 2: *@experta.bg");
     }
 
     

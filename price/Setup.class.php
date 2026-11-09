@@ -46,7 +46,7 @@ defIfNot('PRICE_CRON_UPDATE_BOM_COST', '11');
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -185,6 +185,12 @@ class price_Setup extends core_ProtoSetup
     public function updateCostList2524v2()
     {
         $rec = price_Lists::fetch(price_ListRules::PRICE_LIST_CATALOG);
+
+        // При първа инсталация на пакета каталогът още не е създаден от loadSetupData()
+        if (empty($rec)) {
+            return;
+        }
+
         if($rec->parent == price_ListRules::PRICE_LIST_CATALOG){
             $rec->parent = price_ListRules::PRICE_LIST_COST;
             price_Lists::save($rec, 'parent');

@@ -24,7 +24,7 @@ defIfNot('ARCHIVE_7Z_PATH', '7z');
  * @package   archive
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -54,7 +54,7 @@ class archive_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'ARCHIVE_MAX_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;| които ще се обработват->Размер, suggestions=100 MB|200 MB|500 MB'),
+        'ARCHIVE_MAX_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;|* |които ще се обработват->Размер, suggestions=100 MB|200 MB|500 MB'),
     );
     
 

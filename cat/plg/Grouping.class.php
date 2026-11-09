@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -120,11 +120,11 @@ class cat_plg_Grouping extends core_Plugin
                     followRetUrl();
                 }
                 
-                $form->title = 'Промяна в свойствата на |*' . $mvc->getFormTitleLink($selArr[0]);
+                $form->title = 'Промяна в свойствата на|* ' . $mvc->getFormTitleLink($selArr[0]);
                 $form->FNC('meta', $mvc->getFieldType('meta'), 'caption=Свойства,input');
                 $form->setDefault('meta', $metas);
             } else {
-                $form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
+                $form->title = 'Промяна на свойствата на|* ' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
                 
                 if (countR($canAddMetas)) {
                     $addType = cls::get('type_Set');

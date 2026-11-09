@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -101,7 +101,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         //Задания
         $fieldset->FLD('documents', 'classes(interface = doc_DocumentIntf,select = title)', 'caption=Вид документи,placeholder=Избери вид документи,after=to,single=none,mandatory');
         
-        $fieldset->FLD('grouping', 'enum(day=24 часа, week=7 дни, year=12 месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm,mandatory');
+        $fieldset->FLD('grouping', 'enum(day=|*24 |часа, week=|*7 |дни, year=|*12 |месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm,mandatory');
         
         $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=grouping');
         

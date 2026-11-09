@@ -8,7 +8,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -36,16 +36,16 @@ class doc_plg_Close extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('close', $data->rec)) {
-            $singleTitle = mb_strtolower($mvc->singleTitle);
+            $singleTitle = mb_strtolower(tr($mvc->singleTitle ?? ''));
 
             $closeBtnId = "btnClose";
             $openBtnId = "btnOpen";
             if ($mvc->hasPlugin('doc_FolderPlg')) {
                 $closeBtn = 'Закриване||Close';
-                $titleCloseBtn = "Закриване на|* |{$singleTitle}|*";
+                $titleCloseBtn = (new ET(tr('Закриване на [#VALUE#]')))->placeArray(array('VALUE' => $singleTitle));
             } else {
                 $closeBtn = 'Затваряне||Close';
-                $titleCloseBtn = "Затваряне на|* |{$singleTitle}|*";
+                $titleCloseBtn = (new ET(tr('Затваряне на [#VALUE#]')))->placeArray(array('VALUE' => $singleTitle));
             }
             if(cls::haveInterface('doc_DocumentIntf', $mvc)){
                 $closeBtnId = "btnClose_{$data->rec->containerId}";
@@ -54,12 +54,13 @@ class doc_plg_Close extends core_Plugin
 
             if ($data->rec->state == 'closed') {
                 $warning = $mvc->getChangeStateWarning($data->rec, $data->rec->brState ?? null);
-                $data->toolbar->addBtn('Активиране', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$openBtnId},row=2,ef_icon = img/16/lock_unlock.png,title=Активиране на {$singleTitle}");
+                $titleOpenBtn = (new ET(tr('Активиране на [#VALUE#]')))->placeArray(array('VALUE' => $singleTitle));
+                $data->toolbar->addBtn('Активиране', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$openBtnId},row=2,ef_icon = img/16/lock_unlock.png,title=" . $titleOpenBtn->getContent());
                 $data->toolbar->setWarning($openBtnId, $warning);
             } elseif (in_array($data->rec->state, array('active', 'pending', 'template', 'draft'))) {
                 $warning = $mvc->getChangeStateWarning($data->rec, 'closed');
                 $closeBtnRow = $mvc->closeBtnRow ?? 2;
-                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$closeBtnId},row={$closeBtnRow},ef_icon = img/16/gray-close.png,title={$titleCloseBtn}");
+                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$closeBtnId},row={$closeBtnRow},ef_icon = img/16/gray-close.png,title=" . $titleCloseBtn->getContent());
                 $data->toolbar->setWarning($closeBtnId, $warning);
             }
         }

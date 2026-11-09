@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Правила при получаване на имейли » Обработка на ISO 20022 банкови извлечения
+ * @title     Правила при получаване на имейли » Обработка на ISO|* 20022 |банкови извлечения
  */
 class payment_ParserIso20022 extends core_BaseClass
 {
@@ -43,7 +43,7 @@ class payment_ParserIso20022 extends core_BaseClass
     public static function addFields(&$mvc)
     {
         $mvc->FLD('archivePassword', 'password', 'caption=ZIP архиви->Парола,before=note,single=none');
-        $mvc->FLD('includeMt940', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително MT940,before=note,hint=Обработва и MT940 файлове в същото правило');
+        $mvc->FLD('includeMt940', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително|* MT940,before=note,hint=Обработва и|* MT940 |файлове в същото правило');
         $mvc->FLD('includeUnicredit', 'enum(no=Не,yes=Да)', 'caption=Банкови извлечения->Включително Unicredit XML,before=note,hint=Обработва и XML извлечения APAccounts в същото правило');
         $mvc->FLD('notifyUserId', 'user(roles=bank|ceo,showClosedUsers=no,allowEmpty)', 'caption=При проблем->Известяване на,before=note,hint=При празно поле не се изпращат известия');
     }

@@ -2,7 +2,7 @@ FROM php:8.2-apache-bookworm
 
 # --- Linux tools  ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git curl wget file unzip zip \
+    git curl wget file unzip zip inkscape imagemagick librsvg2-bin \
     libzip-dev \
     libicu-dev \
     libxml2-dev \

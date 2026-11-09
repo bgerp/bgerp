@@ -120,6 +120,39 @@ check('sun follows local time from right through high noon to left, stays in the
     e.tick(4000);assert(parseFloat(sun.style.left)<before);assert(e.layer().children.includes(sun));
     e.document.emit('pointermove');e.tick(1100);assert(!e.layer());assert.equal(e.timers.size,1);assert.equal(e.frames.size,0);
 });
+check('moon crosses the night from left to right through midnight, without a jump at the date change',()=>{
+    for(const width of [320,1000]) for(const icon of ['clear-night','partly-cloudy-night','showers-night']) {
+        const positions={};
+        for(const hour of ['20','00','04']) {
+            const e=environment({icon,width,date:'2026-11-06T'+hour+':00:00'});e.window.funnyWeather.trigger('manual');
+            const moon=e.layer().children.find(n=>n.className==='funny-weather-moon');
+            const x=parseFloat(moon.style.left),y=parseFloat(moon.style.top);positions[hour]={x,y};
+            assert(x>=0 && x+52<=width);assert(y>=0 && y+52<=e.window.innerHeight);
+        }
+        assert(positions['20'].x+26<width/2);assert.equal(positions['00'].x+26,width/2);assert(positions['04'].x+26>width/2);
+        assert(positions['00'].y<positions['20'].y && positions['00'].y<positions['04'].y);
+    }
+    const e=environment({icon:'clear-night',date:'2026-11-06T23:59:58'});e.window.funnyWeather.trigger('manual');
+    const moon=e.layer().children.find(n=>n.className==='funny-weather-moon'),before=parseFloat(moon.style.left);
+    e.tick(4000);const after=parseFloat(moon.style.left);assert(after>before && after-before<1);
+    e.document.focused=false;e.window.emit('blur');e.tick(60000);assert(!e.layer());assert.equal(e.timers.size,0);
+});
+check('approximate lunar illumination follows dated phases and reverses its lit side after full moon',()=>{
+    // NASA UT phase table: https://eclipse.gsfc.nasa.gov/phase/phases1901.html
+    for(const [date,phase,left] of [['2000-01-06T18:14:00Z',0,'50%'],['2000-01-14T13:34:00Z',.25,'50%'],['2000-01-21T04:40:00Z',.5,'50%'],['2000-01-28T07:57:00Z',.75,'0%']]) {
+        const e=environment({icon:'clear-night',date});e.window.funnyWeather.trigger('manual');
+        const moon=e.layer().children.find(n=>n.className==='funny-weather-moon');
+        assert(Math.abs(Number(moon.attrs['data-moon-phase'])-phase)<.04);assert.equal(moon.style['--moon-lit-left'],left);
+        const curve=Number(moon.style['--moon-curve']);assert(curve>=0 && curve<=1);
+        if(phase===0 || phase===.5) assert(curve>.98);else assert(curve<.15);
+        if(phase===0) assert.equal(moon.style['--moon-curve-color'],'#657184');
+        if(phase===.5) assert.equal(moon.style['--moon-curve-color'],'#f1f4ea');
+    }
+    for(const date of ['1999-12-01T00:00:00Z','2026-11-06T00:00:00Z']) {
+        const e=environment({icon:'clear-night',date});e.window.funnyWeather.trigger('manual');
+        const phase=Number(e.layer().children.find(n=>n.className==='funny-weather-moon').attrs['data-moon-phase']);assert(phase>=0 && phase<1);
+    }
+});
 check('returning from blur or a hidden tab gives standalone weather a full initial idle interval',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
         const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;

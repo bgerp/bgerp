@@ -133,7 +133,7 @@ class pdfform_Api
                 $res['pagesNote'] = 'Only the first ' . self::MAX_TEXT_PAGES . ' pages are listed.';
             }
             if ($cropped) {
-                $res['croppedNote'] = 'Positions are relative to the visible (cropped) page. get_image may show the full uncropped sheet of pages marked cropped, so take positions there from fields and lines.';
+                $res['croppedNote'] = 'Positions are relative to the visible (cropped) page. view_image may show the full uncropped sheet of pages marked cropped, so take positions there from fields and lines.';
             }
             if (!empty($info['xfa'])) {
                 $res['xfa'] = $info['xfa'];
@@ -773,12 +773,12 @@ class pdfform_Api
 
         if ($Script->run(false) === false) {
 
-            return array('error' => 'Text recognition (OCR) is unavailable on the server; view the page with get_image instead.');
+            return array('error' => 'Text recognition (OCR) is unavailable on the server; view the page with view_image instead.');
         }
         if (!is_file($dir . 'ocr.tsv')) {
             log_System::add('pdfform_Api', 'Грешка при OCR: ' . (string) @file_get_contents($dir . 'ocr.err'), null, 'warning');
 
-            return array('error' => 'Text recognition (OCR) failed for this page; view it with get_image instead.');
+            return array('error' => 'Text recognition (OCR) failed for this page; view it with view_image instead.');
         }
 
         return self::parseTsv((string) file_get_contents($dir . 'ocr.tsv'));

@@ -372,7 +372,7 @@ class pos_ReceiptDetails extends core_Detail
                     $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
 
                     if(isset($discount)){
-                        pos_TerminalException::expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
+                        pos_TerminalException::expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между|* -100|% и|* 100%|*!');
                         if($discount != 0){
                             if(strpos($string, '%') === 0){
                                 $discount = -1 * $discount;
