@@ -919,7 +919,7 @@ class eshop_Carts extends core_Master
         
         // Ако има сума, то сумата на ПБД-то се подменя с тази от пристигналото плащане
         if (isset($amount)) {
-            $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getOwnAccountInfo($accountId)->currencyCode : $saleRec->currencyId;
+            $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getDefaultCurrency($accountId, $bankRec->valior ?? null, true) : $saleRec->currencyId;
             $amountDeal = currency_CurrencyRates::convertAmount($amount, null, $fromCurrencyCode, $saleRec->currencyId);
             $bankRec->amount = $amount;
             $bankRec->amountDeal = $amountDeal;

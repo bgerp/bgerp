@@ -164,7 +164,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     public function getGatewayAmount($methodRec, $baseAmount)
     {
         $accountId = $methodRec->ownAccountId ?? null;
-        $currencyCode = !empty($accountId) ? bank_OwnAccounts::getOwnAccountInfo($accountId)->currencyCode : acc_Periods::getBaseCurrencyCode();
+        $currencyCode = !empty($accountId) ? bank_OwnAccounts::getDefaultCurrency($accountId, dt::today(), true) : acc_Periods::getBaseCurrencyCode();
 
         return array(round(currency_CurrencyRates::convertAmount($baseAmount, null, null, $currencyCode), 2), $currencyCode);
     }
