@@ -3852,3 +3852,7 @@ td.leftColImportant {
       .ef-confirm-modal.ef-confirm-error .ef-confirm-ok:hover {
         background: #7a0000; }
 
+.taskStatisticBlocks {
+  width: min-content;
+  min-width: 100%; }
+
