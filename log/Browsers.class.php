@@ -1240,20 +1240,21 @@ class log_Browsers extends core_Master
             if (!empty($bridsForCheck)) {
                 foreach (array('vislog_History', 'core_LoginLog') as $clsName) {
                     $kQuery = $clsName::getQuery();
+                    $kQuery->EXT('browserId', __CLASS__, 'externalName=id,externalKey=brid,externalFieldName=brid');
                     $kQuery->in('brid', $bridsForCheck);
-                    $kQuery->groupBy('brid');
-                    $kQuery->show('brid');
+                    $kQuery->groupBy('browserId');
+                    $kQuery->show('browserId');
                     while ($kRec = $kQuery->fetch()) {
 
-                        // Сравнението в MySQL може да не различава главни/малки букви
-                        $keepArr[strtolower($kRec->brid ?? '')] = true;
+                        // Съпоставянето на BRID следва колацията в MySQL
+                        $keepArr[$kRec->browserId ?? 0] = true;
                     }
                 }
             }
 
             $delIds = array();
             foreach ($bridArr as $id => $brid) {
-                if (!strlen($brid) || !isset($keepArr[strtolower($brid)])) {
+                if (!strlen($brid) || !isset($keepArr[$id])) {
                     $delIds[] = (int) $id;
                 }
             }
