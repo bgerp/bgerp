@@ -2872,6 +2872,77 @@ div.alphabet.twoRows {
 	top: -2px;
 }
 
+/* Пътен лист - етикетът е над стойността, секциите са отделени */
+.trip-sheet {
+	h3 {
+		margin: 16px 0 6px;
+		padding: 4px 8px;
+		border-left: 4px solid #6a9;
+		background-color: rgba(0, 0, 0, 0.04);
+	}
+	/* По-специфично от .document .paddingCells */
+	table.border-table.paddingCells {
+		th {
+			padding: 5px 8px;
+			background-color: rgba(0, 0, 0, 0.06);
+		}
+		> tbody > tr > td, > tfoot > tr > td {
+			padding: 6px 8px;
+			vertical-align: top;
+		}
+	}
+	td > .quiet:first-child {
+		display: block;
+		margin-bottom: 2px;
+		font-size: 0.85em;
+	}
+	> table {
+		margin-top: 12px;
+	}
+	.trip-check {
+		height: 22mm;
+	}
+	.trip-control {
+		height: 18mm;
+	}
+}
+
+/* Пътният лист се печата на един лист A4 */
+@media print {
+	.trip-sheet {
+		font-size: 11pt;
+		line-height: 1.25;
+		h2 {
+			margin: 0;
+			font-size: 15pt;
+		}
+		h3 {
+			margin: 8px 0 4px;
+			padding: 2px 6px;
+			font-size: 12pt;
+		}
+		table.border-table.paddingCells {
+			th, > tbody > tr > td, > tfoot > tr > td {
+				padding: 3px 6px;
+			}
+		}
+		td > .quiet:first-child {
+			display: inline;
+			margin-bottom: 0;
+			font-size: inherit;
+		}
+		> table {
+			margin-top: 8px;
+		}
+		.trip-check {
+			height: 18mm;
+		}
+		.trip-control {
+			height: 15mm;
+		}
+	}
+}
+
 /* Ред от одиторската справка по Н-18 без отразено плащане - и клетките със собствен фон */
 tr.n18-no-payment > td {
 	background-color: #ffd84d !important;

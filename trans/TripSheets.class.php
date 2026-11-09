@@ -573,7 +573,7 @@ class trans_TripSheets extends core_Master
             self::updateCargoSummary($rec);
         }
         if (!empty($rec->expectedReturn) && (($rec->expectedReturn ?? '') < ($rec->departure ?? ''))) {
-            $form->setError('expectedReturn', 'Връщането не може да предхожда тръгването');
+            $form->setError('expectedReturn', self::getReturnError($rec->departure ?? '', $rec->expectedReturn));
         }
         if (($rec->state ?? null) == 'active') {
             $form->setError('departure', 'Пробегът се въвежда с бутона Отчитане след издаване на листа');
@@ -780,7 +780,7 @@ class trans_TripSheets extends core_Master
             $errors['driverId'] = 'Изберете водач';
         }
         if (!empty($rec->expectedReturn) && ($rec->expectedReturn ?? '') < ($rec->departure ?? '')) {
-            $errors['expectedReturn'] = 'Връщането не може да предхожда тръгването';
+            $errors['expectedReturn'] = self::getReturnError($rec->departure ?? '', $rec->expectedReturn ?? '');
         }
 
         return $errors;
@@ -825,7 +825,7 @@ class trans_TripSheets extends core_Master
             }
         }
         if (!empty($rec->departedOn) && !empty($rec->returnedOn) && ($rec->returnedOn ?? '') < ($rec->departedOn ?? '')) {
-            $errors['departedOn,returnedOn'] = 'Връщането не може да предхожда тръгването';
+            $errors['departedOn,returnedOn'] = self::getReturnError($rec->departedOn, $rec->returnedOn);
         }
 
         $errors += trans_TripExpenses::getErrors($rec->expenses ?? null);
@@ -871,11 +871,16 @@ class trans_TripSheets extends core_Master
         $form = cls::get('core_Form');
         $form->setAction(array($this, 'report', $id));
         $reportFields = array_diff(arr::make(self::REPORT_FIELDS), array('signedSheet'));
+
+        // Кратки надписи по групи, за да не се разтяга колоната с надписите
+        $captions = array('odometerStart' => 'Километраж->Начален', 'odometerEnd' => 'Километраж->Краен',
+            'departedOn' => 'Курс->Тръгване', 'returnedOn' => 'Курс->Връщане', 'reportNotes' => 'Бележки->Отклонения');
         foreach ($reportFields as $field) {
             $definition = $this->getField($field);
             $type = $definition->type ?? null;
-            $form->FLD($field, clone $type, array('caption' => $definition->caption ?? $field));
-            $form->setDefault($field, $rec->{$field} ?? null);
+            $form->FLD($field, clone $type, array('caption' => $captions[$field] ?? $definition->caption ?? $field));
+            $value = $rec->{$field} ?? null;
+            $form->setDefault($field, ($field == 'expenses') ? trans_TripExpenses::toFormValue($value) : $value);
         }
         $form->FLD('id', 'int', 'input=hidden,silent');
         $form->setDefault('id', $id);
@@ -950,7 +955,7 @@ class trans_TripSheets extends core_Master
             }
         }
 
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon=img/16/tick.png');
+        $form->toolbar->addSbBtn('Запис', 'save', 'id=save,ef_icon=img/16/disk.png', 'title=Запис на отчета');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon=img/16/close-red.png');
 
         $tpl = $form->renderHtml();
@@ -1113,7 +1118,6 @@ class trans_TripSheets extends core_Master
                 $row->vehicleNumber = $mvc->getFieldType('vehicleNumber')->toVerbal(trans_Vehicles::fetchField($rec->vehicleId, 'number'));
             }
             $row->driverName = $row->driverName ?? $mvc->getVerbal($rec, 'driverId');
-            $row->documentStatus = $row->state ?? '';
             if (in_array($rec->sourceData['manifestVersion'] ?? 0, array(2, 3)) && Request::get('tripView') != 'order') {
                 $row->cargoSummary = self::renderCargoSummary($rec->sourceData['cargoSummary'] ?? array(), $rec->sourceData['manifestVersion'] >= 3);
                 $row->cargoManifest = $row->transportDocuments = '';
@@ -1160,6 +1164,20 @@ class trans_TripSheets extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Грешка при връщане преди тръгването - с двата часа, за да се види разликата
+     *
+     * @param string $departure
+     * @param string $return
+     *
+     * @return string
+     */
+    private static function getReturnError($departure, $return)
+    {
+        return '|Връщането|* (' . dt::mysql2verbal($return, 'd.m.Y H:i') . ') |е преди тръгването|* (' . dt::mysql2verbal($departure, 'd.m.Y H:i') . ')|*!';
     }
 
 

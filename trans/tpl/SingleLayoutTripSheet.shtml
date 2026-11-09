@@ -2,15 +2,14 @@
 <div class="trip-sheet">
     <h2 class="centered" style="margin-bottom:2px">|ПЪТЕН ЛИСТ|* [#series#] № [#sheetNumber#] / [#issueDate#]</h2>
     <div class="centered quiet small">[#transportType#]</div>
-    <!--ET_BEGIN documentStatus--><div class="no-print centered" style="margin-top:6px"><b>[#documentStatus#]</b></div><!--ET_END documentStatus-->
-    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:10px">
+    <table class="innerTable border-table paddingCells" style="width:100%">
         <tr><th style="width:50%">|Предприятие|*</th><th>|Транспортна линия|*</th></tr>
         <tr style="vertical-align:top">
             <td><b>[#companyName#]</b><br>[#companyAddress#]<br><span class="quiet">|ЕИК|*:</span> [#companyNumber#] &nbsp; <span class="quiet">|Телефон|*:</span> [#companyPhone#]</td>
             <td>[#lineId#]</td>
         </tr>
     </table>
-    <h3 style="margin:12px 0 4px">|Курс|*</h3>
+    <h3>|Курс|*</h3>
     <table class="innerTable border-table paddingCells" style="width:100%">
         <tr>
             <td style="width:50%"><span class="quiet">|Автомобил - марка и модел|*:</span> <b>[#vehicleModel#]</b></td>
@@ -25,12 +24,12 @@
             <td><span class="quiet">|Планирано тръгване|*:</span> <b>[#departure#]</b></td>
             <td><span class="quiet">|Планирано връщане|*:</span> <b>[#expectedReturn#]</b></td>
         </tr>
-        <tr><td colspan="2"><span class="quiet">|Маршрут|*:</span><br>[#route#]</td></tr>
-        <!--ET_BEGIN cargo--><tr><td colspan="2"><span class="quiet">|Вид на товара|*:</span><br>[#cargo#]</td></tr><!--ET_END cargo-->
-        <!--ET_BEGIN transportDocuments--><tr><td colspan="2"><span class="quiet">|Документи за товара|*:</span><br>[#transportDocuments#]</td></tr><!--ET_END transportDocuments-->
+        <tr><td colspan="2"><span class="quiet">|Маршрут|*:</span> [#route#]</td></tr>
+        <!--ET_BEGIN cargo--><tr><td colspan="2"><span class="quiet">|Вид на товара|*:</span> [#cargo#]</td></tr><!--ET_END cargo-->
+        <!--ET_BEGIN transportDocuments--><tr><td colspan="2"><span class="quiet">|Документи за товара|*:</span> [#transportDocuments#]</td></tr><!--ET_END transportDocuments-->
         <!--ET_BEGIN cargoSummary--><tr><td colspan="2"><span class="quiet">|Товари по документи|*:</span>[#cargoSummary#]</td></tr><!--ET_END cargoSummary-->
     </table>
-    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px;page-break-inside:avoid">
+    <table class="innerTable border-table paddingCells" style="width:100%;page-break-inside:avoid">
         <tr style="vertical-align:top">
             <td style="width:50%"><span class="quiet">|Издал|*:</span> <b>[#issuerName#]</b><br><span class="quiet">|Подпис|*:</span> ................................</td>
             <td><span class="quiet">|Разрешил излизането|*:</span> <b>[#authorizedBy#]</b><br><span class="quiet">|Подпис и печат|*:</span> ................................</td>
@@ -39,9 +38,9 @@
             <td>|Автомобилът е технически изправен.|*<br><span class="quiet">|Механик - фамилия и подпис|*:</span> ................................</td>
             <td>|Приех автомобила технически изправен.|*<br><span class="quiet">|Водач - фамилия и подпис|*:</span> ................................</td>
         </tr>
-        <tr><td colspan="2" style="height:22mm;vertical-align:top">|Проба за алкохол. Общо здравословно състояние - добро. Водачът е годен да управлява.|*<br><span class="quiet">|Извършил проверката - фамилия и подпис|*:</span> ................................................................</td></tr>
+        <tr><td colspan="2" class="trip-check">|Проба за алкохол. Общо здравословно състояние - добро. Водачът е годен да управлява.|*<br><span class="quiet">|Извършил проверката - фамилия и подпис|*:</span> ................................................................</td></tr>
     </table>
-    <h3 style="margin:12px 0 4px">|Отчет на курса|*</h3>
+    <h3>|Отчет на курса|*</h3>
     <table class="innerTable border-table paddingCells" style="width:100%">
         <tr>
             <td style="width:50%"><span class="quiet">|Излизане - дата и час|*:</span> <b>[#departedOn#]</b></td>
@@ -53,20 +52,20 @@
         </tr>
         <tr><td colspan="2"><span class="quiet">|Изминато разстояние|*:</span> <b>[#distance#]</b> |км|*</td></tr>
     </table>
-    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px">
+    <table class="innerTable border-table paddingCells" style="width:100%">
         <tr><th>|Водач|*</th><th>|Маршрут от - до|*</th><th>|Тръгване|*</th><th>|Пристигане|*</th><th>|Престой|*</th><th>|Заверка|*</th></tr>
         [#movementRows#]
     </table>
-    <!--ET_BEGIN expenseReport--><h3 style="margin:12px 0 4px">|Зареждания и други разходи за автомобила|*</h3>
+    <!--ET_BEGIN expenseReport--><h3>|Зареждания и други разходи за автомобила|*</h3>
     [#expenseReport#]
     <!--ET_END expenseReport-->
-    <table class="innerTable border-table paddingCells" style="width:100%;margin-top:12px;page-break-inside:avoid">
+    <table class="innerTable border-table paddingCells" style="width:100%;page-break-inside:avoid">
         <tr><td colspan="2"><span class="quiet">|Отклонения и бележки|*:</span> [#reportNotes#]<br>........................................................................................................................</td></tr>
         <tr style="vertical-align:top">
             <td style="width:50%"><span class="quiet">|Приел и проверил|*:</span> <b>[#reporterName#]</b><br><span class="quiet">|Подпис|*:</span> ................................</td>
             <td><span class="quiet">|Дата|*:</span> [#reportedOn#]</td>
         </tr>
-        <tr><td colspan="2" style="height:18mm;vertical-align:top"><span class="quiet">|Бележки на контролните органи|*:</span> ........................................................................................................................<br><br><span class="quiet">|Подпис и печат|*:</span> ................................</td></tr>
+        <tr><td colspan="2" class="trip-control"><span class="quiet">|Бележки на контролните органи|*:</span> ........................................................................................................................<br><br><span class="quiet">|Подпис и печат|*:</span> ................................</td></tr>
     </table>
     <!--ET_BEGIN signedSheet--><div class="no-print" style="margin-top:8px"><span class="quiet">|Подписан лист|*:</span> [#signedSheet#]</div><!--ET_END signedSheet-->
     <!--ET_BEGIN cargoManifest-->
