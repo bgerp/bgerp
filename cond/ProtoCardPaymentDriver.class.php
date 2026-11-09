@@ -225,7 +225,8 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getConfig($methodRec)
     {
-        return array('ownAccountId' => $methodRec->ownAccountId ?? null, 'terminalId' => $methodRec->terminalId ?? null, 'merchantId' => $methodRec->merchantId ?? null);
+        return array('ownAccountId' => $methodRec->ownAccountId ?? null, 'terminalId' => $methodRec->terminalId ?? null, 'merchantId' => $methodRec->merchantId ?? null,
+            'procId' => $methodRec->n18ProcId ?? null);
     }
 
 
@@ -238,6 +239,22 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     {
         $fieldset->FLD('ownAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане с карта->Банкова сметка,mandatory,after=onlinePaymentText');
         $fieldset->FLD('n18PaymentCode', "enum(2=Виртуален ПОС,4=Доставчик на платежни услуги)", "caption=Плащане с карта->Вид по Н-18,notNull,value={$this->defaultN18PaymentCode},after=ownAccountId");
+        $fieldset->FLD('n18ProcId', 'varchar(200)', 'caption=Плащане с карта->Доставчик (ЕИК и име),after=n18PaymentCode,hint=ЕИК (за чуждестранен - ДДС или друг номер) и наименование на доставчика на платежни услуги');
+    }
+
+
+    /**
+     * Проверка на формата на начина на плащане
+     *
+     * @param cond_ProtoCardPaymentDriver $Driver
+     * @param embed_Manager               $Embedder
+     * @param core_Form                   $form
+     */
+    public static function on_AfterInputEditForm($Driver, $Embedder, &$form)
+    {
+        if ($form->isSubmitted() && ($form->rec->n18PaymentCode ?? null) == 4 && empty($form->rec->n18ProcId)) {
+            $form->setError('n18ProcId', 'При доставчик на платежни услуги е задължителен идентификаторът му|*!');
+        }
     }
 
 

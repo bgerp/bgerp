@@ -366,10 +366,11 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $oRec->docDate = dt::mysql2verbal($regDoc->issuedOn, 'Y-m-d');
             $oRec->posId = $regDoc->posId ?? '';
             $oRec->transactionRef = $regDoc->transactionRef ?? '';
+            $oRec->procId = $regDoc->procId ?? '';
             $oRec->regDocId = $regDoc->id;
             if (empty($oRec->paym)) {
                 $oRec->errors[] = 'Документът по чл. 52о е без код на плащането';
-            } elseif ($oRec->paym == 4) {
+            } elseif ($oRec->paym == 4 && empty($oRec->procId)) {
                 $oRec->errors[] = 'Липсва идентификаторът на доставчика на платежни услуги';
             } elseif ($oRec->paym == 2 && (empty($oRec->posId) || empty($oRec->transactionRef))) {
                 $oRec->errors[] = 'При виртуален ПОС липсва номерът на ПОС или на трансакцията';

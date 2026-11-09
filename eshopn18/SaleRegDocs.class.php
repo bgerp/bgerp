@@ -107,6 +107,7 @@ class eshopn18_SaleRegDocs extends core_Master
         $this->FLD('transactionRef', 'varchar(64)', 'caption=Трансакция,input=none');
         $this->FLD('posId', 'varchar(32)', 'caption=Виртуален ПОС,input=none');
         $this->FLD('merchantId', 'varchar(32)', 'caption=Merchant ID,input=none');
+        $this->FLD('procId', 'varchar(200)', 'caption=Доставчик на платежни услуги,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума,input=none');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input=none');
         $this->FLD('lines', 'blob(1000000, serialize, compress)', 'caption=Редове,input=none,column=none,single=none');
@@ -124,7 +125,7 @@ class eshopn18_SaleRegDocs extends core_Master
      *
      * @param stdClass $cartRec     - количката
      * @param stdClass $saleRec     - продажбата по нея
-     * @param array    $paymentData - transactionRef, posId, merchantId, paidOn, amount, currencyCode (валутата на сумата, ако не е тази на продажбата)
+     * @param array    $paymentData - transactionRef, posId, merchantId, procId, paidOn, amount, currencyCode (валутата на сумата, ако не е тази на продажбата)
      *
      * @return stdClass
      */
@@ -148,6 +149,7 @@ class eshopn18_SaleRegDocs extends core_Master
             'transactionRef' => $transactionRef,
             'posId' => $paymentData['posId'] ?? null,
             'merchantId' => $paymentData['merchantId'] ?? null,
+            'procId' => $paymentData['procId'] ?? null,
             'total' => static::getPaidAmount($cartRec, $saleRec, $paymentData, $lines),
             'currencyId' => $saleRec->currencyId ?? null,
             'lines' => $lines,

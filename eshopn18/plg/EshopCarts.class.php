@@ -47,6 +47,9 @@ class eshopn18_plg_EshopCarts extends core_Plugin
         $settings = cms_Domains::getSettings($rec->domainId);
         $paymentData['shopNumber'] = $settings->n18ShopNumber;
         $paymentData['paymentCode'] = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)->getN18PaymentCode($rec->paymentId);
+        if (empty($paymentData['procId'])) {
+            $paymentData['procId'] = cond_PaymentMethods::fetchField($rec->paymentId, 'n18ProcId');
+        }
         $rec->n18PaymentData = $paymentData;
 
         // Неуспешният запис не спира плащането - документът се опитва с данните в паметта

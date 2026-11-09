@@ -16647,3 +16647,6 @@ en,Отклонения,Deviations
 en,"За всеки ред от стоките са задължителни наименование, опаковка/мярка и брой/количество. Маркировката и теглото не са задължителни.","For each goods row, the name, packaging/unit and quantity are required. Marks and weight are optional."
 en,Номерът на магазина от НАП в настройките му трябва да е RF и 7 цифри,The shop number from the NRA in its settings must be RF followed by 7 digits
 en,Месецът още не е приключил - файлът се подава след края му,The month is not over yet - the file is submitted after it ends
+en,Доставчик (ЕИК и име),Provider (ID and name)
+en,"ЕИК (за чуждестранен - ДДС или друг номер) и наименование на доставчика на платежни услуги","UIC (for a foreign one - VAT or other number) and name of the payment service provider"
+en,При доставчик на платежни услуги е задължителен идентификаторът му,The identifier is required for a payment service provider
