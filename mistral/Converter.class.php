@@ -8,7 +8,7 @@
  * @package   mistral
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -125,7 +125,7 @@ class mistral_Converter extends core_Manager
     
     
     /**
-     *
+     * Разпознава файл от fileman или временен файл по път
      *
      * @param stdClass|string $fRec
      *
@@ -145,8 +145,8 @@ class mistral_Converter extends core_Manager
         );
         
         if (is_object($fRec)) {
-            $params['dataId'] = $fRec->dataId;
-            $file = $fRec->fileHnd;
+            $params['dataId'] = $fRec->dataId ?? null;
+            $file = $fRec->fileHnd ?? '';
         } else {
             $params['isPath'] = true;
             $file = $fRec;
@@ -159,18 +159,26 @@ class mistral_Converter extends core_Manager
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (core_Locks::isLocked($params['lockId'])) {
-            if ($params['asynch']) {
+            if (!empty($params['asynch'])) {
                 // Добавяме съобщение
                 status_Messages::newStatus('|В момента се прави тази обработка');
             }
         } else {
             // Заключваме процеса за определено време
             if (core_Locks::obtain($params['lockId'], 300, 0, 0, false)) {
-                fileman_Data::logWrite('OCR обработка на файл с tesseract', $fRec->dataId);
-                fileman_Files::logWrite('OCR обработка на файл с tesseract', $fRec->id);
+                // Временният файл няма запис, към който да се добави лог.
+                if (is_object($fRec)) {
+                    fileman_Data::logWrite('OCR обработка на файл с mistral.ai', $fRec->dataId ?? null);
+                    fileman_Files::logWrite('OCR обработка на файл с mistral.ai', $fRec->id ?? null);
+                }
                 
                 // Стартираме извличането
-                return static::getText($file, $params);
+                try {
+                    return static::getText($file, $params);
+                } catch (Throwable $e) {
+                    core_Locks::release($params['lockId']);
+                    throw $e;
+                }
             }
         }
     }
@@ -190,7 +198,8 @@ class mistral_Converter extends core_Manager
         
         $convArr = array();
         
-        if (!$params['isPath']) {
+        $isPath = !empty($params['isPath']);
+        if (!$isPath) {
             // Вземам записа за файла
             $fRec = fileman_Files::fetchByFh($fileHnd);
             
@@ -200,10 +209,11 @@ class mistral_Converter extends core_Manager
             // Очакваме да може да се извлече информация от файла
             expect(static::canExtract($fRec));
             
-            $ext = fileman_Files::getExt($fRec->name);
+            $ext = fileman_Files::getExt($fRec->name ?? '');
 
-            $fName = $fRec->name;
+            $fName = $fRec->name ?? '';
         } else {
+            expect(is_file($fileHnd) && is_readable($fileHnd), 'Файлът за OCR не е достъпен');
             expect(static::canExtract($fileHnd));
             
             $ext = fileman_Files::getExt($fileHnd);
@@ -223,10 +233,12 @@ class mistral_Converter extends core_Manager
 
         if (mistral_Setup::get('OCR_USE_BASE_64_ON_ATTACHED_IMAGES') == 'yes') {
             $fType = fileman::getType($fName);
-            $fUrl = base64_encode(fileman::extractStr($fileHnd));
+            $content = $isPath ? file_get_contents($fileHnd) : fileman::extractStr($fileHnd);
+            expect(is_string($content), 'Файлът за OCR не може да бъде прочетен');
+            $fUrl = base64_encode($content);
             $documentUrl = "data:{$fType};base64,{$fUrl}";
         } else {
-            $documentUrl = fileman_Download::getDownloadUrl($fileHnd);
+            $documentUrl = fileman_Download::getDownloadUrl($fileHnd, 1, $isPath ? 'path' : 'handler');
         }
 
         setIfNot($params['getImageBase64'], false);
@@ -273,10 +285,10 @@ class mistral_Converter extends core_Manager
         curl_close($curl);
 
         $response = @json_decode($response);
-        if ($response && $response->pages) {
+        if (!empty($response->pages)) {
             $md = '';
             foreach ($response->pages as $page) {
-                $md .= $page->markdown;
+                $md .= $page->markdown ?? '';
             }
             if ($md) {
                 if (!$params['getMarkdown']) {
@@ -308,9 +320,9 @@ class mistral_Converter extends core_Manager
     {
         $name = $fRec;
         if (is_object($fRec)) {
-            $name = $fRec->name;
+            $name = $fRec->name ?? '';
         }
-        $ext = strtolower(fileman_Files::getExt($name));
+        $ext = strtolower(fileman_Files::getExt($name ?? ''));
         
         // Ако разширението е в позволените
         if ($ext && in_array($ext, self::$allowedExt)) {
