@@ -1,7 +1,7 @@
 <?php
 
 // php -n -d extension=json mistral/tests/ocr.php (PHP 8.2: без extension=json).
-// При вграден curl добавете -d disable_functions=curl_init,curl_setopt,curl_exec,curl_close.
+// При вграден curl изключете curl_init,curl_setopt,curl_exec,curl_close,curl_errno,curl_getinfo.
 // Синтетични файлове и заместен HTTP транспорт, без API заявки и база данни.
 if (PHP_SAPI !== 'cli') exit("CLI only.\n");
 if (function_exists('curl_init')) { fwrite(STDERR, "Disable curl functions for this isolated test.\n"); exit(1); }
@@ -10,10 +10,24 @@ set_error_handler(function ($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
-class core_Manager {}
+class core_Manager
+{
+    public static $errors = array();
+    public static function logErr($message, $id = null) { self::$errors[] = array($message, $id); }
+}
 class core_Users { public static function getCurrent($part) { return 7; } }
 class core_App { public static function setTimeLimit($seconds) {} }
-class core_exception_Redirect extends RuntimeException {}
+class Request { public static function get($name) { return 'TEST01'; } }
+class Redirect
+{
+    public $url, $message, $type;
+    public function __construct($url, $message = null, $type = 'notice')
+    {
+        $this->url = $url;
+        $this->message = $message;
+        $this->type = $type;
+    }
+}
 class core_Locks
 {
     public static $held = array();
@@ -29,7 +43,10 @@ class fileman_webdrv_Generic
 class fileman_Data
 {
     public static $logs = array();
+    public static $resetCount = 0;
     public static function logWrite($message, $id) { self::$logs[] = array($message, $id); }
+    public static function fetch($id) { return (object) array('id' => $id); }
+    public static function resetProcess($rec) { self::$resetCount++; }
 }
 class fileman_Files
 {
@@ -38,6 +55,7 @@ class fileman_Files
     public static function fetchByFh($fh) { expect($fh === 'TEST01', 'A path was used as a file handle'); return self::$rec; }
     public static function getExt($name) { return pathinfo($name, PATHINFO_EXTENSION); }
     public static function logWrite($message, $id) { self::$logs[] = array($message, $id); }
+    public static function requireRightFor($action, $rec) {}
 }
 class fileman extends fileman_Files
 {
@@ -73,13 +91,19 @@ class markdown_Render { public static function Convert($text) { return 'html:' .
 class status_Messages { public static function newStatus($text) {} }
 function expect($ok, $message = '') { if (!$ok) throw new RuntimeException($message); }
 function setIfNot(&$value, $default) { if (!isset($value)) $value = $default; }
+function reportException($e) { $GLOBALS['reported'][] = $e; }
+function getRetUrl() { return array('fileman_Files', 'single', 'TEST01'); }
 
 foreach (array('CURLOPT_SSL_VERIFYHOST', 'CURLOPT_SSL_VERIFYPEER', 'CURLOPT_RETURNTRANSFER',
-    'CURLOPT_POST', 'CURLOPT_POSTFIELDS', 'CURLOPT_HTTPHEADER') as $i => $constant) {
+    'CURLOPT_POST', 'CURLOPT_POSTFIELDS', 'CURLOPT_HTTPHEADER', 'CURLINFO_HTTP_CODE') as $i => $constant) {
     if (!defined($constant)) define($constant, $i + 1);
 }
 $requests = array();
 $transportError = null;
+$reported = array();
+$httpCode = 200;
+$curlErrno = 0;
+$responseBody = json_encode(array('pages' => array(array('markdown' => 'QA OCR'), array('markdown' => ' 123.45 EUR'))));
 if (!function_exists('curl_init')) {
     function curl_init($url) { return (object) array('options' => array()); }
     function curl_setopt($curl, $option, $value) { $curl->options[$option] = $value; }
@@ -87,13 +111,16 @@ if (!function_exists('curl_init')) {
     {
         $GLOBALS['requests'][] = json_decode($curl->options[CURLOPT_POSTFIELDS], true);
         if ($GLOBALS['transportError']) throw $GLOBALS['transportError'];
-        return json_encode(array('pages' => array(array('markdown' => 'QA OCR'), array('markdown' => ' 123.45 EUR'))));
+        return $GLOBALS['responseBody'];
     }
     function curl_close($curl) {}
+    function curl_errno($curl) { return $GLOBALS['curlErrno']; }
+    function curl_getinfo($curl, $option) { return $GLOBALS['httpCode']; }
 }
 
 require dirname(__DIR__, 2) . '/fileman/FileActionsIntf.class.php';
 require dirname(__DIR__, 2) . '/fileman/OCRIntf.class.php';
+require dirname(__DIR__, 2) . '/core/exception/Redirect.class.php';
 require dirname(__DIR__) . '/Converter.class.php';
 $ocr = new fileman_OCRIntf();
 $ocr->class = new mistral_Converter();
@@ -138,15 +165,77 @@ try {
 
     foreach (array(new RuntimeException('transport failed'), new core_exception_Redirect('redirect')) as $error) {
         $transportError = $error;
+        $reportsBefore = count($reported);
         try { $ocr->getTextByOcr($path); throw new LogicException('Expected error'); }
         catch (Throwable $e) { check($e === $error, 'Original exception/redirect propagated'); }
         check(!core_Locks::$held, 'Lock released after error/redirect');
+        check(count($reported) === $reportsBefore + ($error instanceof core_exception_Redirect ? 0 : 1), 'Redirect is not reported as a failure');
     }
     $transportError = null;
     $before = count($requests);
     try { $ocr->getTextByOcr($path . '.missing.png'); throw new LogicException('Missing file accepted'); }
     catch (RuntimeException $e) { check($e->getMessage() === 'Файлът за OCR не е достъпен', 'Missing file rejected'); }
     check(count($requests) === $before && !core_Locks::$held, 'Missing file neither calls API nor leaves a lock');
+
+    $successfulResponse = $responseBody;
+    foreach (array(
+        array(429, 0, '{"object":"error","message":"Rate limit exceeded"}', 'HTTP 429'),
+        array(401, 0, '{"message":"synthetic-key"}', 'HTTP 401'),
+        array(503, 0, '<html>Unavailable</html>', 'HTTP 503'),
+        array(302, 0, '', 'HTTP 302'),
+        array(0, 28, false, 'cURL 28'),
+        array(200, 0, false, 'transport'),
+        array(200, 0, 'invalid JSON', 'invalid OCR response'),
+        array(200, 0, '{}', 'invalid OCR response'),
+        array(200, 0, '{"pages":"invalid"}', 'invalid OCR response'),
+        array(200, 0, '{"object":"error","pages":[]}', 'invalid OCR response'),
+        array(200, 0, '{"pages":[{"markdown":"partial"},{}]}', 'invalid OCR response'),
+        array(200, 0, '{"pages":[{"markdown":[]}]}', 'invalid OCR response'),
+    ) as $failure) {
+        list($httpCode, $curlErrno, $responseBody, $expected) = $failure;
+        foreach (array($path, fileman_Files::$rec) as $file) {
+            $saved = fileman_Indexes::$saved;
+            $reportsBefore = count($reported);
+            $logsBefore = count(core_Manager::$errors);
+            $requestsBefore = count($requests);
+            try { $ocr->getTextByOcr($file); throw new LogicException('Failure was returned as OCR text'); }
+            catch (RuntimeException $e) {
+                check(strpos($e->getMessage(), $expected) !== false, 'Failure identifies HTTP/transport/format cause');
+                check(strpos($e->getMessage(), 'synthetic-key') === false, 'API response and credentials are not exposed');
+                check(count($reported) === $reportsBefore + 1 && end($reported) === $e, 'Failure reported once');
+            }
+            check(count(core_Manager::$errors) === $logsBefore + 1, 'Failure is logged');
+            check(fileman_Indexes::$saved === $saved, 'Failure preserves existing OCR text and does not save empty text');
+            check(!core_Locks::$held, 'Failure releases its lock');
+            check(count($requests) === $requestsBefore + 1, 'Failure is not retried automatically');
+        }
+    }
+    $httpCode = 200;
+    $curlErrno = 0;
+    $reportsBefore = count($reported);
+    foreach (array('{"pages":[{"markdown":""}]}', '{"pages":[]}') as $responseBody) {
+        check($ocr->getTextByOcr($path) === '', 'Valid empty OCR result is still accepted');
+    }
+    check(count($reported) === $reportsBefore, 'Valid empty OCR result is not reported as a failure');
+    $responseBody = $successfulResponse;
+    check($ocr->getTextByOcr(fileman_Files::$rec) === 'QA OCR 123.45 EUR', 'OCR succeeds after failures');
+
+    $httpCode = 429;
+    $reportsBefore = count($reported);
+    $saved = fileman_Indexes::$saved;
+    $redirect = $ocr->class->act_getTextByOcr();
+    check($redirect->url === getRetUrl() && $redirect->type === 'error' && strpos($redirect->message, 'HTTP 429') !== false, 'File button returns a visible error to the original page');
+    check(count($reported) === $reportsBefore + 1, 'File button does not report the same failure twice');
+    check(fileman_Data::$resetCount === 0 && fileman_Indexes::$saved === $saved, 'Failed file action does not reset processing or overwrite text');
+    $httpCode = 200;
+    $redirect = $ocr->class->act_getTextByOcr();
+    check($redirect->url['currentTab'] === 'text' && fileman_Data::$resetCount === 1, 'Successful file action retains text tab and processing reset');
+    check(end(fileman_Indexes::$saved)['content'] === 'QA OCR 123.45 EUR', 'Successful file action retains OCR text');
+    $transportError = new core_exception_Redirect('/synthetic-redirect');
+    $reportsBefore = count($reported);
+    try { $ocr->class->act_getTextByOcr(); throw new LogicException('Redirect was swallowed'); }
+    catch (core_exception_Redirect $e) { check($e === $transportError, 'File action propagates the framework redirect'); }
+    check(count($reported) === $reportsBefore && !core_Locks::$held, 'File action neither reports redirect nor leaves a lock');
 } finally {
     unlink($path);
 }

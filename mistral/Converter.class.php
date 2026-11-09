@@ -101,7 +101,16 @@ class mistral_Converter extends core_Manager
         
         fileman_Files::requireRightFor('single', $fRec);
         
-        $this->getTextByOcr($fRec);
+        try {
+            $this->getTextByOcr($fRec);
+        } catch (RuntimeException $e) {
+            // Отказът на услугата вече е репортнат от getTextByOcr.
+            return new Redirect(
+                getRetUrl() ?: array('fileman_Files', 'single', $fRec->fileHnd ?? ''),
+                '|Грешка при OCR обработката|*: ' . $e->getMessage(),
+                'error'
+            );
+        }
         
         // URL' то където ще редиректваме
         $retUrl = getRetUrl();
@@ -177,6 +186,10 @@ class mistral_Converter extends core_Manager
                     return static::getText($file, $params);
                 } catch (Throwable $e) {
                     core_Locks::release($params['lockId']);
+                    if (!($e instanceof core_exception_Redirect)) {
+                        reportException($e);
+                        static::logErr($e->getMessage());
+                    }
                     throw $e;
                 }
             }
@@ -278,16 +291,33 @@ class mistral_Converter extends core_Manager
 
         // Изпълняваме заявката
         $response = curl_exec($curl);
+        $httpCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $curlErrno = curl_errno($curl);
 
         $res = '';
 
         // Затваряме cURL сесията
         curl_close($curl);
 
-        $response = @json_decode($response);
+        // Отказът на услугата не е успешно разпознаване на празен документ.
+        if ($response === false || $curlErrno) {
+            throw new RuntimeException("Mistral OCR: transport error (cURL {$curlErrno})");
+        }
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new RuntimeException("Mistral OCR: HTTP {$httpCode}" .
+                ($httpCode === 429 ? ' - rate limit exceeded; try again later' : ''));
+        }
+
+        $response = json_decode($response);
+        if (!is_object($response) || !is_array($response->pages ?? null) || ($response->object ?? null) === 'error') {
+            throw new RuntimeException('Mistral OCR: invalid OCR response');
+        }
         if (!empty($response->pages)) {
             $md = '';
             foreach ($response->pages as $page) {
+                if (!is_object($page) || !is_string($page->markdown ?? null)) {
+                    throw new RuntimeException('Mistral OCR: invalid OCR response');
+                }
                 $md .= $page->markdown ?? '';
             }
             if ($md) {
