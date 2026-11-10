@@ -19,6 +19,33 @@ spec.loader.exec_module(worker)
 class Lifecycle(unittest.TestCase):
     """Real child processes with simulated success, client failure and timeout."""
 
+    def test_html_input_filter(self):
+        """Load HTML as Writer only for DOCX; keep other imports autodetected."""
+        for source, extension, expected in (
+            ("form.html", ".docx", ["--input-filter", "HTML (StarWriter)"]),
+            ("form.HTM", ".DOCX", ["--input-filter", "HTML (StarWriter)"]),
+            ("form.html", ".pdf", []), ("form.html", ".odt", []),
+            ("form.html", ".rtf", []), ("form.docx", ".html", []),
+            ("form.odt", ".docx", []), ("table.xlsx", ".pdf", []),
+        ):
+            with self.subTest(source=source, extension=extension), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory, "result" + extension)
+
+                def client(*args, **kwargs):
+                    """Complete the simulated conversion without starting Office."""
+                    output.write_bytes(b"document")
+
+                with mock.patch.object(worker.subprocess, "Popen"), \
+                     mock.patch.object(worker.subprocess, "run", side_effect=client) as run, \
+                     mock.patch.object(worker.os, "killpg"):
+                    worker.convert(directory, "soffice", source, str(output))
+                command = run.call_args.args[0]
+                if expected:
+                    position = command.index("--input-filter")
+                    self.assertEqual(command[position:position + 2], expected)
+                else:
+                    self.assertNotIn("--input-filter", command)
+
     def test_cleanup(self):
         """Stop the owned process, preserve unrelated processes and remove the profile."""
         original_popen = subprocess.Popen
