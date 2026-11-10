@@ -785,13 +785,9 @@ class planning_Tasks extends core_Master
                 $row->employees = implode(', ', $employees);
             }
 
-            if ($rec->isFinal == 'yes') {
-                $compareMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobRec->productId, $rec->measureId)->quantity;
-            } else {
-                $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
-            }
+            $compareProductId = (($rec->isFinal ?? null) == 'yes') ? ($jobRec->productId ?? null) : ($rec->productId ?? null);
+            $compareMeasureId = cat_Products::fetchField($compareProductId, 'measureId');
+            $expectedMeasureQuantityInPack = (($rec->measureId ?? null) == $compareMeasureId) ? 1 : (cat_products_Packagings::getPack($compareProductId, $rec->measureId ?? null)->quantity ?? 1);
 
             // Ако има разминаване с очакваното к-во в опаковка да се покаже
             if ($rec->quantityInPack != $expectedMeasureQuantityInPack) {

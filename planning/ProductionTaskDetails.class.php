@@ -2210,8 +2210,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $this->checkFormForNetWeight($masterRec, $form);
 
             if(!$form->gotErrors()){
-                $rec->netWeight = $form->rec->netWeight;
-                $rec->weight = $form->rec->weight;
+                $rec->netWeight = $form->rec->netWeight ?? null;
+                $rec->weight = $form->rec->weight ?? null;
                 $logMsg = "Промяна на бруто";
                 $statusMsg = 'Брутото е променено|*!';
                 $this->save_($rec, 'weight, netWeight');
