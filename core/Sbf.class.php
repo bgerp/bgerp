@@ -227,7 +227,7 @@ class core_Sbf extends core_Mvc
                 'woff2' => 'application/octet-stream',
             );
             
-            $ctype = $mimeTypes[$fileExt];
+            $ctype = $mimeTypes[$fileExt] ?? null;
             
             if (!$ctype) {
                 if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {

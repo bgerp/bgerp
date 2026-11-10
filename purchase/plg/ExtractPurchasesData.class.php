@@ -7,7 +7,7 @@
  * @package   purchase
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -408,8 +408,15 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         foreach ($exItems as $expense) {
             $exItem = acc_Items::fetch($expense);
+            if (empty($exItem->classId) || empty($exItem->objectId)) {
+                continue;
+            }
+            
+            // Разходният обект може да не е документ и да няма нишка
             $exItemDocClassName = core_Classes::getName($exItem->classId);
-            if ($threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId) {
+            $exItemRec = $exItemDocClassName::fetch($exItem->objectId);
+            $threadId = is_object($exItemRec) ? ($exItemRec->threadId ?? null) : null;
+            if (!empty($threadId)) {
                 $threadsArr[$threadId] = $threadId;
             }
         }
