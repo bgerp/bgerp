@@ -21,7 +21,7 @@ defIfNot('CORE_PERMANENT_PREFIX_SALT', md5(EF_SALT . '_CORE_PERM'));
  * @package   core
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -236,13 +236,26 @@ class core_Permanent extends core_Manager
     /**
      * Подготовка на филтър формата
      *
-     * @param bgerp_Bookmark $mvc
+     * @param core_Permanent $mvc
      * @param object         $data
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('createdOn', 'DESC');
-        $data->query->orderBy('id', 'DESC');
+        $form = $data->listFilter ?? null;
+        $query = $data->query ?? null;
+        $form->FLD('search', 'varchar', 'caption=Ключ,silent');
+        $form->showFields = 'search';
+        $form->view = 'horizontal';
+        $form->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon=img/16/funnel.png');
+        $form->input('search', 'silent');
+
+        $search = $form->rec->search ?? '';
+        if ($search !== '') {
+            $query->where(array("LOCATE('[#1#]', #key) > 0", $search));
+        }
+
+        $query->orderBy('createdOn', 'DESC');
+        $query->orderBy('id', 'DESC');
     }
 
 
