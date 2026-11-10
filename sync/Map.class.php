@@ -188,7 +188,7 @@ class sync_Map extends core_Manager
 
                                 return self::EXPORT_FILTERED;
                             }
-                            $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue ?? null);
+                            $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue ?? '');
                             $rec->__paramId = $rec->paramId;
                         } catch (core_exception_Expect $e) {
                             $rec->paramValue = null;

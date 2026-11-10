@@ -247,9 +247,16 @@ class eshopn18_SaleRegDocs extends core_Master
      */
     protected function fetchByPublicKey()
     {
-        Request::setProtected('doc');
-        $id = Request::get('doc', 'int');
-        Request::removeProtected('doc');
+        $key = (string) Request::get('id', 'varchar');
+        if ($key !== '') {
+            $id = str::checkHash($key, 8, 'eshopn18Doc', '-');
+            $id = ctype_digit((string) $id) ? (int) $id : 0;
+        } else {
+            // Адресите от вече изпратените имейли
+            Request::setProtected('doc');
+            $id = Request::get('doc', 'int');
+            Request::removeProtected('doc');
+        }
         expect($id && ($rec = $this->fetch($id)), 'Няма такъв документ');
 
         return $rec;
@@ -266,11 +273,9 @@ class eshopn18_SaleRegDocs extends core_Master
      */
     public static function getPublicUrl($rec, $action = 'show')
     {
-        Request::setProtected('doc');
-        $url = toUrl(array(get_called_class(), $action, 'doc' => $rec->id), 'absolute');
-        Request::removeProtected('doc');
+        $url = array('A', 'R', str::addHash($rec->id, 8, 'eshopn18Doc', '-'), 'pdf' => ($action == 'pdf') ? 1 : null);
 
-        return $url;
+        return toUrl($url, 'absolute');
     }
 
 

@@ -258,7 +258,7 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                 $recs[$key] = (object) array('kind' => 'order', 'cartId' => $cartRec->id, 'saleId' => $saleRec->id, 'saleState' => $saleRec->state, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
                     'orderDate' => dt::mysql2verbal(!empty($cartRec->activatedOn) ? $cartRec->activatedOn : $saleRec->valior, 'Y-m-d'), 'docs' => array(), 'lines' => array(), 'errors' => array(),
                     'total1' => 0, 'disc' => 0, 'vat' => 0, 'total2' => 0, 'deliveryDate' => $dRec->valior,
-                    'dealCurrency' => $saleRec->currencyId, 'dealRate' => $saleRec->currencyRate);
+                    'dealCurrency' => $saleRec->currencyId, 'dealRate' => $saleRec->currencyRate, 'saleDelivered' => $saleRec->amountDelivered ?? null);
                 $this->preparePayment($recs[$key], $saleRec, $cartRec);
             }
             $oRec = $recs[$key];
@@ -287,7 +287,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             }
         }
 
-        foreach ($recs as $oRec) {
+        foreach ($recs as $key => $oRec) {
+            // Неплатена поръчка с изцяло върната стока не е продажба - не се подава
+            if (!empty($oRec->errors['noPayment']) && isset($oRec->saleDelivered) && abs($oRec->saleDelivered) < 0.01) {
+                unset($recs[$key]);
+                continue;
+            }
             $oRec->date = $oRec->deliveryDate;
 
             // Сумата, платена от клиента във валутата на сделката - от точната сума на документите

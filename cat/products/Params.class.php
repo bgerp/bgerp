@@ -149,7 +149,7 @@ class cat_products_Params extends doc_Detail
         }
 
         try{
-            if(trim($rec->paramValue) !== ''){
+            if(trim($rec->paramValue ?? '') !== ''){
                 $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
 
                 if (!empty($paramRec->suffix)) {
@@ -616,8 +616,9 @@ class cat_products_Params extends doc_Detail
 
         // Има ли промяна на стойноста на параметъра
         $exValue = $rec->_exParamValue ?? null;
-        if($exValue != $rec->paramValue){
-            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $rec->paramValue, $exValue);
+        $paramValue = $rec->paramValue ?? null;
+        if($exValue != $paramValue){
+            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $paramValue, $exValue);
             if(!empty($res['msg'])){
                 core_Statuses::newStatus($res['msg']);
             }
