@@ -87,7 +87,7 @@ body.commerce-theme.bordeaux-theme #cmsMenu.menuRow a.loginIcon:hover { backgrou
 body.commerce-theme.bordeaux-theme #cmsMenu a.commerce-cart-link { background: #651d2b !important; border-color: #a76876; }
 body.commerce-theme.bordeaux-theme #cmsMenu a.commerce-cart-link:hover { background: #7d2639 !important; }
 body.commerce-theme.bordeaux-theme .commerce-primary-menu[open] .commerce-primary-links { background: var(--c-dark); }
-body.commerce-theme.bordeaux-theme #cmsMenu .commerce-language-options { background: var(--c-dark); }
+body.commerce-theme.bordeaux-theme #cmsMenu .commerce-language-options { background: #fff; }
 body.commerce-theme.bordeaux-theme :is(.commerce-primary-menu, .commerce-languages) > summary { border-radius: 0; border-color: #a76876; }
 body.commerce-theme.bordeaux-theme .externalPage #maincontent { background: var(--c-bg); }
 body.commerce-theme.bordeaux-theme :is(.cms-article-title, .blogm-browse > h1, .eshop-catalog-title h1, .blogm-article-title) {
