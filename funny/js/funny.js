@@ -41,7 +41,7 @@
             function characters() {
                 if (options.mode === 'auto') {
                     var now = new Date(), month = now.getMonth() + 1, day = now.getDate();
-                    if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch'];
+                    if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher'];
                     if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'deer', 'snowman'];
                     if (month <= 2) return ['snowman', 'casper'];
                     var easter = options.easterDates && options.easterDates[now.getFullYear()];

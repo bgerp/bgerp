@@ -162,7 +162,7 @@
     <path d="M93.0 76.0q3.0 3.0 6.0 0" fill="none" stroke="#f8c6cf" stroke-width="1.6" stroke-linecap="round"/>
   </symbol>
   <symbol id="cat" viewBox="0 0 120 100">
-    <path d="M92 52q20-8 14-34-2-6-6-2 6 22-12 28z" fill="#f2a24a" stroke="#c4762a" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M88 62Q116 50 106 18q-2-6-6-2Q108 44 84 53z" fill="#f2a24a" stroke="#c4762a" stroke-width="2" stroke-linejoin="round"/>
     <path d="M38 76l-3 16m14-15 1 15m30-16 2 16m11-17 4 15" stroke="#c4762a" stroke-width="7" stroke-linecap="round"/>
     <path d="M38 76l-3 16m14-15 1 15m30-16 2 16m11-17 4 15" stroke="#f2a24a" stroke-width="4" stroke-linecap="round"/>
     <ellipse cx="66" cy="64" rx="30" ry="16" fill="#f2a24a" stroke="#c4762a" stroke-width="2"/>
