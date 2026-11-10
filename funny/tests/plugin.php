@@ -112,7 +112,7 @@ if (strpos(jquery_Jquery::$script, '"sound":"scary"') === false || strpos(jquery
     strpos(jquery_Jquery::$script, '"frequency":"frequent"') === false || strpos(jquery_Jquery::$script, '"trigger":"manual"') === false) {
     throw new RuntimeException('Sound mode or Easter dates lost');
 }
-if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 17) {
+if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 23) {
     throw new RuntimeException('Unexpected package defaults');
 }
 if (date('Y-m-d', dt::getOrthodoxEasterTms(2026)) !== '2026-04-12' || date('Y-m-d', dt::getOrthodoxEasterTms(2027)) !== '2027-05-02') {
