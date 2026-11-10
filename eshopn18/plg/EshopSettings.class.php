@@ -23,10 +23,10 @@ class eshopn18_plg_EshopSettings extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('n18Mode', 'enum(no=Изключен,yes=Включен)', 'caption=Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)->Режим,notNull,value=no,silent,removeAndRefreshForm=n18ShopNumber|n18ShopType|n18ShopUrl');
-        $mvc->FLD('n18ShopNumber', 'varchar(10)', 'caption=Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)->Номер от НАП');
-        $mvc->FLD('n18ShopType', 'enum(1=Собствен или нает домейн,2=Онлайн платформа)', 'caption=Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)->Вид,notNull,value=1');
-        $mvc->FLD('n18ShopUrl', 'varchar(200)', 'caption=Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)->Уеб адрес');
+        $mvc->FLD('n18Mode', 'enum(no=Изключен,yes=Включен)', 'caption=Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство->Избор,notNull,value=no,silent,removeAndRefreshForm=n18ShopNumber|n18ShopType|n18ShopUrl');
+        $mvc->FLD('n18ShopNumber', 'varchar(10)', 'caption=Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство->Номер от НАП');
+        $mvc->FLD('n18ShopType', 'enum(1=Собствен или нает домейн,2=Онлайн платформа)', 'caption=Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство->Вид,notNull,value=1');
+        $mvc->FLD('n18ShopUrl', 'varchar(200)', 'caption=Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство->Уеб адрес');
     }
 
 
@@ -113,8 +113,8 @@ class eshopn18_plg_EshopSettings extends core_Plugin
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $row = $data->row;
-        $block = new ET(tr("|*<fieldset class='detail-info'><legend class='groupTitle'>|Магазин в НАП по Наредба Н-18 (картови плащания без касов бон)|*</legend><div class='groupList'><table class='noBorder' style='width:99%'>
-            <tr><td class='title-style' style='width:150px'>|Режим|*:</td><td>[#n18Mode#]</td></tr>
+        $block = new ET(tr("|*<fieldset class='detail-info'><legend class='groupTitle'>|Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство|*</legend><div class='groupList'><table class='noBorder' style='width:99%'>
+            <tr><td class='title-style' style='width:150px'>|Избор|*:</td><td>[#n18Mode#]</td></tr>
             <!--ET_BEGIN n18ShopNumber--><tr><td class='title-style' style='width:150px'>|Номер от НАП|*:</td><td>[#n18ShopNumber#]</td></tr><!--ET_END n18ShopNumber-->
             <!--ET_BEGIN n18ShopType--><tr><td class='title-style' style='width:150px'>|Вид|*:</td><td>[#n18ShopType#]</td></tr><!--ET_END n18ShopType-->
             <!--ET_BEGIN n18ShopUrl--><tr><td class='title-style' style='width:150px'>|Уеб адрес|*:</td><td>[#n18ShopUrl#]</td></tr><!--ET_END n18ShopUrl-->
