@@ -326,7 +326,14 @@ class deals_plg_DpInvoice extends core_Plugin
             $changeAct = (strtolower(core_Request::get('Act')) == 'changefields');
             $rec = &$form->rec;
 
-            $agreedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('agreedDownpayment'), $form->dealInfo->get('agreedValior'), $rec->date);
+            // Нулева сума е като празно поле, иначе се записва операция по аванс без сума
+            foreach (array('amountAccrued', 'amountDeducted') as $dpField) {
+                if (empty($rec->{$dpField})) {
+                    $rec->{$dpField} = null;
+                }
+            }
+
+            $agreedDp =deals_Helper::getSmartBaseCurrency($form->dealInfo->get('agreedDownpayment'), $form->dealInfo->get('agreedValior'), $rec->date);
             $actualDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpayment'), $form->dealInfo->get('agreedValior'), $rec->date);
             $invoicedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentInvoiced'), $form->dealInfo->get('agreedValior'), $rec->date);
             $deductedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentDeducted'), $form->dealInfo->get('agreedValior'), $rec->date);
