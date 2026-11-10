@@ -78,6 +78,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Допълнителни полета в стандартния листов филтър
+     */
+    public $toggableFieldsInVerticalListFilter = 'purchaseId';
+
+
+    /**
      * Единично заглавие
      */
     public $singleTitle = 'Производствена операция';
@@ -2330,7 +2336,7 @@ class planning_Tasks extends core_Master
     protected static function getPersistentListFilterFields()
     {
         return arr::make(
-            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect',
+            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect,prevProgress',
             true
         );
     }
@@ -2397,20 +2403,29 @@ class planning_Tasks extends core_Master
     {
         if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
             !empty($data->masterMvc) ||
+            $data->listFilter->gotErrors() ||
             Mode::is('isReorder')) {
             return;
         }
 
-        $values = array();
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            $values[$fieldName] = $data->listFilter->rec->{$fieldName} ?? '';
-        }
-
         core_Settings::setValues(
             'planningTasksListFilter',
-            $values,
+            self::getPersistentListFilterValues($data->listFilter->rec),
             core_Users::getCurrent()
         );
+    }
+
+
+    /**
+     * Стойности за повторно подаване във формата
+     */
+    private static function getPersistentListFilterValues($rec)
+    {
+        $values = array();
+        foreach (self::getPersistentListFilterFields() as $fieldName) {
+            $values[$fieldName] = $rec->{$fieldName} ?? '';
+        }
+        return $values;
     }
 
 
@@ -2425,11 +2440,19 @@ class planning_Tasks extends core_Master
         $orderByField = 'orderByDate';
         $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,placeholderType=all,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,placeholderType=all,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
+        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,placeholderType=all,input,after=saleId,formOrder=1000,class=w100,silent,removeAndRefreshForm=saleId');
         $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
-        $data->listFilter->showFields .= ',folders,productId,saleId,purchaseId';
+        $data->listFilter->FNC('prevProgress', 'varchar(allowEmpty,maxRadio=0,minimumResultsForSearch=0)', 'caption=Предх. над,placeholderType=all,input,silent,after=folders,hint=Операции без предходна или с прогрес на непосредствено предходната в заданието равен или над посочения');
+        $progressOptions = array('' => '') + arr::make('10 %,20 %,30 %,40 %,50 %,60 %,70 %,80 %,90 %,100 %', true);
+        $progressInput = Request::get('prevProgress', 'varchar');
+        if (strlen($progressInput ?? '')) {
+            $progressOptions[$progressInput] = $progressInput;
+        }
+        $data->listFilter->setOptions('prevProgress', $progressOptions);
+        $data->listFilter->setField('prevProgress', array('attr' => array('data-tags' => 'true', 'data-width' => '19em')));
+        $data->listFilter->showFields .= ',folders,prevProgress,productId,saleId,purchaseId';
         $data->listFilter->setField('productId','placeholderType=all,before=isFinalSelect');
-        $data->listFilter->input('productId,saleId,purchaseId');
+        $data->listFilter->input('productId,saleId,purchaseId,prevProgress');
         $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -2569,19 +2592,47 @@ class planning_Tasks extends core_Master
             }
         }
 
+        if (strlen(trim($filter->prevProgress ?? '')) && !$data->listFilter->gotErrors() && !Mode::is('isReorder')) {
+            // Select2 пази въведения текст; стандартният тип проверява и преобразува процента за заявката.
+            $progressType = core_Type::getByName('percent(min=0)');
+            $progress = $progressType->fromVerbal($filter->prevProgress);
+            $progressType->isValid($progress);
+            if (!empty($progressType->error)) {
+                $data->listFilter->setError('prevProgress', $progressType->error);
+            } else {
+                self::filterByPreviousProgress($data->query, $progress);
+            }
+        }
+
         self::savePersistentListFilter($data);
 
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
-            foreach (self::getPersistentListFilterFields() as $fieldName) {
-                $mvc->refreshRowsListFilterValues[$fieldName] =
-                    $data->listFilter->rec->{$fieldName} ?? '';
-            }
+            $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
         }
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
             $mvc->cacheAssetDataOnShutdown[$filter->assetId] = $filter->assetId;
         }
+    }
+
+
+    /**
+     * Пропуска операциите без предходна или с достатъчен прогрес на непосредствено предходната
+     */
+    private static function filterByPreviousProgress($query, $progress)
+    {
+        $table = $query->mvc->dbTableName;
+        $originColumn = str::phpToMysqlName('originId');
+        $orderColumn = str::phpToMysqlName('saoOrder');
+        $origin = $query->getMysqlField('originId');
+        $order = $query->getMysqlField('saoOrder');
+        // При липсваща предходна няма ограничение; връзката по задание не дублира редовете.
+        $query->where(array("COALESCE((SELECT COALESCE(`prevTask`.`progress`, 0) FROM `{$table}` AS `prevTask`
+            WHERE `prevTask`.`{$originColumn}` = {$origin} AND `prevTask`.`state` != 'rejected'
+                AND COALESCE(`prevTask`.`{$orderColumn}`, 0) < {$order}
+            ORDER BY COALESCE(`prevTask`.`{$orderColumn}`, 0) DESC, `prevTask`.`id` DESC
+            LIMIT 1), [#1#]) >= [#1#]", (double) $progress));
     }
 
 
