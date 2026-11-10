@@ -72,17 +72,17 @@ function environment(config = {}) {
 let checks=0;
 function check(name,fn) {fn();checks++;console.log('PASS '+name);}
 check('movement fades standalone weather and restarts its initial idle interval',()=>{
-    const e=environment();let due=[...e.timers.values()][0].at;assert(due>=20000 && due<=60000);assert.equal(e.frames.size,0);
+    const e=environment();let due=[...e.timers.values()][0].at;assert(due>=60000 && due<=120000);assert.equal(e.frames.size,0);
     e.tick(due);assert(e.layer());assert.equal(e.layer().attrs['aria-hidden'],'true');
     for(let i=0;i<6;i++) {
         e.document.emit('pointermove');assert(!e.layer());assert.equal(e.frames.size,0);
-        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=20000 && next<=60000);
+        const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=60000 && next<=120000);
         e.tick(next);assert(e.layer());
     }
 });
 check('standalone weather first loaded in the background waits a full initial interval after activation',()=>{
     for(const frequency of ['normal','frequent']) for(const wait of [60000,3600000,43200000]) for(const focusFirst of [false,true]) {
-        const e=environment({frequency,visibilityState:'hidden',focused:false,mode:'sound'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        const e=environment({frequency,visibilityState:'hidden',focused:false,mode:'sound'}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         assert.equal(e.timers.size,0);e.window.emit('pageshow');e.tick(wait,wait);
         assert.equal(e.timers.size,0);assert.equal(e.frames.size,0);assert(!e.layer());assert.equal(e.audio.length,0);
         if(focusFirst){e.document.focused=true;e.window.emit('focus');}else{e.document.visibilityState='visible';e.document.emit('visibilitychange');}
@@ -94,7 +94,7 @@ check('standalone weather first loaded in the background waits a full initial in
 });
 check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{
     for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
-        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        const e=environment({frequency}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,{clientX:100+i,clientY:50,key:'a'});assert(!e.layer(),type);assert.equal(e.timers.size,1);}
         const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
         e.tick(min-100);assert(!e.layer());e.tick(delay-(min-100)+20);assert(e.layer());
@@ -107,13 +107,13 @@ check('disabled, embedded and reduced-motion pages stay idle',()=>{
 });
 check('weather uses the supplied snapshot on pages without a Calendar',()=>{
     for(const config of [{icon:'unknown'},{expires:1000}]) {const e=environment(config);e.tick(61000);assert(!e.layer());}
-    const e=environment({missing:true});e.tick(61000);assert(e.layer());e.image.src+='changed';e.tick(1100);assert(e.layer());
+    const e=environment({missing:true});e.tick(121000);assert(e.layer());e.image.src+='changed';e.tick(1100);assert(e.layer());
 });
 check('all provider icon names map to the expected weather',()=>{
     const groups={sun:['clear-day','partly-cloudy-day'],moon:['clear-night','partly-cloudy-night'],fog:['fog'],clouds:['cloudy','wind'],
         rain:['rain','showers-day','showers-night','thunder','thunder-rain','thunder-showers-day','thunder-showers-night'],
         snow:['snow','snow-showers-day','snow-showers-night','hail','sleet','rain-snow','rain-snow-showers-day','rain-snow-showers-night']};
-    for(const [kind,icons] of Object.entries(groups)) for(const icon of icons) {const e=environment({icon});e.tick(51000);assert(e.layer().attrs['data-weather'].includes(kind),icon);}
+    for(const [kind,icons] of Object.entries(groups)) for(const icon of icons) {const e=environment({icon});e.tick(121000);assert(e.layer().attrs['data-weather'].includes(kind),icon);}
 });
 check('sun follows local time from right through high noon to left, stays in the viewport and updates while visible',()=>{
     for(const width of [320,1000]) for(const icon of ['clear-day','partly-cloudy-day','showers-day']) {
@@ -167,7 +167,7 @@ check('approximate lunar illumination follows dated phases and reverses its lit 
 });
 check('returning from blur or a hidden tab gives standalone weather a full initial idle interval',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
-        const e=environment({frequency}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        const e=environment({frequency}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         e.tick([...e.timers.values()][0].at-1000);
         if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
         e.tick(60000);assert(!e.layer());assert.equal(e.timers.size,0);
@@ -179,13 +179,13 @@ check('returning from blur or a hidden tab gives standalone weather a full initi
     }
 });
 check('typing, scroll, touch movement, resizing, printing and page exit stop animation',()=>{
-    for(const name of ['keydown','wheel','touchmove','scroll']) {const e=environment();e.tick(51000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
-    for(const name of ['resize','beforeprint','pagehide']) {const e=environment();e.tick(51000);e.window.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
-    const e=environment();e.tick(51000);e.reduced.matches=true;e.reduced.emit('change');assert(!e.layer());
+    for(const name of ['keydown','wheel','touchmove','scroll']) {const e=environment();e.tick(121000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
+    for(const name of ['resize','beforeprint','pagehide']) {const e=environment();e.tick(121000);e.window.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
+    const e=environment();e.tick(121000);e.reduced.matches=true;e.reduced.emit('change');assert(!e.layer());
 });
 check('an expired forecast stops effects; DOM changes do not replace the refresh snapshot',()=>{
-    const e=environment({expires:60000});e.tick(51000);assert(e.layer());e.tick(10000);assert(!e.layer());
-    const changed=environment();changed.tick(51000);changed.image.src+='changed';changed.tick(1100);assert(changed.layer());
+    const e=environment({expires:130000});e.tick(121000);assert(e.layer());e.tick(10000);assert(!e.layer());
+    const changed=environment();changed.tick(121000);changed.image.src+='changed';changed.tick(1100);assert(changed.layer());
 });
 check('deposits stay bounded and follow AJAX block geometry; canvas painting stays below 30 fps',()=>{
     for(const icon of ['rain','snow']) {
@@ -198,23 +198,23 @@ check('deposits stay bounded and follow AJAX block geometry; canvas painting sta
     }
 });
 check('visual mode never opens audio; sound needs a trusted gesture and is short and quiet',()=>{
-    const silent=environment();silent.document.emit('pointerdown',{isTrusted:true});silent.tick(51000);assert.equal(silent.audio.length,0);
+    const silent=environment();silent.document.emit('pointerdown',{isTrusted:true});silent.tick(121000);assert.equal(silent.audio.length,0);
     for(const icon of ['clear-day','clear-night','rain','snow','fog','wind']) {
         const e=environment({mode:'sound',icon});e.document.emit('pointerdown',{isTrusted:false});assert.equal(e.audio.length,0);
-        e.document.emit('pointerdown',{isTrusted:true});assert.equal(e.sounds.length,0);e.tick(51000);assert.equal(e.sounds.length,1);
+        e.document.emit('pointerdown',{isTrusted:true});assert.equal(e.sounds.length,0);e.tick(121000);assert.equal(e.sounds.length,1);
         assert(e.sounds[0].stopAt-e.sounds[0].startAt<=3);
         e.document.focused=false;e.window.emit('blur');assert.equal(e.audio[0].state,'closed');
     }
-    const locked=environment({mode:'sound'});locked.tick(51000);assert(locked.layer());assert.equal(locked.sounds.length,0);
+    const locked=environment({mode:'sound'});locked.tick(121000);assert(locked.layer());assert.equal(locked.sounds.length,0);
 });
 check('no sound unlock or delayed playback in hidden or unfocused tabs',()=>{
-    const e=environment({mode:'sound'});e.document.focused=false;e.window.emit('blur');e.document.emit('keydown',{isTrusted:true});e.tick(51000);assert.equal(e.audio.length,0);
-    e.document.focused=true;e.window.emit('focus');e.document.emit('keydown',{isTrusted:true});e.document.visibilityState='hidden';e.document.emit('visibilitychange');e.tick(51000);
+    const e=environment({mode:'sound'});e.document.focused=false;e.window.emit('blur');e.document.emit('keydown',{isTrusted:true});e.tick(121000);assert.equal(e.audio.length,0);
+    e.document.focused=true;e.window.emit('focus');e.document.emit('keydown',{isTrusted:true});e.document.visibilityState='hidden';e.document.emit('visibilitychange');e.tick(121000);
     assert.equal(e.audio[0].state,'closed');assert.equal(e.sounds.length,0);assert(!e.layer());
 });
 check('wet and warm text follows the forecast and restores immediately without altering content',()=>{
     for(const [icon,style] of [['rain','wet'],['clear-day','warm'],['showers-day','wet'],['snow',''],['fog','']]) {
-        const e=environment({icon});e.document.body.classList.add('existing-theme');e.tick(51000);
+        const e=environment({icon});e.document.body.classList.add('existing-theme');e.tick(121000);
         assert.equal(e.document.body.className.includes('funny-weather-text-'),!!style);
         if(style) assert(e.document.body.className.includes('funny-weather-text-'+style));
         e.document.emit('pointermove');e.tick(1100);assert.equal(e.document.body.className.trim(),'existing-theme');

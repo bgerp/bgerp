@@ -62,9 +62,9 @@
             }
 
             function nextDelay() {
-                if (!appearances) return frequent ? random(5000, 12000) : random(20000, 60000);
-                if (frequent) return random(15000, 30000);
-                var max = Math.min(600000, 60000 * Math.pow(2, Math.min(appearances, 4)));
+                if (!appearances) return frequent ? random(10000, 24000) : random(60000, 120000);
+                if (frequent) return random(30000, 60000);
+                var max = Math.min(1200000, 120000 * Math.pow(2, Math.min(appearances, 4)));
                 return random(max / 2, max);
             }
 
@@ -318,6 +318,9 @@
                     // Face centers are in the sprite's 120 x 100 coordinate space.
                     var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
                     var face = faces[v.character];
+                    // The round monster's neck is below its wide mouth, rather than just below its eyes.
+                    if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
+                    if (v.character === 'blackcat' && kind === 'glasses') face = [60,33,.75];
                     accessory.firstChild.setAttribute('transform', 'translate(' + face[0] + ' ' + face[1] + ') scale(' + face[2] + ') translate(-60 -32)');
                 }
                 v.node.appendChild(accessory);
@@ -575,7 +578,7 @@
                     }
                     if (distance < 30) catchVisitor(v);
                     else if (v.exiting || elapsed >= v.lifetime || now < v.fleeUntil) {
-                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > 30000 ? 900 : elapsed > 20000 ? 480 : 240) : (v.character === 'zombie' ? 105 : 145);
+                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > 30000 ? 900 : elapsed > 20000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' ? 170 : 145);
                         v.x += dx / distance * speed * delta;
                         v.y += dy / distance * speed * delta;
                     } else if (!v.reactionUntil && distance > Math.max(65, v.width)) {
@@ -637,11 +640,8 @@
             function munch(v, now, delta) {
                 var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                 if (distance < 30) { catchVisitor(v); return true; }
-                if (now < v.fleeUntil) {
-                    v.x = clamp(v.x + dx / distance * 170 * delta, v.width / 2, window.innerWidth - v.width / 2);
-                    v.y = clamp(v.y + dy / distance * 170 * delta, v.height / 2, window.innerHeight - v.height / 2);
-                    return true;
-                }
+                // Chasing uses the shared escape path, including leaving the viewport.
+                if (now < v.fleeUntil) return false;
                 if (v.eating) {
                     if (now < v.eating) return true;
                     v.eating = 0;
@@ -651,7 +651,7 @@
                 if (!meal || !meal.isConnected || meal.closest('.funny-eaten')) {
                     meal = v.munchTarget = findMeal(v);
                     if (!meal) {
-                        if (v.eaten.length) { playSound('burp'); react(v, 'hello', now); }
+                        if (v.eaten.length) { if (!v.silent) playSound('burp'); react(v, 'hello', now); }
                         v.exiting = true;
                         return false;
                     }
@@ -666,7 +666,7 @@
                 v.munchTarget = null;
                 v.eating = now + Math.max(160, 650 - v.eaten.length * 25);
                 v.node.setAttribute('data-munching', 'true');
-                playSound('munch');
+                if (!v.silent) playSound('munch');
                 return true;
             }
 
