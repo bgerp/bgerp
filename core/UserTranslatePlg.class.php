@@ -8,7 +8,7 @@
  * @package   core
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -139,7 +139,7 @@ class core_UserTranslatePlg extends core_Plugin
                         break;
                     }
                 } elseif ($tName == 'field') {
-                    $lg = ucfirst(core_Lg::getCurrent());
+                    $lg = ucfirst(core_Lg::getCurrent() ?? '');
                     $lgPart = $part . $lg;
                     if (strlen(trim($rec->{$lgPart} ?? '')) && (($rec->{$lgPart} ?? null) != ($rec->{$part} ?? null))) {
                         $tr = $rec->{$lgPart} ?? null;
