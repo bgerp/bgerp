@@ -505,7 +505,8 @@ class bank_Accounts extends core_Master
      */
     public static function fetchByIban($iban)
     {
-        $iban = strtoupper(str_replace(array(' ', '-'), '', $iban ?? ''));
+        // mb_, защото MySQL UPPER() прави главни и кирилските букви в номерата с '#'
+        $iban = mb_strtoupper(str_replace(array(' ', '-'), '', $iban ?? ''), 'UTF-8');
         if ($iban === '') {
 
             return false;
