@@ -596,7 +596,7 @@ class sync_Settings extends core_Manager
             try {
                 $success = self::importData($resArr);
                 if (!$success) {
-                    self::logErr('Автоматичният sync import приключи с грешки при запис');
+                    self::logErr('Автоматичният sync import приключи частично. Проверете логовете за пропуснатите записи');
 
                     return false;
                 }

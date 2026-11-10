@@ -82,9 +82,11 @@ body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
     gap: 10px;
     margin-left: auto;
     padding-left: 24px;
-    border-left: 1px solid #3a515a;
+    border-left: 0;
 }
 body.commerce-theme #cmsMenu.menuRow .cms-menu-tools:empty { display: none; }
+/* Keep account access at the right edge, after either language selector. */
+body.commerce-theme #cmsMenu.menuRow .cms-menu-tools > a.loginIcon { order: 1; }
 body.commerce-theme #cmsMenu.menuRow a.loginIcon {
     background: #fff;
     color: var(--c-dark) !important;

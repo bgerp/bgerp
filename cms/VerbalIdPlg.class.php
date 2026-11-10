@@ -21,7 +21,7 @@ defIfNot('EF_VID_LEN', 100);
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -183,9 +183,31 @@ class cms_VerbalIdPlg extends core_Plugin
         // Генерираме уникална вербална стойност в рамките на допустимата дължина
         $recVid = self::makeUniqueVid($mvc, $recVid, $cond);
 
-        expect($rec->{$fieldName});
+        expect($recVid);
+    }
 
-        cms_VerbalId::saveVid($recVid, $mvc, $rec->id);
+
+    /**
+     * Регистрира адреса едва след успешен запис с реално ID.
+     */
+    public function on_AfterSave(&$mvc, &$id, &$rec, $fields = null)
+    {
+        $fieldName = $this->fieldName;
+        $recVid = $rec->{$fieldName} ?? null;
+        if (!$id || !$recVid) {
+
+            return;
+        }
+
+        if ($fields) {
+            $fArr = arr::make($fields, true);
+            if (empty($fArr[$fieldName])) {
+
+                return;
+            }
+        }
+
+        cms_VerbalId::saveVid($recVid, $mvc, $id);
     }
 
 

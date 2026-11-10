@@ -18,7 +18,7 @@
 
     <table class="srd-meta">
         <tr>
-            <td><span>|Поръчка|*</span>[#orderNumber#]</td>
+            <td><span>|Поръчка|*</span>№ [#orderNumber#]</td>
             <td><span>|Трансакция|*</span>[#transactionRef#]</td>
             <td><span>|Начин на плащане|*</span>[#paymentMethodId#]</td>
             <!--ET_BEGIN posId--><td><span>|Виртуален ПОС|*</span>[#posId#]</td><!--ET_END posId-->

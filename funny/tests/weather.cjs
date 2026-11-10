@@ -41,7 +41,7 @@ function environment(config = {}) {
     image.rect = {left:600,right:628,top:120,bottom:140,width:28,height:20};
     const block = new Element(); block.id = 'blockPortal_fixture';
     let images = config.missing ? [] : [image], blocks = [block];
-    Object.assign(document, {baseURI:'http://fixture.test/', visibilityState:'visible', focused:true, body:new Element(),
+    Object.assign(document, {baseURI:'http://fixture.test/', visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(),
         hasFocus(){return this.focused;}, createElement(){return new Element();}, querySelectorAll(selector) {
             if(selector==='.bgerp_drivers_Calendar .portal-cal-today > .title img') return images;
             if(selector==='[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th') return blocks;
@@ -58,10 +58,10 @@ function environment(config = {}) {
     class ClockDate extends Date { constructor(){super(new Date(config.date || '2026-10-30T12:00:00').getTime()+now);} static now(){return now;} }
     vm.runInNewContext(source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
     window.funnyWeather.init(options);
-    function tick(ms) {
+    function tick(ms, step=20) {
         const end=now+ms;
         while(now<end) {
-            now=Math.min(end,now+20);
+            now=Math.min(end,now+step);
             for(const [id,timer] of [...timers]) if(timer.at<=now) {timers.delete(id);timer.fn();}
             const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));
         }
@@ -78,6 +78,18 @@ check('movement fades standalone weather and restarts its initial idle interval'
         e.document.emit('pointermove');assert(!e.layer());assert.equal(e.frames.size,0);
         const next=Math.max(...[...e.timers.values()].map(t=>t.at))-e.now();assert(next>=20000 && next<=60000);
         e.tick(next);assert(e.layer());
+    }
+});
+check('standalone weather first loaded in the background waits a full initial interval after activation',()=>{
+    for(const frequency of ['normal','frequent']) for(const wait of [60000,3600000,43200000]) for(const focusFirst of [false,true]) {
+        const e=environment({frequency,visibilityState:'hidden',focused:false,mode:'sound'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        assert.equal(e.timers.size,0);e.window.emit('pageshow');e.tick(wait,wait);
+        assert.equal(e.timers.size,0);assert.equal(e.frames.size,0);assert(!e.layer());assert.equal(e.audio.length,0);
+        if(focusFirst){e.document.focused=true;e.window.emit('focus');}else{e.document.visibilityState='visible';e.document.emit('visibilitychange');}
+        e.tick(60000,60000);assert.equal(e.timers.size,0);assert(!e.layer());
+        if(focusFirst){e.document.visibilityState='visible';e.document.emit('visibilitychange');}else{e.document.focused=true;e.window.emit('focus');}
+        assert.equal(e.timers.size,1);const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(delay-1);assert(!e.layer());e.tick(1);assert(e.layer());
     }
 });
 check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{

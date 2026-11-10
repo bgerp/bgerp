@@ -1017,7 +1017,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                                 </fieldset>
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|XML файл за НАП|*</b></small></legend>
                                     <div class='small'>[#file#]</div>
-                                </fieldset>"));
+                                </fieldset>
+                                <!--ET_BEGIN ordersSummary-->
+                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Поръчки с доставка|*: [#ordersCount#]</b></small></legend>
+                                    <div class='small'>[#ordersSummary#]</div>
+                                </fieldset>
+                                <!--ET_END ordersSummary-->"));
 
         $rec = $data->rec;
         $isPlain = !static::canLink();
@@ -1055,6 +1060,30 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $fieldTpl->replace("<span class='red'>" . tr('Не е създаден') . ':<br>' . implode('<br>', array_map(function ($e) {
                 return core_Type::escape(tr($e));
             }, $errors)) . '</span>', 'file');
+        }
+
+        // Броят на поръчките по начин на плащане - тези с грешка отделно като n/a
+        $counts = array();
+        $recs = is_object($reportData) && is_array($reportData->recs ?? null) ? $reportData->recs : array();
+        foreach ($recs as $dRec) {
+            if (($dRec->kind ?? null) == 'order') {
+                $code = countR($dRec->errors ?? null) ? 'n/a' : ($dRec->paym ?? 'n/a');
+                $counts[$code] = ($counts[$code] ?? 0) + 1;
+            }
+        }
+        if (countR($counts)) {
+            $Int = core_Type::getByName('int');
+            $lines = array();
+            foreach (array_keys(static::$paymentCodes['order']) as $code) {
+                if (!empty($counts[$code])) {
+                    $lines[] = '<div>' . tr(static::$paymentCodes['order'][$code]) . ": <b>{$Int->toVerbal($counts[$code])}</b></div>";
+                }
+            }
+            if (!empty($counts['n/a'])) {
+                $lines[] = '<div>' . tr('С грешка') . ": <b>{$Int->toVerbal($counts['n/a'])}</b></div>";
+            }
+            $fieldTpl->replace($Int->toVerbal(array_sum($counts)), 'ordersCount');
+            $fieldTpl->replace(implode('', $lines), 'ordersSummary');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

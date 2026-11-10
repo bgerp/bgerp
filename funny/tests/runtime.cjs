@@ -37,7 +37,7 @@ function environment(settings = {}, config = {}) {
     const coarse = {matches:!!config.coarse};
     const block = new Element();
     block.isConnected=true;
-    Object.assign(document, {visibilityState:'visible', focused:true, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
+    Object.assign(document, {visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
     Object.assign(window, {innerWidth:config.width || 1000, innerHeight:config.height || 800, AudioContext,
         matchMedia: query => query.includes('reduced') ? reduced : coarse, getSelection: () => '',
         setTimeout(fn, ms) { const id = ++serial; timers.set(id, {fn, at:now+ms}); return id; }, clearTimeout: id => timers.delete(id),
@@ -81,6 +81,20 @@ check('first appearance within one minute and repeat intervals grow to 5-10 minu
         delay = [...e.timers.values()][0].at-e.now();
         assert(delay>0 && delay<=600000);
         if(i>=3) assert(delay+40000>=300000);
+    }
+});
+check('a page first loaded in the background waits a full initial interval after both visibility and focus arrive',()=>{
+    for(const frequency of ['normal','frequent']) for(const wait of [60000,3600000,43200000]) for(const focusFirst of [false,true]) {
+        const e=environment({frequency,sound:'yes'},{visibilityState:'hidden',focused:false,weather:'clouds'});
+        const min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        assert.equal(e.timers.size,0);e.window.emit('pageshow');e.tick(wait,wait);
+        assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);assert.equal(e.visitors().length,0);assert.equal(e.audio.length,0);
+        if(focusFirst){e.document.focused=true;e.window.emit('focus');}else{e.document.visibilityState='visible';e.document.emit('visibilitychange');}
+        e.tick(60000,60000);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        if(focusFirst){e.document.visibilityState='visible';e.document.emit('visibilitychange');}else{e.document.focused=true;e.window.emit('focus');}
+        assert.equal(e.timers.size,1);const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(delay-1);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        e.tick(1);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
     }
 });
 check('automatic appearances require uninterrupted inactivity after mouse, keyboard, touch and scroll input',()=>{

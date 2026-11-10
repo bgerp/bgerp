@@ -723,7 +723,7 @@ class eshop_Groups extends core_Master
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
-                    $tpl->replace(ht::createLink($img->createImg(), $rec->url, false, array('title' => $rec->seoTitle ?? null)), 'img');
+                    $tpl->replace(ht::createLink($img->createImg(array('alt' => tr($rec->name ?? ''))), $rec->url, false, array('title' => $rec->seoTitle ?? null)), 'img');
                 } else {
                     continue;
                 }
