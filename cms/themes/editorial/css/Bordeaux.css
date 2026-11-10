@@ -125,7 +125,8 @@ body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch {
 body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch:focus-within {
     border-color: var(--c-accent) !important;
     outline: 2px solid var(--c-accent);
-    outline-offset: 2px;
+    outline-offset: -2px;
+    box-shadow: none;
 }
 body.commerce-theme.bordeaux-theme #cmsNavigation #simpleSearch #searchInput {
     height: 100%;
