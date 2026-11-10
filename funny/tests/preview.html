@@ -35,6 +35,7 @@
     <p>Двоен клик на празно място стартира герои и време. При "Без герои" стартира само времето. Следващ двоен клик добавя герои, без да рестартира времето. Движение го скрива плавно. За поздрав извикайте няколко героя; пеперудата и щъркелът кацат на близък ръб. Жестовете са след около 2 секунди, дъгата след 9, а падащата звезда след 18-40 секунди. Облаците излизат извън екрана преди нов преход. Проверете спирането при движение, друг таб и Escape.</p>
     <p>След натрупване дъждът прави вълнички и пръски, а снегът под 0°C образува висулки. Есенно листо може да поседи на ръб и да отлети. Уцелете герой, презаредете и уцелете отново: рекордът трябва да се запази. "Деликатни" извиква по един герой и намалява частиците, наситеността и звука.</p>
     <p>След уцелване отворете <a href="about:blank" target="_blank" rel="noopener">тестов празен таб</a> и се върнете. Ефектите и текущият брояч трябва да изчезнат; новият резултат започва от първото уцелване, а личният рекорд се запазва.</p>
+    <p>Лакомото чудовище оставя трохички и блед сив отпечатък на изяденото, като пази дистанция от неподвижната мишка. Възстановяването след Escape е плавно за 1,5 секунди; при загуба на фокус е веднага. Максималният му престой е 80 секунди. Някои герои почукват рядко по екрана; броячът отчита ефекта, дори когато вече е приключил.</p>
     </details>
     <output id="activity"></output>
     <output id="events">Наблюдавани ефекти: изчакване</output>
@@ -74,7 +75,7 @@
     document.addEventListener('visibilitychange', reportActivity);
     window.addEventListener('focus', reportActivity); window.addEventListener('blur', reportActivity); reportActivity();
     // Observe rendered nodes, without triggering effects or changing their timing.
-    var seen = {}, names = {'funny-weather-layer':'Време','funny-peeker':'Надничане','funny-weather-wind-piece':'Вятър','funny-weather-resting':'Кацнало листо','funny-weather-ripple':'Вълнички','funny-weather-icicles':'Висулки','funny-weather-runoff':'Капки','funny-weather-footprints':'Стъпки','funny-weather-splash':'Пръски','funny-burst':'Уцелване','funny-weather-rainbow':'Дъга','funny-weather-meteor':'Падаща звезда',shiver:'Потреперване',shake:'Отърсване',adjust:'Очилата',hello:'Поздрав',perched:'Кацане'};
+    var seen = {}, names = {'funny-weather-layer':'Време','funny-peeker':'Надничане','funny-weather-wind-piece':'Вятър','funny-weather-resting':'Кацнало листо','funny-weather-ripple':'Вълнички','funny-weather-icicles':'Висулки','funny-weather-runoff':'Капки','funny-weather-footprints':'Стъпки','funny-weather-splash':'Пръски','funny-burst':'Уцелване','funny-crumbs':'Трохички','funny-knock':'Почукване','funny-weather-rainbow':'Дъга','funny-weather-meteor':'Падаща звезда',shiver:'Потреперване',shake:'Отърсване',adjust:'Очилата',hello:'Поздрав',perched:'Кацане'};
     new MutationObserver(function (records) {
         var changed = false;
         records.forEach(function (record) {

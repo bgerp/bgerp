@@ -19,7 +19,7 @@ function environment(settings = {}, config = {}) {
         appendChild(child) { this.children.push(child); child.parent = this; }
         remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
-        closest(selector) { return selector.includes('.funny-eaten') ? (this.className.includes('funny-eaten') ? this : null) : (this.interactive ? this : null); }
+        closest(selector) { return selector.includes('.funny-eaten') ? (this.className.includes('funny-eaten') || (selector.includes('.funny-restoring') && this.className.includes('funny-restoring')) ? this : null) : (this.interactive ? this : null); }
         contains(node) { return this.children.includes(node); }
     }
     function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}}; }
@@ -72,7 +72,7 @@ function environment(settings = {}, config = {}) {
 let checks = 0;
 function check(name, fn) { fn(); checks++; console.log('PASS '+name); }
 check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 minutes', () => {
-    const e = environment({sound:false});
+    const e = environment({sound:false,mode:'selected',characters:['ghost']});
     let delay = [...e.timers.values()][0].at;
     assert(delay>=60000 && delay<=120000);
     for(let i=0;i<6;i++) {
@@ -108,7 +108,7 @@ check('automatic appearances require uninterrupted inactivity after mouse, keybo
     }
 });
 check('activity restarts the initial interval after an appearance and repeated pointer coordinates do not postpone it',()=>{
-    const e=environment({frequency:'frequent',sound:'no'});e.tick([...e.timers.values()][0].at);e.tick(40000);
+    const e=environment({frequency:'frequent',sound:'no',mode:'selected',characters:['ghost']});e.tick([...e.timers.values()][0].at);e.tick(40000);
     e.document.emit('pointermove',e.event({clientX:100,clientY:100}));const due=[...e.timers.values()][0].at;
     assert(due-e.now()>=10000 && due-e.now()<=24000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
     e.tick(due-e.now()+20);assert(e.visitors().length>0);
@@ -132,7 +132,7 @@ check('each double click adds 1-3 independent visitors at different positions', 
     for(let i=0;i<3;i++) {const before=e.visitors().length;e.click();const added=e.visitors().length-before;assert(added>=1 && added<=3);e.tick(700);}
     assert(e.visitors().length>=3);
     const points=e.visitors().map(e.center);assert(new Set(points.map(p=>`${Math.round(p.x)},${Math.round(p.y)}`)).size>=3);
-    e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
 check('each group has unique characters, with one visitor for a single available character', () => {
     for (const pool of [['ghost'], ['ghost','ghost','unknown'], ['ghost','casper'], ['ghost','casper','zombie','bat']]) {
@@ -326,7 +326,7 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
     const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
     const christmas=['sleigh','elf','deer','snowman'], winter=['snowman','casper'];
     const march=['martenitsa','stork'], easter=['bunny','chick','butterfly'], spring=['stork','butterfly','chick'];
-    const summer=['butterfly','firefly'], normal=['ghost','ghostgirl','ghostplay','casper','cat'];
+    const summer=['butterfly','firefly'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
@@ -357,9 +357,10 @@ check('muncher restores eaten elements on input, capture, loss of focus and its 
         if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
         if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
         if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
-        e.tick(exit==='timeout'?40000:300,exit==='timeout'?40000:16);
+        e.tick(exit==='timeout'?80000:2000,exit==='timeout'?80000:16);
+        e.tick(1500);
         assert.equal(e.block.className,'original',exit);assert.equal(e.block.isConnected,true);
-        e.tick(40000,40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+        e.tick(80000,80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
     }
 });
 check('muncher leaves the focused control and its container visible',()=>{
@@ -370,14 +371,32 @@ check('muncher leaves the focused control and its container visible',()=>{
         e.click();e.tick(5000);assert(!e.block.className.includes('funny-eaten'));
     }
 });
+check('muncher can stay beyond 40 seconds, ends by 80 and restores gently only while active',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'});
+    e.click();e.tick(41000);assert.equal(e.visitors().length,1);
+    e.tick(39000,39000);assert.equal(e.visitors().length,0);
+    for(const stop of ['finish','blur']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+        e.block.className='original';e.click();e.tick(650);const p=e.center(e.visitors()[0]);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.tick(50);assert(e.block.className.includes('funny-eaten'));
+        e.document.emit('keydown',{key:'Escape'});assert(!e.block.className.includes('funny-eaten'));assert(e.block.className.includes('funny-restoring'));
+        e.tick(1000);assert(e.block.className.includes('funny-restoring'));
+        if(stop==='blur'){e.document.focused=false;e.window.emit('blur');}else e.tick(500);
+        assert.equal(e.block.className,'original');assert.equal(e.timers.size,0);
+    }
+});
 check('muncher eating and finishing sounds respect silent notifications',()=>{
     for(const notification of [false,true]) {
         const e=environment({mode:'selected',characters:['muncher'],trigger:'notification'},{meals:true});
         e.document.emit('pointerdown',e.event());
         if(notification) e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000}); else e.click();
-        const initial=e.sounds.length;e.tick(660);const p=e.center(e.visitors()[0]);
+        const initial=e.sounds.length;e.tick(650);const p=e.center(e.visitors()[0]);
         e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
         e.tick(50);assert(e.block.className.includes('funny-eaten'));e.tick(700);
+        assert.equal(e.visitors()[0].attrs['data-munching'],'true','the bite remains visible before moving on');
+        assert.equal(e.sounds.length-initial,notification?0:3);
+        e.tick(600);
         assert.equal(e.sounds.length-initial,notification?0:5);
     }
 });
@@ -390,6 +409,66 @@ check('a chased muncher leaves the edge instead of staying clamped inside it',()
         e.tick(100);
     }
     assert.equal(e.visitors().length,0);assert(!e.block.className.includes('funny-eaten'));
+});
+check('muncher approaches but never eats through or collides with a stationary pointer',()=>{
+    for(const behind of [false,true]) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+        e.click();e.tick(650);const v=e.visitors()[0],start=e.center(v);
+        const x=behind?1000-start.x:500,y=behind?800-start.y:400;
+        e.block.rect={left:x-10,right:x+10,top:y-10,bottom:y+10,width:20,height:20};
+        for(let i=0;i<60;i++) {
+            e.tick(100);const p=e.center(v);
+            assert(Math.hypot(p.x-500,p.y-400)>=90);assert(!v.className.includes('funny-leaving'));
+        }
+        assert(e.visitors().includes(v));assert(!e.block.className.includes('funny-eaten'));
+        const near=e.center(v);assert(Math.hypot(near.x-500,near.y-400)<Math.hypot(start.x-500,start.y-400));
+        e.document.emit('pointermove',e.event({clientX:near.x,clientY:near.y}));e.tick(300);
+        assert.equal(e.visitors().length,0,'a deliberate pointer hit still catches it');
+    }
+});
+check('food crumbs start with a bite, follow movement, stay bounded and clear on Escape or blur',()=>{
+    for(const strength of ['normal','gentle']) for(const stop of ['escape','blur']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual',strength},{meals:true});
+        const crumbs=()=>e.document.body.children.filter(n=>n.className==='funny-crumbs');
+        e.click();e.tick(650);const p=e.center(e.visitors()[0]);assert.equal(crumbs().length,0);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.tick(50);const first=crumbs()[0];assert(first);assert.equal(first.children.length,strength==='gentle'?2:4);
+        const point=e.center(e.visitors()[0]);e.blank.isConnected=true;
+        const x=point.x>500?point.x+120:point.x-120;
+        e.blank.rect={left:x-10,right:x+10,top:point.y-10,bottom:point.y+10,width:20,height:20};
+        e.document.body.querySelectorAll=()=>[e.block,e.blank];
+        e.tick(1600);assert(crumbs().some(c=>c!==first),'walking after eating leaves crumbs');
+        e.tick(500);assert(!crumbs().includes(first),'old crumbs expire');assert(crumbs().length<=12);
+        if(stop==='escape') e.document.emit('keydown',{key:'Escape'});
+        else {e.document.focused=false;e.window.emit('blur');}
+        assert.equal(crumbs().length,0);assert.equal(e.raf.size,0);e.tick(3000);assert.equal(crumbs().length,0);
+    }
+});
+check('rare glass knocks are brief, respect sound and notifications, and have a page cooldown',()=>{
+    let chosen=0;
+    for(let seed=1;seed<=100 && !chosen;seed++) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'manual'},{seed});
+        e.click();e.tick(4100);
+        if(e.document.body.children.some(n=>n.className==='funny-knock')) chosen=seed;
+    }
+    assert(chosen,'at least one deterministic visitor knocks');
+    for(const sound of ['yes','no']) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'manual',sound},{seed:chosen});
+        e.click();const initial=e.sounds.length;e.tick(4100);const v=e.visitors()[0];
+        assert.equal(v.attrs['data-reaction'],'knock');const ring=e.document.body.children.find(n=>n.className==='funny-knock');
+        assert.equal(ring.children.length,2);assert.equal(e.sounds.length-initial,sound==='yes'?2:0);
+        e.tick(1200);assert(!e.document.body.children.includes(ring));
+        e.document.emit('keydown',{key:'Escape'});
+        for(let i=0;i<5;i++){e.click();e.tick(4100);assert(!e.document.body.children.some(n=>n.className==='funny-knock'));e.document.emit('keydown',{key:'Escape'});}
+    }
+    let silentKnock=false;
+    for(let seed=1;seed<=100 && !silentKnock;seed++) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'notification'},{seed});
+        e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});e.tick(4100);
+        silentKnock=e.document.body.children.some(n=>n.className==='funny-knock');assert.equal(e.sounds.length,0);
+        if(silentKnock){e.document.focused=false;e.window.emit('blur');assert(!e.document.body.children.some(n=>n.className==='funny-knock'));assert.equal(e.raf.size,0);}
+    }
+    assert(silentKnock);
 });
 check('new characters support scarves and glasses and restore normal sprites on forecast change',()=>{
     for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
@@ -408,8 +487,11 @@ check('scary sound is opt-in, short, silent for notifications and stops on blur'
     notification.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});assert.equal(notification.sounds.length,0);
     for(const sound of ['no',false]) {const silent=environment({sound});silent.click();assert.equal(silent.audio.length,0);assert.equal(silent.sounds.length,0);}
 });
-check('a stalled frame never keeps visitors beyond the hard 40 second limit', () => {
-    const e=environment({trigger:'notification'});e.click();e.tick(41000,41000);assert.equal(e.visitors().length,0);
+check('a stalled frame never keeps visitors beyond their hard lifetime', () => {
+    for(const character of ['casper','muncher']) {
+        const e=environment({trigger:'notification',mode:'selected',characters:[character]});
+        e.click();const elapsed=character==='muncher'?81000:41000;e.tick(elapsed,elapsed);assert.equal(e.visitors().length,0);
+    }
 });
 check('weather outfits follow the forecast, update visitors and leave bounded trails',()=>{
     for(const [weather,kind] of [['rain clouds','umbrella'],['snow clouds','scarf'],['sun','glasses'],['fog','']]) {
