@@ -82,9 +82,11 @@ body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
     gap: 10px;
     margin-left: auto;
     padding-left: 24px;
-    border-left: 1px solid #3a515a;
+    border-left: 0;
 }
 body.commerce-theme #cmsMenu.menuRow .cms-menu-tools:empty { display: none; }
+/* Keep account access at the right edge, after either language selector. */
+body.commerce-theme #cmsMenu.menuRow .cms-menu-tools > a.loginIcon { order: 1; }
 body.commerce-theme #cmsMenu.menuRow a.loginIcon {
     background: #fff;
     color: var(--c-dark) !important;
@@ -121,6 +123,10 @@ body.commerce-theme .externalPage > header {
 }
 body.commerce-theme .externalPage > header::after { display: none; }
 body.commerce-theme .externalPage #cmsBottom { min-width: 0; }
+/* Without footer menus, keep only a small inset above the utility links. */
+body.commerce-theme .externalPage #cmsBottom:not(:has(.footer-menus a)) {
+    padding-top: 0.5em !important;
+}
 body.commerce-theme .externalPage > header .narrowCenter {
     width: 100%;
     max-width: none;
@@ -333,7 +339,16 @@ body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commer
 body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commerce-search-clear:hover { color: var(--c-ink); }
 body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch .commerce-search-clear[hidden] { display: none; }
 body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch:has(.commerce-search-clear:not([hidden])) #searchInput { padding-right: 74px; }
-body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch:focus-within { outline: 2px solid var(--c-focus); outline-offset: 1px; border-color: var(--c-accent); }
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch:focus-within {
+    outline: 2px solid var(--c-accent);
+    outline-offset: -2px;
+    border-color: var(--c-accent);
+    box-shadow: none;
+}
+body.commerce-theme :is(#cmsNavigation, .eshop-top-search) #simpleSearch #searchInput:focus {
+    outline: none;
+    box-shadow: none;
+}
 
 /* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
 body.commerce-theme .bulletin-link { padding-top: 12px; }
@@ -520,6 +535,12 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link {
 }
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link:hover,
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true] { background: var(--c-accent-soft-3) !important; }
+
+/* Dropdown links keep their contrast independently of the main menu hover colors. */
+body.commerce-theme #cmsMenu.menuRow .commerce-language-options a.commerce-language-link:is(:hover, :focus-visible, [aria-current=true]) {
+    color: #263f4d !important;
+    background: var(--c-accent-soft-3) !important;
+}
 
 /* News strips stay in document flow instead of covering the banner or navigation. */
 body.commerce-theme .newsbar {

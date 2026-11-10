@@ -365,6 +365,11 @@ class drdata_Vats extends core_Manager
 
 		$code = isset($f->faultstring) ? $f->faultstring : $f->getMessage();
 
+		// HTTP грешка на транспорта (Not Found, Bad Gateway, без връзка) - VIES връща такива периодично
+		if (($f->faultcode ?? null) === 'HTTP') {
+			return true;
+		}
+
 		if (stripos($code, 'SOAP-ERROR: Parsing WSDL: Couldn\'t load from') !== false) {
 			return true;
 		}

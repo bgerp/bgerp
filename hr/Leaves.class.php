@@ -325,6 +325,14 @@ class hr_Leaves extends core_Master
             }
         }
 
+        // За модела - текст: иконата не носи смисъл и се губи в база без utf8mb4
+        if (Mode::is('renderForLlm')) {
+            $kinds = array('s' => 'sick leave', 'l' => 'leave', 't' => 'business trip', 'h' => 'home office');
+            $kind = $kinds[substr((string) $emojiType, 0, 1)] ?? 'absent';
+
+            return doc_plg_LlmExportable::systemNote($kind . (isset($to) ? ' to ' . substr($to, 0, 10) : ''));
+        }
+
         $emoji = isset(self::$emojiList[$emojiType]) ? self::$emojiList[$emojiType] : '';
         if ($class) {
             $emoji = "<span class='{$class}'>{$emoji}</span>";

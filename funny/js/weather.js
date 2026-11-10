@@ -45,7 +45,7 @@
 
             /** Every new idle period starts with the same interval as a freshly loaded page. */
             function initialDelay() {
-                return frequent ? 5000 + Math.random() * 7000 : 20000 + Math.random() * 40000;
+                return frequent ? 10000 + Math.random() * 14000 : 60000 + Math.random() * 60000;
             }
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
@@ -333,7 +333,7 @@
                 finishFade();
                 window.clearTimeout(timer); timer = 0;
                 appearances++;
-                var max = frequent ? 30000 : Math.min(600000, 60000 * Math.pow(2, Math.min(appearances, 4)));
+                var max = frequent ? 60000 : Math.min(1200000, 120000 * Math.pow(2, Math.min(appearances, 4)));
                 remaining = max / 2 + Math.random() * max / 2;
                 elapsed = 0; gustAt = 6000; lastTrace = -Infinity; rainbowSeen = false; rippleAt = 0;
                 starAt = 18000 + Math.random() * 22000;

@@ -733,9 +733,29 @@ class cms_Domains extends core_Embedder
     }
     
     
-    /** Бутоните за файлове не трябва да превъртат формата при отваряне. */
+    /** Подрежда настройките след добавянето на полетата от темата. */
     public static function on_AfterPrepareEmbeddedForm($mvc, &$form)
     {
+        $fieldOrder = array(
+            'domain', 'lang', 'theme',
+            'navigationPosition', 'searchPosition', 'menuPosition', 'colorPalette', 'bannerBgColor',
+            'headerColor', 'baseColor', 'activeColor', 'bgColor',
+            'buttonEffect', 'productHoverEffect', 'imageRevealEffect', 'productRevealEffect',
+            'wImg1', 'wImg2', 'wImg3', 'wImg4', 'wImg5', 'wImg6', 'wImg7', 'wImg8',
+            'interframeImage', 'colabImg', 'fadeDelay', 'fadeTransition', 'nImg',
+            'title', 'subtitle', 'titleColor', 'innerColor',
+            'mandatoryAgreeText', 'seoTitle', 'seoDescription', 'seoKeywords',
+            'sitemap', 'llmsTxt', 'favicon', 'editFavicon', 'wrFiles', 'shared',
+        );
+        $orderedFields = array();
+        foreach ($fieldOrder as $name) {
+            if (isset($form->fields[$name])) {
+                $orderedFields[$name] = $form->fields[$name];
+            }
+        }
+        $form->fields = $orderedFields + $form->fields;
+
+        // Бутоните за файлове не трябва да превъртат формата при отваряне.
         foreach ($form->selectFields() as $name => $field) {
             if ($field->type instanceof fileman_FileType) {
                 $form->setFieldTypeParams($name, array('focus' => 'none'));

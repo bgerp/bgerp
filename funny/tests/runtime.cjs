@@ -13,13 +13,14 @@ function environment(settings = {}, config = {}) {
         emit(type, event = {}) { (this.listeners[type] || []).forEach(fn => fn({type,...event})); }
     }
     class Element extends Target {
-        constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }}; }
+        constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }, remove: name => { this.className = this.className.split(' ').filter(c=>c!==name).join(' '); }}; }
         get firstChild() { return this.children[0]; }
         getBoundingClientRect() { return this.rect || {left:100,right:300,top:180,width:200,height:200}; }
         appendChild(child) { this.children.push(child); child.parent = this; }
         remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
-        closest() { return this.interactive ? this : null; }
+        closest(selector) { return selector.includes('.funny-eaten') ? (this.className.includes('funny-eaten') ? this : null) : (this.interactive ? this : null); }
+        contains(node) { return this.children.includes(node); }
     }
     function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}}; }
     class AudioContext {
@@ -37,7 +38,8 @@ function environment(settings = {}, config = {}) {
     const coarse = {matches:!!config.coarse};
     const block = new Element();
     block.isConnected=true;
-    Object.assign(document, {visibilityState:'visible', focused:true, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
+    Object.assign(document, {visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
+    document.body.querySelectorAll = () => config.meals ? [block] : [];
     Object.assign(window, {innerWidth:config.width || 1000, innerHeight:config.height || 800, AudioContext,
         matchMedia: query => query.includes('reduced') ? reduced : coarse, getSelection: () => '',
         setTimeout(fn, ms) { const id = ++serial; timers.set(id, {fn, at:now+ms}); return id; }, clearTimeout: id => timers.delete(id),
@@ -69,23 +71,37 @@ function environment(settings = {}, config = {}) {
 }
 let checks = 0;
 function check(name, fn) { fn(); checks++; console.log('PASS '+name); }
-check('first appearance within one minute and repeat intervals grow to 5-10 minutes', () => {
+check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 minutes', () => {
     const e = environment({sound:false});
     let delay = [...e.timers.values()][0].at;
-    assert(delay>=20000 && delay<=60000);
+    assert(delay>=60000 && delay<=120000);
     for(let i=0;i<6;i++) {
         e.tick(delay);
         assert.equal(e.visitors().length,1);
         e.tick(40000);
         assert.equal(e.visitors().length,0);
         delay = [...e.timers.values()][0].at-e.now();
-        assert(delay>0 && delay<=600000);
-        if(i>=3) assert(delay+40000>=300000);
+        assert(delay>0 && delay<=1200000);
+        if(i>=3) assert(delay+40000>=600000);
+    }
+});
+check('a page first loaded in the background waits a full initial interval after both visibility and focus arrive',()=>{
+    for(const frequency of ['normal','frequent']) for(const wait of [60000,3600000,43200000]) for(const focusFirst of [false,true]) {
+        const e=environment({frequency,sound:'yes'},{visibilityState:'hidden',focused:false,weather:'clouds'});
+        const min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
+        assert.equal(e.timers.size,0);e.window.emit('pageshow');e.tick(wait,wait);
+        assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);assert.equal(e.visitors().length,0);assert.equal(e.audio.length,0);
+        if(focusFirst){e.document.focused=true;e.window.emit('focus');}else{e.document.visibilityState='visible';e.document.emit('visibilitychange');}
+        e.tick(60000,60000);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        if(focusFirst){e.document.visibilityState='visible';e.document.emit('visibilitychange');}else{e.document.focused=true;e.window.emit('focus');}
+        assert.equal(e.timers.size,1);const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
+        e.tick(delay-1);assert.equal(e.visitors().length,0);assert.equal(e.weatherTriggers.length,0);
+        e.tick(1);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
     }
 });
 check('automatic appearances require uninterrupted inactivity after mouse, keyboard, touch and scroll input',()=>{
     for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
-        const e=environment({frequency,sound:'no'},{weather:'rain'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        const e=environment({frequency,sound:'no'},{weather:'rain'}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,e.event({clientX:100+i,clientY:50,key:'a'}));assert.equal(e.visitors().length,0,type);assert.equal(e.weatherTriggers.length,0);assert.equal(e.timers.size,1);}
         const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
         e.tick(min-100);assert.equal(e.visitors().length,0);e.tick(delay-(min-100)+20);assert(e.visitors().length>0);assert.deepEqual(e.weatherTriggers,['random']);
@@ -94,15 +110,15 @@ check('automatic appearances require uninterrupted inactivity after mouse, keybo
 check('activity restarts the initial interval after an appearance and repeated pointer coordinates do not postpone it',()=>{
     const e=environment({frequency:'frequent',sound:'no'});e.tick([...e.timers.values()][0].at);e.tick(40000);
     e.document.emit('pointermove',e.event({clientX:100,clientY:100}));const due=[...e.timers.values()][0].at;
-    assert(due-e.now()>=5000 && due-e.now()<=12000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
+    assert(due-e.now()>=10000 && due-e.now()<=24000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
     e.tick(due-e.now()+20);assert(e.visitors().length>0);
 });
 check('frequent, fully disabled and double-click-only modes keep their separate triggers', () => {
     const frequent=environment({frequency:'frequent'});
-    const first=[...frequent.timers.values()][0].at;assert(first>=5000 && first<=12000);
+    const first=[...frequent.timers.values()][0].at;assert(first>=10000 && first<=24000);
     frequent.tick(first);assert.equal(frequent.visitors().length,1);frequent.tick(2000);
     frequent.document.emit('keydown',{key:'Escape'});
-    const next=[...frequent.timers.values()][0].at-frequent.now();assert(next>=5000 && next<=12000);
+    const next=[...frequent.timers.values()][0].at-frequent.now();assert(next>=10000 && next<=24000);
     frequent.tick(next);assert.equal(frequent.visitors().length,1);
     const off=environment({frequency:'off',trigger:'both'});assert.equal(off.timers.size,0);
     off.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});off.click();off.tick(900000);
@@ -254,7 +270,7 @@ check('nearby visitors repel after emerging instead of converging through each o
 });
 check('returning to a visible focused tab restarts the full initial interval, even one second before a due appearance',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
-        const e=environment({frequency,sound:'no'},{weather:'clouds'}),min=frequency==='frequent'?5000:20000,max=frequency==='frequent'?12000:60000;
+        const e=environment({frequency,sound:'no'},{weather:'clouds'}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         e.tick([...e.timers.values()][0].at-1000);
         if(hidden) {e.document.visibilityState='hidden';e.document.emit('visibilitychange');} else {e.document.focused=false;e.window.emit('blur');}
         e.tick(60000);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);
@@ -297,7 +313,7 @@ check('touch double tap summons, scrolling and synthetic double-click do not dup
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','snowman','martenitsa','stork','bunny','chick','butterfly','firefly'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -307,10 +323,10 @@ check('every character has a sprite and a distinct, short sound signature', () =
     assert.equal(signatures.size,characters.length);
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
-    const halloween=['ghost','casper','zombie','pumpkin','vampire','bat','spiderweb'];
+    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
     const christmas=['sleigh','elf','deer','snowman'], winter=['snowman','casper'];
     const march=['martenitsa','stork'], easter=['bunny','chick','butterfly'], spring=['stork','butterfly','chick'];
-    const summer=['butterfly','firefly'], normal=['ghost','casper'];
+    const summer=['butterfly','firefly'], normal=['ghost','ghostgirl','ghostplay','casper','cat'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
@@ -326,6 +342,62 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
+});
+check('muncher restores eaten elements on input, capture, loss of focus and its hard deadline',()=>{
+    for(const exit of ['click','key','scroll','catch','blur','hidden','escape','timeout']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+        e.block.className='original';e.click();e.tick(660);
+        const p=e.center(e.visitors()[0]);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.tick(50);assert(e.block.className.includes('funny-eaten'),exit);
+        if(exit==='click') e.document.emit('pointerdown',e.event({clientX:0,clientY:0}));
+        if(exit==='key') e.document.emit('keydown',{key:'a'});
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='catch') e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        e.tick(exit==='timeout'?40000:300,exit==='timeout'?40000:16);
+        assert.equal(e.block.className,'original',exit);assert.equal(e.block.isConnected,true);
+        e.tick(40000,40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    }
+});
+check('muncher leaves the focused control and its container visible',()=>{
+    for(const parent of [false,true]) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+        e.document.activeElement=parent?e.blank:e.block;
+        if(parent) e.block.appendChild(e.blank);
+        e.click();e.tick(5000);assert(!e.block.className.includes('funny-eaten'));
+    }
+});
+check('muncher eating and finishing sounds respect silent notifications',()=>{
+    for(const notification of [false,true]) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'notification'},{meals:true});
+        e.document.emit('pointerdown',e.event());
+        if(notification) e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000}); else e.click();
+        const initial=e.sounds.length;e.tick(660);const p=e.center(e.visitors()[0]);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.tick(50);assert(e.block.className.includes('funny-eaten'));e.tick(700);
+        assert.equal(e.sounds.length-initial,notification?0:5);
+    }
+});
+check('a chased muncher leaves the edge instead of staying clamped inside it',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+    e.click();e.tick(660);
+    for(let i=0;i<80 && e.visitors().length;i++) {
+        const p=e.center(e.visitors()[0]);
+        e.document.emit('pointermove',e.event({clientX:p.x-110,clientY:p.y+80}));
+        e.tick(100);
+    }
+    assert.equal(e.visitors().length,0);assert(!e.block.className.includes('funny-eaten'));
+});
+check('new characters support scarves and glasses and restore normal sprites on forecast change',()=>{
+    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
+        const config={weather},e=environment({mode:'selected',characters:[character],trigger:'manual'},config);
+        e.click();const v=e.visitors()[0];assert.equal(v.attrs['data-weather'],kind);
+        assert(v.children.some(n=>n.firstChild.attrs.href.endsWith('#accessory-'+kind)));
+        config.weather='clouds';e.tick(1100);assert.equal(v.attrs['data-weather'],'');assert.equal(v.children.length,1);
+    }
 });
 check('scary sound is opt-in, short, silent for notifications and stops on blur', () => {
     const normal=environment({mode:'selected',characters:['ghost'],trigger:'notification'});normal.click();

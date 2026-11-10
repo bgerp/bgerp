@@ -258,7 +258,7 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                 $recs[$key] = (object) array('kind' => 'order', 'cartId' => $cartRec->id, 'saleId' => $saleRec->id, 'saleState' => $saleRec->state, 'ownCompanyId' => $saleRec->ownCompanyId ?? null,
                     'orderDate' => dt::mysql2verbal(!empty($cartRec->activatedOn) ? $cartRec->activatedOn : $saleRec->valior, 'Y-m-d'), 'docs' => array(), 'lines' => array(), 'errors' => array(),
                     'total1' => 0, 'disc' => 0, 'vat' => 0, 'total2' => 0, 'deliveryDate' => $dRec->valior,
-                    'dealCurrency' => $saleRec->currencyId, 'dealRate' => $saleRec->currencyRate);
+                    'dealCurrency' => $saleRec->currencyId, 'dealRate' => $saleRec->currencyRate, 'saleDelivered' => $saleRec->amountDelivered ?? null);
                 $this->preparePayment($recs[$key], $saleRec, $cartRec);
             }
             $oRec = $recs[$key];
@@ -287,7 +287,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             }
         }
 
-        foreach ($recs as $oRec) {
+        foreach ($recs as $key => $oRec) {
+            // Неплатена поръчка с изцяло върната стока не е продажба - не се подава
+            if (!empty($oRec->errors['noPayment']) && isset($oRec->saleDelivered) && abs($oRec->saleDelivered) < 0.01) {
+                unset($recs[$key]);
+                continue;
+            }
             $oRec->date = $oRec->deliveryDate;
 
             // Сумата, платена от клиента във валутата на сделката - от точната сума на документите
@@ -1017,7 +1022,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                                 </fieldset>
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|XML файл за НАП|*</b></small></legend>
                                     <div class='small'>[#file#]</div>
-                                </fieldset>"));
+                                </fieldset>
+                                <!--ET_BEGIN ordersSummary-->
+                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Поръчки с доставка|*: [#ordersCount#]</b></small></legend>
+                                    <div class='small'>[#ordersSummary#]</div>
+                                </fieldset>
+                                <!--ET_END ordersSummary-->"));
 
         $rec = $data->rec;
         $isPlain = !static::canLink();
@@ -1055,6 +1065,30 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             $fieldTpl->replace("<span class='red'>" . tr('Не е създаден') . ':<br>' . implode('<br>', array_map(function ($e) {
                 return core_Type::escape(tr($e));
             }, $errors)) . '</span>', 'file');
+        }
+
+        // Броят на поръчките по начин на плащане - тези с грешка отделно като n/a
+        $counts = array();
+        $recs = is_object($reportData) && is_array($reportData->recs ?? null) ? $reportData->recs : array();
+        foreach ($recs as $dRec) {
+            if (($dRec->kind ?? null) == 'order') {
+                $code = countR($dRec->errors ?? null) ? 'n/a' : ($dRec->paym ?? 'n/a');
+                $counts[$code] = ($counts[$code] ?? 0) + 1;
+            }
+        }
+        if (countR($counts)) {
+            $Int = core_Type::getByName('int');
+            $lines = array();
+            foreach (array_keys(static::$paymentCodes['order']) as $code) {
+                if (!empty($counts[$code])) {
+                    $lines[] = '<div>' . tr(static::$paymentCodes['order'][$code]) . ": <b>{$Int->toVerbal($counts[$code])}</b></div>";
+                }
+            }
+            if (!empty($counts['n/a'])) {
+                $lines[] = '<div>' . tr('С грешка') . ": <b>{$Int->toVerbal($counts['n/a'])}</b></div>";
+            }
+            $fieldTpl->replace($Int->toVerbal(array_sum($counts)), 'ordersCount');
+            $fieldTpl->replace(implode('', $lines), 'ordersSummary');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

@@ -160,12 +160,15 @@ spl_autoload_register(function ($class) { $path = getFullPath(str_replace('_', '
 require dirname(__DIR__) . '/Setup.class.php';
 expect(OFFICE_JODCONVERTER_VERSION === '3.0b4' && OFFICE_CONVERTER_CLASS === 'docoffice_Jodconverter', 'Default changed');
 if ($argv[1] === '5.1.1' || $argv[1] === 'unoserver') {
-    expect(is_file(getenv('BGERP_TEST_COMPOSER') ?: ''), 'Set BGERP_TEST_COMPOSER to an existing Composer PHAR');
     core_Os::requireDir(EF_VENDOR_PATH);
     $setup = new docoffice_Setup();
     expect($setup->checkConfig() === null, 'Converter/Office requirements failed');
-    $result = $setup->install();
-    expect(strpos($result, 'debug-error') === false, strip_tags($result));
+    // BGERP_TEST_INSTALLED=1 ползва наличните зависимости без Composer промени.
+    if (getenv('BGERP_TEST_INSTALLED') !== '1') {
+        expect(is_file(getenv('BGERP_TEST_COMPOSER') ?: ''), 'Set BGERP_TEST_COMPOSER to an existing Composer PHAR');
+        $result = $setup->install();
+        expect(strpos($result, 'debug-error') === false, strip_tags($result));
+    }
 }
 if (!empty($argv[3])) require $argv[3];
 $files = docoffice_tests_Fixtures::create($argv[2]);
@@ -197,6 +200,34 @@ $results['export.csv'] = array('xls' => $xls, 'pdf' => $pdf, 'text' => $text);
 echo "CSV -> XLS -> PDF: OK\n";
 if ($argv[1] === '5.1.1' || $argv[1] === 'unoserver') expect(docoffice_Office::$prepared === 0 && docoffice_Office::$count === 0, 'New CLI changed the legacy Office lifecycle');
 if ($argv[1] === 'unoserver') {
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGElEQVR4nGMQSdmHFX3AgRhGNYxqGL4aAORjpBCFRWivAAAAAElFTkSuQmCC');
+    $html = str_replace('</body>', '<img src="data:image/png;base64,' . base64_encode($png) . '"></body>', file_get_contents($argv[2] . '/invoice.html'));
+    $source = $argv[2] . "/Формуляр ' тест.htm";
+    file_put_contents($source, $html);
+    $docx = $converter::convertDoc($source, 'docx', array('asynch' => false, 'callBack' => ''));
+    $zip = new ZipArchive();
+    expect($zip->open($docx) === true, 'Missing DOCX package');
+    $body = $zip->getFromName('word/document.xml');
+    expect(is_string($body), 'Missing Word document');
+    foreach (array('Тестова фактура', 'България', 'София', '00123', '37,50', 'EUR') as $needle) {
+        expect(strpos($body, $needle) !== false, 'HTML -> DOCX lost ' . $needle);
+    }
+    expect(strpos($body, '<w:tbl>') !== false, 'HTML -> DOCX lost the table');
+    $imageFound = false;
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        if (strpos($zip->getNameIndex($i), 'word/media/') === 0 && $zip->getFromIndex($i) === $png) $imageFound = true;
+    }
+    $zip->close();
+    expect($imageFound, 'HTML -> DOCX changed or lost the embedded PNG');
+    $returned = $converter::convertDoc($docx, 'html', array('asynch' => false, 'callBack' => ''));
+    expect(is_file($returned) && strpos(file_get_contents($returned), '00123') !== false, 'DOCX -> HTML lost the text');
+    $imageFound = false;
+    foreach (glob(dirname($returned) . '/*.png') as $image) {
+        if (file_get_contents($image) === $png) $imageFound = true;
+    }
+    expect($imageFound && !core_Locks::$held, 'DOCX -> HTML lost the PNG or left locks');
+    $results['htmlToDocx'] = array('source' => $source, 'docx' => $docx, 'returnedHtml' => $returned);
+    echo "HTML -> DOCX -> HTML: text, table and exact PNG OK\n";
     fconv_Script::$fail = true;
     expect($converter::convertDoc($csv, 'xls', array('asynch' => false)) === null, 'Failed launch must not return a file');
     expect(fileman_Indexes::$errors === 1 && !core_Locks::$held, 'Failed launch must record an error and release locks');

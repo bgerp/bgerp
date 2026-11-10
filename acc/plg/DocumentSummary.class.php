@@ -40,7 +40,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -403,15 +403,18 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
             }
 
+            // Изборите, направени от името на потребителя (напр. от Аида), не се запомнят като негови
+            $saveChoices = !Mode::is('preserveUserChoices');
+
             // Записваме в кеша последно избраните потребители
-            if ($data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
+            if ($saveChoices && $data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
                 core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
             }
             
-            if (($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
+            if ($saveChoices && ($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
                 core_Permanent::set('periodFilter' . $cKey, $thisPeriod, 24 * 60 * 100);
             }
             
@@ -547,8 +550,8 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (!empty($filter->folder)) {
                 unset($data->listFields['folderId']);
                 $data->query->where("#folderId = '{$filter->folder}'");
-                if($mvc->rememberListFilterFolderId) {
-                    if ($filter->folder != $lastFolderId) {
+                if ($saveChoices && !empty($mvc->rememberListFilterFolderId)) {
+                    if ($filter->folder != ($lastFolderId ?? null)) {
                         core_Permanent::set('folderFilter' . $cKey, $filter->folder, 24 * 60 * 100);
                     }
                 }
