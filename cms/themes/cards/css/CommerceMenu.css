@@ -536,6 +536,12 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link {
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link:hover,
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true] { background: var(--c-accent-soft-3) !important; }
 
+/* Dropdown links keep their contrast independently of the main menu hover colors. */
+body.commerce-theme #cmsMenu.menuRow .commerce-language-options a.commerce-language-link:is(:hover, :focus-visible, [aria-current=true]) {
+    color: #263f4d !important;
+    background: var(--c-accent-soft-3) !important;
+}
+
 /* News strips stay in document flow instead of covering the banner or navigation. */
 body.commerce-theme .newsbar {
     font-family: Arial, Helvetica, sans-serif;

@@ -9,7 +9,7 @@
  * @package   plg
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -530,8 +530,11 @@ class plg_SelectPeriod extends core_Plugin
             if (empty($opt[$keySel])) {
                 $opt[$keySel] = $title;
             }
-            $val = $fromSel . '|' . $toSel . '=>' . $title;
-            recently_Values::add(self::RECENTLY_KEY, $val);
+            // Период, избран от името на потребителя (напр. от Аида), не влиза в последните му периоди
+            if (!Mode::is('preserveUserChoices')) {
+                $val = $fromSel . '|' . $toSel . '=>' . $title;
+                recently_Values::add(self::RECENTLY_KEY, $val);
+            }
         }
         
         $first = array_slice($opt, 0, $f);

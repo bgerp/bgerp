@@ -78,6 +78,11 @@
     65% { transform: rotate(7deg); }
 }
 
+/* The muncher only hides elements; removing the class restores them in place. */
+.funny-eaten { opacity: 0 !important; clip-path: inset(0 0 0 100%) !important; transition: opacity .45s ease-in, clip-path .45s ease-in !important; }
+.funny-visitor[data-munching="true"] > svg { transform-origin: 50% 70%; animation: funny-chomp .16s ease-in-out 4 alternate; }
+@keyframes funny-chomp { to { transform: scale(1.12, .86); } }
+
 @keyframes funny-pop {
     30% { transform: scale(1.2); }
     100% { transform: scale(.05); }
@@ -121,4 +126,5 @@
 
 @media print, (prefers-reduced-motion: reduce) {
     .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-peeker { display: none !important; }
+    .funny-eaten { opacity: 1 !important; clip-path: none !important; }
 }
