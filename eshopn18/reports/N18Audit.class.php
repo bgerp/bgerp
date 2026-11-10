@@ -106,6 +106,25 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
 
 
     /**
+     * Заглавието по подразбиране е с домейна на магазина, а месецът се добавя от периода
+     *
+     * @param stdClass $rec
+     * @param bool     $isPlain
+     *
+     * @return string|null
+     */
+    public function getTitle($rec, $isPlain = false)
+    {
+        if (empty($rec->title) && !empty($rec->domainId)) {
+            $rec = clone $rec;
+            $rec->title = 'Н-18 одиторски файл - ' . cms_Domains::fetchField($rec->domainId, 'domain');
+        }
+
+        return parent::getTitle($rec, $isPlain);
+    }
+
+
+    /**
      * Периодът е избраният месец - по него заглавието по подразбиране получава месеца
      *
      * @param stdClass $rec
