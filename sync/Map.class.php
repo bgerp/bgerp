@@ -603,10 +603,15 @@ class sync_Map extends core_Manager
                 if (array_key_exists($fKey, $controller->fixedExport ?? array())) {
                     if (isset($controller->fixedExport[$fKey])) {
                         $funcArr = explode('::', $controller->fixedExport[$fKey]);
-                        call_user_func_array(
+                        $fixed = call_user_func_array(
                             array(cls::get($funcArr[0]), $funcArr[1] . 'Import'),
                             array(&$rec, $name, $fRec, &$res, $controller, $update)
                         );
+                        if ($fixed === false) {
+                            self::markImportFailed($class, $id);
+
+                            return 0;
+                        }
                         
                         $continue = true;
                     }
