@@ -76,10 +76,6 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 						width: 100%;
 						break-inside: avoid;
 					}
-
-					> tr.toggable {
-						display: table !important;
-					}
 				}
 
 				.twoColsFilterLeftRow .formFieldCaption {
@@ -96,14 +92,20 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 			.form-filter-btn {
 				margin-left: $twoColsFilterLeftCaptionOffset !important;
 			}
-
-			.toggleListFilterBtn {
-				display: none !important;
-			}
 		}
 
 		.summary-block {
 			max-width: none;
+		}
+
+		&.twoColsFilterAutoExpanded {
+			.listFilter .vFormField > tbody > tr.toggable {
+				display: table !important;
+			}
+
+			.toggleListFilterBtn {
+				display: none !important;
+			}
 		}
 	}
 }

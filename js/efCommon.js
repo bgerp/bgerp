@@ -7714,136 +7714,104 @@ function copyPlaceholderAsValOnClick() {
 
 
 /**
- * Скриване/показване на допълнителните бутони в лист изгледа
+ * Скриване/показване на допълнителните полета в лист изгледа
  */
 function toggleListFilter() {
-    var formId = $('form').data('mvc'); // ID на формата
-    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
+    $('.listFilter form[data-mvc]').each(function () {
+        var $form = $(this);
+        var formId = $form.data('mvc');
+        var $rows = $form.find('tr.toggable');
+        var $button = $form.find('.toggleListFilterBtn');
+        var hiddenItems = null;
 
-    if (!hiddenItems || hiddenItems.length == 0) {
-        hiddenItems = [];
-        var hasHiddenRows = false;
+        if (!$rows.length || !$button.length) return;
 
-        $('.listFilter tr.toggable').each(function () {
-            var $row = $(this);
-            var shouldHide = true;
-
-            $row.find('select, .select2-src').each(function () {
-                var val = $(this).val();
-                if (val && val !== "all" && val.length > 0) {
-                    shouldHide = false;
-                }
-            });
-
-            $row.find('input[type="text"]').each(function () {
-                if ($(this).val().trim() !== '') {
-                    shouldHide = false;
-                }
-            });
-
-            $row.find('input[type="checkbox"]').each(function () {
-                if ($(this).prop('checked')) {
-                    shouldHide = false;
-                }
-            });
-
-            $row.find('input[type="radio"]').each(function () {
-                if ($(this).prop('checked')) {
-                    shouldHide = false;
-                }
-            });
-
-            if (shouldHide) {
-                $row.hide();
-                hasHiddenRows = true;
-            }
-        });
-
-        if (hasHiddenRows) {
-            $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")").val($('.toggleListFilterBtn').data('open'));
-        } else {
-            $('.toggleListFilterBtn').css('display', 'none');
+        try {
+            hiddenItems = JSON.parse(localStorage.getItem(formId));
+        } catch (e) {
+            // При забранено хранилище остава стандартният изглед.
         }
-    } else if (hiddenItems.length) {
-        // Скриваме редовете, които са били записани като скрити
-        $('.listFilter tr.toggable').each(function () {
-            var $row = $(this);
-            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable')
+        if (!Array.isArray(hiddenItems)) hiddenItems = null;
 
-            if (rowId && hiddenItems.includes(rowId)) {
-                $row.hide();
-            }
-        });
-        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
-        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
-    }
+        function getRowId(row) {
+            return Array.from(row.classList).find(function (name) {
+                return name.indexOf('filed-') === 0;
+            });
+        }
 
-    $('.toggleListFilterBtn').on('click', function () {
-
-        $('.listFilter tr.toggable').each(function () {
-            var $row = $(this);
-            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable');
+        function canHideRow($row) {
             var shouldHide = true;
-            if (!rowId) return;
-
-            // Проверка за select (обикновен и select2)
             $row.find('.select2-src, select').each(function () {
-                if ($(this).val() && $(this).val() != "all" && $(this).val().length > 0) {
+                var value = $(this).val();
+                if (value && value !== 'all' && value.length > 0) {
                     shouldHide = false;
                 }
             });
-
-            // Проверка за текстови полета
             $row.find('input[type="text"]').each(function () {
                 if ($(this).val().trim() !== '') {
                     shouldHide = false;
                 }
             });
-
-            // Проверка за чекбокси (ако поне един е маркиран, не крие реда)
-            $row.find('input[type="checkbox"]').each(function () {
+            $row.find('input[type="checkbox"], input[type="radio"]').each(function () {
                 if ($(this).prop('checked')) {
                     shouldHide = false;
                 }
             });
+            return shouldHide;
+        }
 
-            // Проверка за radio (ако поне един е маркиран, не крие реда)
-            $row.find('input[type="radio"]').each(function () {
-                if ($(this).prop('checked')) {
-                    shouldHide = false;
-                }
-            });
+        function updateButton(hasHiddenRows) {
+            $button.css('background-image', 'url(' + $button.data(hasHiddenRows ? 'plus' : 'minus') + ')')
+                .val($button.data(hasHiddenRows ? 'open' : 'close'));
+        }
 
-            if ($row.is(':visible') && shouldHide) {
-                // Скриваме реда и добавяме в LocalStorage
-                $row.fadeOut('slow', function () {
-                    if (!hiddenItems.includes(rowId)) {
-                        hiddenItems.push(rowId);
-                        localStorage.setItem(formId, JSON.stringify(hiddenItems));
-                    }
-                });
-                $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
-                $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
-            } else if (!$row.is(':visible')) {
-                // Показваме реда и го премахваме от LocalStorage
-                $row.fadeIn('slow', function () {
-                    hiddenItems = hiddenItems.filter(id => id !== rowId);
-                    localStorage.setItem(formId, JSON.stringify(hiddenItems));
-                    $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('minus') + ")");
-                    $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+        var hasHiddenRows = false;
+        $rows.each(function () {
+            var shouldHide = canHideRow($(this)) &&
+                (hiddenItems === null || hiddenItems.indexOf(getRowId(this)) !== -1);
+            $(this).css('display', shouldHide ? 'none' : '');
+            hasHiddenRows = hasHiddenRows || shouldHide;
+        });
+        updateButton(hasHiddenRows);
 
-                    $(this).find('input.combo').each(function () {
-                        var idComboBox = $(this).attr('id');
-                        if (!comboBoxInited[idComboBox]) {
-                            comboBoxInit(idComboBox, idComboBox + "_cs");
-                            comboBoxInited[idComboBox] = true;
-                        }
+        $button.off('click.toggleListFilter').on('click.toggleListFilter', function () {
+            $rows.stop(true, true);
+            var expand = $rows.filter(function () { return $(this).css('display') === 'none'; }).length > 0;
+            hiddenItems = [];
+
+            $rows.each(function () {
+                var $row = $(this);
+                if (!expand && canHideRow($row)) {
+                    hiddenItems.push(getRowId(this));
+                    $row.fadeOut('slow');
+                } else {
+                    $row.fadeIn('slow', function () {
+                        $(this).css('display', '');
+                        $(this).find('input.combo').each(function () {
+                            var idComboBox = $(this).attr('id');
+                            if (!comboBoxInited[idComboBox]) {
+                                comboBoxInit(idComboBox, idComboBox + '_cs');
+                                comboBoxInited[idComboBox] = true;
+                            }
+                        });
+                        $(this).find('.select2-container').css('width', '100%');
                     });
-                    $(this).find('.select2-container').css('width', '100%');
-                });
+                }
+            });
+            updateButton(hiddenItems.length > 0);
+
+            // Записваме веднага, защото формата може да се изпрати преди края на анимацията.
+            try {
+                localStorage.setItem(formId, JSON.stringify(hiddenItems));
+            } catch (e) {
+                // Превключването работи и без достъп до хранилището.
             }
         });
     });
+
+    if (typeof scheduleTwoColsFilterWidthUpdate === 'function') {
+        scheduleTwoColsFilterWidthUpdate();
+    }
 }
 
 /**

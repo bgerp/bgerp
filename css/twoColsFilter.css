@@ -44,8 +44,6 @@
             table-layout: fixed;
             width: 100%;
             break-inside: avoid; }
-          .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody > tr.toggable {
-            display: table !important; }
         .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField .twoColsFilterLeftRow .formFieldCaption {
           box-sizing: border-box;
           width: var(--two-cols-filter-left-caption-width, 6em); }
@@ -54,10 +52,12 @@
           width: var(--two-cols-filter-right-caption-width, 6em); }
       .wide .twoColsFilter.twoColsFilterActive .listFilter .form-filter-btn {
         margin-left: var(--two-cols-filter-left-caption-offset, 7em) !important; }
-      .wide .twoColsFilter.twoColsFilterActive .listFilter .toggleListFilterBtn {
-        display: none !important; }
     .wide .twoColsFilter.twoColsFilterActive .summary-block {
       max-width: none; }
+      .wide .twoColsFilter.twoColsFilterActive.twoColsFilterAutoExpanded .listFilter .vFormField > tbody > tr.toggable {
+        display: table !important; }
+      .wide .twoColsFilter.twoColsFilterActive.twoColsFilterAutoExpanded .toggleListFilterBtn {
+        display: none !important; }
 
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
