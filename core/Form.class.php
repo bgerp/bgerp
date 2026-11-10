@@ -1505,8 +1505,9 @@ class core_Form extends core_FieldSet
         foreach ($res->js as $key => $file) {
             $res->js[$key] = page_Html::getFileForAppend($file, false);
         }
-        $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
-        "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
+        // SCRIPTS са преди JQRUN, както в page_Html - старите jQuery пускат ready-кода веднага при опресняване
+        $ajaxPage = new ET("[#1#]<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
+        "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->", $tpl);
         $res->html = str_replace('</form>', '', $ajaxPage->getContent()) . '</form>';
         $res->html = substr($res->html, strpos($res->html, '<form'));
         $fields = $this->selectFields("#silent == 'silent'");

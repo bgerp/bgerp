@@ -18,7 +18,7 @@ defIfNot('GMAP3_VERSION', '6.0');
  * @package   location
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 206 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -160,7 +160,8 @@ class location_Type extends type_Varchar
 						    }
 						  });";
         }
-        jquery_Jquery::run($res, "if (\$('#{$id}').length) { {$js} }");
+        // Без заредения скрипт на Google Maps (блокиран при посетителя) картата не се показва
+        jquery_Jquery::run($res, "if (typeof google !== 'undefined' && \$('#{$id}').length) { {$js} }");
         
         return $res;
     }
