@@ -311,7 +311,7 @@ check('touch double tap summons, scrolling and synthetic double-click do not dup
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','snowman','martenitsa','stork','bunny','chick','butterfly','firefly'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));

@@ -57,7 +57,7 @@
                     return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat'];
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -131,6 +131,9 @@
                     cat: {notes: [620, 860], duration: 0.24, spacing: 0.17, pitch: 0.7, wave: 'sawtooth', voice: true},
                     blackcat: {notes: [520, 740], duration: 0.28, spacing: 0.2, pitch: 0.65, wave: 'sawtooth', voice: true},
                     witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true},
+                    muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
+                    munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
+                    burp: {notes: [120, 95], duration: 0.3, spacing: 0.22, pitch: 0.6, wave: 'sawtooth', low: true},
                     snowman: {notes: [523, 784], duration: 0.26, spacing: 0.22, pitch: 1, wave: 'sine'},
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
                     stork: {notes: [420, 360, 420], duration: 0.06, spacing: 0.11, pitch: 0.3, wave: 'triangle'},
@@ -254,6 +257,7 @@
             }
 
             function removeVisitor(v, escaped) {
+                restoreEaten(v);
                 if (escaped && active() && caughtCount > 0) { escapedCount++; updateStats(); }
                 v.node.remove();
                 visitors.splice(visitors.indexOf(v), 1);
@@ -312,7 +316,7 @@
                 accessory.setAttribute('class', 'funny-accessory');
                 if (kind !== 'umbrella') {
                     // Face centers are in the sprite's 120 x 100 coordinate space.
-                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
+                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
                     var face = faces[v.character];
                     accessory.firstChild.setAttribute('transform', 'translate(' + face[0] + ' ' + face[1] + ') scale(' + face[2] + ') translate(-60 -32)');
                 }
@@ -329,7 +333,7 @@
             /** A short, bounded particle burst outlives the caught character without blocking input. */
             function burst(v) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',snowman:'snow',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',snowman:'snow',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff'};
                 var kind = kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = 'funny-burst funny-burst-' + kind;
@@ -392,7 +396,7 @@
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
                 if (!active()) return false;
-                var width = character === 'sleigh' ? 120 : 76, height = width * 5 / 6;
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : 76, height = width * 5 / 6;
                 var destination = safePosition(width, height, reason === 'manual' ? null : origin);
                 if (!destination) return false;
                 if (timer) {
@@ -412,7 +416,7 @@
                     x: origin.x, y: origin.y,
                     from: {x: origin.x, y: origin.y}, destination: destination,
                     launched: true, born: now, previous: now, leaving: 0,
-                    lifetime: random(5000, 16000), fleeUntil: 0, silent: reason === 'notification'
+                    lifetime: character === 'muncher' ? 37000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: []
                 };
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
@@ -555,6 +559,7 @@
                 v.previous = now;
                 if (v.reactionUntil && now >= v.reactionUntil) { v.reactionUntil = 0; v.node.setAttribute('data-reaction', ''); }
                 if (elapsed >= 40000 || (v.leaving && now - v.leaving >= 250)) { removeVisitor(v, !v.leaving); return; }
+                if (v.character === 'muncher' && !v.launched && !v.leaving && !v.exiting && elapsed < v.lifetime && munch(v, now, delta)) return;
                 if (v.launched) {
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
                     v.x = v.from.x + (v.destination.x - v.from.x) * ease;
@@ -587,6 +592,82 @@
                         return;
                     }
                 }
+            }
+
+            /** Eaten elements are only hidden by a class, so removing it restores them untouched. */
+            function restoreEaten(v) {
+                (v.eaten || []).forEach(function (el) { el.classList.remove('funny-eaten'); });
+                v.eaten = [];
+            }
+
+            /** Any key, scroll or click away from the monster returns the page and sends it away. */
+            function retreatMunchers(event) {
+                visitors.forEach(function (v) {
+                    if (v.character !== 'muncher' || v.leaving) return;
+                    if (event && typeof event.clientX === 'number' && Math.hypot(event.clientX - v.x, event.clientY - v.y) < 60) return;
+                    restoreEaten(v);
+                    v.exiting = true;
+                    v.munchTarget = null;
+                    v.eating = 0;
+                    v.node.setAttribute('data-munching', '');
+                });
+            }
+
+            /** Nearest visible element on screen, small ones first; bites grow until the screen is empty. */
+            function findMeal(v) {
+                var nodes = document.body.querySelectorAll('*'), focus = document.activeElement;
+                var limit = 260 * Math.pow(1.35, v.eaten.length), best = null, nearest = Infinity, fallback = null, smallest = Infinity;
+                for (var i = 0; i < nodes.length && i < 4000; i++) {
+                    var el = nodes[i];
+                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
+                        (focus && focus !== document.body && (el === focus || el.contains(focus)))) continue;
+                    var r = el.getBoundingClientRect();
+                    if (r.width < 8 || r.height < 8 || r.bottom <= 0 || r.right <= 0 || r.top >= window.innerHeight || r.left >= window.innerWidth) continue;
+                    var area = r.width * r.height;
+                    if (r.width <= limit && r.height <= limit) {
+                        var x = clamp(r.left + r.width / 2, 0, window.innerWidth), y = clamp(r.top + r.height / 2, 0, window.innerHeight);
+                        var distance = Math.hypot(x - v.x, y - v.y);
+                        if (distance < nearest) { nearest = distance; best = el; }
+                    } else if (area < smallest) { smallest = area; fallback = el; }
+                }
+                return best || fallback;
+            }
+
+            /** Walks to the nearest meal and bites it, faster each time; returns false once the screen is empty. */
+            function munch(v, now, delta) {
+                var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
+                if (distance < 30) { catchVisitor(v); return true; }
+                if (now < v.fleeUntil) {
+                    v.x = clamp(v.x + dx / distance * 170 * delta, v.width / 2, window.innerWidth - v.width / 2);
+                    v.y = clamp(v.y + dy / distance * 170 * delta, v.height / 2, window.innerHeight - v.height / 2);
+                    return true;
+                }
+                if (v.eating) {
+                    if (now < v.eating) return true;
+                    v.eating = 0;
+                    v.node.setAttribute('data-munching', '');
+                }
+                var meal = v.munchTarget;
+                if (!meal || !meal.isConnected || meal.closest('.funny-eaten')) {
+                    meal = v.munchTarget = findMeal(v);
+                    if (!meal) {
+                        if (v.eaten.length) { playSound('burp'); react(v, 'hello', now); }
+                        v.exiting = true;
+                        return false;
+                    }
+                }
+                var r = meal.getBoundingClientRect();
+                var mx = clamp(r.left + r.width / 2, v.width / 2, window.innerWidth - v.width / 2) - v.x;
+                var my = clamp(r.top + r.height / 2, v.height / 2, window.innerHeight - v.height / 2) - v.y;
+                var gap = Math.hypot(mx, my), step = Math.min(320, 120 + v.eaten.length * 8) * delta;
+                if (gap > Math.max(14, step)) { v.x += mx / gap * step; v.y += my / gap * step; return true; }
+                meal.classList.add('funny-eaten');
+                v.eaten.push(meal);
+                v.munchTarget = null;
+                v.eating = now + Math.max(160, 650 - v.eaten.length * 25);
+                v.node.setAttribute('data-munching', 'true');
+                playSound('munch');
+                return true;
             }
 
             function movePointer(event) {
@@ -726,6 +807,7 @@
             }, {passive: true});
             document.addEventListener('pointerdown', function (event) {
                 hidePeek();
+                retreatMunchers(event);
                 if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
                 else movePointer(event);
                 unlockSound();
@@ -734,11 +816,11 @@
             document.addEventListener('pointercancel', function () { touchStart = null; lastTap = null; }, {passive: true});
             document.addEventListener('keydown', function (event) {
                 unlockSound();
-                if (event.key === 'Escape') { clearVisitors(); stopSound(); }
+                if (event.key === 'Escape') { clearVisitors(); stopSound(); } else retreatMunchers();
             });
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
-                removePeek(); visitors.forEach(function (v) { takeOff(v, performance.now()); });
+                removePeek(); retreatMunchers(); visitors.forEach(function (v) { takeOff(v, performance.now()); });
             }, {passive: true, capture: true});
             document.addEventListener('visibilitychange', syncActivity);
             window.addEventListener('blur', syncActivity);

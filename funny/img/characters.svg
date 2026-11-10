@@ -211,6 +211,20 @@
     <ellipse cx="51" cy="44" rx="3.5" ry="2" fill="#ffb3b3"/><ellipse cx="73" cy="44" rx="3.5" ry="2" fill="#ffb3b3"/>
     <path d="M100 18l1.5 4 4 1-4 1.5-1.5 4-1.5-4-4-1.5 4-1z" fill="#ffcf4d"/>
   </symbol>
+  <symbol id="muncher" viewBox="0 0 120 100">
+    <path d="M42 86l-4 10h12m22-10 4 10H64" fill="none" stroke="#3f6b2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M38 16l-6-12 14 8m36 4 6-12-14 8" fill="#f2d25c" stroke="#b89a2c" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M18 54q-2-38 42-42 44 4 42 42 0 34-42 36-44-2-42-36z" fill="#7ccf5a" stroke="#4f9a36" stroke-width="2.5"/>
+    <path d="M24 50q-8 0-12 6 4 2 12 0m72-6q8 0 12 6-4 2-12 0" fill="#7ccf5a" stroke="#4f9a36" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="46" cy="34" r="9" fill="white" stroke="#4f9a36" stroke-width="1.5"/><circle cx="74" cy="34" r="9" fill="white" stroke="#4f9a36" stroke-width="1.5"/>
+    <circle cx="48" cy="35" r="4.5" fill="#2e2a3a"/><circle cx="72" cy="35" r="4.5" fill="#2e2a3a"/>
+    <circle cx="49.5" cy="33" r="1.5" fill="white"/><circle cx="73.5" cy="33" r="1.5" fill="white"/>
+    <path d="M30 52q30 10 60 0-4 28-30 28-26 0-30-28z" fill="#8a2f45" stroke="#4f9a36" stroke-width="2"/>
+    <path d="M52 72q8-6 16 0-4 6-8 6t-8-6z" fill="#ff7f9e"/>
+    <path d="M32 54l5 9 5-8 5 9 5-8 5 9 5-8 5 9 5-8 5 9 5-8 5 9 4-10" fill="white" stroke="#d8d8d8" stroke-width=".8" stroke-linejoin="round"/>
+    <path d="M44 75l4-6 4 7m16 0 4-7 4 6" fill="white"/>
+    <ellipse cx="30" cy="46" rx="5" ry="3" fill="#ffb8c8" opacity=".8"/><ellipse cx="90" cy="46" rx="5" ry="3" fill="#ffb8c8" opacity=".8"/>
+  </symbol>
   <symbol id="snowman" viewBox="0 0 120 100">
     <path d="M38 58L17 43m65 15 20-15M22 47l-2-10m78 10 3-10" stroke="#987555" stroke-width="3" stroke-linecap="round"/>
     <ellipse cx="60" cy="70" rx="28" ry="25" fill="#eef7fa" stroke="#b7ceda" stroke-width="2"/>
