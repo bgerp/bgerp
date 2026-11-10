@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -225,7 +225,9 @@ class trans_LineDetails extends doc_Detail
                 $displayContainerId .= " / <b style='color:red;'>" . tr('Добавен') . ": {$createdVerbal}</b>";
             }
 
-            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
+            // Котва само за документи от други нишки - иначе id-то се повтаря с реда на самия документ в нишката
+            $anchor = ($Document->fetchField('threadId') != ($lineRec->threadId ?? null)) ? " id='{$handle}'" : '';
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler'{$anchor}>{$displayContainerId}</span>";
         }
 
         $tags = tags_Logs::getTagsFor($Document->getClassId(), $Document->that);
