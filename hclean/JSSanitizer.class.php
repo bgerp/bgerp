@@ -55,23 +55,29 @@ class hclean_JSSanitizer extends core_Manager
     public static function prepareHtml($htmlLink)
     {
         // Вземаме съдържанието на линка
-        $content = static::getHtmlFromLink($htmlLink);
-        
+        $content = (string) static::getHtmlFromLink($htmlLink);
         $content = trim($content);
-        
-        $content = i18n_Charset::convertToUtf8($content, array(), true);
+
+        // Валидните UTF-8 букви не трябва да се преоценяват по честота.
+        // За 7-битовите кодировки и HTML entities запазваме досегашното разпознаване.
+        if (mb_check_encoding($content, 'ASCII') || !mb_check_encoding($content, 'UTF-8')) {
+            $content = i18n_Charset::convertToUtf8($content, array(), true);
+        }
         
         // Конфигурационни константи
         $conf = core_Packs::getConfig('hclean');
         
         // Ако е зададено да се вкара CSS' а като inline
-        if ($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE == 'yes') {
+        if (($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE ?? null) == 'yes') {
             $content = csstoinline_ToInline::inlineCssFromHtml($content);
             $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }
-        
-        $content = i18n_Charset::convertToUtf8($content, '', true);
-        
+
+        // Някои стари CSS конвертори извеждат кодировката от оригиналния meta таг.
+        if (mb_check_encoding($content, 'ASCII') || !mb_check_encoding($content, 'UTF-8')) {
+            $content = i18n_Charset::convertToUtf8($content, '', true);
+        }
+
         $content = html_entity_decode($content);
 
         // Премахваме всичко коментари
