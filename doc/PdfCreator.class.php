@@ -94,11 +94,10 @@ class doc_PdfCreator extends core_Manager
         // Шаблона
         $htmlET = $html;
         
-        // Добавяме класа
-        $html = "<div class='wide'>" . $html . '</div>';
+        $html = (string) $html;
         
         // Проверяваме дали файла със същото име съществува в кофата
-        $md5 = md5($html);
+        $md5 = md5("<div class='wide'>" . $html . '</div>');
         $fileHnd = self::fetchField("#md5='{$md5}'", 'fileHnd');
         if ($fileHnd && isDebug()) {
             doc_PdfCreator::delete("#fileHnd = '{$fileHnd}'");
@@ -112,7 +111,7 @@ class doc_PdfCreator extends core_Manager
             $html = self::removeFormAttr($html);
             
             //Добавяме всички стилове inline
-            $html = '<div id="begin">' . $html . '<div id="end">';
+            $html = self::wrapHtmlForInlining($html);
             
             // Инстанция на класа
             $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
@@ -170,6 +169,54 @@ class doc_PdfCreator extends core_Manager
         }
         
         return $fileHnd;
+    }
+
+
+    /**
+     * Поставя обвивката в body, без да влага цял HTML документ в div.
+     *
+     * @param string $html
+     * @return string
+     */
+    protected static function wrapHtmlForInlining($html)
+    {
+        $fragment = '<div id="begin"><div class=\'wide\'>' . $html . '</div><div id="end">';
+        if (!preg_match('/<!doctype\s+html\b|<(html|head|body)\b/i', $html)) {
+            return $fragment;
+        }
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NONET);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+
+        if (!$dom->documentElement) {
+            return '<html><head></head><body>' . $fragment . '</body></html>';
+        }
+
+        $body = $dom->getElementsByTagName('body')->item(0);
+        if (!$body) {
+            $body = $dom->createElement('body');
+            $dom->documentElement->appendChild($body);
+        }
+        $wide = $dom->createElement('div');
+        $wide->setAttribute('class', 'wide');
+        while ($body->firstChild) {
+            $wide->appendChild($body->firstChild);
+        }
+        $begin = $dom->createElement('div');
+        $begin->setAttribute('id', 'begin');
+        $end = $dom->createElement('div');
+        $end->setAttribute('id', 'end');
+        $begin->appendChild($wide);
+        $begin->appendChild($end);
+        $body->appendChild($begin);
+
+        return $dom->saveHTML($dom->documentElement);
     }
     
     
