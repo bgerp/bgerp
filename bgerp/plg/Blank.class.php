@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -234,7 +234,10 @@ class bgerp_plg_Blank extends core_Plugin
                 Mode::set('noBlank', true);
             }
 
-            core_Permanent::set("printBlank_{$mvc->className}_{$cu}", $useBlank, core_Permanent::FOREVER_VALUE);
+            // Изборът, направен от името на потребителя (напр. от Аида), не се запомня като негов
+            if (!Mode::is('preserveUserChoices')) {
+                core_Permanent::set("printBlank_{$mvc->className}_{$cu}", $useBlank, core_Permanent::FOREVER_VALUE);
+            }
 
             Mode::push('forcePrinting', true);
             $data->_selectTplForm = $form->renderHtml();

@@ -308,7 +308,8 @@ class cond_Texts extends core_Manager
             $data->query->likeKeylist('group', $rec->group);
         }
 
-        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group ?? null, 'author' => $rec->author ?? null, 'langWithAllSelect' => $rec->langWithAllSelect ?? null), 24 * 60 * 100);
+        // Филтърът, приложен от името на потребителя (напр. от Аида), не се запомня като негов
+        if (!Mode::is('preserveUserChoices')) core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group ?? null, 'author' => $rec->author ?? null, 'langWithAllSelect' => $rec->langWithAllSelect ?? null), 24 * 60 * 100);
 
         $data->query->orderBy('#createdOn', 'DESC');
     }
