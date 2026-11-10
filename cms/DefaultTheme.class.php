@@ -55,8 +55,8 @@ class cms_DefaultTheme extends cms_ProtoTheme
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (500х120px)->Изображение 1');
-        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
-        $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
+        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата,hint=Попълнете ако искате да се показва над банера. Ще се показва като отделен текст в хедъра. Ще се показва като отделен текст в хедъра.');
+        $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие,hint=Попълнете ако искате да се показва над банера. Ще се показва като отделен текст под името на фирмата.');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
         
         // Фон на хедъра
