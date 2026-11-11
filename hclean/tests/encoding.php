@@ -127,6 +127,35 @@ $invalidSjis = iconv('UTF-8', 'SJIS', $japanese) . "\xFF";
 check(i18n_Charset::detect($invalidSjis) !== 'SJIS', 'Invalid Shift_JIS is not an automatic candidate');
 $cases['empty'] = array('', '');
 
+// При кратки поредици без букви използваме само изрично обявената кодировка.
+$symbols = '①②③ ㈱ ㈲ ⅠⅡⅢ ㍉㌔㎜㎝';
+foreach (array('CP932' => $symbols, 'windows-31j' => $symbols, 'MS932' => $symbols, 'SJIS-WIN' => $symbols,
+    'Shift_JIS' => '※〒〓＋−×÷＝≠∞∴♂♀℃', 'SJIS' => '〜−', 'MS_KANJI' => '※〒') as $charset => $text) {
+    $cs = i18n_Charset::getCanonical($charset);
+    $bytes = iconv('UTF-8', $cs, $text);
+    check(i18n_Charset::detect($bytes, $charset) === $cs, "$charset: declared symbols retained");
+    $cases['declared-symbols-' . $charset] = array(iconv('UTF-8', $cs, encodingHtml($text, $charset)), $text);
+}
+foreach (array('CP932', 'Shift_JIS') as $declared) {
+    $text = '①②③ ㈱ ㎜ ★ € 😀';
+    $cases['symbols-utf8-wrong-' . $declared] = array(encodingHtml($text, $declared), $text);
+    foreach (array('Windows-1251' => $normal, 'Windows-1253' => $greek) as $source => $text) {
+        $cases['wrong-' . $declared . '-' . $source] = array(iconv('UTF-8', $source, encodingHtml($text, $declared)), $text);
+    }
+    $western = iconv('UTF-8', 'Windows-1252', encodingHtml('Prix: 12,50 € - Café français et crème brûlée.', $declared));
+    check(!in_array(i18n_Charset::detect($western, array(), true), array('SJIS', 'CP932')), 'Wrong Japanese declaration does not override Western text');
+}
+$symbolBytes = iconv('UTF-8', 'CP932', $symbols);
+foreach (array(array(), array('CP932' => 0), array('CP932' => -10), array('CP932' => 10, 'CP1251' => 20)) as $hints) {
+    check(i18n_Charset::detect($symbolBytes, $hints) === 'GB2312', 'Ambiguous or missing declaration keeps the existing ranking');
+}
+foreach (array(1, 64, 65) as $length) {
+    $text = mb_substr(str_repeat('①㈱㎜', 22), 0, $length);
+    $bytes = iconv('UTF-8', 'CP932', $text);
+    check(i18n_Charset::detect($bytes, 'CP932') === ($length <= 64 ? 'CP932' : 'GB2312'), 'Symbol preference has a bounded length');
+    if ($length <= 64) $cases['symbols-length-' . $length] = array(iconv('UTF-8', 'CP932', encodingHtml($text, 'CP932')), $text);
+}
+
 $temp = tempnam(sys_get_temp_dir(), 'hclean-encoding-');
 try {
     $converters = array('off' => array(''), 'csstoinline_Emogrifier' => array('2011.10.26', '2014.11.10', '3.0.0', '8.3.0'),

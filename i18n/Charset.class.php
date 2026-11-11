@@ -483,6 +483,14 @@ class i18n_Charset extends core_MVC
                 if (!$sample) {
                     continue;
                 }
+                // За кратки символни поредици честотата на буквите не е надежден ориентир.
+                if (count($assumedCharsets) == 1 && $weight > 0 && in_array($cs, array('SJIS', 'CP932'))
+                    && !mb_check_encoding($text, 'UTF-8')
+                    && preg_match('/\A[\p{P}\p{S}\p{N}\s]{1,64}\z/u', trim($sample))
+                    && @self::iconv($sample, 'UTF-8', $cs) === $text) {
+
+                    return $cs;
+                }
                 $debug = $sample . ' ';
                 $rates[$cs] = self::rateScript($sample, 'all', $debug);
                 $resDebug[$cs] = $debug;
