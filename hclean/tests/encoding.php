@@ -69,6 +69,21 @@ foreach (array(
 }
 $text = 'Това е български текст без обявена кодировка. Документ за проверка на системата.';
 $cases['cp1251-no-meta'] = array(iconv('UTF-8', 'Windows-1251', encodingHtml($text, 'Windows-1251', false)), $text);
+$greek = 'Αυτό είναι ελληνικό κείμενο για δοκιμή της κωδικοποίησης.';
+$greekHtml = encodingHtml($greek, 'Windows-1253', false);
+foreach (array(
+    '<meta charset="Windows-1253">',
+    "<META CHARSET='windows-1253'>",
+    '<meta charset=Windows-1253>',
+    '<meta data-note="1 > 0" charset="Windows-1253">',
+    "<meta content='text/html;charset=Windows-1253' http-equiv='Content-Type'>",
+    "<meta\nhttp-equiv='Content-Type'\ncontent='text/html; charset=Windows-1253'>",
+) as $i => $meta) {
+    $input = str_replace('<head>', '<head>' . $meta, $greekHtml);
+    $cases['cp1253-meta-' . $i] = array(iconv('UTF-8', 'Windows-1253', $input), $greek);
+}
+// Вече преобразуван UTF-8 със стара декларация трябва да остане четим.
+$cases['utf8-stale-meta'] = array(encodingHtml($greek, 'Windows-1253'), $greek);
 $cases['empty'] = array('', '');
 
 $temp = tempnam(sys_get_temp_dir(), 'hclean-encoding-');
@@ -81,9 +96,6 @@ try {
                 'CSSTOINLINE_CONVERTER_CLASS' => $class, 'CSSTOINLINE_EMOGRIFIER_VERSION' => $version,
                 'CSSTOINLINE_CSSTOINLINE_VERSION' => $version);
             foreach ($cases as $name => $case) {
-                // Тези версии имат отделно, съществуващо ограничение за Windows-1253 meta.
-                if ($name === 'Windows-1253' && $class === 'csstoinline_Emogrifier'
-                    && in_array($version, array('3.0.0', '8.3.0'), true)) continue;
                 list($input, $expected) = $case;
                 file_put_contents($temp, $input);
                 $js = hclean_JSSanitizer::prepareHtml($temp);

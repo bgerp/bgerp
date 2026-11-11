@@ -15,12 +15,12 @@
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
             var visitors = [], portals = [], frame = 0, timer = 0;
-            var bursts = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
+            var bursts = [], restorations = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
-            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null;
+            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
             var remaining = nextDelay();
             var audio = null, printing = false;
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
@@ -32,6 +32,14 @@
 
             function random(min, max) { return min + Math.random() * (max - min); }
             function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+            /** Distance to a complete movement segment, including fast pointer sweeps. */
+            function segmentDistance(x, y, fromX, fromY, toX, toY) {
+                var dx = toX - fromX, dy = toY - fromY, length = dx * dx + dy * dy;
+                var t = length ? clamp(((x - fromX) * dx + (y - fromY) * dy) / length, 0, 1) : 0;
+                return Math.hypot(x - fromX - t * dx, y - fromY - t * dy);
+            }
+
             function active() {
                 return document.visibilityState === 'visible' && document.hasFocus() &&
                     !printing && !reducedMotion.matches;
@@ -54,7 +62,7 @@
                     if (month === 3) return ['martenitsa', 'stork'];
                     if (month <= 5) return ['stork', 'butterfly', 'chick'];
                     if (month <= 8) return ['butterfly', 'firefly'];
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat'];
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher'];
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
                     return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly'].indexOf(name) !== -1 && pool.indexOf(name) === index;
@@ -141,10 +149,11 @@
                     chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine'},
                     butterfly: {notes: [880, 1175, 1568], duration: 0.12, spacing: 0.13, pitch: 1.02, wave: 'sine'},
                     firefly: {notes: [1047, 1568], duration: 0.3, spacing: 0.27, pitch: 0.98, wave: 'sine'},
-                    pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
+                    pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'},
+                    knock: {notes: [240, 220], duration: 0.07, spacing: 0.18, pitch: 0.25, wave: 'triangle', low: true}
                 };
                 var sound = sounds[character];
-                if (options.sound === 'scary' && character !== 'pop') {
+                if (options.sound === 'scary' && character !== 'pop' && character !== 'knock') {
                     sound = Object.assign({}, sound, {notes: sound.notes.map(function (note) { return note * 0.65; }),
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
@@ -278,6 +287,7 @@
             function clearVisitors() {
                 window.cancelAnimationFrame(frame);
                 frame = 0;
+                if (!active()) restorations.slice().forEach(finishRestore);
                 removePeek();
                 bursts.slice().forEach(removeBurst);
                 portals.slice().forEach(removePortal);
@@ -333,26 +343,28 @@
                 bursts.splice(bursts.indexOf(effect), 1);
             }
 
-            /** A short, bounded particle burst outlives the caught character without blocking input. */
-            function burst(v) {
+            /** Bounded catch particles, food crumbs and glass rings never block input. */
+            function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
+                var crumbs = kind === 'crumb', knocking = kind === 'knock';
                 var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',snowman:'snow',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff'};
-                var kind = kinds[v.character] || 'star';
+                kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
-                node.className = 'funny-burst funny-burst-' + kind;
+                node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
                 node.setAttribute('aria-hidden', 'true');
-                node.style.left = v.x + 'px';
-                node.style.top = v.y + 'px';
-                var count = gentle ? 4 : 7;
+                node.style.left = (v.x + (knocking ? v.width * 0.35 : 0)) + 'px';
+                node.style.top = (v.y + (crumbs ? v.height * 0.15 : knocking ? -v.height * 0.05 : 0)) + 'px';
+                var count = knocking ? 2 : crumbs ? (gentle ? 2 : 4) : (gentle ? 4 : 7);
                 for (var i = 0; i < count; i++) {
                     var particle = document.createElement('i'), angle = i * Math.PI * 2 / count;
-                    particle.style.setProperty('--x', Math.cos(angle) * 34 + 'px');
-                    particle.style.setProperty('--y', Math.sin(angle) * 28 - 8 + 'px');
+                    particle.style.setProperty('--x', Math.cos(angle) * (crumbs ? 12 : 34) + 'px');
+                    particle.style.setProperty('--y', (crumbs ? 12 + i * 3 : Math.sin(angle) * 28 - 8) + 'px');
                     node.appendChild(particle);
                 }
                 document.body.appendChild(node);
-                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, 750)};
+                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, crumbs ? 2000 : knocking ? 1100 : 750)};
                 bursts.push(effect);
+                if (crumbs) v.crumbTrail = {x:v.x,y:v.y,time:performance.now()};
             }
 
             /** At most one silent peek per page, replacing an automatic group near a visible block. */
@@ -419,7 +431,7 @@
                     x: origin.x, y: origin.y,
                     from: {x: origin.x, y: origin.y}, destination: destination,
                     launched: true, born: now, previous: now, leaving: 0,
-                    lifetime: character === 'muncher' ? 37000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: []
+                    lifetime: character === 'muncher' ? 77000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: []
                 };
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
@@ -483,6 +495,8 @@
                     v.trail = null;
                 }
                 if (!v.trail || v.launched) v.trail = {x:v.x,y:footY,time:now};
+                if (v.character === 'muncher' && v.eaten.length && !v.launched && !v.leaving && v.crumbTrail &&
+                    now - v.crumbTrail.time >= (gentle ? 500 : 300) && Math.hypot(v.x - v.crumbTrail.x, v.y - v.crumbTrail.y) >= 16) burst(v, 'crumb');
             }
 
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
@@ -555,13 +569,13 @@
                 return true;
             }
 
-            /** Approaches slowly, flees quickly and exits the viewport, with a hard 40-second limit. */
+            /** Approaches slowly and flees quickly; the monster has an 80-second limit, others 40. */
             function animateVisitor(v, now) {
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
                 if (v.reactionUntil && now >= v.reactionUntil) { v.reactionUntil = 0; v.node.setAttribute('data-reaction', ''); }
-                if (elapsed >= 40000 || (v.leaving && now - v.leaving >= 250)) { removeVisitor(v, !v.leaving); return; }
+                if (elapsed >= (v.character === 'muncher' ? 80000 : 40000) || (v.leaving && now - v.leaving >= 250)) { removeVisitor(v, !v.leaving); return; }
                 if (v.character === 'muncher' && !v.launched && !v.leaving && !v.exiting && elapsed < v.lifetime && munch(v, now, delta)) return;
                 if (v.launched) {
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
@@ -572,6 +586,18 @@
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                     if (elapsed > 900 && elapsed < v.lifetime - 2000 && now >= v.fleeUntil && !v.reactionUntil) findPerch(v);
                     if (visitPerch(v, now, delta)) return;
+                    // Each visitor gets one chance; the page allows at most one knock per minute.
+                    if (!v.knockChecked && elapsed >= 4000) {
+                        v.knockChecked = true;
+                        if (['ghost','ghostgirl','ghostplay','casper','zombie','elf','vampire','witch'].indexOf(v.character) !== -1 &&
+                            elapsed < v.lifetime - 1000 && !v.exiting && now >= v.fleeUntil && distance > 120 && !v.reactionUntil &&
+                            now - lastKnock >= 60000 && Math.random() < 0.18) {
+                            lastKnock = now;
+                            react(v, 'knock', now);
+                            burst(v, 'knock');
+                            if (!v.silent) playSound('knock');
+                        }
+                    }
                     if (!v.weatherReacted && elapsed > 2200 && elapsed < v.lifetime - 1000 && !v.exiting && now >= v.fleeUntil && distance > 120 && !v.reactionUntil) {
                         var reaction = v.outfit === 'scarf' ? 'shiver' : v.outfit === 'umbrella' ? 'shake' : v.outfit === 'glasses' ? 'adjust' : '';
                         if (reaction) { v.weatherReacted = true; react(v, reaction, now); }
@@ -597,9 +623,23 @@
                 }
             }
 
-            /** Eaten elements are only hidden by a class, so removing it restores them untouched. */
+            function finishRestore(effect) {
+                window.clearTimeout(effect.timer);
+                effect.node.classList.remove('funny-restoring');
+                restorations.splice(restorations.indexOf(effect), 1);
+            }
+
+            /** Return the original appearance gently; inactive pages restore immediately. */
             function restoreEaten(v) {
-                (v.eaten || []).forEach(function (el) { el.classList.remove('funny-eaten'); });
+                (v.eaten || []).forEach(function (el) {
+                    restorations.filter(function (effect) { return effect.node === el; }).forEach(finishRestore);
+                    if (active()) {
+                        el.classList.add('funny-restoring');
+                        var effect = {node:el, timer:window.setTimeout(function () { finishRestore(effect); }, 1500)};
+                        restorations.push(effect);
+                    }
+                    el.classList.remove('funny-eaten');
+                });
                 v.eaten = [];
             }
 
@@ -616,56 +656,72 @@
                 });
             }
 
-            /** Nearest visible element on screen, small ones first; bites grow until the screen is empty. */
+            /** Meals must not lead the monster through the stationary pointer's personal space. */
+            function mealPoint(v, rect) {
+                var point = {x:clamp(rect.left + rect.width / 2, v.width / 2, window.innerWidth - v.width / 2),
+                    y:clamp(rect.top + rect.height / 2, v.height / 2, window.innerHeight - v.height / 2)};
+                return segmentDistance(pointer.x, pointer.y, v.x, v.y, point.x, point.y) < Math.max(90, v.width) ? null : point;
+            }
+
+            /** Nearest visible, reachable element; bites grow until the available meals are gone. */
             function findMeal(v) {
                 var nodes = document.body.querySelectorAll('*'), focus = document.activeElement;
                 var limit = 260 * Math.pow(1.35, v.eaten.length), best = null, nearest = Infinity, fallback = null, smallest = Infinity;
                 for (var i = 0; i < nodes.length && i < 4000; i++) {
                     var el = nodes[i];
-                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
+                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-restoring,.funny-stats,[aria-hidden="true"]') ||
                         (focus && focus !== document.body && (el === focus || el.contains(focus)))) continue;
                     var r = el.getBoundingClientRect();
                     if (r.width < 8 || r.height < 8 || r.bottom <= 0 || r.right <= 0 || r.top >= window.innerHeight || r.left >= window.innerWidth) continue;
+                    var point = mealPoint(v, r);
+                    if (!point) continue;
                     var area = r.width * r.height;
                     if (r.width <= limit && r.height <= limit) {
-                        var x = clamp(r.left + r.width / 2, 0, window.innerWidth), y = clamp(r.top + r.height / 2, 0, window.innerHeight);
-                        var distance = Math.hypot(x - v.x, y - v.y);
+                        var distance = Math.hypot(point.x - v.x, point.y - v.y);
                         if (distance < nearest) { nearest = distance; best = el; }
                     } else if (area < smallest) { smallest = area; fallback = el; }
                 }
                 return best || fallback;
             }
 
-            /** Walks to the nearest meal and bites it, faster each time; returns false once the screen is empty. */
+            /** Eats reachable elements at a readable pace; shared movement handles waiting and escape. */
             function munch(v, now, delta) {
                 var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
-                if (distance < 30) { catchVisitor(v); return true; }
                 // Chasing uses the shared escape path, including leaving the viewport.
-                if (now < v.fleeUntil) return false;
+                if (now < v.fleeUntil) { v.munchTarget = null; return false; }
+                if (distance < Math.max(90, v.width)) { v.munchTarget = null; return true; }
                 if (v.eating) {
                     if (now < v.eating) return true;
                     v.eating = 0;
                     v.node.setAttribute('data-munching', '');
                 }
                 var meal = v.munchTarget;
-                if (!meal || !meal.isConnected || meal.closest('.funny-eaten')) {
+                if (!meal || !meal.isConnected || meal.closest('.funny-eaten,.funny-restoring')) {
+                    if (now < v.mealSearchAfter) return false;
                     meal = v.munchTarget = findMeal(v);
                     if (!meal) {
-                        if (v.eaten.length) { if (!v.silent) playSound('burp'); react(v, 'hello', now); }
-                        v.exiting = true;
+                        if (v.eaten.length) {
+                            if (!v.silent) playSound('burp');
+                            react(v, 'hello', now);
+                            v.exiting = true;
+                        }
+                        // Wait near the pointer without rescanning the whole page on every frame.
+                        v.mealSearchAfter = now + 750;
                         return false;
                     }
                 }
-                var r = meal.getBoundingClientRect();
-                var mx = clamp(r.left + r.width / 2, v.width / 2, window.innerWidth - v.width / 2) - v.x;
-                var my = clamp(r.top + r.height / 2, v.height / 2, window.innerHeight - v.height / 2) - v.y;
-                var gap = Math.hypot(mx, my), step = Math.min(320, 120 + v.eaten.length * 8) * delta;
+                var point = mealPoint(v, meal.getBoundingClientRect());
+                if (!point) { v.munchTarget = null; return true; }
+                var mx = point.x - v.x, my = point.y - v.y;
+                var gap = Math.hypot(mx, my), step = Math.min(200, 90 + v.eaten.length * 4) * delta;
                 if (gap > Math.max(14, step)) { v.x += mx / gap * step; v.y += my / gap * step; return true; }
                 meal.classList.add('funny-eaten');
                 v.eaten.push(meal);
                 v.munchTarget = null;
-                v.eating = now + Math.max(160, 650 - v.eaten.length * 25);
+                // Leave time to see the bite before moving to another element.
+                v.eating = now + Math.max(800, 1200 - v.eaten.length * 20);
                 v.node.setAttribute('data-munching', 'true');
+                burst(v, 'crumb');
                 if (!v.silent) playSound('munch');
                 return true;
             }
@@ -677,8 +733,7 @@
                     // A fast pointer sweep must still catch the character between two events.
                     var dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
                     var length = dx * dx + dy * dy;
-                    var t = length ? clamp(((visitor.x - pointer.x) * dx + (visitor.y - pointer.y) * dy) / length, 0, 1) : 0;
-                    if (Math.hypot(visitor.x - pointer.x - t * dx, visitor.y - pointer.y - t * dy) < 30) catchVisitor(visitor);
+                    if (segmentDistance(visitor.x, visitor.y, pointer.x, pointer.y, event.clientX, event.clientY) < 30) catchVisitor(visitor);
                     else if (length > 1 && dx * (visitor.x - pointer.x) + dy * (visitor.y - pointer.y) > 0) {
                         visitor.fleeUntil = performance.now() + 900;
                     }

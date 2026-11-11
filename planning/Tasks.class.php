@@ -2360,6 +2360,7 @@ class planning_Tasks extends core_Master
         );
         $restoreValues = array();
         $hasExplicitValues = false;
+        $savedValuesChanged = false;
 
         foreach (self::getPersistentListFilterFields() as $fieldName) {
             if (Request::get($fieldName, false) !== null) {
@@ -2368,8 +2369,21 @@ class planning_Tasks extends core_Master
             }
 
             if (array_key_exists($fieldName, $savedValues)) {
-                $restoreValues[$fieldName] = $savedValues[$fieldName];
+                $value = $savedValues[$fieldName];
+                if (!empty($value) && in_array($fieldName, array('saleId', 'purchaseId'))) {
+                    // Старите настройки може да сочат договор, който вече няма задания.
+                    list($sourceClass) = planning_Jobs::getSourceInfo((object) array($fieldName => $value));
+                    if (!countR(planning_Jobs::getListSourceOptions(array('mvc' => $sourceClass), 1, '', $value))) {
+                        $savedValues[$fieldName] = $value = '';
+                        $savedValuesChanged = true;
+                    }
+                }
+                $restoreValues[$fieldName] = $value;
             }
+        }
+
+        if ($savedValuesChanged) {
+            core_Settings::setValues('planningTasksListFilter', $savedValues, core_Users::getCurrent());
         }
 
         if (countR($restoreValues)) {
@@ -2438,10 +2452,8 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,placeholderType=all,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
-        $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,placeholderType=all,input,after=saleId,formOrder=1000,class=w100,silent,removeAndRefreshForm=saleId');
-        $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
+        $listFilter = $data->listFilter ?? null;
+        planning_Jobs::prepareListSourceFilter($listFilter, 'isFinalSelect');
         $data->listFilter->FNC('prevProgress', 'varchar(allowEmpty,maxRadio=0,minimumResultsForSearch=0)', 'caption=Предх. над,placeholderType=all,input,silent,after=folders,hint=Операции без предходна или с прогрес на непосредствено предходната в заданието равен или над посочения');
         $progressOptions = array('' => '') + arr::make('10 %,20 %,30 %,40 %,50 %,60 %,70 %,80 %,90 %,100 %', true);
         $progressInput = Request::get('prevProgress', 'varchar');
@@ -2450,7 +2462,7 @@ class planning_Tasks extends core_Master
         }
         $data->listFilter->setOptions('prevProgress', $progressOptions);
         $data->listFilter->setField('prevProgress', array('attr' => array('data-tags' => 'true', 'data-width' => '19em')));
-        $data->listFilter->showFields .= ',folders,prevProgress,productId,saleId,purchaseId';
+        $listFilter->showFields .= ',folders,prevProgress,productId';
         $data->listFilter->setField('productId','placeholderType=all,before=isFinalSelect');
         $data->listFilter->input('productId,saleId,purchaseId,prevProgress');
         $data->query->isSlowQuery = true;
@@ -2570,18 +2582,12 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
-        $jobSourceField = $jobSourceId = null;
-        if (!empty($data->listFilter->rec->saleId)) {
-            $jobSourceField = 'saleId';
-            $jobSourceId = $data->listFilter->rec->saleId;
-        } elseif (!empty($data->listFilter->rec->purchaseId)) {
-            $jobSourceField = 'purchaseId';
-            $jobSourceId = $data->listFilter->rec->purchaseId;
-        }
+        list(, $jobSourceId, $jobSourceField) = planning_Jobs::getSourceInfo($listFilter->rec);
 
         if (isset($jobSourceField)) {
             $jQuery = planning_Jobs::getQuery();
-            $jQuery->where("#{$jobSourceField} = {$jobSourceId}");
+            $jQuery->where(array("#{$jobSourceField} = '[#1#]'", $jobSourceId));
+            $jQuery->show('containerId');
             $jRecs = $jQuery->fetchAll();
             $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
 
