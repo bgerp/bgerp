@@ -84,7 +84,77 @@ foreach (array(
 }
 // Вече преобразуван UTF-8 със стара декларация трябва да остане четим.
 $cases['utf8-stale-meta'] = array(encodingHtml($greek, 'Windows-1253'), $greek);
+$japanese = 'これは日本語の文字コードを確認するためのテストです。商品と数量を正しく表示します。';
+foreach (array('Shift_JIS', 'shift-jis', 'SJIS', 'MS_KANJI', 'CP932', 'EUC-JP') as $charset) {
+    $encoding = i18n_Charset::getCanonical($charset);
+    $cases['japanese-' . $charset] = array(iconv('UTF-8', $encoding, encodingHtml($japanese, $charset)), $japanese);
+}
+foreach (array($japanese, '日本語のテストです。', 'カタカナとひらがな、漢字を表示します。',
+    '日本の商品一覧と数量を確認してください。', 'お問い合わせありがとうございます。') as $i => $text) {
+    $cases['sjis-no-meta-' . $i] = array(iconv('UTF-8', 'SJIS', encodingHtml($text, 'Shift_JIS', false)), $text);
+}
+foreach (array('<meta charset="Shift_JIS">', "<META CHARSET='shift-jis'>", '<meta charset=SJIS>') as $i => $meta) {
+    $input = str_replace('<head>', '<head>' . $meta, encodingHtml($japanese, 'Shift_JIS', false));
+    $cases['sjis-meta-' . $i] = array(iconv('UTF-8', 'SJIS', $input), $japanese);
+}
+$cases['utf8-stale-sjis-meta'] = array(encodingHtml($japanese, 'Shift_JIS'), $japanese);
+$cases['sjis-long'] = array(iconv('UTF-8', 'SJIS', encodingHtml(str_repeat($japanese, 1000), 'Shift_JIS')), str_repeat($japanese, 1000));
+$cp932Texts = array('商品①と㈱テストを確認します。寸法は㎜と㎝で表示します。',
+    '髙橋さんと﨑田さんの商品を確認します。', '日本語の商品を確認します。①②③ ㈱ ㈲ ⅠⅡⅢ ㍉㌔㎜㎝を正しく表示します。');
+foreach ($cp932Texts as $i => $text) {
+    foreach (array('CP932', 'Shift_JIS', '') as $charset) {
+        $input = iconv('UTF-8', 'CP932', encodingHtml($text, $charset, $charset !== ''));
+        $cases['cp932-extended-' . $i . '-' . $charset] = array($input, $text);
+    }
+}
+$cases['cp932-long'] = array(iconv('UTF-8', 'CP932', encodingHtml(str_repeat($cp932Texts[0], 1000), 'CP932')), str_repeat($cp932Texts[0], 1000));
+$cases['utf8-stale-cp932-meta'] = array(encodingHtml($cp932Texts[0], 'CP932'), $cp932Texts[0]);
+foreach (array('windows-31j', 'MS932', 'SJIS-WIN') as $charset) {
+    check(i18n_Charset::getCanonical($charset) === 'CP932', "$charset resolves to CP932");
+    $cases['cp932-alias-' . $charset] = array(iconv('UTF-8', 'CP932', encodingHtml($cp932Texts[0], $charset)), $cp932Texts[0]);
+}
+// Общите байтове с различно значение запазват обявената японска кодировка.
+foreach (array('SJIS' => '日本語の記号は〜と−です。', 'CP932' => '日本語の記号は～と－です。',
+    'GB2312' => '这是一个中文编码测试，用于确认商品和数量正确显示。') as $charset => $text) {
+    $cases['charset-mapping-' . $charset] = array(iconv('UTF-8', $charset, encodingHtml($text, $charset)), $text);
+}
+foreach (array('', 'CP932', 'Shift_JIS') as $charset) {
+    $invalidCp932 = iconv('UTF-8', 'CP932', $cp932Texts[0]) . "\xFF";
+    check(!in_array(i18n_Charset::detect($invalidCp932, $charset), array('SJIS', 'CP932')), "$charset: invalid Japanese bytes are not discarded");
+}
+// Невалидни Shift_JIS байтове не трябва да се отхвърлят само заради добър рейтинг на остатъка.
+$invalidSjis = iconv('UTF-8', 'SJIS', $japanese) . "\xFF";
+check(i18n_Charset::detect($invalidSjis) !== 'SJIS', 'Invalid Shift_JIS is not an automatic candidate');
 $cases['empty'] = array('', '');
+
+// При кратки поредици без букви използваме само изрично обявената кодировка.
+$symbols = '①②③ ㈱ ㈲ ⅠⅡⅢ ㍉㌔㎜㎝';
+foreach (array('CP932' => $symbols, 'windows-31j' => $symbols, 'MS932' => $symbols, 'SJIS-WIN' => $symbols,
+    'Shift_JIS' => '※〒〓＋−×÷＝≠∞∴♂♀℃', 'SJIS' => '〜−', 'MS_KANJI' => '※〒') as $charset => $text) {
+    $cs = i18n_Charset::getCanonical($charset);
+    $bytes = iconv('UTF-8', $cs, $text);
+    check(i18n_Charset::detect($bytes, $charset) === $cs, "$charset: declared symbols retained");
+    $cases['declared-symbols-' . $charset] = array(iconv('UTF-8', $cs, encodingHtml($text, $charset)), $text);
+}
+foreach (array('CP932', 'Shift_JIS') as $declared) {
+    $text = '①②③ ㈱ ㎜ ★ € 😀';
+    $cases['symbols-utf8-wrong-' . $declared] = array(encodingHtml($text, $declared), $text);
+    foreach (array('Windows-1251' => $normal, 'Windows-1253' => $greek) as $source => $text) {
+        $cases['wrong-' . $declared . '-' . $source] = array(iconv('UTF-8', $source, encodingHtml($text, $declared)), $text);
+    }
+    $western = iconv('UTF-8', 'Windows-1252', encodingHtml('Prix: 12,50 € - Café français et crème brûlée.', $declared));
+    check(!in_array(i18n_Charset::detect($western, array(), true), array('SJIS', 'CP932')), 'Wrong Japanese declaration does not override Western text');
+}
+$symbolBytes = iconv('UTF-8', 'CP932', $symbols);
+foreach (array(array(), array('CP932' => 0), array('CP932' => -10), array('CP932' => 10, 'CP1251' => 20)) as $hints) {
+    check(i18n_Charset::detect($symbolBytes, $hints) === 'GB2312', 'Ambiguous or missing declaration keeps the existing ranking');
+}
+foreach (array(1, 64, 65) as $length) {
+    $text = mb_substr(str_repeat('①㈱㎜', 22), 0, $length);
+    $bytes = iconv('UTF-8', 'CP932', $text);
+    check(i18n_Charset::detect($bytes, 'CP932') === ($length <= 64 ? 'CP932' : 'GB2312'), 'Symbol preference has a bounded length');
+    if ($length <= 64) $cases['symbols-length-' . $length] = array(iconv('UTF-8', 'CP932', encodingHtml($text, 'CP932')), $text);
+}
 
 $temp = tempnam(sys_get_temp_dir(), 'hclean-encoding-');
 try {

@@ -690,7 +690,7 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Само договори със задания, независимо от състоянието на договора или заданието
+     * Активни договори, чернови и заявки с поне едно задание
      */
     public static function getListSourceOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
@@ -718,7 +718,7 @@ class planning_Jobs extends core_Master
         }
         $sourceIds = arr::extractValuesFromArray($query->fetchAll(), $jobField);
 
-        unset($params['state']);
+        $params['state'] = 'active,draft,pending';
 
         return $sourceClass::getSelectArr($params, $limit, $q, $sourceIds, $includeHiddens);
     }

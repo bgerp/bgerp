@@ -199,12 +199,36 @@ class sync_Eshop extends sync_Helper
         $lang = self::$fNewNamePref . 'lang';
         $domain = self::$fNewNamePref . 'domain';
         
-        $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
             $sourceLang = trim($rec->{$lang} ?? '');
             $sourceDomain = trim($rec->{$domain} ?? '');
-            $domains = trim(sync_Setup::get('CMS_DOMAINS') ?? '');
-            if ($domains) {
+            if (!$sourceLang || !$sourceDomain) {
+                self::logErr('Липсва домейн или език в sync данните за cms_Domains. Зависимите записи се пропускат');
+
+                return false;
+            }
+
+            // Единствената локална цел не изисква съответствия на входящите имена.
+            $query = cms_Domains::getQuery();
+            $query->limit(2);
+            $candidate = $query->fetch();
+            $oRec = $candidate && !$query->fetch() ? $candidate : null;
+
+            if (!$oRec) {
+                $query = cms_Domains::getQuery();
+                $query->where(array("#lang = '[#1#]'", $sourceLang));
+                $query->limit(2);
+                $candidate = $query->fetch();
+                if ($candidate && !$query->fetch()) {
+                    $oRec = $candidate;
+                }
+            }
+
+            $targetDomain = $sourceDomain;
+            $targetLang = $sourceLang;
+            $domains = $oRec ? '' : trim(sync_Setup::get('CMS_DOMAINS') ?? '');
+            if ($domains !== '') {
+                $bestMatch = 0;
                 $dArr = explode("\n", $domains);
                 foreach ($dArr as $line => $dStr) {
                     if (trim($dStr) === '') {
@@ -220,61 +244,45 @@ class sync_Eshop extends sync_Helper
                     $localDomain = trim($localDomain);
                     $localLang = trim($localLang);
                     
-                    if (!$remoteDomain || !$remoteLang || !$localDomain || !$localLang) {
+                    $allSources = trim($remote) === '*';
+                    if (!$remoteDomain || (!$remoteLang && !$allSources) ||
+                        !$localDomain || !$localLang || $localDomain === '*' || $localLang === '*') {
                         self::logErr('Невалидно съответствие на домейни в sync, ред ' . ($line + 1) .
-                            '. Формат: външен-домейн,език|локален-домейн,език. Зависимите записи се пропускат');
+                            '. Формат: домейн,език|локален-домейн,език; *,език|локален-домейн,език; *|локален-домейн,език. Зависимите записи се пропускат');
 
                         return false;
                     }
                     
-                    if (($sourceLang == $remoteLang) && ($sourceDomain == $remoteDomain)) {
-                        $haveDomains = true;
-                        
-                        $rec->lang = $localLang;
-                        $rec->domain = $localDomain;
-                        
-                        break;
+                    // По-конкретното правило има предимство независимо от реда.
+                    $match = 0;
+                    if ($sourceLang === $remoteLang && $sourceDomain === $remoteDomain) {
+                        $match = 3;
+                    } elseif ($sourceLang === $remoteLang && $remoteDomain === '*') {
+                        $match = 2;
+                    } elseif ($allSources) {
+                        $match = 1;
                     }
-                }
-            }
-            
-            if (!$haveDomains) {
-                $rec->lang = $sourceLang;
-                $rec->domain = $sourceDomain;
-            }
-            
-            foreach ((array)$rec as $fName => $fVal) {
-                if (($fName == 'lang') || ($fName == 'domain')) {
-                    continue;
-                }
-                
-                unset($rec->{$fName});
-            }
-            
-            if (!$rec->lang || !$rec->domain) {
-                self::logErr('Липсва домейн или език в sync данните за cms_Domains. Зависимите записи се пропускат');
-
-                return false;
-            }
-            
-            $oRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $rec->domain, $rec->lang));
-
-            // Изрично зададеното съответствие има предимство пред автоматичния избор.
-            if (!$oRec && !$haveDomains) {
-                $query = cms_Domains::getQuery();
-                $query->where(array("#state = 'active' AND #lang = '[#1#]'", $rec->lang));
-                $query->limit(2);
-                $candidate = $query->fetch();
-                if ($candidate && !$query->fetch()) {
-                    $oRec = $candidate;
+                    if ($match > $bestMatch) {
+                        $bestMatch = $match;
+                        $targetLang = $localLang;
+                        $targetDomain = $localDomain;
+                    }
                 }
             }
 
             if (!$oRec) {
-                self::logErr("Няма еднозначен локален домейн за sync: {$sourceDomain},{$sourceLang} -> {$rec->domain},{$rec->lang}. " .
+                $oRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $targetDomain, $targetLang));
+            }
+
+            if (!$oRec) {
+                self::logErr("Няма еднозначен локален домейн за sync: {$sourceDomain},{$sourceLang} -> {$targetDomain},{$targetLang}. " .
                     'Проверете "Съответствие на домейни" в настройките на sync. Зависимите записи се пропускат');
 
                 return false;
+            }
+
+            foreach ((array) $rec as $name => $value) {
+                unset($rec->{$name});
             }
             
             foreach ((array)$oRec as $fName => $fVal) {

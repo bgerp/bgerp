@@ -223,12 +223,13 @@ function sourceFilterList($class, $filter, &$form = null) {
 }
 
 foreach (array('sales_Sales' => 'saleId', 'purchase_Purchases' => 'purchaseId') as $class => $field) {
-    foreach (array('draft', 'pending', 'active', 'closed', 'rejected', 'active') as $index => $state) {
+    foreach (array('draft', 'pending', 'active', 'closed', 'rejected', 'active', 'active', 'stopped') as $index => $state) {
         $id = $index + 1;
         SourceFilterFixture::$rows[$class][$id] = (object) array('id' => $id, 'state' => $state, 'title' => $state . ' contract ' . $id);
         if ($id == 6) continue;
         $jobId = ($field == 'saleId' ? 10 : 20) + $id;
-        SourceFilterFixture::$rows['planning_Jobs'][$jobId] = (object) array('id' => $jobId, $field => $id, 'containerId' => $jobId + 100, 'type' => 'manifacture', 'state' => $state);
+        $jobType = $id == 7 ? 'disassembly' : 'manifacture';
+        SourceFilterFixture::$rows['planning_Jobs'][$jobId] = (object) array('id' => $jobId, $field => $id, 'containerId' => $jobId + 100, 'type' => $jobType, 'state' => $state);
     }
     $secondJobId = $field == 'saleId' ? 16 : 26;
     SourceFilterFixture::$rows['planning_Jobs'][$secondJobId] = (object) array('id' => $secondJobId, $field => 1, 'containerId' => $secondJobId + 100, 'type' => 'manifacture', 'state' => 'closed');
@@ -244,12 +245,18 @@ foreach (SourceFilterFixture::$rows['planning_Jobs'] as $id => $job) {
 foreach (array('sales_Sales' => 'saleId', 'purchase_Purchases' => 'purchaseId') as $class => $field) {
     $params = array('mvc' => $class, 'state' => 'active,closed');
     $options = planning_Jobs::getListSourceOptions($params);
-    sourceFilterCheck(array_keys($options) === array(1, 2, 3, 4, 5), $field . ': всички състояния, само договори със задание, без дублиране');
+    sourceFilterCheck(array_keys($options) === array(1, 2, 3, 7), $field . ': само чернови, заявки и активни договори със задание от който и да е вид');
     sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, 2)) === array(1, 2), $field . ': ограничението е след отсяването по задания');
     sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, null, 'draft')) === array(1), $field . ': търсене по текст');
     sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, null, '2')) === array(2), $field . ': търсене по номер');
-    sourceFilterCheck(planning_Jobs::getListSourceOptions($params, 1, '', 6, true) === array(), $field . ': избрана стойност без задание не заобикаля ограничението');
-    sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, null, '', array(1, 6))) === array(1), $field . ': сечение с подадени идентификатори');
+    foreach (array(4 => 'приключен', 5 => 'оттеглен', 6 => 'без задание', 8 => 'спрян') as $id => $reason) {
+        sourceFilterCheck(
+            planning_Jobs::getListSourceOptions($params, 1, '', $id, true) === array(),
+            $field . ': проверката по номер отхвърля договор ' . $reason
+        );
+    }
+    sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, 1, '', 7, true)) === array(7), $field . ': договор само със задание за разпад може да се избере');
+    sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, null, '', array(1, 4, 6, 7))) === array(1, 7), $field . ': сечение с подадени идентификатори');
     sourceFilterCheck(array_keys(planning_Jobs::getListSourceOptions($params, null, '', '1,2,6')) === array(1, 2), $field . ': списък от идентификатори');
     sourceFilterCheck(planning_Jobs::getListSourceOptions($params, null, '', array()) === array(), $field . ': празно сечение');
 
@@ -301,10 +308,10 @@ foreach (array('saleId', 'purchaseId') as $field) {
 
     Request::$values = array('Cmd' => array('refresh' => 1));
     Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 6);
+    core_Settings::$values = array($field => 5);
     $restore->invoke(null);
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
-    sourceFilterCheck(!$restoredForm->gotErrors() && Request::get($field) === '' && Request::get('Cmd') === array('default' => 1), $field . ': рефрешът на целия лист изчиства стария избор преди въвеждането');
+    sourceFilterCheck(!$restoredForm->gotErrors() && Request::get($field) === '' && Request::get('Cmd') === array('default' => 1), $field . ': рефрешът изчиства запомнения оттеглен договор преди въвеждането');
 
     Request::$values = array($field => '');
     Mode::$values = core_Settings::$writes = array();

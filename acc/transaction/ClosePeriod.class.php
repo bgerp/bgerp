@@ -8,7 +8,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -145,10 +145,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     private function transferVat(&$total, $rec)
     {
         // Общата сума въведена в документа извлечена от касовия апарат
-        $amountFromFiscPrinter = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
+        $amountFromFiscPrinter = ($rec->amountVatGroup1 ?? 0) + ($rec->amountVatGroup2 ?? 0) + ($rec->amountVatGroup3 ?? 0) + ($rec->amountVatGroup4 ?? 0);
         
         // Колко е сумата по фактури без касови бележки
-        $diffAmount = $amountFromFiscPrinter - $rec->amountFromInvoices;
+        $diffAmount = $amountFromFiscPrinter - ($rec->amountFromInvoices ?? 0);
         
         $entries = array();
         
