@@ -229,8 +229,8 @@ class acc_ClosePeriods extends core_Master
             
             $conf = core_Packs::getConfig('sales');
             if ($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes') {
-                $total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
-                if ($total < $rec->amountFromInvoices) {
+                $total = ($rec->amountVatGroup1 ?? 0) + ($rec->amountVatGroup2 ?? 0) + ($rec->amountVatGroup3 ?? 0) + ($rec->amountVatGroup4 ?? 0);
+                if ($total < ($rec->amountFromInvoices ?? 0)) {
                     $form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
                 }
             }
