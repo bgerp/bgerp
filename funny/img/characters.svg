@@ -116,7 +116,7 @@
     <path d="M39 48L26 80l34-10 34 10-13-32" fill="#b95168"/>
     <path d="M46 48h28l5 33H41z" fill="#f3ecea"/><path d="M47 57l13 6 13-6-6 13H53z" fill="#bd4861"/>
     <path d="M48 80l-3 14m27-14 3 14" stroke="#423c51" stroke-width="9" stroke-linecap="round"/>
-    <ellipse cx="60" cy="29" rx="25" ry="24" fill="#d9d4eb"/>
+    <ellipse cx="60" cy="29" rx="25" ry="24" fill="var(--funny-vampire-skin, #d9d4eb)"/>
     <path d="M35 27Q28 0 60 4q32-4 25 23L71 16 60 24 49 16z" fill="#3d354e"/>
     <circle cx="49" cy="31" r="3.5" fill="#54445c"/><circle cx="71" cy="31" r="3.5" fill="#54445c"/>
     <path d="M47 40q13 15 26 0" fill="#a9526b"/><path d="M49 41l4 8 3-6m8 0 3 6 4-8" fill="white"/>
@@ -341,7 +341,7 @@
     <path d="M48 58L32 67m37-7 15 8M50 48L39 34m27 14 14-12" stroke="#3f4b3b" stroke-width="2.5" stroke-linecap="round"/>
     <circle cx="24" cy="73" r="3" fill="#65704b"/><circle cx="91" cy="31" r="2.5" fill="#65704b"/>
   </symbol>
-  <symbol id="mosquito-blood" viewBox="0 0 120 100">
+  <symbol id="blood-splat" viewBox="0 0 120 100">
     <path d="M45 43L29 29 40 49 21 58 45 60 40 80 57 66 73 83 73 63 98 66 80 51 91 31 69 43 61 22 55 43z" fill="#bc4f52"/>
     <circle cx="28" cy="74" r="2.5" fill="#bc4f52"/><circle cx="98" cy="48" r="3" fill="#bc4f52"/>
   </symbol>
@@ -349,5 +349,19 @@
     <ellipse cx="61" cy="55" rx="13" ry="9" fill="#805e48"/>
     <path d="M53 53L32 45 20 49M55 59L38 70 24 72M67 53L84 40 99 41M67 59L86 71 100 72" fill="none" stroke="#705448" stroke-width="2" stroke-linecap="round"/>
     <g fill="#dce5e9" fill-opacity=".85" stroke="#a3b1b9"><ellipse cx="43" cy="48" rx="15" ry="5" transform="rotate(-30 43 48)"/><ellipse cx="78" cy="48" rx="15" ry="5" transform="rotate(20 78 48)"/></g>
+  </symbol>
+  <symbol id="vampire-splat" viewBox="0 0 120 100">
+    <path d="M20 56L7 41l27 8 10-10 16 6 17-7 11 12 24-8-14 17 8 13-32-8-16 8-18-9-28 8z" fill="#544666" stroke="#372d48" stroke-width="2"/>
+    <path d="M26 56l27-6 11 8 24-7-14 12-23-4-21 7z" fill="#b95168"/>
+    <ellipse cx="61" cy="51" rx="17" ry="10" fill="#d9c4dc"/>
+    <path d="M45 47q15-11 32 0l-10-2-7 5-6-5z" fill="#3d354e"/>
+    <path d="M50 50l5 4m-5 0 5-4m12 0 5 4m-5 0 5-4" stroke="#54445c" stroke-width="1.5"/>
+    <path d="M55 57l3 5 2-5m4 0 2 5 3-5" fill="white"/>
+  </symbol>
+  <symbol id="spider-thread" viewBox="0 0 120 32">
+    <g fill="none" stroke="#9b93b2" stroke-width="1" stroke-linecap="round">
+      <path d="M0 0Q60 9 120 0M0 0Q60 24 120 0M0 0Q60 42 120 0M0 0L60 26 120 0M24 2l12 16M48 4l4 19M72 4l-4 19M96 2L84 18"/>
+    </g>
+    <path d="M0 0Q60 9 120 0" fill="none" stroke="#e8e4f0" stroke-width=".7"/>
   </symbol>
 </svg>

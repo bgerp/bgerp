@@ -1,4 +1,4 @@
-.funny-visitor {
+.funny-visitor, .funny-departing {
     position: fixed;
     left: 0;
     top: 0;
@@ -11,7 +11,10 @@
     will-change: transform;
 }
 
-.funny-visitor * { pointer-events: none !important; }
+.funny-visitor *, .funny-departing * { pointer-events: none !important; }
+.funny-departing { animation: none; transition: transform .4s ease-in, opacity .4s ease-in; opacity: .15; }
+.funny-departing svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.funny-departing .funny-accessory, .funny-departing .funny-insect-wings, .funny-departing .funny-insect-hands { position: absolute; left: 0; top: 0; }
 .funny-stats {
     position: fixed;
     right: 8px;
@@ -49,12 +52,24 @@
 .funny-fly[data-insect="walking"] .funny-insect-hands { animation: funny-rub .22s linear infinite alternate; }
 .funny-mosquito[data-insect="feeding"] > svg:first-child { animation: funny-feed .65s ease-in-out infinite alternate; transform-origin: 37% 80%; }
 .funny-mosquito[data-fed="true"] { --funny-insect-belly: #cb4d55; }
+.funny-vampire[data-insect="feeding"] > svg:first-child { animation: funny-feed .65s ease-in-out infinite alternate; transform-origin: 50% 45%; }
+.funny-vampire[data-fed="true"] { --funny-vampire-skin: #e7b8c1; }
 .funny-visitor.funny-squashed { animation: none; filter: none; }
 .funny-squashed > svg { animation: funny-squash .16s ease-out forwards; }
 .funny-squashed > .funny-insect-blood { position: absolute; left: 0; top: 0; animation: none; transform: scale(var(--funny-blood-scale)); opacity: var(--funny-blood-opacity); }
 .funny-insect-mark { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; }
 .funny-insect-tracks { width: 2px; height: 2px; margin: -1px; border-radius: 50%; background: #66563e99; box-shadow: -3px -2px #66563e88, 3px 2px #66563e88; animation: funny-insect-trace 5s linear forwards; }
 .funny-insect-bite { width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #a5323b; box-shadow: 0 0 0 3px #dc70703d, inset 0 1px 2px #692e3b; animation: funny-insect-trace 8s linear forwards; }
+.funny-vampire-bite { width: 3px; height: 4px; margin-left: -5px; box-shadow: 8px 0 #a5323b, 4px 0 4px 3px #dc70703d; }
+/* Class removal restores existing inline/application styles without rewriting them. */
+.funny-drained { opacity: var(--funny-drained-opacity) !important; transition: opacity .18s linear; }
+.funny-soiled { box-shadow: inset 0 0 14px 5px rgba(119, 86, 44, var(--funny-soil)) !important; transition: opacity .18s linear, box-shadow .35s ease-out; }
+.funny-surface-restoring { transition: opacity 1.5s ease-out, box-shadow 1.5s ease-out !important; }
+.funny-insect-tracks::before { content: ''; position: absolute; left: -7px; top: -4px; width: 16px; height: 9px; border-radius: 50%; background: #92734b30; filter: blur(2px); }
+.funny-spider-thread { height: 32px; transform-origin: 0 0; animation: funny-web-thread 8s ease-out both; }
+.funny-spider-thread svg { display: block; width: 100%; height: 100%; pointer-events: none !important; }
+.funny-spiders[data-insect="weaving"] > svg { animation: funny-shiver .2s linear 6; }
+@keyframes funny-web-thread { 0% { opacity: 0; } 12%,70% { opacity: .8; } 100% { opacity: 0; } }
 @keyframes funny-wings { from { transform: scaleX(.75) rotate(-5deg); } to { transform: scaleX(1.12) rotate(5deg); } }
 @keyframes funny-rub { from { transform: rotate(-8deg) scaleX(.92); } to { transform: rotate(8deg) scaleX(1.08); } }
 @keyframes funny-feed { to { transform: scaleY(.96); } }
@@ -168,6 +183,8 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-departing, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
+    .funny-drained { opacity: revert !important; transition: none !important; }
+    .funny-soiled { box-shadow: revert !important; transition: none !important; }
 }

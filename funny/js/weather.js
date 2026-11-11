@@ -41,7 +41,8 @@
             // Bearings describe where wind comes from; without a saved bearing keep one gentle heading per page.
             var bearing = typeof options.windDirection === 'number' ? options.windDirection * Math.PI / 180 : (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (Math.random() - 0.5) * 0.6;
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
-            var inputs = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'];
+            // Software keyboards and IMEs also report edits without physical key events.
+            var inputs = ['pointermove', 'pointerdown', 'keydown', 'input', 'compositionstart', 'focusin', 'wheel', 'touchmove', 'scroll'];
 
             /** Every new idle period starts with the same interval as a freshly loaded page. */
             function initialDelay() {
