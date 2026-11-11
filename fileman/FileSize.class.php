@@ -28,11 +28,17 @@ class fileman_FileSize extends type_Bigint
      */
     public function toVerbal_($size)
     {
-        if ($size === null) {
-            
+        if ($size === null || $size === '') {
+
             return;
         }
-        
+
+        // Нечислови стойности (напр. "800M" от конфигурацията) не могат да минат през log()
+        if (!is_numeric($size)) {
+
+            return self::escape($size);
+        }
+
         $space = '&nbsp;';
         
         if (Mode::is('text', 'plain')) {
