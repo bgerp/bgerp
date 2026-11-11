@@ -323,6 +323,17 @@ check('touch double tap summons, scrolling and synthetic double-click do not dup
     const p=e.center(e.visitors()[0]);e.touch(p.x,p.y);e.tick(300);assert(e.visitors().length<n);
     e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.document.emit('pointercancel');e.touch(500,700);assert(e.visitors().length<n);
 });
+check('touches on controls, scroll gestures and long presses do not summon characters or weather',()=>{
+    for(const gesture of ['control','scroll','hold']) {
+        const e=environment({trigger:'manual'},{coarse:true,weather:'snow clouds'});
+        e.blank.interactive=gesture==='control';
+        for(let i=0;i<2;i++) {
+            e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.tick(gesture==='hold'?500:50);
+            e.document.emit('pointerup',e.event({pointerType:'touch',clientY:gesture==='scroll'?480:400}));e.tick(50);
+        }
+        assert.equal(e.visitors().length,0,gesture);assert.equal(e.weatherTriggers.length,0,gesture);
+    }
+});
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
     const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
@@ -705,9 +716,21 @@ check('rare silent peeking is automatic only, away from the pointer and once per
     near.block.rect={left:400,right:600,top:400,width:200,height:200};
     for(let i=0;i<1800;i++) {near.tick(250,50);assert(!near.document.body.children.some(n=>n.className==='funny-peeker'),'never peek close to the pointer');}
 });
-check('each appearance can start weather; disabled characters retain blank double-click and double-tap',()=>{
+check('delayed group members do not restart weather after typing, scrolling or touching a control',()=>{
+    let delayedGroups=0;
+    for(const type of ['input','compositionstart','focusin','keydown','scroll','touchmove','pointerdown']) for(let seed=10;seed<20;seed++) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['ghost','casper','elf']},{seed,coarse:true,weather:'rain clouds'});
+        e.click();assert.deepEqual(e.weatherTriggers,['manual']);
+        e.document.emit(type,e.event({pointerType:'touch'}));e.tick(2000);
+        if(e.visitors().length>1) delayedGroups++;
+        assert.deepEqual(e.weatherTriggers,['manual'],'late arrivals must not restart the interrupted weather');
+        e.click();e.tick(2000);assert.deepEqual(e.weatherTriggers,['manual','manual']);
+    }
+    assert(delayedGroups>0);
+});
+check('each group can start weather; disabled characters retain blank double-click and double-tap',()=>{
     const enabled=environment({trigger:'manual'},{weather:'rain clouds'});enabled.click();enabled.tick(2000);
-    assert.equal(enabled.weatherTriggers.length,enabled.visitors().length);assert(enabled.weatherTriggers.every(reason=>reason==='manual'));
+    assert.deepEqual(enabled.weatherTriggers,['manual']);
     const before=enabled.weatherTriggers.length;enabled.click();assert.equal(enabled.weatherTriggers.length,before+1);
     for(const settings of [{mode:'off'},{frequency:'off'}]) {
         const e=environment(settings,{weather:'rain clouds'});e.click();assert.deepEqual(e.weatherTriggers,['manual']);assert.equal(e.visitors().length,0);assert.equal(e.audio.length,0);

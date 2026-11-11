@@ -540,7 +540,6 @@
                 dress(visitor);
                 positionVisitor(visitor, now);
                 document.body.appendChild(node);
-                if (window.funnyWeather) window.funnyWeather.trigger(reason);
                 // Notifications already have their own sound.
                 if (reason !== 'notification' && !silent) playSound(character);
                 if (!frame) frame = window.requestAnimationFrame(animate);
@@ -1109,6 +1108,8 @@
                     var character = chooseCharacter(pool);
                     if (j === 0) {
                         if (!show(reason, false, character, origin)) return false;
+                        // Delayed visitors must not restart weather stopped by the user's input.
+                        if (window.funnyWeather) window.funnyWeather.trigger(reason);
                         appearances++;
                         lastAppearance = summonedAt;
                         var node = document.createElement('div');
