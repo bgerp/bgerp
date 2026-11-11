@@ -57,8 +57,8 @@
 .funny-visitor.funny-squashed { animation: none; filter: none; }
 .funny-squashed > svg { animation: funny-squash .16s ease-out forwards; }
 .funny-squashed > .funny-insect-blood { position: absolute; left: 0; top: 0; animation: none; transform: scale(var(--funny-blood-scale)); opacity: var(--funny-blood-opacity); }
-.funny-insect-mark, .funny-character-trail, .funny-melt-puddle { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; }
-.funny-character-trail { transform-origin: 0 0; animation: funny-character-track 4s linear forwards; }
+.funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; }
+.funny-character-trail { transform-origin: 0 0; animation: funny-character-track 12s linear forwards; }
 .funny-character-trail::before, .funny-character-trail::after { content: ''; position: absolute; pointer-events: none !important; }
 .funny-sleigh-track::before, .funny-sleigh-track::after { left: 0; top: -5px; width: 100%; height: 2px; border-radius: 2px; background: #e5f4ff; box-shadow: 0 1px 1px #6e96b8; }
 .funny-sleigh-track::after { top: 5px; }
@@ -89,22 +89,44 @@
 .funny-trail-bird::after { left: 10px; top: 4px; }
 .funny-trail-pollen::before { width: 3px; height: 3px; border-radius: 50%; background: #e4bd6c; box-shadow: 7px -4px #efb4ce, -4px 6px #e4bd6c; }
 .funny-trail-glow::before { left: -2px; top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #e7ed97; box-shadow: 0 0 6px 2px #c3d26b; }
+.funny-melting::after { display: none; }
 .funny-visitor.funny-melting { animation: none; filter: none; }
 .funny-melting > svg:first-child { transform-origin: 50% 90%; animation: funny-snow-melt 1.35s ease-in forwards; }
 .funny-melting .funny-accessory { transform-origin: 50% 90%; animation: funny-snow-melt 1s ease-in forwards; }
-.funny-melt-puddle { width: 60px; height: 13px; margin: -6px -30px; border-radius: 50%; background: #c4e6f3; border: 1px solid #98bed5; box-shadow: inset 0 2px 4px #f6fbff; animation: funny-puddle 4s linear forwards; }
+.funny-melt-puddle { width: 60px; height: 13px; margin: -6px -30px; border-radius: 50%; background: #c4e6f3; border: 1px solid #98bed5; box-shadow: inset 0 2px 4px #f6fbff; animation: funny-puddle 12s linear forwards; }
 @keyframes funny-snow-melt { 0% { transform: scale(1); opacity: 1; } 65% { transform: scale(1.2, .35); opacity: .8; } 100% { transform: scale(1.5, .04); opacity: 0; } }
-@keyframes funny-puddle { 0% { transform: scale(.2); opacity: 0; } 30% { transform: scale(1); opacity: var(--funny-track-opacity); } 60% { opacity: var(--funny-track-opacity); } 100% { transform: scale(1.15); opacity: 0; } }
-.funny-insect-tracks { width: 2px; height: 2px; margin: -1px; border-radius: 50%; background: #66563e99; box-shadow: -3px -2px #66563e88, 3px 2px #66563e88; animation: funny-insect-trace 5s linear forwards; }
-.funny-insect-bite { width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #a5323b; box-shadow: 0 0 0 3px #dc70703d, inset 0 1px 2px #692e3b; animation: funny-insect-trace 8s linear forwards; }
+@keyframes funny-puddle { 0% { transform: scale(.2); opacity: 0; } 10% { transform: scale(1); opacity: var(--funny-track-opacity); } 60% { opacity: var(--funny-track-opacity); } 100% { transform: scale(1.15); opacity: 0; } }
+.funny-insect-tracks { width: 2px; height: 2px; margin: -1px; border-radius: 50%; background: #66563e99; box-shadow: -3px -2px #66563e88, 3px 2px #66563e88; animation: funny-insect-trace 12s linear forwards; }
+.funny-insect-bite { width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #a5323b; box-shadow: 0 0 0 3px #dc70703d, inset 0 1px 2px #692e3b; animation: funny-insect-trace 12s linear forwards; }
 .funny-vampire-bite { width: 3px; height: 4px; margin-left: -5px; box-shadow: 8px 0 #a5323b, 4px 0 4px 3px #dc70703d; }
 /* Class removal restores existing inline/application styles without rewriting them. */
 .funny-drained { opacity: var(--funny-drained-opacity) !important; transition: opacity .18s linear; }
 .funny-soiled { box-shadow: inset 0 0 14px 5px rgba(119, 86, 44, var(--funny-soil)) !important; transition: opacity .18s linear, box-shadow .35s ease-out; }
 .funny-surface-restoring { transition: opacity 1.5s ease-out, box-shadow 1.5s ease-out !important; }
 .funny-insect-tracks::before { content: ''; position: absolute; left: -7px; top: -4px; width: 16px; height: 9px; border-radius: 50%; background: #92734b30; filter: blur(2px); }
-.funny-spider-thread { height: 32px; transform-origin: 0 0; animation: funny-web-thread 8s ease-out both; }
+.funny-spider-thread { height: 32px; transform-origin: 0 0; animation: funny-web-thread 16s ease-out both; }
 .funny-spider-thread svg { display: block; width: 100%; height: 100%; pointer-events: none !important; }
+/* Props stay passive; pointer proximity is handled by the shared page listener. */
+.funny-spider-thread[data-web="tremble"] svg { animation: funny-web-tremble .18s ease-in-out infinite alternate; }
+.funny-spider-thread[data-web="unravel"] { animation: funny-web-unravel .8s ease-in forwards; }
+.funny-spider-thread[data-web="unravel"] svg { animation: funny-web-loosen .8s ease-in forwards; transform-origin: 0 0; }
+@keyframes funny-web-tremble { from { transform: skewY(-3deg) scaleY(.9); } to { transform: skewY(3deg) scaleY(1.08); } }
+@keyframes funny-web-unravel { from { opacity: .8; } to { opacity: 0; } }
+@keyframes funny-web-loosen { to { transform: translateY(14px) scaleY(.1); } }
+.funny-gift { width: 22px; height: 19px; margin: -10px -11px; border-radius: 2px; background: linear-gradient(90deg, #bb5265 40%, #f5d585 40%, #f5d585 60%, #bb5265 60%); box-shadow: 0 2px 3px #39465e44; animation: funny-gift-stay 16s linear forwards; }
+.funny-gift::before { content: ''; position: absolute; left: -2px; top: -4px; width: 26px; height: 5px; background: #d86a7b; border-top: 2px solid #f5d585; border-radius: 2px; }
+.funny-gift::after { content: '∞'; position: absolute; top: -21px; left: 3px; color: #c79336; font: bold 22px sans-serif; }
+.funny-gift-open { animation: funny-gift-open .8s ease-out forwards; }
+.funny-gift-open::before { transform: translate(-5px,-12px) rotate(-25deg); transition: transform .3s; }
+@keyframes funny-gift-stay { 0% { opacity: 0; transform: translateY(-8px); } 4%,75% { opacity: .9; transform: none; } 100% { opacity: 0; } }
+@keyframes funny-gift-open { 0%,30% { opacity: .9; } to { opacity: 0; transform: scale(.8); } }
+.funny-visitor[data-reaction="jump"] > svg { animation: funny-puddle-jump .9s ease-in-out; }
+.funny-visitor[data-reaction="slip"] > svg { transform-origin: 50% 80%; animation: funny-runner-slip .9s ease-in-out; }
+@keyframes funny-puddle-jump { 45% { transform: translateY(-24px) rotate(-8deg); } 80% { transform: translateY(-3px) rotate(5deg); } }
+@keyframes funny-runner-slip { 35% { transform: translateX(15px) rotate(20deg); } 65% { transform: translateX(8px) rotate(-10deg); } }
+.funny-trail-water::before { left: -7px; top: -2px; width: 15px; height: 5px; border-radius: 50%; background: #add6e8; box-shadow: 0 1px 1px #77acc6, inset 0 1px 1px #f6fbff; }
+.funny-snowman[data-thawing="true"]::after { content: ''; position: absolute; left: 62%; top: 70%; width: 4px; height: 7px; border-radius: 50%; background: #85c4e2; animation: funny-thaw-drip 1.4s ease-in infinite; }
+@keyframes funny-thaw-drip { from { opacity: .8; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
 .funny-spiders[data-insect="weaving"] > svg { animation: funny-shiver .2s linear 6; }
 @keyframes funny-web-thread { 0% { opacity: 0; } 12%,70% { opacity: .8; } 100% { opacity: 0; } }
 @keyframes funny-wings { from { transform: scaleX(.75) rotate(-5deg); } to { transform: scaleX(1.12) rotate(5deg); } }
@@ -224,7 +246,7 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-departing, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-departing, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
     .funny-drained { opacity: revert !important; transition: none !important; }
     .funny-soiled { box-shadow: revert !important; transition: none !important; }

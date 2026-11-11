@@ -90,11 +90,11 @@ check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 
     for(let i=0;i<6;i++) {
         e.tick(delay);
         assert.equal(e.visitors().length,1);
-        e.tick(40000);
+        e.tick(60000);
         assert.equal(e.visitors().length,0);
         delay = [...e.timers.values()][0].at-e.now();
         assert(delay>0 && delay<=1200000);
-        if(i>=3) assert(delay+40000>=600000);
+        if(i>=3) assert(delay+60000>=600000);
     }
 });
 check('a page first loaded in the background waits a full initial interval after both visibility and focus arrive',()=>{
@@ -120,7 +120,7 @@ check('automatic appearances require uninterrupted inactivity after mouse, keybo
     }
 });
 check('activity restarts the initial interval after an appearance and repeated pointer coordinates do not postpone it',()=>{
-    const e=environment({frequency:'frequent',sound:'no',mode:'selected',characters:['ghost']});e.tick([...e.timers.values()][0].at);e.tick(40000);
+    const e=environment({frequency:'frequent',sound:'no',mode:'selected',characters:['ghost']});e.tick([...e.timers.values()][0].at);e.tick(60000);
     e.document.emit('pointermove',e.event({clientX:100,clientY:100}));const due=[...e.timers.values()][0].at;
     assert(due-e.now()>=10000 && due-e.now()<=24000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
     e.tick(due-e.now()+20);assert(e.visitors().length>0);
@@ -192,13 +192,13 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
 check('focused score counts each catch once, counts exits and ignores Escape', () => {
     const e=environment({trigger:'manual',mode:'selected',characters:['ghost']});
     const score=()=>e.document.body.children.find(n=>n.className==='funny-stats').children.slice(0,2).map(n=>n.textContent);
-    e.click();e.tick(40000);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+    e.click();e.tick(60000);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
     e.click();assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.tick(700);
     const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
     e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);
     assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
     e.click();e.document.emit('keydown',{key:'Escape'});e.tick(3000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
-    e.click();e.tick(40000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 1']);assert.equal(e.raf.size,0);
+    e.click();e.tick(60000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 1']);assert.equal(e.raf.size,0);
     const reset=environment({trigger:'manual'});reset.click();
     assert(!reset.document.body.children.some(n=>n.className==='funny-stats'));
 });
@@ -208,7 +208,7 @@ check('blur or a hidden tab resets the score, blocks background catches and star
         const e=environment({trigger:'manual',mode:'selected',characters:['ghost'],scoreKey:key},{storage});
         const stats=()=>e.document.body.children.find(n=>n.className==='funny-stats');
         function catchOne(){e.click();e.tick(700);const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);}
-        catchOne();catchOne();e.click();e.tick(40000);assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 2','Избягали: 1','Рекорд: 2']);
+        catchOne();catchOne();e.click();e.tick(60000);assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 2','Избягали: 1','Рекорд: 2']);
         e.click();e.tick(700);const p=e.center(e.visitors()[0]);
         if(hidden)e.document.visibilityState='hidden';else e.document.focused=false;
         // Input queued before the blur/visibility handler must not count as a catch.
@@ -217,7 +217,7 @@ check('blur or a hidden tab resets the score, blocks background catches and star
         assert(!stats());assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);e.tick(500);assert.equal(e.timers.size,0);
         e.click();e.tick(900000);assert(!stats());assert.equal(e.visitors().length,0);assert.equal(storage.get(key),'2');
         e.document.visibilityState='visible';e.document.focused=true;e.window.emit('focus');assert(!stats());
-        e.click();e.tick(40000);assert(!stats());catchOne();
+        e.click();e.tick(60000);assert(!stats());catchOne();
         assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 1','Избягали: 0','Рекорд: 2']);
     }
 });
@@ -278,7 +278,7 @@ check('nearby visitors repel after emerging instead of converging through each o
             assert(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)>=76,'visitors overlap');
         }
     }
-    e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
 check('returning to a visible focused tab restarts the full initial interval, even one second before a due appearance',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
@@ -665,7 +665,7 @@ check('scary sound is opt-in, short, silent for notifications and stops on blur'
 check('a stalled frame never keeps visitors beyond their hard lifetime', () => {
     for(const character of ['casper','muncher']) {
         const e=environment({trigger:'notification',mode:'selected',characters:[character]});
-        e.click();const elapsed=character==='muncher'?81000:41000;e.tick(elapsed,elapsed);assert.equal(e.visitors().length,0);
+        e.click();const elapsed=character==='muncher'?81000:61000;e.tick(elapsed,elapsed);assert.equal(e.visitors().length,0);
     }
 });
 check('weather outfits follow the forecast, update visitors and leave bounded trails',()=>{
@@ -689,9 +689,9 @@ check('sleigh runners and deer hooves leave bounded, fading directional tracks w
         assert.match(first.style.transform,/^rotate\([-\d.]+rad\)$/);
         if(character==='sleigh') assert(parseFloat(first.style.width)>=14 && parseFloat(first.style.width)<=80);
         assert.equal(e.traces.length,0,'winter tracks replace generic weather footprints');
-        e.tick(4100);assert(!e.document.body.children.includes(first),'each mark expires within four seconds');
+        e.tick(12100);assert(!e.document.body.children.includes(first),'each mark expires within twelve seconds');
         for(let i=0;i<10;i++) {e.click();e.tick(500);assert(tracks().length<=(strength==='gentle'?12:24));}
-        e.tick(45000);assert.equal(tracks().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+        e.tick(80000);assert.equal(tracks().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
     }
 });
 check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print and reduced motion',()=>{
@@ -715,13 +715,13 @@ check('all roaming characters leave their own short traces without weather and s
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
         const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
         assert(tracks.length>0,character);assert(tracks.every(n=>n.className.includes('funny-trail-'+kind) && n.attrs['aria-hidden']==='true'));
-        e.tick(4100);assert(tracks.every(n=>!e.document.body.children.includes(n)),character+' trace expired');
+        e.tick(12100);assert(tracks.every(n=>!e.document.body.children.includes(n)),character+' trace expired');
         e.document.focused=false;e.window.emit('blur');assert(!e.document.body.children.some(n=>n.className.includes('funny-character-trail')));
     }
     for(const strength of ['normal','gentle']) {
         const e=environment({trigger:'manual',mode:'selected',characters:Object.keys(kinds),strength});
         for(let i=0;i<20;i++) {e.click();e.tick(500);assert(e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length<=(strength==='gentle'?12:24));}
-        e.tick(45000);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+        e.tick(80000);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
     }
 });
 check('a caught snowman melts once, leaves a temporary puddle and stops on focus loss',()=>{
@@ -734,7 +734,7 @@ check('a caught snowman melts once, leaves a temporary puddle and stops on focus
         const frozen=e.center(v);e.tick(1000);assert(e.visitors().includes(v));assert.deepEqual(e.center(v),frozen);
         e.document.emit('pointermove',e.event({clientX:p.x+1,clientY:p.y}));assert.equal(e.document.body.children.find(n=>n.className==='funny-stats').children[0].textContent,'Уцелени: 1');
         e.tick(500);assert.equal(e.visitors().length,0);assert(e.document.body.children.includes(puddle));
-        e.tick(2600);assert(!e.document.body.children.includes(puddle));
+        e.tick(10600);assert(!e.document.body.children.includes(puddle));
         if(trigger==='notification') assert.equal(e.sounds.length,0);
         e.click();e.tick(800);const next=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:next.x,clientY:next.y}));
         e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className==='funny-melt-puddle'));assert.equal(e.timers.size,0);
@@ -809,7 +809,7 @@ check('weather gestures happen once, stay brief and never delay escape or the ha
         const e=environment({trigger:'manual',mode:'selected',characters:['casper']},{weather});e.click();e.tick(2500);
         const v=e.visitors()[0];assert.equal(v.attrs['data-reaction'],reaction);e.tick(1000);assert.equal(v.attrs['data-reaction'],'');
         assert.equal(v.history.filter(a=>a[0]==='data-reaction' && a[1]===reaction).length,1);
-        e.tick(40000);assert.equal(e.visitors().length,0);
+        e.tick(60000);assert.equal(e.visitors().length,0);
     }
 });
 check('nearby characters greet in pairs once without overlapping',()=>{
@@ -833,7 +833,7 @@ check('flying characters land on a block and leave on approach, touch, scroll, r
         if(exit==='scroll') e.document.emit('scroll');
         if(exit==='replacement') e.block.isConnected=false;
         e.tick(exit==='timeout'?2500:600);assert.equal(v.attrs['data-perched'],'');
-        e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+        e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
     }
 });
 
@@ -911,7 +911,7 @@ check('flies rub their legs before walking and leave bounded temporary tracks at
     const tracks=e.document.body.children.filter(n=>n.className.includes('funny-insect-tracks'));
     assert(tracks.length>=2 && tracks.length<=24);
     for(const node of tracks) {assert.equal(node.attrs['aria-hidden'],'true');assert(parseFloat(node.style.left)>=e.block.rect.left);assert(parseFloat(node.style.left)<=e.block.rect.right);assert(parseFloat(node.style.top)>=e.block.rect.top);assert(parseFloat(node.style.top)<=e.block.rect.bottom);}
-    e.tick(2000);assert.equal(v.attrs['data-perched'],'');e.tick(40000);
+    e.tick(2000);assert.equal(v.attrs['data-perched'],'');e.tick(60000);
     assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));assert.equal(e.raf.size,0);
 });
 check('mosquitoes feed once, turn red, leave a bite at the proboscis and resume flight',()=>{
@@ -920,7 +920,7 @@ check('mosquitoes feed once, turn red, leave a bite at the proboscis and resume 
     const bites=e.document.body.children.filter(n=>n.className.includes('funny-insect-bite'));assert.equal(bites.length,1);
     const p=e.center(v);assert(Math.abs(parseFloat(bites[0].style.left)-(p.x-58*.13))<.1);assert(Math.abs(parseFloat(bites[0].style.top)-(p.y+58/1.2*.3))<.1);
     e.tick(2000);assert.equal(v.attrs['data-perched'],'');const flying=e.center(v);e.tick(600);assert.notDeepEqual(e.center(v),flying);
-    e.tick(40000);assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
+    e.tick(60000);assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
 });
 check('a pointer hit squashes landed insects once, stays briefly and disappears without counting an escape',()=>{
     for(const character of ['fly','mosquito']) {
@@ -1030,7 +1030,7 @@ check('spiders weave one bounded web between nearby separate visible elements an
         if(exit==='scroll') e.document.emit('scroll');
         if(exit==='blur') e.window.emit('blur');
         if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
-        if(exit==='timeout') e.tick(8000);
+        if(exit==='timeout') e.tick(16000);
         assert.equal(webs().length,0);assert(!e.block.className.includes('funny-drained'));assert(!e.block.className.includes('funny-soiled'));
     }
 });
@@ -1070,4 +1070,150 @@ check('mobile keyboard input without keydown restarts idle time and restores a m
         m.tick(50);assert(m.block.className.includes('funny-eaten'));m.document.emit(type,{target:m.block});assert(!m.block.className.includes('funny-eaten'));
     }
 });
+check('ordinary visitors stay at least twenty seconds when unchased and traces outlive the former four-second limit',()=>{
+    for(const coarse of [false,true]) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['ghost']},{coarse});e.click();e.tick(16000);
+        assert.equal(e.visitors().length,1);e.tick(3900);assert.equal(e.visitors().length,1);
+        e.tick(40100);assert.equal(e.visitors().length,0);e.tick(13000);assert.equal(e.timers.size,0);
+    }
+    const e=environment({trigger:'manual',mode:'selected',characters:['deer']});e.click();e.tick(2500);
+    const track=e.document.body.children.find(n=>n.className.includes('funny-character-trail'));
+    e.tick(5000);assert(e.document.body.children.includes(track));e.tick(7100);assert(!e.document.body.children.includes(track));
+});
+check('a snowman uses only fresh numeric temperature for drips and keeps snow in freezing or unknown weather',()=>{
+    for(const [temperature,expires,water] of [[22,Infinity,true],[.1,Infinity,true],[0,Infinity,false],[-4,Infinity,false],[22,0,false],[null,Infinity,false],['22',Infinity,false]]) {
+        const e=environment({mode:'selected',characters:['snowman'],trigger:'manual',forecast:{temperature,expires}});
+        e.click();e.tick(2500);const v=e.visitors()[0];assert.equal(v.attrs['data-thawing'],water?'true':'');
+        const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        assert(tracks.length);assert(tracks.every(n=>n.className.includes(water?'funny-trail-water':'funny-trail-snow')));
+    }
+});
+/** Observe natural public summons, retaining detached nodes only in the test for transition assertions. */
+function watchVisitors(e, duration) {
+    const actors=new Set(e.visitors());
+    for(let ms=0;ms<duration;ms+=50) {e.tick(50);e.visitors().forEach(v=>actors.add(v));}
+    return [...actors];
+}
+check('nearby cats briefly pursue flies, respect pointer pursuit priority and clean up without extending deadlines',()=>{
+    let found=0;
+    for(let seed=1;seed<=25 && found<3;seed++) {
+        const e=environment({mode:'selected',characters:['cat','blackcat','fly'],trigger:'manual'},{seed:seed*997});
+        e.click();const actors=watchVisitors(e,6000),cats=actors.filter(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='chasing'));
+        if(!cats.length) continue;found++;e.tick(2500);
+        assert(actors.some(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='evading')));
+        assert(cats.every(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='')),'pursuit must end');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'),'stationary pointer never catches a pursuit');
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
+    }
+    assert(found>=1,'at least one nearby encounter');
+});
+function wovenFixture(settings={}) {
+    const {e,v}=landInsect('spiders',{},settings),a=e.block.rect,neighbor=new e.blank.constructor();neighbor.isConnected=true;
+    neighbor.rect={left:a.right+50,right:a.right+110,top:a.top,bottom:a.bottom,width:60,height:32};
+    e.document.querySelectorAll=()=>[e.block,neighbor];e.tick(700);
+    const web=e.document.body.children.find(n=>n.className.includes('funny-spider-thread'));assert(web);
+    return {e,v,web,x:parseFloat(web.style.left)+parseFloat(web.style.width)/2,y:parseFloat(web.style.top)};
+}
+check('webs tremble nearby, unravel on fast crossings and expire even with no mouse movement',()=>{
+    for(const crossing of [false,true]) {
+        const {e,web,x,y}=wovenFixture();
+        e.document.emit('pointermove',e.event({clientX:x,clientY:y-60}));assert.equal(web.attrs['data-web'],'tremble');
+        e.document.emit('pointermove',e.event({clientX:x,clientY:crossing?y+60:y+15}));assert.equal(web.attrs['data-web'],'unravel');
+        e.tick(400);assert(e.document.body.children.includes(web));e.tick(450);assert(!e.document.body.children.includes(web));
+    }
+    const {e,web}=wovenFixture();e.tick(9000);assert(e.document.body.children.includes(web));e.tick(7100);assert(!e.document.body.children.includes(web));
+});
+check('elf gifts open once on pointer or blank touch, stay silent when disabled and clear on inactive exits',()=>{
+    for(const [sound,touch,trigger] of [['yes',false,'manual'],['no',false,'manual'],['yes',true,'manual'],['yes',false,'notification']]) {
+        let sample;
+        for(let seed=1;seed<=30 && !sample;seed++) {
+            const e=environment({mode:'selected',characters:['elf'],trigger,sound},{seed:seed*631});
+            if(trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});} else e.click();
+            e.tick(7000);const gift=e.document.body.children.find(n=>n.className==='funny-gift');if(gift) sample={e,gift};
+        }
+        assert(sample,'gift appears occasionally');const {e,gift}=sample,before=e.sounds.length;
+        const x=parseFloat(gift.style.left),y=parseFloat(gift.style.top);
+        if(touch) e.touch(x,y);else e.document.emit('pointermove',e.event({clientX:x,clientY:y}));
+        assert(gift.className.includes('funny-gift-open'));assert(e.document.body.children.some(n=>n.className==='funny-burst funny-burst-confetti'));
+        const after=e.sounds.length;assert.equal(after>before,sound==='yes' && trigger!=='notification');
+        e.document.emit('pointermove',e.event({clientX:x,clientY:y}));assert.equal(e.sounds.length,after);
+        e.tick(900);assert(!e.document.body.children.includes(gift));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('cats jump at meltwater and elves slip on runner tracks during natural nearby encounters',()=>{
+    for(const [pool,reaction] of [[['cat','snowman'],'jump'],[['elf','sleigh'],'slip']]) {
+        let found=0;
+        for(let seed=1;seed<=50 && !found;seed++) {
+            const e=environment({mode:'selected',characters:pool,trigger:'manual',forecast:{temperature:22,expires:Infinity}},{seed:seed*991});
+            e.click();e.tick(2000);e.click();const actors=watchVisitors(e,18000);
+            found=actors.filter(v=>v.history.some(([key,value])=>key==='data-reaction' && value===reaction)).length;
+            if(found) {assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);}
+        }
+        assert(found,reaction+' happens without moving the pointer or altering actor state');
+    }
+});
+check('flies avoid existing webs without landing on them or requiring pointer movement',()=>{
+    let found=0;
+    for(let seed=1;seed<=30 && !found;seed++) {
+        const e=environment({mode:'selected',characters:['spiders','fly'],trigger:'manual'},{seed:seed*1877,blocks:true});
+        e.click();e.tick(2000);const spider=e.visitors().find(v=>v.className==='funny-visitor funny-spiders');if(!spider) continue;
+        const p=e.center(spider);e.block.rect={left:p.x-50,right:p.x+50,top:p.y+20,bottom:p.y+52,width:100,height:32};
+        const neighbor=new e.blank.constructor();neighbor.isConnected=true;neighbor.rect={left:p.x+90,right:p.x+140,top:p.y+20,bottom:p.y+52,width:50,height:32};
+        e.document.querySelectorAll=()=>[e.block,neighbor];
+        const actors=watchVisitors(e,16000);
+        found=actors.filter(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='avoiding-web')).length;
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+    assert(found,'a naturally nearby fly avoids a woven web');
+});
+
+check('fleeing visitors still leave sparse short traces and retain the same expiry and input cleanup',()=>{
+    for(const character of ['cat','sleigh','snowman']) {
+        const e=environment({mode:'selected',characters:[character],trigger:'manual'},{width:2400,height:1600});
+        e.click({clientX:1200,clientY:800});e.tick(700);const v=e.visitors()[0];
+        const start=e.center(v),dx=start.x-1200,dy=start.y-800,length=Math.hypot(dx,dy),nx=dx/length,ny=dy/length;
+        const records=new Set();
+        for(let ms=0;ms<3500 && e.visitors().includes(v);ms+=100) {
+            e.document.emit('pointermove',e.event({clientX:1200+nx*(ms/100+1),clientY:800+ny*(ms/100+1)}));e.tick(100);
+            e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).forEach(n=>records.add(n));
+        }
+        assert(records.size>0,character+' leaves a trace when chased');assert(records.size<=3,'escape traces are sparse');
+        const marks=[...records];for(let i=1;i<marks.length;i++) assert(marks[i].createdAt-marks[i-1].createdAt>=1100);
+        if(character==='sleigh') assert(marks.every(n=>parseFloat(n.style.width)<=24.001),'no long lines behind a fast sleigh');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.document.emit('scroll');assert(marks.every(n=>!e.document.body.children.includes(n)));
+    }
+});
+
+check('a fly chased toward a web bends around it while increasing distance from the pointer',()=>{
+    let verified=0;
+    for(let seed=1;seed<=40 && !verified;seed++) {
+        const e=environment({mode:'selected',characters:['spiders','fly'],trigger:'manual'},{seed:seed*1877,blocks:true});
+        e.click();e.tick(2000);const spider=e.visitors().find(v=>v.className==='funny-visitor funny-spiders');if(!spider) continue;
+        const p=e.center(spider);e.block.rect={left:p.x-50,right:p.x+50,top:p.y+20,bottom:p.y+52,width:100,height:32};
+        const neighbor=new e.blank.constructor();neighbor.isConnected=true;neighbor.rect={left:p.x+90,right:p.x+140,top:p.y+20,bottom:p.y+52,width:50,height:32};
+        e.document.querySelectorAll=()=>[e.block,neighbor];
+        for(let t=0;t<15000 && !verified;t+=50) {
+            e.tick(50);const fly=e.visitors().find(v=>v.attrs['data-encounter']==='avoiding-web');
+            const web=e.document.body.children.find(v=>v.className.includes('funny-spider-thread'));if(!fly || !web) continue;
+            const f=e.center(fly),x=parseFloat(web.style.left),y=parseFloat(web.style.top),width=parseFloat(web.style.width),angle=parseFloat(web.style.transform.slice(7));
+            const end={x:x+Math.cos(angle)*width,y:y+Math.sin(angle)*width};
+            const projection=Math.max(0,Math.min(1,((f.x-x)*(end.x-x)+(f.y-y)*(end.y-y))/(width*width)));
+            const q={x:x+(end.x-x)*projection,y:y+(end.y-y)*projection};
+            const distance=Math.hypot(f.x-q.x,f.y-q.y),nx=(f.x-q.x)/distance,ny=(f.y-q.y)/distance;
+            if(distance>=100 || distance<30) continue;
+            const mouse={x:f.x+nx*100,y:f.y+ny*100};
+            e.document.emit('pointermove',e.event({clientX:mouse.x,clientY:mouse.y}));
+            if(fly.className.includes('funny-squashed') || web.attrs['data-web']==='unravel') break;
+            e.document.emit('pointermove',e.event({clientX:mouse.x-nx*3,clientY:mouse.y-ny*3}));
+            e.tick(160);const next=e.center(fly),dx=next.x-f.x,dy=next.y-f.y;
+            assert(fly.attrs['data-encounter']==='avoiding-web');
+            assert(Math.hypot(next.x-mouse.x+nx*3,next.y-mouse.y+ny*3)>97,'escape remains away from the pointer');
+            assert(Math.abs(dx*-ny+dy*nx)>Math.abs(dx*nx+dy*ny),'head-on escape bends sideways around the web');
+            verified++;
+        }
+    }
+    assert(verified,'a head-on chase was exercised through public pointer events');
+});
+
 console.log(`${checks} behavioral checks passed`);
