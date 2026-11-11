@@ -12,9 +12,10 @@
             started = true;
 
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
-            var visitors = [], portals = [], frame = 0, timer = 0;
+            var visitors = [], portals = [], marks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
             var bursts = [], restorations = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
@@ -22,7 +23,7 @@
             var frequent = options.frequency === 'frequent';
             var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
             var remaining = nextDelay();
-            var audio = null, printing = false;
+            var audio = null, printing = false, focused = document.hasFocus();
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
             var counter = document.getElementById('nCntLink');
             var lastCount = counter ? parseInt(counter.textContent, 10) || 0 : null;
@@ -41,32 +42,60 @@
             }
 
             function active() {
-                return document.visibilityState === 'visible' && document.hasFocus() &&
+                return focused && document.visibilityState === 'visible' && document.hasFocus() &&
                     !printing && !reducedMotion.matches;
             }
 
             /** Seasonal dates use the framework's Orthodox Easter calendar; manual choices ignore dates. */
             function characters() {
                 if (options.mode === 'auto') {
-                    var now = new Date(), month = now.getMonth() + 1, day = now.getDate();
-                    if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher'];
-                    if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'deer', 'snowman'];
-                    if (month <= 2) return ['snowman', 'casper'];
-                    var easter = options.easterDates && options.easterDates[now.getFullYear()];
-                    if (easter) {
-                        var today = Date.UTC(now.getFullYear(), month - 1, day);
-                        var parts = easter.split('-');
-                        var days = (today - Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))) / 86400000;
-                        if (days >= -14 && days <= 7) return ['bunny', 'chick', 'butterfly'];
-                    }
-                    if (month === 3) return ['martenitsa', 'stork'];
-                    if (month <= 5) return ['stork', 'butterfly', 'chick'];
-                    if (month <= 8) return ['butterfly', 'firefly'];
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher'];
+                    var now = new Date(), pool = seasonalCharacters(now), forecast = options.forecast || {};
+                    if (pool.indexOf('spiders') < 0) pool.push('spiders');
+                    var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
+                    var fresh = forecast.expires > now.getTime() && typeof forecast.temperature === 'number';
+                    var warm = fresh && forecast.temperature > 10;
+                    // Gate rare out-of-season visitors before sampling: even a three-person group stays rare.
+                    if (fresh && forecast.temperature > 9 && ['clear-day', 'partly-cloudy-day'].indexOf(forecast.icon) !== -1 &&
+                        (flySeason || (warm && Math.random() < 0.1))) pool.push('fly');
+                    if (mosquitoSeason || (warm && Math.random() < 0.1)) pool.push('mosquito');
+                    return pool;
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
+            }
+
+            /** Keep holiday precedence while weather-dependent insects join the current season. */
+            function seasonalCharacters(now) {
+                var month = now.getMonth() + 1, day = now.getDate();
+                if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher'];
+                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'deer', 'snowman'];
+                if (month <= 2) return ['snowman', 'casper'];
+                var easter = options.easterDates && options.easterDates[now.getFullYear()];
+                if (easter) {
+                    var today = Date.UTC(now.getFullYear(), month - 1, day);
+                    var parts = easter.split('-');
+                    var days = (today - Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))) / 86400000;
+                    if (days >= -14 && days <= 7) return ['bunny', 'chick', 'butterfly'];
+                }
+                if (month === 3) return ['martenitsa', 'stork'];
+                if (month <= 5) return ['stork', 'butterfly', 'chick'];
+                if (month <= 8) return ['butterfly', 'firefly'];
+                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher'];
+            }
+
+            /** Weighted sampling without replacement preserves unique groups, including at dusk. */
+            function chooseCharacter(pool) {
+                var hour = new Date().getHours();
+                var weights = pool.map(function (name) {
+                    if (options.mode !== 'auto') return 1;
+                    if (name === 'fly') return hour >= 8 && hour < 18 ? 3 : 0.5;
+                    if (name === 'mosquito') return hour >= 18 && hour < 23 ? 3 : 1;
+                    return 1;
+                });
+                var pick = Math.random() * weights.reduce(function (sum, weight) { return sum + weight; }, 0);
+                for (var i = 0; i < pool.length - 1; i++) { pick -= weights[i]; if (pick < 0) break; }
+                return pool.splice(i, 1)[0];
             }
 
             function nextDelay() {
@@ -171,6 +200,8 @@
                     chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine'},
                     butterfly: {notes: [880, 1175, 1568], duration: 0.12, spacing: 0.13, pitch: 1.02, wave: 'sine'},
                     firefly: {notes: [1047, 1568], duration: 0.3, spacing: 0.27, pitch: 0.98, wave: 'sine'},
+                    fly: {notes: [185], duration: 0.55, spacing: 0, pitch: 1.15, wave: 'sawtooth', vibrato: true, low: true, volume: 0.3},
+                    mosquito: {notes: [620], duration: 0.65, spacing: 0, pitch: 0.85, wave: 'sine', vibrato: true, volume: 0.25},
                     pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
@@ -186,7 +217,7 @@
                     oscillator.frequency.setValueAtTime(frequency, start);
                     oscillator.frequency.exponentialRampToValueAtTime(frequency * sound.pitch, start + duration);
                     gain.gain.setValueAtTime(0, start);
-                    gain.gain.linearRampToValueAtTime(gentle ? 0.033 : 0.065, start + 0.025);
+                    gain.gain.linearRampToValueAtTime((gentle ? 0.033 : 0.065) * (sound.volume || 1), start + 0.025);
                     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
                     var extraNodes = [];
                     if (sound.voice || sound.low) {
@@ -286,10 +317,11 @@
                 caughtCount = escapedCount = 0;
             }
 
-            function removeVisitor(v, escaped) {
+            function removeVisitor(v, escaped, depart) {
                 restoreEaten(v);
                 if (escaped && active() && caughtCount > 0) { escapedCount++; updateStats(); }
-                v.node.remove();
+                if (depart && !v.leaving) departVisitor(v);
+                else v.node.remove();
                 visitors.splice(visitors.indexOf(v), 1);
                 if (!visitors.length) {
                     remaining = nextDelay();
@@ -305,14 +337,37 @@
                 schedule();
             }
 
-            function clearVisitors() {
+            function clearVisitors(depart) {
                 window.cancelAnimationFrame(frame);
                 frame = 0;
+                departures.slice().forEach(clearDeparture);
                 if (!active()) restorations.slice().forEach(finishRestore);
                 removePeek();
                 bursts.slice().forEach(removeBurst);
+                marks.slice().forEach(removeMark);
+                surfaceEffects.slice().forEach(clearSurface);
                 portals.slice().forEach(removePortal);
-                visitors.slice().forEach(function (v) { removeVisitor(v, false); });
+                visitors.slice().forEach(function (v) { removeVisitor(v, false, depart === true); });
+            }
+
+            function clearDeparture(departure) {
+                window.clearTimeout(departure.timer); departure.node.remove();
+                departures.splice(departures.indexOf(departure), 1);
+            }
+
+            /** A visible blur gets a brief CSS exit, with no live visitor, sound, score or background RAF. */
+            function departVisitor(v) {
+                if (departures.length >= 16) clearDeparture(departures[0]);
+                var dx = v.x - pointer.x, dy = v.y - pointer.y;
+                if (!dx && !dy) dy = -1;
+                var tx = dx ? ((dx > 0 ? window.innerWidth + v.width : -v.width) - v.x) / dx : Infinity;
+                var ty = dy ? ((dy > 0 ? window.innerHeight + v.height : -v.height) - v.y) / dy : Infinity;
+                var distance = Math.min(tx, ty);
+                v.node.classList.remove('funny-visitor');
+                v.node.classList.add('funny-departing');
+                v.node.style.transform = 'translate(' + (v.x + dx * distance - v.width / 2) + 'px,' + (v.y + dy * distance - v.height / 2) + 'px)';
+                var departure = {node:v.node,timer:window.setTimeout(function () { clearDeparture(departure); }, 450)};
+                departures.push(departure);
             }
 
             function catchVisitor(v) {
@@ -320,6 +375,36 @@
                 v.leaving = performance.now();
                 caughtCount++;
                 updateStats();
+                if (v.insect || v.feeds) {
+                    v.perch = null;
+                    v.node.setAttribute('data-perched', '');
+                    v.node.setAttribute('data-insect', '');
+                    while (v.node.firstChild) v.node.firstChild.remove();
+                    v.accessory = null;
+                    if (v.feeds && v.blood > 0) {
+                        var blood = sprite('blood-splat'); blood.setAttribute('class', 'funny-insect-blood');
+                        v.node.style.setProperty('--funny-blood-scale', String(0.25 + v.blood * 0.85));
+                        v.node.style.setProperty('--funny-blood-opacity', String(0.3 + v.blood * 0.5));
+                        v.node.appendChild(blood);
+                    }
+                    v.node.appendChild(sprite(v.character + '-splat'));
+                    v.node.classList.add('funny-squashed');
+                    v.splatDuration = random(2200, 3500);
+                    if (!v.silent) playSound('pop');
+                    return;
+                }
+                if (v.character === 'snowman') {
+                    // Keep the current bob position while the body sinks into its puddle.
+                    v.y += Math.sin((v.leaving - v.born) / 380) * 3;
+                    v.node.classList.add('funny-melting');
+                    v.splatDuration = 1400;
+                    var puddle = document.createElement('div'); puddle.className = 'funny-melt-puddle';
+                    puddle.style.left = v.x + 'px'; puddle.style.top = (v.y + v.height * 0.4) + 'px';
+                    puddle.style.setProperty('--funny-track-opacity', gentle ? '0.35' : '0.6');
+                    addMark(puddle, 12000, {kind:'puddle',x:v.x,y:v.y + v.height * 0.4});
+                    if (!v.silent) playSound('pop');
+                    return;
+                }
                 v.node.classList.add('funny-leaving');
                 burst(v);
                 if (!v.silent) playSound('pop');
@@ -337,6 +422,7 @@
 
             /** Accessories use the same hourly snapshot as the page's weather effects. */
             function dress(v) {
+                if (v.insect || v.leaving) return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
                 if (v.outfit === kind) return;
                 if (v.accessory) { v.accessory.remove(); v.accessory = null; }
@@ -368,7 +454,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',snowman:'snow',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -391,7 +477,7 @@
             /** At most one silent peek per page, replacing an automatic group near a visible block. */
             function showPeek() {
                 if (!active()) return false;
-                var pool = characters(), positions = [];
+                var pool = characters().filter(function (name) { return name !== 'fly' && name !== 'mosquito'; }), positions = [];
                 if (!pool.length) return false;
                 Array.prototype.forEach.call(document.querySelectorAll('[id^="blockPortal_"]'), function (block) {
                     var rect = block.getBoundingClientRect(), x = (rect.left + rect.right) / 2;
@@ -432,7 +518,10 @@
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
                 if (!active()) return false;
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : 76, height = width * 5 / 6;
+                var insect = character === 'fly' || character === 'mosquito';
+                var feeds = character === 'mosquito' || character === 'vampire';
+                var visitsElements = insect || feeds || character === 'spiders';
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : insect ? 58 : 76, height = width * 5 / 6;
                 var destination = safePosition(width, height, reason === 'manual' ? null : origin);
                 if (!destination) return false;
                 if (timer) {
@@ -446,20 +535,24 @@
                 node.style.width = width + 'px';
                 node.style.height = height + 'px';
                 node.appendChild(sprite(character));
+                if (insect) {
+                    var wings = sprite(character + '-wings'); wings.setAttribute('class', 'funny-insect-wings'); node.appendChild(wings);
+                    if (character === 'fly') { var hands = sprite('fly-hands'); hands.setAttribute('class', 'funny-insect-hands'); node.appendChild(hands); }
+                }
                 var now = performance.now();
                 var visitor = {
                     node: node, width: width, height: height, character: character,
                     x: origin.x, y: origin.y,
                     from: {x: origin.x, y: origin.y}, destination: destination,
                     launched: true, born: now, previous: now, leaving: 0,
-                    lifetime: character === 'muncher' ? 77000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: []
+                    lifetime: character === 'muncher' ? 77000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
+                    contact: {x:character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'vampire' ? -0.05 : 0.3)}
                 };
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
                 dress(visitor);
                 positionVisitor(visitor, now);
                 document.body.appendChild(node);
-                if (window.funnyWeather) window.funnyWeather.trigger(reason);
                 // Notifications already have their own sound.
                 if (reason !== 'notification' && !silent) playSound(character);
                 if (!frame) frame = window.requestAnimationFrame(animate);
@@ -480,6 +573,7 @@
                     wind = window.funnyWeather ? window.funnyWeather.wind() : {x:0,y:0,speed:0};
                     visitors.forEach(dress);
                 }
+                updatePursuits(now);
                 visitors.slice().forEach(function (v) { animateVisitor(v, now); });
                 repelVisitors();
                 greetVisitors(now);
@@ -508,16 +602,171 @@
             }
 
             function positionVisitor(v, now) {
-                var bob = v.perch && v.perch.arrived ? 0 : Math.sin((now - v.born) / 380) * 3;
+                var bob = v.leaving || (v.perch && v.perch.arrived) ? 0 : Math.sin((now - v.born) / (v.fed ? 650 : 380)) * 3;
                 v.node.style.transform = 'translate(' + (v.x - v.width / 2) + 'px,' + (v.y - v.height / 2 + bob) + 'px)';
-                var footY = v.y + v.height / 2 + bob;
-                if (v.trail && !v.launched && !v.leaving && now - v.trail.time >= 350 && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= 8) {
-                    if (window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
+                var kind = trailKinds[v.character], winter = v.character === 'sleigh' || v.character === 'deer';
+                if (v.character === 'snowman') {
+                    var forecast = options.forecast || {};
+                    if (forecast.expires > Date.now() && typeof forecast.temperature === 'number' && forecast.temperature > 0) kind = 'water';
+                    if (v.thawing !== kind) { v.thawing = kind; v.node.setAttribute('data-thawing', kind === 'water' ? 'true' : ''); }
+                }
+                var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : 0.5) + bob;
+                var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime;
+                var trailDelay = (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) * (escaping ? 2.2 : 1);
+                if (v.trail && !v.launched && !v.leaving && now - v.trail.time >= trailDelay && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
+                    if (kind) characterTrail(v, footY, kind, escaping);
+                    if (!winter && window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
                     v.trail = null;
                 }
                 if (!v.trail || v.launched) v.trail = {x:v.x,y:footY,time:now};
                 if (v.character === 'muncher' && v.eaten.length && !v.launched && !v.leaving && v.crumbTrail &&
                     now - v.crumbTrail.time >= (gentle ? 500 : 300) && Math.hypot(v.x - v.crumbTrail.x, v.y - v.crumbTrail.y) >= 16) burst(v, 'crumb');
+            }
+
+            /** Small themed traces follow movement without weather; feeding and eating retain their contact marks. */
+            function characterTrail(v, footY, kind, escaping) {
+                var from = v.trail, dx = v.x - from.x, dy = footY - from.y, distance = Math.hypot(dx, dy);
+                // Fast exits leave spaced short marks, not a continuous line or a rejected long segment.
+                if (escaping && distance > 24) { from = {x:v.x - dx / distance * 24,y:footY - dy / distance * 24}; distance = 24; }
+                if (distance > 80 || from.x < 16 || from.y < 16 || from.x > window.innerWidth - 16 || from.y > window.innerHeight - 16) return;
+                var node = document.createElement('div');
+                node.className = 'funny-character-trail funny-' + v.character + '-track funny-trail-' + kind;
+                node.style.left = from.x + 'px'; node.style.top = from.y + 'px';
+                node.style.transform = 'rotate(' + Math.atan2(dy, dx) + 'rad)';
+                node.style.setProperty('--funny-track-opacity', gentle ? '0.4' : '0.7');
+                if (kind === 'runners' || kind === 'thread') node.style.width = distance + 'px';
+                addMark(node, 12000, {kind:kind === 'water' ? 'puddle' : kind,x:from.x,y:from.y,toX:v.x,toY:footY});
+            }
+
+            /** Encounters never override escape, departure or the pointer's personal space. */
+            function availableForEncounter(v, now) {
+                return visitors.indexOf(v) >= 0 && !v.launched && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                    now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > 120;
+            }
+
+            /** Only naturally nearby cats chase; each fly can have one pursuer and gets a rest afterwards. */
+            function updatePursuits(now) {
+                visitors.forEach(function (v) {
+                    if (!v.pursuit || (now < v.pursuit.until && availableForEncounter(v, now) && availableForEncounter(v.pursuit.other, now))) return;
+                    var other = v.pursuit.other;
+                    [v, other].forEach(function (actor) { actor.pursuit = null; actor.chaseAfter = now + 9000; encounterState(actor, ''); });
+                });
+                visitors.forEach(function (cat) {
+                    if (['cat','blackcat'].indexOf(cat.character) < 0 || cat.pursuit || now < cat.chaseAfter || cat.reactionUntil || !availableForEncounter(cat, now)) return;
+                    var fly = visitors.filter(function (v) {
+                        return v.character === 'fly' && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
+                            Math.hypot(cat.x - v.x, cat.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, cat.x, cat.y, v.x, v.y) > 100;
+                    })[0];
+                    if (!fly) return;
+                    takeOff(fly, now); fly.fleeUntil = 0; fly.perchAfter = now + 4000;
+                    cat.pursuit = {other:fly,until:now + 2400}; fly.pursuit = {other:cat,until:now + 2400};
+                    encounterState(cat, 'chasing'); encounterState(fly, 'evading');
+                });
+            }
+
+            /** Contact geometry is captured when a trace is made; no layout reads are needed per frame. */
+            function distanceToMark(contact, x, y) {
+                return segmentDistance(x, y, contact.x, contact.y, contact.toX === undefined ? contact.x : contact.toX, contact.toY === undefined ? contact.y : contact.toY);
+            }
+
+            function encounterState(v, kind) {
+                if (v.encounter === kind) return;
+                v.encounter = kind; v.node.setAttribute('data-encounter', kind);
+            }
+
+            /** A web's nearest strand supplies the same avoidance direction during flight and escape. */
+            function nearbyWeb(v) {
+                if (v.character !== 'fly') return null;
+                var web = marks.filter(function (mark) { return mark.contact && mark.contact.kind === 'web' && !mark.ending && distanceToMark(mark.contact, v.x, v.y) < 85; })[0];
+                if (!web) return null;
+                var c = web.contact, wx = c.toX - c.x, wy = c.toY - c.y, length = wx * wx + wy * wy;
+                var t = length ? clamp(((v.x - c.x) * wx + (v.y - c.y) * wy) / length, 0, 1) : 0;
+                var dx = v.x - c.x - t * wx, dy = v.y - c.y - t * wy;
+                if (Math.hypot(dx, dy) < 1) { dx = -wy || 1; dy = wx; }
+                var distance = Math.hypot(dx, dy);
+                return {x:dx / distance,y:dy / distance};
+            }
+
+            /** The short diversion yields to the pointer and the normal off-screen departure. */
+            function encounterMotion(v, now, delta) {
+                var dx = 0, dy = 0, speed = 0;
+                if (v.propDirection && v.reactionUntil) { dx = v.propDirection.x; dy = v.propDirection.y; speed = v.character === 'elf' ? 38 : 55; }
+                if (v.pursuit) {
+                    var other = v.pursuit.other, cat = v.character !== 'fly';
+                    dx = (other.x - v.x) * (cat ? 1 : -1); dy = (other.y - v.y) * (cat ? 1 : -1); speed = cat ? 100 : 140;
+                    if (cat && Math.hypot(dx, dy) < (v.width + other.width) / 2 + 20) return true;
+                }
+                if (v.character === 'fly') {
+                    var web = nearbyWeb(v);
+                    if (web) {
+                        dx = web.x; dy = web.y;
+                        takeOff(v, now); v.fleeUntil = 0; v.perchAfter = now + 1800; speed = 110;
+                        v.flight = {x:v.x + dx * 140,y:v.y + dy * 140,until:now + 1800};
+                        encounterState(v, 'avoiding-web');
+                    } else if (!v.pursuit) encounterState(v, '');
+                }
+                if (!speed) return false;
+                var distance = Math.hypot(dx, dy) || 1, step = speed * delta;
+                var x = v.x + dx / distance * step, y = v.y + dy / distance * step;
+                if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) > 100) { v.x = x; v.y = y; }
+                return true;
+            }
+
+            /** Props react only once per encounter; tiny marks remain click-through decorations. */
+            function encounterProps(v, now) {
+                if (v.launched || v.leaving || v.exiting || now - v.born >= v.lifetime || Math.hypot(v.x - pointer.x, v.y - pointer.y) < 65) return;
+                if (now >= v.fleeUntil && v.character === 'elf' && !v.giftChecked && now - v.born >= 6000) {
+                    v.giftChecked = true;
+                    if (Math.random() < 0.6) {
+                        var gift = document.createElement('div'); gift.className = 'funny-gift';
+                        var x = v.x, y = v.y + v.height / 2;
+                        gift.style.left = x + 'px'; gift.style.top = y + 'px';
+                        addMark(gift, 16000, {kind:'gift',x:x,y:y,silent:v.silent});
+                    }
+                }
+                if (v.reactionUntil || now < v.propAfter || v.pursuit) return;
+                var cat = v.character === 'cat' || v.character === 'blackcat';
+                if (!cat && v.character !== 'elf') return;
+                var kind = cat ? 'puddle' : 'runners';
+                var mark = marks.filter(function (item) { return item.contact && item.contact.kind === kind && distanceToMark(item.contact, v.x, v.y + v.height / 2) < (cat ? 60 : 70); })[0];
+                if (!mark) return;
+                var dx = mark.contact.x - v.x, dy = mark.contact.y - v.y - v.height / 2, distance = Math.hypot(dx, dy) || 1;
+                v.propDirection = {x:dx / distance,y:dy / distance};
+                react(v, cat ? 'jump' : 'slip', now); v.propAfter = now + 6000;
+            }
+
+            /** Segment crossings also catch fast sweeps through a thin web. */
+            function crossesWeb(c, x, y, fromX, fromY) {
+                var ax = x - fromX, ay = y - fromY, bx = c.toX - c.x, by = c.toY - c.y;
+                var cross = ax * by - ay * bx;
+                if (cross) {
+                    var t = ((c.x - fromX) * by - (c.y - fromY) * bx) / cross;
+                    var u = ((c.x - fromX) * ay - (c.y - fromY) * ax) / cross;
+                    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return true;
+                }
+                return distanceToMark(c, x, y) < 28 || segmentDistance(c.x, c.y, fromX, fromY, x, y) < 12 || segmentDistance(c.toX, c.toY, fromX, fromY, x, y) < 12;
+            }
+
+            /** Passive pointer/touch handling opens gifts or unravels webs without consuming page input. */
+            function touchMarks(x, y, fromX, fromY) {
+                if (!active()) return false;
+                var opened = false;
+                marks.slice().forEach(function (mark) {
+                    var c = mark.contact;
+                    if (!c || mark.ending) return;
+                    if (c.kind === 'gift' && Math.hypot(x - c.x, y - c.y) < 22) {
+                        mark.ending = true; opened = true; mark.node.classList.add('funny-gift-open');
+                        burst({x:c.x,y:c.y}, 'confetti'); if (!c.silent) playSound('elf');
+                    } else if (c.kind === 'web') {
+                        if (crossesWeb(c, x, y, fromX, fromY)) { mark.ending = true; mark.node.setAttribute('data-web', 'unravel'); }
+                        else mark.node.setAttribute('data-web', distanceToMark(c, x, y) < 70 ? 'tremble' : '');
+                    }
+                    if (mark.ending) {
+                        window.clearTimeout(mark.timer);
+                        mark.timer = window.setTimeout(function () { removeMark(mark); }, 800);
+                    }
+                });
+                return opened;
             }
 
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
@@ -529,7 +778,7 @@
             /** Nearby visitors greet once each, while keeping their separation and escape priority. */
             function greetVisitors(now) {
                 var free = visitors.filter(function (v) {
-                    return !v.launched && !v.leaving && !v.exiting && !v.perch && !v.greeted && !v.reactionUntil &&
+                    return !v.insect && !v.launched && !v.leaving && !v.exiting && !v.perch && !v.greeted && !v.reactionUntil &&
                         now >= v.fleeUntil && now - v.born < v.lifetime - 1000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > 120;
                 });
                 for (var i = 0; i < free.length; i++) {
@@ -544,21 +793,31 @@
                 }
             }
 
-            /** Flying visitors may rest briefly on a nearby visible portal block. */
+            /** Insects and vampires visit small elements; other flying visitors rest above portal blocks. */
             function findPerch(v) {
-                if (v.perchTried || ['butterfly', 'stork'].indexOf(v.character) < 0) return;
+                var onElement = v.visitsElements;
+                if (v.perch || v.fed || performance.now() < v.perchAfter || (!onElement && (v.perchTried || ['butterfly', 'stork'].indexOf(v.character) < 0))) return;
                 v.perchTried = true;
-                var best = null, nearest = 230;
-                Array.prototype.forEach.call(document.querySelectorAll('[id^="blockPortal_"]'), function (block) {
+                v.perchAfter = performance.now() + 2500;
+                var best = null, nearest = onElement ? 320 : 230;
+                var selector = onElement ? 'button,input:not([type="hidden"]),select,textarea,a,span,label,h1,h2,h3,p,td,th,[id^="blockPortal_"]' : '[id^="blockPortal_"]';
+                Array.prototype.slice.call(document.querySelectorAll(selector), 0, 180).forEach(function (block) {
+                    if (onElement && (block === v.lastPerch || block.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
+                        block.closest('details:not([open]),[hidden]') ||
+                        (document.activeElement && block.contains(document.activeElement)))) return;
                     var r = block.getBoundingClientRect();
-                    if (!r.height || r.width < v.width + 30 || r.top < v.height + 30 || r.top >= window.innerHeight - 30 ||
+                    if (r.height < (onElement ? 10 : 1) || r.width < (onElement ? 24 : v.width + 30) || r.top < v.height + 30 || r.top >= window.innerHeight - 30 ||
                         r.left < 0 || r.right > window.innerWidth || block.closest('[aria-hidden="true"]')) return;
-                    var x = clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8), y = r.top - v.height / 2 + 5;
+                    var style = window.getComputedStyle(block);
+                    if (style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return;
+                    var x = onElement ? clamp(v.x, r.left + 12, r.right - 12) - v.contact.x : clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8);
+                    var y = onElement ? r.top + Math.min(r.height / 2, 18) - v.contact.y : r.top - v.height / 2 + 5;
                     var distance = Math.hypot(x - v.x, y - v.y);
                     if (distance >= nearest || Math.hypot(x - pointer.x, y - pointer.y) < 150 || visitors.some(function (other) {
                         return other !== v && other.perch && Math.hypot(x - other.perch.x, y - other.perch.y) < v.width + 12;
                     })) return;
-                    nearest = distance; best = {block:block,x:x,y:y,top:r.top,left:r.left,checkAt:0,arrived:false};
+                    if (onElement && segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 85) return;
+                    nearest = distance; best = {block:block,x:x,y:y,top:r.top,left:r.left,right:r.right,width:r.width,height:r.height,checkAt:0,arrived:false};
                 });
                 v.perch = best;
             }
@@ -566,8 +825,14 @@
             /** Scrolling, refreshed blocks, a nearby pointer or a touch release a resting visitor. */
             function takeOff(v, now) {
                 if (!v.perch) return;
+                v.lastPerch = v.perch.block;
                 v.perch = null;
                 v.node.setAttribute('data-perched', '');
+                if (v.visitsElements) {
+                    v.node.setAttribute('data-insect', '');
+                    v.perchAfter = now + random(1800, 3000);
+                    v.flight = null;
+                }
                 v.fleeUntil = now + 1000;
             }
 
@@ -577,26 +842,171 @@
                 if (!p) return false;
                 if (now >= p.checkAt) {
                     var r = p.block.getBoundingClientRect(); p.checkAt = now + 500;
-                    if (!p.block.isConnected || !r.width || Math.abs(r.top - p.top) > 2 || Math.abs(r.left - p.left) > 2) { takeOff(v, now); return false; }
+                    if (!p.block.isConnected || !r.width || Math.abs(r.top - p.top) > 2 || Math.abs(r.left - p.left) > 2 ||
+                        Math.abs(r.width - p.width) > 2 || Math.abs(r.height - p.height) > 2) { takeOff(v, now); return false; }
                 }
                 if (now < v.fleeUntil || now - v.born >= v.lifetime || Math.hypot(v.x - pointer.x, v.y - pointer.y) < 130 || (p.arrived && now >= p.until)) {
                     takeOff(v, now); return false;
                 }
-                var dx = p.x - v.x, dy = p.y - v.y, distance = Math.hypot(dx, dy), step = 90 * delta;
+                if (v.visitsElements && p.arrived) { restOnElement(v, now, delta); return true; }
+                var dx = p.x - v.x, dy = p.y - v.y, distance = Math.hypot(dx, dy), step = (v.fed ? 55 : 90) * delta;
                 if (distance <= Math.max(1, step)) {
                     v.x = p.x; v.y = p.y;
-                    if (!p.arrived) { p.arrived = true; p.until = now + 2200; v.node.setAttribute('data-perched', 'true'); }
+                    if (!p.arrived) {
+                        p.arrived = now; p.until = now + (v.visitsElements ? 3600 : 2200); p.direction = Math.random() < 0.5 ? -1 : 1;
+                        p.startBlood = v.blood || 0;
+                        p.surfaceBlood = p.startBlood;
+                        v.node.setAttribute('data-perched', 'true');
+                        if (v.visitsElements) v.node.setAttribute('data-insect', v.feeds ? 'feeding' : v.character === 'spiders' ? 'weaving' : 'rubbing');
+                    }
                 } else { v.x += dx / distance * step; v.y += dy / distance * step; }
                 return true;
             }
 
-            /** Approaches slowly and flees quickly; the monster has an 80-second limit, others 40. */
+            function removeMark(mark) {
+                window.clearTimeout(mark.timer); mark.node.remove();
+                marks.splice(marks.indexOf(mark), 1);
+            }
+
+            /** All trails, puddles, bites and webs share one cap and the same inactive-page cleanup. */
+            function addMark(node, lifetime, contact) {
+                // Keep interactive props longer than expendable footprints, within the same total cap.
+                if (marks.length >= (gentle ? 12 : 24)) removeMark(marks.filter(function (mark) {
+                    return !mark.contact || ['web', 'gift', 'puddle'].indexOf(mark.contact.kind) < 0;
+                })[0] || marks[0]);
+                node.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(node);
+                var mark = {node:node,contact:contact,timer:window.setTimeout(function () { removeMark(mark); }, lifetime)};
+                marks.push(mark);
+            }
+
+            /** Restore only our classes and variables, leaving live application styles and content intact. */
+            function clearSurface(effect) {
+                window.clearTimeout(effect.timer);
+                ['funny-drained', 'funny-soiled', 'funny-surface-restoring'].forEach(function (name) { effect.el.classList.remove(name); });
+                effect.saved.forEach(function (property) {
+                    if (property.value) effect.el.style.setProperty(property.name, property.value, property.priority);
+                    else effect.el.style.removeProperty(property.name);
+                });
+                surfaceEffects.splice(surfaceEffects.indexOf(effect), 1);
+            }
+
+            /** Bound the affected surfaces and cumulative strength; recover gently eight seconds after contact. */
+            function affectSurface(el, kind, amount) {
+                var effect = surfaceEffects.filter(function (item) { return item.el === el; })[0];
+                if (!effect) {
+                    if (surfaceEffects.length >= (gentle ? 8 : 16)) clearSurface(surfaceEffects[0]);
+                    effect = {el:el, drain:0, soil:0, opacity:Number(window.getComputedStyle(el).opacity), saved:[]};
+                    ['--funny-drained-opacity', '--funny-soil'].forEach(function (name) {
+                        effect.saved.push({name:name,value:el.style.getPropertyValue(name),priority:el.style.getPropertyPriority(name)});
+                    });
+                    surfaceEffects.push(effect);
+                }
+                window.clearTimeout(effect.timer);
+                el.classList.remove('funny-surface-restoring');
+                if (kind === 'drain') {
+                    if (!effect.drain) el.classList.add('funny-drained');
+                    effect.drain = Math.min(1, effect.drain + amount);
+                    el.style.setProperty('--funny-drained-opacity', String(effect.opacity * (1 - effect.drain * (gentle ? 0.2 : 0.4))));
+                } else {
+                    if (!effect.soil) el.classList.add('funny-soiled');
+                    effect.soil = Math.min(1, effect.soil + amount);
+                    el.style.setProperty('--funny-soil', String(effect.soil * (gentle ? 0.1 : 0.2)));
+                }
+                effect.timer = window.setTimeout(function () {
+                    el.classList.add('funny-surface-restoring');
+                    el.style.setProperty('--funny-drained-opacity', String(effect.opacity));
+                    el.style.setProperty('--funny-soil', '0');
+                    effect.drain = effect.soil = 0;
+                    effect.timer = window.setTimeout(function () { clearSurface(effect); }, 1500);
+                }, 8000);
+            }
+
+            /** One short web spans the gap between separate visible elements, never a whole container. */
+            function weaveWeb(v) {
+                var source = v.perch.block, a = source.getBoundingClientRect(), best = null, nearest = 180;
+                Array.prototype.slice.call(document.querySelectorAll('button,input:not([type="hidden"]),a,span,label,h1,h2,h3,p,td,th,[id^="blockPortal_"]'), 0, 180).forEach(function (el) {
+                    if (el === source || el.contains(source) || source.contains(el) || el.closest('.funny-stats,[aria-hidden="true"]') || el.closest('details:not([open]),[hidden]')) return;
+                    var b = el.getBoundingClientRect(), style = window.getComputedStyle(el);
+                    if (b.width < 10 || b.height < 10 || b.top < 0 || b.left < 0 || b.right > window.innerWidth || b.bottom > window.innerHeight ||
+                        style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return;
+                    var x = clamp((b.left + b.right) / 2, a.left + 2, a.right - 2), y = clamp((b.top + b.bottom) / 2, a.top + 2, a.bottom - 2);
+                    var toX = clamp((a.left + a.right) / 2, b.left + 2, b.right - 2), toY = clamp((a.top + a.bottom) / 2, b.top + 2, b.bottom - 2);
+                    var distance = Math.hypot(toX - x, toY - y);
+                    if (distance < 16 || distance >= nearest) return;
+                    nearest = distance; best = {kind:'web',x:x,y:y,toX:toX,toY:toY,angle:Math.atan2(toY - y, toX - x)};
+                });
+                if (!best) return;
+                var node = document.createElement('div'); node.className = 'funny-insect-mark funny-spider-thread';
+                node.style.left = best.x + 'px'; node.style.top = best.y + 'px'; node.style.width = nearest + 'px';
+                node.style.transform = 'rotate(' + best.angle + 'rad)';
+                var web = sprite('spider-thread'); web.setAttribute('viewBox', '0 0 120 32'); web.setAttribute('preserveAspectRatio', 'none'); node.appendChild(web);
+                addMark(node, 16000, best);
+            }
+
+            /** Small temporary marks stay at the actual foot/proboscis contact and never intercept input. */
+            function markInsect(v, kind) {
+                var node = document.createElement('div');
+                node.className = 'funny-insect-mark funny-insect-' + kind;
+                if (v.character === 'vampire') node.classList.add('funny-vampire-bite');
+                node.style.left = (v.x + v.contact.x) + 'px';
+                node.style.top = (v.y + v.contact.y) + 'px';
+                addMark(node, 12000);
+            }
+
+            /** Feeding drains the element; a walking fly leaves both footmarks and a little grime. */
+            function restOnElement(v, now, delta) {
+                var p = v.perch, elapsed = now - p.arrived;
+                if (v.character === 'spiders') {
+                    if (!v.webTried && elapsed >= 500) { v.webTried = true; weaveWeb(v); }
+                    return;
+                }
+                if (v.feeds) {
+                    // Preserve partial feeding when chased away; the eventual splat uses this amount.
+                    v.blood = Math.min(1, p.startBlood + Math.max(0, elapsed - 300) / 1500);
+                    if (v.blood > p.surfaceBlood && (!p.surfaceAt || now >= p.surfaceAt)) {
+                        affectSurface(p.block, 'drain', v.blood - p.surfaceBlood);
+                        p.surfaceBlood = v.blood; p.surfaceAt = now + 120;
+                    }
+                    if (!p.bit && elapsed >= 300) { p.bit = true; markInsect(v, 'bite'); }
+                    if (!v.fed && v.blood >= 1) {
+                        v.fed = true; v.node.setAttribute('data-fed', 'true');
+                    }
+                    return;
+                }
+                if (elapsed < 800) return;
+                if (!p.walking) { p.walking = true; v.node.setAttribute('data-insect', 'walking'); }
+                var left = p.left + 10, right = p.right - 10;
+                v.x = clamp(v.x + p.direction * 15 * delta, left, right);
+                if (v.x <= left || v.x >= right) p.direction *= -1;
+                if (!p.footprint || Math.abs(v.x - p.footprint) >= (gentle ? 12 : 8)) {
+                    markInsect(v, 'tracks'); affectSurface(p.block, 'soil', 0.15); p.footprint = v.x;
+                }
+            }
+
+            /** Short wandering flights keep clear of the stationary pointer; a fed mosquito flies more heavily. */
+            function flyInsect(v, now, delta) {
+                if (!v.flight || now >= v.flight.until) {
+                    var margin = v.width, x = clamp(v.x + random(-140, 140), margin, window.innerWidth - margin);
+                    var y = clamp(v.y + random(-100, 100), margin, window.innerHeight - margin);
+                    if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 85) { x = v.x; y = v.y; }
+                    v.flight = {x:x,y:y,until:now + random(1200, 2300)};
+                }
+                var dx = v.flight.x - v.x, dy = v.flight.y - v.y, distance = Math.hypot(dx, dy);
+                if (distance < 2) return;
+                var step = Math.min(distance, (v.fed ? 42 : v.character === 'fly' ? 85 : 65) * delta);
+                var sway = Math.sin((now - v.born) / 220) * step * 0.35;
+                v.x += (dx * step - dy * sway) / distance;
+                v.y += (dy * step + dx * sway) / distance;
+            }
+
+            /** Approaches slowly and flees quickly; the monster has an 80-second limit, others 60. */
             function animateVisitor(v, now) {
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
-                if (v.reactionUntil && now >= v.reactionUntil) { v.reactionUntil = 0; v.node.setAttribute('data-reaction', ''); }
-                if (elapsed >= (v.character === 'muncher' ? 80000 : 40000) || (v.leaving && now - v.leaving >= 250)) { removeVisitor(v, !v.leaving); return; }
+                if (v.reactionUntil && now >= v.reactionUntil) { v.reactionUntil = 0; v.propDirection = null; v.node.setAttribute('data-reaction', ''); }
+                if (elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.splatDuration || 250))) { removeVisitor(v, !v.leaving); return; }
                 if (v.character === 'muncher' && !v.launched && !v.leaving && !v.exiting && elapsed < v.lifetime && munch(v, now, delta)) return;
                 if (v.launched) {
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
@@ -605,8 +1015,10 @@
                     if (progress === 1) v.launched = false;
                 } else if (!v.leaving) {
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
-                    if (elapsed > 900 && elapsed < v.lifetime - 2000 && now >= v.fleeUntil && !v.reactionUntil) findPerch(v);
-                    if (visitPerch(v, now, delta)) return;
+                    encounterProps(v, now);
+                    var divert = availableForEncounter(v, now) && encounterMotion(v, now, delta);
+                    if (!divert && !v.exiting && elapsed > 900 && elapsed < v.lifetime - (v.visitsElements ? 4000 : 2000) && now >= v.fleeUntil && !v.reactionUntil) findPerch(v);
+                    if (!divert && visitPerch(v, now, delta)) return;
                     // Each visitor gets one chance; the page allows at most one knock per minute.
                     if (!v.knockChecked && elapsed >= 4000) {
                         v.knockChecked = true;
@@ -625,10 +1037,22 @@
                     }
                     if (distance < 30) catchVisitor(v);
                     else if (v.exiting || elapsed >= v.lifetime || now < v.fleeUntil) {
-                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > 30000 ? 900 : elapsed > 20000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' ? 170 : 145);
-                        v.x += dx / distance * speed * delta;
-                        v.y += dy / distance * speed * delta;
-                    } else if (!v.reactionUntil && distance > Math.max(65, v.width)) {
+                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > v.lifetime + 15000 ? 900 : elapsed > v.lifetime + 7000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' ? 170 : 145);
+                        var awayX = dx / distance, awayY = dy / distance, web = nearbyWeb(v);
+                        if (web) {
+                            // The outward component always wins, so avoiding a web cannot turn into the pointer.
+                            if (awayX * web.x + awayY * web.y < 0.25) {
+                                var side = awayX * -web.y + awayY * web.x < 0 ? -1 : 1;
+                                awayX = awayX * 0.35 + web.x * 0.3 - web.y * side;
+                                awayY = awayY * 0.35 + web.y * 0.3 + web.x * side;
+                            } else { awayX += web.x * 0.8; awayY += web.y * 0.8; }
+                            var awayLength = Math.hypot(awayX, awayY); awayX /= awayLength; awayY /= awayLength;
+                            encounterState(v, 'avoiding-web');
+                        }
+                        v.x += awayX * speed * delta;
+                        v.y += awayY * speed * delta;
+                    } else if (!divert && v.insect) flyInsect(v, now, delta);
+                    else if (!divert && !v.reactionUntil && distance > Math.max(65, v.width)) {
                         v.x -= dx / distance * 22 * delta;
                         v.y -= dy / distance * 22 * delta;
                     }
@@ -805,8 +1229,10 @@
             }
 
             function movePointer(event) {
+                touchMarks(event.clientX, event.clientY, pointer.x, pointer.y);
                 visitors.forEach(function (visitor) {
                     if (visitor.launched || visitor.leaving) return;
+                    if ((visitor.insect || visitor.feeds) && segmentDistance(visitor.x, visitor.y, pointer.x, pointer.y, event.clientX, event.clientY) < (visitor.insect ? 20 : 30)) { catchVisitor(visitor); return; }
                     if (visitor.perch && Math.hypot(event.clientX - visitor.x, event.clientY - visitor.y) < 150) { takeOff(visitor, performance.now()); return; }
                     // A fast pointer sweep must still catch the character between two events.
                     var dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
@@ -822,15 +1248,21 @@
             }
 
             /** Returning to focus starts fresh, even if an automatic appearance was nearly due before leaving. */
-            function syncActivity() {
+            function syncActivity(event) {
+                // Some browsers still report hasFocus() during blur; the event must win immediately.
+                if (event && event.type === 'blur') focused = false;
+                if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = true;
                 if (!active()) {
                     window.clearTimeout(timer);
                     timer = 0;
-                    clearVisitors();
+                    clearVisitors(event && event.type === 'blur' && document.visibilityState === 'visible' && !printing && !reducedMotion.matches);
                     resetStats();
                     touchStart = lastTap = null;
                     stopSound();
-                } else activity({type: 'focus'});
+                } else {
+                    departures.slice().forEach(clearDeparture);
+                    activity({type: 'focus'});
+                }
             }
 
             function isBlank(target) {
@@ -860,9 +1292,11 @@
                 var delay = 0, portal = null;
                 var summonedAt = performance.now();
                 for (var j = 0; j < count; j++) {
-                    var character = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+                    var character = chooseCharacter(pool);
                     if (j === 0) {
                         if (!show(reason, false, character, origin)) return false;
+                        // Delayed visitors must not restart weather stopped by the user's input.
+                        if (window.funnyWeather) window.funnyWeather.trigger(reason);
                         appearances++;
                         lastAppearance = summonedAt;
                         var node = document.createElement('div');
@@ -904,8 +1338,9 @@
                 }
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
-                var caught = false;
+                var caught = touchMarks(pointer.x, pointer.y, pointer.x, pointer.y);
                 visitors.forEach(function (v) {
+                    if ((v.insect || v.feeds) && !v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 30) { catchVisitor(v); caught = true; return; }
                     if (v.perch) { takeOff(v, performance.now()); caught = true; return; }
                     if (!v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 40) { catchVisitor(v); caught = true; }
                 });
@@ -932,8 +1367,12 @@
                 };
             }
 
-            ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchmove', 'scroll'].forEach(function (name) {
+            // Mobile keyboards and IMEs may edit text without delivering keydown.
+            ['pointermove', 'pointerdown', 'keydown', 'input', 'compositionstart', 'focusin', 'wheel', 'touchmove', 'scroll'].forEach(function (name) {
                 document.addEventListener(name, activity, {passive: true, capture: true});
+            });
+            ['input', 'compositionstart', 'focusin'].forEach(function (name) {
+                document.addEventListener(name, function () { retreatMunchers(); }, {passive:true});
             });
             document.addEventListener('pointermove', function (event) {
                 if (event.pointerType !== 'touch') movePointer(event);
@@ -953,13 +1392,14 @@
             });
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
+                marks.slice().forEach(removeMark);
                 removePeek(); retreatMunchers(); visitors.forEach(function (v) { takeOff(v, performance.now()); });
             }, {passive: true, capture: true});
             document.addEventListener('visibilitychange', syncActivity);
             window.addEventListener('blur', syncActivity);
             window.addEventListener('focus', syncActivity);
             window.addEventListener('pagehide', function () { printing = true; syncActivity(); });
-            window.addEventListener('pageshow', function () { printing = false; syncActivity(); });
+            window.addEventListener('pageshow', function () { printing = false; syncActivity({type:'pageshow'}); });
             window.addEventListener('beforeprint', function () { printing = true; syncActivity(); });
             window.addEventListener('afterprint', function () { printing = false; syncActivity(); });
             window.addEventListener('resize', clearVisitors);

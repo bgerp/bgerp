@@ -3,7 +3,7 @@
 /** Начален режим, когато няма пакетна или лична настройка. */
 defIfNot('FUNNY_MODE', 'auto');
 /** Налични герои за режима "По мой избор". */
-defIfNot('FUNNY_CHARACTERS', 'ghost,ghostgirl,ghostplay,casper,zombie,sleigh,elf,deer,pumpkin,vampire,bat,spiderweb,spiders,cat,blackcat,witch,muncher,snowman,martenitsa,stork,bunny,chick,butterfly,firefly');
+defIfNot('FUNNY_CHARACTERS', 'ghost,ghostgirl,ghostplay,casper,zombie,sleigh,elf,deer,pumpkin,vampire,bat,spiderweb,spiders,cat,blackcat,witch,muncher,snowman,martenitsa,stork,bunny,chick,butterfly,firefly,fly,mosquito');
 /** Автоматична поява и визуална реакция при ново известие. */
 defIfNot('FUNNY_TRIGGER', 'both');
 /** Сегашните нарастващи интервали между случайните появи. */
@@ -37,7 +37,7 @@ class funny_Setup extends core_ProtoSetup
     /** @var array Общи настройки с персонализация само за powerUser. */
     public $configDescription = array(
         'FUNNY_MODE' => array('enum(auto=Според сезона,selected=По мой избор,off=Изключено)', 'caption=Забавни герои->Режим,customizeBy=powerUser,autohide=any'),
-        'FUNNY_CHARACTERS' => array('set(ghost=Духче,ghostgirl=Духчица,ghostplay=Палавото духче,casper=Каспър,zombie=Зомби,sleigh=Шейна,elf=Елф,deer=Елен,pumpkin=Тиква,vampire=Вампир,bat=Прилеп,spiderweb=Паяжина,spiders=Паячета,cat=Рижа котка,blackcat=Черна котка,witch=Вещица,muncher=Лакомото чудовище,snowman=Снежен човек,martenitsa=Мартеничка,stork=Щъркел,bunny=Зайче,chick=Пиленце,butterfly=Пеперуда,firefly=Светулка)', 'caption=Забавни герои->Герои,hint=Използват се при режим По мой избор,customizeBy=powerUser,autohide=any'),
+        'FUNNY_CHARACTERS' => array('set(ghost=Духче,ghostgirl=Духчица,ghostplay=Палавото духче,casper=Каспър,zombie=Зомби,sleigh=Шейна,elf=Елф,deer=Елен,pumpkin=Тиква,vampire=Вампир,bat=Прилеп,spiderweb=Паяжина,spiders=Паячета,cat=Рижа котка,blackcat=Черна котка,witch=Вещица,muncher=Лакомото чудовище,snowman=Снежен човек,martenitsa=Мартеничка,stork=Щъркел,bunny=Зайче,chick=Пиленце,butterfly=Пеперуда,firefly=Светулка,fly=Муха,mosquito=Комар)', 'caption=Забавни герои->Герои,hint=Използват се при режим По мой избор,customizeBy=powerUser,autohide=any'),
         'FUNNY_TRIGGER' => array('enum(random=Случайно,notification=При ново известие,both=Случайно и при ново известие,manual=Само при двоен клик)', 'caption=Забавни герои->Поява,customizeBy=powerUser,autohide=any'),
         'FUNNY_FREQUENCY' => array('enum(normal=Нормална,frequent=Много често,off=Изключено)', 'caption=Забавни герои->Честота,hint=Честота на случайните появи. Изключено спира всички появи включително при двоен клик и известие,customizeBy=powerUser,autohide=any'),
         'FUNNY_SOUND' => array('enum(no=Изключен,yes=Тих и кратък,scary=Плашещ)', 'caption=Забавни герои->Звук (без известията),customizeBy=powerUser,autohide=any'),

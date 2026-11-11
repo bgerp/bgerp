@@ -93,7 +93,7 @@ check('standalone weather first loaded in the background waits a full initial in
     }
 });
 check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{
-    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
+    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','input','compositionstart','focusin','wheel','touchmove','scroll']) {
         const e=environment({frequency}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,{clientX:100+i,clientY:50,key:'a'});assert(!e.layer(),type);assert.equal(e.timers.size,1);}
         const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
@@ -179,7 +179,7 @@ check('returning from blur or a hidden tab gives standalone weather a full initi
     }
 });
 check('typing, scroll, touch movement, resizing, printing and page exit stop animation',()=>{
-    for(const name of ['keydown','wheel','touchmove','scroll']) {const e=environment();e.tick(121000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
+    for(const name of ['keydown','input','compositionstart','focusin','wheel','touchmove','scroll']) {const e=environment();e.tick(121000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
     for(const name of ['resize','beforeprint','pagehide']) {const e=environment();e.tick(121000);e.window.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
     const e=environment();e.tick(121000);e.reduced.matches=true;e.reduced.emit('change');assert(!e.layer());
 });

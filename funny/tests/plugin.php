@@ -112,7 +112,7 @@ if (strpos(jquery_Jquery::$script, '"sound":"scary"') === false || strpos(jquery
     strpos(jquery_Jquery::$script, '"frequency":"frequent"') === false || strpos(jquery_Jquery::$script, '"trigger":"manual"') === false) {
     throw new RuntimeException('Sound mode or Easter dates lost');
 }
-if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 24) {
+if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 26) {
     throw new RuntimeException('Unexpected package defaults');
 }
 if (date('Y-m-d', dt::getOrthodoxEasterTms(2026)) !== '2026-04-12' || date('Y-m-d', dt::getOrthodoxEasterTms(2027)) !== '2027-05-02') {
@@ -179,3 +179,13 @@ core_Users::$id = 23;
 verifyWeather(true, 'personal intensity reaches weather and heroes', true);
 if (substr_count(jquery_Jquery::$script, '"strength":"gentle"') !== 2 || strpos(jquery_Jquery::$script, '"scoreKey":"funny.best.fixture.23"') === false ||
     strpos($setup->configDescription['FUNNY_STRENGTH'][1], 'customizeBy=powerUser') === false) throw new RuntimeException('Personal intensity or isolated record key lost');
+
+/** Character eligibility shares the forecast even with visual weather disabled. */
+funny_Setup::$values['WEATHER'] = 'off';
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(false, 'seasonal forecast remains available without weather effects', true);
+if (strpos(jquery_Jquery::$script, '"forecast":{"icon":"snow"') === false || visualcrossing_Forecasts::$calls - $calls !== 1) throw new RuntimeException('Missing or repeated forecast lookup');
+funny_Setup::$values['WEATHER'] = 'on';
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(true, 'one forecast snapshot serves both controllers', true);
+if (visualcrossing_Forecasts::$calls - $calls !== 1) throw new RuntimeException('Duplicate forecast lookup');
