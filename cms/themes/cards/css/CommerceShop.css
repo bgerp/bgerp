@@ -1155,9 +1155,13 @@ body.eshop-public .cart-view-buttons-top .cart-back-link::before {
 
 body.eshop-public .cart-view-buttons-top a.cart-clear-link {
     margin-left: auto;
-    color: #667781 !important;
-    font-size: 0.8125rem;
-    font-weight: 400;
+    color: var(--c-accent) !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+body.eshop-public .cart-view-buttons-top a.cart-clear-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 body.eshop-public .cart-view-buttons-top a:focus-visible {

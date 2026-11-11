@@ -13,6 +13,15 @@ $twoColsFilterWidth: unquote("var(--two-cols-filter-width, calc(800px + 12em + 3
 $twoColsFilterRowCount: unquote("var(--two-cols-filter-row-count, 3)");
 $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width, calc(100% - 400px - 6em - 1em - 20px))");
 
+// Резултатите изчакват филтъра, защото височината му определя позицията им.
+@media screen {
+	.twoColsFilterPreparing .wide .twoColsFilter,
+	.twoColsFilterPreparing .wide .listTopContainer.twoColsFilter ~ * {
+		visibility: hidden;
+		opacity: 0;
+	}
+}
+
 .wide .twoColsFilter {
 	display: flex;
 	flex-wrap: wrap;

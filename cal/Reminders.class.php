@@ -1295,7 +1295,10 @@ class cal_Reminders extends core_Master
                 case 'monthDay':
                     $nextStartTime = dt::addMonths(($rec->repetitionEach), $timeStart);
                 break;
-            
+
+                // Без избран тип - както при еднократно
+                default:
+                    $nextStartTime = $timeStart;
             }
         } else {
             $nextStartTime = $timeStart;
