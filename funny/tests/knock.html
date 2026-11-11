@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny - почукване със звук</title>
+<link rel="stylesheet" href="../css/funny.css">
+<style>
+    body { margin: 0; background: #f4f6fa; color: #334155; font: 16px/1.6 sans-serif; }
+    header { padding: 28px; max-width: 720px; margin: auto; }
+    h1 { font-size: 24px; }
+    button { padding: 8px 18px; cursor: pointer; }
+    #launch { position: fixed; left: 35%; top: 65%; width: 180px; height: 100px; border: 2px dashed #94a3b8; border-radius: 16px; }
+    #launch::after { content: 'Двоен клик тук'; position: absolute; inset: 34px 0; text-align: center; pointer-events: none; }
+    output { display: block; margin-top: 16px; color: #64748b; }
+</style>
+<header>
+    <h1>Почукване по екрана</h1>
+    <p>Направете двоен клик в рамката и оставете мишката неподвижна. След около 4 секунди духчето ще почука два пъти, с кратък звук и кръгчета по стъклото.</p>
+    <button id="restart" type="button">Отначало</button>
+    <output id="status" aria-live="polite">Готово за демонстрация. Звукът е включен.</output>
+</header>
+<div id="launch"></div>
+<script src="../js/funny.js"></script>
+<script>
+    // Fixed random samples exercise the actual controller, sprites, CSS and sound only in this demo.
+    var nativeRandom = Math.random, resetRandom = 0, launched = false;
+    document.getElementById('restart').addEventListener('click', function () { location.reload(); });
+    document.getElementById('launch').addEventListener('dblclick', function () {
+        if (launched) return;
+        launched = true;
+        Math.random = function () { return 0.9; };
+        resetRandom = setTimeout(function () { Math.random = function () { return 0.1; }; }, 1000);
+        document.getElementById('status').textContent = 'Духчето излиза. Изчакайте почукването, без да местите мишката.';
+    });
+    new MutationObserver(function (records) {
+        records.forEach(function (record) {
+            Array.prototype.forEach.call(record.addedNodes, function (node) {
+                if (node.classList && node.classList.contains('funny-knock')) {
+                    Math.random = nativeRandom;
+                    document.getElementById('status').textContent = 'Тук-тук! За повторение натиснете "Отначало", после направете двоен клик в рамката.';
+                }
+            });
+        });
+    }).observe(document.body, {childList: true});
+    window.addEventListener('blur', function () {
+        clearTimeout(resetRandom); Math.random = nativeRandom;
+        document.getElementById('status').textContent = 'Демонстрацията спря при загуба на фокус. Натиснете "Отначало", за да повторите.';
+    });
+    funnyEffects.init({mode: 'selected', characters: ['casper'], trigger: 'manual', sound: 'yes', spriteUrl: '../img/characters.svg'});
+</script>
+</html>

@@ -15,19 +15,29 @@ function environment(settings = {}, config = {}) {
     class Element extends Target {
         constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }, remove: name => { this.className = this.className.split(' ').filter(c=>c!==name).join(' '); }}; }
         get firstChild() { return this.children[0]; }
-        getBoundingClientRect() { return this.rect || {left:100,right:300,top:180,width:200,height:200}; }
+        get parentElement() { return this.parent || null; }
+        querySelector(selector) { return this.children.find(child=>child.tagName===selector.toUpperCase()) || null; }
+        getBoundingClientRect() { return this.rect || {left:100,right:300,top:180,bottom:380,width:200,height:200}; }
         appendChild(child) { this.children.push(child); child.parent = this; }
         remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
-        closest(selector) { return selector.includes('.funny-eaten') ? (this.className.includes('funny-eaten') || (selector.includes('.funny-restoring') && this.className.includes('funny-restoring')) ? this : null) : (this.interactive ? this : null); }
-        contains(node) { return this.children.includes(node); }
+        closest(selector) {
+            for(let el=this;el;el=el.parentElement) {
+                if(selector.includes('.funny-')) {
+                    if(['funny-eaten','funny-restoring','funny-stats'].some(name=>selector.includes('.'+name) && el.className.split(' ').includes(name)) ||
+                        (selector.includes('[aria-hidden="true"]') && el.attrs['aria-hidden']==='true')) return el;
+                } else if(el.interactive) return el;
+            }
+            return null;
+        }
+        contains(node) { return this===node || this.children.some(child=>child.contains(node)); }
     }
     function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}}; }
     class AudioContext {
         constructor() { this.currentTime = now / 1000; this.state = 'running'; this.destination = {}; audio.push(this); }
         resume() { return Promise.resolve(); }
         close() { this.state = 'closed'; return Promise.resolve(); }
-        createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, time}); }}; return node; }
+        createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, start:this.startTime, time}); }}; return node; }
         createGain() { return {gain:param(), connect() {}, disconnect() {}}; }
         createBiquadFilter() { return {frequency:param(), Q:param(), connect() {}, disconnect() {}}; }
     }
@@ -41,6 +51,7 @@ function environment(settings = {}, config = {}) {
     Object.assign(document, {visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
     document.body.querySelectorAll = () => config.meals ? [block] : [];
     Object.assign(window, {innerWidth:config.width || 1000, innerHeight:config.height || 800, AudioContext,
+        getComputedStyle:el=>Object.assign({visibility:'visible',opacity:'1'},el.computedStyle),
         matchMedia: query => query.includes('reduced') ? reduced : coarse, getSelection: () => '',
         setTimeout(fn, ms) { const id = ++serial; timers.set(id, {fn, at:now+ms}); return id; }, clearTimeout: id => timers.delete(id),
         requestAnimationFrame(fn) { const id = ++serial; raf.set(id, fn); return id; }, cancelAnimationFrame:id => raf.delete(id),
@@ -371,6 +382,144 @@ check('muncher leaves the focused control and its container visible',()=>{
         e.click();e.tick(5000);assert(!e.block.className.includes('funny-eaten'));
     }
 });
+/** Nested meals keep parents closer than siblings, reproducing premature container bites. */
+function nestedMeals(e) {
+    e.click();e.tick(650);
+    const p=e.center(e.visitors()[0]), nodes=[];
+    function meal(x,width=20) {
+        const node=e.document.createElement('div');node.isConnected=true;node.tagName='DIV';
+        node.rect={left:p.x+x-width/2,right:p.x+x+width/2,top:p.y-20,bottom:p.y+20,width,height:40};
+        nodes.push(node);return node;
+    }
+    const outer=meal(2,240), group=meal(1,180), first=meal(0), second=meal(60), third=meal(85), uncle=meal(110), other=meal(145,70), otherInner=meal(140);
+    e.document.body.appendChild(outer);outer.appendChild(group);outer.appendChild(uncle);
+    e.document.body.appendChild(other);other.appendChild(otherInner);
+    group.appendChild(first);group.appendChild(second);group.appendChild(third);
+    e.document.body.querySelectorAll=()=>nodes;
+    return {outer,group,first,second,third,uncle,other,otherInner,nodes};
+}
+check('muncher finishes inner content across the page before any emptied container',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'}),tree=nestedMeals(e),order=[];
+    for(let i=0;i<500;i++) {
+        e.tick(40);
+        for(const node of tree.nodes) if(node.className.includes('funny-eaten') && !order.includes(node)) order.push(node);
+        if(order.length===tree.nodes.length) break;
+    }
+    assert.deepEqual(order,[tree.first,tree.second,tree.third,tree.uncle,tree.otherInner,tree.other,tree.group,tree.outer]);
+    e.document.emit('keydown',{key:'Escape'});e.tick(1500);
+    assert(tree.nodes.every(node=>!node.className.includes('funny-eaten') && !node.className.includes('funny-restoring')));
+});
+check('a closer container is skipped when it still has visible inner content',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'}),tree=nestedMeals(e);
+    tree.first.rect.left+=25;tree.first.rect.right+=25;
+    e.tick(500);
+    assert(tree.first.className.includes('funny-eaten'));
+    assert(!tree.group.className.includes('funny-eaten'));assert(!tree.outer.className.includes('funny-eaten'));
+});
+check('inner content inserted while approaching a container is eaten before the container',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'});
+    e.click();e.tick(650);const p=e.center(e.visitors()[0]);
+    const container=e.block,child=e.document.createElement('span');child.isConnected=true;
+    container.rect={left:p.x+80,right:p.x+120,top:p.y-20,bottom:p.y+20,width:40,height:40};
+    child.rect={left:p.x+100,right:p.x+120,top:p.y-10,bottom:p.y+10,width:20,height:20};
+    e.document.body.querySelectorAll=()=>[container];e.tick(16);
+    container.appendChild(child);e.document.body.querySelectorAll=()=>[container,child];
+    let first=null;
+    for(let i=0;i<200 && !first;i++){e.tick(16);first=[container,child].find(n=>n.className.includes('funny-eaten'));}
+    assert.equal(first,child);
+});
+check('unfinished protected or unreachable siblings never disappear inside a parent bite',()=>{
+    for(const blocked of ['pointer','focus','restoring']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'}),tree=nestedMeals(e);
+        e.tick(50);assert(tree.first.className.includes('funny-eaten'));
+        if(blocked==='pointer') tree.second.rect={left:490,right:510,top:390,bottom:410,width:20,height:20};
+        if(blocked==='focus') e.document.activeElement=tree.second;
+        if(blocked==='restoring') tree.second.classList.add('funny-restoring');
+        e.tick(7000);
+        assert(!tree.second.className.includes('funny-eaten'),blocked);
+        assert(!tree.group.className.includes('funny-eaten'),blocked);
+        assert(!tree.outer.className.includes('funny-eaten'),blocked);
+    }
+});
+check('hidden and removed content is skipped without blocking container cleanup',()=>{
+    for(const absent of ['hidden','removed','transparent','visibility']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'}),tree=nestedMeals(e);
+        e.tick(50);assert(tree.first.className.includes('funny-eaten'));
+        if(absent==='hidden') tree.second.rect={left:0,right:0,top:0,bottom:0,width:0,height:0};
+        if(absent==='removed') {tree.second.remove();tree.second.isConnected=false;tree.nodes.splice(tree.nodes.indexOf(tree.second),1);}
+        if(absent==='transparent') tree.second.computedStyle={opacity:'0'};
+        if(absent==='visibility') tree.second.computedStyle={visibility:'hidden'};
+        let completed=false;
+        for(let i=0;i<400;i++){e.tick(40);if(tree.group.className.includes('funny-eaten')){completed=true;break;}}
+        assert(completed,absent);assert(tree.third.className.includes('funny-eaten'));
+    }
+});
+check('collapsed details keep their unpainted contents out of the meal order',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'}),tree=nestedMeals(e);
+    tree.group.tagName='DETAILS';tree.group.open=false;tree.first.tagName='SUMMARY';
+    let completed=false;
+    for(let i=0;i<400;i++) {
+        e.tick(40);
+        assert(!tree.second.className.includes('funny-eaten'));assert(!tree.third.className.includes('funny-eaten'));
+        if(tree.group.className.includes('funny-eaten')){completed=true;break;}
+    }
+    assert(completed);assert(tree.first.className.includes('funny-eaten'));
+});
+check('teeth and crumbs stay at the mouth bite position and fade or clear with restoration',()=>{
+    for(const stop of ['escape','blur','print']) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true});
+        e.click();e.tick(650);const p=e.center(e.visitors()[0]);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.tick(50);
+        const mark=e.document.body.children.find(n=>n.className==='funny-meal-mark');
+        assert(mark);assert.equal(mark.attrs['aria-hidden'],'true');
+        assert(Math.abs(parseFloat(mark.style.left)-p.x)<1);assert.equal(mark.style.top,(p.y+6)+'px');
+        const left=mark.style.left,top=mark.style.top;e.tick(500);
+        assert.equal(mark.style.left,left);assert.equal(mark.style.top,top);
+        if(stop==='escape') {
+            e.document.emit('keydown',{key:'Escape'});
+            assert(mark.className.includes('funny-meal-mark-restoring'));e.tick(1000);
+            assert(e.document.body.children.includes(mark));e.tick(500);
+        } else if(stop==='blur') {e.document.focused=false;e.window.emit('blur');}
+        else e.window.emit('beforeprint');
+        assert(!e.document.body.children.includes(mark));
+    }
+});
+check('each bite has a bounded random number of teeth and stationary crumbs',()=>{
+    const teeth=new Set(),crumbs=new Set();
+    for(let seed=1;seed<=20;seed++) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{meals:true,seed});
+        e.click();e.tick(650);const p=e.center(e.visitors()[0]);
+        e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};e.tick(50);
+        const mark=e.document.body.children.find(n=>n.className==='funny-meal-mark');assert(mark);
+        const toothCount=parseFloat(mark.style['--funny-teeth-width'])/8;
+        assert(toothCount>=2 && toothCount<=5);assert(mark.children.length>=1 && mark.children.length<=6);
+        teeth.add(toothCount);crumbs.add(mark.children.length);
+        const positions=mark.children.map(n=>n.style.transform);e.tick(500);
+        assert.deepEqual(mark.children.map(n=>n.style.transform),positions);
+    }
+    assert(teeth.size>1);assert(crumbs.size>1);
+});
+check('muncher gradually walks and chews faster near departure without extending its deadline',()=>{
+    const distances=[],durations=[];
+    for(const elapsed of [1000,70000,76000]) {
+        const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'});
+        e.click();e.tick(650);const v=e.visitors()[0],p=e.center(v);
+        // Keep food ahead and away from the stationary pointer throughout the comparison.
+        e.block.isConnected=true;e.block.rect={left:p.x+90,right:p.x+110,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        e.document.body.querySelectorAll=()=>[e.block];
+        e.tick(elapsed-650,elapsed-650);
+        const before=e.center(v);e.tick(100);const after=e.center(v);
+        distances.push(Math.hypot(after.x-before.x,after.y-before.y));
+        e.block.rect={left:after.x-10,right:after.x+10,top:after.y-10,bottom:after.y+10,width:20,height:20};
+        e.tick(16);assert(e.block.className.includes('funny-eaten'));
+        durations.push(parseFloat(v.style['--funny-chomp-duration']));
+        e.tick(80000,80000);assert.equal(e.visitors().length,0);
+    }
+    assert(distances[1]>distances[0] && distances[2]>distances[1]);
+    assert(durations[1]<durations[0] && durations[2]<durations[1]);
+    assert(durations[2]>=.1,'the final bite remains readable');
+});
 check('muncher can stay beyond 40 seconds, ends by 80 and restores gently only while active',()=>{
     const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'});
     e.click();e.tick(41000);assert.equal(e.visitors().length,1);
@@ -452,12 +601,26 @@ check('rare glass knocks are brief, respect sound and notifications, and have a 
         if(e.document.body.children.some(n=>n.className==='funny-knock')) chosen=seed;
     }
     assert(chosen,'at least one deterministic visitor knocks');
-    for(const sound of ['yes','no']) {
+    for(const sound of ['yes','scary','no']) {
         const e=environment({mode:'selected',characters:['casper'],trigger:'manual',sound},{seed:chosen});
         e.click();const initial=e.sounds.length;e.tick(4100);const v=e.visitors()[0];
         assert.equal(v.attrs['data-reaction'],'knock');const ring=e.document.body.children.find(n=>n.className==='funny-knock');
-        assert.equal(ring.children.length,2);assert.equal(e.sounds.length-initial,sound==='yes'?2:0);
-        e.tick(1200);assert(!e.document.body.children.includes(ring));
+        assert.equal(ring.children.length,2);
+        const taps=e.sounds.slice(initial);
+        if(sound==='no') assert.equal(taps.length,0);
+        else {
+            const starts=[...new Set(taps.map(t=>t.start))];
+            assert.equal(starts.length,2,'two taps, each with layered glass resonances');
+            assert(Math.abs(starts[1]-starts[0]-.26)<.001);
+            for(const start of starts) {
+                const partials=taps.filter(t=>t.start===start);
+                assert(partials.some(t=>t.frequency>2000),'bright glass attack');
+                assert(partials.some(t=>t.frequency<1000),'short body resonance');
+                assert(partials.every(t=>t.time-start<.2),'no sustained ringing');
+            }
+        }
+        e.tick(1050);assert(e.document.body.children.includes(ring),'ripples linger visibly');
+        e.tick(450);assert(!e.document.body.children.includes(ring));
         e.document.emit('keydown',{key:'Escape'});
         for(let i=0;i<5;i++){e.click();e.tick(4100);assert(!e.document.body.children.some(n=>n.className==='funny-knock'));e.document.emit('keydown',{key:'Escape'});}
     }

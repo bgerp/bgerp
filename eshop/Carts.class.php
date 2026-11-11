@@ -2111,7 +2111,10 @@ class eshop_Carts extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'viewexternal' && isset($rec)) {
-            if ($rec->state != 'draft') {
+            // Изтрита количка - haveRightFor() подава false от fetch()
+            if (!is_object($rec)) {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             } elseif (isset($userId) && $rec->userId != $userId) {
                 $requiredRoles = 'no_one';
