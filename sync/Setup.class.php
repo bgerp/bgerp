@@ -39,7 +39,7 @@ defIfNot('SYNC_COMPANY_GROUPS', '');
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
-defIfNot('SYNC_CMS_DOMAINS', '');
+defIfNot('SYNC_CMS_DOMAINS', '*|localhost,bg');
 
 
 /**
@@ -196,7 +196,7 @@ class sync_Setup extends core_ProtoSetup
 //            $description['SYNC_ESHOP_GROUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи, optionsFunc=sync_Eshop::getEshopGroups');
 
             if (core_Packs::isInstalled('cms')) {
-                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни');
+                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни,hint=Един локален домейн се избира автоматично; при няколко - единственият на същия език. Съответствията се използват при нееднозначност и поддържат * за входящите домейни');
             }
         }
         
