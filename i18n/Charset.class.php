@@ -11,7 +11,7 @@
  * @package   i18n
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -298,6 +298,7 @@ class i18n_Charset extends core_MVC
         'CP1257' => 'roman',
         'CP1256' => 'arabic',
         'JIS_C6220-1969-RO' => 'japanese',
+        'SJIS' => 'japanese',
         'ISO-8859-1|CP1251' => 'cyrillic',
         'MIK' => 'cyrillic',
         'CP874' => 'roman,thai',
@@ -520,8 +521,8 @@ class i18n_Charset extends core_MVC
                     continue;
                 }
                 
-                $sample = $text;
-                $sample = self::iconv($sample, $cs, 'UTF-8//IGNORE');
+                // Shift_JIS се оценява само без загуба на невалидни байтове.
+                $sample = $cs == 'SJIS' ? @self::iconv($text, $cs) : self::iconv($text, $cs, 'UTF-8//IGNORE');
                 if (!$sample) {
                     continue;
                 }
@@ -721,7 +722,10 @@ class i18n_Charset extends core_MVC
                 // Ако имаме два различни скрипта, вземаме -1
                 // Ако имаме знак - даваме +1
                 if ($S != 'sign') {
-                    if ($S == $SL || $SL == 'sign') {
+                    // Канджи и кана се редуват нормално в японския текст.
+                    if ($S == $SL || $SL == 'sign'
+                        || ($S == 'japanese' && $SL == 'chinese')
+                        || ($S == 'chinese' && $SL == 'japanese')) {
                         if (!empty($scripts[$S]) || $S == 'latin' || !empty($scripts['all'])) {
                             ++$total;
                             

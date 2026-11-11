@@ -84,6 +84,24 @@ foreach (array(
 }
 // Вече преобразуван UTF-8 със стара декларация трябва да остане четим.
 $cases['utf8-stale-meta'] = array(encodingHtml($greek, 'Windows-1253'), $greek);
+$japanese = 'これは日本語の文字コードを確認するためのテストです。商品と数量を正しく表示します。';
+foreach (array('Shift_JIS', 'shift-jis', 'SJIS', 'MS_KANJI', 'CP932', 'EUC-JP') as $charset) {
+    $encoding = i18n_Charset::getCanonical($charset);
+    $cases['japanese-' . $charset] = array(iconv('UTF-8', $encoding, encodingHtml($japanese, $charset)), $japanese);
+}
+foreach (array($japanese, '日本語のテストです。', 'カタカナとひらがな、漢字を表示します。',
+    '日本の商品一覧と数量を確認してください。', 'お問い合わせありがとうございます。') as $i => $text) {
+    $cases['sjis-no-meta-' . $i] = array(iconv('UTF-8', 'SJIS', encodingHtml($text, 'Shift_JIS', false)), $text);
+}
+foreach (array('<meta charset="Shift_JIS">', "<META CHARSET='shift-jis'>", '<meta charset=SJIS>') as $i => $meta) {
+    $input = str_replace('<head>', '<head>' . $meta, encodingHtml($japanese, 'Shift_JIS', false));
+    $cases['sjis-meta-' . $i] = array(iconv('UTF-8', 'SJIS', $input), $japanese);
+}
+$cases['utf8-stale-sjis-meta'] = array(encodingHtml($japanese, 'Shift_JIS'), $japanese);
+$cases['sjis-long'] = array(iconv('UTF-8', 'SJIS', encodingHtml(str_repeat($japanese, 1000), 'Shift_JIS')), str_repeat($japanese, 1000));
+// Невалидни Shift_JIS байтове не трябва да се отхвърлят само заради добър рейтинг на остатъка.
+$invalidSjis = iconv('UTF-8', 'SJIS', $japanese) . "\xFF";
+check(i18n_Charset::detect($invalidSjis) !== 'SJIS', 'Invalid Shift_JIS is not an automatic candidate');
 $cases['empty'] = array('', '');
 
 $temp = tempnam(sys_get_temp_dir(), 'hclean-encoding-');
