@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1265,7 +1265,7 @@ class eshop_ProductDetails extends core_Detail
         // Коя е най-малката опаковка от избраните
         $minPackagingId = $minQuantityInPack = null;
         foreach ($selectedPackagings as $selPackId) {
-            $q = $packs[$selPackId];
+            $q = $packs[$selPackId] ?? null;
             if (!$q) {
                 continue;
             }
