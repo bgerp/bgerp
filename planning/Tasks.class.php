@@ -2841,6 +2841,30 @@ JS
 
 
     /**
+     * Временна диагностика на физическите индекси, без инициализация на таблиците
+     */
+    public function act_ListIndexInfo()
+    {
+        requireRole('debug');
+        $this->requireRightFor('list');
+
+        $version = $this->db->fetchObject($this->db->query('SELECT VERSION() AS version'));
+        $info = array('mysqlVersion' => $version->version, 'phpVersion' => PHP_VERSION);
+        foreach (array('planning_Tasks', 'planning_Jobs', 'doc_Folders', 'doc_Threads') as $class) {
+            $mvc = cls::get($class);
+            $table = $mvc->dbTableName;
+            $tableInfo = $mvc->db->getTableInfo($table);
+            $info[$table] = array('engine' => $tableInfo['ENGINE'] ?? null, 'rows' => $tableInfo['TABLE_ROWS'] ?? null, 'indexes' => array());
+            $dbRes = $mvc->db->query("SHOW INDEX FROM `{$table}`");
+            while ($index = $mvc->db->fetchObject($dbRes)) {
+                $info[$table]['indexes'][] = $index;
+            }
+        }
+        core_App::outputJson($info);
+    }
+
+
+    /**
      * Преди изпълнението на контролерен екшън
      *
      * @param core_Manager $mvc
