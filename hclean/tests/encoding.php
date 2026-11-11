@@ -99,6 +99,29 @@ foreach (array('<meta charset="Shift_JIS">', "<META CHARSET='shift-jis'>", '<met
 }
 $cases['utf8-stale-sjis-meta'] = array(encodingHtml($japanese, 'Shift_JIS'), $japanese);
 $cases['sjis-long'] = array(iconv('UTF-8', 'SJIS', encodingHtml(str_repeat($japanese, 1000), 'Shift_JIS')), str_repeat($japanese, 1000));
+$cp932Texts = array('商品①と㈱テストを確認します。寸法は㎜と㎝で表示します。',
+    '髙橋さんと﨑田さんの商品を確認します。', '日本語の商品を確認します。①②③ ㈱ ㈲ ⅠⅡⅢ ㍉㌔㎜㎝を正しく表示します。');
+foreach ($cp932Texts as $i => $text) {
+    foreach (array('CP932', 'Shift_JIS', '') as $charset) {
+        $input = iconv('UTF-8', 'CP932', encodingHtml($text, $charset, $charset !== ''));
+        $cases['cp932-extended-' . $i . '-' . $charset] = array($input, $text);
+    }
+}
+$cases['cp932-long'] = array(iconv('UTF-8', 'CP932', encodingHtml(str_repeat($cp932Texts[0], 1000), 'CP932')), str_repeat($cp932Texts[0], 1000));
+$cases['utf8-stale-cp932-meta'] = array(encodingHtml($cp932Texts[0], 'CP932'), $cp932Texts[0]);
+foreach (array('windows-31j', 'MS932', 'SJIS-WIN') as $charset) {
+    check(i18n_Charset::getCanonical($charset) === 'CP932', "$charset resolves to CP932");
+    $cases['cp932-alias-' . $charset] = array(iconv('UTF-8', 'CP932', encodingHtml($cp932Texts[0], $charset)), $cp932Texts[0]);
+}
+// Общите байтове с различно значение запазват обявената японска кодировка.
+foreach (array('SJIS' => '日本語の記号は〜と−です。', 'CP932' => '日本語の記号は～と－です。',
+    'GB2312' => '这是一个中文编码测试，用于确认商品和数量正确显示。') as $charset => $text) {
+    $cases['charset-mapping-' . $charset] = array(iconv('UTF-8', $charset, encodingHtml($text, $charset)), $text);
+}
+foreach (array('', 'CP932', 'Shift_JIS') as $charset) {
+    $invalidCp932 = iconv('UTF-8', 'CP932', $cp932Texts[0]) . "\xFF";
+    check(!in_array(i18n_Charset::detect($invalidCp932, $charset), array('SJIS', 'CP932')), "$charset: invalid Japanese bytes are not discarded");
+}
 // Невалидни Shift_JIS байтове не трябва да се отхвърлят само заради добър рейтинг на остатъка.
 $invalidSjis = iconv('UTF-8', 'SJIS', $japanese) . "\xFF";
 check(i18n_Charset::detect($invalidSjis) !== 'SJIS', 'Invalid Shift_JIS is not an automatic candidate');

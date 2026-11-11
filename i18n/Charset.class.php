@@ -93,6 +93,7 @@ class i18n_Charset extends core_MVC
         'CP1257' => 'CP1257', 'KOI8-U' => 'KOI8-U', 'WIN-BG' => 'CP1251', 'CSBIG5' => 'BIG5', 'LATIN5' => 'ISO-8859-9',
         'CP1250' => 'CP1250', '8859_9' => 'ISO-8859-9', 'CP1251' => 'CP1251', 'X0212' => 'JIS_X0212', 'UCS-4' => 'UCS-4',
         'UTF-7' => 'UTF-7', 'CP950' => 'CP950', 'CP932' => 'CP932', 'UCS-2' => 'UCS-2', 'UTF-8' => 'UTF-8', 'ASCII' => 'US-ASCII',
+        'WINDOWS-31J' => 'CP932', 'MS932' => 'CP932', 'SJIS-WIN' => 'CP932',
         'CN-GB' => 'EUC-CN', 'EUCCN' => 'EUC-CN', 'CP367' => 'US-ASCII', 'CP874' => 'CP874', 'CP866' => 'CP866',
         'JOHAB' => 'JOHAB', 'CP819' => 'ISO-8859-1', 'CP936' => 'GBK', 'BIG-5' => 'BIG5', 'X0208' => 'JIS_X0208',
         'MS-EE' => 'CP1250', 'KOI8R' => 'KOI8-R', 'EUCJP' => 'EUC-JP', 'CP949' => 'CP949', 'GREEK' => 'ISO-8859-7',
@@ -299,6 +300,7 @@ class i18n_Charset extends core_MVC
         'CP1256' => 'arabic',
         'JIS_C6220-1969-RO' => 'japanese',
         'SJIS' => 'japanese',
+        'CP932' => 'japanese',
         'ISO-8859-1|CP1251' => 'cyrillic',
         'MIK' => 'cyrillic',
         'CP874' => 'roman,thai',
@@ -335,10 +337,12 @@ class i18n_Charset extends core_MVC
         array(0x0000, 0x00FF, 'sign'),
         array(0xFF00, 0xFFEF, 'sign'),
         array(0x200B, 0x2E80, 'sign2'),
+        array(0x3200, 0x33FF, 'sign2'),
         array(0x0410, 0x042F, 'cyrillic'),
         array(0x0430, 0x044F, 'cyrillic'),
         array(0x0400, 0x04FF, 'cyrExt'),
         array(0x4E00, 0x9FCC, 'chinese'),
+        array(0xF900, 0xFAFF, 'chinese'),
         array(0x3400, 0x4DB5, 'chinese'),
         array(0x20000, 0x2A6DF, 'chinese'),
         array(0x2A700, 0x2B734, 'chinese'),
@@ -474,8 +478,8 @@ class i18n_Charset extends core_MVC
         // и им влагаме теглата
         if (countR($assumedCharsets)) {
             foreach ($assumedCharsets as $cs => $weight) {
-                $sample = $text;
-                $sample = self::iconv($sample, $cs, 'UTF-8//IGNORE');
+                // При CP932 разширения под етикет Shift_JIS не губим непознатите байтове.
+                $sample = in_array($cs, array('SJIS', 'CP932')) ? @self::iconv($text, $cs) : self::iconv($text, $cs, 'UTF-8//IGNORE');
                 if (!$sample) {
                     continue;
                 }
@@ -521,8 +525,8 @@ class i18n_Charset extends core_MVC
                     continue;
                 }
                 
-                // Shift_JIS се оценява само без загуба на невалидни байтове.
-                $sample = $cs == 'SJIS' ? @self::iconv($text, $cs) : self::iconv($text, $cs, 'UTF-8//IGNORE');
+                // Японските кандидати се оценяват само без загуба на невалидни байтове.
+                $sample = in_array($cs, array('SJIS', 'CP932')) ? @self::iconv($text, $cs) : self::iconv($text, $cs, 'UTF-8//IGNORE');
                 if (!$sample) {
                     continue;
                 }
