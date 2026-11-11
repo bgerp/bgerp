@@ -553,7 +553,7 @@ class sales_Sales extends deals_DealMaster
                     $deliveryCalcCost = null;
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
-                        $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
+                        $calcCostDefault = !empty($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
                         $form->setDefault('deliveryCalcTransport', $calcCostDefault);
                         if(empty($rec->deliveryCalcTransport)){
                             $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
