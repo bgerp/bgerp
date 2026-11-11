@@ -92,6 +92,26 @@
     <circle cx="51" cy="33" r="3" fill="#493e48"/><circle cx="69" cy="33" r="3" fill="#493e48"/>
     <path d="M54 43q6 5 12 0" fill="none" stroke="#b77569" stroke-width="2" stroke-linecap="round"/>
   </symbol>
+  <symbol id="snowmaiden" viewBox="0 0 120 100">
+    <path d="M46 83v10h-8m36-10v10h8" fill="none" stroke="#507393" stroke-width="8" stroke-linecap="round"/>
+    <path d="M43 44L29 62m48-18 14 18" fill="none" stroke="#75bce2" stroke-width="11" stroke-linecap="round"/>
+    <path d="M29 59l-4 6m66-6 4 6" stroke="#eaf6ff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M44 43h32l12 43q-28 9-56 0z" fill="#7ebde1" stroke="#4e8db4" stroke-width="2"/>
+    <path d="M60 46v40m-24-3q24 9 48 0" fill="none" stroke="#f2f9ff" stroke-width="7" stroke-linecap="round"/>
+    <path d="M45 40q-5 14-3 25m33-25q5 14 3 25" fill="none" stroke="#d9ac60" stroke-width="8" stroke-linecap="round"/>
+    <path d="M39 49l6 4m-6 4 6 4m30-12 6 4m-6 4 6 4" stroke="#b98c46" stroke-width="2"/>
+    <path d="M37 65h10m26 0h10" stroke="#dc6384" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="60" cy="28" rx="18" ry="19" fill="#f5d2b5"/>
+    <path d="M42 25q-2-21 18-21t18 21l-9-8-9 5-8-5z" fill="#e2ba72"/>
+    <path d="M41 18Q43-1 61 3q14 1 18 16" fill="#75bce2" stroke="#4e8db4" stroke-width="2"/>
+    <path d="M42 18q18-5 36 0" stroke="#f2f9ff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="61" cy="4" r="4" fill="#f2f9ff"/>
+    <circle cx="53" cy="29" r="2.4" fill="#454454"/><circle cx="67" cy="29" r="2.4" fill="#454454"/>
+    <ellipse cx="48" cy="35" rx="3" ry="2" fill="#e8a7a4"/><ellipse cx="72" cy="35" rx="3" ry="2" fill="#e8a7a4"/>
+    <path d="M55 38q5 5 10 0" fill="none" stroke="#bc7883" stroke-width="2" stroke-linecap="round"/>
+    <path d="M47 45q13 9 26 0" fill="none" stroke="#f2f9ff" stroke-width="7" stroke-linecap="round"/>
+    <path d="M43 70v9m-4-4h8m30-6v9m-4-4h8" stroke="#eaf6ff" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
   <symbol id="deer" viewBox="0 0 120 100">
     <path d="M38 66l-6 23m23-22 4 21m23-24 7 23" stroke="#906449" stroke-width="7" stroke-linecap="round"/>
     <ellipse cx="59" cy="59" rx="29" ry="18" fill="#b38460"/>
@@ -120,6 +140,13 @@
     <path d="M35 27Q28 0 60 4q32-4 25 23L71 16 60 24 49 16z" fill="#3d354e"/>
     <circle cx="49" cy="31" r="3.5" fill="#54445c"/><circle cx="71" cy="31" r="3.5" fill="#54445c"/>
     <path d="M47 40q13 15 26 0" fill="#a9526b"/><path d="M49 41l4 8 3-6m8 0 3 6 4-8" fill="white"/>
+  </symbol>
+  <!-- A separate raised cloak keeps the normal vampire and its feeding sprite unchanged. -->
+  <symbol id="vampire-cloak" viewBox="0 0 120 100">
+    <path d="M26 84Q22 52 36 21q22-5 50 13l12 52-38-10z" fill="#544666" stroke="#372d48" stroke-width="2"/>
+    <path d="M39 28q17 1 39 12L65 76 35 80z" fill="#a64b63"/>
+    <path d="M39 29l25 47m14-36L66 76" fill="none" stroke="#753d57" stroke-width="2"/>
+    <ellipse cx="36" cy="25" rx="5" ry="4" fill="#d9d4eb"/>
   </symbol>
   <symbol id="bat" viewBox="0 0 120 100">
     <path d="M49 43Q25 19 7 31q9 10 4 27 14-4 19 12 12-5 20 9m20-36q24-24 42-12-9 10-4 27-14-4-19 12-12-5-20 9" fill="#8972a8" stroke="#55456c" stroke-width="2.5"/>

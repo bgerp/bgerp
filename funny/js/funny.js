@@ -12,7 +12,8 @@
             started = true;
 
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+            var pursuitPartners = {cat:['fly','spiders','butterfly'],blackcat:['fly','spiders','butterfly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
             var visitors = [], portals = [], marks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
@@ -46,6 +47,31 @@
                     !printing && !reducedMotion.matches;
             }
 
+            /** Reuse the page snapshot; the day interval matches the decorative sun's existing arc. */
+            function climate() {
+                var saved = options.forecast || {}, fresh = saved.expires > Date.now();
+                var icon = fresh ? saved.icon || '' : '', hour = new Date().getHours();
+                var sunny = weather ? weather.indexOf('sun') >= 0 : /^(clear|partly-cloudy|showers|snow-showers)-day$/.test(icon);
+                return {sun:sunny && hour >= 6 && hour < 18,
+                    rain:weather ? weather.indexOf('rain') >= 0 : /^(rain|showers|sleet|thunder)/.test(icon),
+                    warm:fresh && typeof saved.temperature === 'number' && saved.temperature > 0};
+            }
+
+            /** Weather changes only our decorative traces, never the content underneath them. */
+            function weatherTrace(node, material, lifetime) {
+                var sky = climate(), effect = sky.rain && (material === 'dust' || material === 'crumbs') ? 'wash' :
+                    material === 'puddle' && sky.sun && !sky.rain ? 'dry' : material === 'snow' && sky.warm ? 'thaw' : '';
+                if (!effect) return lifetime;
+                var duration = effect === 'wash' ? 6000 : effect === 'dry' ? 7000 : 12000;
+                node.setAttribute('data-weathering', effect);
+                node.style.setProperty('--funny-weathering-duration', Math.min(lifetime || duration, duration) + 'ms');
+                if (lifetime && effect !== 'thaw') {
+                    lifetime = Math.min(lifetime, duration);
+                    node.style.animationDuration = lifetime + 'ms';
+                }
+                return lifetime;
+            }
+
             /** Seasonal dates use the framework's Orthodox Easter calendar; manual choices ignore dates. */
             function characters() {
                 if (options.mode === 'auto') {
@@ -61,7 +87,7 @@
                     return pool;
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -69,7 +95,7 @@
             function seasonalCharacters(now) {
                 var month = now.getMonth() + 1, day = now.getDate();
                 if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher'];
-                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'deer', 'snowman'];
+                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
                 if (month <= 2) return ['snowman', 'casper'];
                 var easter = options.easterDates && options.easterDates[now.getFullYear()];
                 if (easter) {
@@ -181,6 +207,7 @@
                     zombie: {notes: [110, 80], duration: 0.28, spacing: 0.23, pitch: 0.6, wave: 'sawtooth', low: true},
                     sleigh: {notes: [135, 125, 115], duration: 0.20, spacing: 0.25, pitch: 0.7, wave: 'sawtooth', voice: true},
                     elf: {notes: [784, 988, 784], duration: 0.13, spacing: 0.14, pitch: 1.08, wave: 'triangle'},
+                    snowmaiden: {notes: [1047, 1319, 1568], duration: 0.14, spacing: 0.15, pitch: 1.1, wave: 'sine'},
                     deer: {notes: [180, 240, 180, 240], duration: 0.09, spacing: 0.13, pitch: 0.35, wave: 'triangle'},
                     pumpkin: {notes: [220, 165], duration: 0.24, spacing: 0.25, pitch: 0.5, wave: 'triangle'},
                     vampire: {notes: [155, 130], duration: 0.3, spacing: 0.24, pitch: 0.65, wave: 'sawtooth', voice: true},
@@ -319,6 +346,7 @@
 
             function removeVisitor(v, escaped, depart) {
                 restoreEaten(v);
+                releaseThread(v);
                 if (escaped && active() && caughtCount > 0) { escapedCount++; updateStats(); }
                 if (depart && !v.leaving) departVisitor(v);
                 else v.node.remove();
@@ -373,6 +401,7 @@
             function catchVisitor(v) {
                 if (!active() || v.leaving) return;
                 v.leaving = performance.now();
+                releaseThread(v);
                 caughtCount++;
                 updateStats();
                 if (v.insect || v.feeds) {
@@ -424,6 +453,7 @@
             function dress(v) {
                 if (v.insect || v.leaving) return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
+                if (v.sunHide) kind = '';
                 if (v.outfit === kind) return;
                 if (v.accessory) { v.accessory.remove(); v.accessory = null; }
                 v.outfit = kind;
@@ -433,7 +463,7 @@
                 accessory.setAttribute('class', 'funny-accessory');
                 if (kind !== 'umbrella') {
                     // Face centers are in the sprite's 120 x 100 coordinate space.
-                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
+                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
                     var face = faces[v.character];
                     // The round monster's neck is below its wide mouth, rather than just below its eyes.
                     if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
@@ -454,7 +484,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -468,8 +498,9 @@
                     particle.style.setProperty('--y', (crumbs ? 12 + i * 3 : Math.sin(angle) * 28 - 8) + 'px');
                     node.appendChild(particle);
                 }
+                var lifetime = crumbs ? weatherTrace(node, 'crumbs', 2000) : knocking ? 1450 : 750;
                 document.body.appendChild(node);
-                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, crumbs ? 2000 : knocking ? 1450 : 750)};
+                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, lifetime)};
                 bursts.push(effect);
                 if (crumbs) v.crumbTrail = {x:v.x,y:v.y,time:performance.now()};
             }
@@ -548,6 +579,14 @@
                     lifetime: character === 'muncher' ? 77000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
                     contact: {x:character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'vampire' ? -0.05 : 0.3)}
                 };
+                if (character === 'spiders') {
+                    // A vertical entry must not pass through the stationary pointer.
+                    if (Math.abs(destination.x - pointer.x) < 110) destination.x = clamp(pointer.x + (pointer.x < window.innerWidth / 2 ? 130 : -130), width, window.innerWidth - width);
+                    visitor.x = destination.x; visitor.y = -height / 2; visitor.descending = true;
+                    var line = document.createElement('div'); line.className = 'funny-spider-line'; line.setAttribute('aria-hidden', 'true');
+                    [25, 60, 96].forEach(function (x) { var strand = document.createElement('i'); strand.style.left = x / 120 * 100 + '%'; line.appendChild(strand); });
+                    document.body.appendChild(line); visitor.thread = line; node.setAttribute('data-descending', 'true');
+                }
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
                 dress(visitor);
@@ -583,7 +622,7 @@
 
             /** Keeps free visitors apart; launched ones must first clear their shared portal. */
             function repelVisitors() {
-                var free = visitors.filter(function (v) { return !v.launched && !v.leaving; });
+                var free = visitors.filter(function (v) { return !v.launched && !v.descending && !v.leaving; });
                 for (var pass = 0; pass < 3; pass++) {
                     for (var i = 0; i < free.length; i++) {
                         for (var j = i + 1; j < free.length; j++) {
@@ -602,23 +641,29 @@
             }
 
             function positionVisitor(v, now) {
-                var bob = v.leaving || (v.perch && v.perch.arrived) ? 0 : Math.sin((now - v.born) / (v.fed ? 650 : 380)) * 3;
+                var bob = v.leaving || v.descending || (v.perch && v.perch.arrived) ? 0 : Math.sin((now - v.born) / (v.fed ? 650 : 380)) * 3;
                 v.node.style.transform = 'translate(' + (v.x - v.width / 2) + 'px,' + (v.y - v.height / 2 + bob) + 'px)';
+                if (v.thread) {
+                    v.thread.style.left = (v.x - v.width / 2) + 'px'; v.thread.style.width = v.width + 'px';
+                    v.thread.style.height = Math.max(0, v.y - v.height / 2) + 'px';
+                }
                 var kind = trailKinds[v.character], winter = v.character === 'sleigh' || v.character === 'deer';
                 if (v.character === 'snowman') {
                     var forecast = options.forecast || {};
                     if (forecast.expires > Date.now() && typeof forecast.temperature === 'number' && forecast.temperature > 0) kind = 'water';
                     if (v.thawing !== kind) { v.thawing = kind; v.node.setAttribute('data-thawing', kind === 'water' ? 'true' : ''); }
+                    // Even a dripping snowman sheds snow that gradually turns into water.
+                    kind = 'snow';
                 }
                 var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : 0.5) + bob;
-                var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime;
+                var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime || !!v.pursuit;
                 var trailDelay = (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) * (escaping ? 2.2 : 1);
-                if (v.trail && !v.launched && !v.leaving && now - v.trail.time >= trailDelay && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
+                if (v.trail && !v.launched && !v.descending && !v.leaving && now - v.trail.time >= trailDelay && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
                     if (kind) characterTrail(v, footY, kind, escaping);
                     if (!winter && window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
                     v.trail = null;
                 }
-                if (!v.trail || v.launched) v.trail = {x:v.x,y:footY,time:now};
+                if (!v.trail || v.launched || v.descending) v.trail = {x:v.x,y:footY,time:now};
                 if (v.character === 'muncher' && v.eaten.length && !v.launched && !v.leaving && v.crumbTrail &&
                     now - v.crumbTrail.time >= (gentle ? 500 : 300) && Math.hypot(v.x - v.crumbTrail.x, v.y - v.crumbTrail.y) >= 16) burst(v, 'crumb');
             }
@@ -640,27 +685,31 @@
 
             /** Encounters never override escape, departure or the pointer's personal space. */
             function availableForEncounter(v, now) {
-                return visitors.indexOf(v) >= 0 && !v.launched && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                return visitors.indexOf(v) >= 0 && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
                     now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > 120;
             }
 
-            /** Only naturally nearby cats chase; each fly can have one pursuer and gets a rest afterwards. */
+            /** Only nearby compatible pairs chase; each actor has one partner and a rest afterwards. */
             function updatePursuits(now) {
                 visitors.forEach(function (v) {
                     if (!v.pursuit || (now < v.pursuit.until && availableForEncounter(v, now) && availableForEncounter(v.pursuit.other, now))) return;
                     var other = v.pursuit.other;
-                    [v, other].forEach(function (actor) { actor.pursuit = null; actor.chaseAfter = now + 9000; encounterState(actor, ''); });
+                    [v, other].forEach(function (actor) {
+                        if (actor.pursuit.chasing && now - actor.pursuit.started >= 600 && availableForEncounter(actor, now)) react(actor, 'tired', now);
+                        actor.pursuit = null; actor.chaseAfter = now + 9000; encounterState(actor, '');
+                    });
                 });
-                visitors.forEach(function (cat) {
-                    if (['cat','blackcat'].indexOf(cat.character) < 0 || cat.pursuit || now < cat.chaseAfter || cat.reactionUntil || !availableForEncounter(cat, now)) return;
-                    var fly = visitors.filter(function (v) {
-                        return v.character === 'fly' && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
-                            Math.hypot(cat.x - v.x, cat.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, cat.x, cat.y, v.x, v.y) > 100;
+                visitors.forEach(function (hunter) {
+                    var choices = pursuitPartners[hunter.character];
+                    if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || !availableForEncounter(hunter, now)) return;
+                    var prey = visitors.filter(function (v) {
+                        return choices.indexOf(v.character) >= 0 && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
+                            Math.hypot(hunter.x - v.x, hunter.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, hunter.x, hunter.y, v.x, v.y) > 100;
                     })[0];
-                    if (!fly) return;
-                    takeOff(fly, now); fly.fleeUntil = 0; fly.perchAfter = now + 4000;
-                    cat.pursuit = {other:fly,until:now + 2400}; fly.pursuit = {other:cat,until:now + 2400};
-                    encounterState(cat, 'chasing'); encounterState(fly, 'evading');
+                    if (!prey) return;
+                    [hunter, prey].forEach(function (actor) { takeOff(actor, now); actor.fleeUntil = 0; actor.perchAfter = now + 4000; });
+                    hunter.pursuit = {other:prey,started:now,until:now + 2400,chasing:true}; prey.pursuit = {other:hunter,started:now,until:now + 2400,chasing:false};
+                    encounterState(hunter, 'chasing'); encounterState(prey, 'evading');
                 });
             }
 
@@ -692,9 +741,9 @@
                 var dx = 0, dy = 0, speed = 0;
                 if (v.propDirection && v.reactionUntil) { dx = v.propDirection.x; dy = v.propDirection.y; speed = v.character === 'elf' ? 38 : 55; }
                 if (v.pursuit) {
-                    var other = v.pursuit.other, cat = v.character !== 'fly';
-                    dx = (other.x - v.x) * (cat ? 1 : -1); dy = (other.y - v.y) * (cat ? 1 : -1); speed = cat ? 100 : 140;
-                    if (cat && Math.hypot(dx, dy) < (v.width + other.width) / 2 + 20) return true;
+                    var other = v.pursuit.other, chasing = v.pursuit.chasing;
+                    dx = (other.x - v.x) * (chasing ? 1 : -1); dy = (other.y - v.y) * (chasing ? 1 : -1); speed = chasing ? 165 : 210;
+                    if (chasing && Math.hypot(dx, dy) < (v.width + other.width) / 2 + 20) return true;
                 }
                 if (v.character === 'fly') {
                     var web = nearbyWeb(v);
@@ -771,7 +820,8 @@
 
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
             function react(v, kind, now) {
-                v.reactionUntil = now + (kind === 'knock' ? 1200 : 900);
+                v.reaction = kind;
+                v.reactionUntil = now + (kind === 'tired' ? 3000 : kind === 'knock' ? 1200 : 900);
                 v.node.setAttribute('data-reaction', kind);
             }
 
@@ -876,8 +926,22 @@
                 })[0] || marks[0]);
                 node.setAttribute('aria-hidden', 'true');
                 document.body.appendChild(node);
-                var mark = {node:node,contact:contact,timer:window.setTimeout(function () { removeMark(mark); }, lifetime)};
+                lifetime = weatherTrace(node, contact && contact.kind, lifetime);
+                var mark = {node:node,contact:contact,expires:performance.now() + lifetime,timer:0};
+                var thaws = contact && contact.kind === 'snow' && climate().warm;
+                mark.timer = window.setTimeout(function () { if (thaws) meltMark(mark); else removeMark(mark); }, thaws ? Math.min(4000, lifetime) : lifetime);
                 marks.push(mark);
+            }
+
+            /** Reuse the mark's timer so snow keeps melting after the last actor has left, without a RAF loop. */
+            function meltMark(mark) {
+                if (!active() || performance.now() >= mark.expires) { removeMark(mark); return; }
+                mark.contact.kind = 'puddle';
+                mark.node.classList.remove('funny-trail-snow'); mark.node.classList.add('funny-trail-water');
+                mark.node.setAttribute('data-weathering', '');
+                var remaining = weatherTrace(mark.node, 'puddle', mark.expires - performance.now());
+                mark.expires = performance.now() + remaining;
+                mark.timer = window.setTimeout(function () { removeMark(mark); }, remaining);
             }
 
             /** Restore only our classes and variables, leaving live application styles and content intact. */
@@ -1000,13 +1064,46 @@
                 v.y += (dy * step + dx * sway) / distance;
             }
 
+            /** The thread belongs to the visitor and cannot survive a catch, scroll or inactive page. */
+            function releaseThread(v) {
+                if (!v.thread) return;
+                v.thread.remove(); v.thread = null; v.descending = false; v.launched = false;
+                v.node.setAttribute('data-descending', '');
+            }
+
+            /** Pull up the cloak before escaping; night, cloud and unknown forecasts keep normal feeding. */
+            function hideFromSun(v, now) {
+                if (v.character !== 'vampire' || v.leaving || v.exiting) return false;
+                if (!v.sunHide && now - v.born >= 1600 && climate().sun) {
+                    var chased = now < v.fleeUntil; takeOff(v, now); if (!chased) v.fleeUntil = 0;
+                    v.sunHide = now; v.reactionUntil = 0; v.node.setAttribute('data-reaction', '');
+                    var cloak = sprite('vampire-cloak'); cloak.setAttribute('class', 'funny-vampire-cloak'); v.node.appendChild(cloak);
+                    v.node.setAttribute('data-sun-hiding', 'true'); dress(v);
+                }
+                if (!v.sunHide) return false;
+                if (now - v.sunHide < 700 && now >= v.fleeUntil) return true;
+                // A pointer chase still takes priority over posing with the cloak.
+                if (now - v.sunHide >= 700) v.exiting = true;
+                return false;
+            }
+
             /** Approaches slowly and flees quickly; the monster has an 80-second limit, others 60. */
             function animateVisitor(v, now) {
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
-                if (v.reactionUntil && now >= v.reactionUntil) { v.reactionUntil = 0; v.propDirection = null; v.node.setAttribute('data-reaction', ''); }
+                if (v.reaction === 'tired' && !availableForEncounter(v, now)) v.reactionUntil = now;
+                if (v.reactionUntil && now >= v.reactionUntil) { v.reaction = ''; v.reactionUntil = 0; v.propDirection = null; v.node.setAttribute('data-reaction', ''); }
                 if (elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.splatDuration || 250))) { removeVisitor(v, !v.leaving); return; }
+                if (v.descending && !v.leaving) {
+                    if (now < v.fleeUntil || elapsed >= 1800) releaseThread(v);
+                    else {
+                        var descent = 1 - Math.pow(1 - elapsed / 1800, 2);
+                        v.y = -v.height / 2 + (v.destination.y + v.height / 2) * descent;
+                        v.launched = elapsed < 650;
+                        return;
+                    }
+                }
                 if (v.character === 'muncher' && !v.launched && !v.leaving && !v.exiting && elapsed < v.lifetime && munch(v, now, delta)) return;
                 if (v.launched) {
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
@@ -1015,6 +1112,7 @@
                     if (progress === 1) v.launched = false;
                 } else if (!v.leaving) {
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
+                    if (hideFromSun(v, now)) return;
                     encounterProps(v, now);
                     var divert = availableForEncounter(v, now) && encounterMotion(v, now, delta);
                     if (!divert && !v.exiting && elapsed > 900 && elapsed < v.lifetime - (v.visitsElements ? 4000 : 2000) && now >= v.fleeUntil && !v.reactionUntil) findPerch(v);
@@ -1022,7 +1120,7 @@
                     // Each visitor gets one chance; the page allows at most one knock per minute.
                     if (!v.knockChecked && elapsed >= 4000) {
                         v.knockChecked = true;
-                        if (['ghost','ghostgirl','ghostplay','casper','zombie','elf','vampire','witch'].indexOf(v.character) !== -1 &&
+                        if (['ghost','ghostgirl','ghostplay','casper','zombie','elf','snowmaiden','vampire','witch'].indexOf(v.character) !== -1 &&
                             elapsed < v.lifetime - 1000 && !v.exiting && now >= v.fleeUntil && distance > 120 && !v.reactionUntil &&
                             now - lastKnock >= 60000 && Math.random() < 0.18) {
                             lastKnock = now;
@@ -1092,6 +1190,7 @@
                     node.appendChild(crumb);
                 }
                 document.body.appendChild(node);
+                weatherTrace(node, 'crumbs', 0);
                 v.mealMarks.push(node);
             }
 
@@ -1299,6 +1398,7 @@
                         if (window.funnyWeather) window.funnyWeather.trigger(reason);
                         appearances++;
                         lastAppearance = summonedAt;
+                        if (count === 1 && character === 'spiders') return true;
                         var node = document.createElement('div');
                         node.className = 'funny-portal';
                         node.setAttribute('aria-hidden', 'true');
@@ -1393,7 +1493,7 @@
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
                 marks.slice().forEach(removeMark);
-                removePeek(); retreatMunchers(); visitors.forEach(function (v) { takeOff(v, performance.now()); });
+                removePeek(); retreatMunchers(); visitors.forEach(function (v) { releaseThread(v); takeOff(v, performance.now()); });
             }, {passive: true, capture: true});
             document.addEventListener('visibilitychange', syncActivity);
             window.addEventListener('blur', syncActivity);

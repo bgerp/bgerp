@@ -80,6 +80,7 @@
 .funny-trail-paws::after { left: 11px; top: 4px; }
 .funny-cat-track { color: #ae805c; } .funny-blackcat-track { color: #756780; } .funny-bunny-track { color: #c3a3a5; }
 .funny-trail-magic::before { left: -5px; top: -5px; width: 10px; height: 10px; background: #ba91df; clip-path: polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%); }
+.funny-snowmaiden-track::before { background: #9ecce5; filter: drop-shadow(0 0 2px #e5f5ff); }
 .funny-trail-snow::before { left: -5px; top: -3px; width: 11px; height: 7px; border-radius: 50%; background: #f6fbff; box-shadow: 0 1px 2px #80a9c9, 7px 2px 0 -2px #b7d4e8; }
 .funny-trail-thread::before, .funny-trail-thread::after { left: 0; top: -2px; width: 100%; height: 2px; border-radius: 50%; background: #d96067; }
 .funny-trail-thread::after { top: 2px; background: #fff; box-shadow: 0 1px 1px #b7a9ac; }
@@ -122,6 +123,10 @@
 @keyframes funny-gift-open { 0%,30% { opacity: .9; } to { opacity: 0; transform: scale(.8); } }
 .funny-visitor[data-reaction="jump"] > svg { animation: funny-puddle-jump .9s ease-in-out; }
 .funny-visitor[data-reaction="slip"] > svg { transform-origin: 50% 80%; animation: funny-runner-slip .9s ease-in-out; }
+.funny-visitor[data-reaction="tired"] > svg { transform-origin: 50% 80%; animation: funny-pant .6s ease-in-out 5; }
+.funny-visitor[data-reaction="tired"]::after { content: ''; position: absolute; left: 70%; top: 24%; width: 4px; height: 7px; border-radius: 60% 30% 60% 60%; background: #77bbdc; box-shadow: -8px -4px #92cee8, 6px 8px #77bbdc; animation: funny-sweat .85s ease-out infinite; }
+@keyframes funny-pant { 50% { transform: scale(1.045, .96) translateY(1px); } }
+@keyframes funny-sweat { 0% { transform: translateY(-3px); opacity: 0; } 25% { opacity: .9; } 100% { transform: translateY(9px); opacity: 0; } }
 @keyframes funny-puddle-jump { 45% { transform: translateY(-24px) rotate(-8deg); } 80% { transform: translateY(-3px) rotate(5deg); } }
 @keyframes funny-runner-slip { 35% { transform: translateX(15px) rotate(20deg); } 65% { transform: translateX(8px) rotate(-10deg); } }
 .funny-trail-water::before { left: -7px; top: -2px; width: 15px; height: 5px; border-radius: 50%; background: #add6e8; box-shadow: 0 1px 1px #77acc6, inset 0 1px 1px #f6fbff; }
@@ -251,3 +256,23 @@
     .funny-drained { opacity: revert !important; transition: none !important; }
     .funny-soiled { box-shadow: revert !important; transition: none !important; }
 }
+
+/* Entry and weather reactions share the actors' passive, fixed overlay. */
+.funny-spider-line { position: fixed; top: 0; z-index: 9999; pointer-events: none !important; }
+.funny-spider-line i { position: absolute; top: 0; height: 100%; width: 1px; background: #b0a7c899; pointer-events: none !important; }
+.funny-visitor .funny-vampire-cloak { position: absolute; left: 0; top: 0; animation: funny-cloak-rise .65s ease-out both; }
+@keyframes funny-cloak-rise { from { transform: translateY(22px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.funny-character-trail[data-weathering="wash"], .funny-character-trail[data-weathering="dry"] { animation-name: funny-weathered-trace; }
+@keyframes funny-weathered-trace { from { opacity: var(--funny-track-opacity); } to { opacity: 0; } }
+.funny-character-trail[data-weathering="wash"]::before, .funny-character-trail[data-weathering="wash"]::after { animation: funny-trace-wash var(--funny-weathering-duration) ease-in forwards; }
+.funny-crumbs[data-weathering="wash"] i { animation: funny-crumb 2s ease-out both, funny-crumb-wash var(--funny-weathering-duration) ease-in forwards; }
+.funny-meal-mark[data-weathering="wash"] i { animation: funny-crumb-wash var(--funny-weathering-duration) ease-in forwards; }
+@keyframes funny-trace-wash { to { transform: translateY(9px) scale(1.5,.2); filter: blur(2px); opacity: 0; } }
+@keyframes funny-crumb-wash { to { opacity: 0; filter: blur(2px); } }
+.funny-character-trail[data-weathering="dry"]::before { animation: funny-trace-dry var(--funny-weathering-duration) ease-in forwards; }
+.funny-melt-puddle[data-weathering="dry"] { animation-name: funny-puddle-dry; }
+@keyframes funny-trace-dry { to { transform: scale(.15,.4); opacity: 0; } }
+@keyframes funny-puddle-dry { 0% { transform: scale(.2); opacity: 0; } 18% { transform: scale(1); opacity: var(--funny-track-opacity); } 100% { transform: scale(.15,.4); opacity: 0; } }
+.funny-character-trail[data-weathering="thaw"]::before { animation: funny-trace-thaw 4s ease-in forwards; }
+@keyframes funny-trace-thaw { to { transform: scale(1.4,.55); background: #add6e8; box-shadow: 0 1px 1px #77acc6; } }
+@media print, (prefers-reduced-motion: reduce) { .funny-spider-line { display: none !important; } }
