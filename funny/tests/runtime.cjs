@@ -13,7 +13,7 @@ function environment(settings = {}, config = {}) {
         emit(type, event = {}) { (this.listeners[type] || []).forEach(fn => fn({type,...event})); }
     }
     class Element extends Target {
-        constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }, remove: name => { this.className = this.className.split(' ').filter(c=>c!==name).join(' '); }}; }
+        constructor() { super(); this.createdAt = now; this.children = []; this.childNodes = []; this.style = {setProperty(key,value){this[key]=value;},getPropertyValue(key){return this[key] || '';},getPropertyPriority(){return '';},removeProperty(key){delete this[key];}}; this.attrs = {}; this.className = ''; this.classList = {add: name => { this.className += ' ' + name; }, remove: name => { this.className = this.className.split(' ').filter(c=>c!==name).join(' '); }}; }
         get firstChild() { return this.children[0]; }
         get parentElement() { return this.parent || null; }
         querySelector(selector) { return this.children.find(child=>child.tagName===selector.toUpperCase()) || null; }
@@ -23,6 +23,7 @@ function environment(settings = {}, config = {}) {
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
         closest(selector) {
             for(let el=this;el;el=el.parentElement) {
+                if(selector.includes('details:not([open])') && ((el.tagName==='DETAILS' && !el.open) || el.attrs.hidden !== undefined)) return el;
                 if(selector.includes('.funny-')) {
                     if(['funny-eaten','funny-restoring','funny-stats'].some(name=>selector.includes('.'+name) && el.className.split(' ').includes(name)) ||
                         (selector.includes('[aria-hidden="true"]') && el.attrs['aria-hidden']==='true')) return el;
@@ -89,11 +90,11 @@ check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 
     for(let i=0;i<6;i++) {
         e.tick(delay);
         assert.equal(e.visitors().length,1);
-        e.tick(40000);
+        e.tick(60000);
         assert.equal(e.visitors().length,0);
         delay = [...e.timers.values()][0].at-e.now();
         assert(delay>0 && delay<=1200000);
-        if(i>=3) assert(delay+40000>=600000);
+        if(i>=3) assert(delay+60000>=600000);
     }
 });
 check('a page first loaded in the background waits a full initial interval after both visibility and focus arrive',()=>{
@@ -119,7 +120,7 @@ check('automatic appearances require uninterrupted inactivity after mouse, keybo
     }
 });
 check('activity restarts the initial interval after an appearance and repeated pointer coordinates do not postpone it',()=>{
-    const e=environment({frequency:'frequent',sound:'no',mode:'selected',characters:['ghost']});e.tick([...e.timers.values()][0].at);e.tick(40000);
+    const e=environment({frequency:'frequent',sound:'no',mode:'selected',characters:['ghost']});e.tick([...e.timers.values()][0].at);e.tick(60000);
     e.document.emit('pointermove',e.event({clientX:100,clientY:100}));const due=[...e.timers.values()][0].at;
     assert(due-e.now()>=10000 && due-e.now()<=24000);e.tick(4000);e.document.emit('pointermove',e.event({clientX:100,clientY:100}));assert.equal([...e.timers.values()][0].at,due);
     e.tick(due-e.now()+20);assert(e.visitors().length>0);
@@ -179,7 +180,7 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
                 count=e.visitors().length;
             }
         }
-        assert.equal(portals().length,0);assert.equal(e.timers.size,0);
+        assert.equal(portals().length,0);assert.equal(e.timers.size,e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length);
         if(count>1) groups++;
     }
     assert(groups>0);
@@ -191,13 +192,13 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
 check('focused score counts each catch once, counts exits and ignores Escape', () => {
     const e=environment({trigger:'manual',mode:'selected',characters:['ghost']});
     const score=()=>e.document.body.children.find(n=>n.className==='funny-stats').children.slice(0,2).map(n=>n.textContent);
-    e.click();e.tick(40000);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+    e.click();e.tick(60000);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
     e.click();assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.tick(700);
     const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
     e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);
     assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
     e.click();e.document.emit('keydown',{key:'Escape'});e.tick(3000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 0']);
-    e.click();e.tick(40000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 1']);assert.equal(e.raf.size,0);
+    e.click();e.tick(60000);assert.deepEqual(score(),['Уцелени: 1','Избягали: 1']);assert.equal(e.raf.size,0);
     const reset=environment({trigger:'manual'});reset.click();
     assert(!reset.document.body.children.some(n=>n.className==='funny-stats'));
 });
@@ -207,16 +208,16 @@ check('blur or a hidden tab resets the score, blocks background catches and star
         const e=environment({trigger:'manual',mode:'selected',characters:['ghost'],scoreKey:key},{storage});
         const stats=()=>e.document.body.children.find(n=>n.className==='funny-stats');
         function catchOne(){e.click();e.tick(700);const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);}
-        catchOne();catchOne();e.click();e.tick(40000);assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 2','Избягали: 1','Рекорд: 2']);
+        catchOne();catchOne();e.click();e.tick(60000);assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 2','Избягали: 1','Рекорд: 2']);
         e.click();e.tick(700);const p=e.center(e.visitors()[0]);
         if(hidden)e.document.visibilityState='hidden';else e.document.focused=false;
         // Input queued before the blur/visibility handler must not count as a catch.
         e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert.equal(stats().children[0].textContent,'Уцелени: 2');
         if(hidden)e.document.emit('visibilitychange');else e.window.emit('blur');
-        assert(!stats());assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+        assert(!stats());assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);e.tick(500);assert.equal(e.timers.size,0);
         e.click();e.tick(900000);assert(!stats());assert.equal(e.visitors().length,0);assert.equal(storage.get(key),'2');
         e.document.visibilityState='visible';e.document.focused=true;e.window.emit('focus');assert(!stats());
-        e.click();e.tick(40000);assert(!stats());catchOne();
+        e.click();e.tick(60000);assert(!stats());catchOne();
         assert.deepEqual(stats().children.map(n=>n.textContent),['Уцелени: 1','Избягали: 0','Рекорд: 2']);
     }
 });
@@ -277,7 +278,7 @@ check('nearby visitors repel after emerging instead of converging through each o
             assert(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)>=76,'visitors overlap');
         }
     }
-    e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
 check('returning to a visible focused tab restarts the full initial interval, even one second before a due appearance',()=>{
     for(const frequency of ['normal','frequent']) for(const hidden of [false,true]) {
@@ -322,9 +323,20 @@ check('touch double tap summons, scrolling and synthetic double-click do not dup
     const p=e.center(e.visitors()[0]);e.touch(p.x,p.y);e.tick(300);assert(e.visitors().length<n);
     e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.document.emit('pointercancel');e.touch(500,700);assert(e.visitors().length<n);
 });
+check('touches on controls, scroll gestures and long presses do not summon characters or weather',()=>{
+    for(const gesture of ['control','scroll','hold']) {
+        const e=environment({trigger:'manual'},{coarse:true,weather:'snow clouds'});
+        e.blank.interactive=gesture==='control';
+        for(let i=0;i<2;i++) {
+            e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.tick(gesture==='hold'?500:50);
+            e.document.emit('pointerup',e.event({pointerType:'touch',clientY:gesture==='scroll'?480:400}));e.tick(50);
+        }
+        assert.equal(e.visitors().length,0,gesture);assert.equal(e.weatherTriggers.length,0,gesture);
+    }
+});
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -335,9 +347,9 @@ check('every character has a sprite and a distinct, short sound signature', () =
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
     const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
-    const christmas=['sleigh','elf','deer','snowman'], winter=['snowman','casper'];
-    const march=['martenitsa','stork'], easter=['bunny','chick','butterfly'], spring=['stork','butterfly','chick'];
-    const summer=['butterfly','firefly'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher'];
+    const christmas=['sleigh','elf','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
+    const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
+    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','spiders'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
@@ -653,7 +665,7 @@ check('scary sound is opt-in, short, silent for notifications and stops on blur'
 check('a stalled frame never keeps visitors beyond their hard lifetime', () => {
     for(const character of ['casper','muncher']) {
         const e=environment({trigger:'notification',mode:'selected',characters:[character]});
-        e.click();const elapsed=character==='muncher'?81000:41000;e.tick(elapsed,elapsed);assert.equal(e.visitors().length,0);
+        e.click();const elapsed=character==='muncher'?81000:61000;e.tick(elapsed,elapsed);assert.equal(e.visitors().length,0);
     }
 });
 check('weather outfits follow the forecast, update visitors and leave bounded trails',()=>{
@@ -666,8 +678,71 @@ check('weather outfits follow the forecast, update visitors and leave bounded tr
     }
     const e=environment({trigger:'manual'});e.click();assert.equal(e.visitors()[0].children.length,1);
 });
+check('sleigh runners and deer hooves leave bounded, fading directional tracks without requiring weather',()=>{
+    for(const character of ['sleigh','deer']) for(const strength of ['normal','gentle']) for(const weather of ['', 'snow clouds']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:[character],strength},{weather});
+        const tracks=()=>e.document.body.children.filter(n=>n.className.includes('funny-'+character+'-track'));
+        e.click();assert.equal(tracks().length,0,'no marks inside the portal');e.tick(2500);
+        assert(tracks().length>0,character);const first=tracks()[0];
+        assert.equal(first.attrs['aria-hidden'],'true');assert.equal(first.style['--funny-track-opacity'],strength==='gentle'?'0.4':'0.7');
+        assert(Number.isFinite(parseFloat(first.style.left)) && Number.isFinite(parseFloat(first.style.top)));
+        assert.match(first.style.transform,/^rotate\([-\d.]+rad\)$/);
+        if(character==='sleigh') assert(parseFloat(first.style.width)>=14 && parseFloat(first.style.width)<=80);
+        assert.equal(e.traces.length,0,'winter tracks replace generic weather footprints');
+        e.tick(12100);assert(!e.document.body.children.includes(first),'each mark expires within twelve seconds');
+        for(let i=0;i<10;i++) {e.click();e.tick(500);assert(tracks().length<=(strength==='gentle'?12:24));}
+        e.tick(80000);assert.equal(tracks().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print and reduced motion',()=>{
+    for(const exit of ['scroll','escape','resize','blur','hidden','print','reduced','pagehide']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['deer']});e.click();e.tick(2500);
+        const tracks=()=>e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));assert(tracks().length>0);
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='resize') e.window.emit('resize');
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='print') e.window.emit('beforeprint');
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        if(exit==='pagehide') e.window.emit('pagehide');
+        assert.equal(tracks().length,0,exit);
+    }
+});
+check('all roaming characters leave their own short traces without weather and share one global cap',()=>{
+    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+    for(const [character,kind] of Object.entries(kinds)) {
+        const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
+        const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        assert(tracks.length>0,character);assert(tracks.every(n=>n.className.includes('funny-trail-'+kind) && n.attrs['aria-hidden']==='true'));
+        e.tick(12100);assert(tracks.every(n=>!e.document.body.children.includes(n)),character+' trace expired');
+        e.document.focused=false;e.window.emit('blur');assert(!e.document.body.children.some(n=>n.className.includes('funny-character-trail')));
+    }
+    for(const strength of ['normal','gentle']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:Object.keys(kinds),strength});
+        for(let i=0;i<20;i++) {e.click();e.tick(500);assert(e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length<=(strength==='gentle'?12:24));}
+        e.tick(80000);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('a caught snowman melts once, leaves a temporary puddle and stops on focus loss',()=>{
+    for(const trigger of ['manual','notification']) {
+        const e=environment({trigger,mode:'selected',characters:['snowman']},{weather:'snow clouds'});
+        if(trigger==='manual') e.click();else e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});
+        e.tick(800);const v=e.visitors()[0],p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        assert(v.className.includes('funny-melting'));assert(!e.document.body.children.some(n=>n.className.startsWith('funny-burst')));
+        const puddle=e.document.body.children.find(n=>n.className==='funny-melt-puddle');assert(puddle);assert.equal(puddle.attrs['aria-hidden'],'true');
+        const frozen=e.center(v);e.tick(1000);assert(e.visitors().includes(v));assert.deepEqual(e.center(v),frozen);
+        e.document.emit('pointermove',e.event({clientX:p.x+1,clientY:p.y}));assert.equal(e.document.body.children.find(n=>n.className==='funny-stats').children[0].textContent,'Уцелени: 1');
+        e.tick(500);assert.equal(e.visitors().length,0);assert(e.document.body.children.includes(puddle));
+        e.tick(10600);assert(!e.document.body.children.includes(puddle));
+        if(trigger==='notification') assert.equal(e.sounds.length,0);
+        e.click();e.tick(800);const next=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:next.x,clientY:next.y}));
+        e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className==='funny-melt-puddle'));assert.equal(e.timers.size,0);
+    }
+});
 check('catch effects match the character, finish promptly and clean up on blur',()=>{
-    for(const [character,kind] of [['ghost','puff'],['casper','puff'],['bat','smoke'],['snowman','snow'],['pumpkin','pumpkin'],['spiderweb','web'],['sleigh','star'],['martenitsa','thread'],['butterfly','petal']]) {
+    const effects={ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',sleigh:'star',elf:'confetti',deer:'dust',pumpkin:'pumpkin',bat:'smoke',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',stork:'feather',bunny:'puff',chick:'puff',butterfly:'petal',firefly:'glow'};
+    for(const [character,kind] of Object.entries(effects)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(800);
         const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
         const burst=e.document.body.children.find(n=>n.className==='funny-burst funny-burst-'+kind);
@@ -704,9 +779,21 @@ check('rare silent peeking is automatic only, away from the pointer and once per
     near.block.rect={left:400,right:600,top:400,width:200,height:200};
     for(let i=0;i<1800;i++) {near.tick(250,50);assert(!near.document.body.children.some(n=>n.className==='funny-peeker'),'never peek close to the pointer');}
 });
-check('each appearance can start weather; disabled characters retain blank double-click and double-tap',()=>{
+check('delayed group members do not restart weather after typing, scrolling or touching a control',()=>{
+    let delayedGroups=0;
+    for(const type of ['input','compositionstart','focusin','keydown','scroll','touchmove','pointerdown']) for(let seed=10;seed<20;seed++) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['ghost','casper','elf']},{seed,coarse:true,weather:'rain clouds'});
+        e.click();assert.deepEqual(e.weatherTriggers,['manual']);
+        e.document.emit(type,e.event({pointerType:'touch'}));e.tick(2000);
+        if(e.visitors().length>1) delayedGroups++;
+        assert.deepEqual(e.weatherTriggers,['manual'],'late arrivals must not restart the interrupted weather');
+        e.click();e.tick(2000);assert.deepEqual(e.weatherTriggers,['manual','manual']);
+    }
+    assert(delayedGroups>0);
+});
+check('each group can start weather; disabled characters retain blank double-click and double-tap',()=>{
     const enabled=environment({trigger:'manual'},{weather:'rain clouds'});enabled.click();enabled.tick(2000);
-    assert.equal(enabled.weatherTriggers.length,enabled.visitors().length);assert(enabled.weatherTriggers.every(reason=>reason==='manual'));
+    assert.deepEqual(enabled.weatherTriggers,['manual']);
     const before=enabled.weatherTriggers.length;enabled.click();assert.equal(enabled.weatherTriggers.length,before+1);
     for(const settings of [{mode:'off'},{frequency:'off'}]) {
         const e=environment(settings,{weather:'rain clouds'});e.click();assert.deepEqual(e.weatherTriggers,['manual']);assert.equal(e.visitors().length,0);assert.equal(e.audio.length,0);
@@ -722,7 +809,7 @@ check('weather gestures happen once, stay brief and never delay escape or the ha
         const e=environment({trigger:'manual',mode:'selected',characters:['casper']},{weather});e.click();e.tick(2500);
         const v=e.visitors()[0];assert.equal(v.attrs['data-reaction'],reaction);e.tick(1000);assert.equal(v.attrs['data-reaction'],'');
         assert.equal(v.history.filter(a=>a[0]==='data-reaction' && a[1]===reaction).length,1);
-        e.tick(40000);assert.equal(e.visitors().length,0);
+        e.tick(60000);assert.equal(e.visitors().length,0);
     }
 });
 check('nearby characters greet in pairs once without overlapping',()=>{
@@ -746,7 +833,387 @@ check('flying characters land on a block and leave on approach, touch, scroll, r
         if(exit==='scroll') e.document.emit('scroll');
         if(exit==='replacement') e.block.isConnected=false;
         e.tick(exit==='timeout'?2500:600);assert.equal(v.attrs['data-perched'],'');
-        e.tick(40000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+        e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
     }
 });
+
+/** A surface near the initial flight makes landing tests independent of random destinations. */
+function landInsect(character, config = {}, settings = {}) {
+    const e = environment(Object.assign({mode:'selected',characters:[character],trigger:'manual'}, settings), Object.assign({blocks:true}, config));
+    e.block.tagName = 'INPUT';
+    e.click(); e.tick(700);
+    const v = e.visitors()[0], p = e.center(v);
+    e.block.rect = {left:p.x-60,right:p.x+60,top:p.y+20,bottom:p.y+52,width:120,height:32};
+    for(let i=0;i<30 && v.attrs['data-perched']!=='true';i++) e.tick(100);
+    assert.equal(v.attrs['data-perched'],'true',character+' should land on a control');
+    return {e,v};
+}
+check('flies require a fresh sunny forecast above 9C; manual selection ignores season and weather',()=>{
+    for(const [icon,temperature,expires,eligible] of [
+        ['clear-day',10,Infinity,true],['partly-cloudy-day',9.1,Infinity,true],['clear-day',9,Infinity,false],
+        ['clear-day',null,Infinity,false],['clear-day','15',Infinity,false],['clear-night',20,Infinity,false],
+        ['rain',20,Infinity,false],['showers-day',20,Infinity,false],['cloudy',20,Infinity,false],['clear-day',20,0,false]
+    ]) {
+        const e=environment({trigger:'manual',forecast:{icon,temperature,expires}},{date:'2026-04-25T12:00:00'});
+        const seen=new Set();
+        for(let i=0;i<35;i++) { e.click();e.tick(2000);e.visitors().forEach(v=>seen.add(v.className));e.document.emit('keydown',{key:'Escape'}); }
+        assert.equal(seen.has('funny-visitor funny-fly'),eligible,JSON.stringify([icon,temperature,expires]));
+    }
+    for(const character of ['fly','mosquito']) {
+        const e=environment({mode:'selected',characters:[character],trigger:'manual'},{date:'2026-01-15T00:00:00'});
+        e.click();assert(e.visitors()[0].className.includes('funny-'+character));
+    }
+});
+check('warm out-of-season insects remain rare even when all eligible characters fit a group',()=>{
+    for(const [date,temperature,icon] of [['2026-03-15',15,'clear-day'],['2026-11-15',15,'clear-day'],['2026-11-15',10,'clear-day'],['2026-11-15',15,'cloudy']]) {
+        const e=environment({trigger:'manual',forecast:{icon,temperature,expires:Infinity}},{date:date+'T12:00:00'});
+        const counts={fly:0,mosquito:0};
+        for(let i=0;i<240;i++) {
+            e.click();e.tick(2000);e.visitors().forEach(v=>{if(v.className.includes('funny-fly')) counts.fly++;if(v.className.includes('funny-mosquito')) counts.mosquito++;});
+            e.document.emit('keydown',{key:'Escape'});
+        }
+        for(const name of ['fly','mosquito']) {
+            if(temperature<=10 || (name==='fly' && icon==='cloudy')) assert.equal(counts[name],0,name);
+            else assert(counts[name]>0 && counts[name]<36,JSON.stringify({date,counts}));
+        }
+    }
+});
+check('daytime favors flies and dusk favors mosquitoes without duplicate group members',()=>{
+    function sample(hour) {
+        const e=environment({trigger:'manual',forecast:{icon:'clear-day',temperature:24,expires:Infinity}},{date:'2026-07-15T'+hour+':00:00'});
+        const count={fly:0,mosquito:0};
+        for(let i=0;i<160;i++) {
+            e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.replace('funny-visitor funny-',''));
+            assert.equal(group.length,new Set(group).size);group.forEach(c=>{if(c in count) count[c]++;});
+            e.document.emit('keydown',{key:'Escape'});
+        }
+        return count;
+    }
+    const day=sample('12'),dusk=sample('20');assert(day.fly>dusk.fly*1.3);assert(dusk.mosquito>day.mosquito*1.3);
+});
+check('insects ignore hidden and collapsed content, focused controls and removed landing targets',()=>{
+    for(const reason of ['details','hidden','focus','removed']) {
+        const e=environment({mode:'selected',characters:['fly'],trigger:'manual'},{blocks:true});
+        const container=new e.blank.constructor();container.tagName=reason==='details'?'DETAILS':'DIV';
+        if(reason==='hidden') container.attrs.hidden='';
+        container.appendChild(e.block);if(reason==='focus') e.document.activeElement=e.block;
+        e.click();e.tick(700);const v=e.visitors()[0],p=e.center(v);
+        e.block.rect={left:p.x-60,right:p.x+60,top:p.y+20,bottom:p.y+52,width:120,height:32};
+        if(reason==='removed') e.block.isConnected=false;
+        e.tick(4000);assert.notEqual(v.attrs['data-perched'],'true',reason);
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
+    }
+});
+check('flies rub their legs before walking and leave bounded temporary tracks at their feet',()=>{
+    const {e,v}=landInsect('fly');const p=e.center(v);
+    assert.equal(v.attrs['data-insect'],'rubbing');e.tick(500);assert.deepEqual(e.center(v),p);
+    e.tick(1800);assert.equal(v.attrs['data-insect'],'walking');assert(Math.abs(e.center(v).x-p.x)>5);
+    const tracks=e.document.body.children.filter(n=>n.className.includes('funny-insect-tracks'));
+    assert(tracks.length>=2 && tracks.length<=24);
+    for(const node of tracks) {assert.equal(node.attrs['aria-hidden'],'true');assert(parseFloat(node.style.left)>=e.block.rect.left);assert(parseFloat(node.style.left)<=e.block.rect.right);assert(parseFloat(node.style.top)>=e.block.rect.top);assert(parseFloat(node.style.top)<=e.block.rect.bottom);}
+    e.tick(2000);assert.equal(v.attrs['data-perched'],'');e.tick(60000);
+    assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));assert.equal(e.raf.size,0);
+});
+check('mosquitoes feed once, turn red, leave a bite at the proboscis and resume flight',()=>{
+    const {e,v}=landInsect('mosquito');assert.equal(v.attrs['data-insect'],'feeding');e.tick(1900);
+    assert.equal(v.attrs['data-fed'],'true');
+    const bites=e.document.body.children.filter(n=>n.className.includes('funny-insect-bite'));assert.equal(bites.length,1);
+    const p=e.center(v);assert(Math.abs(parseFloat(bites[0].style.left)-(p.x-58*.13))<.1);assert(Math.abs(parseFloat(bites[0].style.top)-(p.y+58/1.2*.3))<.1);
+    e.tick(2000);assert.equal(v.attrs['data-perched'],'');const flying=e.center(v);e.tick(600);assert.notDeepEqual(e.center(v),flying);
+    e.tick(60000);assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
+});
+check('a pointer hit squashes landed insects once, stays briefly and disappears without counting an escape',()=>{
+    for(const character of ['fly','mosquito']) {
+        const {e,v}=landInsect(character);const p=e.center(v);
+        e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        assert(v.className.includes('funny-squashed'));assert(!v.className.includes('funny-leaving'));
+        assert.equal(v.firstChild.firstChild.attrs.href,'/characters.svg#'+character+'-splat');
+        e.tick(1000);assert(e.visitors().includes(v));const frozen=e.center(v);
+        e.document.emit('pointermove',e.event({clientX:p.x+1,clientY:p.y}));e.tick(500);assert.deepEqual(e.center(v),frozen);
+        const stats=e.document.body.children.find(n=>n.className==='funny-stats');assert.equal(stats.children[0].textContent,'Уцелени: 1');
+        e.tick(2500);assert.equal(e.visitors().length,0);assert.equal(stats.children[1].textContent,'Избягали: 0');
+    }
+});
+check('mosquito splat blood grows with partial feeding and is absent before the first sip',()=>{
+    const samples=[];
+    for(const wait of [0,450,1100,2000]) {
+        const {e,v}=landInsect('mosquito');if(wait) e.tick(wait);
+        const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        const blood=v.children.find(n=>n.attrs.class==='funny-insect-blood');
+        if(!wait) {assert(!blood);samples.push(0);}
+        else {assert(blood);samples.push(Number(v.style['--funny-blood-scale']));}
+    }
+    assert(samples[0]<samples[1] && samples[1]<samples[2] && samples[2]<samples[3]);
+    assert(samples[3]<=1.1);
+});
+check('insect marks, splats and audio stop on blur, hidden pages, reduced motion and Escape',()=>{
+    for(const exit of ['blur','hidden','reduced','escape','scroll']) {
+        const {e,v}=landInsect('mosquito');e.tick(1900);assert(e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
+        const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert(v.className.includes('funny-squashed'));
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='scroll') e.document.emit('scroll');
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-insect-mark')));
+        if(exit!=='scroll') {assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert(e.audio.every(a=>a.state==='closed'));}
+    }
+});
+check('insect buzz is quiet, distinct, optional and suppressed for notifications and unfocused pages',()=>{
+    for(const character of ['fly','mosquito']) {
+        const e=environment({mode:'selected',characters:[character],trigger:'both'});e.click();
+        assert(e.sounds.length>0);assert(e.volumes.every(v=>v<=.02));
+        const silent=environment({mode:'selected',characters:[character],sound:'no',trigger:'manual'});silent.click();assert.equal(silent.sounds.length,0);
+        const n=environment({mode:'selected',characters:[character],trigger:'both'});n.document.emit('pointerdown',n.event());
+        n.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});n.tick(700);const p=n.center(n.visitors()[0]);
+        n.document.emit('pointermove',n.event({clientX:p.x,clientY:p.y}));assert.equal(n.sounds.length,0);
+        const bg=environment({mode:'selected',characters:[character]},{focused:false});bg.click();assert.equal(bg.sounds.length,0);assert.equal(bg.visitors().length,0);
+    }
+});
+
+
+check('mosquitoes and vampires progressively drain elements, preserve content and restore original styles',()=>{
+    for(const character of ['mosquito','vampire']) {
+        const {e,v}=landInsect(character);const el=e.block;
+        el.className='original';el.textContent='Visible content';el.style.opacity='.8';
+        el.style.setProperty('--funny-drained-opacity','.91');el.style.setProperty('--funny-soil','.07');
+        el.computedStyle={opacity:'.8'};
+        e.tick(700);const first=Number(el.style['--funny-drained-opacity']);assert(first<.8 && first>.48);
+        e.tick(1200);const full=Number(el.style['--funny-drained-opacity']);assert(full<first && full>=.479);
+        assert(el.className.includes('funny-drained'));assert.equal(el.style.opacity,'.8');assert.equal(el.textContent,'Visible content');
+        assert.equal(v.attrs['data-fed'],'true');const bite=e.document.body.children.find(n=>n.className.includes('funny-insect-bite'));
+        if(character==='vampire') {assert(bite.className.includes('funny-vampire-bite'));const center=e.center(v);assert(Math.abs(parseFloat(bite.style.top)-(center.y-76/1.2*.05))<.1);}
+        e.tick(8200);assert(el.className.includes('funny-surface-restoring'));assert.equal(Number(el.style['--funny-drained-opacity']),.8);
+        e.tick(1600);assert.equal(el.className,'original');assert.equal(el.style['--funny-drained-opacity'],'.91');assert.equal(el.style['--funny-soil'],'.07');assert.equal(el.style.opacity,'.8');
+    }
+});
+check('a walking fly gradually soils the element as well as leaving tracks, then both clean up',()=>{
+    const {e}=landInsect('fly');e.tick(500);assert(!e.block.className.includes('funny-soiled'));
+    e.tick(600);const first=Number(e.block.style['--funny-soil']);assert(first>0 && first<.2);
+    e.tick(1800);const later=Number(e.block.style['--funny-soil']);assert(later>first && later<=.2);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-insect-tracks')));
+    e.tick(12000);assert(!e.block.className.includes('funny-soiled'));assert.equal(e.block.style.getPropertyValue('--funny-soil'),'');
+});
+check('drained and dirty surfaces clean immediately on all inactive exits without stale cleanup after return',()=>{
+    for(const character of ['mosquito','fly','vampire']) for(const exit of ['blur','hidden','escape','print','reduced','pagehide']) {
+        const {e}=landInsect(character);e.tick(2100);assert(/funny-drained|funny-soiled/.test(e.block.className));
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='print') e.window.emit('beforeprint');
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        if(exit==='pagehide') e.window.emit('pagehide');
+        assert(!/funny-drained|funny-soiled|funny-surface-restoring/.test(e.block.className));
+        assert.equal(e.block.style.getPropertyValue('--funny-drained-opacity'),'');assert.equal(e.block.style.getPropertyValue('--funny-soil'),'');
+        e.block.style.opacity='.7';e.tick(20000);assert.equal(e.block.style.opacity,'.7');
+    }
+});
+check('vampire blood splats grow with feeding, preserve optional sound and never regain weather accessories',()=>{
+    const scales=[];
+    for(const delay of [0,800,2000]) {
+        const config={weather:'sun'};const {e,v}=landInsect('vampire',config);e.tick(delay);
+        const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert(v.className.includes('funny-squashed'));
+        const splat=v.children.find(n=>n.firstChild && n.firstChild.attrs.href==='/characters.svg#vampire-splat');assert(splat);
+        scales.push(Number(v.style['--funny-blood-scale'] || 0));config.weather='rain';e.tick(1100);
+        assert(!v.children.some(n=>n.attrs.class==='funny-accessory'));e.tick(3000);assert.equal(e.visitors().length,0);
+    }
+    assert(scales[0]===0 && scales[1]>0 && scales[2]>scales[1]);
+});
+check('spiders weave one bounded web between nearby separate visible elements and release it on scroll or blur',()=>{
+    for(const exit of ['timeout','scroll','blur','escape']) {
+        const {e,v}=landInsect('spiders');const a=e.block.rect;
+        const neighbor=new e.blank.constructor();neighbor.isConnected=true;neighbor.rect={left:a.right+30,right:a.right+90,top:a.top,bottom:a.bottom,width:60,height:32};
+        e.document.querySelectorAll=()=>[e.block,neighbor];e.tick(700);
+        const webs=()=>e.document.body.children.filter(n=>n.className.includes('funny-spider-thread'));
+        assert.equal(webs().length,1);assert.equal(webs()[0].attrs['aria-hidden'],'true');assert(parseFloat(webs()[0].style.width)>=16 && parseFloat(webs()[0].style.width)<=180);
+        e.tick(1500);assert.equal(webs().length,1);
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='timeout') e.tick(16000);
+        assert.equal(webs().length,0);assert(!e.block.className.includes('funny-drained'));assert(!e.block.className.includes('funny-soiled'));
+    }
+});
+check('spiders skip distant, hidden and nested web anchors',()=>{
+    for(const type of ['distant','hidden','nested']) {
+        const {e}=landInsect('spiders');const a=e.block.rect,neighbor=new e.blank.constructor();neighbor.isConnected=true;
+        neighbor.rect={left:a.right+(type==='distant'?250:30),right:a.right+(type==='distant'?310:90),top:a.top,bottom:a.bottom,width:60,height:32};
+        if(type==='hidden') neighbor.attrs.hidden='';if(type==='nested') e.block.appendChild(neighbor);
+        e.document.querySelectorAll=()=>[e.block,neighbor];e.tick(1000);
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-spider-thread')));
+    }
+});
+check('blur wins over stale hasFocus, exits visible visitors and clears suspended exits on refocus',()=>{
+    for(const hidden of [false,true]) {
+        const e=environment({mode:'selected',characters:['mosquito'],frequency:'normal'});e.click();e.tick(700);
+        if(hidden) e.document.visibilityState='hidden';
+        // hasFocus() intentionally stays true during the blur event.
+        e.window.emit('blur');assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert(e.audio.every(a=>a.state==='closed'));
+        const exits=()=>e.document.body.children.filter(n=>n.className.includes('funny-departing'));
+        assert.equal(exits().length,hidden?0:1);e.click();assert.equal(e.visitors().length,0);
+        e.document.visibilityState='visible';e.window.emit('focus');assert.equal(exits().length,0);assert.equal(e.visitors().length,0);
+        const due=[...e.timers.values()][0].at-e.now();assert(due>=60000 && due<=120000);
+        e.tick(due-1);assert.equal(e.visitors().length,0);e.tick(1);assert.equal(e.visitors().length,1);
+    }
+    const e=environment({mode:'selected',characters:['ghost'],trigger:'manual'});e.click();e.tick(700);e.window.emit('blur');
+    assert(e.document.body.children.some(n=>n.className.includes('funny-departing')));e.tick(500);
+    assert(!e.document.body.children.some(n=>n.className.includes('funny-departing')));assert.equal(e.timers.size,0);
+});
+check('mobile keyboard input without keydown restarts idle time and restores a muncher meal',()=>{
+    for(const type of ['input','compositionstart','focusin']) {
+        const e=environment({mode:'selected',characters:['ghost'],frequency:'normal'},{coarse:true});
+        for(let i=0;i<5;i++) {e.tick(59000,59000);e.document.emit(type,{target:e.block});assert.equal(e.visitors().length,0);}
+        const delay=[...e.timers.values()][0].at-e.now();assert(delay>=60000 && delay<=120000);
+        e.tick(delay-1,delay-1);assert.equal(e.visitors().length,0);e.tick(1);assert.equal(e.visitors().length,1);
+        const m=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{coarse:true,meals:true});m.click();m.tick(700);
+        const p=m.center(m.visitors()[0]);m.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+        m.tick(50);assert(m.block.className.includes('funny-eaten'));m.document.emit(type,{target:m.block});assert(!m.block.className.includes('funny-eaten'));
+    }
+});
+check('ordinary visitors stay at least twenty seconds when unchased and traces outlive the former four-second limit',()=>{
+    for(const coarse of [false,true]) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['ghost']},{coarse});e.click();e.tick(16000);
+        assert.equal(e.visitors().length,1);e.tick(3900);assert.equal(e.visitors().length,1);
+        e.tick(40100);assert.equal(e.visitors().length,0);e.tick(13000);assert.equal(e.timers.size,0);
+    }
+    const e=environment({trigger:'manual',mode:'selected',characters:['deer']});e.click();e.tick(2500);
+    const track=e.document.body.children.find(n=>n.className.includes('funny-character-trail'));
+    e.tick(5000);assert(e.document.body.children.includes(track));e.tick(7100);assert(!e.document.body.children.includes(track));
+});
+check('a snowman uses only fresh numeric temperature for drips and keeps snow in freezing or unknown weather',()=>{
+    for(const [temperature,expires,water] of [[22,Infinity,true],[.1,Infinity,true],[0,Infinity,false],[-4,Infinity,false],[22,0,false],[null,Infinity,false],['22',Infinity,false]]) {
+        const e=environment({mode:'selected',characters:['snowman'],trigger:'manual',forecast:{temperature,expires}});
+        e.click();e.tick(2500);const v=e.visitors()[0];assert.equal(v.attrs['data-thawing'],water?'true':'');
+        const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        assert(tracks.length);assert(tracks.every(n=>n.className.includes(water?'funny-trail-water':'funny-trail-snow')));
+    }
+});
+/** Observe natural public summons, retaining detached nodes only in the test for transition assertions. */
+function watchVisitors(e, duration) {
+    const actors=new Set(e.visitors());
+    for(let ms=0;ms<duration;ms+=50) {e.tick(50);e.visitors().forEach(v=>actors.add(v));}
+    return [...actors];
+}
+check('nearby cats briefly pursue flies, respect pointer pursuit priority and clean up without extending deadlines',()=>{
+    let found=0;
+    for(let seed=1;seed<=25 && found<3;seed++) {
+        const e=environment({mode:'selected',characters:['cat','blackcat','fly'],trigger:'manual'},{seed:seed*997});
+        e.click();const actors=watchVisitors(e,6000),cats=actors.filter(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='chasing'));
+        if(!cats.length) continue;found++;e.tick(2500);
+        assert(actors.some(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='evading')));
+        assert(cats.every(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='')),'pursuit must end');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'),'stationary pointer never catches a pursuit');
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
+    }
+    assert(found>=1,'at least one nearby encounter');
+});
+function wovenFixture(settings={}) {
+    const {e,v}=landInsect('spiders',{},settings),a=e.block.rect,neighbor=new e.blank.constructor();neighbor.isConnected=true;
+    neighbor.rect={left:a.right+50,right:a.right+110,top:a.top,bottom:a.bottom,width:60,height:32};
+    e.document.querySelectorAll=()=>[e.block,neighbor];e.tick(700);
+    const web=e.document.body.children.find(n=>n.className.includes('funny-spider-thread'));assert(web);
+    return {e,v,web,x:parseFloat(web.style.left)+parseFloat(web.style.width)/2,y:parseFloat(web.style.top)};
+}
+check('webs tremble nearby, unravel on fast crossings and expire even with no mouse movement',()=>{
+    for(const crossing of [false,true]) {
+        const {e,web,x,y}=wovenFixture();
+        e.document.emit('pointermove',e.event({clientX:x,clientY:y-60}));assert.equal(web.attrs['data-web'],'tremble');
+        e.document.emit('pointermove',e.event({clientX:x,clientY:crossing?y+60:y+15}));assert.equal(web.attrs['data-web'],'unravel');
+        e.tick(400);assert(e.document.body.children.includes(web));e.tick(450);assert(!e.document.body.children.includes(web));
+    }
+    const {e,web}=wovenFixture();e.tick(9000);assert(e.document.body.children.includes(web));e.tick(7100);assert(!e.document.body.children.includes(web));
+});
+check('elf gifts open once on pointer or blank touch, stay silent when disabled and clear on inactive exits',()=>{
+    for(const [sound,touch,trigger] of [['yes',false,'manual'],['no',false,'manual'],['yes',true,'manual'],['yes',false,'notification']]) {
+        let sample;
+        for(let seed=1;seed<=30 && !sample;seed++) {
+            const e=environment({mode:'selected',characters:['elf'],trigger,sound},{seed:seed*631});
+            if(trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});} else e.click();
+            e.tick(7000);const gift=e.document.body.children.find(n=>n.className==='funny-gift');if(gift) sample={e,gift};
+        }
+        assert(sample,'gift appears occasionally');const {e,gift}=sample,before=e.sounds.length;
+        const x=parseFloat(gift.style.left),y=parseFloat(gift.style.top);
+        if(touch) e.touch(x,y);else e.document.emit('pointermove',e.event({clientX:x,clientY:y}));
+        assert(gift.className.includes('funny-gift-open'));assert(e.document.body.children.some(n=>n.className==='funny-burst funny-burst-confetti'));
+        const after=e.sounds.length;assert.equal(after>before,sound==='yes' && trigger!=='notification');
+        e.document.emit('pointermove',e.event({clientX:x,clientY:y}));assert.equal(e.sounds.length,after);
+        e.tick(900);assert(!e.document.body.children.includes(gift));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('cats jump at meltwater and elves slip on runner tracks during natural nearby encounters',()=>{
+    for(const [pool,reaction] of [[['cat','snowman'],'jump'],[['elf','sleigh'],'slip']]) {
+        let found=0;
+        for(let seed=1;seed<=50 && !found;seed++) {
+            const e=environment({mode:'selected',characters:pool,trigger:'manual',forecast:{temperature:22,expires:Infinity}},{seed:seed*991});
+            e.click();e.tick(2000);e.click();const actors=watchVisitors(e,18000);
+            found=actors.filter(v=>v.history.some(([key,value])=>key==='data-reaction' && value===reaction)).length;
+            if(found) {assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);}
+        }
+        assert(found,reaction+' happens without moving the pointer or altering actor state');
+    }
+});
+check('flies avoid existing webs without landing on them or requiring pointer movement',()=>{
+    let found=0;
+    for(let seed=1;seed<=30 && !found;seed++) {
+        const e=environment({mode:'selected',characters:['spiders','fly'],trigger:'manual'},{seed:seed*1877,blocks:true});
+        e.click();e.tick(2000);const spider=e.visitors().find(v=>v.className==='funny-visitor funny-spiders');if(!spider) continue;
+        const p=e.center(spider);e.block.rect={left:p.x-50,right:p.x+50,top:p.y+20,bottom:p.y+52,width:100,height:32};
+        const neighbor=new e.blank.constructor();neighbor.isConnected=true;neighbor.rect={left:p.x+90,right:p.x+140,top:p.y+20,bottom:p.y+52,width:50,height:32};
+        e.document.querySelectorAll=()=>[e.block,neighbor];
+        const actors=watchVisitors(e,16000);
+        found=actors.filter(v=>v.history.some(([key,value])=>key==='data-encounter' && value==='avoiding-web')).length;
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+    assert(found,'a naturally nearby fly avoids a woven web');
+});
+
+check('fleeing visitors still leave sparse short traces and retain the same expiry and input cleanup',()=>{
+    for(const character of ['cat','sleigh','snowman']) {
+        const e=environment({mode:'selected',characters:[character],trigger:'manual'},{width:2400,height:1600});
+        e.click({clientX:1200,clientY:800});e.tick(700);const v=e.visitors()[0];
+        const start=e.center(v),dx=start.x-1200,dy=start.y-800,length=Math.hypot(dx,dy),nx=dx/length,ny=dy/length;
+        const records=new Set();
+        for(let ms=0;ms<3500 && e.visitors().includes(v);ms+=100) {
+            e.document.emit('pointermove',e.event({clientX:1200+nx*(ms/100+1),clientY:800+ny*(ms/100+1)}));e.tick(100);
+            e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).forEach(n=>records.add(n));
+        }
+        assert(records.size>0,character+' leaves a trace when chased');assert(records.size<=3,'escape traces are sparse');
+        const marks=[...records];for(let i=1;i<marks.length;i++) assert(marks[i].createdAt-marks[i-1].createdAt>=1100);
+        if(character==='sleigh') assert(marks.every(n=>parseFloat(n.style.width)<=24.001),'no long lines behind a fast sleigh');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.document.emit('scroll');assert(marks.every(n=>!e.document.body.children.includes(n)));
+    }
+});
+
+check('a fly chased toward a web bends around it while increasing distance from the pointer',()=>{
+    let verified=0;
+    for(let seed=1;seed<=40 && !verified;seed++) {
+        const e=environment({mode:'selected',characters:['spiders','fly'],trigger:'manual'},{seed:seed*1877,blocks:true});
+        e.click();e.tick(2000);const spider=e.visitors().find(v=>v.className==='funny-visitor funny-spiders');if(!spider) continue;
+        const p=e.center(spider);e.block.rect={left:p.x-50,right:p.x+50,top:p.y+20,bottom:p.y+52,width:100,height:32};
+        const neighbor=new e.blank.constructor();neighbor.isConnected=true;neighbor.rect={left:p.x+90,right:p.x+140,top:p.y+20,bottom:p.y+52,width:50,height:32};
+        e.document.querySelectorAll=()=>[e.block,neighbor];
+        for(let t=0;t<15000 && !verified;t+=50) {
+            e.tick(50);const fly=e.visitors().find(v=>v.attrs['data-encounter']==='avoiding-web');
+            const web=e.document.body.children.find(v=>v.className.includes('funny-spider-thread'));if(!fly || !web) continue;
+            const f=e.center(fly),x=parseFloat(web.style.left),y=parseFloat(web.style.top),width=parseFloat(web.style.width),angle=parseFloat(web.style.transform.slice(7));
+            const end={x:x+Math.cos(angle)*width,y:y+Math.sin(angle)*width};
+            const projection=Math.max(0,Math.min(1,((f.x-x)*(end.x-x)+(f.y-y)*(end.y-y))/(width*width)));
+            const q={x:x+(end.x-x)*projection,y:y+(end.y-y)*projection};
+            const distance=Math.hypot(f.x-q.x,f.y-q.y),nx=(f.x-q.x)/distance,ny=(f.y-q.y)/distance;
+            if(distance>=100 || distance<30) continue;
+            const mouse={x:f.x+nx*100,y:f.y+ny*100};
+            e.document.emit('pointermove',e.event({clientX:mouse.x,clientY:mouse.y}));
+            if(fly.className.includes('funny-squashed') || web.attrs['data-web']==='unravel') break;
+            e.document.emit('pointermove',e.event({clientX:mouse.x-nx*3,clientY:mouse.y-ny*3}));
+            e.tick(160);const next=e.center(fly),dx=next.x-f.x,dy=next.y-f.y;
+            assert(fly.attrs['data-encounter']==='avoiding-web');
+            assert(Math.hypot(next.x-mouse.x+nx*3,next.y-mouse.y+ny*3)>97,'escape remains away from the pointer');
+            assert(Math.abs(dx*-ny+dy*nx)>Math.abs(dx*nx+dy*ny),'head-on escape bends sideways around the web');
+            verified++;
+        }
+    }
+    assert(verified,'a head-on chase was exercised through public pointer events');
+});
+
 console.log(`${checks} behavioral checks passed`);

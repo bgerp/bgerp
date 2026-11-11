@@ -15,7 +15,7 @@ class acc_journal_RejectRedirect extends acc_journal_Exception
         $Exception = (!core_Users::isSystemUser()) ? 'acc_journal_RejectRedirect' : 'acc_journal_Exception';
         
         if (!(boolean) $condition) {
-            throw new $Exception($message, $options);
+            throw new $Exception($message, 'Изключение', $options);
         }
     }
 }

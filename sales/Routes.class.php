@@ -318,12 +318,15 @@ class sales_Routes extends core_Manager
     {
         $nowTs = dt::mysql2timestamp(dt::now());
         $interval = 24 * 60 * 60 * 5;
+        $dateFld = $rec->dateFld ?? null;
+        $repeat = $rec->repeat ?? null;
+        $holidays = $rec->holidays ?? null;
 
-        if (!$rec->dateFld) {
+        if (!$dateFld) {
             return false;
         }
 
-        $startTs = dt::mysql2timestamp($rec->dateFld);
+        $startTs = dt::mysql2timestamp($dateFld);
         $diff    = $nowTs - $startTs;
 
         // Ако още не е дошъл първия път
@@ -331,16 +334,16 @@ class sales_Routes extends core_Manager
             $nextTs = $startTs;
         } else {
             // Ако няма повторения
-            if (!$rec->repeat) {
+            if (!$repeat) {
                 // Ако е точно днес
-                if ($rec->dateFld == date('Y-m-d')) {
-                    return $rec->dateFld;
+                if ($dateFld == date('Y-m-d')) {
+                    return $dateFld;
                 }
                 return false;
             }
 
-            $steps  = floor($diff / $rec->repeat) + 1;
-            $nextTs = $startTs + $steps * $rec->repeat;
+            $steps  = floor($diff / $repeat) + 1;
+            $nextTs = $startTs + $steps * $repeat;
         }
 
         // Връщаме mysql-формат
@@ -348,11 +351,11 @@ class sales_Routes extends core_Manager
         $date = dt::verbal2mysql($date, false);
 
         // Ако няма holiday-режим, просто даваме датата
-        if (empty($rec->holidays) || $rec->holidays === 'include') return $date;
+        if (empty($holidays) || $holidays === 'include') return $date;
 
         // В противен случай влизаме в обработка на празниците
         while (cal_Calendar::isHoliday($date)) {
-            switch ($rec->holidays) {
+            switch ($holidays) {
                 case 'skip':
 
                     // Добавяме още един интервал и проверяваме пак

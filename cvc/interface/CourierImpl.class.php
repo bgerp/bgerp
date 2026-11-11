@@ -382,7 +382,12 @@ class cvc_interface_CourierImpl extends core_Manager
             }
 
             $parcelInfoArr = type_Table::toArray($rec->parcelInfo);
-            $parcelWeight = arr::sumValuesArray($parcelInfoArr, 'weight');
+            // Теглото в таблицата е текст като "2,5" - сумира се след разпознаване
+            $Double = core_Type::getByName('double');
+            $parcelWeight = null;
+            foreach ($parcelInfoArr as $parcel) {
+                $parcelWeight += (float) $Double->fromVerbal($parcel->weight ?? '');
+            }
 
             if(!empty($rec->parcelInfo)){
                 if(countR($parcelInfoArr) != $rec->palletCount){
