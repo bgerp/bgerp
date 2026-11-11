@@ -40,6 +40,26 @@
 .funny-visitor[data-reaction="hello"]::after { content: '✦'; position: absolute; right: 0; top: -8px; font: 17px sans-serif; color: #cda45a; animation: funny-gesture-mark .85s ease-out both; }
 .funny-visitor[data-reaction="shake"]::after { content: ''; position: absolute; left: 50%; top: 40%; width: 3px; height: 6px; border-radius: 50%; box-shadow: -20px -4px #7cb8d3, 19px 8px #7cb8d3, -15px 14px #7cb8d3; animation: funny-gesture-mark .85s ease-out both; }
 .funny-visitor[data-perched="true"] { filter: drop-shadow(0 2px 2px #52617533); }
+/* Separate SVG layers keep wings moving without shaking the landed body. */
+.funny-visitor .funny-insect-wings, .funny-visitor .funny-insect-hands { position: absolute; left: 0; top: 0; }
+.funny-insect-wings { transform-origin: 50% 45%; animation: funny-wings .075s linear infinite alternate; }
+.funny-mosquito .funny-insect-wings { animation-duration: .055s; }
+.funny-visitor[data-perched="true"] .funny-insect-wings { animation: none; transform: scaleX(.65); opacity: .75; }
+.funny-fly[data-insect="rubbing"] .funny-insect-hands { transform-origin: 50% 60%; animation: funny-rub .13s ease-in-out infinite alternate; }
+.funny-fly[data-insect="walking"] .funny-insect-hands { animation: funny-rub .22s linear infinite alternate; }
+.funny-mosquito[data-insect="feeding"] > svg:first-child { animation: funny-feed .65s ease-in-out infinite alternate; transform-origin: 37% 80%; }
+.funny-mosquito[data-fed="true"] { --funny-insect-belly: #cb4d55; }
+.funny-visitor.funny-squashed { animation: none; filter: none; }
+.funny-squashed > svg { animation: funny-squash .16s ease-out forwards; }
+.funny-squashed > .funny-insect-blood { position: absolute; left: 0; top: 0; animation: none; transform: scale(var(--funny-blood-scale)); opacity: var(--funny-blood-opacity); }
+.funny-insect-mark { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; }
+.funny-insect-tracks { width: 2px; height: 2px; margin: -1px; border-radius: 50%; background: #66563e99; box-shadow: -3px -2px #66563e88, 3px 2px #66563e88; animation: funny-insect-trace 5s linear forwards; }
+.funny-insect-bite { width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #a5323b; box-shadow: 0 0 0 3px #dc70703d, inset 0 1px 2px #692e3b; animation: funny-insect-trace 8s linear forwards; }
+@keyframes funny-wings { from { transform: scaleX(.75) rotate(-5deg); } to { transform: scaleX(1.12) rotate(5deg); } }
+@keyframes funny-rub { from { transform: rotate(-8deg) scaleX(.92); } to { transform: rotate(8deg) scaleX(1.08); } }
+@keyframes funny-feed { to { transform: scaleY(.96); } }
+@keyframes funny-squash { from { transform: scale(.65, 1.2); } to { transform: scale(1.1, .8); } }
+@keyframes funny-insect-trace { 0%,65% { opacity: .85; } 100% { opacity: 0; } }
 @keyframes funny-shiver { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
 @keyframes funny-shake { 20%,60% { transform: rotate(-9deg); } 40%,80% { transform: rotate(9deg); } }
 @keyframes funny-adjust { 35%,65% { transform: translateY(-3px) rotate(-5deg); } }
@@ -148,6 +168,6 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
 }

@@ -19,18 +19,21 @@
     #blank { height: 160px; } @media(max-width:600px) { main { grid-template-columns: 1fr; gap: 70px; } #blockPortal_notes { margin-top: 0; } }
     .meal-samples { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 12px; }
     .meal-samples span { background: #f8ecd0; border: 1px solid #d9c9a9; min-height: 18px; text-align: center; font-size: 10px; }
+    #insect-launch { width: 170px; height: 32px; border: 1px dashed #94a3b8; margin: 12px auto -46px; text-align: center; color: #64748b; }
+    #insect-launch::after { content: 'Двоен клик за герои'; font-size: 12px; pointer-events: none; }
 </style>
 <header>
     <h1>Funny - визуална проверка</h1>
     <p>Самостоятелна тестова страница със синтетична прогноза. Стартирайте HTTP сървър в директорията funny и отворете tests/preview.html.</p>
     <label>Прогноза <select id="weather"><option value="rain">Дъжд</option><option value="snow">Сняг (-4°C)</option><option value="clear-day">Слънце</option><option value="cloudy">Облачно</option><option value="cold">Студено и облачно</option><option value="wind">Вятър</option><option value="showers-day">Слънце и превалявания</option><option value="clear-night">Ясна нощ</option><option value="fog">Мъгла</option></select></label>
-    <label>Герой <select id="character"><option value="auto">Според сезона</option><option value="casper">Духче</option><option value="snowman">Снежен човек</option><option value="bat">Прилеп</option><option value="pumpkin">Тиква</option><option value="butterfly">Пеперуда</option><option value="stork">Щъркел</option><option value="ghostgirl">Духчица</option><option value="ghostplay">Палавото духче</option><option value="spiders">Паячета</option><option value="cat">Рижа котка</option><option value="blackcat">Черна котка</option><option value="witch">Вещица</option><option value="muncher">Лакомото чудовище</option><option value="friends">Група приятели</option><option value="off">Без герои</option></select></label>
+    <label>Герой <select id="character"><option value="auto">Според сезона</option><option value="casper">Духче</option><option value="snowman">Снежен човек</option><option value="bat">Прилеп</option><option value="pumpkin">Тиква</option><option value="butterfly">Пеперуда</option><option value="stork">Щъркел</option><option value="ghostgirl">Духчица</option><option value="ghostplay">Палавото духче</option><option value="spiders">Паячета</option><option value="cat">Рижа котка</option><option value="blackcat">Черна котка</option><option value="witch">Вещица</option><option value="muncher">Лакомото чудовище</option><option value="fly">Муха</option><option value="mosquito">Комар</option><option value="insects">Муха и комар</option><option value="friends">Група приятели</option><option value="off">Без герои</option></select></label>
     <label>Честота <select id="frequency"><option value="frequent">Много често</option><option value="normal">Нормална</option></select></label>
     <label>Сила <select id="strength"><option value="normal">Нормални</option><option value="gentle">Деликатни</option></select></label>
     <label>Тестов час <select id="hour"><option value="">Текущ</option><option value="8">08:00</option><option value="12">12:00</option><option value="17">17:00</option><option value="20">20:00</option><option value="0">00:00</option><option value="4">04:00</option></select></label>
     <label>Тестова дата <input id="date" type="date"></label>
     <details><summary>Указания за проверките</summary>
     <p>Изберете нов герой и сравнете "Облачно" (без аксесоар), "Студено и облачно" (шал) и "Слънце" (очила). Двоен клик на празно място извиква избрания герой веднага.</p>
+    <p>Муха и комар: двоен клик в пунктирното поле, после изчакайте кацане върху текст или контрола. Мухата потърква крачета, ходи и оставя следи. Комарът оставя точка и коремчето му почервенява. Докоснете ги с мишката: остават размазани за 2-3,5 секунди. Проверете изчистването при друг таб и Escape. В сезонен режим мухата е за април-октомври със слънчева прогноза над 9°C, а комарът - юни-август. Извън тези месеци при над 10°C имат 10% шанс да влязат в избора за поява; за мухата остава условието за слънце. При размазване кръвта е според изпитото количество. Насекомите са без аксесоари.</p>
     <p>При слънчева прогноза сравнете тестовите часове: сутрин слънцето е вдясно, в 12:00 високо в средата, а вечер вляво и по-ниско. Часовникът се подменя само в тази тестова страница; приложението използва часа на устройството.</p>
     <p>При "Ясна нощ" луната е вляво в 20:00, високо по средата в 00:00 и вдясно в 04:00. За приблизителните фази сравнете 6, 14, 21 и 28 януари 2000 г.: новолуние, първа четвърт, пълнолуние и последна четвърт.</p>
     <p>Проверка за бездействие: пишете в тестовото поле поне 30 секунди след презареждане. Автоматични ефекти не трябва да се появяват. След спиране изчакайте 10-24 секунди при "Много често" или 60-120 секунди при "Нормална". Повторете с "Без герои". Движение, писане, докосване и скрол започват изчакването отначало. Излезте в друг таб или прозорец и се върнете: трябва да има ново пълно изчакване според избраната честота.</p>
@@ -43,6 +46,7 @@
     </details>
     <output id="activity"></output>
     <output id="events">Наблюдавани ефекти: изчакване</output>
+    <div id="insect-launch" title="Празно място за двоен клик близо до тестовите блокове"></div>
 </header>
 <main>
     <section id="blockPortal_calendar" class="bgerp_drivers_Calendar"><h2>Календар</h2><div class="portal-cal-today"><div class="title">Днес <img src="../img/characters.svg" width="28" height="28" alt="Тестова прогноза"></div></div><p>Тестови блок за натрупване на вода и сняг.</p></section>
@@ -89,7 +93,7 @@
     window.addEventListener('focus', reportActivity); window.addEventListener('blur', reportActivity); reportActivity();
     // Observe rendered nodes, without triggering effects or changing their timing.
     var seen = {}, names = {'funny-weather-layer':'Време','funny-peeker':'Надничане','funny-weather-wind-piece':'Вятър','funny-weather-resting':'Кацнало листо','funny-weather-ripple':'Вълнички','funny-weather-icicles':'Висулки','funny-weather-runoff':'Капки','funny-weather-footprints':'Стъпки','funny-weather-splash':'Пръски','funny-burst':'Уцелване','funny-crumbs':'Трохички','funny-knock':'Почукване','funny-weather-rainbow':'Дъга','funny-weather-meteor':'Падаща звезда',shiver:'Потреперване',shake:'Отърсване',adjust:'Очилата',hello:'Поздрав',perched:'Кацане'};
-    names.hurry = 'Забързване';
+    names.hurry = 'Забързване'; names.rubbing = 'Крачета'; names.walking = 'Разходка'; names.feeding = 'Смучене'; names['funny-insect-bite'] = 'Ухапване'; names['funny-insect-tracks'] = 'Следи от муха'; names.squashed = 'Размазване';
     new MutationObserver(function (records) {
         var changed = false;
         records.forEach(function (record) {
@@ -98,7 +102,8 @@
                     if (!seen.hurry && record.target.classList.contains('funny-muncher') && parseFloat(record.target.style.getPropertyValue('--funny-chomp-duration')) < 0.199) { seen.hurry = 1; changed = true; }
                     return;
                 }
-                var key = record.attributeName === 'data-perched' ? (record.target.getAttribute('data-perched') ? 'perched' : '') : record.target.getAttribute('data-reaction');
+                if (record.attributeName === 'class') { if (record.target.classList.contains('funny-squashed')) { seen.squashed = (seen.squashed || 0) + 1; changed = true; } return; }
+                var key = record.attributeName === 'data-insect' ? record.target.getAttribute('data-insect') : record.attributeName === 'data-perched' ? (record.target.getAttribute('data-perched') ? 'perched' : '') : record.target.getAttribute('data-reaction');
                 if (names[key]) { seen[key] = (seen[key] || 0) + 1; changed = true; }
             }
             Array.prototype.forEach.call(record.addedNodes, function (node) {
@@ -106,10 +111,11 @@
             Object.keys(names).forEach(function (name) { if (node.classList.contains(name)) { seen[name] = (seen[name] || 0) + 1; changed = true; } });
         }); });
         if (changed) document.getElementById('events').textContent = 'Наблюдавани ефекти: ' + Object.keys(seen).map(function (name) { return names[name] + ' ' + seen[name]; }).join(' / ');
-    }).observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['data-reaction','data-perched','style']});
+    }).observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['data-reaction','data-perched','data-insect','class','style']});
     var image = document.querySelector('.title img');
     image.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><text x="2" y="23" font-size="23">' + ({rain:'☂',snow:'❄','clear-day':'☀',fog:'☁'}[weather.value] || '') + '</text></svg>');
-    funnyWeather.init({mode:'on',strength:strength.value,icon:weather.value === 'cold' ? 'cloudy' : weather.value,temperature:weather.value === 'cold' ? 4 : weather.value === 'snow' ? -4 : null,standalone:character.value === 'off',frequency:frequency.value,expires:Date.now()+86400000});
-    funnyEffects.init({mode:character.value === 'off' ? 'off' : character.value === 'auto' ? 'auto' : 'selected',strength:strength.value,scoreKey:'funny.preview.best',characters:character.value === 'friends' ? ['casper','ghost','elf'] : [character.value],trigger:'random',frequency:frequency.value,sound:'yes',spriteUrl:'../img/characters.svg'});
+    var forecast = {icon:weather.value === 'cold' ? 'cloudy' : weather.value,temperature:weather.value === 'cold' ? 4 : weather.value === 'snow' ? -4 : 22,expires:Date.now()+86400000};
+    funnyWeather.init({mode:'on',strength:strength.value,icon:forecast.icon,temperature:forecast.temperature,standalone:character.value === 'off',frequency:frequency.value,expires:Date.now()+86400000});
+    funnyEffects.init({forecast:forecast,mode:character.value === 'off' ? 'off' : character.value === 'auto' ? 'auto' : 'selected',strength:strength.value,scoreKey:'funny.preview.best',characters:character.value === 'insects' ? ['fly','mosquito'] : character.value === 'friends' ? ['casper','ghost','elf'] : [character.value],trigger:'random',frequency:frequency.value,sound:'yes',spriteUrl:'../img/characters.svg'});
 </script>
 </html>
