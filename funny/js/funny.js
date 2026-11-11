@@ -452,7 +452,7 @@
                     x: origin.x, y: origin.y,
                     from: {x: origin.x, y: origin.y}, destination: destination,
                     launched: true, born: now, previous: now, leaving: 0,
-                    lifetime: character === 'muncher' ? 77000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: []
+                    lifetime: character === 'muncher' ? 77000 : random(5000, 16000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: []
                 };
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
@@ -646,8 +646,29 @@
 
             function finishRestore(effect) {
                 window.clearTimeout(effect.timer);
-                effect.node.classList.remove('funny-restoring');
+                if (effect.remove) effect.node.remove();
+                else effect.node.classList.remove('funny-restoring');
                 restorations.splice(restorations.indexOf(effect), 1);
+            }
+
+            /** Keep teeth and crumbs at the mouth's bite position, including on inputs. */
+            function markMeal(v, meal) {
+                var r = meal.getBoundingClientRect(), node = document.createElement('div');
+                node.className = 'funny-meal-mark';
+                node.setAttribute('aria-hidden', 'true');
+                node.style.left = clamp(v.x, r.left + 4, r.right - 4) + 'px';
+                node.style.top = clamp(v.y + v.height * 0.15, r.top + 4, r.bottom - 4) + 'px';
+                node.style.setProperty('--funny-teeth-width', (2 + Math.floor(Math.random() * 4)) * 8 + 'px');
+                var count = 1 + Math.floor(Math.random() * 6);
+                for (var i = 0; i < count; i++) {
+                    var crumb = document.createElement('i');
+                    crumb.style.width = random(2, 5) + 'px';
+                    crumb.style.height = random(2, 4) + 'px';
+                    crumb.style.transform = 'translate(' + random(-16, 15) + 'px,' + random(11, 20) + 'px) rotate(' + random(-35, 35) + 'deg)';
+                    node.appendChild(crumb);
+                }
+                document.body.appendChild(node);
+                v.mealMarks.push(node);
             }
 
             /** Return the original appearance gently; inactive pages restore immediately. */
@@ -661,6 +682,14 @@
                     }
                     el.classList.remove('funny-eaten');
                 });
+                v.mealMarks.forEach(function (node) {
+                    if (active()) {
+                        node.classList.add('funny-meal-mark-restoring');
+                        var effect = {node:node, remove:true, timer:window.setTimeout(function () { finishRestore(effect); }, 1500)};
+                        restorations.push(effect);
+                    } else node.remove();
+                });
+                v.mealMarks = [];
                 v.eaten = [];
             }
 
@@ -684,24 +713,46 @@
                 return segmentDistance(pointer.x, pointer.y, v.x, v.y, point.x, point.y) < Math.max(90, v.width) ? null : point;
             }
 
-            /** Nearest visible, reachable element; bites grow until the available meals are gone. */
+            /** Mark each ancestor once even when many small meals share a container. */
+            function markMealParents(el, parents) {
+                for (var parent = el.parentElement; parent && parent !== document.body && !parents.has(parent); parent = parent.parentElement) parents.add(parent);
+            }
+
+            /** Eat visible inner content across the page before returning to its emptied containers. */
             function findMeal(v) {
                 var nodes = document.body.querySelectorAll('*'), focus = document.activeElement;
-                var limit = 260 * Math.pow(1.35, v.eaten.length), best = null, nearest = Infinity, fallback = null, smallest = Infinity;
+                var meals = [], containers = new Set(), eatenParents = new Set(), hidden = new Set();
                 for (var i = 0; i < nodes.length && i < 4000; i++) {
                     var el = nodes[i];
-                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-restoring,.funny-stats,[aria-hidden="true"]') ||
-                        (focus && focus !== document.body && (el === focus || el.contains(focus)))) continue;
+                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]')) continue;
+                    var style = window.getComputedStyle(el);
+                    var parent = el.parentElement, closedDetails = parent && parent.tagName === 'DETAILS' && !parent.open && parent.querySelector('summary') !== el;
+                    if (hidden.has(parent) || closedDetails || style.display === 'none' || style.contentVisibility === 'hidden' || Number(style.opacity) === 0) { hidden.add(el); continue; }
+                    if (style.visibility === 'hidden' || style.visibility === 'collapse') continue;
                     var r = el.getBoundingClientRect();
                     if (r.width < 8 || r.height < 8 || r.bottom <= 0 || r.right <= 0 || r.top >= window.innerHeight || r.left >= window.innerWidth) continue;
+                    meals.push({el:el, rect:r});
+                    markMealParents(el, containers);
+                }
+                v.eaten.forEach(function (el) { if (el.isConnected) markMealParents(el, eatenParents); });
+                meals = meals.filter(function (meal) {
+                    // A bounded scan must not swallow a container whose children were not inspected.
+                    return !containers.has(meal.el) && !(nodes.length > 4000 && meal.el.children.length);
+                });
+                var fresh = meals.filter(function (meal) { return !eatenParents.has(meal.el); });
+                if (fresh.length) meals = fresh;
+                var limit = 260 * Math.pow(1.35, v.eaten.length), best = null, nearest = Infinity, fallback = null, smallest = Infinity;
+                meals.forEach(function (meal) {
+                    var el = meal.el, r = meal.rect;
+                    if (el.closest('.funny-restoring') || (focus && focus !== document.body && (el === focus || el.contains(focus)))) return;
                     var point = mealPoint(v, r);
-                    if (!point) continue;
+                    if (!point) return;
                     var area = r.width * r.height;
                     if (r.width <= limit && r.height <= limit) {
                         var distance = Math.hypot(point.x - v.x, point.y - v.y);
                         if (distance < nearest) { nearest = distance; best = el; }
                     } else if (area < smallest) { smallest = area; fallback = el; }
-                }
+                });
                 return best || fallback;
             }
 
@@ -734,13 +785,19 @@
                 var point = mealPoint(v, meal.getBoundingClientRect());
                 if (!point) { v.munchTarget = null; return true; }
                 var mx = point.x - v.x, my = point.y - v.y;
-                var gap = Math.hypot(mx, my), step = Math.min(200, 90 + v.eaten.length * 4) * delta;
+                var hurry = clamp((now - v.born - v.lifetime + 15000) / 15000, 0, 1);
+                var gap = Math.hypot(mx, my), step = Math.min(200, 90 + v.eaten.length * 4) * (1 + hurry * 0.8) * delta;
                 if (gap > Math.max(14, step)) { v.x += mx / gap * step; v.y += my / gap * step; return true; }
+                // A refreshed container may gain inner content while the monster approaches it.
+                if (meal.children.length && findMeal(v) !== meal) { v.munchTarget = null; return true; }
                 meal.classList.add('funny-eaten');
                 v.eaten.push(meal);
+                markMeal(v, meal);
                 v.munchTarget = null;
-                // Leave time to see the bite before moving to another element.
-                v.eating = now + Math.max(800, 1200 - v.eaten.length * 20);
+                // Gradually hurry during the final 15 seconds, keeping each bite visible.
+                var chewing = 1 - hurry * 0.5;
+                v.eating = now + Math.max(800, 1200 - v.eaten.length * 20) * chewing;
+                v.node.style.setProperty('--funny-chomp-duration', (0.2 * chewing) + 's');
                 v.node.setAttribute('data-munching', 'true');
                 burst(v, 'crumb');
                 if (!v.silent) playSound('munch');

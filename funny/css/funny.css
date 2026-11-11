@@ -54,7 +54,7 @@
     z-index: 10001;
     pointer-events: none !important;
 }
-.funny-burst *, .funny-crumbs *, .funny-knock * { pointer-events: none !important; }
+.funny-burst *, .funny-crumbs *, .funny-knock *, .funny-meal-mark * { pointer-events: none !important; }
 .funny-burst i { position: absolute; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: #f5f3ff; box-shadow: 0 0 3px #b9afcf; animation: funny-burst .7s ease-out forwards; }
 .funny-burst-puff i, .funny-burst-smoke i { width: 18px; height: 15px; margin: -8px; filter: blur(2px); }
 .funny-burst-smoke i { background: #8a759e; box-shadow: 0 0 5px #b2a4c7; }
@@ -78,10 +78,16 @@
     65% { transform: rotate(7deg); }
 }
 
-/* A faint silhouette keeps the eaten element's place visible without changing its content. */
-.funny-eaten { opacity: .12 !important; filter: grayscale(1) !important; transition: opacity .65s ease-in, filter .65s ease-in !important; }
+/* Keep the eaten content readable; nested bites must not multiply its fading. */
+.funny-eaten { opacity: .4 !important; filter: grayscale(.75) !important; transition: opacity .65s ease-in, filter .65s ease-in !important; }
+.funny-eaten .funny-eaten { opacity: 1 !important; filter: none !important; }
 .funny-restoring { transition: opacity 1.5s ease-out, filter 1.5s ease-out !important; }
-.funny-visitor[data-munching="true"] > svg { transform-origin: 50% 70%; animation: funny-chomp .2s ease-in-out 4 alternate; }
+.funny-meal-mark { position: fixed; width: 40px; height: 24px; transform: translate(-50%, -35%); z-index: 9999; pointer-events: none !important; opacity: .8; transition: opacity 1.5s ease-out; }
+.funny-meal-mark::before { content: ''; position: absolute; left: 50%; top: 0; width: var(--funny-teeth-width, 24px); height: 8px; transform: translateX(-50%); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0 1L4 6L8 1' fill='%23fff8e0' fill-opacity='.6' stroke='%23997441' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E") left / 8px 8px repeat-x; }
+.funny-meal-mark i { position: absolute; left: 50%; top: 0; border-radius: 1px; background: #c59759; }
+.funny-meal-mark i:nth-child(even) { background: #a98656; }
+.funny-meal-mark-restoring { opacity: 0; }
+.funny-visitor[data-munching="true"] > svg { transform-origin: 50% 70%; animation: funny-chomp var(--funny-chomp-duration, .2s) ease-in-out 4 alternate; }
 @keyframes funny-chomp { to { transform: scale(1.12, .86); } }
 .funny-crumbs i { position: absolute; width: 4px; height: 4px; border-radius: 1px; background: #d9994b; box-shadow: 0 1px 1px #80562a66; animation: funny-crumb 2s ease-out both; }
 .funny-crumbs i:nth-child(even) { background: #8ebc65; width: 3px; height: 5px; }
@@ -142,6 +148,6 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
 }

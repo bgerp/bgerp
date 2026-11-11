@@ -10,12 +10,15 @@
     header { max-width: 900px; margin: auto; }
     h1 { font-size: 22px; margin: 0 0 8px; }
     select { padding: 6px; margin-right: 16px; }
-    #events { display: block; min-height: 24px; color: #64748b; font-size: 12px; }
+    /* Status updates must not move the page and trigger the monster's scroll retreat. */
+    #events { display: block; height: 48px; overflow: auto; color: #64748b; font-size: 12px; }
     main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 80px auto; }
     section { border: 1px solid #cbd5e1; border-radius: 6px; background: white; min-height: 170px; padding: 16px; }
     h2 { margin: 0; font-size: 17px; } .bgerp_drivers_Calendar { background: #f3f6dc; }
     .title img { vertical-align: middle; } #blockPortal_notes { margin-top: 90px; }
     #blank { height: 160px; } @media(max-width:600px) { main { grid-template-columns: 1fr; gap: 70px; } #blockPortal_notes { margin-top: 0; } }
+    .meal-samples { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 12px; }
+    .meal-samples span { background: #f8ecd0; border: 1px solid #d9c9a9; min-height: 18px; text-align: center; font-size: 10px; }
 </style>
 <header>
     <h1>Funny - визуална проверка</h1>
@@ -35,7 +38,8 @@
     <p>Двоен клик на празно място стартира герои и време. При "Без герои" стартира само времето. Следващ двоен клик добавя герои, без да рестартира времето. Движение го скрива плавно. За поздрав извикайте няколко героя; пеперудата и щъркелът кацат на близък ръб. Жестовете са след около 2 секунди, дъгата след 9, а падащата звезда след 18-40 секунди. Облаците излизат извън екрана преди нов преход. Проверете спирането при движение, друг таб и Escape.</p>
     <p>След натрупване дъждът прави вълнички и пръски, а снегът под 0°C образува висулки. Есенно листо може да поседи на ръб и да отлети. Уцелете герой, презаредете и уцелете отново: рекордът трябва да се запази. "Деликатни" извиква по един герой и намалява частиците, наситеността и звука.</p>
     <p>След уцелване отворете <a href="about:blank" target="_blank" rel="noopener">тестов празен таб</a> и се върнете. Ефектите и текущият брояч трябва да изчезнат; новият резултат започва от първото уцелване, а личният рекорд се запазва.</p>
-    <p>Лакомото чудовище оставя трохички и блед сив отпечатък на изяденото, като пази дистанция от неподвижната мишка. Възстановяването след Escape е плавно за 1,5 секунди; при загуба на фокус е веднага. Максималният му престой е 80 секунди. Някои герои почукват рядко по екрана; броячът отчита ефекта, дори когато вече е приключил.</p>
+    <p>Лакомото чудовище първо изяжда видимото вътрешно съдържание по цялата страница и оставя външните блокове за края. Изяденото остава на 40% видимост, със зъбки и трохички точно на мястото на хапката, включително при полета за въвеждане. Чудовището пази дистанция от неподвижната мишка. В последните 15 секунди преди тръгване постепенно ускорява движението и дъвченето. Възстановяването и изчезването на следите след Escape са плавни за 1,5 секунди; при загуба на фокус са веднага. Максималният му престой е 80 секунди. Някои герои почукват рядко по екрана; броячът отчита ефекта, дори когато вече е приключил.</p>
+    <p><button type="button" id="meal-test">Добави хапки за дълъг тест</button> Извикайте чудовището с двоен клик и изчакайте над 62 секунди, без да местите мишката. Дъвченето и движението трябва постепенно да се ускорят.</p>
     </details>
     <output id="activity"></output>
     <output id="events">Наблюдавани ефекти: изчакване</output>
@@ -70,16 +74,30 @@
         location.search = new URLSearchParams({weather:weather.value,character:character.value,strength:strength.value,hour:hour.value,date:date.value,frequency:frequency.value}).toString();
     }); });
     document.getElementById('background-test').href = location.href;
+    // Enough real visible elements keep the normal controller eating until its final phase.
+    document.getElementById('meal-test').addEventListener('click', function () {
+        if (!document.querySelector('.meal-samples')) {
+            var samples = document.createElement('div'); samples.className = 'meal-samples';
+            for (var i = 1; i <= 90; i++) { var piece = document.createElement('span'); piece.textContent = i; samples.appendChild(piece); }
+            document.getElementById('blockPortal_notes').appendChild(samples);
+        }
+        this.closest('details').open = false;
+    });
     var initialActivity = document.visibilityState + ' / Фокус: ' + document.hasFocus();
     function reportActivity() { document.getElementById('activity').textContent = 'При зареждане: ' + initialActivity + ' | Сега: ' + document.visibilityState + ' / Фокус: ' + document.hasFocus(); }
     document.addEventListener('visibilitychange', reportActivity);
     window.addEventListener('focus', reportActivity); window.addEventListener('blur', reportActivity); reportActivity();
     // Observe rendered nodes, without triggering effects or changing their timing.
     var seen = {}, names = {'funny-weather-layer':'Време','funny-peeker':'Надничане','funny-weather-wind-piece':'Вятър','funny-weather-resting':'Кацнало листо','funny-weather-ripple':'Вълнички','funny-weather-icicles':'Висулки','funny-weather-runoff':'Капки','funny-weather-footprints':'Стъпки','funny-weather-splash':'Пръски','funny-burst':'Уцелване','funny-crumbs':'Трохички','funny-knock':'Почукване','funny-weather-rainbow':'Дъга','funny-weather-meteor':'Падаща звезда',shiver:'Потреперване',shake:'Отърсване',adjust:'Очилата',hello:'Поздрав',perched:'Кацане'};
+    names.hurry = 'Забързване';
     new MutationObserver(function (records) {
         var changed = false;
         records.forEach(function (record) {
             if (record.type === 'attributes') {
+                if (record.attributeName === 'style') {
+                    if (!seen.hurry && record.target.classList.contains('funny-muncher') && parseFloat(record.target.style.getPropertyValue('--funny-chomp-duration')) < 0.199) { seen.hurry = 1; changed = true; }
+                    return;
+                }
                 var key = record.attributeName === 'data-perched' ? (record.target.getAttribute('data-perched') ? 'perched' : '') : record.target.getAttribute('data-reaction');
                 if (names[key]) { seen[key] = (seen[key] || 0) + 1; changed = true; }
             }
@@ -88,7 +106,7 @@
             Object.keys(names).forEach(function (name) { if (node.classList.contains(name)) { seen[name] = (seen[name] || 0) + 1; changed = true; } });
         }); });
         if (changed) document.getElementById('events').textContent = 'Наблюдавани ефекти: ' + Object.keys(seen).map(function (name) { return names[name] + ' ' + seen[name]; }).join(' / ');
-    }).observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['data-reaction','data-perched']});
+    }).observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['data-reaction','data-perched','style']});
     var image = document.querySelector('.title img');
     image.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><text x="2" y="23" font-size="23">' + ({rain:'☂',snow:'❄','clear-day':'☀',fog:'☁'}[weather.value] || '') + '</text></svg>');
     funnyWeather.init({mode:'on',strength:strength.value,icon:weather.value === 'cold' ? 'cloudy' : weather.value,temperature:weather.value === 'cold' ? 4 : weather.value === 'snow' ? -4 : null,standalone:character.value === 'off',frequency:frequency.value,expires:Date.now()+86400000});
