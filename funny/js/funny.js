@@ -119,9 +119,31 @@
                 } catch (error) { audio = null; }
             }
 
+            /** Sharp attacks and short, inharmonic resonances suggest a fingertip tapping glass. */
+            function playGlassKnock() {
+                var now = audio.currentTime;
+                [0, 0.26].forEach(function (delay, index) {
+                    [[640, 0.07, 0.038], [1510, 0.13, 0.022], [2630, 0.045, 0.013]].forEach(function (partial) {
+                        var start = now + delay, end = start + partial[1];
+                        var oscillator = audio.createOscillator(), gain = audio.createGain();
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(partial[0] * (index ? 0.97 : 1), start);
+                        gain.gain.setValueAtTime(0, start);
+                        gain.gain.linearRampToValueAtTime(partial[2] * (gentle ? 0.5 : 1) * (index ? 0.9 : 1), start + 0.002);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, end);
+                        oscillator.connect(gain);
+                        gain.connect(audio.destination);
+                        oscillator.start(start);
+                        oscillator.stop(end);
+                        oscillator.onended = function () { oscillator.disconnect(); gain.disconnect(); };
+                    });
+                });
+            }
+
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
+                if (character === 'knock') { playGlassKnock(); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
@@ -149,11 +171,10 @@
                     chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine'},
                     butterfly: {notes: [880, 1175, 1568], duration: 0.12, spacing: 0.13, pitch: 1.02, wave: 'sine'},
                     firefly: {notes: [1047, 1568], duration: 0.3, spacing: 0.27, pitch: 0.98, wave: 'sine'},
-                    pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'},
-                    knock: {notes: [240, 220], duration: 0.07, spacing: 0.18, pitch: 0.25, wave: 'triangle', low: true}
+                    pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
-                if (options.sound === 'scary' && character !== 'pop' && character !== 'knock') {
+                if (options.sound === 'scary' && character !== 'pop') {
                     sound = Object.assign({}, sound, {notes: sound.notes.map(function (note) { return note * 0.65; }),
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
@@ -362,7 +383,7 @@
                     node.appendChild(particle);
                 }
                 document.body.appendChild(node);
-                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, crumbs ? 2000 : knocking ? 1100 : 750)};
+                var effect = {node:node, timer:window.setTimeout(function () { removeBurst(effect); }, crumbs ? 2000 : knocking ? 1450 : 750)};
                 bursts.push(effect);
                 if (crumbs) v.crumbTrail = {x:v.x,y:v.y,time:performance.now()};
             }
@@ -501,7 +522,7 @@
 
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
             function react(v, kind, now) {
-                v.reactionUntil = now + 900;
+                v.reactionUntil = now + (kind === 'knock' ? 1200 : 900);
                 v.node.setAttribute('data-reaction', kind);
             }
 

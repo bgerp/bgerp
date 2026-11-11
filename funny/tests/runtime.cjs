@@ -27,7 +27,7 @@ function environment(settings = {}, config = {}) {
         constructor() { this.currentTime = now / 1000; this.state = 'running'; this.destination = {}; audio.push(this); }
         resume() { return Promise.resolve(); }
         close() { this.state = 'closed'; return Promise.resolve(); }
-        createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, time}); }}; return node; }
+        createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, start:this.startTime, time}); }}; return node; }
         createGain() { return {gain:param(), connect() {}, disconnect() {}}; }
         createBiquadFilter() { return {frequency:param(), Q:param(), connect() {}, disconnect() {}}; }
     }
@@ -452,12 +452,26 @@ check('rare glass knocks are brief, respect sound and notifications, and have a 
         if(e.document.body.children.some(n=>n.className==='funny-knock')) chosen=seed;
     }
     assert(chosen,'at least one deterministic visitor knocks');
-    for(const sound of ['yes','no']) {
+    for(const sound of ['yes','scary','no']) {
         const e=environment({mode:'selected',characters:['casper'],trigger:'manual',sound},{seed:chosen});
         e.click();const initial=e.sounds.length;e.tick(4100);const v=e.visitors()[0];
         assert.equal(v.attrs['data-reaction'],'knock');const ring=e.document.body.children.find(n=>n.className==='funny-knock');
-        assert.equal(ring.children.length,2);assert.equal(e.sounds.length-initial,sound==='yes'?2:0);
-        e.tick(1200);assert(!e.document.body.children.includes(ring));
+        assert.equal(ring.children.length,2);
+        const taps=e.sounds.slice(initial);
+        if(sound==='no') assert.equal(taps.length,0);
+        else {
+            const starts=[...new Set(taps.map(t=>t.start))];
+            assert.equal(starts.length,2,'two taps, each with layered glass resonances');
+            assert(Math.abs(starts[1]-starts[0]-.26)<.001);
+            for(const start of starts) {
+                const partials=taps.filter(t=>t.start===start);
+                assert(partials.some(t=>t.frequency>2000),'bright glass attack');
+                assert(partials.some(t=>t.frequency<1000),'short body resonance');
+                assert(partials.every(t=>t.time-start<.2),'no sustained ringing');
+            }
+        }
+        e.tick(1050);assert(e.document.body.children.includes(ring),'ripples linger visibly');
+        e.tick(450);assert(!e.document.body.children.includes(ring));
         e.document.emit('keydown',{key:'Escape'});
         for(let i=0;i<5;i++){e.click();e.tick(4100);assert(!e.document.body.children.some(n=>n.className==='funny-knock'));e.document.emit('keydown',{key:'Escape'});}
     }

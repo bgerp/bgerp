@@ -90,11 +90,15 @@
     30%, 55% { opacity: .75; transform: translate(var(--x), var(--y)) rotate(100deg); }
     100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + 6px)) rotate(130deg); }
 }
-.funny-knock i { position: absolute; width: 10px; height: 10px; margin: -5px; border: 1.5px solid #a5a0c8; border-radius: 50%; box-shadow: 0 0 3px #fff; animation: funny-knock-ring .8s ease-out both; }
-.funny-knock i + i { animation-delay: .18s; }
-.funny-visitor[data-reaction="knock"]::after { content: '✊'; position: absolute; left: 73%; top: 27%; font-size: 16px; animation: funny-knock-hand .18s ease-in-out 2; }
-@keyframes funny-knock-ring { from { opacity: .8; transform: scale(.5); } to { opacity: 0; transform: scale(4); } }
-@keyframes funny-knock-hand { 50% { transform: translateY(-3px) scale(.85); } }
+/* Two expanding glass ripples share the sound's 260 ms interval. */
+.funny-knock i { position: absolute; box-sizing: border-box; width: 20px; height: 20px; margin: -10px; border: 2px solid #6d83b9; border-radius: 50%; background: radial-gradient(circle, #e2f4ff66, transparent 70%); box-shadow: 0 0 0 1px #fff, inset 0 0 0 1px #fff, 0 0 5px #93b9e8; animation: funny-knock-ring 1.1s ease-out both; }
+.funny-knock i + i { animation-delay: .26s; }
+.funny-visitor[data-reaction="knock"] > svg { transform-origin: 65% 60%; animation: funny-knock-body .26s ease-out 2; }
+.funny-visitor[data-reaction="knock"]::after { content: '✊'; position: absolute; left: 67%; top: 25%; font-size: 28px; line-height: 1; filter: drop-shadow(0 1px 2px #64748b88); animation: funny-knock-hand .26s ease-out 2, funny-knock-fade 1.2s ease-out both; }
+@keyframes funny-knock-ring { 0% { opacity: 1; transform: scale(.45); } 25% { opacity: .95; } 65% { opacity: .5; } 100% { opacity: 0; transform: scale(5); } }
+@keyframes funny-knock-hand { 0%,100% { transform: translate(-3px, 2px) rotate(-12deg); } 16% { transform: translate(3px, -3px) rotate(8deg) scale(1.15); } }
+@keyframes funny-knock-body { 16% { transform: translateX(2px) rotate(3deg); } }
+@keyframes funny-knock-fade { 0%,70% { opacity: 1; } 100% { opacity: 0; } }
 
 @keyframes funny-pop {
     30% { transform: scale(1.2); }
