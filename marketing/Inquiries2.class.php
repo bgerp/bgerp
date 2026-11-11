@@ -1202,6 +1202,9 @@ class marketing_Inquiries2 extends embed_Manager
 
                     if (empty($sourceData['possibleSpam'])) {
                         $id = $this->save($rec);
+                        if (core_Packs::isInstalled('eshop')) {
+                            eshop_Setup::addDocumentTags($rec->containerId ?? null);
+                        }
                         doc_Threads::doUpdateThread($rec->threadId);
                         $this->logWrite('Създаване от е-артикул', $id);
                         if(!empty($routerExplanation)){

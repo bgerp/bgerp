@@ -188,6 +188,12 @@ defIfNot('ESHOP_RESTRICT_PERSON_INVOICES', 'no');
 
 
 /**
+ * Тагове на документите от онлайн магазина
+ */
+defIfNot('ESHOP_DOCUMENT_TAGS', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -296,6 +302,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption="Очаква се доставка" в онлайн магазина се показва само ако очакваната доставка е със срок до->Избор'),
         'ESHOP_PARAM_FILTER_PARAMS' => array('table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)','caption=Филтри по параметри в навигацията (в този ред)->Параметри'),
         'ESHOP_RESTRICT_PERSON_INVOICES' => array('enum(no=Не,yes=Да)', 'caption=Забрана на фактура на лице по онлайн поръчка без заявена фактура->Избор'),
+        'ESHOP_DOCUMENT_TAGS' => array('keylist(mvc=tags_Tags,select=name)', 'caption=Тагове на документите от онлайн магазина->Тагове'),
     );
 
 
@@ -406,8 +413,45 @@ class eshop_Setup extends core_ProtoSetup
             $templateEnId = doc_TplManager::fetchField("#name = 'Online sale'");
             core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_EN' => $templateEnId));
         }
-        
+
+        // По подразбиране документите от онлайн магазина получават системния таг "Е-магазин"
+        if (strlen($config->ESHOP_DOCUMENT_TAGS) === 0) {
+            $tagId = tags_Tags::fetchField(array("#name = '[#1#]'", 'Е-магазин'));
+            if (!empty($tagId)) {
+                core_Packs::setConfig('eshop', array('ESHOP_DOCUMENT_TAGS' => keylist::addKey('', $tagId)));
+            }
+        }
+
         return $res;
+    }
+
+
+    /**
+     * Поставя на документа таговете от настройките на онлайн магазина
+     *
+     * @param int $containerId
+     * @return void
+     */
+    public static function addDocumentTags($containerId)
+    {
+        $tagIds = keylist::toArray(self::get('DOCUMENT_TAGS'));
+        if (empty($containerId) || !countR($tagIds)) return;
+
+        $existingTagIds = array();
+        $query = tags_Logs::getQuery();
+        $query->where(array('#containerId = [#1#]', $containerId));
+        $query->show('tagId');
+        while ($logRec = $query->fetch()) {
+            $existingTagIds[$logRec->tagId] = $logRec->tagId;
+        }
+
+        $Document = doc_Containers::getDocument($containerId);
+        foreach ($tagIds as $tagId) {
+            if (isset($existingTagIds[$tagId])) continue;
+
+            $logRec = (object) array('docClassId' => $Document->getClassId(), 'docId' => $Document->that, 'containerId' => $containerId, 'tagId' => $tagId, 'userId' => core_Users::getCurrent());
+            tags_Logs::save($logRec);
+        }
     }
     
     
