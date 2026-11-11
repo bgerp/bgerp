@@ -1,3 +1,9 @@
+@media screen {
+  .twoColsFilterPreparing .wide .twoColsFilter,
+  .twoColsFilterPreparing .wide .listTopContainer.twoColsFilter ~ * {
+    visibility: hidden;
+    opacity: 0; } }
+
 .wide .twoColsFilter {
   display: flex;
   flex-wrap: wrap;

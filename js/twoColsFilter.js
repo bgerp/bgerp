@@ -6,6 +6,17 @@ var twoColsFilterMeasureFrame = null;
 var twoColsFilterResizeBound = false;
 var twoColsFilterEventsBound = false;
 
+if (document.readyState === 'loading' && typeof window.jQuery === 'function') {
+    document.documentElement.classList.add('twoColsFilterPreparing');
+
+    // Ако измерването е пропуснато, списъкът остава достъпен след началните обработчици.
+    window.jQuery(function () {
+        window.setTimeout(function () {
+            document.documentElement.classList.remove('twoColsFilterPreparing');
+        }, 0);
+    });
+}
+
 
 /**
  * Избира броя колони по запазените размери, без клониране на полетата.
@@ -29,7 +40,9 @@ function scheduleTwoColsFilterModeUpdate() {
  * Преизмерва филтрите след промяна на поле, което може да промени широчината си.
  */
 function scheduleTwoColsFilterWidthUpdate() {
-    if (twoColsFilterMeasureFrame !== null) {
+    // Първото измерване изчаква инициализацията на полетата в шаблона.
+    if (twoColsFilterMeasureFrame !== null ||
+        document.documentElement.classList.contains('twoColsFilterPreparing')) {
         return;
     }
 
@@ -557,5 +570,6 @@ function render_setTwoColsFilterWidth() {
     // Известяваме чакащите обработчици, че окончателният изглед е приложен.
     var $pendingFilters = $filters.not('.twoColsFilterReady');
     $filters.addClass('twoColsFilterReady');
+    document.documentElement.classList.remove('twoColsFilterPreparing');
     $pendingFilters.trigger('twoColsFilterReady');
 }
