@@ -12,9 +12,10 @@
             started = true;
 
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
-            var visitors = [], portals = [], insectMarks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
+            var visitors = [], portals = [], marks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
             var bursts = [], restorations = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
@@ -343,7 +344,7 @@
                 if (!active()) restorations.slice().forEach(finishRestore);
                 removePeek();
                 bursts.slice().forEach(removeBurst);
-                insectMarks.slice().forEach(removeInsectMark);
+                marks.slice().forEach(removeMark);
                 surfaceEffects.slice().forEach(clearSurface);
                 portals.slice().forEach(removePortal);
                 visitors.slice().forEach(function (v) { removeVisitor(v, false, depart === true); });
@@ -389,6 +390,18 @@
                     v.node.appendChild(sprite(v.character + '-splat'));
                     v.node.classList.add('funny-squashed');
                     v.splatDuration = random(2200, 3500);
+                    if (!v.silent) playSound('pop');
+                    return;
+                }
+                if (v.character === 'snowman') {
+                    // Keep the current bob position while the body sinks into its puddle.
+                    v.y += Math.sin((v.leaving - v.born) / 380) * 3;
+                    v.node.classList.add('funny-melting');
+                    v.splatDuration = 1400;
+                    var puddle = document.createElement('div'); puddle.className = 'funny-melt-puddle';
+                    puddle.style.left = v.x + 'px'; puddle.style.top = (v.y + v.height * 0.4) + 'px';
+                    puddle.style.setProperty('--funny-track-opacity', gentle ? '0.35' : '0.6');
+                    addMark(puddle, 4000);
                     if (!v.silent) playSound('pop');
                     return;
                 }
@@ -441,7 +454,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',snowman:'snow',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -590,14 +603,29 @@
             function positionVisitor(v, now) {
                 var bob = v.leaving || (v.perch && v.perch.arrived) ? 0 : Math.sin((now - v.born) / (v.fed ? 650 : 380)) * 3;
                 v.node.style.transform = 'translate(' + (v.x - v.width / 2) + 'px,' + (v.y - v.height / 2 + bob) + 'px)';
-                var footY = v.y + v.height / 2 + bob;
-                if (v.trail && !v.launched && !v.leaving && now - v.trail.time >= 350 && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= 8) {
-                    if (window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
+                var kind = trailKinds[v.character], winter = v.character === 'sleigh' || v.character === 'deer';
+                var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : 0.5) + bob;
+                if (v.trail && !v.launched && !v.leaving && now - v.trail.time >= (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
+                    if (kind) characterTrail(v, footY, kind);
+                    if (!winter && window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
                     v.trail = null;
                 }
                 if (!v.trail || v.launched) v.trail = {x:v.x,y:footY,time:now};
                 if (v.character === 'muncher' && v.eaten.length && !v.launched && !v.leaving && v.crumbTrail &&
                     now - v.crumbTrail.time >= (gentle ? 500 : 300) && Math.hypot(v.x - v.crumbTrail.x, v.y - v.crumbTrail.y) >= 16) burst(v, 'crumb');
+            }
+
+            /** Small themed traces follow movement without weather; feeding and eating retain their contact marks. */
+            function characterTrail(v, footY, kind) {
+                var from = v.trail, dx = v.x - from.x, dy = footY - from.y, distance = Math.hypot(dx, dy);
+                if (distance > 80 || from.x < 16 || from.y < 16 || from.x > window.innerWidth - 16 || from.y > window.innerHeight - 16) return;
+                var node = document.createElement('div');
+                node.className = 'funny-character-trail funny-' + v.character + '-track funny-trail-' + kind;
+                node.style.left = from.x + 'px'; node.style.top = from.y + 'px';
+                node.style.transform = 'rotate(' + Math.atan2(dy, dx) + 'rad)';
+                node.style.setProperty('--funny-track-opacity', gentle ? '0.4' : '0.7');
+                if (kind === 'runners' || kind === 'thread') node.style.width = distance + 'px';
+                addMark(node, 4000);
             }
 
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
@@ -694,9 +722,18 @@
                 return true;
             }
 
-            function removeInsectMark(mark) {
+            function removeMark(mark) {
                 window.clearTimeout(mark.timer); mark.node.remove();
-                insectMarks.splice(insectMarks.indexOf(mark), 1);
+                marks.splice(marks.indexOf(mark), 1);
+            }
+
+            /** All trails, puddles, bites and webs share one cap and the same inactive-page cleanup. */
+            function addMark(node, lifetime) {
+                if (marks.length >= (gentle ? 12 : 24)) removeMark(marks[0]);
+                node.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(node);
+                var mark = {node:node,timer:window.setTimeout(function () { removeMark(mark); }, lifetime)};
+                marks.push(mark);
             }
 
             /** Restore only our classes and variables, leaving live application styles and content intact. */
@@ -756,29 +793,21 @@
                     nearest = distance; best = {x:x,y:y,angle:Math.atan2(toY - y, toX - x)};
                 });
                 if (!best) return;
-                if (insectMarks.length >= (gentle ? 12 : 24)) removeInsectMark(insectMarks[0]);
                 var node = document.createElement('div'); node.className = 'funny-insect-mark funny-spider-thread';
-                node.setAttribute('aria-hidden', 'true');
                 node.style.left = best.x + 'px'; node.style.top = best.y + 'px'; node.style.width = nearest + 'px';
                 node.style.transform = 'rotate(' + best.angle + 'rad)';
                 var web = sprite('spider-thread'); web.setAttribute('viewBox', '0 0 120 32'); web.setAttribute('preserveAspectRatio', 'none'); node.appendChild(web);
-                document.body.appendChild(node);
-                var mark = {node:node,timer:window.setTimeout(function () { removeInsectMark(mark); }, 8000)};
-                insectMarks.push(mark);
+                addMark(node, 8000);
             }
 
             /** Small temporary marks stay at the actual foot/proboscis contact and never intercept input. */
             function markInsect(v, kind) {
-                if (insectMarks.length >= (gentle ? 12 : 24)) removeInsectMark(insectMarks[0]);
                 var node = document.createElement('div');
                 node.className = 'funny-insect-mark funny-insect-' + kind;
                 if (v.character === 'vampire') node.classList.add('funny-vampire-bite');
-                node.setAttribute('aria-hidden', 'true');
                 node.style.left = (v.x + v.contact.x) + 'px';
                 node.style.top = (v.y + v.contact.y) + 'px';
-                document.body.appendChild(node);
-                var mark = {node:node,timer:window.setTimeout(function () { removeInsectMark(mark); }, kind === 'bite' ? 8000 : 5000)};
-                insectMarks.push(mark);
+                addMark(node, kind === 'bite' ? 8000 : 5000);
             }
 
             /** Feeding drains the element; a walking fly leaves both footmarks and a little grime. */
@@ -1205,7 +1234,7 @@
             });
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
-                insectMarks.slice().forEach(removeInsectMark);
+                marks.slice().forEach(removeMark);
                 removePeek(); retreatMunchers(); visitors.forEach(function (v) { takeOff(v, performance.now()); });
             }, {passive: true, capture: true});
             document.addEventListener('visibilitychange', syncActivity);

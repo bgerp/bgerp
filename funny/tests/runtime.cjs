@@ -180,7 +180,7 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
                 count=e.visitors().length;
             }
         }
-        assert.equal(portals().length,0);assert.equal(e.timers.size,0);
+        assert.equal(portals().length,0);assert.equal(e.timers.size,e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length);
         if(count>1) groups++;
     }
     assert(groups>0);
@@ -678,8 +678,71 @@ check('weather outfits follow the forecast, update visitors and leave bounded tr
     }
     const e=environment({trigger:'manual'});e.click();assert.equal(e.visitors()[0].children.length,1);
 });
+check('sleigh runners and deer hooves leave bounded, fading directional tracks without requiring weather',()=>{
+    for(const character of ['sleigh','deer']) for(const strength of ['normal','gentle']) for(const weather of ['', 'snow clouds']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:[character],strength},{weather});
+        const tracks=()=>e.document.body.children.filter(n=>n.className.includes('funny-'+character+'-track'));
+        e.click();assert.equal(tracks().length,0,'no marks inside the portal');e.tick(2500);
+        assert(tracks().length>0,character);const first=tracks()[0];
+        assert.equal(first.attrs['aria-hidden'],'true');assert.equal(first.style['--funny-track-opacity'],strength==='gentle'?'0.4':'0.7');
+        assert(Number.isFinite(parseFloat(first.style.left)) && Number.isFinite(parseFloat(first.style.top)));
+        assert.match(first.style.transform,/^rotate\([-\d.]+rad\)$/);
+        if(character==='sleigh') assert(parseFloat(first.style.width)>=14 && parseFloat(first.style.width)<=80);
+        assert.equal(e.traces.length,0,'winter tracks replace generic weather footprints');
+        e.tick(4100);assert(!e.document.body.children.includes(first),'each mark expires within four seconds');
+        for(let i=0;i<10;i++) {e.click();e.tick(500);assert(tracks().length<=(strength==='gentle'?12:24));}
+        e.tick(45000);assert.equal(tracks().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print and reduced motion',()=>{
+    for(const exit of ['scroll','escape','resize','blur','hidden','print','reduced','pagehide']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['deer']});e.click();e.tick(2500);
+        const tracks=()=>e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));assert(tracks().length>0);
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='resize') e.window.emit('resize');
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='print') e.window.emit('beforeprint');
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        if(exit==='pagehide') e.window.emit('pagehide');
+        assert.equal(tracks().length,0,exit);
+    }
+});
+check('all roaming characters leave their own short traces without weather and share one global cap',()=>{
+    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+    for(const [character,kind] of Object.entries(kinds)) {
+        const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
+        const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        assert(tracks.length>0,character);assert(tracks.every(n=>n.className.includes('funny-trail-'+kind) && n.attrs['aria-hidden']==='true'));
+        e.tick(4100);assert(tracks.every(n=>!e.document.body.children.includes(n)),character+' trace expired');
+        e.document.focused=false;e.window.emit('blur');assert(!e.document.body.children.some(n=>n.className.includes('funny-character-trail')));
+    }
+    for(const strength of ['normal','gentle']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:Object.keys(kinds),strength});
+        for(let i=0;i<20;i++) {e.click();e.tick(500);assert(e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length<=(strength==='gentle'?12:24));}
+        e.tick(45000);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('a caught snowman melts once, leaves a temporary puddle and stops on focus loss',()=>{
+    for(const trigger of ['manual','notification']) {
+        const e=environment({trigger,mode:'selected',characters:['snowman']},{weather:'snow clouds'});
+        if(trigger==='manual') e.click();else e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});
+        e.tick(800);const v=e.visitors()[0],p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        assert(v.className.includes('funny-melting'));assert(!e.document.body.children.some(n=>n.className.startsWith('funny-burst')));
+        const puddle=e.document.body.children.find(n=>n.className==='funny-melt-puddle');assert(puddle);assert.equal(puddle.attrs['aria-hidden'],'true');
+        const frozen=e.center(v);e.tick(1000);assert(e.visitors().includes(v));assert.deepEqual(e.center(v),frozen);
+        e.document.emit('pointermove',e.event({clientX:p.x+1,clientY:p.y}));assert.equal(e.document.body.children.find(n=>n.className==='funny-stats').children[0].textContent,'Уцелени: 1');
+        e.tick(500);assert.equal(e.visitors().length,0);assert(e.document.body.children.includes(puddle));
+        e.tick(2600);assert(!e.document.body.children.includes(puddle));
+        if(trigger==='notification') assert.equal(e.sounds.length,0);
+        e.click();e.tick(800);const next=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:next.x,clientY:next.y}));
+        e.document.focused=false;e.window.emit('blur');assert.equal(e.visitors().length,0);assert(!e.document.body.children.some(n=>n.className==='funny-melt-puddle'));assert.equal(e.timers.size,0);
+    }
+});
 check('catch effects match the character, finish promptly and clean up on blur',()=>{
-    for(const [character,kind] of [['ghost','puff'],['casper','puff'],['bat','smoke'],['snowman','snow'],['pumpkin','pumpkin'],['spiderweb','web'],['sleigh','star'],['martenitsa','thread'],['butterfly','petal']]) {
+    const effects={ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',sleigh:'star',elf:'confetti',deer:'dust',pumpkin:'pumpkin',bat:'smoke',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',stork:'feather',bunny:'puff',chick:'puff',butterfly:'petal',firefly:'glow'};
+    for(const [character,kind] of Object.entries(effects)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(800);
         const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
         const burst=e.document.body.children.find(n=>n.className==='funny-burst funny-burst-'+kind);
