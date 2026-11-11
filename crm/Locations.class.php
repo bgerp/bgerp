@@ -816,10 +816,13 @@ class crm_Locations extends core_Master
         foreach ($recs as $rec) {
             $title = static::getRecTitle($rec, false);
             if (!empty($params['showAddress'])) {
-                $countryCode = drdata_Countries::fetchField($rec->countryId, 'letterCode2');
-                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . $rec->address;
+                // Стари обекти може да са без държава
+                $countryCode = !empty($rec->countryId) ? drdata_Countries::fetchField($rec->countryId, 'letterCode2') : '';
+                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . ($rec->address ?? '');
                 $fullTitle = rtrim($fullTitle, ", ");
-                $fullTitle .= ", {$countryCode}";
+                if (!empty($countryCode)) {
+                    $fullTitle .= ", {$countryCode}";
+                }
                 $title .= " [{$fullTitle}]";
             }
 

@@ -52,9 +52,13 @@ def convert(library, office, source, destination):
                     raise subprocess.CalledProcessError(code, command)
                 Path(work, Path(source).stem + output.suffix).replace(output)
             else:
+                input_filter = []
+                if Path(source).suffix.lower() in (".html", ".htm") and output.suffix.lower() == ".docx":
+                    # WebDocument has no DOCX export filter; load HTML as a Writer document.
+                    input_filter = ["--input-filter", "HTML (StarWriter)"]
                 subprocess.run(
                     [sys.executable, "-c", "from unoserver.client import converter_main; converter_main()",
-                     "--port", rpc_port, "--host-location", "local", "--quiet",
+                     "--port", rpc_port, "--host-location", "local", "--quiet"] + input_filter + [
                      str(Path(source).resolve()), str(output.resolve())],
                     env=environment, check=True, timeout=180,
                 )

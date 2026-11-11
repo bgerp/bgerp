@@ -6,7 +6,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -367,7 +367,7 @@ class store_plg_CourierApiShipment extends core_Plugin
         $rec = $data->rec;
         if($mvc->lineFieldName ?? null){
             if(!empty($rec->courierApiPrice) && !Mode::isReadOnly()){
-                $courierApiPrice = doc_plg_HidePrices::canSeePriceFields($mvc, $rec) ? currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId) : doc_plg_HidePrices::getBuriedElement();
+                $courierApiPrice = doc_plg_HidePrices::canSeePriceFields($mvc, $rec) ? currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId, true) : doc_plg_HidePrices::getBuriedElement();
                 $data->row->{$mvc->lineFieldName} ??= '';
                 $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";
             }

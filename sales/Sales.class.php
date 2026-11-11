@@ -1390,7 +1390,7 @@ class sales_Sales extends deals_DealMaster
             }
             
             if(!empty($rec->courierApiPrice)){
-                $row->courierApiPrice = doc_plg_HidePrices::canSeePriceFields($mvc, $rec) ? currency_Currencies::decorate($rec->courierApiPrice) : doc_plg_HidePrices::getBuriedElement();
+                $row->courierApiPrice = doc_plg_HidePrices::canSeePriceFields($mvc, $rec) ? currency_Currencies::decorate($rec->courierApiPrice, null, true) : doc_plg_HidePrices::getBuriedElement();
             }
             
             if($receiptId = pos_Receipts::fetchField("#transferredIn = {$rec->id}")){

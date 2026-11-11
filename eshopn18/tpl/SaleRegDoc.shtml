@@ -18,7 +18,7 @@
 
     <table class="srd-meta">
         <tr>
-            <td><span>|Поръчка|*</span>[#orderNumber#]</td>
+            <td><span>|Поръчка|*</span>№ [#orderNumber#]</td>
             <td><span>|Трансакция|*</span>[#transactionRef#]</td>
             <td><span>|Начин на плащане|*</span>[#paymentMethodId#]</td>
             <!--ET_BEGIN posId--><td><span>|Виртуален ПОС|*</span>[#posId#]</td><!--ET_END posId-->
@@ -42,6 +42,12 @@
         <tr>
             <td class="srd-qr">[#qr#]</td>
             <td class="srd-total">
+                <!--ET_BEGIN discountTotal-->
+                <table class="srd-subtotals">
+                    <tr><td>|Сума без отстъпка|*</td><td>[#grossTotal#]</td></tr>
+                    <tr><td>|Отстъпка|*</td><td>[#discountTotal#]</td></tr>
+                </table>
+                <!--ET_END discountTotal-->
                 <div>|Обща сума за плащане|*</div>
                 <div class="srd-total-amount">[#total#] <span>[#currencyId#]</span></div>
                 <div class="srd-paid">|Платено с карта|*</div>

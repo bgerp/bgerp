@@ -47,14 +47,14 @@
 @keyframes funny-gesture-mark { 0%,100% { opacity: 0; } 30%,60% { opacity: .7; } 100% { transform: translateY(-10px) scale(1.2); } }
 .funny-visitor.funny-leaving { opacity: 0; transition: opacity .25s ease-out; }
 .funny-leaving svg { animation: funny-pop .2s ease-out forwards; }
-.funny-burst {
+.funny-burst, .funny-crumbs, .funny-knock {
     position: fixed;
     width: 0;
     height: 0;
     z-index: 10001;
     pointer-events: none !important;
 }
-.funny-burst * { pointer-events: none !important; }
+.funny-burst *, .funny-crumbs *, .funny-knock * { pointer-events: none !important; }
 .funny-burst i { position: absolute; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: #f5f3ff; box-shadow: 0 0 3px #b9afcf; animation: funny-burst .7s ease-out forwards; }
 .funny-burst-puff i, .funny-burst-smoke i { width: 18px; height: 15px; margin: -8px; filter: blur(2px); }
 .funny-burst-smoke i { background: #8a759e; box-shadow: 0 0 5px #b2a4c7; }
@@ -77,6 +77,24 @@
     35% { transform: rotate(-7deg); }
     65% { transform: rotate(7deg); }
 }
+
+/* A faint silhouette keeps the eaten element's place visible without changing its content. */
+.funny-eaten { opacity: .12 !important; filter: grayscale(1) !important; transition: opacity .65s ease-in, filter .65s ease-in !important; }
+.funny-restoring { transition: opacity 1.5s ease-out, filter 1.5s ease-out !important; }
+.funny-visitor[data-munching="true"] > svg { transform-origin: 50% 70%; animation: funny-chomp .2s ease-in-out 4 alternate; }
+@keyframes funny-chomp { to { transform: scale(1.12, .86); } }
+.funny-crumbs i { position: absolute; width: 4px; height: 4px; border-radius: 1px; background: #d9994b; box-shadow: 0 1px 1px #80562a66; animation: funny-crumb 2s ease-out both; }
+.funny-crumbs i:nth-child(even) { background: #8ebc65; width: 3px; height: 5px; }
+@keyframes funny-crumb {
+    0% { opacity: .9; transform: translate(0, 0) rotate(0); }
+    30%, 55% { opacity: .75; transform: translate(var(--x), var(--y)) rotate(100deg); }
+    100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + 6px)) rotate(130deg); }
+}
+.funny-knock i { position: absolute; width: 10px; height: 10px; margin: -5px; border: 1.5px solid #a5a0c8; border-radius: 50%; box-shadow: 0 0 3px #fff; animation: funny-knock-ring .8s ease-out both; }
+.funny-knock i + i { animation-delay: .18s; }
+.funny-visitor[data-reaction="knock"]::after { content: '✊'; position: absolute; left: 73%; top: 27%; font-size: 16px; animation: funny-knock-hand .18s ease-in-out 2; }
+@keyframes funny-knock-ring { from { opacity: .8; transform: scale(.5); } to { opacity: 0; transform: scale(4); } }
+@keyframes funny-knock-hand { 50% { transform: translateY(-3px) scale(.85); } }
 
 @keyframes funny-pop {
     30% { transform: scale(1.2); }
@@ -120,5 +138,6 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-peeker { display: none !important; }
+    .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
 }

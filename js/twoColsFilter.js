@@ -148,6 +148,11 @@ function updateTwoColsFilterModes() {
         filter.classList.toggle('twoColsFilterActive', useTwoColumns);
         filter.classList.toggle('twoColsFilterSummaryBelow', putSummaryBelow);
 
+        if ((metrics.autoExpandMinWidth <= visibleWidth) !==
+            filter.classList.contains('twoColsFilterAutoExpanded')) {
+            scheduleTwoColsFilterWidthUpdate();
+        }
+
         if (modeChanged) {
             refreshTwoColsFilterCombos(filter);
             refreshTwoColsFilterSelects(filter);
@@ -247,9 +252,17 @@ function render_setTwoColsFilterWidth() {
             // го веднага, за да няма кратко показване на тесни полета.
             refreshTwoColsFilterSelects(filter);
 
+            // Показването преди преизмерването образува временна трета колона.
+            if (filter.classList.contains('twoColsFilterActive')) {
+                $rows.finish();
+                render_setTwoColsFilterWidth();
+                refreshTwoColsFilterCombos(filter);
+                return;
+            }
+
             $rows.promise().done(function () {
                 refreshTwoColsFilterCombos(filter);
-                alignTwoColsFilterButtons(filter);
+                scheduleTwoColsFilterWidthUpdate();
             });
         });
         $(document).on('change.twoColsFilter',
@@ -269,7 +282,7 @@ function render_setTwoColsFilterWidth() {
     $filters.each(function () {
         var filter = this;
         var $filter = $(filter);
-        $filter.removeClass('twoColsFilterActive twoColsFilterSummaryBelow');
+        $filter.removeClass('twoColsFilterActive twoColsFilterSummaryBelow twoColsFilterAutoExpanded');
         filter.twoColsFilterMetrics = null;
 
         var $fieldTable = $filter.find('.listFilter .vFormField').first();
@@ -279,14 +292,24 @@ function render_setTwoColsFilterWidth() {
         }
 
         var rowIndexes = [];
+        var visibleRowIndexes = [];
+        var $summary = $filter.children('.summary-block').first();
         var $allRows = $fieldTable.children('tbody').children('tr');
         $allRows.removeClass('twoColsFilterLeftRow twoColsFilterRightRow twoColsFilterSizedRow');
         $allRows.each(function (index) {
-            // Допълнителните филтри участват в измерването, а условно скритите полета - не
-            if ($(this).css('display') != 'none' || $(this).hasClass('toggable')) {
+            if ($(this).css('display') != 'none') {
+                visibleRowIndexes.push(index);
+                rowIndexes.push(index);
+            } else if ($summary.length && $(this).hasClass('toggable')) {
                 rowIndexes.push(index);
             }
         });
+
+        var tryExpanded = $summary.length && $allRows.filter('.toggable').length && rowIndexes.length > 5;
+        if (!tryExpanded) {
+            rowIndexes = visibleRowIndexes;
+        }
+        var measuredRowIndexes = rowIndexes;
 
         if (!rowIndexes.length) {
             return;
@@ -318,7 +341,7 @@ function render_setTwoColsFilterWidth() {
                 columnWidth: 'auto',
                 columnGap: 'normal'
             }).children('tr').each(function (index) {
-                if ($.inArray($source ? rowIndexes[index] : index, indexes) == -1) {
+                if ($.inArray($source ? measuredRowIndexes[index] : index, indexes) == -1) {
                     $(this).remove();
                 } else {
                     $(this).css({display: 'table-row', width: 'auto', transform: 'none'});
@@ -403,25 +426,9 @@ function render_setTwoColsFilterWidth() {
             };
         }
 
-        var $singleColumnCopy = getTableCopy(rowIndexes);
-        var singleSize = getCopySize($singleColumnCopy, true);
+        var $singleColumnCopy = getTableCopy(measuredRowIndexes);
+        var measuredSingleSize = getCopySize($singleColumnCopy, true);
 
-        var rowsInFirstColumn = Math.ceil(rowIndexes.length / 2);
-        var leftSize = singleSize;
-        var rightSize = singleSize;
-        if (rowIndexes.length > 5) {
-            var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn), $singleColumnCopy);
-            leftSize = getCopySize($leftColumnCopy, true);
-            $leftColumnCopy.remove();
-
-            var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn), $singleColumnCopy);
-            rightSize = getCopySize($rightColumnCopy, true);
-            $rightColumnCopy.remove();
-        }
-
-        $singleColumnCopy.remove();
-
-        var $summary = $filter.children('.summary-block').first();
         var summaryWidth = 0;
         if ($summary.length) {
             var $summaryCopy = $summary.clone().css({
@@ -437,64 +444,112 @@ function render_setTwoColsFilterWidth() {
             summaryWidth = Math.ceil($summaryCopy.outerWidth());
         }
 
+        // Двата изгледа използват едни и същи вече измерени опции.
+        function setLayout(indexes) {
+            var singleSize = measuredSingleSize;
+            if (indexes.length !== measuredRowIndexes.length) {
+                var $visibleCopy = getTableCopy(indexes, $singleColumnCopy);
+                singleSize = getCopySize($visibleCopy, true);
+                $visibleCopy.remove();
+            }
+
+            var rowsInFirstColumn = Math.ceil(indexes.length / 2);
+            var leftSize = singleSize;
+            var rightSize = singleSize;
+            if (indexes.length > 5) {
+                var $leftColumnCopy = getTableCopy(indexes.slice(0, rowsInFirstColumn), $singleColumnCopy);
+                leftSize = getCopySize($leftColumnCopy, true);
+                $leftColumnCopy.remove();
+
+                var $rightColumnCopy = getTableCopy(indexes.slice(rowsInFirstColumn), $singleColumnCopy);
+                rightSize = getCopySize($rightColumnCopy, true);
+                $rightColumnCopy.remove();
+            }
+
+            if (!singleSize.caption || !singleSize.total || !leftSize.caption || !rightSize.caption) {
+                return false;
+            }
+
+            // Общата горна граница пази разширяващите се полета в стандартния размер.
+            var singleFieldWidth = singleSize.field;
+            var leftFieldWidth = leftSize.field;
+            var rightFieldWidth = rightSize.field;
+            var maxFieldWidth = Math.max(singleFieldWidth, leftFieldWidth, rightFieldWidth);
+            var formHorizontalSpacing = 0;
+            if ($filter.closest('.doc_Search').length) {
+                var $formSection = $fieldTable.closest('.formSection');
+                // Самостоятелната форма има и рамка с вътрешни отстъпи.
+                formHorizontalSpacing = $formSection.outerWidth() - $formSection.width();
+            }
+            // Всяка колона използва само собствените си полета, включително допълнителните.
+            var leftColumnWidth = leftSize.total;
+            var rightColumnWidth = rightSize.total;
+            var columnGap = Math.ceil(parseFloat($fieldTable.css('font-size')) || 16);
+            var summaryGap = $summary.length ? (parseFloat($filter.css('column-gap')) || 0) : 0;
+            var twoColumnsWidth = leftColumnWidth + columnGap + rightColumnWidth;
+            var $content = $filter.closest('#packWrapper, #main-container');
+            // Двата auto отстъпа и старото визуално изместване пазят статистиката в рамките на таблицата
+            var summarySafetySpace = $summary.length ? 40 : 0;
+            var singleColumnMinWidth = summaryWidth ?
+                singleSize.total + summaryGap + summaryWidth + summarySafetySpace : 0;
+            var twoColumnsMinWidth = indexes.length > 5 ?
+                twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace : Infinity;
+
+            $allRows.removeClass('twoColsFilterLeftRow twoColsFilterRightRow twoColsFilterSizedRow');
+            $.each(indexes, function (position, rowIndex) {
+                var $row = $allRows.eq(rowIndex);
+                $row.addClass(position < rowsInFirstColumn ?
+                    'twoColsFilterLeftRow' : 'twoColsFilterRightRow');
+                $row.toggleClass('twoColsFilterSizedRow',
+                    !$row.find('input[type=radio], input[type=checkbox]').length);
+            });
+
+            filter.style.setProperty('--two-cols-filter-caption-offset', singleSize.caption + 3 + 'px');
+            filter.style.setProperty('--two-cols-filter-left-caption-width', leftSize.caption + 'px');
+            filter.style.setProperty('--two-cols-filter-right-caption-width', rightSize.caption + 'px');
+            filter.style.setProperty('--two-cols-filter-left-caption-offset', leftSize.caption + 3 + 'px');
+            filter.style.setProperty('--two-cols-filter-field-width', maxFieldWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-left-field-width', leftFieldWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-right-field-width', rightFieldWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-single-width', singleSize.total + 'px');
+            filter.style.setProperty('--two-cols-filter-left-width', leftColumnWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-right-width', rightColumnWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-width', twoColumnsWidth + 'px');
+            filter.style.setProperty('--two-cols-filter-row-count', rowsInFirstColumn);
+            filter.style.setProperty('--two-cols-filter-summary-max-width',
+                'calc(100% - ' + Math.ceil(singleSize.total + summaryGap) + 'px)');
+            filter.twoColsFilterMetrics = {
+                content: $content.length ? $content[0] : null,
+                singleColumnMinWidth: singleColumnMinWidth,
+                twoColumnsMinWidth: twoColumnsMinWidth
+            };
+            return true;
+        }
+
+        if (setLayout(measuredRowIndexes) && tryExpanded) {
+            var wasReady = $filter.hasClass('twoColsFilterReady');
+            $filter.addClass('twoColsFilterActive twoColsFilterAutoExpanded twoColsFilterReady');
+            var fitsWidth = filter.twoColsFilterMetrics.twoColumnsMinWidth <=
+                Math.floor(getTwoColsFilterVisibleWidth(filter));
+            // Формата има собствена височина, а обвивката се разтяга по статистиката.
+            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight();
+            var autoExpandMinWidth = fitsHeight ? filter.twoColsFilterMetrics.twoColumnsMinWidth : Infinity;
+
+            // Автоматичното разгъване не променя запомнените скрити редове.
+            if (!fitsWidth || !fitsHeight) {
+                $filter.removeClass('twoColsFilterAutoExpanded');
+                if (visibleRowIndexes.length !== measuredRowIndexes.length) {
+                    setLayout(visibleRowIndexes);
+                }
+            }
+            filter.twoColsFilterMetrics.autoExpandMinWidth = autoExpandMinWidth;
+            $filter.removeClass('twoColsFilterActive');
+            if (!wasReady) {
+                $filter.removeClass('twoColsFilterReady');
+            }
+        }
+
         $measure.remove();
-
-        if (!singleSize.caption || !singleSize.total || !leftSize.caption || !rightSize.caption) {
-            return;
-        }
-
-        // Общата горна граница пази разширяващите се полета в стандартния размер.
-        var singleFieldWidth = singleSize.field;
-        var leftFieldWidth = leftSize.field;
-        var rightFieldWidth = rightSize.field;
-        var maxFieldWidth = Math.max(singleFieldWidth, leftFieldWidth, rightFieldWidth);
-        var formHorizontalSpacing = 0;
-        if ($filter.closest('.doc_Search').length) {
-            var $formSection = $fieldTable.closest('.formSection');
-            // Самостоятелната форма има и рамка с вътрешни отстъпи.
-            formHorizontalSpacing = $formSection.outerWidth() - $formSection.width();
-        }
-        // Всяка колона използва само собствените си полета, включително допълнителните.
-        var leftColumnWidth = leftSize.total;
-        var rightColumnWidth = rightSize.total;
-        var columnGap = Math.ceil(parseFloat($fieldTable.css('font-size')) || 16);
-        var summaryGap = $summary.length ? (parseFloat($filter.css('column-gap')) || 0) : 0;
-        var twoColumnsWidth = leftColumnWidth + columnGap + rightColumnWidth;
-        var $content = $filter.closest('#packWrapper, #main-container');
-        // Двата auto отстъпа и старото визуално изместване пазят статистиката в рамките на таблицата
-        var summarySafetySpace = $summary.length ? 40 : 0;
-        var singleColumnMinWidth = summaryWidth ?
-            singleSize.total + summaryGap + summaryWidth + summarySafetySpace : 0;
-        var twoColumnsMinWidth = rowIndexes.length > 5 ?
-            twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace : Infinity;
-
-        $.each(rowIndexes, function (position, rowIndex) {
-            var $row = $allRows.eq(rowIndex);
-            $row.addClass(position < rowsInFirstColumn ?
-                'twoColsFilterLeftRow' : 'twoColsFilterRightRow');
-            $row.toggleClass('twoColsFilterSizedRow',
-                !$row.find('input[type=radio], input[type=checkbox]').length);
-        });
-
-        filter.style.setProperty('--two-cols-filter-caption-offset', singleSize.caption + 3 + 'px');
-        filter.style.setProperty('--two-cols-filter-left-caption-width', leftSize.caption + 'px');
-        filter.style.setProperty('--two-cols-filter-right-caption-width', rightSize.caption + 'px');
-        filter.style.setProperty('--two-cols-filter-left-caption-offset', leftSize.caption + 3 + 'px');
-        filter.style.setProperty('--two-cols-filter-field-width', maxFieldWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-left-field-width', leftFieldWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-right-field-width', rightFieldWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-single-width', singleSize.total + 'px');
-        filter.style.setProperty('--two-cols-filter-left-width', leftColumnWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-right-width', rightColumnWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-width', twoColumnsWidth + 'px');
-        filter.style.setProperty('--two-cols-filter-row-count', rowsInFirstColumn);
-        filter.style.setProperty('--two-cols-filter-summary-max-width',
-            'calc(100% - ' + Math.ceil(singleSize.total + summaryGap) + 'px)');
-        filter.twoColsFilterMetrics = {
-            content: $content.length ? $content[0] : null,
-            singleColumnMinWidth: singleColumnMinWidth,
-            twoColumnsMinWidth: twoColumnsMinWidth
-        };
     });
 
     updateTwoColsFilterModes();

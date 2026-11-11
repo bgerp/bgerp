@@ -86,7 +86,7 @@ class cms_themes_cards_Theme extends cms_FancyTheme
         for ($i = 1; $i <= 8; $i++) {
             $form->setField('wImg' . $i, 'caption=Банери за десктоп (' . $this->desktopBannerSize . ' px)->Изображение ' . $i . ',hint=Препоръчителен размер ' . $this->desktopBannerSize . ' px. Допускат се и други пропорции — изображението се побира до 100% от ширината с автоматична височина. Ротиращите се банери трябва да имат еднакви пропорции. Без качена снимка се използва банерът на темата.');
         }
-        $form->setField('nImg', 'caption=Банер за мобилен екран|* (600×300 px)->Изображение,hint=Препоръчителен размер|* 600×120 |px. Ширината е до|* 100|% от екрана с автоматична височина без изрязване. Използвайте кратък текст и достатъчно големи елементи|*.');
+        $form->setField('nImg', 'caption=Банер за мобилен екран|* (600×300 px)->Изображение,hint=Препоръчителен размер|* 600×300 |px. Ширината е до|* 100|% от екрана с автоматична височина без изрязване. Използвайте кратък текст и достатъчно големи елементи|*.');
     }
 
 
@@ -327,7 +327,8 @@ class cms_themes_cards_Theme extends cms_FancyTheme
 
     public function wrapMenuTools($tools)
     {
-        $res = new core_ET('<span class="cms-menu-tools"><span id="cart-external-status">[#USERCART#]</span>[#TOOLS#]</span>');
+        $res = new core_ET('<span class="cms-menu-tools" role="navigation" aria-label="[#TOOLS_LABEL#]"><span id="cart-external-status">[#USERCART#]</span>[#TOOLS#]</span>');
+        $res->replace(ht::escapeAttr(tr('Профил, количка и език||Account, cart and language')), 'TOOLS_LABEL');
         $res->replace($tools, 'TOOLS');
 
         return $res;
@@ -380,6 +381,9 @@ class cms_themes_cards_Theme extends cms_FancyTheme
 
     public function getMenuLangContent($img, $lg)
     {
+        // Кодът на езика вече присъства в текста на връзката.
+        $img = preg_replace('/\balt="[^"]*"/', 'alt=""', (string) $img);
+
         return $img . ht::createElement('span', array('class' => 'cms-menu-label'), $lg == 'bg' ? 'БГ' : strtoupper($lg));
     }
 

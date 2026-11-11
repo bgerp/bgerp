@@ -1397,7 +1397,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->paymentState = $overdueAmount;
                     $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
                     if(empty($fields['-list'])){
-                        $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                        $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId, true);
                     }
                     $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
                 }
@@ -1408,7 +1408,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $row->paymentState = $row->amountToPay;
             }
             if(empty($fields['-list'])){
-                $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId, true);
             }
         }
         

@@ -8,7 +8,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -72,6 +72,15 @@ class bgerp_A extends core_Mvc
     public function act_LO()
     {
         return Request::forward(array('Ctr' => 'eshop_Carts', 'Act' => 'ShowLastOrders'));
+    }
+
+
+    /**
+     * Създава пряк път до документа за регистриране на продажба по Н-18
+     */
+    public function act_R()
+    {
+        return Request::forward(array('Ctr' => 'eshopn18_SaleRegDocs', 'Act' => Request::get('pdf') ? 'Pdf' : 'Show'));
     }
 
 

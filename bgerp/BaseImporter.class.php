@@ -97,7 +97,7 @@ class bgerp_BaseImporter extends core_Manager
             
             foreach ($fields as $name => $position) {
                 if ($position != -1) {
-                    $value = $row[$position];
+                    $value = $row[$position] ?? null;
                     if (isset($oFields[$name]['notColumn'])) {
                         $value = $position;
                     }

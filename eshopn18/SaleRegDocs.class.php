@@ -247,9 +247,16 @@ class eshopn18_SaleRegDocs extends core_Master
      */
     protected function fetchByPublicKey()
     {
-        Request::setProtected('doc');
-        $id = Request::get('doc', 'int');
-        Request::removeProtected('doc');
+        $key = (string) Request::get('id', 'varchar');
+        if ($key !== '') {
+            $id = str::checkHash($key, 8, 'eshopn18Doc', '-');
+            $id = ctype_digit((string) $id) ? (int) $id : 0;
+        } else {
+            // Адресите от вече изпратените имейли
+            Request::setProtected('doc');
+            $id = Request::get('doc', 'int');
+            Request::removeProtected('doc');
+        }
         expect($id && ($rec = $this->fetch($id)), 'Няма такъв документ');
 
         return $rec;
@@ -266,11 +273,9 @@ class eshopn18_SaleRegDocs extends core_Master
      */
     public static function getPublicUrl($rec, $action = 'show')
     {
-        Request::setProtected('doc');
-        $url = toUrl(array(get_called_class(), $action, 'doc' => $rec->id), 'absolute');
-        Request::removeProtected('doc');
+        $url = array('A', 'R', str::addHash($rec->id, 8, 'eshopn18Doc', '-'), 'pdf' => ($action == 'pdf') ? 1 : null);
 
-        return $url;
+        return toUrl($url, 'absolute');
     }
 
 
@@ -312,11 +317,27 @@ class eshopn18_SaleRegDocs extends core_Master
 
             $Double = core_Type::getByName('double(decimals=2)');
             $Quantity = core_Type::getByName('double(smartRound)');
+            $Percent = core_Type::getByName('percent(decimals=2)');
+            $grossTotal = $discountTotal = 0;
             foreach ((array) $rec->lines as $line) {
                 $line = (object) $line;
+                $hasDiscount = !empty($line->discount);
+                $price = $Double->toVerbal($line->price ?? 0);
+
+                // Отстъпката е под цената, както в количката: старата цена зачеркната и процентът
+                $grossTotal += $hasDiscount ? ($line->grossAmount ?? 0) : ($line->amount ?? 0);
+                if ($hasDiscount) {
+                    $discountTotal += $line->discountAmount ?? 0;
+                    $price .= '<div class="srd-old-price"><s>' . $Double->toVerbal($line->grossPrice ?? 0) . '</s> <span>-' . $Percent->toVerbal($line->discount) . '</span></div>';
+                }
                 $tpl->append('<tr><td class="srd-left">' . core_Type::escape($line->name ?? '') . '</td><td>' . core_Type::escape($line->vatGroup ?? '') . '</td>'
                     . '<td class="srd-right">' . $Quantity->toVerbal($line->quantity ?? 0) . ' ' . cat_UoM::getShortName($line->packagingId ?? null) . '</td>'
-                    . '<td class="srd-right">' . $Double->toVerbal($line->price ?? 0) . '</td><td class="srd-right">' . $Double->toVerbal($line->amount ?? 0) . '</td></tr>', 'LINES');
+                    . '<td class="srd-right">' . $price . '</td><td class="srd-right">' . $Double->toVerbal($line->amount ?? 0) . '</td></tr>', 'LINES');
+            }
+
+            if (!empty($discountTotal)) {
+                $tpl->replace($Double->toVerbal($grossTotal), 'grossTotal');
+                $tpl->replace($Double->toVerbal($discountTotal), 'discountTotal');
             }
             $tpl->push('eshopn18/tpl/SaleRegDoc.css', 'CSS');
         } finally {
@@ -421,7 +442,7 @@ class eshopn18_SaleRegDocs extends core_Master
             $sysId = $groupRec->sysId ?? ($chargeVat ? 'B' : 'A');
             $vatGroup = acc_VatGroups::fetchField(acc_VatGroups::getIdBySysId($sysId), 'title');
 
-            $res[] = (object) array(
+            $line = (object) array(
                 'name' => cat_Products::getVerbal($dRec->productId, 'name'),
                 'packagingId' => $dRec->packagingId,
                 'quantity' => $quantity,
@@ -430,6 +451,17 @@ class eshopn18_SaleRegDocs extends core_Master
                 'vat' => $vat,
                 'amount' => $amount,
             );
+
+            // При отстъпка редът е с цената без нея (стойност = ед. цена × к-во), а отстъпката е отделно, както на касовия бон
+            if (!empty($discount) && !empty($quantity)) {
+                $grossPrice = round(round($noVatPrice * $dRec->quantity / $quantity * (1 + $vat), 10), 2);
+                $grossAmount = round(round($grossPrice * $quantity, 10), 2);
+                $line->discount = $discount;
+                $line->grossPrice = $grossPrice;
+                $line->grossAmount = $grossAmount;
+                $line->discountAmount = round($amount - $grossAmount, 2);
+            }
+            $res[] = $line;
         }
 
         return $res;

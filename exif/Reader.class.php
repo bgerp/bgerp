@@ -8,7 +8,7 @@
  * @package   exif
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,8 +31,8 @@ class exif_Reader
         // Разширението на файла
         $ext = strtolower($namesAndExt['ext']);
 
-        // Разширението трябва да е един от посочните
-        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif') && ($ext != 'webp')) {
+        // Разширението трябва да е един от посочните; exif_read_data() не чете WebP ("File not supported")
+        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) {
             
             return ;
         }

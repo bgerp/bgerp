@@ -4209,7 +4209,7 @@ en,Планирано за,Scheduled for
 en,Промпт,Prompt
 en,Складът не е от избраната наша фирма,The store does not belong to the selected company
 en,Касата не е от избраната наша фирма,The cash-desk does not belong to the selected company
-en,Магазин в НАП по Наредба Н-18 (картови плащания без касов бон),Online shop registered at NRA under Ordinance N-18 (card payments without fiscal receipt)
+en,Алтернативен режим за отчитане на продажби от електронен магазин без фискално устройство,Alternative mode for reporting online shop sales without a fiscal device
 en,Включен,Turned on
 en,Номер от НАП,NRA number
 en,Собствен или нает домейн,Own or rented domain
@@ -16354,9 +16354,6 @@ en,Обработва и,Also processes
 en,файлове в същото правило,files in the same rule
 en,Обработка на ISO,Processing of ISO
 en,банкови извлечения,bank statements
-en,Онлайн магазин по Наредба Н,Online store under Ordinance N
-en,документ по чл,document under Art
-en,о при плащане с карта и месечен одиторски файл,o for card payments and monthly audit file
 en,От този процент от контекста на модела всяко съобщение носи бележка колко е запълнен; правилото за нов разговор е в описанието на fork_dialog (от,"From this percentage of the model context, each message carries a note of how full it is; the rule for a new conversation is in the description of fork_dialog (from"
 en,% при съвсем несвързана тема и от,% for a completely unrelated topic and from
 en,% при по-различна,% for a more different one
@@ -16650,3 +16647,7 @@ en,Месецът още не е приключил - файлът се пода
 en,Доставчик (ЕИК и име),Provider (ID and name)
 en,"ЕИК (за чуждестранен - ДДС или друг номер) и наименование на доставчика на платежни услуги","UIC (for a foreign one - VAT or other number) and name of the payment service provider"
 en,При доставчик на платежни услуги е задължителен идентификаторът му,The identifier is required for a payment service provider
+en,Тегло на произведеното,Weight of output
+en,Сума без отстъпка,Amount before discount
+en,Поръчки с доставка,Orders with delivery
+en,С грешка,With error

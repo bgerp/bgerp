@@ -2910,15 +2910,16 @@ class email_Outgoings extends core_Master
     public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
+        expect($rec);
         
         $subject = $this->getVerbal($rec, 'subject');
         
         $row = new stdClass();
         $row->title = $subject;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->authorId = $rec->createdBy;
-        $row->state = $rec->state;
-        $row->recTitle = $rec->subject;
+        $row->authorId = $rec->createdBy ?? null;
+        $row->state = $rec->state ?? null;
+        $row->recTitle = $rec->subject ?? null;
         
         return $row;
     }

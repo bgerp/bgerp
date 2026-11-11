@@ -9,7 +9,7 @@
  * @package   synck
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2020 - 2026 Experta OOD
+ * @copyright 2020 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -192,6 +192,7 @@ class sync_Eshop extends sync_Helper
      * @param stdClass $field
      * @param array $res
      * @param string $controller
+     * @return void|false false при неразрешим локален домейн
      */
     public static function fixDomainImport(&$rec, $fName, $field, &$res, $controller, $update = null)
     {
@@ -200,10 +201,15 @@ class sync_Eshop extends sync_Helper
         
         $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
+            $sourceLang = trim($rec->{$lang} ?? '');
+            $sourceDomain = trim($rec->{$domain} ?? '');
             $domains = trim(sync_Setup::get('CMS_DOMAINS') ?? '');
             if ($domains) {
                 $dArr = explode("\n", $domains);
-                foreach ($dArr as $dStr) {
+                foreach ($dArr as $line => $dStr) {
+                    if (trim($dStr) === '') {
+                        continue;
+                    }
                     list($remote, $local) = explode('|', $dStr) + array('', '');
                     
                     list($remoteDomain, $remoteLang) = explode(',', $remote) + array('', '');
@@ -214,12 +220,14 @@ class sync_Eshop extends sync_Helper
                     $localDomain = trim($localDomain);
                     $localLang = trim($localLang);
                     
-                    $rec->{$lang} = trim($rec->{$lang} ?? '');
-                    $rec->{$domain} = trim($rec->{$domain} ?? '');
+                    if (!$remoteDomain || !$remoteLang || !$localDomain || !$localLang) {
+                        self::logErr('Невалидно съответствие на домейни в sync, ред ' . ($line + 1) .
+                            '. Формат: външен-домейн,език|локален-домейн,език. Зависимите записи се пропускат');
+
+                        return false;
+                    }
                     
-                    expect($remoteDomain && $remoteLang && $localDomain && $localLang);
-                    
-                    if (($rec->{$lang} == $remoteLang) && ($rec->{$domain} == $remoteDomain)) {
+                    if (($sourceLang == $remoteLang) && ($sourceDomain == $remoteDomain)) {
                         $haveDomains = true;
                         
                         $rec->lang = $localLang;
@@ -231,8 +239,8 @@ class sync_Eshop extends sync_Helper
             }
             
             if (!$haveDomains) {
-                $rec->lang = $rec->{$lang} ?? '';
-                $rec->domain = $rec->{$domain} ?? '';
+                $rec->lang = $sourceLang;
+                $rec->domain = $sourceDomain;
             }
             
             foreach ((array)$rec as $fName => $fVal) {
@@ -243,11 +251,31 @@ class sync_Eshop extends sync_Helper
                 unset($rec->{$fName});
             }
             
-            expect($rec->lang && $rec->domain, $rec);
+            if (!$rec->lang || !$rec->domain) {
+                self::logErr('Липсва домейн или език в sync данните за cms_Domains. Зависимите записи се пропускат');
+
+                return false;
+            }
             
             $oRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $rec->domain, $rec->lang));
-            
-            expect($oRec, $rec);
+
+            // Изрично зададеното съответствие има предимство пред автоматичния избор.
+            if (!$oRec && !$haveDomains) {
+                $query = cms_Domains::getQuery();
+                $query->where(array("#state = 'active' AND #lang = '[#1#]'", $rec->lang));
+                $query->limit(2);
+                $candidate = $query->fetch();
+                if ($candidate && !$query->fetch()) {
+                    $oRec = $candidate;
+                }
+            }
+
+            if (!$oRec) {
+                self::logErr("Няма еднозначен локален домейн за sync: {$sourceDomain},{$sourceLang} -> {$rec->domain},{$rec->lang}. " .
+                    'Проверете "Съответствие на домейни" в настройките на sync. Зависимите записи се пропускат');
+
+                return false;
+            }
             
             foreach ((array)$oRec as $fName => $fVal) {
                 $rec->{$fName} = $fVal;

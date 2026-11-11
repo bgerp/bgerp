@@ -78,6 +78,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Допълнителни полета в стандартния листов филтър
+     */
+    public $toggableFieldsInVerticalListFilter = 'purchaseId';
+
+
+    /**
      * Единично заглавие
      */
     public $singleTitle = 'Производствена операция';
@@ -490,19 +496,6 @@ class planning_Tasks extends core_Master
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
-        // Показване на обобщението на отпадъка в статистиката
-        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
-        if(countR($wasteArr)){
-            foreach ($wasteArr as $wasteRow){
-                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
-                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
-                $cloneTpl->replace($wasteRow->class, 'wasteClass');
-                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
-                $cloneTpl->removeBlocksAndPlaces();
-                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
-            }
-        }
-
         $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
         if(countR($subProductArr)){
             foreach ($subProductArr as $subRow){
@@ -798,13 +791,9 @@ class planning_Tasks extends core_Master
                 $row->employees = implode(', ', $employees);
             }
 
-            if ($rec->isFinal == 'yes') {
-                $compareMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobRec->productId, $rec->measureId)->quantity;
-            } else {
-                $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
-            }
+            $compareProductId = (($rec->isFinal ?? null) == 'yes') ? ($jobRec->productId ?? null) : ($rec->productId ?? null);
+            $compareMeasureId = cat_Products::fetchField($compareProductId, 'measureId');
+            $expectedMeasureQuantityInPack = (($rec->measureId ?? null) == $compareMeasureId) ? 1 : (cat_products_Packagings::getPack($compareProductId, $rec->measureId ?? null)->quantity ?? 1);
 
             // Ако има разминаване с очакваното к-во в опаковка да се покаже
             if ($rec->quantityInPack != $expectedMeasureQuantityInPack) {
@@ -1174,7 +1163,7 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if ($canStore == 'yes') {
-            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
+            $resArr['additional'] = array('name' => tr('Тегло на произведеното'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <!--ET_BEGIN notifications--><tr><td colspan='2'>[#notifications#]</td></tr><!--ET_END notifications-->
@@ -1184,6 +1173,27 @@ class planning_Tasks extends core_Master
             if ($rec->showadditionalUom == 'yes') {
                 $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
             }
+        }
+
+        // Отпадъкът е до теглото, с което се сравнява процентът му
+        // След активиране избраният отпадък вече е в планираните артикули
+        $showWasteProduct = isset($rec->wasteProductId) && !in_array($rec->state, array('active', 'wakeup', 'stopped', 'closed'));
+        if (!$showWasteProduct) {
+            unset($row->wasteProductId);
+        }
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($rec->threadId);
+        if ($showWasteProduct || countR($wasteArr)) {
+            $wasteRows = '';
+            $wasteCaption = tr('Отпадък');
+            foreach ($wasteArr as $key => $wasteRow) {
+                if ($key === 'total') {
+                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    continue;
+                }
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}:</td><td>{$wasteRow->quantityVerbal}</td></tr>";
+            }
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
+                <!--ET_BEGIN wasteProductId--><tr><td style='font-weight:normal'>|Артикул|*:</td><td>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
@@ -2326,7 +2336,7 @@ class planning_Tasks extends core_Master
     protected static function getPersistentListFilterFields()
     {
         return arr::make(
-            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect',
+            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect,prevProgress',
             true
         );
     }
@@ -2350,6 +2360,7 @@ class planning_Tasks extends core_Master
         );
         $restoreValues = array();
         $hasExplicitValues = false;
+        $savedValuesChanged = false;
 
         foreach (self::getPersistentListFilterFields() as $fieldName) {
             if (Request::get($fieldName, false) !== null) {
@@ -2358,8 +2369,21 @@ class planning_Tasks extends core_Master
             }
 
             if (array_key_exists($fieldName, $savedValues)) {
-                $restoreValues[$fieldName] = $savedValues[$fieldName];
+                $value = $savedValues[$fieldName];
+                if (!empty($value) && in_array($fieldName, array('saleId', 'purchaseId'))) {
+                    // Старите настройки може да сочат договор, който вече няма задания.
+                    list($sourceClass) = planning_Jobs::getSourceInfo((object) array($fieldName => $value));
+                    if (!countR(planning_Jobs::getListSourceOptions(array('mvc' => $sourceClass), 1, '', $value))) {
+                        $savedValues[$fieldName] = $value = '';
+                        $savedValuesChanged = true;
+                    }
+                }
+                $restoreValues[$fieldName] = $value;
             }
+        }
+
+        if ($savedValuesChanged) {
+            core_Settings::setValues('planningTasksListFilter', $savedValues, core_Users::getCurrent());
         }
 
         if (countR($restoreValues)) {
@@ -2393,20 +2417,29 @@ class planning_Tasks extends core_Master
     {
         if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
             !empty($data->masterMvc) ||
+            $data->listFilter->gotErrors() ||
             Mode::is('isReorder')) {
             return;
         }
 
-        $values = array();
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            $values[$fieldName] = $data->listFilter->rec->{$fieldName} ?? '';
-        }
-
         core_Settings::setValues(
             'planningTasksListFilter',
-            $values,
+            self::getPersistentListFilterValues($data->listFilter->rec),
             core_Users::getCurrent()
         );
+    }
+
+
+    /**
+     * Стойности за повторно подаване във формата
+     */
+    private static function getPersistentListFilterValues($rec)
+    {
+        $values = array();
+        foreach (self::getPersistentListFilterFields() as $fieldName) {
+            $values[$fieldName] = $rec->{$fieldName} ?? '';
+        }
+        return $values;
     }
 
 
@@ -2419,13 +2452,19 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,placeholderType=all,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
-        $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,placeholderType=all,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
-        $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
-        $data->listFilter->showFields .= ',folders,productId,saleId,purchaseId';
+        $listFilter = $data->listFilter ?? null;
+        planning_Jobs::prepareListSourceFilter($listFilter, 'isFinalSelect');
+        $data->listFilter->FNC('prevProgress', 'varchar(allowEmpty,maxRadio=0,minimumResultsForSearch=0)', 'caption=Предх. над,placeholderType=all,input,silent,after=folders,hint=Операции без предходна или с прогрес на непосредствено предходната в заданието равен или над посочения');
+        $progressOptions = array('' => '') + arr::make('10 %,20 %,30 %,40 %,50 %,60 %,70 %,80 %,90 %,100 %', true);
+        $progressInput = Request::get('prevProgress', 'varchar');
+        if (strlen($progressInput ?? '')) {
+            $progressOptions[$progressInput] = $progressInput;
+        }
+        $data->listFilter->setOptions('prevProgress', $progressOptions);
+        $data->listFilter->setField('prevProgress', array('attr' => array('data-tags' => 'true', 'data-width' => '19em')));
+        $listFilter->showFields .= ',folders,prevProgress,productId';
         $data->listFilter->setField('productId','placeholderType=all,before=isFinalSelect');
-        $data->listFilter->input('productId,saleId,purchaseId');
+        $data->listFilter->input('productId,saleId,purchaseId,prevProgress');
         $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -2543,18 +2582,12 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
-        $jobSourceField = $jobSourceId = null;
-        if (!empty($data->listFilter->rec->saleId)) {
-            $jobSourceField = 'saleId';
-            $jobSourceId = $data->listFilter->rec->saleId;
-        } elseif (!empty($data->listFilter->rec->purchaseId)) {
-            $jobSourceField = 'purchaseId';
-            $jobSourceId = $data->listFilter->rec->purchaseId;
-        }
+        list(, $jobSourceId, $jobSourceField) = planning_Jobs::getSourceInfo($listFilter->rec);
 
         if (isset($jobSourceField)) {
             $jQuery = planning_Jobs::getQuery();
-            $jQuery->where("#{$jobSourceField} = {$jobSourceId}");
+            $jQuery->where(array("#{$jobSourceField} = '[#1#]'", $jobSourceId));
+            $jQuery->show('containerId');
             $jRecs = $jQuery->fetchAll();
             $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
 
@@ -2565,19 +2598,47 @@ class planning_Tasks extends core_Master
             }
         }
 
+        if (strlen(trim($filter->prevProgress ?? '')) && !$data->listFilter->gotErrors() && !Mode::is('isReorder')) {
+            // Select2 пази въведения текст; стандартният тип проверява и преобразува процента за заявката.
+            $progressType = core_Type::getByName('percent(min=0)');
+            $progress = $progressType->fromVerbal($filter->prevProgress);
+            $progressType->isValid($progress);
+            if (!empty($progressType->error)) {
+                $data->listFilter->setError('prevProgress', $progressType->error);
+            } else {
+                self::filterByPreviousProgress($data->query, $progress);
+            }
+        }
+
         self::savePersistentListFilter($data);
 
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
-            foreach (self::getPersistentListFilterFields() as $fieldName) {
-                $mvc->refreshRowsListFilterValues[$fieldName] =
-                    $data->listFilter->rec->{$fieldName} ?? '';
-            }
+            $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
         }
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
             $mvc->cacheAssetDataOnShutdown[$filter->assetId] = $filter->assetId;
         }
+    }
+
+
+    /**
+     * Пропуска операциите без предходна или с достатъчен прогрес на непосредствено предходната
+     */
+    private static function filterByPreviousProgress($query, $progress)
+    {
+        $table = $query->mvc->dbTableName;
+        $originColumn = str::phpToMysqlName('originId');
+        $orderColumn = str::phpToMysqlName('saoOrder');
+        $origin = $query->getMysqlField('originId');
+        $order = $query->getMysqlField('saoOrder');
+        // При липсваща предходна няма ограничение; връзката по задание не дублира редовете.
+        $query->where(array("COALESCE((SELECT COALESCE(`prevTask`.`progress`, 0) FROM `{$table}` AS `prevTask`
+            WHERE `prevTask`.`{$originColumn}` = {$origin} AND `prevTask`.`state` != 'rejected'
+                AND COALESCE(`prevTask`.`{$orderColumn}`, 0) < {$order}
+            ORDER BY COALESCE(`prevTask`.`{$orderColumn}`, 0) DESC, `prevTask`.`id` DESC
+            LIMIT 1), [#1#]) >= [#1#]", (double) $progress));
     }
 
 

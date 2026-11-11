@@ -32,6 +32,12 @@ class planning_Jobs extends core_Master
      * Единично заглавие
      */
     public $singleTitle = 'Задание за производство/разпад';
+
+
+    /**
+     * Допълнителни полета в листовия филтър
+     */
+    public $toggableFieldsInVerticalListFilter = 'purchaseId';
     
     
     /**
@@ -653,6 +659,72 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Общи полета за филтриране на задания и операции по договор
+     *
+     * @param core_Form $form
+     * @param string $after
+     */
+    public static function prepareListSourceFilter($form, $after)
+    {
+        foreach (array('saleId' => 'sales_Sales', 'purchaseId' => 'purchase_Purchases') as $field => $sourceClass) {
+            $type = "key2(mvc={$sourceClass},select=id,selectSourceArr=planning_Jobs::getListSourceOptions,allowEmpty,remember,forceAjax,maxSuggestions=100,savePrevSearch=no)";
+            if ($form->getField($field, false)) {
+                $form->setFieldType($field, $type);
+            } else {
+                $form->FNC($field, $type);
+            }
+
+            $isSale = $field == 'saleId';
+            $caption = $isSale ? 'Продажба' : 'Покупка';
+            $otherField = $isSale ? 'purchaseId' : 'saleId';
+            $params = "caption={$caption},placeholderType=all,input,after={$after},mustOrder,class=w100,silent,removeAndRefreshForm={$otherField}";
+            if (!$isSale) {
+                $params .= ',formOrder=1000';
+            }
+            $form->setField($field, $params);
+            $after = $field;
+        }
+
+        $form->showFields .= ',saleId,purchaseId';
+    }
+
+
+    /**
+     * Само договори със задания, независимо от състоянието на договора или заданието
+     */
+    public static function getListSourceOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $sourceClass = $params['mvc'] ?? null;
+        expect(in_array($sourceClass, array('sales_Sales', 'purchase_Purchases')));
+        $jobField = cls::get($sourceClass)->jobSourceField ?? null;
+        expect(in_array($jobField, array('saleId', 'purchaseId')));
+
+        if (isset($onlyIds)) {
+            $onlyIds = is_array($onlyIds) ? $onlyIds : explode(',', (string) $onlyIds);
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+        }
+
+        $query = self::getQuery();
+        $query->where("#{$jobField} IS NOT NULL")->show($jobField)->groupBy($jobField);
+        if (isset($onlyIds)) {
+            // Избраният договор се проверява по индекса, без извличане на всички опции.
+            $query->in($jobField, $onlyIds);
+            if (countR($onlyIds) == 1) {
+                $query->limit(1);
+            }
+        }
+        $sourceIds = arr::extractValuesFromArray($query->fetchAll(), $jobField);
+
+        unset($params['state']);
+
+        return $sourceClass::getSelectArr($params, $limit, $q, $sourceIds, $includeHiddens);
+    }
+
+
+    /**
      * Параметрите за ново задание от документ-източник, като бутоните в "Задания" на сделката
      *
      * @param int $containerId - контейнер на източника
@@ -765,11 +837,18 @@ class planning_Jobs extends core_Master
 
         $data->listFilter->setField('selectPeriod', 'caption=Период');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
+        self::prepareListSourceFilter($data->listFilter ?? null, 'contragentFolderId');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
         $data->listFilter->showFields .= ',contragentFolderId';
 
         if ($filter = $data->listFilter->rec) {
+            list(, $sourceId, $jobField) = self::getSourceInfo($filter);
+            if (isset($jobField)) {
+                $query = $data->query ?? null;
+                $query->where(array("#{$jobField} = '[#1#]'", $sourceId));
+            }
+
             if (isset($filter->type) && $filter->type != 'all') {
                 $data->query->where("#type = '{$filter->type}'");
             }

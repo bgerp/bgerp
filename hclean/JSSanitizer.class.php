@@ -8,7 +8,7 @@
  * @package   hclean
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -55,23 +55,33 @@ class hclean_JSSanitizer extends core_Manager
     public static function prepareHtml($htmlLink)
     {
         // Вземаме съдържанието на линка
-        $content = static::getHtmlFromLink($htmlLink);
-        
+        $content = (string) static::getHtmlFromLink($htmlLink);
         $content = trim($content);
-        
-        $content = i18n_Charset::convertToUtf8($content, array(), true);
-        
+
+        // Валидните UTF-8 букви не трябва да се преоценяват по честота.
+        // За 7-битовите кодировки и HTML entities запазваме досегашното разпознаване.
+        if (mb_check_encoding($content, 'ASCII') || !mb_check_encoding($content, 'UTF-8')) {
+            $content = i18n_Charset::convertToUtf8($content, array(), true);
+        }
+
         // Конфигурационни константи
         $conf = core_Packs::getConfig('hclean');
         
         // Ако е зададено да се вкара CSS' а като inline
-        if ($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE == 'yes') {
+        if (($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE ?? null) == 'yes') {
+            // CSS конверторът трябва да чете реалния UTF-8, а не кодировката преди преобразуването.
+            $content = preg_replace_callback('~<meta\b(?:[^>"\']++|"[^"]*"|\'[^\']*\')*>~i', function ($match) {
+                return preg_replace('~(\bcharset\s*=\s*["\']?)[a-z0-9._:-]+~i', '${1}UTF-8', $match[0]);
+            }, $content);
             $content = csstoinline_ToInline::inlineCssFromHtml($content);
             $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }
-        
-        $content = i18n_Charset::convertToUtf8($content, '', true);
-        
+
+        // Някои стари CSS конвертори извеждат кодировката от оригиналния meta таг.
+        if (mb_check_encoding($content, 'ASCII') || !mb_check_encoding($content, 'UTF-8')) {
+            $content = i18n_Charset::convertToUtf8($content, '', true);
+        }
+
         $content = html_entity_decode($content);
 
         // Премахваме всичко коментари
@@ -121,6 +131,7 @@ class hclean_JSSanitizer extends core_Manager
     public static function JSSanitizer()
     {
         $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", true);
+        $imagePolicy = static::getImagePolicyJs();
         
         // Скрипта за санитаризирана на HTML
         $script = " <script>
@@ -135,10 +146,12 @@ class hclean_JSSanitizer extends core_Manager
                         }
     				
     					function urlX(url) { return url; }
+                        {$imagePolicy}
     					
     					function init() {
     						
-                    		var sanitized = html_sanitize('[#SANITIZEHTML#]', urlX);
+                            standardPolicy = html.makeTagPolicy(urlX);
+                            var sanitized = html.sanitizeWithPolicy('[#SANITIZEHTML#]', imagePolicy);
                     		
                     		// Добавяме линковете да се отварят в нов таб
                     		sanitized = sanitized.replace(/(<a\s)((.|\s)+?)(<\/a>)/ig, '$1 target=\"_blank\" $2$4');
@@ -156,5 +169,52 @@ class hclean_JSSanitizer extends core_Manager
     				</script>";
         
         return $script;
+    }
+
+
+    /**
+     * Допуска само base64 растерни картинки в img src след стандартното пречистване.
+     *
+     * @return string - JavaScript политика за съществуващия HTML филтър
+     */
+    protected static function getImagePolicyJs()
+    {
+        return <<<'JS'
+                        var standardPolicy;
+
+                        /** Проверява формата и сигнатурата, без да зарежда външен ресурс. */
+                        function embeddedImage(value) {
+                            var uri = value.replace(/[\t\r\n ]/g, '');
+                            var match = /^data:image\/(png|jpeg|gif|webp);base64,([a-z0-9+/]+={0,2})$/i.exec(uri);
+                            if (!match || match[2].length % 4) return null;
+                            var signatures = {
+                                png: /^\x89PNG\r\n\x1a\n/,
+                                jpeg: /^\xff\xd8\xff/,
+                                gif: /^GIF8[79]a/,
+                                webp: /^RIFF[\s\S]{4}WEBP/
+                            };
+                            try {
+                                if (!signatures[match[1].toLowerCase()].test(atob(match[2].slice(0, 16)))) return null;
+                            } catch (e) { return null; }
+                            return uri;
+                        }
+
+                        /** Запазва всички останали ограничения на стандартната политика. */
+                        function imagePolicy(tagName, attribs) {
+                            var images = {}, i;
+                            if (tagName === 'img') {
+                                for (i = 0; i < attribs.length; i += 2) {
+                                    if (attribs[i] === 'src') images[i] = embeddedImage(attribs[i + 1]);
+                                }
+                            }
+                            var result = standardPolicy(tagName, attribs);
+                            if (result && tagName === 'img') {
+                                for (i = 0; i < result.attribs.length; i += 2) {
+                                    if (result.attribs[i] === 'src' && images[i]) result.attribs[i + 1] = images[i];
+                                }
+                            }
+                            return result;
+                        }
+JS;
     }
 }

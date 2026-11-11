@@ -612,6 +612,13 @@ class eshop_Products extends core_Master
     }
     
     
+    /** Име на артикула и пореден номер на наличната снимка. */
+    private static function getProductImageAlt($rec, $index)
+    {
+        return tr($rec->name ?? '') . ' - ' . $index;
+    }
+
+
     /**
      * Показване на тъмбнейла на е-артикула
      *
@@ -662,9 +669,13 @@ class eshop_Products extends core_Master
             }
 
             $image = $imageArr[$tact];
-            $thumb = new thumb_Img($image, $width, $height);
+            $thumb = new thumb_Img($image, $width, $height, 'fileman', static::getProductImageAlt($rec, $tact + 1));
         } else {
-            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $width, $height, 'path');
+            $lang = cms_Content::getLang() == 'bg' ? 'bg' : 'en';
+            core_Lg::push($lang);
+            $alt = tr('Продуктът няма изображение||This product has no image');
+            core_Lg::pop();
+            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . $lang . '.png'), $width, $height, 'path', $alt);
         }
         
         return $thumb;
@@ -1030,9 +1041,10 @@ class eshop_Products extends core_Master
             if (count($images) == 2) {
                 $theme = cms_ProtoTheme::getCurrent();
                 list($width, $height) = $theme->productThumbSize ?? array(240, 240);
+                $imageIndex = 1;
                 foreach (array_combine(array('image', 'hoverImage'), array_values($images)) as $field => $fh) {
                     $thumb = new thumb_Img($fh, $width, $height);
-                    $row->{$field} = $thumb->createImg(array('class' => 'eshop-product-image', 'alt' => '', 'loading' => 'lazy'));
+                    $row->{$field} = $thumb->createImg(array('class' => 'eshop-product-image', 'alt' => static::getProductImageAlt($rec, $imageIndex++), 'loading' => 'lazy'));
                 }
             }
         }
@@ -1208,7 +1220,7 @@ class eshop_Products extends core_Master
                         array(400, 300),
                         array(1600, 1200),
                         $data->row->name . " {$i}",
-                        array('class' => 'product-image')
+                        array('class' => 'product-image', 'alt' => static::getProductImageAlt($data->rec, count($data->row->imageArray) + 1))
                     );
 
                 } else {

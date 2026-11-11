@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -406,8 +406,9 @@ class store_Products extends core_Detail
                 $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
                 $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
 
-                core_Permanent::set($hKey, $rec->horizon);
-            } else {
+                // Хоризонтът, избран от името на потребителя (напр. от Аида), не се запомня като негов
+                if (!Mode::is('preserveUserChoices')) core_Permanent::set($hKey, $rec->horizon);
+            } elseif (!Mode::is('preserveUserChoices')) {
                 core_Permanent::remove($hKey);
             }
 

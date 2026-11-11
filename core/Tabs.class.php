@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -201,8 +201,9 @@ class core_Tabs extends core_BaseClass
             $res = new stdClass();
             $res->head = $head;
 
-            $body = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
-            "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $body);
+            // SCRIPTS са преди JQRUN, както в page_Html
+            $body = new ET("[#1#]<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
+            "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->", $body);
             $res->css = array_keys(array_flip($body->getArray('CSS')));
             foreach ($res->css as $key => $file) {
                 $res->css[$key] = page_Html::getFileForAppend($file, false);
