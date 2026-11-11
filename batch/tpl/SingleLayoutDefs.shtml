@@ -82,7 +82,7 @@
 
 					<!--ET_BEGIN alwaysRequire-->
 					<tr><td colspan="2" class="quiet"> |Използване в документите|*</td></tr>
-					<tr><td class="quiet"> » |Избор|*:</td> <td>[#alwaysRequire#]</td></tr>
+					<tr><td class="quiet"> » |Задължително|*:</td> <td>[#alwaysRequire#]</td></tr>
 					<!--ET_END alwaysRequire-->
                 	
                 	<!--ET_BEGIN onlyExistingBatches-->
