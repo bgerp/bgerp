@@ -252,16 +252,22 @@ class eshop_CardPayments extends core_Manager
     public function act_Response()
     {
         Request::setProtected('pm,cp');
-        expect($paymentId = Request::get('pm', 'int'));
+        $paymentId = Request::get('pm', 'int');
         $id = Request::get('cp', 'int');
         Request::removeProtected('pm,cp');
-        $Driver = self::getDriver($paymentId);
-        expect($Driver, 'Методът на плащане не е картов');
 
-        $rec = !empty($id) ? $this->fetch($id) : null;
-        expect(!is_object($rec) || $rec->paymentId == $paymentId);
+        // На общия адрес (/A/CR) методът не се подава - познава се по подписания отговор
+        if (empty($paymentId)) {
+            list($paymentId, $result) = self::readFixedResponse();
+        } else {
+            $Driver = self::getDriver($paymentId);
+            expect($Driver, 'Методът на плащане не е картов');
 
-        $result = $Driver->readResponse(cond_PaymentMethods::fetch($paymentId), $rec);
+            $rec = !empty($id) ? $this->fetch($id) : null;
+            expect(!is_object($rec) || $rec->paymentId == $paymentId);
+
+            $result = $Driver->readResponse(cond_PaymentMethods::fetch($paymentId), $rec);
+        }
         if (!is_array($result)) {
             $this->logWarning('Отговор от шлюза с невалиден подпис');
             expect(false, 'Невалиден отговор от шлюза');
@@ -272,6 +278,31 @@ class eshop_CardPayments extends core_Manager
 
         // Резултатът е на отделен адрес, за да не се изпраща отговорът повторно при презареждане
         return new Redirect(array($this, 'result', $rec->id));
+    }
+
+
+    /**
+     * Отговор на общия адрес - методът е този, чийто драйвер приеме подписа и при който е опитът
+     *
+     * @return array [ид на метода, нормализиран отговор] или [null, null]
+     */
+    protected static function readFixedResponse()
+    {
+        $query = cond_PaymentMethods::getQuery();
+        $query->where('#onlinePaymentDriver IS NOT NULL');
+        $query->show('id');
+        while ($mRec = $query->fetch()) {
+            $Driver = self::getDriver($mRec->id);
+            if (!$Driver || !$Driver->hasFixedResponseUrl()) continue;
+
+            $result = $Driver->readResponse(cond_PaymentMethods::fetch($mRec->id));
+            if (is_array($result) && self::findAttempt($mRec->id, $result)) {
+
+                return array($mRec->id, $result);
+            }
+        }
+
+        return array(null, null);
     }
 
 
