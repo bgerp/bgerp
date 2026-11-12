@@ -36,6 +36,17 @@
 .funny-visitor.funny-gentle { opacity: .65; }
 .funny-visitor svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .funny-visitor .funny-accessory { position: absolute; left: 0; top: 0; }
+.funny-visitor .funny-snow-cover { position: absolute; left: 0; top: 0; transition: opacity .4s linear; }
+.funny-firefly::before { content: ''; position: absolute; left: 50%; top: 68%; width: 150px; height: 150px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, #fff7ae88 0, #fffac844 35%, #fffbd418 55%, transparent 72%); opacity: 0; transition: opacity 1.8s ease; pointer-events: none; }
+.funny-firefly[data-fog-glow="true"]::before { opacity: 1; }
+.funny-firefly.funny-gentle::before { width: 110px; height: 110px; }
+.funny-firefly > svg:first-child { transition: filter 1.8s ease; }
+.funny-firefly[data-fog-glow="true"] > svg:first-child { filter: drop-shadow(0 0 7px #fff6a4); }
+.funny-visitor[data-reaction="umbrella"] > svg { transform-origin: 50% 85%; animation: funny-umbrella-gust 1.6s ease-in-out; }
+.funny-visitor[data-reaction="snowshake"] > svg { animation: funny-shake .75s ease-in-out; }
+@keyframes funny-umbrella-gust { 20%,60% { transform: rotate(var(--funny-gust-angle)); } 75% { transform: rotate(0deg) translateY(-3px); } }
+.funny-snow-shower i { width: 5px; height: 5px; border-radius: 50%; background: #f8fdff; box-shadow: 0 0 1px #87aec8; animation: funny-snow-shower 2.4s ease-out both; }
+@keyframes funny-snow-shower { 0% { opacity: 0; transform: translate(0,0); } 15% { opacity: .9; } 65% { opacity: .8; transform: translate(var(--x),var(--y)); } 100% { opacity: 0; transform: translate(var(--x),calc(var(--y) + 8px)); } }
 .funny-visitor[data-rain-born="true"] > svg { transform-origin: 50% 70%; animation: funny-bubble-born .65s ease-out both; }
 @keyframes funny-bubble-born { 0%,20% { opacity: 0; transform: scale(.15); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 .funny-visitor[data-reaction="shiver"] > svg { animation: funny-shiver .12s linear 6; }
@@ -84,6 +95,8 @@
 .funny-cat-track { color: #ae805c; } .funny-blackcat-track { color: #756780; } .funny-bunny-track { color: #c3a3a5; }
 .funny-wolf-track { color: #777583; }
 .funny-imp-track { color: #638d45; }
+.funny-mouse-track { color: #8c8188; }
+.funny-mouse-track::before, .funny-mouse-track::after { scale: .55; }
 .funny-trail-magic::before { left: -5px; top: -5px; width: 10px; height: 10px; background: #ba91df; clip-path: polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%); }
 .funny-snowmaiden-track::before { background: #9ecce5; filter: drop-shadow(0 0 2px #e5f5ff); }
 .funny-trail-snow::before { left: -5px; top: -3px; width: 11px; height: 7px; border-radius: 50%; background: #f6fbff; box-shadow: 0 1px 2px #80a9c9, 7px 2px 0 -2px #b7d4e8; }
@@ -355,3 +368,39 @@
 .funny-character-trail[data-weathering="thaw"]::before { animation: funny-trace-thaw 4s ease-in forwards; }
 @keyframes funny-trace-thaw { to { transform: scale(1.4,.55); background: #add6e8; box-shadow: 0 1px 1px #77acc6; } }
 @media print, (prefers-reduced-motion: reduce) { .funny-spider-line { display: none !important; } }
+
+/* Shared controls are real controls; decorative props remain outside hit testing. */
+.funny-controls { position: fixed; z-index: 10005; left: 8px; bottom: 8px; font: 11px/1.5 sans-serif; color: #566478; background: #f8fafce8; border: 1px solid #a8b4c3; border-radius: 5px; padding: 3px 6px; }
+.funny-controls summary { cursor: pointer; }
+.funny-controls button { display: block; margin: 4px 0; font-size: 11px; cursor: pointer; }
+.funny-controls[open] { box-shadow: 0 2px 8px #56647833; }
+.funny-visitor .funny-sun-shadow { position: absolute; top: 0; left: 0; z-index: -1; filter: blur(1px); transition: opacity 1s; }
+.funny-visitor[data-pair="guest"] .funny-accessory { opacity: 0; }
+.funny-visitor[data-pair="share"] .funny-accessory { transform: scale(1.6); transform-origin: 70% 0; }
+.funny-visitor[data-reaction="throw"] > svg:first-child { animation: funny-throw .7s ease; }
+@keyframes funny-throw { 40% { transform: rotate(-14deg); } 70% { transform: rotate(12deg); } }
+.funny-snowball i { width: 12px; height: 12px; border-radius: 50%; background: #f5fcff; box-shadow: 0 0 1px 1px #9ab8cf; animation: funny-snowball .85s linear both; }
+@keyframes funny-snowball { 0% { transform: translate(0,0); } 50% { transform: translate(calc(var(--x) / 2),calc(var(--y) / 2 - 35px)); } 90% { opacity: 1; } 100% { transform: translate(var(--x),var(--y)); opacity: 0; } }
+.funny-cold-breath i { width: 13px; height: 8px; border-radius: 50%; background: #eaf5ff; box-shadow: 0 0 4px #a9bfcc; animation: funny-breath 1.5s ease-out both; }
+@keyframes funny-breath { from { opacity: 0; transform: scale(.2); } 25% { opacity: .55; } to { opacity: 0; transform: translate(var(--x),var(--y)) scale(1.7); } }
+.funny-web-dew { position: absolute; left: 0; top: -1px; width: 100%; transition: opacity 3s; }
+.funny-web-dew i { position: absolute; width: 4px; height: 5px; border-radius: 45% 55% 50% 50%; background: #a5c9dce6; box-shadow: inset 1px 1px #f7fcff; animation: funny-dew-grow 3s both; }
+.funny-web-dew[data-gust="true"] i:nth-child(even) { animation: funny-dew-fall 2s ease-in forwards; }
+@keyframes funny-dew-grow { from { opacity: 0; transform: scale(.15); } to { opacity: .85; transform: scale(1); } }
+@keyframes funny-dew-fall { 30% { transform: translateX(3px); opacity: .8; } to { transform: translate(8px,25px); opacity: 0; } }
+.funny-reflection { position: absolute; width: 64px; height: 53px; left: -32px; top: -20px; opacity: .22; clip-path: ellipse(48% 38%); pointer-events: none; }
+.funny-melt-puddle .funny-reflection, .funny-trail-water .funny-reflection { animation: funny-reflection-ripple 1.6s ease-in-out infinite alternate; }
+@keyframes funny-reflection-ripple { to { opacity: .12; filter: blur(.8px); } }
+.funny-spring-flower i { width: 5px; height: 5px; border-radius: 50%; background: #f5d16f; box-shadow: -4px 0 #dfa7cf,4px 0 #dfa7cf,0 -4px #dfa7cf,0 4px #dfa7cf; animation: funny-flower 9s ease both; }
+@keyframes funny-flower { 0% { opacity: 0; transform: scale(0); } 30%,65% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: rotate(35deg) scale(.4); } }
+.funny-visitor.funny-penguin[data-encounter="evading"] > svg:first-child { transform: rotate(-55deg) scaleY(.85); transition: transform .2s; }
+.funny-trail-slide { width: 22px; height: 4px; border-radius: 50%; background: #dceef6; box-shadow: 0 1px 1px #a4bfcf; }
+.funny-nibbles i { position: absolute; width: 2px; height: 3px; border: 1px solid #7f756a; border-top: 0; border-radius: 0 0 2px 2px; transform: translate(var(--x),var(--y)); opacity: .6; animation: funny-nibble-fade 14s both; }
+@keyframes funny-nibble-fade { 0%,70% { opacity: .6; } 100% { opacity: 0; } }
+.funny-mouse-hole { position: fixed; z-index: 10001; width: 24px; height: 17px; margin: -8px -12px; border-radius: 50%; background: radial-gradient(ellipse,#303b47,#4e5963 55%,#b8b0a8 65%,transparent 72%); pointer-events: none; animation: funny-hole-close 10s ease both; }
+@keyframes funny-hole-close { 0% { transform: scale(.15); } 5%,90% { transform: scale(1); opacity: .8; } 100% { transform: scale(0); opacity: 0; } }
+.funny-mouse[data-insect="gnawing"] > svg:first-child { animation: funny-mouse-gnaw .25s ease infinite alternate; }
+@keyframes funny-mouse-gnaw { to { transform: translateX(2px) rotate(3deg); } }
+.funny-burrowing > svg { transform-origin: 75% 65%; animation: funny-burrow .65s ease-in forwards !important; }
+@keyframes funny-burrow { to { opacity: 0; transform: translate(var(--hole-x,0px),var(--hole-y,0px)) scale(.05); } }
+@media print, (prefers-reduced-motion: reduce) { .funny-controls, .funny-mouse-hole { display: none !important; } }

@@ -81,6 +81,7 @@ class hr_Indicators extends core_Manager
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
         $this->setDbIndex('docId,docClass');
         $this->setDbIndex('date,personId');
+        $this->setDbIndex('personId,date');
         $this->setDbIndex('indicatorId');
     }
     

@@ -13,9 +13,13 @@
             if (started || (!charactersEnabled && !window.funnyWeather) || window.top !== window.self) return;
             started = true;
 
+            var scene = window.funnyScene;
+            if (scene) scene.init(options.labels);
+            var recentCharacters = [], recentTricks = [], voices = [];
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
-            var pursuitPartners = {cat:['fly','spiders','butterfly'],blackcat:['fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow',polarbear:'paws',penguin:'slide',mouse:'paws'};
+            var pursuitPartners = {polarbear:['penguin'],cat:['mouse','fly','spiders','butterfly'],blackcat:['mouse','fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
+            var faceAnchors = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4],polarbear:[72,31,.85],penguin:[60,30,.6],mouse:[73,45,.5]};
             var ghostKinds = ['ghost', 'ghostgirl', 'ghostplay', 'casper'];
             var seasonalPool = [];
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
@@ -42,7 +46,7 @@
 
             /** Bound crowding by visible area, including manual groups and rain-born copies. */
             function visitorLimit() {
-                return clamp(Math.floor(window.innerWidth * window.innerHeight / 40000 * (gentle ? 0.5 : 1)), 4, IMP_LIMIT);
+                return clamp(Math.floor(window.innerWidth * window.innerHeight / 40000 * (gentle ? 0.5 : 1) * (scene ? scene.quality() : 1)), 4, IMP_LIMIT);
             }
 
             /** Distance to a complete movement segment, including fast pointer sweeps. */
@@ -54,7 +58,7 @@
 
             function active() {
                 return focused && document.visibilityState === 'visible' && document.hasFocus() &&
-                    !printing && !reducedMotion.matches;
+                    !printing && !reducedMotion.matches && !(scene && scene.paused());
             }
 
             /** Reuse the page snapshot; the day interval matches the decorative sun's existing arc. */
@@ -65,6 +69,7 @@
                 return {sun:sunny && hour >= 6 && hour < 18,
                     rain:weather ? weather.indexOf('rain') >= 0 : /^(rain|showers|sleet|thunder)/.test(icon),
                     snow:weather ? weather.indexOf('snow') >= 0 : /^(snow|sleet)/.test(icon),
+                    temperature:fresh && typeof saved.temperature === 'number' && Number.isFinite(saved.temperature) ? saved.temperature : null,
                     warm:fresh && typeof saved.temperature === 'number' && saved.temperature > 0};
             }
 
@@ -91,9 +96,11 @@
                     seasonalPool = pool.slice();
                     if (pool.indexOf('spiders') < 0) pool.push('spiders');
                     if (pool.indexOf('wolf') < 0) pool.push('wolf');
+                    pool.push('mouse');
                     var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
                     var fresh = forecast.expires > now.getTime() && typeof forecast.temperature === 'number';
                     var warm = fresh && forecast.temperature > 10;
+                    if (fresh && forecast.temperature < 0) { pool.push('polarbear', 'penguin'); seasonalPool.push('polarbear', 'penguin'); }
                     // Gate rare out-of-season visitors before sampling, regardless of group size.
                     if (fresh && forecast.temperature > 9 && ['clear-day', 'partly-cloudy-day'].indexOf(forecast.icon) !== -1 &&
                         (flySeason || (warm && Math.random() < 0.1))) {
@@ -108,7 +115,7 @@
                     return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < 0.2; });
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -139,11 +146,13 @@
                     var weight = seasonalPool.indexOf(name) >= 0 ? 6 : 1;
                     if (name === 'fly') weight *= hour >= 8 && hour < 18 ? 3 : 0.5;
                     if (name === 'mosquito') weight *= hour >= 18 && hour < 23 ? 3 : 1;
-                    return weight;
+                    return weight * (recentCharacters.indexOf(name) >= 0 ? 0.3 : 1);
                 });
                 var pick = Math.random() * weights.reduce(function (sum, weight) { return sum + weight; }, 0);
                 for (var i = 0; i < pool.length - 1; i++) { pick -= weights[i]; if (pick < 0) break; }
-                return pool.splice(i, 1)[0];
+                var chosen = pool.splice(i, 1)[0];
+                if (options.mode === 'auto') { recentCharacters.push(chosen); if (recentCharacters.length > 3) recentCharacters.shift(); }
+                return chosen;
             }
 
             function nextDelay() {
@@ -178,7 +187,18 @@
                 schedule();
             }
 
+            /** Silence scheduled foreground notes without closing the unlocked audio context. */
+            function hushVoices() {
+                voices.forEach(function (gain) {
+                    if (!audio) return;
+                    if (scene) scene.fade(gain.gain, audio.currentTime);
+                    else { gain.gain.cancelScheduledValues(audio.currentTime); gain.gain.setValueAtTime(0, audio.currentTime); }
+                });
+                voices = [];
+            }
+
             function stopSound() {
+                voices = [];
                 if (audio) {
                     // Closing discards scheduled notes; resuming a tab never replays old sound.
                     audio.close().catch(function () {});
@@ -198,11 +218,12 @@
 
             /** Sharp attacks and short, inharmonic resonances suggest a fingertip tapping glass. */
             function playGlassKnock() {
-                var now = audio.currentTime;
+                var now = audio.currentTime + 0.025;
                 [0, 0.26].forEach(function (delay, index) {
                     [[640, 0.07, 0.038], [1510, 0.13, 0.022], [2630, 0.045, 0.013]].forEach(function (partial) {
                         var start = now + delay, end = start + partial[1];
-                        var oscillator = audio.createOscillator(), gain = audio.createGain();
+                        var oscillator = audio.createOscillator(), gain = audio.createGain(); voices.push(gain);
+                        gain.gain.value = 0;
                         oscillator.type = 'sine';
                         oscillator.frequency.setValueAtTime(partial[0] * (index ? 0.97 : 1), start);
                         gain.gain.setValueAtTime(0, start);
@@ -212,7 +233,7 @@
                         gain.connect(audio.destination);
                         oscillator.start(start);
                         oscillator.stop(end);
-                        oscillator.onended = function () { oscillator.disconnect(); gain.disconnect(); };
+                        oscillator.onended = function () { oscillator.disconnect(); gain.disconnect(); voices = voices.filter(function (item) { return item !== gain; }); };
                     });
                 });
             }
@@ -220,25 +241,26 @@
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
+                if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
                     ghostgirl: {notes: [784, 1047], duration: 0.2, spacing: 0.16, pitch: 1.25, wave: 'sine'},
-                    ghostplay: {notes: [880, 1175, 1397, 1175], duration: 0.1, spacing: 0.11, pitch: 1.3, wave: 'triangle'},
+                    ghostplay: {notes: [880, 1175, 1397, 1175], duration: 0.1, spacing: 0.11, pitch: 1.3, wave: 'triangle', volume: 0.65},
                     zombie: {notes: [110, 80], duration: 0.28, spacing: 0.23, pitch: 0.6, wave: 'sawtooth', low: true},
                     sleigh: {notes: [135, 125, 115], duration: 0.20, spacing: 0.25, pitch: 0.7, wave: 'sawtooth', voice: true},
                     elf: {notes: [784, 988, 784], duration: 0.13, spacing: 0.14, pitch: 1.08, wave: 'triangle'},
-                    snowmaiden: {notes: [1047, 1319, 1568], duration: 0.14, spacing: 0.15, pitch: 1.1, wave: 'sine'},
+                    snowmaiden: {notes: [1047, 1319, 1568], duration: 0.14, spacing: 0.15, pitch: 1.1, wave: 'sine', volume: 0.75},
                     deer: {notes: [180, 240, 180, 240], duration: 0.09, spacing: 0.13, pitch: 0.35, wave: 'triangle'},
                     pumpkin: {notes: [220, 165], duration: 0.24, spacing: 0.25, pitch: 0.5, wave: 'triangle'},
                     vampire: {notes: [155, 130], duration: 0.3, spacing: 0.24, pitch: 0.65, wave: 'sawtooth', voice: true},
-                    bat: {notes: [1300, 1000, 1500], duration: 0.08, spacing: 0.12, pitch: 0.5, wave: 'sine'},
+                    bat: {notes: [1300, 1000, 1500], duration: 0.08, spacing: 0.12, pitch: 0.5, wave: 'sine', volume: 0.55},
                     spiderweb: {notes: [392, 370, 349], duration: 0.17, spacing: 0.17, pitch: 0.8, wave: 'triangle'},
-                    spiders: {notes: [523, 494, 523, 494, 523], duration: 0.06, spacing: 0.07, pitch: 1.1, wave: 'square'},
+                    spiders: {notes: [523, 494, 523, 494, 523], duration: 0.06, spacing: 0.07, pitch: 1.1, wave: 'triangle', volume: 0.55},
                     cat: {notes: [620, 860], duration: 0.24, spacing: 0.17, pitch: 0.7, wave: 'sawtooth', voice: true},
                     blackcat: {notes: [520, 740], duration: 0.28, spacing: 0.2, pitch: 0.65, wave: 'sawtooth', voice: true},
-                    witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true},
+                    witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true, volume: 0.65},
                     muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
                     wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
@@ -250,11 +272,14 @@
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
                     stork: {notes: [420, 360, 420], duration: 0.06, spacing: 0.11, pitch: 0.3, wave: 'triangle'},
                     bunny: {notes: [330, 660], duration: 0.15, spacing: 0.19, pitch: 1.8, wave: 'sine'},
-                    chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine'},
+                    chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine', volume: 0.55},
                     butterfly: {notes: [880, 1175, 1568], duration: 0.12, spacing: 0.13, pitch: 1.02, wave: 'sine'},
                     firefly: {notes: [1047, 1568], duration: 0.3, spacing: 0.27, pitch: 0.98, wave: 'sine'},
                     fly: {notes: [185], duration: 0.55, spacing: 0, pitch: 1.15, wave: 'sawtooth', vibrato: true, low: true, volume: 0.3},
                     mosquito: {notes: [620], duration: 0.65, spacing: 0, pitch: 0.85, wave: 'sine', vibrato: true, volume: 0.25},
+                    polarbear: {notes: [145, 110], duration: 0.22, spacing: 0.25, pitch: 0.8, wave: 'triangle'},
+                    mouse: {notes: [1250, 1550], duration: 0.07, spacing: 0.11, pitch: 0.85, wave: 'sine', volume: 0.4},
+                    penguin: {notes: [740, 520], duration: 0.10, spacing: 0.15, pitch: 1.1, wave: 'sine'},
                     pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
@@ -263,9 +288,10 @@
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
                 sound.notes.forEach(function (frequency, index) {
-                    var start = audio.currentTime + index * sound.spacing;
+                    var start = audio.currentTime + 0.025 + index * sound.spacing;
                     var duration = sound.duration;
-                    var oscillator = audio.createOscillator(), gain = audio.createGain();
+                    var oscillator = audio.createOscillator(), gain = audio.createGain(); voices.push(gain);
+                    gain.gain.value = 0;
                     oscillator.type = sound.wave;
                     oscillator.frequency.setValueAtTime(frequency, start);
                     oscillator.frequency.exponentialRampToValueAtTime(frequency * sound.pitch, start + duration);
@@ -302,7 +328,7 @@
                     oscillator.stop(start + duration);
                     oscillator.onended = function () {
                         oscillator.disconnect();
-                        gain.disconnect();
+                        gain.disconnect(); voices = voices.filter(function (item) { return item !== gain; });
                         extraNodes.forEach(function (node) { node.disconnect(); });
                     };
                 });
@@ -371,6 +397,8 @@
             }
 
             function removeVisitor(v, escaped, depart) {
+                endPair(v);
+                marks.forEach(function (mark) { if (mark.reflectionActor === v && mark.reflection) { mark.reflection.remove(); mark.reflection = null; } });
                 restoreEaten(v);
                 releaseSeeds(v);
                 releaseThread(v);
@@ -522,8 +550,7 @@
                 accessory.setAttribute('class', 'funny-accessory');
                 if (kind !== 'umbrella') {
                     // Face centers are in the sprite's 120 x 100 coordinate space.
-                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
-                    var face = faces[v.character];
+                    var face = faceAnchors[v.character];
                     // The round monster's neck is below its wide mouth, rather than just below its eyes.
                     if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
                     if (v.character === 'blackcat' && kind === 'glasses') face = [60,33,.75];
@@ -531,6 +558,253 @@
                 }
                 v.node.appendChild(accessory);
                 v.accessory = accessory;
+            }
+
+            /** Remember completed tricks locally, without changing notification or seasonal eligibility. */
+            function rememberTrick(v) {
+                v.trickDone = true; recentTricks.push(v.character);
+                if (recentTricks.length > 3) recentTricks.shift();
+            }
+
+            /** Shared props reserve two free actors; neither participant can prolong the other's lifetime. */
+            function startPairOrLeaf(v, now) {
+                if (v.perch || v.pair || v.fear || v.pursuit) return false;
+                var sky = climate(), kind = v.character === 'elf' && sky.rain ? 'share' : v.character === 'snowmaiden' && sky.snow ? 'snowball' : '';
+                if (kind) {
+                    var other = visitors.filter(function (actor) {
+                        return (kind === 'share' ? ['bunny','chick'].indexOf(actor.character) >= 0 : actor.character === 'snowman') &&
+                            !actor.pair && !actor.trickDone && !actor.pursuit && !actor.fear && !actor.perch && !actor.reactionUntil &&
+                            availableForEncounter(actor, now) && Math.hypot(actor.x - v.x, actor.y - v.y) < 210 &&
+                            segmentDistance(pointer.x, pointer.y, v.x, v.y, actor.x, actor.y) > 120;
+                    })[0];
+                    if (!other) return false;
+                    var pair = {host:v,guest:other,kind:kind,born:now,until:now + (kind === 'share' ? 4500 : 2100)};
+                    v.pair = other.pair = pair; other.trickDone = true;
+                    v.node.setAttribute('data-pair', kind); other.node.setAttribute('data-pair', kind === 'share' ? 'guest' : 'snowball');
+                    if (kind === 'snowball') {
+                        pair.duck = Math.random() < 0.5;
+                        interactionEffect('snowball', v.x, v.y, [{x:other.x,y:other.y}], 850);
+                        react(v, 'throw', now);
+                    }
+                    return true;
+                }
+                if ((v.character === 'cat' || v.character === 'blackcat') && window.funnyWeather && window.funnyWeather.leafNear) {
+                    var leaf = window.funnyWeather.leafNear(v.x, v.y);
+                    if (leaf && segmentDistance(pointer.x, pointer.y, v.x, v.y, leaf.x, leaf.y) > 120) {
+                        v.leaf = leaf; v.leafUntil = now + 2600; v.node.setAttribute('data-leaf-play', 'stalking'); return true;
+                    }
+                }
+                return false;
+            }
+
+            function pairActive(pair, now) {
+                return now < pair.until && [pair.host, pair.guest].every(function (actor) { return availableForEncounter(actor, now) && !actor.pursuit && !actor.fear; }) && (pair.kind === 'share' ? climate().rain : climate().snow);
+            }
+
+            function endPair(v) {
+                var pair = v.pair;
+                if (!pair) return;
+                [pair.host, pair.guest].forEach(function (actor) { actor.pair = null; actor.node.setAttribute('data-pair', ''); });
+            }
+
+            /** Companions share a short walk; snowball partners stay still until the single throw lands. */
+            function pairMotion(v, now, delta) {
+                var pair = v.pair, a = pair.host, b = pair.guest;
+                if (!pairActive(pair, now)) { endPair(v); return false; }
+                if (pair.kind === 'share') {
+                    var x = v === a ? v.x + (wind.x < 0 ? -1 : 1) * 25 * delta : a.x + (a.width + b.width) * 0.34;
+                    var y = v === a ? v.y : a.y + (a.height - b.height) / 2;
+                    var dx = x - v.x, dy = y - v.y, distance = Math.hypot(dx, dy) || 1, step = Math.min(distance, 95 * delta);
+                    if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) > 120) { v.x += dx / distance * step; v.y += dy / distance * step; }
+                } else if (!pair.landed && now - pair.born >= 750) {
+                    pair.landed = true; react(b, pair.duck ? 'duck' : 'thanks', now);
+                    interactionEffect('snow-shower', b.x, b.y, [{x:b.x - 15,y:b.y + 24},{x:b.x + 14,y:b.y + 20},{x:b.x,y:b.y + 32}], 2400);
+                }
+                return true;
+            }
+
+            /** A cat may nudge an existing resting leaf once; disappearance or input cancels its approach. */
+            function leafMotion(v, now, delta) {
+                var leaf = v.leaf;
+                if (v.pursuit || v.fear || !availableForEncounter(v, now) || now >= v.leafUntil || (!v.leafKicked && !leaf.valid())) {
+                    v.leaf = null; v.node.setAttribute('data-leaf-play', ''); return false;
+                }
+                var dx = leaf.x - v.x, dy = leaf.y - v.y - v.height * 0.3, distance = Math.hypot(dx, dy) || 1;
+                if (distance < 35 && !v.leafKicked) {
+                    v.leafKicked = leaf.kick(); v.node.setAttribute('data-leaf-play', 'pounce');
+                    react(v, 'jump', now); leaf.x += wind.x * 140; leaf.y += wind.y * 70 - 20;
+                }
+                var step = Math.min(distance, (v.leafKicked ? 80 : 65) * delta);
+                v.x += dx / distance * step; v.y += dy / distance * step;
+                return true;
+            }
+
+            /** Only our own web and water marks get dew or one nearby silhouette; no page elements are cloned. */
+            function decorateMarks(now) {
+                marks.forEach(function (mark) {
+                    var c = mark.contact;
+                    if (!c || mark.ending) return;
+                    if (c.kind === 'web') {
+                        var wet = /rain|fog/.test(weather);
+                        if (wet && !mark.dew) {
+                            mark.dew = document.createElement('span'); mark.dew.className = 'funny-web-dew';
+                            for (var i = 0; i < (gentle ? 2 : 4); i++) { var drop = document.createElement('i'); drop.style.left = (15 + i * 22) + '%'; drop.style.animationDelay = i * 0.4 + 's'; mark.dew.appendChild(drop); }
+                            mark.node.appendChild(mark.dew);
+                        }
+                        if (mark.dew) { mark.dew.style.opacity = wet ? '1' : '0'; mark.dew.setAttribute('data-gust', wind.speed >= 20 ? 'true' : ''); }
+                    }
+                    if (c.kind !== 'puddle') return;
+                    var actor = visitors.filter(function (v) { return !v.launched && !v.leaving && ghostKinds.indexOf(v.character) < 0 && Math.hypot(v.x - c.x, v.y + v.height / 2 - c.y) < 70; })[0];
+                    if (mark.reflection && (!actor || mark.reflected !== actor.character)) { mark.reflection.remove(); mark.reflection = null; }
+                    if (actor && !mark.reflection) {
+                        var reflection = sprite(actor.character); reflection.setAttribute('class', 'funny-reflection');
+                        reflection.style.transform = 'rotate(' + (-Math.atan2((c.toY || c.y) - c.y, (c.toX || c.x) - c.x)) + 'rad) scaleY(-0.45)';
+                        mark.node.appendChild(reflection); mark.reflection = reflection; mark.reflected = actor.character; mark.reflectionActor = actor;
+                    }
+                });
+            }
+
+            /** Local time and the cached forecast drive shadows, cold breath and two small spring blooms. */
+            function skyProps(v, now) {
+                if (v.launched || v.leaving) return;
+                var sky = climate(), solid = ghostKinds.indexOf(v.character) < 0 && !v.insect;
+                if (solid && sky.sun && !v.shadow) { v.shadow = sprite('accessory-shadow'); v.shadow.setAttribute('class', 'funny-sun-shadow'); v.node.appendChild(v.shadow); }
+                if (v.shadow) {
+                    var hour = new Date().getHours() + new Date().getMinutes() / 60, offset = clamp((12 - hour) / 6, -1, 1);
+                    v.shadow.style.opacity = sky.sun ? (/clouds/.test(weather) ? '0.10' : '0.22') : '0';
+                    v.shadow.style.transform = 'translateX(' + (-offset * 25) + 'px) scaleX(' + (1 + Math.abs(offset) * 1.4) + ')';
+                    if (!sky.sun) { v.shadow.remove(); v.shadow = null; }
+                }
+                if (sky.temperature !== null && sky.temperature < 0 && ['cat','blackcat','wolf','elf','snowmaiden','deer','bunny','chick','polarbear','penguin','mouse'].indexOf(v.character) >= 0) {
+                    if (!v.breathAt) v.breathAt = now + random(2000, 5000);
+                    if (now >= v.breathAt) {
+                        v.breathAt = now + random(3500, 6500) / (scene ? scene.quality() : 1);
+                        var face = faceAnchors[v.character], x = v.x + (face[0] - 60) / 120 * v.width, y = v.y + (face[1] - 50) / 100 * v.height + 7;
+                        interactionEffect('cold-breath', x, y, [{x:x + wind.x * 20,y:y - 16 + wind.y * 10}], 1500);
+                    }
+                }
+                var month = new Date().getMonth() + 1;
+                if (v.character === 'butterfly' && !v.exiting && month >= 3 && month <= 5 && sky.sun && sky.temperature > 10 && (v.flowers || 0) < 2) {
+                    if (!v.flowerAt) v.flowerAt = now + random(3000, 6000);
+                    if (now >= v.flowerAt) { v.flowers = (v.flowers || 0) + 1; v.flowerAt = now + 6000; interactionEffect('spring-flower', v.x, v.y + 15, [{x:v.x,y:v.y + 15}], 9000); }
+                }
+            }
+
+            /** Mice leave tiny tooth marks, without hiding or changing the element they visit. */
+            function gnaw(v, now, elapsed) {
+                var p = v.perch;
+                if (p.gnawed || elapsed < 1100) return;
+                p.gnawed = true; v.nibbles = (v.nibbles || 0) + 1;
+                if (!v.holeAfter) v.holeAfter = Math.floor(random(3, 6));
+                var x = v.x + v.contact.x, y = v.y + v.contact.y;
+                var points = [], teeth = Math.floor(random(2, 5));
+                for (var i = 0; i < teeth; i++) points.push({x:x + i * 3,y:y + random(-2, 2)});
+                interactionEffect('nibbles', x, y, points, 14000); p.until = now + 500;
+                if (v.nibbles < v.holeAfter) return;
+                openMouseHole(v, now);
+            }
+
+            /** A bounded fallback also lets mice escape from pages with no suitable gnawing surface. */
+            function openMouseHole(v, now) {
+                var x = v.x + v.contact.x, y = v.y + v.contact.y;
+                var hole = document.createElement('div'); hole.className = 'funny-mouse-hole'; hole.style.left = x + 'px'; hole.style.top = y + 'px';
+                addMark(hole, 10000, {kind:'hole',x:x,y:y});
+                enterMouseHole(v, {x:x,y:y}, now);
+            }
+
+            function enterMouseHole(v, point, now) {
+                v.holeEscaped = true; v.leaving = now; v.leaveDuration = 700; v.node.classList.add('funny-burrowing');
+                v.node.setAttribute('data-hole-running', '');
+                v.node.style.setProperty('--hole-x', point.x - v.x + 'px'); v.node.style.setProperty('--hole-y', point.y - v.y + 'px');
+            }
+
+            /** All mice prefer the nearest existing hole; pursuit continues until they actually enter it. */
+            function mouseExit(v, now, delta) {
+                // A blocked or crowded route must still finish through a hole before the hard cleanup.
+                if (now - v.born >= v.lifetime + 7000) { openMouseHole(v, now); return true; }
+                var digging = now - v.born >= v.lifetime - 2500;
+                if (now < v.fleeUntil && !digging) return false;
+                var hole = null, nearest = Infinity;
+                marks.forEach(function (mark) {
+                    if (!mark.contact || mark.contact.kind !== 'hole') return;
+                    var distance = Math.hypot(v.x - mark.contact.x, v.y - mark.contact.y);
+                    if (mark.expires - now < distance / 165 * 1000 + 800) return;
+                    if (distance < nearest) { nearest = distance; hole = mark; }
+                });
+                v.holeTarget = hole;
+                if (!hole) {
+                    v.node.setAttribute('data-hole-running', '');
+                    if (!digging) return false;
+                    if (v.perch) takeOff(v, now);
+                    if (!v.digStarted) { v.digStarted = now; v.node.setAttribute('data-insect', 'gnawing'); }
+                    if (now - v.digStarted >= 1100) openMouseHole(v, now);
+                    return true;
+                }
+                if (v.perch) { takeOff(v, now); v.fleeUntil = 0; }
+                v.digStarted = 0; v.node.setAttribute('data-insect', '');
+                v.node.setAttribute('data-hole-running', 'true');
+                var dx = hole.contact.x - v.x, dy = hole.contact.y - v.y, step = Math.min(nearest, 165 * delta);
+                if (nearest < 18) { enterMouseHole(v, hole.contact, now); return true; }
+                var px = v.x - pointer.x, py = v.y - pointer.y, pointerDistance = Math.hypot(px, py);
+                dx /= nearest; dy /= nearest;
+                if (pointerDistance < 115 && dx * px + dy * py < 0) {
+                    var side = dx * -py + dy * px < 0 ? -1 : 1;
+                    dx = (px - py * side) / (pointerDistance || 1); dy = (py + px * side) / (pointerDistance || 1);
+                }
+                var length = Math.hypot(dx, dy) || 1;
+                v.x += dx / length * step; v.y += dy / length * step;
+                return true;
+            }
+
+            /** Cat meals stay brief and decorative, without wolf hunger, fear or score side effects. */
+            function eatMouse(cat, mouse, now) {
+                cat.pursuit = mouse.pursuit = null; cat.chaseAfter = now + 9000; encounterState(cat, ''); encounterState(mouse, '');
+                mouse.leaving = now; mouse.leaveDuration = 650; mouse.node.classList.add('funny-burrowing');
+                mouse.node.style.setProperty('--hole-x', cat.x - mouse.x + 'px'); mouse.node.style.setProperty('--hole-y', cat.y - mouse.y + 'px');
+                react(cat, 'gulp', now); if (!cat.silent) playSound('munch');
+            }
+
+            /** Weather props share the actor's frame and lifetime; danger always cancels their poses. */
+            function weatherProps(v, now, delta) {
+                var fogGlow = !v.leaving && weather.indexOf('fog') >= 0;
+                if (v.character === 'firefly' && v.fogGlow !== fogGlow) {
+                    v.fogGlow = fogGlow;
+                    v.node.setAttribute('data-fog-glow', fogGlow ? 'true' : '');
+                }
+                if (v.umbrellaInverted && v.reaction !== 'umbrella') {
+                    if (v.outfit === 'umbrella' && v.accessory) v.accessory.firstChild.setAttribute('href', options.spriteUrl + '#accessory-umbrella');
+                    v.umbrellaInverted = false;
+                }
+                if (v.launched || v.leaving || v.exiting) return;
+                var free = !v.pair && !v.pursuit && !v.fear && !v.perch && !v.eating && !v.munchTarget && !v.reactionUntil && availableForEncounter(v, now);
+                if (v.outfit === 'umbrella' && wind.speed >= 20 && !v.gustDone) {
+                    if (!v.gustAfter) v.gustAfter = now + random(7000, 12000);
+                    if (free && now >= v.gustAfter) {
+                        v.gustDone = v.umbrellaInverted = true;
+                        v.accessory.firstChild.setAttribute('href', options.spriteUrl + '#accessory-umbrella-flipped');
+                        v.node.style.setProperty('--funny-gust-angle', (wind.x * (gentle ? 8 : 15)) + 'deg');
+                        react(v, 'umbrella', now);
+                    }
+                } else v.gustAfter = 0;
+                if (v.insect || !faceAnchors[v.character]) return;
+                var snowing = weather.indexOf('snow') >= 0 && v.outfit !== 'umbrella';
+                v.snowAmount = clamp((v.snowAmount || 0) + delta * (snowing ? (gentle ? 0.045 : 0.075) : -0.3), 0, 1);
+                if (v.snowAmount > 0 && !v.snowCover) {
+                    var ears = v.character === 'cat' || v.character === 'blackcat';
+                    v.snowCover = sprite(v.character === 'imp' ? 'accessory-snow-imp' : ears ? 'accessory-snow-ears' : 'accessory-snow');
+                    v.snowCover.setAttribute('class', 'funny-snow-cover');
+                    var face = faceAnchors[v.character];
+                    if (v.character !== 'imp') v.snowCover.firstChild.setAttribute('transform', 'translate(' + face[0] + ' ' + face[1] + ') scale(' + face[2] + ') translate(-60 -32)');
+                    v.node.appendChild(v.snowCover);
+                }
+                if (snowing && v.snowAmount >= 0.8 && !v.snowShaken && free && !v.reactionUntil) {
+                    v.snowShaken = true; v.snowAmount = 0.08;
+                    react(v, 'snowshake', now);
+                    interactionEffect('snow-shower', v.x, v.y + v.height * 0.4,
+                        [{x:v.x - 16,y:v.y + v.height * 0.8},{x:v.x + 3,y:v.y + v.height},{x:v.x + 18,y:v.y + v.height * 0.7}], 2400);
+                }
+                if (v.snowCover) v.snowCover.style.opacity = v.snowAmount.toFixed(3);
+                if (!v.snowAmount && v.snowCover) { v.snowCover.remove(); v.snowCover = null; }
             }
 
             function removeBurst(effect) {
@@ -610,8 +884,8 @@
                 if (!active() || visitors.length >= visitorLimit() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
-                var visitsElements = insect || feeds || character === 'spiders';
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'wolf' ? 86 : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
+                var visitsElements = insect || feeds || character === 'spiders' || character === 'mouse';
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
                 // A split copy jumps right beside its original, which is under the pointer that clicked it
                 var destination = reason === 'copy' ? {x: clamp(origin.x + random(-1.2, 1.2) * width, width / 2 + 20, window.innerWidth - width / 2 - 20),
                     y: clamp(origin.y + random(-1.2, 1.2) * height, height / 2 + 20, window.innerHeight - height / 2 - 20)} : safePosition(width, height, reason === 'manual' ? null : origin);
@@ -637,8 +911,8 @@
                     x: origin.x, y: origin.y,
                     from: {x: origin.x, y: origin.y}, destination: destination,
                     launched: true, born: now, previous: now, leaving: 0,
-                    lifetime: character === 'muncher' ? 77000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
-                    contact: {x:character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'vampire' ? -0.05 : 0.3)}
+                    lifetime: character === 'muncher' ? 77000 : character === 'mouse' ? 45000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
+                    contact: {x:character === 'mouse' ? width * 0.4 : character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'mouse' ? 0.11 : character === 'vampire' ? -0.05 : 0.3)}
                 };
                 if (character === 'imp') {
                     visitor.deadline = origin.deadline || now + 60000;
@@ -654,6 +928,7 @@
                     [25, 60, 96].forEach(function (x) { var strand = document.createElement('i'); strand.style.left = x / 120 * 100 + '%'; line.appendChild(strand); });
                     document.body.appendChild(line); visitor.thread = line; node.setAttribute('data-descending', 'true');
                 }
+                if (scene) scene.reveal();
                 visitors.push(visitor);
                 weather = window.funnyWeather ? window.funnyWeather.current() : '';
                 dress(visitor);
@@ -668,6 +943,7 @@
             function animate(now) {
                 frame = 0;
                 if (!active()) { syncActivity(); return; }
+                if (scene) scene.sample(now);
                 if (coarsePointer.matches && now - lastFrame < 32) {
                     frame = window.requestAnimationFrame(animate);
                     return;
@@ -678,6 +954,7 @@
                     weather = window.funnyWeather ? window.funnyWeather.current() : '';
                     wind = window.funnyWeather ? window.funnyWeather.wind() : {x:0,y:0,speed:0};
                     visitors.forEach(dress);
+                    decorateMarks(now);
                 }
                 updatePursuits(now);
                 visitors.slice().forEach(function (v) { animateVisitor(v, now); });
@@ -694,10 +971,15 @@
                     for (var i = 0; i < free.length; i++) {
                         for (var j = i + 1; j < free.length; j++) {
                             var a = free[i], b = free[j];
-                            // Only the active meal pair may overlap; other visitors still keep their distance.
+                            // An active meal pair may overlap; other visitors normally keep their distance.
                             if (a.pursuit && a.pursuit.hunt && a.pursuit.other === b) continue;
+                            // The shared doorway is narrow; allow mice to cross only while entering it.
+                            if (a.holeTarget && a.holeTarget === b.holeTarget &&
+                                Math.hypot(a.x - a.holeTarget.contact.x, a.y - a.holeTarget.contact.y) < 75 &&
+                                Math.hypot(b.x - b.holeTarget.contact.x, b.y - b.holeTarget.contact.y) < 75) continue;
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
+                            if (a.pair && a.pair === b.pair && a.pair.kind === 'share') spacing *= 0.65;
                             if (distance >= spacing) continue;
                             var nx = distance ? dx / distance : Math.cos(i + j);
                             var ny = distance ? dy / distance : Math.sin(i + j);
@@ -710,6 +992,11 @@
             }
 
             function positionVisitor(v, now) {
+                // Even repulsion and pursuit cannot send a mouse through the viewport edge.
+                if (v.character === 'mouse' && !v.launched && !v.leaving) {
+                    v.x = clamp(v.x, v.width / 2 + 8, window.innerWidth - v.width / 2 - 8);
+                    v.y = clamp(v.y, v.height / 2 + 8, window.innerHeight - v.height / 2 - 8);
+                }
                 var bob = v.leaving || v.descending || (v.perch && v.perch.arrived) ? 0 : Math.sin((now - v.born) / (v.fed ? 650 : 380)) * 3;
                 v.node.style.transform = 'translate(' + (v.x - v.width / 2) + 'px,' + (v.y - v.height / 2 + bob) + 'px)';
                 if (v.thread) {
@@ -727,8 +1014,8 @@
                     kind = 'snow';
                 }
                 var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : 0.5) + bob;
-                var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime || !!v.pursuit || !!v.fear;
-                var trailDelay = (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) * (escaping ? 2.2 : 1);
+                var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime || !!v.pursuit || !!v.fear || !!v.holeTarget;
+                var trailDelay = (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) * (escaping ? 2.2 : 1) / (scene ? scene.quality() : 1);
                 if (v.trail && !v.launched && !v.descending && !v.leaving && now - v.trail.time >= trailDelay && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
                     if (kind) characterTrail(v, footY, kind, escaping);
                     if (!winter && window.funnyWeather) window.funnyWeather.trace(v.trail.x, v.trail.y, v.x, footY);
@@ -777,7 +1064,7 @@
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
-                        if (v === wolf || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
+                        if (v === wolf || v.character === 'wolf' || v.character === 'polarbear' || v.character === 'penguin' || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
                         prey = v; nearest = distance;
                     });
                     if (!prey) return;
@@ -788,14 +1075,16 @@
                 });
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
-                    if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || !availableForEncounter(hunter, now)) return;
+                    if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || hunter.pair || !availableForEncounter(hunter, now)) return;
                     var prey = visitors.filter(function (v) {
-                        return choices.indexOf(v.character) >= 0 && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
+                        return choices.indexOf(v.character) >= 0 && !v.pair && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
                             Math.hypot(hunter.x - v.x, hunter.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, hunter.x, hunter.y, v.x, v.y) > 100;
                     })[0];
                     if (!prey) return;
                     [hunter, prey].forEach(function (actor) { takeOff(actor, now); actor.fleeUntil = 0; actor.perchAfter = now + 4000; });
-                    hunter.pursuit = {other:prey,started:now,until:now + 2400,chasing:true}; prey.pursuit = {other:hunter,started:now,until:now + 2400,chasing:false};
+                    var mouseHunt = prey.character === 'mouse';
+                    hunter.pursuit = {other:prey,started:now,until:now + (mouseHunt ? 6000 : 2400),chasing:true,hunt:mouseHunt,mouseHunt:mouseHunt};
+                    prey.pursuit = {other:hunter,started:now,until:hunter.pursuit.until,chasing:false,hunt:mouseHunt,mouseHunt:mouseHunt};
                     encounterState(hunter, 'chasing'); encounterState(prey, 'evading');
                 });
                 visitors.forEach(function (v) { if (v.fear) encounterState(v, v.character === 'wolf' && now >= v.frightUntil ? 'retreating' : 'afraid'); });
@@ -905,6 +1194,7 @@
 
             /** Danger interrupts a trick or meal, while old bite marks keep their normal restoration. */
             function interruptTrick(v) {
+                endPair(v);
                 releaseSeeds(v); v.reaction = ''; v.reactionUntil = 0; v.propDirection = null;
                 v.node.setAttribute('data-reaction', '');
                 if (v.character === 'muncher') { v.munchTarget = null; v.eating = 0; v.node.setAttribute('data-munching', ''); }
@@ -1004,10 +1294,12 @@
                     dx = v.peckTarget.contact.x - v.x; dy = v.peckTarget.contact.y - v.y - v.height / 2; speed = 55;
                     if (Math.hypot(dx, dy) < 30) { v.reactionUntil = now; return true; }
                 }
+                if (v.pair && pairMotion(v, now, delta)) return true;
+                if (v.leaf && leafMotion(v, now, delta)) return true;
                 if (v.pursuit) {
                     var other = v.pursuit.other, chasing = v.pursuit.chasing, hunt = !!v.pursuit.hunt;
                     dx = (other.x - v.x) * (chasing ? 1 : -1); dy = (other.y - v.y) * (chasing ? 1 : -1);
-                    speed = hunt ? (chasing ? 280 * (1 - (v.meals || 0) * 0.07) : 120) : (chasing ? 165 : 210);
+                    speed = v.pursuit.mouseHunt ? (chasing ? 190 : 165) : hunt ? (chasing ? 280 * (1 - (v.meals || 0) * 0.07) : 120) : v.character === 'polarbear' ? 150 : v.character === 'penguin' ? 245 : (chasing ? 165 : 210);
                     if (hunt && !chasing) {
                         // Near an edge the prey turns along it; heading for the centre led it into the pointer's range
                         var away = Math.hypot(dx, dy) || 1, margin = 140;
@@ -1018,7 +1310,8 @@
                     var contact = hunt ? Math.min(v.width, other.width) * 0.28 : (v.width + other.width) / 2 + 20;
                     if (!chasing && v.dodge) { dx = v.dodge.x; dy = v.dodge.y; speed = 290; }
                     if (chasing && Math.hypot(other.x - v.x, other.y - v.y) < contact) {
-                        if (hunt) devour(v, other, now);
+                        if (v.pursuit.mouseHunt) eatMouse(v, other, now);
+                        else if (hunt) devour(v, other, now);
                         return true;
                     }
                 }
@@ -1055,7 +1348,7 @@
                         addMark(gift, 16000, {kind:'gift',x:x,y:y,silent:v.silent});
                     }
                 }
-                if (v.reactionUntil || now < v.propAfter || v.pursuit) return;
+                if (v.reactionUntil || v.pair || v.leaf || now < v.propAfter || v.pursuit) return;
                 if (friendlyInteraction(v, now)) return;
                 var cat = v.character === 'cat' || v.character === 'blackcat';
                 if (!cat && v.character !== 'elf') return;
@@ -1107,6 +1400,9 @@
             function friendlyInteraction(v, now) {
                 if (v.trickDone || now < v.trickAfter || now - v.born < 3000 || !availableForEncounter(v, now, 65)) return false;
                 v.trickAfter = now + 500;
+                if (!v.trickChecked) { v.trickChecked = true; if (recentTricks.indexOf(v.character) >= 0 && Math.random() < 0.7) v.trickDone = true; }
+                if (v.trickDone) return false;
+                if (startPairOrLeaf(v, now)) { rememberTrick(v); return true; }
                 var cat = v.character === 'cat' || v.character === 'blackcat', kind = cat ? 'gift' : 'seeds';
                 if (v.character === 'witch') {
                     if (!sweepDebris(v)) return false;
@@ -1148,7 +1444,7 @@
                     v.node.style.setProperty('--greet-angle', snowman.x < v.x ? '-12deg' : '12deg');
                     react(snowman, 'thanks', now); react(v, 'cool', now);
                 } else return false;
-                v.trickDone = true;
+                rememberTrick(v);
                 return true;
             }
 
@@ -1203,7 +1499,7 @@
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
             function react(v, kind, now) {
                 v.reaction = kind;
-                v.reactionUntil = now + (kind === 'tired' ? 3000 : kind === 'gulp' ? 1500 : kind === 'paw' ? 550 : /^(sweep|peck)$/.test(kind) ? 1300 : kind === 'knock' ? 1200 : 900);
+                v.reactionUntil = now + (kind === 'tired' ? 3000 : kind === 'umbrella' ? 1600 : kind === 'gulp' ? 1500 : kind === 'paw' ? 550 : /^(sweep|peck)$/.test(kind) ? 1300 : kind === 'knock' ? 1200 : 900);
                 v.node.setAttribute('data-reaction', kind);
             }
 
@@ -1220,7 +1516,7 @@
             /** Nearby visitors greet once each, while keeping their separation and escape priority. */
             function greetVisitors(now) {
                 var free = visitors.filter(function (v) {
-                    return !v.fear && !v.insect && !v.launched && !v.leaving && !v.exiting && !v.perch && !v.greeted && !v.reactionUntil &&
+                    return !v.pair && !v.leaf && !v.fear && !v.insect && !v.launched && !v.leaving && !v.exiting && !v.perch && !v.greeted && !v.reactionUntil &&
                         now >= v.fleeUntil && now - v.born < v.lifetime - 1000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > 120;
                 });
                 for (var i = 0; i < free.length; i++) {
@@ -1245,7 +1541,7 @@
                 var best = null, nearest = onElement ? 320 : 230;
                 var selector = onElement ? 'button,input:not([type="hidden"]),select,textarea,a,span,label,h1,h2,h3,p,td,th,[id^="blockPortal_"]' : shelter ? 'button,[id^="blockPortal_"],.listTable' : '[id^="blockPortal_"]';
                 Array.prototype.slice.call(document.querySelectorAll(selector), 0, 180).forEach(function (block) {
-                    if ((onElement || shelter) && (block === v.lastPerch || block.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
+                    if ((onElement || shelter) && (block === v.lastPerch || block.closest('.funny-eaten,.funny-stats,.funny-controls,[aria-hidden="true"]') ||
                         block.closest('details:not([open]),[hidden]') ||
                         (document.activeElement && block.contains(document.activeElement)))) return;
                     var r = block.getBoundingClientRect();
@@ -1253,7 +1549,7 @@
                         r.left < 0 || r.right > window.innerWidth || block.closest('[aria-hidden="true"]')) return;
                     var style = window.getComputedStyle(block);
                     if (style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return;
-                    var x = onElement ? clamp(v.x, r.left + 12, r.right - 12) - v.contact.x : clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8);
+                    var x = onElement ? (v.character === 'mouse' ? random(r.left + 12, r.right - 12) : clamp(v.x, r.left + 12, r.right - 12)) - v.contact.x : clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8);
                     var y = onElement ? r.top + Math.min(r.height / 2, 18) - v.contact.y : r.top - v.height / 2 + 5;
                     if (shelter) {
                         y = r.bottom + v.height / 2 - 5;
@@ -1306,7 +1602,7 @@
                         p.surfaceBlood = p.startBlood;
                         v.node.setAttribute('data-perched', 'true');
                         if (p.shelter) v.node.setAttribute('data-shelter', 'true');
-                        if (v.visitsElements) v.node.setAttribute('data-insect', v.feeds ? 'feeding' : v.character === 'spiders' ? 'weaving' : 'rubbing');
+                        if (v.visitsElements) v.node.setAttribute('data-insect', v.feeds ? 'feeding' : v.character === 'spiders' ? 'weaving' : v.character === 'mouse' ? 'gnawing' : 'rubbing');
                     }
                 } else { v.x += dx / distance * step; v.y += dy / distance * step; }
                 return true;
@@ -1320,9 +1616,9 @@
             /** All trails, puddles, bites and webs share one cap and the same inactive-page cleanup. */
             function addMark(node, lifetime, contact) {
                 // Keep interactive props longer than expendable footprints, within the same total cap.
-                var limit = clamp(Math.floor(window.innerWidth * window.innerHeight / 33000), 6, gentle ? 12 : 24);
+                var limit = clamp(Math.floor(window.innerWidth * window.innerHeight / 33000 * (scene ? scene.quality() : 1)), 6, gentle ? 12 : 24);
                 if (marks.length >= limit) removeMark(marks.filter(function (mark) {
-                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains'].indexOf(mark.contact.kind) < 0);
+                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'hole', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains'].indexOf(mark.contact.kind) < 0);
                 })[0] || marks[0]);
                 node.setAttribute('aria-hidden', 'true');
                 document.body.appendChild(node);
@@ -1421,6 +1717,7 @@
             /** Feeding drains the element; a walking fly leaves both footmarks and a little grime. */
             function restOnElement(v, now, delta) {
                 var p = v.perch, elapsed = now - p.arrived;
+                if (v.character === 'mouse') { gnaw(v, now, elapsed); return; }
                 if (v.character === 'spiders') {
                     if (!v.webTried && elapsed >= 500) { v.webTried = true; weaveWeb(v); }
                     return;
@@ -1489,10 +1786,14 @@
 
             /** Approaches slowly and flees quickly; the monster has an 80-second limit, others 60. */
             function animateVisitor(v, now) {
+                if (v.pair && !pairActive(v.pair, now)) endPair(v);
+                if (v.leaf && (!availableForEncounter(v, now) || v.pursuit || v.fear)) { v.leaf = null; v.node.setAttribute('data-leaf-play', ''); }
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
-                if (/^(tired|paw|forage|peck|sweep|cool|thanks|startled|duck)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
+                if (/^(tired|paw|forage|peck|sweep|cool|thanks|startled|duck|umbrella|snowshake)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
+                if (/^(umbrella|snowshake)$/.test(v.reaction) && (v.pursuit || v.fear || v.eating || v.munchTarget)) v.reactionUntil = now;
+                if (v.reaction === 'umbrella' && (v.outfit !== 'umbrella' || wind.speed < 20)) v.reactionUntil = now;
                 if (v.peckTarget && (marks.indexOf(v.peckTarget) < 0 || v.peckTarget.ending)) v.reactionUntil = now;
                 if (v.reactionUntil && now >= v.reactionUntil) {
                     var startled = v.reaction === 'paw' && availableForEncounter(v, now, 65);
@@ -1506,8 +1807,10 @@
                 satisfiedWolf(v, now);
                 if ((v.deadline && now >= v.deadline) || elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.leaveDuration || v.splatDuration || 250))) {
                     if (v.swallowed && !v.remainsCancelled) leaveMealRemains(v);
-                    removeVisitor(v, !v.leaving); return;
+                    removeVisitor(v, !v.leaving || v.holeEscaped); return;
                 }
+                weatherProps(v, now, delta);
+                skyProps(v, now);
                 if (v.descending && !v.leaving) {
                     if (now < v.fleeUntil || elapsed >= 1800) releaseThread(v);
                     else {
@@ -1517,6 +1820,7 @@
                         return;
                     }
                 }
+                if (v.character === 'mouse' && !v.launched && !v.leaving && !v.exiting && mouseExit(v, now, delta)) return;
                 if (v.character === 'muncher' && !v.fear && !v.pursuit && !v.launched && !v.leaving && !v.exiting && elapsed < v.lifetime && munch(v, now, delta)) return;
                 if (v.launched) {
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
@@ -1576,8 +1880,8 @@
                         v.x += wind.x * wind.speed * 0.18 * delta;
                         v.y += wind.y * wind.speed * 0.18 * delta;
                     }
-                    if (v.x < v.width / 2 || v.x > window.innerWidth - v.width / 2 || v.y < v.height / 2 || v.y > window.innerHeight - v.height / 2) v.exiting = true;
-                    if (v.x < -v.width / 2 || v.x > window.innerWidth + v.width / 2 || v.y < -v.height / 2 || v.y > window.innerHeight + v.height / 2) {
+                    if (v.character !== 'mouse' && (v.x < v.width / 2 || v.x > window.innerWidth - v.width / 2 || v.y < v.height / 2 || v.y > window.innerHeight - v.height / 2)) v.exiting = true;
+                    if (v.character !== 'mouse' && (v.x < -v.width / 2 || v.x > window.innerWidth + v.width / 2 || v.y < -v.height / 2 || v.y > window.innerHeight + v.height / 2)) {
                         removeVisitor(v, true);
                         return;
                     }
@@ -1700,7 +2004,7 @@
                 var meals = [], containers = new Set(), eatenParents = new Set(), hidden = new Set();
                 for (var i = 0; i < nodes.length && i < 4000; i++) {
                     var el = nodes[i];
-                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]')) continue;
+                    if (/^(SCRIPT|STYLE|LINK|META|BR|OPTION|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || el.closest('.funny-eaten,.funny-stats,.funny-controls,[aria-hidden="true"]')) continue;
                     var style = window.getComputedStyle(el);
                     var parent = el.parentElement, closedDetails = parent && parent.tagName === 'DETAILS' && !parent.open && parent.querySelector('summary') !== el;
                     if (hidden.has(parent) || closedDetails || style.display === 'none' || style.contentVisibility === 'hidden' || Number(style.opacity) === 0) { hidden.add(el); continue; }
@@ -1958,6 +2262,7 @@
             window.addEventListener('beforeprint', function () { printing = true; syncActivity(); });
             window.addEventListener('afterprint', function () { printing = false; syncActivity(); });
             window.addEventListener('resize', clearVisitors);
+            if (scene) scene.subscribe(syncActivity);
             reducedMotion.addEventListener('change', syncActivity);
             schedule();
         }

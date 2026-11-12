@@ -190,12 +190,28 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getResponseUrl($paymentId, $id = null)
     {
+        if ($this->hasFixedResponseUrl()) {
+
+            return toUrl(array('A', 'CR'), 'absolute');
+        }
+
         // Методът и опитът не се виждат в адреса и не могат да се подменят
         Request::setProtected('pm,cp');
         $url = toUrl(array('eshop_CardPayments', 'response', 'pm' => $paymentId, 'cp' => $id), 'absolute');
         Request::removeProtected('pm,cp');
 
         return $url;
+    }
+
+
+    /**
+     * Дали шлюзът връща купувача на един общ адрес, зададен предварително за терминала (БОРИКА BACKREF)
+     *
+     * @return bool
+     */
+    public function hasFixedResponseUrl()
+    {
+        return false;
     }
 
 
@@ -240,6 +256,26 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
         $fieldset->FLD('ownAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане с карта->Банкова сметка,mandatory,after=onlinePaymentText');
         $fieldset->FLD('n18PaymentCode', "enum(2=Виртуален ПОС,4=Доставчик на платежни услуги)", "caption=Плащане с карта->Вид по Н-18,notNull,value={$this->defaultN18PaymentCode},after=ownAccountId");
         $fieldset->FLD('n18ProcId', 'varchar(200)', 'caption=Плащане с карта->Доставчик (ЕИК и име),after=n18PaymentCode,hint=ЕИК (за чуждестранен - ДДС или друг номер) и наименование на доставчика на платежни услуги');
+        if ($this->hasFixedResponseUrl()) {
+            $fieldset->FNC('responseUrl', 'varchar', 'caption=Плащане с карта->Адрес за отговор (BACKREF),input=none,after=n18ProcId');
+        }
+    }
+
+
+    /**
+     * Адресът за отговор се показва, за да се зададе за терминала при банката
+     *
+     * @param cond_ProtoCardPaymentDriver $Driver
+     * @param embed_Manager               $Embedder
+     * @param stdClass                    $row
+     * @param stdClass                    $rec
+     * @param array                       $fields
+     */
+    public static function on_AfterRecToVerbal($Driver, $Embedder, &$row, $rec, $fields = array())
+    {
+        if ($Driver->hasFixedResponseUrl()) {
+            $row->responseUrl = htmlspecialchars($Driver->getResponseUrl($rec->id ?? null), ENT_QUOTES, 'UTF-8');
+        }
     }
 
 

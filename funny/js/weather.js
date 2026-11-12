@@ -24,9 +24,10 @@
         init: function (options) {
             if (initialized || ['on', 'sound'].indexOf(options.mode) < 0 || window.self !== window.top) return;
             initialized = true;
+            var scene = window.funnyScene;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
             var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null;
-            var timer = 0, frame = 0, printing = false, appearances = 0;
+            var timer = 0, frame = 0, printing = false, appearances = 0, focused = document.hasFocus();
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
@@ -38,11 +39,13 @@
             var surfaces = '[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th';
             var details = [], gustAt = 6000, lastTrace = -Infinity, rippleAt = 0;
             var starSeen = false, starAt = 0, rainbowSeen = false, lightningAt = 0;
+            var windMotions = [], windPicked = false, fallen = 0, fallAt = 14000;
             // Bearings describe where wind comes from; without a saved bearing keep one gentle heading per page.
             var bearing = typeof options.windDirection === 'number' ? options.windDirection * Math.PI / 180 : (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (Math.random() - 0.5) * 0.6;
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
             // Software keyboards and IMEs also report edits without physical key events.
             var inputs = ['pointermove', 'pointerdown', 'keydown', 'input', 'compositionstart', 'focusin', 'wheel', 'touchmove', 'scroll'];
+            var interactive = 'a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[role="textbox"],[tabindex],[onclick],[contenteditable]:not([contenteditable="false"])';
 
             /** Every new idle period starts with the same interval as a freshly loaded page. */
             function initialDelay() {
@@ -51,7 +54,7 @@
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
             function active() {
-                return document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches;
+                return focused && document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches && !(scene && scene.paused());
             }
 
             /** The server has already resolved the user's location and hourly/daily fallback. */
@@ -83,32 +86,46 @@
                 }
             }
 
-            /** A single soft rustle or chime, at most three seconds, without looping or downloads. */
+            /** Short rain, wind or snow rustles; clear skies use a brief chime, never a sustained beep. */
             function sound() {
                 if (!active() || !audio || audio.state !== 'running') return;
-                var gain = audio.createGain(), now = audio.currentTime;
-                var wet = weather.indexOf('rain') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
-                var duration = wet ? 3 : 2, source;
+                var wet = weather.indexOf('rain') >= 0, snowy = weather.indexOf('snow') >= 0;
+                var windy = weather.indexOf('wind') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
+                var night = weather.indexOf('moon') >= 0;
+                var duration = wet ? 2.4 : windy ? 2 : snowy ? 1.2 : airy ? 1 : night ? 0.8 : 0.65;
+                var volume = wet ? 0.035 : windy ? 0.022 : snowy ? 0.012 : airy ? 0.008 : 0.018;
+                var owner = audio, gain, source, filter, now = owner.currentTime + 0.025;
+                if (scene && !scene.cue(0, duration * 1000 + 30, function () {
+                    if (gain && owner.state !== 'closed') scene.fade(gain.gain, owner.currentTime);
+                }, 'weather')) return;
+                gain = owner.createGain();
+                // A cue cancelled before its scheduled start must not fade from GainNode's default 1.
+                gain.gain.value = 0;
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime((wet ? 0.045 : 0.025) * strength, now + 0.5);
+                gain.gain.linearRampToValueAtTime(volume * strength, now + Math.min(0.4, duration / 4));
                 gain.gain.linearRampToValueAtTime(0, now + duration);
-                gain.connect(audio.destination);
+                gain.connect(owner.destination);
                 if (wet || airy) {
-                    var buffer = audio.createBuffer(1, audio.sampleRate * duration, audio.sampleRate);
+                    var buffer = owner.createBuffer(1, Math.ceil(owner.sampleRate * duration), owner.sampleRate);
                     var data = buffer.getChannelData(0);
                     for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-                    source = audio.createBufferSource();
+                    source = owner.createBufferSource();
                     source.buffer = buffer;
-                    var filter = audio.createBiquadFilter();
-                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1600 : 500;
+                    filter = owner.createBiquadFilter();
+                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1400 : windy ? (snowy ? 700 : 380) : snowy ? 350 : 250;
                     source.connect(filter); filter.connect(gain);
                 } else {
-                    source = audio.createOscillator(); source.type = 'sine';
-                    source.frequency.setValueAtTime(weather.indexOf('moon') >= 0 ? 440 : 660, now);
+                    source = owner.createOscillator(); source.type = 'sine';
+                    source.frequency.setValueAtTime(night ? 440 : 880, now);
+                    source.frequency.exponentialRampToValueAtTime(night ? 392 : 1175, now + duration);
                     source.connect(gain);
                 }
                 source.start(now); source.stop(now + duration);
-                source.onended = stopSound;
+                // An old source ending after a new gesture must never close that gesture's context.
+                source.onended = function () {
+                    source.disconnect(); gain.disconnect(); if (filter) filter.disconnect();
+                    if (audio === owner) stopSound();
+                };
             }
 
             /** Decorations never participate in layout, focus, hit testing or accessibility. */
@@ -119,7 +136,7 @@
 
             /** Shared, bounded lifetime for wind, runoff and footprints; no per-particle timers. */
             function detail(kind, x, y, life) {
-                var limit = Math.max(6, Math.min(gentle ? 12 : 24, Math.floor(width * height / 33000)));
+                var limit = Math.max(6, Math.min(gentle ? 12 : 24, Math.floor(width * height / 33000 * (scene ? scene.quality() : 1))));
                 if (!layer || details.length >= limit) return null;
                 var node = element(kind, layer);
                 node.style.left = x + 'px'; node.style.top = y + 'px';
@@ -174,6 +191,8 @@
                         shape.style.animationDirection = Math.random() < 0.5 ? 'alternate' : 'alternate-reverse';
                         if (season === 'leaf' && i === 0 && restingEdges.length) {
                             var edge = restingEdges[Math.floor(Math.random() * restingEdges.length)];
+                            var item = details[details.length - 1];
+                            item.rest = {x:(edge.left + edge.right) / 2,y:edge.top - 13,from:time + delay + duration * 0.35,to:time + delay + duration * 0.65};
                             piece.classList.add('funny-weather-resting');
                             piece.style.setProperty('--rest-x', (edge.left + (edge.right - edge.left) / 2 - x) + 'px');
                             piece.style.setProperty('--rest-y', (edge.top - 13 - y) + 'px');
@@ -244,6 +263,64 @@
                 banks = next;
             }
 
+            /** Native animations move a few visible items without changing their layout or inline styles. */
+            function sway(item) {
+                var amount = Math.min(4, wind.speed / 12) * strength * item.weight;
+                var x = wind.x * amount, y = wind.y * amount * 0.45, angle = wind.x * amount * 0.3;
+                item.animation = item.target.animate([
+                    {transform:'none'},
+                    {transform:'translate(' + x + 'px,' + y + 'px) rotate(' + angle + 'deg)'},
+                    {transform:'translate(' + x * 0.25 + 'px,' + -y * 0.2 + 'px) rotate(' + -angle * 0.3 + 'deg)'},
+                    {transform:'none'}
+                ], {duration:item.duration,iterations:Infinity,easing:'ease-in-out'});
+            }
+
+            /** Wind can loosen at most two small decorative items; controls only sway a few pixels. */
+            function moveSurfaces() {
+                if (wind.speed < 12 || elapsed < 5000) return;
+                if (!windPicked) {
+                    windPicked = true;
+                    var nodes = document.querySelectorAll(surfaces + ', img'), candidates = [];
+                    for (var i = 0; i < nodes.length && i < 250; i++) {
+                        var node = nodes[i], rect = node.getBoundingClientRect(), style = window.getComputedStyle(node);
+                        if (!node.animate || rect.width < 8 || rect.width > 360 || rect.height < 8 || rect.height > 160 ||
+                            rect.top < 8 || rect.bottom > height - 8 || rect.left < 8 || rect.right > width - 8 ||
+                            node.closest('[aria-hidden="true"], .funny-controls, .funny-stats, [contenteditable="true"]') ||
+                            node === document.activeElement || (document.activeElement && node.contains(document.activeElement)) ||
+                            /^(hidden|collapse)$/.test(style.visibility) || Number(style.opacity) === 0 ||
+                            /^(fixed|sticky)$/.test(style.position) || (style.display === 'inline' && node.tagName !== 'IMG') ||
+                            (style.transform && style.transform !== 'none') || (style.animationName && style.animationName !== 'none') ||
+                            candidates.some(function (other) { return other.contains(node) || node.contains(other); })) continue;
+                        candidates.push(node);
+                    }
+                    var limit = Math.max(2, Math.round((gentle ? 4 : 9) * (scene ? scene.quality() : 1)));
+                    while (candidates.length && windMotions.length < limit) {
+                        var target = candidates.splice(Math.floor(Math.random() * candidates.length), 1)[0], r = target.getBoundingClientRect();
+                        var item = {target:target,weight:0.6 + Math.random() * 0.4,duration:2800 + Math.random() * 2800,
+                            loose:r.width <= 110 && r.height <= 50};
+                        windMotions.push(item); sway(item);
+                    }
+                }
+                windMotions = windMotions.filter(function (item) {
+                    if (!item.target.isConnected) { item.animation.cancel(); return false; }
+                    if (item.falling && item.animation.playState === 'finished') { item.animation.cancel(); item.falling = false; sway(item); }
+                    return true;
+                });
+                if (wind.speed < 30 || fallen >= (gentle ? 1 : 2) || elapsed < fallAt || (scene && scene.quality() < 0.7)) return;
+                fallAt = elapsed + 18000 + Math.random() * 15000;
+                // Recheck descendants because an AJAX refresh may have added a link or button.
+                var loose = windMotions.filter(function (item) { return item.loose && !item.fell && !item.target.closest(interactive) && !item.target.querySelector(interactive); });
+                if (!loose.length || Math.random() > 0.4) return;
+                var item = loose[Math.floor(Math.random() * loose.length)];
+                item.animation.cancel(); item.fell = item.falling = true; fallen++;
+                item.animation = item.target.animate([
+                    {transform:'none',offset:0},
+                    {transform:'translate(' + wind.x * 12 * strength + 'px,2px) rotate(' + wind.x * 6 + 'deg)',offset:0.18},
+                    {transform:'translate(' + wind.x * 24 * strength + 'px,' + (28 + wind.speed / 2) * strength + 'px) rotate(' + wind.x * 18 + 'deg)',offset:0.45},
+                    {transform:'none',offset:1}
+                ], {duration:6000,easing:'ease-in-out'});
+            }
+
             /** Precipitation is recycled instead of allocating a new DOM node for every drop. */
             function resetParticle(particle) {
                 particle.x = Math.random() * (width + 80) - 40;
@@ -279,12 +356,14 @@
             function animate(time) {
                 frame = 0;
                 if (!active() || Date.now() >= options.expires) { stop(); return; }
+                if (scene && context) scene.sample(time);
                 // Cap delayed callbacks so a stalled tab cannot suddenly acquire full accumulation.
                 elapsed += Math.min(1000, time - lastProgress); lastProgress = time;
                 animateDetails(time);
                 if (time - lastLayout >= 1000) {
                     if (forecast() !== weather) { stop(); return; }
                     if (canvas) updateBanks();
+                    moveSurfaces();
                     positionSky();
                     layer.style.opacity = (Math.min(1, elapsed / 8000) * strength).toFixed(3);
                     document.body.style.setProperty('--funny-weather-exposure', (Math.min(1, elapsed / (weather.indexOf('rain') >= 0 ? 60000 : 90000)) * strength).toFixed(3));
@@ -294,7 +373,8 @@
                     var dt = Math.min(0.07, (time - lastFrame) / 1000); lastFrame = time;
                     context.clearRect(0, 0, width, height);
                     // Build the shower over twenty seconds, with new drops/flakes entering from above.
-                    var count = Math.ceil(maxParticles * Math.min(1, elapsed / 20000));
+                    var count = Math.ceil(maxParticles * Math.min(1, elapsed / 20000) * (scene ? scene.quality() : 1));
+                    if (particles.length > count) particles.length = count;
                     while (particles.length < count) { var particle = {}; resetParticle(particle); particles.push(particle); }
                     particles.forEach(function (p) {
                         var previousY = p.y;
@@ -339,10 +419,12 @@
                 if (!weather) { stopSound(); return; }
                 finishFade();
                 window.clearTimeout(timer); timer = 0;
+                if (scene) scene.reveal();
                 appearances++;
                 var max = frequent ? 60000 : Math.min(1200000, 120000 * Math.pow(2, Math.min(appearances, 4)));
                 remaining = max / 2 + Math.random() * max / 2;
                 elapsed = 0; gustAt = 6000; lastTrace = -Infinity; rainbowSeen = false; rippleAt = 0;
+                windPicked = false; fallen = 0; fallAt = 14000;
                 starAt = 18000 + Math.random() * 22000;
                 lightningAt = /^thunder/.test(options.icon) ? 8000 + Math.random() * 6000 : 0;
                 width = window.innerWidth; height = window.innerHeight;
@@ -351,7 +433,8 @@
                 layer.style.opacity = '0';
                 document.body.style.setProperty('--funny-weather-exposure', '0');
                 if (weather.indexOf('rain') >= 0) document.body.classList.add('funny-weather-text-wet');
-                else if (weather.indexOf('sun') >= 0) document.body.classList.add('funny-weather-text-warm');
+                else if (weather.indexOf('sun') >= 0 && !(options.temperature < 0)) document.body.classList.add('funny-weather-text-warm');
+                if (typeof options.temperature === 'number' && options.temperature < 0) document.body.classList.add('funny-weather-text-frost');
                 weather.split(' ').forEach(function (kind) { layer.classList.add('funny-weather-has-' + kind); });
                 ['sun', 'moon', 'clouds', 'fog'].forEach(function (kind) {
                     if (weather.indexOf(kind) < 0) return;
@@ -388,7 +471,7 @@
             function finishFade() {
                 window.clearTimeout(fadeTimer); fadeTimer = 0;
                 if (fadingLayer) { fadingLayer.remove(); fadingLayer = null; }
-                document.body.classList.remove('funny-weather-text-wet', 'funny-weather-text-warm');
+                document.body.classList.remove('funny-weather-text-wet', 'funny-weather-text-warm', 'funny-weather-text-frost');
                 document.body.style.removeProperty('--funny-weather-exposure');
             }
 
@@ -396,6 +479,7 @@
             function stop(fade) {
                 window.clearTimeout(timer); timer = 0;
                 window.cancelAnimationFrame(frame); frame = 0; stopSound();
+                windMotions.forEach(function (item) { item.animation.cancel(); }); windMotions = [];
                 if (layer && fade === true && active()) {
                     fadingLayer = layer; layer = null;
                     fadingLayer.classList.add('funny-weather-fading');
@@ -420,7 +504,7 @@
                 }, remaining);
             }
 
-            /** Input restarts idle waiting even before the first scene; clicks preserve an already running scene. */
+            /** Input restarts idle waiting; only blank clicks preserve an already running scene. */
             function activity(event) {
                 if (!active()) return;
                 if (event.type === 'pointermove' && typeof event.clientX === 'number') {
@@ -432,18 +516,36 @@
                 appearances = 0;
                 remaining = initialDelay();
                 if (layer) {
-                    if (event.type === 'pointerdown') return;
+                    if (event.type === 'pointerdown' && (!event.target || !event.target.closest(interactive))) return;
                     stop(true);
                 } else { window.clearTimeout(timer); timer = 0; }
                 schedule();
             }
 
             /** Focus starts a fresh idle interval instead of resuming a nearly expired countdown. */
-            function focusChanged() {
+            function focusChanged(event) {
+                if (event && (event.type === 'blur' || event.type === 'pagehide')) focused = false;
+                if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = document.hasFocus();
                 stop();
                 activity({type: 'focus'});
             }
             window.funnyWeather.current = function () { return active() ? forecast() : ''; };
+            /** Offer only leaves currently resting; a paw changes their CSS path without new timers. */
+            window.funnyWeather.leafNear = function (x, y) {
+                if (!layer || !active()) return null;
+                var now = performance.now(), item = details.filter(function (d) {
+                    return d.rest && !d.kicked && now >= d.rest.from && now < d.rest.to && Math.hypot(d.rest.x - x, d.rest.y - y) < 170;
+                })[0];
+                if (!item) return null;
+                return {x:item.rest.x,y:item.rest.y,valid:function () { return !!layer && details.indexOf(item) >= 0 && !item.kicked && performance.now() < item.rest.to; },kick:function () {
+                    if (!layer || item.kicked || details.indexOf(item) < 0) return false;
+                    item.kicked = true; item.node.classList.remove('funny-weather-resting');
+                    item.node.style.left = item.rest.x + 'px'; item.node.style.top = item.rest.y + 'px';
+                    item.node.style.animationDelay = '0ms'; item.node.style.setProperty('--travel', wind.x * 200 + 'px');
+                    item.node.style.setProperty('--lift', wind.y * 100 - 30 + 'px'); item.node.style.setProperty('--gust-duration', '1800ms');
+                    item.node.classList.add('funny-weather-kicked'); item.until = performance.now() + 1800; return true;
+                }};
+            };
             window.funnyWeather.trace = trace;
             window.funnyWeather.trigger = start;
             window.funnyWeather.wind = function () { return active() ? wind : {x:0,y:0,speed:0}; };
@@ -454,10 +556,11 @@
             window.addEventListener('blur', focusChanged);
             window.addEventListener('focus', focusChanged);
             window.addEventListener('resize', focusChanged);
-            window.addEventListener('pagehide', stop);
+            window.addEventListener('pagehide', focusChanged);
             window.addEventListener('pageshow', focusChanged);
             window.addEventListener('beforeprint', function () { printing = true; stop(); });
             window.addEventListener('afterprint', function () { printing = false; focusChanged(); });
+            if (scene) scene.subscribe(focusChanged);
             if (reduced.addEventListener) reduced.addEventListener('change', focusChanged);
             schedule();
         }

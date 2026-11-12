@@ -393,6 +393,14 @@ abstract class deals_Document extends deals_PaymentDocument
 
 
     /**
+     * Полета от записа, които чете fillSummaryRec
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $summaryRecFields = 'valior,currencyId';
+
+
+    /**
      * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
      * @see acc_plg_DocumentSummary
      */

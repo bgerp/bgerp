@@ -178,6 +178,17 @@ class eshopn18_driver_TestCardPayment extends cond_ProtoCardPaymentDriver
 
 
     /**
+     * Отговорът идва на общия адрес като при БОРИКА - извън debug методът не се разпознава
+     *
+     * @return bool
+     */
+    public function hasFixedResponseUrl()
+    {
+        return isDebug();
+    }
+
+
+    /**
      * Страницата на тестовия шлюз - купувачът избира как да завърши плащането
      */
     public function act_Gateway()

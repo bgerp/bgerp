@@ -22,7 +22,7 @@ class trans_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('trans_Lines', 'Линии', 'ceo,trans');
-        $this->TAB('trans_TripSheets', 'Пътни листи', 'ceo,trans,seePrice');
+        $this->TAB('trans_TripSheets', 'Пътни листи', 'ceo,tran');
         $this->TAB('trans_Waybills', 'Товарителници', 'ceo,trans');
         $this->TAB('trans_Cmrs', 'ЧМР', 'ceo,trans');
         $this->TAB('trans_IntraCommunitySupplyConfirmations', 'ВОД', 'ceo,trans');
