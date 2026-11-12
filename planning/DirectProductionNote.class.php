@@ -254,6 +254,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $this->setDbIndex('productId');
         $this->setDbIndex('state');
+        $this->setDbIndex('productId,state,id');
     }
 
 
