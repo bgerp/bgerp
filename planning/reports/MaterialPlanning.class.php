@@ -75,9 +75,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('type', 'enum(byWeeks=По седмици, bySales=По продажби)', 'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
-        $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type');
+        $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type,single=none');
         $fieldset->FLD('saleStates', 'set(active=Активни,draft=Чернова,pending=Заявка)', 'caption=Състояния на договорите,after=weeks,silent,refreshForm,single=none');
-        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=saleStates,single=none');
+        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number,find=everywhere)', 'caption=Договори,placeholder = Всички,after=saleStates,single=none');
 
         // Групи артикули
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=slalesDog,single=none');
@@ -148,10 +148,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
         $suggestions = array();
         while ($salesDog = $salesQuery->fetch()) {
-            $suggestions[$salesDog->id] = $salesDog->id;
+            $suggestions[$salesDog->id ?? null] = sales_Sales::getHandle($salesDog);
         }
 
-        asort($suggestions);
+        ksort($suggestions, SORT_NUMERIC);
 
         $form->setSuggestions('slalesDog', $suggestions);
     }
@@ -498,6 +498,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN saleStates--><div>|Състояния на договорите|*: <b>[#saleStates#]</b></div><!--ET_END saleStates-->
+                                        <!--ET_BEGIN sales--><div>|Договори|*: <b>[#sales#]</b></div><!--ET_END sales-->
+                                        <!--ET_BEGIN weeks--><div>|Брой седмици|*: <b>[#weeks#]</b></div><!--ET_END weeks-->
                                         <!--ET_BEGIN groups--><div>|Групи продукти|*: <b>[#groups#]</b></div><!--ET_END groups-->
                                         <!--ET_BEGIN totalmaterialQuantiry--><div>|Общо тегло|*: <b>[#totalmaterialQuantiry#] кг.</b></div><!--ET_END totalmaterialQuantiry-->
                                     </div>
@@ -509,6 +511,13 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         if (($reportRec->type ?? 'byWeeks') == 'bySales') {
             $statesType = core_Type::getByName('set(active=Активни,draft=Чернова,pending=Заявка)');
             $fieldTpl->append($statesType->toVerbal(implode(',', self::getSaleStates($reportRec))), 'saleStates');
+            $sales = array();
+            foreach (keylist::toArray($reportRec->slalesDog ?? null) as $saleId) {
+                $sales[] = ht::createLink(sales_Sales::getHandle($saleId), sales_Sales::getUrlWithAccess($saleId));
+            }
+            $fieldTpl->append(implode(', ', $sales), 'sales');
+        } else {
+            $fieldTpl->append(max(1, (int)($reportRec->weeks ?? 8)), 'weeks');
         }
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
