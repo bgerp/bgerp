@@ -8,7 +8,7 @@ const source = fs.readFileSync(require('node:path').join(__dirname, '../js/weath
 
 function environment(config = {}) {
     let now = 0, sequence = 0, seed = 51;
-    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [], motions = [];
+    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [], motions = [], gains = [], filters = [];
     class Target {
         constructor() { this.listeners = {}; }
         addEventListener(type, fn) { (this.listeners[type] ||= new Set()).add(fn); }
@@ -28,16 +28,17 @@ function environment(config = {}) {
         contains(node) { return this === node || this.children.some(child => child.contains(node)); }
         animate(keys, options) { const started=now, motion={target:this,keys,options,cancelled:false,cancel(){this.cancelled=true;},get playState(){return this.cancelled?'idle':options.iterations===Infinity||now-started<options.duration?'running':'finished';}}; motions.push(motion);return motion; }
     }
-    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);},cancelScheduledValues() {}});
+    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);},exponentialRampToValueAtTime(value){this.endValue=value;},cancelScheduledValues() {}});
     class AudioContext {
-        constructor() { this.currentTime = now/1000; this.state = 'running'; this.sampleRate = 1000; this.destination = {}; audio.push(this); }
+        constructor() { this.state = 'running'; this.sampleRate = 1000; this.destination = {}; audio.push(this); }
+        get currentTime() { return now/1000; }
         resume() { return Promise.resolve(); }
         close() { this.state='closed'; return Promise.resolve(); }
-        createGain() { return {gain:param(), connect(){}}; }
+        createGain() { const gain={gain:param(),connect(){},disconnect(){this.disconnected=true;}};gains.push(gain);return gain; }
         createBuffer(channels, length) { return {getChannelData:()=>new Float32Array(length)}; }
-        createBiquadFilter() { return {frequency:param(),connect(){}}; }
+        createBiquadFilter() { const filter={frequency:param(),connect(){},disconnect(){this.disconnected=true;}};filters.push(filter);return filter; }
         createBufferSource() { return this.createOscillator(); }
-        createOscillator() { const node={frequency:param(),connect(){},start(at){this.startAt=at;},stop(at){this.stopAt=at;sounds.push(this);}}; return node; }
+        createOscillator() { const node={frequency:param(),connect(){},disconnect(){this.disconnected=true;},start(at){this.startAt=at;},stop(at){this.stopAt=at;sounds.push(this);}}; return node; }
     }
     const window = new Target(), document = new Target(), reduced = new Target();
     reduced.matches = !!config.reduced;
@@ -70,7 +71,7 @@ function environment(config = {}) {
             const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));
         }
     }
-    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,motions,image,block,options,Element,
+    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,motions,gains,filters,image,block,options,Element,
         layer:()=>document.body.children.find(n=>n.className.includes('funny-weather-layer') && !n.className.includes('funny-weather-fading')), setImages:value=>{images=value;},setBlocks:value=>{blocks=value;}, now:()=>now};
 }
 let checks=0;
@@ -545,6 +546,28 @@ check('pressing controls restores wind immediately while blank double-clicks pre
     const blank=new e.Element();e.document.emit('pointerdown',{target:blank});e.window.funnyWeather.trigger('manual');assert.equal(e.layer(),layer);
     const control=new e.Element();control.closest=()=>control;e.document.emit('pointerdown',{target:control});
     assert(!e.layer());assert(e.motions.every(m=>m.cancelled));e.tick(1100);assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);
+});
+
+check('weather audio distinguishes rain, wind, blizzard and clear skies with short quiet envelopes',()=>{
+    const profiles=[];
+    for(const [icon,wind] of [['rain',8],['wind',35],['snow',35],['snow',8],['cloudy',8],['fog',8],['clear-day',8],['clear-night',8]]) {
+        const e=environment({mode:'sound',icon,wind,standalone:false});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');
+        assert.equal(e.sounds.length,1);const sound=e.sounds[0],duration=sound.stopAt-sound.startAt;
+        assert(duration>0&&duration<=2.4);assert(Math.max(...e.volumes)<=.035);assert.equal(e.volumes.at(-1),0);
+        if(icon.startsWith('clear')){assert(duration<1);assert.equal(sound.type,'sine');assert(sound.frequency.endValue);}
+        profiles.push([duration,e.filters[0]?.frequency.value]);sound.onended();assert.equal(e.audio[0].state,'closed');assert(sound.disconnected&&e.gains[0].disconnected);
+    }
+    assert.notDeepEqual(profiles[1],profiles[2]);assert.notDeepEqual(profiles[2],profiles[3]);
+});
+check('an old weather source cannot close the next gesture audio context',()=>{
+    const e=environment({mode:'sound',standalone:false});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');const old=e.sounds[0];
+    e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.audio.length,2);
+    old.onended();assert.equal(e.audio[1].state,'running');e.sounds[1].onended();assert.equal(e.audio[1].state,'closed');
+});
+check('weather replay is throttled even after a manual restart and suppressed sounds allocate no nodes',()=>{
+    const e=environment({mode:'sound',standalone:false,scene:true});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');
+    e.tick(4000);e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,1);assert.equal(e.gains.length,1);
+    e.tick(8000);e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,2);
 });
 
 console.log(checks+' weather behavior checks passed');

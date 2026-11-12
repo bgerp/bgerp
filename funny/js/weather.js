@@ -86,38 +86,46 @@
                 }
             }
 
-            /** A single soft rustle or chime, at most three seconds, without looping or downloads. */
+            /** Short rain, wind or snow rustles; clear skies use a brief chime, never a sustained beep. */
             function sound() {
                 if (!active() || !audio || audio.state !== 'running') return;
-                var gain = audio.createGain(), now = audio.currentTime;
-                if (scene && !scene.cue(0, 3000, function () {
-                    if (!audio) return;
-                    gain.gain.cancelScheduledValues(audio.currentTime);
-                    gain.gain.setValueAtTime(0.006 * strength, audio.currentTime);
-                    gain.gain.linearRampToValueAtTime(0, audio.currentTime + 0.25);
-                })) return;
-                var wet = weather.indexOf('rain') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
-                var duration = wet ? 3 : 2, source;
+                var wet = weather.indexOf('rain') >= 0, snowy = weather.indexOf('snow') >= 0;
+                var windy = weather.indexOf('wind') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
+                var night = weather.indexOf('moon') >= 0;
+                var duration = wet ? 2.4 : windy ? 2 : snowy ? 1.2 : airy ? 1 : night ? 0.8 : 0.65;
+                var volume = wet ? 0.035 : windy ? 0.022 : snowy ? 0.012 : airy ? 0.008 : 0.018;
+                var owner = audio, gain, source, filter, now = owner.currentTime + 0.025;
+                if (scene && !scene.cue(0, duration * 1000 + 30, function () {
+                    if (gain && owner.state !== 'closed') scene.fade(gain.gain, owner.currentTime);
+                }, 'weather')) return;
+                gain = owner.createGain();
+                // A cue cancelled before its scheduled start must not fade from GainNode's default 1.
+                gain.gain.value = 0;
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime((wet ? 0.045 : 0.025) * strength, now + 0.5);
+                gain.gain.linearRampToValueAtTime(volume * strength, now + Math.min(0.4, duration / 4));
                 gain.gain.linearRampToValueAtTime(0, now + duration);
-                gain.connect(audio.destination);
+                gain.connect(owner.destination);
                 if (wet || airy) {
-                    var buffer = audio.createBuffer(1, audio.sampleRate * duration, audio.sampleRate);
+                    var buffer = owner.createBuffer(1, Math.ceil(owner.sampleRate * duration), owner.sampleRate);
                     var data = buffer.getChannelData(0);
                     for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-                    source = audio.createBufferSource();
+                    source = owner.createBufferSource();
                     source.buffer = buffer;
-                    var filter = audio.createBiquadFilter();
-                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1600 : 500;
+                    filter = owner.createBiquadFilter();
+                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1400 : windy ? (snowy ? 700 : 380) : snowy ? 350 : 250;
                     source.connect(filter); filter.connect(gain);
                 } else {
-                    source = audio.createOscillator(); source.type = 'sine';
-                    source.frequency.setValueAtTime(weather.indexOf('moon') >= 0 ? 440 : 660, now);
+                    source = owner.createOscillator(); source.type = 'sine';
+                    source.frequency.setValueAtTime(night ? 440 : 880, now);
+                    source.frequency.exponentialRampToValueAtTime(night ? 392 : 1175, now + duration);
                     source.connect(gain);
                 }
                 source.start(now); source.stop(now + duration);
-                source.onended = stopSound;
+                // An old source ending after a new gesture must never close that gesture's context.
+                source.onended = function () {
+                    source.disconnect(); gain.disconnect(); if (filter) filter.disconnect();
+                    if (audio === owner) stopSound();
+                };
             }
 
             /** Decorations never participate in layout, focus, hit testing or accessibility. */

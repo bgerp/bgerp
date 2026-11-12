@@ -38,7 +38,8 @@ function environment(settings = {}, config = {}) {
     }
     function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}, cancelScheduledValues() {}}; }
     class AudioContext {
-        constructor() { this.currentTime = now / 1000; this.state = 'running'; this.destination = {}; audio.push(this); }
+        constructor() { this.state = 'running'; this.destination = {}; audio.push(this); }
+        get currentTime() { return now / 1000; }
         resume() { return Promise.resolve(); }
         close() { this.state = 'closed'; return Promise.resolve(); }
         createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, start:this.startTime, time}); }}; return node; }
@@ -2071,11 +2072,29 @@ check('shared pause blocks manual and automatic heroes, survives focus changes a
         e.click();assert.equal(e.visitors().length,1);
     }
 });
-check('shared sound arbitration drops queued noise, accepts priority cues and is silent in the background',()=>{
+check('shared sound arbitration yields weather, lets foreground cues finish and stays silent in the background',()=>{
     const e=environment({trigger:'manual',sound:'no'},{scene:true}),s=e.window.funnyScene;let hushed=0;
     assert(s.cue(0,3000,()=>hushed++));assert(s.cue(1,800,()=>hushed++));assert.equal(hushed,1);assert(!s.cue(1,800,()=>{}));assert(!s.cue(0,3000,()=>{}));
-    assert(s.cue(3,800,()=>hushed++));assert.equal(hushed,2);e.window.emit('blur');assert.equal(hushed,3);assert(!s.cue(3,800,()=>{}));
-    e.window.emit('focus');assert(s.cue(0,100,()=>{}));
+    assert(!s.cue(3,800,()=>hushed++));assert.equal(hushed,1);e.window.emit('blur');assert.equal(hushed,2);assert(!s.cue(3,800,()=>{}));
+    e.window.emit('focus');assert(!s.cue(0,100,()=>{}));e.tick(1400);assert(s.cue(0,100,()=>{}));
+});
+check('sound bursts share a rolling budget, quiet gaps and repeat cooldowns without replaying rejected cues',()=>{
+    const e=environment({trigger:'manual',sound:'no'},{scene:true}),s=e.window.funnyScene;let accepted=0;
+    for(let n=0;n<150;n++){if(s.cue(1,500,()=>{},'voice-'+(n%6)))accepted++;e.tick(100);}
+    assert.equal(accepted,4);assert.equal(e.timers.size,0);assert(s.cue(2,100,()=>{},'pop'));e.tick(800);assert(!s.cue(2,100,()=>{},'pop'));
+    e.tick(3200);assert(s.cue(2,100,()=>{},'pop'));
+});
+check('rapid actual groups remain visual but cannot flood the shared audio channel',()=>{
+    const e=environment({trigger:'manual',mode:'selected',characters:['ghostplay'],sound:'yes'},{scene:true,width:3000,height:2000});
+    for(let n=0;n<8;n++){e.click();e.tick(200);}assert(e.visitors().length>1);assert.equal(e.sounds.length,4);
+    e.window.emit('blur');assert(e.audio.every(a=>a.state==='closed'));e.tick(5000);assert.equal(e.sounds.length,4);
+});
+check('audio release holds the current envelope and ends before the next cue starts',()=>{
+    const e=environment({trigger:'manual',sound:'no'},{scene:true}),calls=[];
+    const param={value:.012,cancelAndHoldAtTime:t=>calls.push(['hold',t]),linearRampToValueAtTime:(v,t)=>calls.push(['ramp',v,t])};
+    e.window.funnyScene.fade(param,2);assert.deepEqual(calls,[['hold',2],['ramp',0,2.02]]);
+    delete param.cancelAndHoldAtTime;param.cancelScheduledValues=t=>calls.push(['cancel',t]);param.setValueAtTime=(v,t)=>calls.push(['set',v,t]);calls.length=0;
+    e.window.funnyScene.fade(param,2);assert.deepEqual(calls,[['cancel',2],['set',.012,2],['ramp',0,2.02]]);
 });
 check('sustained slow frames reduce shared quality, stable frames restore it gradually and long gaps do not count',()=>{
     const e=environment({trigger:'manual',sound:'no'},{scene:true}),s=e.window.funnyScene;let t=100;

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny - проверка на звуците</title>
+<style>
+    body { max-width: 960px; margin: 32px auto; padding: 0 16px; color: #334155; background: #f8fafc; font: 16px/1.6 sans-serif; }
+    h1 { font-size: 24px; } button, select { padding: 8px; margin: 4px; } output { display: block; padding: 12px 0; }
+    table { border-collapse: collapse; width: 100%; } td, th { text-align: left; border-bottom: 1px solid #cbd5e1; padding: 6px; }
+    audio { width: 240px; max-width: 100%; } .pass { color: #166534; } .fail { color: #991b1b; }
+</style>
+<h1>Проверка на звуците</h1>
+<p>Тази самостоятелна страница използва звуковите функции от текущия код на funny. Измерването е безшумно чрез OfflineAudioContext; то проверява сигнала, а не заменя преценката на слух. За прослушване използвайте плейърите или бутоните. Не променя настройки или данни в bgERP.</p>
+<label>Режим <select id="mode"><option value="yes">Нормален</option><option value="scary">Плашещ</option><option value="gentle">Деликатен</option></select></label>
+<button id="measure" disabled>Измери всички звуци</button>
+<label>Звук <select id="voice"></select></label>
+<button id="play" disabled>Пусни избрания</button>
+<button id="crowd" disabled>Пусни 7 едновременно</button>
+<button id="stop">Спри</button>
+<output id="status" aria-live="polite">Зареждане на звуковите функции…</output>
+<output id="admission">Приети: 0 / Пропуснати: 0</output>
+<output id="handover"></output>
+<audio id="player" controls></audio>
+<details><summary>Измервания и отделни записи</summary><table><thead><tr><th>Звук</th><th>Продължителност</th><th>Пик / RMS (dBFS)</th><th>Проверка</th><th>Запис</th></tr></thead><tbody id="results"></tbody></table></details>
+<p>Проверки: натискайте многократно „Пусни 7 едновременно“ - остава един звук, без опашка. След четири приети събития в 15 секунди настъпва пауза. Един и същ звук изчаква 4 секунди, времето - 12. При връщане от друг таб няма отложени звуци. „Спри“ и загубата на фокус прекъсват и избрания запис.</p>
+<script src="../js/scene.js"></script>
+<script>
+(async function () {
+    'use strict';
+    var status = document.getElementById('status'), mode = document.getElementById('mode'), voice = document.getElementById('voice');
+    var player = document.getElementById('player'), rows = document.getElementById('results'), urls = [], live = null, accepted = 0, skipped = 0;
+    var characters = ['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse','knock','pop','munch','burp','hiccup','startle'];
+    var skies = {rain:'rain clouds',wind:'wind clouds',blizzard:'snow clouds wind',snow:'snow clouds',cloudy:'clouds',fog:'fog',sun:'sun',moon:'moon'};
+    var profiles = characters.concat(Object.keys(skies).map(function (name) { return 'weather:' + name; }));
+    profiles.forEach(function (name) { var option = document.createElement('option'); option.value = option.textContent = name; voice.appendChild(option); });
+    function foreground() { return document.visibilityState === 'visible' && document.hasFocus(); }
+    function stop() { player.pause(); if (live) { live.close().catch(function () {}); live = null; } }
+    document.getElementById('stop').onclick = stop; window.addEventListener('blur', stop);
+    document.addEventListener('visibilitychange', function () { if (!foreground()) stop(); });
+    mode.onchange = stop;
+    try {
+        var sources = await Promise.all(['../js/funny.js','../js/weather.js'].map(function (url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url); return r.text(); }); }));
+        // Isolate the actual synthesizers; the test page adds no production debug entry points.
+        function section(source, first, last) {
+            var start = source.indexOf(first), end = source.indexOf(last, start);
+            if (start < 0 || end <= start) throw new Error('Звуковите функции са променени: обновете границите на теста.');
+            return source.slice(start, end);
+        }
+        var characterFactory = new Function('audio','options','gentle','scene','active','soundEnabled', 'var voices=[];' + section(sources[0], 'function hushVoices()', '/** Finds a destination') + ';return playSound;');
+        var weatherFactory = new Function('audio','weather','strength','scene','active','stopSound', section(sources[1], 'function sound()', '/** Decorations never') + ';return sound;');
+        function synthesize(name, context, scene) {
+            var gentle = mode.value === 'gentle';
+            if (name.indexOf('weather:') === 0) weatherFactory(context, skies[name.slice(8)], gentle ? .55 : 1, scene, foreground, function () {} )();
+            else characterFactory(context, {sound:mode.value}, gentle, scene, foreground, true)(name);
+        }
+        /** Native nodes render offline; only the controller's running-state and scheduling clock are adapted. */
+        function offline(context, clock) {
+            return new Proxy(context,{get:function(target,key){
+                if(key==='state')return 'running';if(key==='currentTime'&&clock)return clock.now;
+                var value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
+            }});
+        }
+        var scene = Object.create(window.funnyScene);
+        scene.cue = function () {
+            var result = window.funnyScene.cue.apply(window.funnyScene, arguments);
+            if (result) accepted++; else skipped++;
+            document.getElementById('admission').textContent = 'Приети: ' + accepted + ' / Пропуснати: ' + skipped;
+            return result;
+        };
+        function play(names) {
+            player.pause();
+            if (!foreground()) return;
+            if (!live || live.state === 'closed') live = new (window.AudioContext || window.webkitAudioContext)();
+            live.resume().then(function () { if (foreground() && live && live.state === 'running') names.forEach(function (name) { synthesize(name, live, scene); }); });
+        }
+        document.getElementById('play').onclick = function () { play([voice.value]); };
+        document.getElementById('crowd').onclick = function () { play(characters.slice(0,7)); };
+        /** PCM WAV previews remain in this page and only play after an explicit click. */
+        function wav(data, rate, length) {
+            var bytes = new ArrayBuffer(44 + length * 2), view = new DataView(bytes);
+            function text(at, value) { for (var i=0;i<value.length;i++) view.setUint8(at+i,value.charCodeAt(i)); }
+            text(0,'RIFF');view.setUint32(4,36+length*2,true);text(8,'WAVE');text(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,rate,true);view.setUint32(28,rate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);text(36,'data');view.setUint32(40,length*2,true);
+            for(var i=0;i<length;i++)view.setInt16(44+i*2,Math.round(Math.max(-1,Math.min(1,data[i]||0))*32767),true);
+            return URL.createObjectURL(new Blob([bytes],{type:'audio/wav'}));
+        }
+        document.getElementById('measure').onclick = async function () {
+            stop();this.disabled=true;mode.disabled=true;rows.replaceChildren();urls.forEach(URL.revokeObjectURL);urls=[];var passed=0;
+            document.getElementById('handover').textContent='';
+            try {
+                for (var name of profiles) {
+                    if (!foreground()) throw new Error('Проверката спря при загуба на фокус.');
+                    var context = new OfflineAudioContext(1,Math.ceil(3.1*44100),44100);
+                    // Offline contexts are suspended before rendering; expose only their actual audio methods.
+                    var proxy = offline(context);
+                    synthesize(name,proxy,null);var buffer=await context.startRendering(), data=buffer.getChannelData(0), peak=0, energy=0, first=-1,last=-1;
+                    for(var i=0;i<data.length;i++){var amplitude=Math.abs(data[i]);peak=Math.max(peak,amplitude);energy+=data[i]*data[i];if(amplitude>0.00001){if(first<0)first=i;last=i;}}
+                    var duration=(last-first+1)/buffer.sampleRate, rms=Math.sqrt(energy/Math.max(1,last-first+1));
+                    var valid=first>=0&&peak<.2&&rms<.05&&duration<(name.indexOf('weather:')===0?2.6:1);
+                    if(valid)passed++;var row=rows.insertRow();[name,duration.toFixed(3)+' s',(20*Math.log10(peak)).toFixed(1)+' / '+(20*Math.log10(rms)).toFixed(1),valid?'OK':'Проверете'].forEach(function(value){row.insertCell().textContent=value;});row.className=valid?'pass':'fail';
+                    var url=wav(data,buffer.sampleRate,Math.min(data.length,last+4410));urls.push(url);var button=document.createElement('button');button.textContent='Чуй';button.dataset.url=url;
+                    button.onclick=function(){stop();player.src=this.dataset.url;player.play();};row.insertCell().appendChild(button);
+                    status.textContent='Измерени: '+(rows.rows.length)+' / '+profiles.length;
+                }
+                status.textContent='Успешни: '+passed+' / '+profiles.length+' ('+mode.options[mode.selectedIndex].text+'). '+(passed===profiles.length?'Без клипване; кратки сигнали.':'Проверете отбелязаните редове.');
+                var handovers=0;
+                for (var at of [.01,.5]) {
+                    var clock={now:0}, cancel=null, mixer={fade:window.funnyScene.fade,cue:function(priority,duration,fn){if(cancel)cancel();cancel=fn;return true;}};
+                    var context=new OfflineAudioContext(1,2*44100,44100), proxy=offline(context,clock);
+                    synthesize('weather:rain',proxy,mixer);clock.now=at;synthesize('ghost',proxy,mixer);
+                    var rendered=await context.startRendering(), data=rendered.getChannelData(0), peak=0;
+                    // The old envelope must be silent before the new voice starts, including pre-start cancellation.
+                    for(var i=Math.ceil((at<.025?0:at+.0201)*44100);i<Math.floor((at+.025)*44100);i++)peak=Math.max(peak,Math.abs(data[i]));
+                    if(peak<.00001)handovers++;
+                }
+                document.getElementById('handover').textContent='Преход време → герой без наслагване: '+handovers+' / 2';
+            } catch(error) { status.textContent=error.message; }
+            this.disabled=false;mode.disabled=false;
+        };
+        ['measure','play','crowd'].forEach(function(id){document.getElementById(id).disabled=false;});status.textContent='Готово. Измерването не пуска звук.';
+    } catch(error) { status.textContent='Грешка: '+error.message; }
+}());
+</script>
+</html>
