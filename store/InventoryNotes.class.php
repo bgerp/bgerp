@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1137,7 +1137,7 @@ class store_InventoryNotes extends core_Master
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id}");
         $summaryQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId', 'caption=Сметка->№');
-        $summaryQuery->show('productId,quantity,measureId');
+        $summaryQuery->show('productId,quantity,blQuantity,measureId');
 
         $exRecs = array();
         $dQuery = store_InventoryNoteDetails::getQuery();
