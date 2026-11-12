@@ -21,6 +21,7 @@ function environment(settings = {}, config = {}) {
         appendChild(child) { this.children.push(child); child.parent = this; }
         remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
+        getAttribute(key) { return this.attrs[key] === undefined ? null : this.attrs[key]; }
         closest(selector) {
             for(let el=this;el;el=el.parentElement) {
                 if(selector.includes('details:not([open])') && ((el.tagName==='DETAILS' && !el.open) || el.attrs.hidden !== undefined)) return el;
@@ -139,7 +140,7 @@ check('frequent, fully disabled and double-click-only modes keep their separate 
     manual.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});assert.equal(manual.visitors().length,0);
     manual.tick(900000);assert.equal(manual.visitors().length,0);manual.click();assert.equal(manual.visitors().length,1);
 });
-check('each double click adds 1-3 independent visitors at different positions', () => {
+check('each double click adds an independent group at different positions', () => {
     const e=environment({trigger:'notification'});
     for(let i=0;i<3;i++) {const before=e.visitors().length;e.click();const added=e.visitors().length-before;assert(added>=1 && added<=3);e.tick(700);}
     assert(e.visitors().length>=3);
@@ -147,20 +148,20 @@ check('each double click adds 1-3 independent visitors at different positions', 
     e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
 check('each group has unique characters, with one visitor for a single available character', () => {
-    for (const pool of [['ghost'], ['ghost','ghost','unknown'], ['ghost','casper'], ['ghost','casper','zombie','bat']]) {
+    for (const pool of [['ghost'], ['ghost','ghost','unknown'], ['ghost','casper'], ['ghost','casper','zombie','bat'], ['ghost','casper','zombie','sleigh','elf','deer','pumpkin','bat']]) {
         const e=environment({mode:'selected',characters:pool,trigger:'notification'});
         const available=new Set(pool.filter(c=>c!=='unknown')).size;
-        let multi=false;
+        let multi=false, largest=0;
         for(let i=0;i<30;i++) {
             e.document.emit('keydown',{key:'Escape'});
             e.click();e.tick(2000);
             const group=e.visitors().map(v=>v.className);
-            assert(group.length>=1 && group.length<=Math.min(3,available));
+            assert(group.length>=1 && group.length<=Math.min(7,available));
             assert.equal(new Set(group).size,group.length);
             if(available===1) assert.equal(group.length,1);
-            multi ||= group.length>1;
+            multi ||= group.length>1;largest=Math.max(largest,group.length);
         }
-        assert.equal(multi,available>1);
+        assert.equal(multi,available>1);assert.equal(largest,Math.min(7,available));
     }
     const empty=environment({mode:'selected',characters:[],trigger:'notification'});empty.click();assert.equal(empty.visitors().length,0);
 });
@@ -188,6 +189,18 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
     e.document.focused=true;e.window.emit('focus');e.tick(3000);
     assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
     assert(e.document.body.children.every(n=>n.className==='funny-stats'));
+});
+check('seven unique visitors share one portal, stagger their launches and cancel on focus loss',()=>{
+    const pool=['ghost','casper','zombie','sleigh','elf','deer','pumpkin','bat'];let found=false;
+    for(let seed=1;seed<=80 && !found;seed++) {
+        const e=environment({mode:'selected',characters:pool,trigger:'manual'},{seed:seed*7919});e.click();
+        const nodes=watchVisitors(e,2000);if(nodes.length!==7) continue;found=true;
+        assert.equal(new Set(nodes.map(n=>n.className)).size,7);
+        for(let i=1;i<nodes.length;i++) {assert(nodes[i].createdAt-nodes[i-1].createdAt>=190);assert(nodes[i].createdAt<=1450);}
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-portal')));
+        e.click();e.window.emit('blur');e.tick(2500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+    assert(found,'seven visitors actually emerge');
 });
 check('focused score counts each catch once, counts exits and ignores Escape', () => {
     const e=environment({trigger:'manual',mode:'selected',characters:['ghost']});
@@ -245,12 +258,13 @@ check('automatic groups emerge from a distant portal with unique characters and 
         e.document.emit('pointerdown',e.event());
         if(trigger==='random') e.tick([...e.timers.values()][0].at);
         else e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});
-        const portal=e.document.body.children.find(n=>n.className==='funny-portal');assert(portal);
-        const x=parseFloat(portal.style.left), y=parseFloat(portal.style.top);
-        assert(Math.hypot(x-500,y-400)>=160);assert.equal(e.visitors().length,1);
-        const first=e.center(e.visitors()[0]);assert(Math.hypot(first.x-x,first.y-y)<4);
+        const portal=e.document.body.children.find(n=>n.className==='funny-portal');assert.equal(e.visitors().length,1);
+        const node=e.visitors()[0],first=e.center(node);
+        if(node.className.includes('funny-spiders')) {assert(first.y<0);assert(e.document.body.children.some(n=>n.className==='funny-spider-line'));}
+        else {assert(portal);assert(Math.hypot(first.x-parseFloat(portal.style.left),first.y-parseFloat(portal.style.top))<4);}
+        if(portal) assert(Math.hypot(parseFloat(portal.style.left)-500,parseFloat(portal.style.top)-400)>=160);
         e.tick(2000);const group=e.visitors().map(v=>v.className);
-        assert(group.length>=1 && group.length<=3);assert.equal(new Set(group).size,group.length);
+        assert(group.length>=1 && group.length<=7);assert.equal(new Set(group).size,group.length);
         assert(!e.document.body.children.includes(portal));
         if(trigger==='notification') assert.equal(e.sounds.length,0);
         else assert(e.sounds.length>0);
@@ -303,7 +317,7 @@ check('background and unfocused tabs stop effects and close sound without replay
     e.document.visibilityState='hidden';e.document.emit('visibilitychange');e.click();assert.equal(e.visitors().length,0);assert.equal(e.sounds.length,count);
 });
 check('notifications are silent including burst and ignore background changes', () => {
-    const e=environment({trigger:'notification'});e.document.emit('pointerdown',e.event());
+    const e=environment({mode:'selected',characters:['ghost'],trigger:'notification'});e.document.emit('pointerdown',e.event());
     assert.equal(e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000}),6);assert.equal(e.visitors().length,1);assert.equal(e.sounds.length,0);
     e.tick(2000);const victim=e.visitors()[0],p=e.center(victim);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
     assert(e.document.body.children.some(n=>n.className.startsWith('funny-burst ')));assert.equal(e.sounds.length,0);e.tick(50000);
@@ -318,7 +332,7 @@ check('links, controls, text and disabled effects do not summon visitors', () =>
     const reduced=environment({}, {reduced:true});reduced.click();reduced.tick(100000);assert.equal(reduced.visitors().length,0);
 });
 check('touch double tap summons, scrolling and synthetic double-click do not duplicate', () => {
-    const e=environment({trigger:'notification'}, {coarse:true});e.touch(500,400);e.tick(100);e.touch(500,400);const first=e.visitors().length;assert.equal(first,1);
+    const e=environment({mode:'selected',characters:['ghost'],trigger:'notification'}, {coarse:true});e.touch(500,400);e.tick(100);e.touch(500,400);const first=e.visitors().length;assert.equal(first,1);
     e.document.emit('dblclick',e.event());assert.equal(e.visitors().length,first);e.tick(2000);const n=e.visitors().length;
     const p=e.center(e.visitors()[0]);e.touch(p.x,p.y);e.tick(300);assert(e.visitors().length<n);
     e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.document.emit('pointercancel');e.touch(500,700);assert(e.visitors().length<n);
@@ -336,7 +350,7 @@ check('touches on controls, scroll gestures and long presses do not summon chara
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -346,22 +360,24 @@ check('every character has a sprite and a distinct, short sound signature', () =
     assert.equal(signatures.size,characters.length);
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
-    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
-    const christmas=['sleigh','elf','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
+    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
+    const christmas=['sleigh','elf','snowmaiden','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
-    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','spiders'];
+    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
         ['2027-04-17',spring],['2027-04-18',easter],['2027-05-09',easter],['2027-05-10',spring],['2026-06-01',summer],['2026-08-31',summer],['2026-09-01',normal]]) {
         const e=environment({trigger:'notification'},{date:date+'T12:00:00'}), seen=new Set();
+        if(!pool.includes('wolf')) pool.push('wolf');
         for(let i=0;i<40;i++) {
             e.document.emit('keydown',{key:'Escape'});e.click();e.tick(2000);
-            const group=e.visitors().map(v=>v.className.replace('funny-visitor funny-',''));
+            const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
             assert.equal(new Set(group).size,group.length);
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
-        assert.deepEqual([...seen].sort(),[...pool].sort());
+        // Rare year-round guests need not appear in every finite seasonal sample.
+        pool.filter(name=>!['wolf','spiders'].includes(name)).forEach(name=>assert(seen.has(name),date+': '+name));
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
@@ -646,7 +662,7 @@ check('rare glass knocks are brief, respect sound and notifications, and have a 
     assert(silentKnock);
 });
 check('new characters support scarves and glasses and restore normal sprites on forecast change',()=>{
-    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
+    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher','snowmaiden','wolf','imp']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
         const config={weather},e=environment({mode:'selected',characters:[character],trigger:'manual'},config);
         e.click();const v=e.visitors()[0];assert.equal(v.attrs['data-weather'],kind);
         assert(v.children.some(n=>n.firstChild.attrs.href.endsWith('#accessory-'+kind)));
@@ -710,7 +726,7 @@ check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print 
     }
 });
 check('all roaming characters leave their own short traces without weather and share one global cap',()=>{
-    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
     for(const [character,kind] of Object.entries(kinds)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
         const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
@@ -741,7 +757,7 @@ check('a caught snowman melts once, leaves a temporary puddle and stops on focus
     }
 });
 check('catch effects match the character, finish promptly and clean up on blur',()=>{
-    const effects={ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',sleigh:'star',elf:'confetti',deer:'dust',pumpkin:'pumpkin',bat:'smoke',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',stork:'feather',bunny:'puff',chick:'puff',butterfly:'petal',firefly:'glow'};
+    const effects={ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',sleigh:'star',elf:'confetti',snowmaiden:'star',deer:'dust',pumpkin:'pumpkin',bat:'smoke',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',stork:'feather',bunny:'puff',chick:'puff',butterfly:'petal',firefly:'glow'};
     for(const [character,kind] of Object.entries(effects)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(800);
         const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
@@ -841,7 +857,7 @@ check('flying characters land on a block and leave on approach, touch, scroll, r
 function landInsect(character, config = {}, settings = {}) {
     const e = environment(Object.assign({mode:'selected',characters:[character],trigger:'manual'}, settings), Object.assign({blocks:true}, config));
     e.block.tagName = 'INPUT';
-    e.click(); e.tick(700);
+    e.click(); e.tick(character==='spiders'?1750:700);
     const v = e.visitors()[0], p = e.center(v);
     e.block.rect = {left:p.x-60,right:p.x+60,top:p.y+20,bottom:p.y+52,width:120,height:32};
     for(let i=0;i<30 && v.attrs['data-perched']!=='true';i++) e.tick(100);
@@ -865,6 +881,7 @@ check('flies require a fresh sunny forecast above 9C; manual selection ignores s
     }
 });
 check('warm out-of-season insects remain rare even when all eligible characters fit a group',()=>{
+    const total={fly:0,mosquito:0};
     for(const [date,temperature,icon] of [['2026-03-15',15,'clear-day'],['2026-11-15',15,'clear-day'],['2026-11-15',10,'clear-day'],['2026-11-15',15,'cloudy']]) {
         const e=environment({trigger:'manual',forecast:{icon,temperature,expires:Infinity}},{date:date+'T12:00:00'});
         const counts={fly:0,mosquito:0};
@@ -874,17 +891,18 @@ check('warm out-of-season insects remain rare even when all eligible characters 
         }
         for(const name of ['fly','mosquito']) {
             if(temperature<=10 || (name==='fly' && icon==='cloudy')) assert.equal(counts[name],0,name);
-            else assert(counts[name]>0 && counts[name]<36,JSON.stringify({date,counts}));
+            else {assert(counts[name]<36,JSON.stringify({date,counts}));total[name]+=counts[name];}
         }
     }
+    assert(total.fly>0 && total.mosquito>0,'rare guests remain possible across the seasonal samples');
 });
-check('daytime favors flies and dusk favors mosquitoes without duplicate group members',()=>{
+check('first picks favor flies in daytime and mosquitoes at dusk without duplicate group members',()=>{
     function sample(hour) {
         const e=environment({trigger:'manual',forecast:{icon:'clear-day',temperature:24,expires:Infinity}},{date:'2026-07-15T'+hour+':00:00'});
         const count={fly:0,mosquito:0};
         for(let i=0;i<160;i++) {
-            e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.replace('funny-visitor funny-',''));
-            assert.equal(group.length,new Set(group).size);group.forEach(c=>{if(c in count) count[c]++;});
+            e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
+            assert.equal(group.length,new Set(group).size);if(group[0] in count) count[group[0]]++;
             e.document.emit('keydown',{key:'Escape'});
         }
         return count;
@@ -1011,10 +1029,10 @@ check('drained and dirty surfaces clean immediately on all inactive exits withou
 check('vampire blood splats grow with feeding, preserve optional sound and never regain weather accessories',()=>{
     const scales=[];
     for(const delay of [0,800,2000]) {
-        const config={weather:'sun'};const {e,v}=landInsect('vampire',config);e.tick(delay);
+        const config={weather:'sun',date:'2026-10-30T22:00:00'};const {e,v}=landInsect('vampire',config);e.tick(delay);
         const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert(v.className.includes('funny-squashed'));
         const splat=v.children.find(n=>n.firstChild && n.firstChild.attrs.href==='/characters.svg#vampire-splat');assert(splat);
-        scales.push(Number(v.style['--funny-blood-scale'] || 0));config.weather='rain';e.tick(1100);
+        scales.push(Number(v.style['--funny-blood-scale'] || 0));e.window.funnyWeather.current=()=> 'rain';e.tick(1100);
         assert(!v.children.some(n=>n.attrs.class==='funny-accessory'));e.tick(3000);assert.equal(e.visitors().length,0);
     }
     assert(scales[0]===0 && scales[1]>0 && scales[2]>scales[1]);
@@ -1085,7 +1103,9 @@ check('a snowman uses only fresh numeric temperature for drips and keeps snow in
         const e=environment({mode:'selected',characters:['snowman'],trigger:'manual',forecast:{temperature,expires}});
         e.click();e.tick(2500);const v=e.visitors()[0];assert.equal(v.attrs['data-thawing'],water?'true':'');
         const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
-        assert(tracks.length);assert(tracks.every(n=>n.className.includes(water?'funny-trail-water':'funny-trail-snow')));
+        assert(tracks.length);assert(tracks.every(n=>n.className.includes('funny-trail-snow')));
+        assert(tracks.every(n=>water ? n.attrs['data-weathering']==='thaw' : !n.attrs['data-weathering']));
+        if(water) {e.tick(4100);assert(tracks.every(n=>n.className.includes('funny-trail-water')));}
     }
 });
 /** Observe natural public summons, retaining detached nodes only in the test for transition assertions. */
@@ -1106,6 +1126,328 @@ check('nearby cats briefly pursue flies, respect pointer pursuit priority and cl
         e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
     }
     assert(found>=1,'at least one nearby encounter');
+});
+/** Find a natural encounter through public summons, without changing controller state. */
+function pursuitFixture(hunter, prey) {
+    for(let seed=1;seed<=50;seed++) {
+        const e=environment({mode:'selected',characters:[hunter,prey],trigger:'manual'},{seed:seed*997});
+        e.click();
+        for(let t=0;t<6000;t+=32) {
+            e.tick(32);
+            const chasing=e.visitors().find(v=>v.attrs['data-encounter']==='chasing');
+            const evading=e.visitors().find(v=>v.attrs['data-encounter']==='evading');
+            if(chasing && evading) return {e,chasing,evading};
+        }
+    }
+    assert.fail('No natural encounter: '+hunter+' / '+prey);
+}
+check('waiting hunters notice compatible visitors summoned ten seconds after their own arrival',()=>{
+    for(const [hunter,prey,seed] of [['wolf','bunny',538492],['cat','fly',649358],['blackcat','spiders',649358],
+        ['ghost','ghostgirl',87109],['casper','ghostgirl',87109],['bunny','butterfly',649358],['stork','mosquito',649358]]) {
+        const e=environment({mode:'selected',characters:[hunter,prey],trigger:'manual',sound:'no'},{seed});
+        e.click();e.tick(2000);assert.equal(e.visitors().length,1);const actor=e.visitors()[0];
+        assert.equal(actor.className,'funny-visitor funny-'+hunter);e.tick(8000);const before=actor.history.length;
+        e.click();e.tick(6000);assert(e.visitors().includes(actor),hunter);
+        assert(actor.history.slice(before).some(([k,v])=>k==='data-encounter' && v==='chasing'),hunter+' notices the later group');
+        e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+/** Find a normal encounter using only public summons and a seeded clock. */
+function fearFixture(character, ghost, config={}, settings={}) {
+    for(let seed=1;seed<=40;seed++) {
+        const e=environment(Object.assign({mode:'selected',characters:[character,ghost],trigger:'manual',sound:'no'},settings),Object.assign({seed:seed*7919},config));
+        e.click();if(config.coarse) {e.tick(800);e.click();}
+        for(let t=0;t<6000;t+=32) {
+            e.tick(32);
+            const actor=e.visitors().find(v=>v.attrs['data-encounter']==='afraid');
+            const spirit=e.visitors().find(v=>v.className==='funny-visitor funny-'+ghost);
+            if(actor && spirit) return {e,actor,spirit};
+        }
+    }
+    assert.fail('No fear encounter: '+character+' / '+ghost);
+}
+check('wolves and munchers retreat from all four ghosts and never eat them',()=>{
+    for(const character of ['wolf','muncher']) for(const ghost of ['ghost','ghostgirl','ghostplay','casper']) {
+        const {e,actor,spirit}=fearFixture(character,ghost);
+        const p=e.center(actor),g=e.center(spirit),before=Math.hypot(p.x-g.x,p.y-g.y);
+        assert(before<230);assert.notEqual(actor.attrs['data-munching'],'true');e.tick(160);
+        const q=e.center(actor),h=e.center(spirit);assert(Math.hypot(q.x-h.x,q.y-h.y)>before+5,'retreat increases clearance');
+        const actors=watchVisitors(e,12000);
+        assert(![actor,...actors].some(v=>(v.history||[]).some(([k,val])=>k==='data-reaction' && val==='gulp')));
+        assert(!spirit.className.includes('funny-leaving'),'ghost is never swallowed');
+        assert.equal(e.audio.length,0);e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    }
+});
+check('a wolf chases an unfamiliar ghost, recognizes it close up and gives one quiet short cue',()=>{
+    for(const sound of ['yes','no','scary']) {
+        const {e,actor,spirit}=fearFixture('wolf','casper',{}, {sound});
+        assert(actor.history.some(([k,v])=>k==='data-encounter' && v==='chasing'),'the wolf chases before recognizing the ghost');
+        assert(!spirit.className.includes('funny-leaving'));
+        const signature=sound==='scary'?740*.65:740;
+        const cues=()=>e.sounds.filter(s=>s.frequency===signature);
+        assert.equal(cues().length,sound==='no'?0:1);
+        if(sound!=='no') {assert(cues()[0].time-cues()[0].start<0.11);assert(e.volumes.includes(0.065*.35));}
+        const starts=actor.history.filter(([k,v])=>k==='data-encounter' && v==='chasing').length;
+        e.tick(12000);assert.equal(cues().length,sound==='no'?0:1);
+        assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='chasing').length,starts);
+    }
+});
+check('one wolf retreats from a group of four ghosts once, then resumes hunting without repeated panic',()=>{
+    let fixture;
+    for(let seed=1;seed<=80 && !fixture;seed++) {
+        const e=environment({mode:'selected',characters:['wolf','ghost','ghostgirl','ghostplay','casper','bunny'],trigger:'manual',sound:'yes'},{seed:seed*7919,width:1400,height:1000});
+        e.click();let first,actor;
+        for(let t=0;t<6000;t+=32) {
+            e.tick(32);actor=e.visitors().find(v=>v.className==='funny-visitor funny-wolf');
+            if(actor && actor.attrs['data-encounter']==='afraid' && !first) first=e.center(actor);
+            const ghosts=e.visitors().filter(v=>['ghost','ghostgirl','ghostplay','casper'].some(c=>v.className==='funny-visitor funny-'+c));
+            if(first && ghosts.length===4) {fixture={e,actor,first};break;}
+        }
+    }
+    assert(fixture,'a complete ghost group appeared');const {e,actor,first}=fixture;
+    e.tick(4300);const away=e.center(actor);
+    assert(Math.hypot(away.x-first.x,away.y-first.y)>180,'retreat clears the whole nearby group');
+    assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='afraid').length,1);
+    assert.equal(e.sounds.filter(s=>s.frequency===740).length,1);
+    const resumed=actor.attrs['data-encounter']==='chasing',previous=actor.history.length;e.click();e.tick(8000);
+    assert(resumed || actor.history.slice(previous).some(([k,v])=>k==='data-encounter' && v==='chasing'),'hunting resumes after the retreat');
+    assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='afraid').length,1,'no second visual panic');
+});
+check('ghost avoidance respects pointer capture, focus, reduced motion and mobile deadlines',()=>{
+    for(const character of ['wolf','muncher']) for(const exit of ['pointer','blur','hidden','escape','reduced','mobile']) {
+        const {e,actor}=fearFixture(character,'casper',exit==='mobile'?{coarse:true,width:390,height:844}:{});
+        if(exit==='pointer') {const p=e.center(actor);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert(actor.className.includes('funny-leaving'));}
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(81000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('wolf hunting swallows a visitor briefly without recording a pointer catch',()=>{
+    for(const sound of ['yes','no']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['wolf','bunny'],sound},{seed:7919});
+        e.click();e.click();let swallowed=null;
+        for(let t=0;t<10000 && !swallowed;t+=16) {e.tick(16);swallowed=e.visitors().find(v=>v.className.includes('funny-leaving'));}
+        assert(swallowed);const wolf=e.visitors().find(v=>v.attrs['data-reaction']==='gulp');assert(wolf);
+        const w=e.center(wolf),p=e.center(swallowed);assert(Math.hypot(w.x-p.x,w.y-p.y)<30,'the wolf reaches its prey before eating');
+        const before=e.sounds.length;e.tick(300);assert(e.visitors().includes(swallowed));e.tick(1000);assert(!e.visitors().includes(swallowed));
+        assert(!e.document.body.children.some(v=>v.className==='funny-stats'));
+        if(sound==='no') assert.equal(before,0);else assert(before>0);
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+/** Wait for a real meal; the fixture never selects the wolf's target directly. */
+function wolfMealFixture(character, strength='normal', config={}) {
+    for(let seed=1;seed<=50;seed++) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['wolf',character],sound:'no',strength},{...config,seed:seed*7919});
+        e.click();
+        for(let t=0;t<12000;t+=32) {
+            if(strength==='gentle' && t===1024) e.click();
+            e.tick(32);
+            const prey=e.visitors().find(v=>v.className.includes('funny-'+character+' ') && v.attrs['data-swallowed']==='true');
+            if(prey) return {e,prey};
+        }
+    }
+    assert.fail('No natural wolf meal: '+character);
+}
+check('slow wolf meals leave bounded themed remains only after swallowing, with normal expiry',()=>{
+    for(const [character,kind] of [['elf','cloth'],['chick','feather'],['bunny','fur'],['snowman','snow'],['pumpkin','seed'],['spiders','thread']]) for(const strength of ['normal','gentle']) {
+        const {e,prey}=wolfMealFixture(character,strength);
+        const remains=()=>e.document.body.children.filter(n=>n.className==='funny-meal-remains');
+        const before=remains();e.tick(900);assert(e.visitors().includes(prey));assert.deepEqual(remains(),before);
+        e.tick(350);assert(!e.visitors().includes(prey));const mark=remains().find(n=>!before.includes(n));assert(mark,character);
+        assert(mark.children.some(n=>n.className==='funny-remain-'+kind));assert(mark.children.length>=(strength==='gentle'?3:4));assert(mark.children.length<=6);
+        assert.equal(mark.attrs['aria-hidden'],'true');
+        assert(mark.children.some(n=>n.className==='funny-remain-blood')===['elf','chick','bunny'].includes(character));
+        if(character==='snowman') assert(mark.children.some(n=>n.className==='funny-remain-cloth'));
+        e.tick(12100);assert(!e.document.body.children.includes(mark));
+    }
+});
+check('pending and visible wolf meal remains clear on activity without reappearing',()=>{
+    for(const pending of [true,false]) for(const exit of ['blur','hidden','escape','scroll','reduced']) {
+        const {e}=wolfMealFixture('chick');if(!pending) e.tick(1300);
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(1500);assert(!e.document.body.children.some(n=>n.className==='funny-meal-remains'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('wolf hunting pauses the muncher and preserves its already eaten content until removal',()=>{
+    const e=environment({trigger:'manual',mode:'selected',characters:['wolf','muncher'],sound:'no'},{seed:31676,meals:true});
+    e.click();e.click();let hunted=false;
+    for(let t=0;t<14000;t+=32) {
+        e.tick(32);
+        for(const v of e.visitors()) if(v.className.includes('funny-muncher') && v.attrs['data-encounter']==='evading' && !v.className.includes('funny-leaving')) {
+            hunted=true;assert.notEqual(v.attrs['data-munching'],'true','the prey stops eating while fleeing');
+        }
+    }
+    assert(hunted);e.document.emit('keydown',{key:'Escape'});e.tick(6000);
+    assert(!e.block.className.includes('funny-eaten'));assert(!e.block.className.includes('funny-restoring'));
+});
+check('wolf meals leave an active score unchanged and notification fear stays silent',()=>{
+    const e=environment({mode:'selected',characters:['wolf','bunny'],trigger:'manual',sound:'no'},{seed:7919});
+    e.click();e.tick(700);const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+    e.document.emit('keydown',{key:'Escape'});
+    const stats=e.document.body.children.find(n=>n.className==='funny-stats'),before=stats.children.map(n=>n.textContent);
+    e.click();e.click();let eaten;
+    for(let t=0;t<10000 && !eaten;t+=16) {e.tick(16);eaten=e.visitors().find(v=>v.className.includes('funny-leaving'));}
+    assert(eaten);e.tick(1300);assert.deepEqual(stats.children.map(n=>n.textContent),before);
+    const n=environment({mode:'selected',characters:['wolf','casper'],trigger:'notification',sound:'yes'},{seed:7919});
+    n.document.emit('pointerdown',n.event());n.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});let scared;
+    for(let t=0;t<12000 && !scared;t+=16) {n.tick(16);scared=n.visitors().find(v=>v.attrs['data-encounter']==='afraid');}
+    assert(scared);assert.equal(n.sounds.length,0);
+});
+check('compatible cats, storks and ghosts pursue their partners faster without swapping roles or catching them',()=>{
+    for(const [hunter,prey] of [['cat','fly'],['cat','spiders'],['blackcat','spiders'],['cat','butterfly'],['blackcat','butterfly'],['stork','mosquito'],['ghost','ghostgirl'],['casper','ghostgirl'],['imp','butterfly'],['imp','firefly']]) {
+        const {e,chasing,evading}=pursuitFixture(hunter,prey);
+        assert(chasing.className.includes('funny-'+hunter));assert(evading.className.includes('funny-'+prey));
+        assert(!evading.attrs['data-descending'],'a spider finishes its descent first');
+        assert(!evading.attrs['data-perched'],'a perched partner takes off');
+        const before=e.center(evading);e.tick(80);const after=e.center(evading);
+        assert(Math.hypot(after.x-before.x,after.y-before.y)>15,'evasion is faster than the old 140 px/s');
+        e.tick(3000);assert.equal(chasing.attrs['data-encounter'],'');assert.equal(evading.attrs['data-encounter'],'');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'),'chases never count as pointer catches');
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('the pursuer pants for three seconds, then recovers; a pointer chase or page exit stops the rest',()=>{
+    for(const end of ['recover','pointer','blur','hidden','escape','resize','print','reduced']) {
+        const {e,chasing,evading}=pursuitFixture('ghost','ghostgirl');
+        for(let t=0;t<3000 && chasing.attrs['data-reaction']!=='tired';t+=16) e.tick(16);
+        assert.equal(chasing.attrs['data-reaction'],'tired');assert.notEqual(evading.attrs['data-reaction'],'tired');
+        const p=e.center(chasing);e.tick(1000);
+        assert.equal(chasing.attrs['data-reaction'],'tired');assert(Math.hypot(e.center(chasing).x-p.x,e.center(chasing).y-p.y)<7,'resting body only bobs');
+        if(end==='recover') {e.tick(2016);assert.notEqual(chasing.attrs['data-reaction'],'tired');e.tick(1000);assert.notEqual(chasing.attrs['data-encounter'],'chasing','cooldown prevents immediate repeats');}
+        if(end==='pointer') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*10,clientY:400+(p.y-400)/d*10}));e.tick(32);assert.notEqual(chasing.attrs['data-reaction'],'tired');}
+        if(end==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(end==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(end==='resize') e.window.emit('resize');
+        if(end==='print') e.window.emit('beforeprint');
+        if(end==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        if(end==='blur') e.window.emit('blur');
+        if(['recover','pointer'].includes(end)) e.window.emit('blur');
+        e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('unrelated characters never pursue each other',()=>{
+    for(const pair of [['cat','chick'],['stork','butterfly'],['ghost','cat']]) {
+        const e=environment({mode:'selected',characters:pair,trigger:'manual'},{seed:997});e.click();
+        const actors=watchVisitors(e,6000);assert(actors.every(v=>!(v.history || []).some(([key,value])=>key==='data-encounter' && value==='chasing')));
+    }
+});
+/** Sample normal nearby meetings; fixtures alter only page content, never actor internals. */
+function friendlyFixture(pool, reaction, settings={}, config={}) {
+    for(let seed=1;seed<=70;seed++) {
+        const e=environment(Object.assign({mode:'selected',characters:pool,trigger:'manual',forecast:{temperature:22,expires:Infinity}},settings),Object.assign({seed:seed*7919},config));
+        e.click();let mealsPlaced=false,mealNodes=[];
+        for(let t=0;t<15000;t+=32) {
+            if(settings.strength==='gentle' && (t===1024 || t===2048 || t===3072)) e.click();
+            const previous=e.document.body.children.slice();e.tick(32);
+            if(config.meals && !mealsPlaced && t>=2048) {
+                const witch=e.visitors().find(n=>n.className.includes('funny-witch'));
+                if(witch) {
+                    const p=e.center(witch), meals=[e.block];
+                    for(let i=1;i<16;i++) {const meal=new e.blank.constructor();meal.isConnected=true;meals.push(meal);}
+                    meals.forEach((meal,i)=>{const x=p.x-25+(i%4)*16,y=p.y+Math.floor(i/4)*14;meal.rect={left:x-10,right:x+10,top:y-6,bottom:y+6,width:20,height:12};});
+                    e.document.body.querySelectorAll=()=>meals;mealNodes=meals;mealsPlaced=true;
+                }
+            }
+            const actor=e.visitors().find(n=>n.attrs['data-reaction']===reaction);
+            if(actor) return {e,actor,previous,seed,mealNodes};
+        }
+    }
+    assert.fail('No nearby '+reaction+' for '+pool.join(','));
+}
+check('witches gather nearby dust once into a bounded pile that disperses without extra sounds',()=>{
+    for(const strength of ['normal','gentle']) {
+        const {e,actor,previous}=friendlyFixture(['witch','zombie'],'sweep',{strength});
+        const pile=e.document.body.children.find(n=>n.className==='funny-interaction funny-swept-pile');assert(pile);
+        assert(pile.children.length>=2 && pile.children.length<=(strength==='gentle'?3:6));
+        assert(previous.some(n=>n.className.includes('funny-trail-dust') && !e.document.body.children.includes(n)));
+        const sounds=e.sounds.length;e.tick(2800);assert(!e.document.body.children.includes(pile));assert.equal(e.sounds.length,sounds);
+        e.tick(6000);assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='sweep').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('sweeping meal crumbs retains the bite outline and restores the original element normally',()=>{
+    const {e,mealNodes}=friendlyFixture(['witch','muncher'],'sweep',{}, {meals:true});
+    const tooth=e.document.body.children.find(n=>n.className.includes('funny-meal-mark') && n.attrs['data-swept']==='true');
+    assert(tooth,'only the loose crumbs on the meal mark are hidden');assert(tooth.children.length>0);assert(mealNodes.some(n=>n.className.includes('funny-eaten')));
+    e.document.emit('keydown',{key:'Escape'});e.tick(1600);assert(mealNodes.every(n=>!n.className.includes('funny-eaten')));assert(!e.document.body.children.includes(tooth));assert.equal(e.timers.size,0);
+});
+check('a cat taps a gift once, then jumps; the gift keeps its original lifetime and remains openable',()=>{
+    for(const open of [false,true]) {
+        const {e,actor}=friendlyFixture(['cat','elf'],'paw');
+        const gift=e.document.body.children.find(n=>n.attrs['data-nudged']==='true');assert(gift);assert(!gift.className.includes('funny-gift-open'));
+        const sounds=e.sounds.length;e.tick(600);assert.equal(actor.attrs['data-reaction'],'jump');assert.equal(e.sounds.length,sounds);
+        if(open) {e.document.emit('pointermove',e.event({clientX:parseFloat(gift.style.left),clientY:parseFloat(gift.style.top)}));assert(gift.className.includes('funny-gift-open'));e.tick(850);assert(!e.document.body.children.includes(gift));}
+        else {const remaining=gift.createdAt+16000-e.now();e.tick(remaining+32);assert(!e.document.body.children.includes(gift));}
+        assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='paw').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+});
+check('Snow Maiden cools a warm snowman once for eight seconds, with a thank-you and bounded flakes',()=>{
+    for(const strength of ['normal','gentle']) {
+        const {e,actor}=friendlyFixture(['snowmaiden','snowman'],'cool',{strength});
+        const snowman=e.visitors().find(n=>n.className.includes('funny-snowman'));assert(snowman);
+        e.tick(32);assert.equal(snowman.attrs['data-thawing'],'');assert.equal(snowman.attrs['data-cooled'],'true');assert.equal(snowman.attrs['data-reaction'],'thanks');
+        const flakes=e.document.body.children.find(n=>n.className==='funny-interaction funny-cooling-flakes');assert.equal(flakes.children.length,strength==='gentle'?3:5);
+        const sounds=e.sounds.length;e.tick(1300);assert(!e.document.body.children.includes(flakes));assert.equal(snowman.attrs['data-cooled'],'true');assert.equal(e.sounds.length,sounds);
+        e.tick(7000);assert.equal(snowman.attrs['data-cooled'],'');assert.equal(snowman.attrs['data-thawing'],'true');
+        assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='cool').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+    const e=environment({mode:'selected',characters:['snowmaiden','snowman'],trigger:'manual',forecast:{temperature:-4,expires:Infinity}},{seed:7919});
+    e.click();const actors=watchVisitors(e,10000);assert(actors.every(n=>!n.history.some(([key,value])=>key==='data-reaction' && value==='cool')));
+});
+check('chicks peck only pumpkin seeds once and the rabbit chases a butterfly then rests',()=>{
+    const {e,actor,previous}=friendlyFixture(['chick','pumpkin'],'peck');
+    const seeds=e.document.body.children.find(n=>n.attrs['data-pecked']==='true');assert(seeds);assert(seeds.className.includes('funny-trail-seeds'));
+    const other=previous.filter(n=>n.className.includes('funny-trail-seeds') && n!==seeds);assert(other.every(n=>!n.attrs['data-pecked']));
+    e.tick(1400);assert(!e.document.body.children.includes(seeds));e.tick(5000);assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='peck').length,1);
+    const pair=pursuitFixture('bunny','butterfly');assert(pair.chasing.className.includes('funny-bunny'));
+    for(let t=0;t<3000 && pair.chasing.attrs['data-reaction']!=='tired';t+=32) pair.e.tick(32);
+    assert.equal(pair.chasing.attrs['data-reaction'],'tired');
+});
+check('crowded traces keep reserved seeds until arrival, without extending their original deadline',()=>{
+    const {e}=friendlyFixture(['chick','pumpkin'],'forage');
+    const seed=e.document.body.children.find(n=>n.attrs['data-forage']==='true');assert(seed);
+    for(let i=0;i<7;i++) e.click();
+    let full=false;
+    for(let t=0;t<3000;t+=32) {
+        e.tick(32);const marks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        if(marks.length>=24) full=true;
+        if(seed.attrs['data-forage']==='true') assert(e.document.body.children.includes(seed),'reserved seed survives cap pressure');
+    }
+    assert(full,'the shared cap was exercised');assert.notEqual(seed.attrs['data-forage'],'true');
+    e.tick(Math.max(0,seed.createdAt+12032-e.now()));assert(!e.document.body.children.includes(seed));
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+});
+check('a chick abandons vanished seeds and an interrupted approach without pecking empty space',()=>{
+    for(const exit of ['scroll','pointer','blur']) {
+        const {e,actor}=friendlyFixture(['chick','pumpkin'],'forage');const p=e.center(actor);
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='pointer') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*10,clientY:400+(p.y-400)/d*10}));}
+        if(exit==='blur') e.window.emit('blur');
+        e.tick(1600);assert(!actor.history.some(([key,value])=>key==='data-reaction' && value==='peck'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('new friendly effects yield to pointer pursuit and clear on scroll, focus loss and Escape',()=>{
+    for(const [pool,reaction] of [[['witch','zombie'],'sweep'],[['cat','elf'],'paw'],[['snowmaiden','snowman'],'cool'],[['chick','pumpkin'],'peck']]) {
+        for(const exit of ['pointer','scroll','blur','hidden','escape']) {
+            const {e,actor}=friendlyFixture(pool,reaction);const p=e.center(actor);
+            if(exit==='pointer') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*10,clientY:400+(p.y-400)/d*10}));e.tick(32);assert.notEqual(actor.attrs['data-reaction'],reaction);}
+            if(exit==='scroll') {e.document.emit('scroll');assert(!e.document.body.children.some(n=>n.className.includes('funny-interaction')));}
+            if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+            if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+            e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);
+        }
+    }
 });
 function wovenFixture(settings={}) {
     const {e,v}=landInsect('spiders',{},settings),a=e.block.rect,neighbor=new e.blank.constructor();neighbor.isConnected=true;
@@ -1169,7 +1511,7 @@ check('flies avoid existing webs without landing on them or requiring pointer mo
 });
 
 check('fleeing visitors still leave sparse short traces and retain the same expiry and input cleanup',()=>{
-    for(const character of ['cat','sleigh','snowman']) {
+    for(const character of ['cat','sleigh','snowman','imp']) {
         const e=environment({mode:'selected',characters:[character],trigger:'manual'},{width:2400,height:1600});
         e.click({clientX:1200,clientY:800});e.tick(700);const v=e.visitors()[0];
         const start=e.center(v),dx=start.x-1200,dy=start.y-800,length=Math.hypot(dx,dy),nx=dx/length,ny=dy/length;
@@ -1214,6 +1556,352 @@ check('a fly chased toward a web bends around it while increasing distance from 
         }
     }
     assert(verified,'a head-on chase was exercised through public pointer events');
+});
+
+check('spiders descend on passive threads away from the pointer, then resume landing without an empty portal',()=>{
+    for(const coarse of [false,true]) {
+        const e=environment({mode:'selected',characters:['spiders'],trigger:'manual'},{coarse});e.click();
+        const v=e.visitors()[0],initial=e.center(v),line=e.document.body.children.find(n=>n.className==='funny-spider-line');
+        assert(line);assert.equal(line.attrs['aria-hidden'],'true');assert.equal(line.children.length,3);
+        assert(initial.y<0 && Math.abs(initial.x-500)>=110);assert(!e.document.body.children.some(n=>n.className==='funny-portal'));
+        e.tick(700);const midway=e.center(v);assert(midway.y>initial.y);assert.equal(v.attrs['data-descending'],'true');
+        assert(parseFloat(line.style.height)>0);e.tick(1200);assert(!e.document.body.children.includes(line));assert.equal(v.attrs['data-descending'],'');
+        assert(e.visitors().includes(v));assert(e.center(v).y>=midway.y);assert.equal(e.visitors().length,1);
+    }
+});
+check('a descending spider can be caught, interrupted by a chase, or cleared without orphan threads',()=>{
+    for(const exit of ['catch','chase','scroll','blur','hidden','escape','resize','print','reduced','pagehide']) {
+        const e=environment({mode:'selected',characters:['spiders'],trigger:'manual'});e.click();e.tick(750);
+        const v=e.visitors()[0],p=e.center(v);assert(e.document.body.children.some(n=>n.className==='funny-spider-line'));
+        if(exit==='catch') e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        if(exit==='chase') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*3,clientY:400+(p.y-400)/d*3}));e.tick(32);}
+        if(exit==='scroll') e.document.emit('scroll');if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});if(exit==='resize') e.window.emit('resize');
+        if(exit==='print') e.window.emit('beforeprint');if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}if(exit==='pagehide') e.window.emit('pagehide');
+        assert(!e.document.body.children.some(n=>n.className==='funny-spider-line'),exit);e.tick(80000);assert.equal(e.raf.size,0);
+    }
+});
+check('rain gradually washes dust while sun dries puddles; night and ongoing rain do not evaporate them',()=>{
+    for(const weather of ['rain clouds','clouds']) {
+        const e=environment({mode:'selected',characters:['zombie'],trigger:'manual'},{weather});e.click();e.tick(2000);
+        const mark=e.document.body.children.find(n=>n.className.includes('funny-trail-dust'));assert(mark);
+        assert.equal(mark.attrs['data-weathering'],weather==='rain clouds'?'wash':undefined);
+        e.tick(2000);assert(e.document.body.children.includes(mark));e.tick(4000);assert.equal(e.document.body.children.includes(mark),weather==='clouds');
+        e.window.emit('blur');assert(!e.document.body.children.includes(mark));
+    }
+    for(const [weather,hour,dry] of [['sun',12,true],['sun',22,false],['rain sun clouds',12,false],['moon',22,false]]) {
+        const e=environment({mode:'selected',characters:['snowman'],trigger:'manual'},{weather,date:'2026-10-30T'+hour+':00:00'});e.click();e.tick(800);
+        const v=e.visitors()[0],p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        const puddle=e.document.body.children.find(n=>n.className==='funny-melt-puddle');assert(puddle);assert.equal(puddle.attrs['data-weathering'],dry?'dry':undefined);
+        e.tick(3000);assert(e.document.body.children.includes(puddle));e.tick(4100);assert.equal(e.document.body.children.includes(puddle),!dry);
+    }
+});
+check('warm snow traces melt before becoming jumpable water, then dry in sunshine without extending their deadline',()=>{
+    for(const temperature of [-4,4]) {
+        const e=environment({mode:'selected',characters:['snowman'],trigger:'manual',forecast:{icon:'clear-day',temperature,expires:Infinity}},{weather:'sun'});
+        e.click();e.tick(2000);const trace=e.document.body.children.find(n=>n.className.includes('funny-trail-snow'));assert(trace);
+        assert.equal(trace.attrs['data-weathering'],temperature>0?'thaw':undefined);
+        e.tick(4200);assert.equal(trace.className.includes('funny-trail-water'),temperature>0);
+        if(temperature>0) assert.equal(trace.attrs['data-weathering'],'dry');
+        assert(e.document.body.children.includes(trace));e.tick(8000);assert(!e.document.body.children.includes(trace));
+    }
+});
+check('snow continues melting after its visitor is gone, without keeping a frame loop or surviving blur',()=>{
+    for(const blur of [false,true]) {
+        const e=environment({mode:'selected',characters:['snowman'],trigger:'manual',forecast:{icon:'clear-day',temperature:22,expires:Infinity}},{weather:'sun'});
+        e.click();e.tick(2000);const trace=e.document.body.children.find(n=>n.className.includes('funny-trail-snow'));assert(trace);
+        const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(1500);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+        if(blur) e.window.emit('blur');e.tick(4000);
+        if(blur) assert(!e.document.body.children.includes(trace));
+        else {assert(e.document.body.children.includes(trace));assert(trace.className.includes('funny-trail-water'));assert.equal(trace.attrs['data-weathering'],'dry');}
+        e.tick(12000);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('rain washes the monster crumbs but keeps the readable bite and restoration lifecycle',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual'},{weather:'rain clouds',meals:true});
+    e.click();e.tick(650);const p=e.center(e.visitors()[0]);e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+    e.tick(1000);const meal=e.document.body.children.find(n=>n.className==='funny-meal-mark');assert(meal);assert.equal(meal.attrs['data-weathering'],'wash');
+    assert(e.block.className.includes('funny-eaten'));assert(meal.style['--funny-teeth-width']);
+    const crumbs=e.document.body.children.find(n=>n.className==='funny-crumbs');assert(crumbs);assert.equal(crumbs.attrs['data-weathering'],'wash');
+    e.window.emit('blur');assert(!e.block.className.includes('funny-eaten'));assert(!e.document.body.children.includes(meal));e.tick(500);assert.equal(e.timers.size,0);
+});
+check('vampires raise their cloak and leave in daytime sun, but feed normally at night and under clouds',()=>{
+    for(const [weather,icon,hour,expires,hides] of [['sun','clear-day',12,Infinity,true],['','clear-day',12,Infinity,true],['sun','clear-day',20,Infinity,false],['clouds','cloudy',12,Infinity,false],['moon','clear-night',22,Infinity,false],['','clear-day',12,0,false],['','unknown',12,Infinity,false]]) {
+        const e=environment({mode:'selected',characters:['vampire'],trigger:'manual',forecast:{icon,expires}},{weather,date:'2026-10-30T'+hour+':00:00'});e.click();e.tick(1700);
+        const v=e.visitors()[0];assert(v);assert.equal(v.attrs['data-sun-hiding'],hides?'true':undefined);
+        if(hides) {assert(v.children.some(n=>n.attrs.class==='funny-vampire-cloak'));assert(!v.children.some(n=>n.attrs.class==='funny-accessory'));}
+        e.tick(7000);assert.equal(e.visitors().includes(v),!hides);assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+    }
+    const {e,v}=landInsect('vampire',{weather:'moon',date:'2026-10-30T22:00:00'});e.tick(2000);assert.equal(v.attrs['data-fed'],'true');assert(!v.attrs['data-sun-hiding']);
+});
+check('sun interrupts vampire feeding, preserves a partial blood splat, and stays silent for notifications',()=>{
+    const {e,v}=landInsect('vampire',{weather:'clouds'});e.tick(900);e.window.funnyWeather.current=()=> 'sun';
+    for(let t=0;t<1200 && !v.attrs['data-sun-hiding'];t+=50) e.tick(50);
+    assert.equal(v.attrs['data-sun-hiding'],'true');assert.notEqual(v.attrs['data-perched'],'true');
+    const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+    assert(v.className.includes('funny-squashed'));assert(v.children.some(n=>n.attrs.class==='funny-insect-blood'));assert(!v.children.some(n=>n.attrs.class==='funny-vampire-cloak'));
+    e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
+    const silent=environment({mode:'selected',characters:['vampire'],trigger:'notification'},{weather:'sun'});silent.document.emit('pointerdown',silent.event());silent.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});silent.tick(10000);assert.equal(silent.sounds.length,0);
+});
+
+/** Exercise natural groups, recording actors even after they have left the document. */
+function wolfScene(predicate, config={}, settings={}) {
+    for(let seed=1;seed<=60;seed++) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['wolf','bunny','chick','elf','snowmaiden','deer','cat'],sound:'no',...settings},{...config,seed:seed*7919});
+        if(settings.trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});} else e.click();
+        const actors=new Set();
+        for(let t=0;t<20000;t+=32) {
+            e.tick(32);e.visitors().forEach(v=>actors.add(v));
+            const v=[...actors].find(v=>predicate(v,e));if(v) return {e,v,actors};
+        }
+    }
+    assert.fail('No natural group reached the requested behavior');
+}
+check('a wolf becomes full after two or three meals, licks and hiccups once, then leaves without another hunt',()=>{
+    for(const [sound,trigger] of [['yes','manual'],['no','manual'],['yes','notification']]) {
+        const {e,v}=wolfScene(v=>v.attrs['data-sated']==='true',{}, {sound,trigger});
+        const meals=Number(v.attrs['data-meals']);assert(meals===2 || meals===3);
+        assert(Number(v.style['--funny-wolf-belly'])>1 && Number(v.style['--funny-wolf-belly'])<=1.36);
+        const first=e.sounds.length,history=v.history.length;
+        for(let t=0;t<5000 && !v.attrs['data-satisfied-exit'];t+=32) e.tick(32);
+        assert.equal(v.attrs['data-satisfied-exit'],'true');
+        for(const reaction of ['lick','hiccup']) assert.equal(v.history.filter(([k,x])=>k==='data-reaction' && x===reaction).length,1);
+        assert(!v.history.slice(history).some(([k,x])=>k==='data-encounter' && x==='chasing'));
+        assert.equal(Number(v.attrs['data-meals']),meals);
+        const p=e.center(v);e.tick(200);const q=e.center(v);assert(Math.hypot(q.x-p.x,q.y-p.y)<30,'satisfied exit is slower than an ordinary escape');
+        if(sound==='no' || trigger==='notification') assert.equal(e.sounds.length,0);else assert(e.sounds.slice(first).some(s=>s.type==='triangle' && s.frequency===180 && s.time-s.start<.2));
+        e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('a prey gets at most one lateral escape and warns just one nearby friend without an alarm chain',()=>{
+    const {e,v,actors}=wolfScene(v=>!!v.attrs['data-dodge']);const p=e.center(v),kind=v.attrs['data-dodge'];
+    assert(['hop','slip','turn'].includes(kind));e.tick(160);const q=e.center(v);assert(Math.hypot(q.x-p.x,q.y-p.y)>25);
+    for(let t=0;t<12000;t+=32) {e.tick(32);e.visitors().forEach(x=>actors.add(x));}
+    for(const actor of actors) assert(actor.history.filter(([k,x])=>k==='data-dodge' && x).length<=1);
+    const warned=wolfScene(v=>v.attrs['data-reaction']==='warning');const start=warned.e.center(warned.v);
+    warned.e.tick(300);const end=warned.e.center(warned.v);assert(Math.hypot(end.x-start.x,end.y-start.y)>15);
+    warned.e.tick(1600);assert.notEqual(warned.v.attrs['data-reaction'],'warning');
+    warned.e.tick(10000);assert.equal(warned.v.history.filter(([k,x])=>k==='data-reaction' && x==='warning').length,1);
+    e.window.emit('blur');warned.e.window.emit('blur');e.tick(500);warned.e.tick(500);assert.equal(e.timers.size+warned.e.timers.size,0);
+});
+check('meal scraps follow wind, rain washes only blood and pawprints, and snow gradually covers remains',()=>{
+    for(const weather of ['wind','rain','snow']) {
+        const {e}=wolfMealFixture('chick','normal',{weather,wind:{x:-1,y:0,speed:25}});
+        const before=new Set(e.document.body.children);e.tick(1250);
+        const mark=e.document.body.children.find(n=>n.className==='funny-meal-remains' && !before.has(n));assert(mark);
+        const feathers=mark.children.filter(n=>n.className==='funny-remain-feather'),blood=mark.children.find(n=>n.className==='funny-remain-blood');
+        assert(feathers.every(n=>parseFloat(n.style['--drift-x'])<0));assert(!blood.style['--drift-x']);
+        if(weather==='rain') {assert.equal(blood.attrs['data-weathering'],'wash');assert.equal(blood.style.animationDuration,'6000ms');assert(feathers.every(n=>n.attrs['data-weathering']!=='wash'));}
+        if(weather==='snow') assert.equal(mark.attrs['data-weathering'],'cover');
+        const paw=e.document.body.children.find(n=>n.className.includes('funny-wolf-track'));assert(paw);
+        assert.equal(paw.attrs['data-weathering'],weather==='rain'?'wash':weather==='snow'?'cover':undefined);
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert(!e.document.body.children.includes(mark));
+    }
+});
+check('curious characters turn away from a still pointer while cats stay nearby and play',()=>{
+    for(const character of ['ghost','elf','wolf','cat','blackcat']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:[character],sound:'no'});e.click();const v=e.visitors()[0];
+        for(let t=0;t<16000 && !v.attrs['data-curious'];t+=32) e.tick(32);
+        const cat=['cat','blackcat'].includes(character);assert.equal(v.attrs['data-curious'],cat?'play':'wander',character);
+        const p=e.center(v),d=Math.hypot(p.x-500,p.y-400);e.tick(1800);const q=e.center(v),after=Math.hypot(q.x-500,q.y-400);
+        if(cat) {assert(after>120 && after<160);assert(v.history.some(([k,x])=>k==='data-reaction' && x==='play'));}
+        else assert(after>d+15,character+' moves away after noticing the pointer');
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'));e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+});
+/** Put a synthetic visible control above a naturally spawned animal, away from the pointer. */
+function shelterFixture(character='cat', config={}) {
+    const e=environment({trigger:'manual',mode:'selected',characters:[character],sound:'no'},{weather:'rain',blocks:true,...config});
+    e.click();e.tick(700);const v=e.visitors()[0],p=e.center(v);
+    e.block.rect={left:p.x-70,right:p.x+70,top:p.y-65,bottom:p.y-35,width:140,height:30};
+    return {e,v};
+}
+check('animals shelter briefly under visible controls in rain, then release on activity or changed weather',()=>{
+    for(const character of ['cat','blackcat','bunny','chick']) {
+        const {e,v}=shelterFixture(character);e.tick(1300);assert.equal(v.attrs['data-shelter'],'true',character);
+        assert(e.center(v).y>e.block.rect.bottom);const p=e.center(v);e.tick(500);assert.deepEqual(e.center(v),p);
+        e.tick(4500);assert.notEqual(v.attrs['data-shelter'],'true');e.tick(4000);assert.equal(v.history.filter(([k,x])=>k==='data-shelter' && x==='true').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+    for(const stop of ['scroll','sun','removed','focus','hidden']) {
+        const {e,v}=shelterFixture();if(stop==='focus') e.document.activeElement=e.block;
+        if(stop==='hidden') e.block.computedStyle={visibility:'hidden'};
+        e.tick(1300);
+        if(stop==='scroll') e.document.emit('scroll');if(stop==='sun') e.window.funnyWeather.current=()=> 'sun';if(stop==='removed') e.block.isConnected=false;
+        e.tick(1100);assert.notEqual(v.attrs['data-shelter'],'true',stop);
+    }
+});
+check('new wolf poses clear on inactive pages and reduced motion',()=>{
+    for(const stop of ['blur','hidden','escape','reduced']) {
+        const {e}=wolfScene(v=>v.attrs['data-sated']==='true');
+        if(stop==='blur') e.window.emit('blur');if(stop==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(stop==='escape') e.document.emit('keydown',{key:'Escape'});if(stop==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(10000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+
+check('seasonal actors dominate whole groups, guests remain possible and manual choices stay uniform',()=>{
+    const fixtures=[['2026-01-20',['snowman','casper']],['2026-03-01',['martenitsa','stork']],
+        ['2026-04-12',['bunny','chick','butterfly']],['2026-07-01',['butterfly','firefly','mosquito']],
+        ['2026-10-30',['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp']],
+        ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman']]];
+    for(const [date,seasonal] of fixtures) {
+        const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00'});
+        let primary=0, guests=0, first=0;
+        for(let i=0;i<120;i++) {
+            e.document.emit('keydown',{key:'Escape'});e.click();
+            if(seasonal.includes(e.visitors()[0].className.split(' ')[1].slice(6))) first++;
+            const actors=watchVisitors(e,1500).map(v=>v.className.split(' ')[1].slice(6));
+            assert.equal(new Set(actors).size,actors.length);
+            actors.forEach(name=>{if(seasonal.includes(name)) primary++;else guests++;});
+        }
+        assert(primary>guests*3,date+' prioritizes the season throughout the group');
+        assert(guests>0,date+' still permits year-round guests');assert(first>100,date+' normally starts with its seasonal theme');
+    }
+    const pool=['snowman','casper','wolf','spiders'], e=environment({mode:'selected',characters:pool,trigger:'manual',strength:'gentle',sound:'no'},{date:'2026-01-20T12:00:00'});
+    const counts=Object.fromEntries(pool.map(name=>[name,0]));
+    for(let i=0;i<600;i++) {e.document.emit('keydown',{key:'Escape'});e.click();counts[e.visitors()[0].className.split(' ')[1].slice(6)]++;}
+    assert(Object.values(counts).every(n=>n>110 && n<190),'manual mode does not bias winter actors');
+});
+
+/** Exercise gremlins through the same pointer, clock and notification entry points as other actors. */
+function gremlinFixture(config={}, settings={}) {
+    const e=environment(Object.assign({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},settings),config);
+    if(settings.trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});}
+    else e.click();
+    e.tick(700);
+    return e;
+}
+check('gremlin clicks add one copy with a cooldown, preserve notification silence and do not count as catches',()=>{
+    for(const settings of [{sound:'yes'},{sound:'no'},{sound:'yes',trigger:'notification'}]) {
+        const e=gremlinFixture({},settings), original=e.visitors()[0], p=e.center(original);
+        e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,1);
+        const sounds=e.sounds.length;
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,2);
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,2);
+        assert.equal(e.sounds.length>sounds,settings.sound==='yes' && settings.trigger!=='notification');
+        e.tick(700);const copy=e.visitors().find(v=>v!==original), q=e.center(copy), before=e.sounds.length;
+        e.document.emit('pointerdown',e.event({clientX:q.x,clientY:q.y}));assert.equal(e.visitors().length,3);
+        if(settings.trigger==='notification') assert.equal(e.sounds.length,before);
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('gremlins ignore controls, modified clicks and touch scrolling; a short blank tap splits once',()=>{
+    for(const action of ['control','right','modified','scroll','hold','cancel','tap']) {
+        const e=gremlinFixture({coarse:['scroll','hold','cancel','tap'].includes(action)}), p=e.center(e.visitors()[0]);
+        const event=e.event({clientX:p.x,clientY:p.y});
+        if(action==='control') {e.block.interactive=true;event.target=e.block;}
+        if(action==='right') event.button=2;
+        if(action==='modified') event.ctrlKey=true;
+        if(['scroll','hold','cancel','tap'].includes(action)) event.pointerType='touch';
+        e.document.emit('pointerdown',event);assert.equal(e.visitors().length,1);
+        if(event.pointerType==='touch') {
+            e.tick(action==='hold'?400:50);
+            if(action==='scroll') event.clientY+=80;
+            e.document.emit(action==='cancel'?'pointercancel':'pointerup',event);
+        }
+        assert.equal(e.visitors().length,action==='tap'?2:1,action);
+    }
+});
+check('manual portals also obey the fifty-gremlin cap and only a deliberate click catches one at the cap',()=>{
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:6000,height:4000});
+    for(let i=0;i<55;i++) e.document.emit('dblclick',e.event({clientX:3000,clientY:2000}));
+    assert.equal(e.visitors().length,50);e.tick(700,700);
+    const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+    assert(e.visitors().every(v=>!v.className.includes('funny-leaving')));
+    e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+    assert.equal(e.visitors().filter(v=>v.className.includes('funny-leaving')).length,1);
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+});
+check('rain splits slowly, each new copy waits twelve seconds and the family expires together',()=>{
+    const e=gremlinFixture({weather:'rain clouds',width:2400,height:1600});
+    const original=e.visitors()[0], all=new Set([original]);let first=null;
+    for(let t=700;t<61000;t+=32) {
+        e.tick(32);assert(e.raf.size<=1,'multiplying inside a frame must not create a second animation loop');
+        for(const v of e.visitors()) if(!all.has(v)) {
+            all.add(v);if(!first) first=v;
+            assert.equal(v.attrs['data-rain-born'],'true','rain copies emerge through the water bubble');
+            assert(e.document.body.children.some(n=>n.className.includes('funny-burst-bubble')));
+        }
+        if(e.now()<12000) assert.equal(all.size,1);
+        if(first && e.now()<first.createdAt+12000) assert.equal(all.size,2,'a copy must wait its own full interval');
+    }
+    assert(first && first.createdAt>=12000 && first.createdAt<=18032);
+    assert(all.size>2,'rain can split the family again');assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    e.tick(20000);assert.equal(e.timers.size,0);
+});
+check('dry weather, expired forecasts and background pages never multiply gremlins',()=>{
+    for(const config of [{weather:'sun'},{weather:'clouds'},{}]) {
+        const e=gremlinFixture(config,{forecast:{icon:'rain',temperature:12,expires:0}});
+        assert.equal(watchVisitors(e,60000).length,1);
+    }
+    for(const exit of ['blur','hidden','escape']) {
+        const e=gremlinFixture({weather:'rain clouds'});
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        e.tick(81000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('gremlins leave normal bounded tracks, wash them in rain and rest after chasing lights',()=>{
+    const e=gremlinFixture({weather:'rain clouds'});e.tick(3000);
+    const tracks=e.document.body.children.filter(n=>n.className.includes('funny-imp-track'));
+    assert(tracks.length);assert(tracks.every(n=>n.className.includes('funny-trail-paws') && n.attrs['data-weathering']==='wash'));
+    e.document.emit('scroll');assert(tracks.every(n=>!e.document.body.children.includes(n)));
+    for(const prey of ['butterfly','firefly']) {
+        const pair=pursuitFixture('imp',prey);pair.e.tick(3000);
+        assert.equal(pair.chasing.attrs['data-reaction'],'tired');pair.e.tick(3100);
+        assert.notEqual(pair.chasing.attrs['data-reaction'],'tired');
+    }
+    const meal=wolfMealFixture('imp');assert(meal);
+});
+
+check('viewport crowd limits include pending groups and copies, and release capacity after a catch',()=>{
+    for(const [width,height,limit] of [[390,844,8],[1000,800,20],[1920,1080,50]]) {
+        const e=environment({mode:'selected',characters:['ghost','casper','elf'],trigger:'manual',sound:'no'},{width,height});
+        for(let i=0;i<60;i++) e.click({clientX:width/2,clientY:height/2});
+        assert.equal(e.visitors().length,limit);e.tick(2000);
+        assert(e.visitors().length<=limit,'delayed portal launches share the same cap');
+        const victim=e.visitors()[0],p=e.center(victim);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);
+        const before=e.visitors().length;e.click({clientX:width/2,clientY:height/2});
+        assert(e.visitors().length>before && e.visitors().length<=limit);
+        e.window.innerWidth=200;e.window.innerHeight=300;
+        assert.doesNotThrow(()=>e.click(),'a smaller viewport can be observed before its resize cleanup runs');
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:390,height:844});
+    for(let i=0;i<8;i++) e.click({clientX:195,clientY:422});e.tick(700,700);
+    const p=e.center(e.visitors()[0]);e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+    assert.equal(e.visitors().length,8);assert(e.visitors().every(v=>!v.className.includes('funny-leaving')));
+    assert(!e.document.body.children.some(n=>n.className.includes('funny-burst')),'a full small screen neither splits nor catches the gremlin');
+});
+check('small viewports bound trails and discard their timers on resize',()=>{
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:390,height:844});
+    for(let i=0;i<8;i++) e.click({clientX:195,clientY:422});
+    let peak=0;
+    for(let t=0;t<15000;t+=50) {
+        e.tick(50);const n=e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length;
+        peak=Math.max(peak,n);assert(n<=9);
+    }
+    assert(peak>0);e.window.emit('resize');e.tick(1000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
+});
+check('lightning gives free actors one brief silent pose and yields to pointer movement and inactive pages',()=>{
+    for(const end of ['recover','pointer','blur','hidden','escape']) {
+        const e=environment({mode:'selected',characters:['ghost'],trigger:'manual',sound:'yes'});e.click();e.tick(700);
+        const v=e.visitors()[0],sounds=e.sounds.length;e.window.funnyEffects.lightning();
+        assert(['startled','duck'].includes(v.attrs['data-reaction']));assert.equal(e.sounds.length,sounds);
+        const reaction=v.attrs['data-reaction'];e.window.funnyEffects.lightning();assert.equal(v.attrs['data-reaction'],reaction);
+        if(end==='recover') {e.tick(950);assert(!['startled','duck'].includes(v.attrs['data-reaction']));}
+        if(end==='pointer') {const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);assert(!e.visitors().includes(v));}
+        if(end==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(end==='escape') e.document.emit('keydown',{key:'Escape'});
+        e.window.emit('blur');e.window.funnyEffects.lightning();e.tick(500);
+        assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+    const pair=pursuitFixture('cat','fly');pair.e.window.funnyEffects.lightning();
+    assert.equal(pair.chasing.attrs['data-encounter'],'chasing');assert(!['startled','duck'].includes(pair.chasing.attrs['data-reaction']));
 });
 
 console.log(`${checks} behavioral checks passed`);

@@ -885,7 +885,7 @@ class eshop_Settings extends core_Master
     {
         $res = array();
         foreach ($payments as $paymentId) {
-            if (cond_CardPayments::getDriver($paymentId)) {
+            if (eshop_CardPayments::getDriver($paymentId)) {
                 $res[$paymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
             }
         }

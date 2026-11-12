@@ -37,7 +37,7 @@
             var particles = [], banks = [];
             var surfaces = '[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th';
             var details = [], gustAt = 6000, lastTrace = -Infinity, rippleAt = 0;
-            var starSeen = false, starAt = 0, rainbowSeen = false;
+            var starSeen = false, starAt = 0, rainbowSeen = false, lightningAt = 0;
             // Bearings describe where wind comes from; without a saved bearing keep one gentle heading per page.
             var bearing = typeof options.windDirection === 'number' ? options.windDirection * Math.PI / 180 : (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (Math.random() - 0.5) * 0.6;
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
@@ -119,7 +119,8 @@
 
             /** Shared, bounded lifetime for wind, runoff and footprints; no per-particle timers. */
             function detail(kind, x, y, life) {
-                if (!layer || details.length >= (gentle ? 12 : 24)) return null;
+                var limit = Math.max(6, Math.min(gentle ? 12 : 24, Math.floor(width * height / 33000)));
+                if (!layer || details.length >= limit) return null;
                 var node = element(kind, layer);
                 node.style.left = x + 'px'; node.style.top = y + 'px';
                 details.push({node: node, until: performance.now() + life});
@@ -132,6 +133,11 @@
                     if (time < item.until) return true;
                     item.node.remove(); return false;
                 });
+                // A localized, single pulse belongs to an actual storm snapshot, never ordinary rain.
+                if (lightningAt && elapsed >= lightningAt) {
+                    lightningAt = elapsed + 20000 + Math.random() * 15000;
+                    if (detail('lightning', width * (0.15 + Math.random() * 0.7), height * 0.04, 850) && window.funnyEffects && typeof window.funnyEffects.lightning === 'function') window.funnyEffects.lightning();
+                }
                 // A clear night gets at most one small meteor per page, without flashes or sound.
                 if (!starSeen && weather.indexOf('moon') >= 0 && !/clouds|rain|snow|fog/.test(weather) && elapsed >= starAt) {
                     if (detail('meteor', width * (0.15 + Math.random() * 0.25), height * 0.12, 2400)) starSeen = true;
@@ -338,6 +344,7 @@
                 remaining = max / 2 + Math.random() * max / 2;
                 elapsed = 0; gustAt = 6000; lastTrace = -Infinity; rainbowSeen = false; rippleAt = 0;
                 starAt = 18000 + Math.random() * 22000;
+                lightningAt = /^thunder/.test(options.icon) ? 8000 + Math.random() * 6000 : 0;
                 width = window.innerWidth; height = window.innerHeight;
                 layer = element('layer', document.body);
                 layer.setAttribute('aria-hidden', 'true'); layer.setAttribute('data-weather', weather);

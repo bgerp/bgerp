@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   cond
+ * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta EOOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class cond_CardPayments extends core_Manager
+class eshop_CardPayments extends core_Manager
 {
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'cond_CardPayments';
+
+
     /**
      * Заглавие
      */
@@ -31,7 +37,7 @@ class cond_CardPayments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Sorting, plg_SelectPeriod, plg_Search, cond_Wrapper';
+    public $loadList = 'plg_Created, plg_Sorting, plg_SelectPeriod, plg_Search, eshop_Wrapper';
 
 
     /**
@@ -49,7 +55,7 @@ class cond_CardPayments extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin';
+    public $canList = 'eshop,ceo,admin';
 
 
     /**
@@ -91,7 +97,7 @@ class cond_CardPayments extends core_Manager
     /**
      * Кой може да повтори отразяването на платеното
      */
-    public $canRetry = 'ceo,admin';
+    public $canRetry = 'eshop,ceo,admin';
 
 
     /**
@@ -110,7 +116,7 @@ class cond_CardPayments extends core_Manager
         $this->FLD('initiatorId', 'int', 'caption=Инициатор->Ид');
         $this->FLD('domainId', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн');
         $this->FLD('operation', 'enum(payment=Плащане,refund=Отмяна)', 'caption=Операция,notNull,value=payment');
-        $this->FLD('originId', 'key(mvc=cond_CardPayments)', 'caption=Към плащане');
+        $this->FLD('originId', 'key(mvc=eshop_CardPayments)', 'caption=Към плащане');
         $this->FLD('orderNum', 'varchar(32)', 'caption=Номер в шлюза');
         $this->FLD('nonce', 'varchar(64)', 'caption=Nonce,column=none');
         $this->FLD('gatewayRef', 'varchar(128)', 'caption=Сесия в шлюза,column=none');
@@ -430,7 +436,7 @@ class cond_CardPayments extends core_Manager
      */
     protected static function getUnreflectedListUrl()
     {
-        return array('cond_CardPayments', 'list', 'fState' => 'notNotified');
+        return array('eshop_CardPayments', 'list', 'fState' => 'notNotified');
     }
 
 

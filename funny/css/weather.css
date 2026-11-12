@@ -57,6 +57,8 @@
     transition: text-shadow 1s linear, box-shadow 1s linear;
 }
 @keyframes funny-weather-glow { to { transform: scale(1.15); opacity: .7; } }
+.funny-weather-lightning { position: absolute; width: 42px; height: 120px; background: #fff1bd; clip-path: polygon(48% 0, 95% 0, 62% 38%, 100% 38%, 12% 100%, 38% 51%, 0 51%); animation: funny-weather-lightning .85s ease-out both; }
+@keyframes funny-weather-lightning { 0% { opacity: 0; transform: translateY(-6px); } 20% { opacity: .8; } 100% { opacity: 0; transform: translateY(6px); } }
 @keyframes funny-weather-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
 @keyframes funny-weather-cloud-wind { from { transform: translate(0,0) scale(var(--cloud-scale,1)); } to { transform: translate(var(--cloud-travel-x),var(--cloud-travel-y)) scale(var(--cloud-scale,1)); } }
 @media print, (prefers-reduced-motion: reduce) {
