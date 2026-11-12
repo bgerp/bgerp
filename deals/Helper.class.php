@@ -1449,6 +1449,34 @@ abstract class deals_Helper
     
     
     /**
+     * Превръща HTML-а в условие от артикулите (линкове, курсив, удебеляване) в richtext
+     *
+     * @param string $cond
+     *
+     * @return string
+     */
+    public static function conditionHtmlToRichtext($cond)
+    {
+        // Защитените richtext блокове се пазят както са
+        $parts = preg_split('/(\[html\].*?\[\/html\]|\[code(?:=[a-z0-9]{1,32})?\].*?\[\/code\]|`[^`\r\n]+`)/isu', $cond ?? '', -1, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($parts as $i => &$part) {
+            if ($i % 2) continue;
+
+            $part = preg_replace_callback('/<a\s[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/isu', function ($m) {
+                $url = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
+                $text = trim(html_entity_decode(strip_tags($m[2]), ENT_QUOTES, 'UTF-8'));
+
+                return ($text === '' || $text == $url) ? $url : "[link={$url}]{$text}[/link]";
+            }, $part);
+            $part = preg_replace(array('/<(\/?)i>/i', '/<(\/?)(b|strong)>/i'), array('[$1i]', '[$1b]'), $part);
+        }
+        unset($part);
+
+        return implode('', $parts);
+    }
+
+
+    /**
      * Помощна ф-я за показване на всички условия идващи от артикулите на един детайл
      *
      * @param core_Detail $Detail
