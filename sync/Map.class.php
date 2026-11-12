@@ -72,10 +72,12 @@ class sync_Map extends core_Manager
 
 
     /**
-     * Отделни marker-и за рекурсивен import в ход и окончателен неуспех
+     * Отделни състояния за рекурсивния import в текущия опит
      */
     const IMPORT_IN_PROGRESS = '__sync_import_in_progress__';
     const IMPORT_FAILED = '__sync_import_failed__';
+    /** Умишлено пропуснат запис, без грешка и без локален mapping */
+    const IMPORT_SKIPPED = '__sync_import_skipped__';
     const MAX_REMOTE_ID = 2147483647;
 
     /** Рекурсивният запис е добавен или вече присъства в payload-а */

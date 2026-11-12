@@ -504,7 +504,7 @@ class cms_Content extends core_Master
             }
             $tpl->push('cms/css/menuSearch.css', 'CSS');
             $tpl->push('cms/js/menuSearch.js', 'JS');
-            jquery_Jquery::run($tpl, 'initCmsMenuSearch();', true);
+            jquery_Jquery::run($tpl, "if (typeof initCmsMenuSearch == 'function') initCmsMenuSearch();", true);
         }
 
 

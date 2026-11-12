@@ -85,6 +85,15 @@ class bgerp_A extends core_Mvc
 
 
     /**
+     * Общ адрес за отговора от шлюза за плащане с карта (BACKREF) - задава се за терминала при банката
+     */
+    public function act_CR()
+    {
+        return Request::forward(array('Ctr' => 'eshop_CardPayments', 'Act' => 'Response'));
+    }
+
+
+    /**
      * Създава watchpoint
      */
     public function act_wp()

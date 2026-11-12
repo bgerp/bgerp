@@ -480,7 +480,7 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             return true;
         }
 
-        $cQuery = cond_CardPayments::getQuery();
+        $cQuery = eshop_CardPayments::getQuery();
         $cQuery->where(array("#initiatorClassId = '[#1#]' AND #initiatorId = '[#2#]' AND #operation = 'payment' AND #state = 'paid'", eshop_Carts::getClassId(), $cartRec->id));
 
         return $cQuery->count() > 0;
@@ -863,8 +863,8 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                 $hint = tr('Документ по чл. 52о (плащане с карта)');
                 if (!empty($dRec->transactionRef)) {
                     $transaction = core_Type::escape($dRec->transactionRef);
-                    if ($canLink && cond_CardPayments::haveRightFor('list')) {
-                        $transaction = ht::createLink($transaction, array('cond_CardPayments', 'list', 'selectPeriod' => 'gr0', 'search' => $dRec->transactionRef));
+                    if ($canLink && eshop_CardPayments::haveRightFor('list')) {
+                        $transaction = ht::createLink($transaction, array('eshop_CardPayments', 'list', 'selectPeriod' => 'gr0', 'search' => $dRec->transactionRef));
                     }
                     $hint .= '<br>' . tr('Трансакция') . ': ' . $transaction;
                 }

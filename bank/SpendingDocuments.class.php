@@ -290,6 +290,14 @@ class bank_SpendingDocuments extends bank_Document
 
 
     /**
+     * Полета от записа, които чете fillSummaryRec
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $summaryRecFields = 'valior,amount,earlyPaymentUntil,earlyPaymentPercent';
+
+
+    /**
      * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
      * @see acc_plg_DocumentSummary
      */

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -575,10 +575,17 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         if ($rec->state == 'active' && (!empty($rec->_updateMaster) || !empty($rec->_recontoAfterEdit))) {
 
             $success = false;
-            try {
-                $success = acc_Journal::reconto($rec->containerId);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
+
+            // Реконтирането трие старата транзакция преди новата: при грешни проценти документът би останал без такава
+            if ($percentsError = static::getPercentsError($rec)) {
+                $mvc->logErr('Протоколът не е реконтиран - невалидни проценти от себестойността', $rec->id);
+                core_Statuses::newStatus($percentsError, 'error');
+            } else {
+                try {
+                    $success = acc_Journal::reconto($rec->containerId);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
             }
 
             // И при провалено реконтиране - иначе следващият запис виси на ключа

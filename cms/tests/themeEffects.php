@@ -69,7 +69,9 @@ foreach ($sections as $section) {
     check(isset($tpl->assets['cms/js/ThemeEffects.js']) === $enabled, "Section $section scoped assets");
     if ($enabled) {
         check(isset($tpl->assets['cms/css/ThemeEffects.css']), 'CSS accompanies JS');
-        $options = json_decode(substr($tpl->scripts[0], strlen('cmsThemeEffects('), -2), true);
+        $prefix = 'if (typeof window.cmsThemeEffects === "function") { window.cmsThemeEffects(';
+        check(strpos($tpl->scripts[0], $prefix) === 0, 'Optional effects require a loaded initializer');
+        $options = json_decode(substr($tpl->scripts[0], strlen($prefix), -4), true);
         $expected = $section === 'page' ? array('buttonEffect') : ($section === 'shop' ? array('productHoverEffect', 'productRevealEffect') : array('imageRevealEffect'));
         check(array_keys($options) === $expected, "Only $section settings passed");
         foreach ($options as $field => $value) check($value === $values[$field], 'Stored selection preserved');

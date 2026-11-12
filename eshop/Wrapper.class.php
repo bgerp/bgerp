@@ -11,7 +11,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,6 +28,7 @@ class eshop_Wrapper extends plg_ProtoWrapper
         $this->TAB('eshop_Products', 'Артикули->Списък', 'ceo,eshop');
         $this->TAB('eshop_ProductDetails', 'Артикули->Опции', 'ceo,eshop');
         $this->TAB('eshop_Carts', 'Кошници', 'eshop,ceo');
+        $this->TAB('eshop_CardPayments', 'Плащания с карта', 'eshop,ceo,admin');
         $this->TAB('eshop_Settings', 'Настройки', 'ceo,eshop,admin');
         $this->TAB('eshop_Favourites', 'Дебъг->Любими артикули', 'debug');
     }

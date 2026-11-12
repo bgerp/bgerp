@@ -269,7 +269,6 @@ class acc_ReportDetails extends core_Manager
 
         $data->total = arr::sumValuesArray($res, 'total', true);
         $data->totalRow = core_Type::getByName('double(decimals=2)')->toVerbal($data->total);
-        $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;
         
         // Връщане на извлечените данни
         $data->balanceRows = $res;
@@ -502,7 +501,8 @@ class acc_ReportDetails extends core_Manager
             }
             
             if ($count > 1 && $data->canSeePrices !== false) {
-                $lastRow = "<div class='acc-footer' style='padding-right: 13px;'>" . tr('Сумарно'). ': ' . $data->totalRow . '</div>';
+                $totalCurrencyCode = acc_Periods::getBaseCurrencyCode($data->balanceRec->fromDate ?? null);
+                $lastRow = "<div class='acc-footer' style='padding-right: 13px;'>" . tr('Сумарно'). ': ' . ht::styleNumber(currency_Currencies::decorate($data->totalRow, $totalCurrencyCode, true), $data->total) . '</div>';
                 $tpl->append($lastRow, 'CONTENT');
             }
         }

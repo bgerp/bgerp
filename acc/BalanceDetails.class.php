@@ -2293,6 +2293,11 @@ class acc_BalanceDetails extends core_Detail
             // За перата се изисква поне едно от тях да е на текущата позиция
             $query->in("ent{$i}Id", $varArr);
         }
+
+        // Без пера на първа/втора позиция индексите по сметка и перо не помагат, а MySQL чете редовете на всички баланси
+        if (isset($balanceId) && !$items1 && !$items2) {
+            $query->mvc->useBalanceIndex($query);
+        }
     }
     
     

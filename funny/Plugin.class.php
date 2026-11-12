@@ -27,6 +27,11 @@ class funny_Plugin extends core_Plugin
             return;
         }
 
+        // В мобилен режим не зареждаме ресурси или прогноза без изрично разрешение.
+        if (Mode::is('screenMode', 'narrow') && funny_Setup::get('MOBILE') !== 'yes') {
+            return;
+        }
+
         $mode = funny_Setup::get('MODE');
         $frequency = funny_Setup::get('FREQUENCY');
         $weather = funny_Setup::get('WEATHER');
@@ -52,12 +57,16 @@ class funny_Plugin extends core_Plugin
             'scoreKey' => 'funny.best.' . EF_APP_NAME . '.' . (int) core_Users::getCurrent(),
             'easterDates' => $easterDates,
             'forecast' => $forecast,
-            'labels' => array('caught' => tr('Уцелени'), 'escaped' => tr('Избягали'), 'best' => tr('Рекорд')),
+            'labels' => array(
+                'caught' => tr('Уцелени'), 'escaped' => tr('Избягали'), 'best' => tr('Рекорд'),
+                'pause' => tr('Временна пауза на ефектите'), 'paused' => tr('На пауза'),
+                'pause15' => tr('Пауза за 15 минути'), 'pauseReload' => tr('Пауза до презареждане'), 'resume' => tr('Продължи'),
+            ),
             'spriteUrl' => sbf('funny/img/characters.svg', ''),
         );
 
         $files->css = array_merge((array) ($files->css ?? array()), array('funny/css/funny.css'));
-        $files->js = array_merge((array) ($files->js ?? array()), array('funny/js/funny.js'));
+        $files->js = array_merge((array) ($files->js ?? array()), array('funny/js/scene.js', 'funny/js/funny.js'));
         jquery_Jquery::run($page, 'window.funnyEffects.init(' . json_encode($options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ');');
     }
 

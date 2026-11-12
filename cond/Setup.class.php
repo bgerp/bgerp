@@ -73,7 +73,6 @@ class cond_Setup extends core_ProtoSetup
         'cond_Allergens',
         'cond_TariffCodes',
         'cond_VatExceptions',
-        'cond_CardPayments',
     );
     
     
@@ -110,15 +109,6 @@ class cond_Setup extends core_ProtoSetup
             'action' => 'CloseExceptions',
             'period' => 1440,
             'offset' => 60,
-        ),
-        array(
-            'systemId' => 'CheckPendingCardPayments',
-            'description' => 'Проверка в шлюза на плащанията с карта без окончателен отговор',
-            'controller' => 'cond_CardPayments',
-            'action' => 'CheckPending',
-            'period' => 10,
-            'offset' => 3,
-            'timeLimit' => 120,
         ),
     );
 

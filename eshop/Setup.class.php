@@ -252,6 +252,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'eshop_Favourites',
+        'eshop_CardPayments',
     );
     
     
@@ -365,6 +366,16 @@ class eshop_Setup extends core_ProtoSetup
             'action' => 'UpdateEshopSellableProducts',
             'period' => 1,
             'timeLimit' => 100
+        ),
+
+        array(
+            'systemId' => 'CheckPendingCardPayments',
+            'description' => 'Проверка в шлюза на плащанията с карта без окончателен отговор',
+            'controller' => 'eshop_CardPayments',
+            'action' => 'CheckPending',
+            'period' => 10,
+            'offset' => 3,
+            'timeLimit' => 120,
         ),
     );
     

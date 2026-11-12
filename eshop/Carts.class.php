@@ -1142,7 +1142,7 @@ class eshop_Carts extends core_Master
             sales_Sales::save($saleRec);
 
             // Потвърденото от картов шлюз плащане не се спира от минималните цени
-            $isCardPayment = !empty($paymentData) && !empty($rec->paymentId) && is_object(cond_CardPayments::getDriver($rec->paymentId));
+            $isCardPayment = !empty($paymentData) && !empty($rec->paymentId) && is_object(eshop_CardPayments::getDriver($rec->paymentId));
             Mode::push('skipMinPriceCheck', $isCardPayment);
             try {
                 sales_Sales::conto($saleRec->id);

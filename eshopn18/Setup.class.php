@@ -75,7 +75,9 @@ class eshopn18_Setup extends core_ProtoSetup
 
         $html .= $Plugins->installPlugin('Настройки на онлайн магазина по Н-18', 'eshopn18_plg_EshopSettings', 'eshop_Settings', 'private');
         $html .= $Plugins->installPlugin('Документ по чл. 52о за платените с карта онлайн поръчки', 'eshopn18_plg_EshopCarts', 'eshop_Carts', 'private');
-        $html .= $Plugins->installPlugin('Документ по чл. 52о на страницата за успешно плащане с карта', 'eshopn18_plg_CardPayments', 'cond_CardPayments', 'private');
+        // Плащанията с карта бяха в cond - иначе старото закачане със същото име спира новото
+        $Plugins->deinstallPlugin('eshopn18_plg_CardPayments', 'cond_CardPayments');
+        $html .= $Plugins->installPlugin('Документ по чл. 52о на страницата за успешно плащане с карта', 'eshopn18_plg_CardPayments', 'eshop_CardPayments', 'private');
         foreach (array('store_ShipmentOrders', 'sales_Services', 'cash_Pko', 'bank_IncomeDocuments') as $class) {
             $html .= $Plugins->installPlugin("Една доставка и едно плащане по онлайн поръчка ({$class})", 'eshopn18_plg_SingleDeliveryPayment', $class, 'private');
         }

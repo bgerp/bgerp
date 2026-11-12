@@ -2500,7 +2500,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако е зададен шаблон, съществува ли?
         if (isset($fields['template'])) {
             expect(doc_TplManager::fetch($fields['template']));
-        } elseif ($me instanceof sales_Sales) {
+        } else {
             $fields['template'] = $me->getDefaultTemplate((object) array('folderId' => $fields['folderId']));
         }
         

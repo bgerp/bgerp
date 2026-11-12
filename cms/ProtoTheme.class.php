@@ -50,7 +50,7 @@ class cms_ProtoTheme extends core_ProtoInner
         }
         $tpl->push('cms/css/ThemeEffects.css', 'CSS');
         $tpl->push('cms/js/ThemeEffects.js', 'JS');
-        jquery_Jquery::run($tpl, 'cmsThemeEffects(' . json_encode($effects) . ');');
+        jquery_Jquery::run($tpl, 'if (typeof window.cmsThemeEffects === "function") { window.cmsThemeEffects(' . json_encode($effects) . '); }');
     }
 
 
