@@ -5,6 +5,8 @@
     var started = false;
 
     window.funnyEffects = {
+        /** Weather may run independently of the character controller. */
+        lightning: function () {},
         /** Starts one effects controller per page, using the resolved personal settings. */
         init: function (options) {
             var charactersEnabled = options.mode !== 'off' && options.frequency !== 'off';
@@ -37,6 +39,11 @@
 
             function random(min, max) { return min + Math.random() * (max - min); }
             function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+            /** Bound crowding by visible area, including manual groups and rain-born copies. */
+            function visitorLimit() {
+                return clamp(Math.floor(window.innerWidth * window.innerHeight / 40000 * (gentle ? 0.5 : 1)), 4, IMP_LIMIT);
+            }
 
             /** Distance to a complete movement segment, including fast pointer sweeps. */
             function segmentDistance(x, y, fromX, fromY, toX, toY) {
@@ -424,12 +431,12 @@
             }
 
             /** Clicks and rain share the cap, notification silence and the original family's deadline. */
-            function multiplyImp(imp, now) {
+            function multiplyImp(imp, now, rain) {
                 if (impCount() >= IMP_LIMIT || now >= imp.deadline - 2000) return false;
-                if (!show('copy', true, 'imp', {x:imp.x,y:imp.y,silent:imp.silent,deadline:imp.deadline})) return false;
+                if (!show('copy', true, 'imp', {x:imp.x,y:imp.y,silent:imp.silent,deadline:imp.deadline,rain:rain})) return false;
                 imp.splitAfter = visitors[visitors.length - 1].splitAfter = now + 400;
                 imp.rainSplitAfter = now + random(12000, 18000);
-                burst(imp, 'star');
+                burst(imp, rain ? 'bubble' : 'star');
                 if (!imp.silent) playSound('imp');
                 return true;
             }
@@ -600,7 +607,7 @@
 
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
-                if (!active() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
+                if (!active() || visitors.length >= visitorLimit() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
                 var visitsElements = insect || feeds || character === 'spiders';
@@ -637,6 +644,7 @@
                     visitor.deadline = origin.deadline || now + 60000;
                     visitor.rainSplitAfter = now + random(12000, 18000);
                     if (reason === 'copy') visitor.silent = !!origin.silent;
+                    if (reason === 'copy' && origin.rain) node.setAttribute('data-rain-born', 'true');
                 }
                 if (character === 'spiders') {
                     // A vertical entry must not pass through the stationary pointer.
@@ -1199,6 +1207,16 @@
                 v.node.setAttribute('data-reaction', kind);
             }
 
+            /** One silent pose per visible lightning; pursuit, feeding and pointer escape retain priority. */
+            window.funnyEffects.lightning = function () {
+                if (!active()) return;
+                var now = performance.now();
+                visitors.forEach(function (v) {
+                    if (v.pursuit || v.fear || v.perch || v.reactionUntil || v.eating || !availableForEncounter(v, now)) return;
+                    react(v, Math.random() < 0.5 ? 'startled' : 'duck', now);
+                });
+            };
+
             /** Nearby visitors greet once each, while keeping their separation and escape priority. */
             function greetVisitors(now) {
                 var free = visitors.filter(function (v) {
@@ -1302,7 +1320,8 @@
             /** All trails, puddles, bites and webs share one cap and the same inactive-page cleanup. */
             function addMark(node, lifetime, contact) {
                 // Keep interactive props longer than expendable footprints, within the same total cap.
-                if (marks.length >= (gentle ? 12 : 24)) removeMark(marks.filter(function (mark) {
+                var limit = clamp(Math.floor(window.innerWidth * window.innerHeight / 33000), 6, gentle ? 12 : 24);
+                if (marks.length >= limit) removeMark(marks.filter(function (mark) {
                     return !mark.reserved && (!mark.contact || ['web', 'gift', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains'].indexOf(mark.contact.kind) < 0);
                 })[0] || marks[0]);
                 node.setAttribute('aria-hidden', 'true');
@@ -1473,7 +1492,7 @@
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
-                if (/^(tired|paw|forage|peck|sweep|cool|thanks)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
+                if (/^(tired|paw|forage|peck|sweep|cool|thanks|startled|duck)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
                 if (v.peckTarget && (marks.indexOf(v.peckTarget) < 0 || v.peckTarget.ending)) v.reactionUntil = now;
                 if (v.reactionUntil && now >= v.reactionUntil) {
                     var startled = v.reaction === 'paw' && availableForEncounter(v, now, 65);
@@ -1503,12 +1522,12 @@
                     var progress = Math.min(1, elapsed / 650), ease = 1 - Math.pow(1 - progress, 3);
                     v.x = v.from.x + (v.destination.x - v.from.x) * ease;
                     v.y = v.from.y + (v.destination.y - v.from.y) * ease;
-                    if (progress === 1) v.launched = false;
+                    if (progress === 1) { v.launched = false; v.node.setAttribute('data-rain-born', ''); }
                 } else if (!v.leaving) {
                     // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
                     if (v.character === 'imp' && now >= v.rainSplitAfter) {
                         v.rainSplitAfter = now + random(12000, 18000);
-                        if (climate().rain && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now);
+                        if (climate().rain && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now, true);
                     }
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                     if (hideFromSun(v, now)) return;
@@ -1817,8 +1836,8 @@
                 if (!active() || (reason !== 'manual' && (visitors.length || portals.length || peeker || performance.now() - lastAppearance < cooldown))) return false;
                 if (reason === 'manual') removePeek();
                 var pool = characters();
-                var count = Math.min(gentle ? 1 : 1 + Math.floor(Math.random() * 7), pool.length);
-                if (!count) return false;
+                var count = Math.min(gentle ? 1 : 1 + Math.floor(Math.random() * 7), pool.length, visitorLimit() - visitors.length);
+                if (count <= 0) return false;
                 var width = pool.indexOf('sleigh') !== -1 ? 120 : 76;
                 var origin = reason === 'manual' ? {x: pointer.x, y: pointer.y} : safePosition(width, width * 5 / 6);
                 if (!origin) return false;

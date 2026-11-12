@@ -1820,7 +1820,11 @@ check('rain splits slowly, each new copy waits twelve seconds and the family exp
     const original=e.visitors()[0], all=new Set([original]);let first=null;
     for(let t=700;t<61000;t+=32) {
         e.tick(32);assert(e.raf.size<=1,'multiplying inside a frame must not create a second animation loop');
-        for(const v of e.visitors()) if(!all.has(v)) {all.add(v);if(!first) first=v;}
+        for(const v of e.visitors()) if(!all.has(v)) {
+            all.add(v);if(!first) first=v;
+            assert.equal(v.attrs['data-rain-born'],'true','rain copies emerge through the water bubble');
+            assert(e.document.body.children.some(n=>n.className.includes('funny-burst-bubble')));
+        }
         if(e.now()<12000) assert.equal(all.size,1);
         if(first && e.now()<first.createdAt+12000) assert.equal(all.size,2,'a copy must wait its own full interval');
     }
@@ -1852,6 +1856,52 @@ check('gremlins leave normal bounded tracks, wash them in rain and rest after ch
         assert.notEqual(pair.chasing.attrs['data-reaction'],'tired');
     }
     const meal=wolfMealFixture('imp');assert(meal);
+});
+
+check('viewport crowd limits include pending groups and copies, and release capacity after a catch',()=>{
+    for(const [width,height,limit] of [[390,844,8],[1000,800,20],[1920,1080,50]]) {
+        const e=environment({mode:'selected',characters:['ghost','casper','elf'],trigger:'manual',sound:'no'},{width,height});
+        for(let i=0;i<60;i++) e.click({clientX:width/2,clientY:height/2});
+        assert.equal(e.visitors().length,limit);e.tick(2000);
+        assert(e.visitors().length<=limit,'delayed portal launches share the same cap');
+        const victim=e.visitors()[0],p=e.center(victim);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);
+        const before=e.visitors().length;e.click({clientX:width/2,clientY:height/2});
+        assert(e.visitors().length>before && e.visitors().length<=limit);
+        e.window.innerWidth=200;e.window.innerHeight=300;
+        assert.doesNotThrow(()=>e.click(),'a smaller viewport can be observed before its resize cleanup runs');
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:390,height:844});
+    for(let i=0;i<8;i++) e.click({clientX:195,clientY:422});e.tick(700,700);
+    const p=e.center(e.visitors()[0]);e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+    assert.equal(e.visitors().length,8);assert(e.visitors().every(v=>!v.className.includes('funny-leaving')));
+    assert(!e.document.body.children.some(n=>n.className.includes('funny-burst')),'a full small screen neither splits nor catches the gremlin');
+});
+check('small viewports bound trails and discard their timers on resize',()=>{
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:390,height:844});
+    for(let i=0;i<8;i++) e.click({clientX:195,clientY:422});
+    let peak=0;
+    for(let t=0;t<15000;t+=50) {
+        e.tick(50);const n=e.document.body.children.filter(n=>n.className.includes('funny-character-trail')).length;
+        peak=Math.max(peak,n);assert(n<=9);
+    }
+    assert(peak>0);e.window.emit('resize');e.tick(1000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
+});
+check('lightning gives free actors one brief silent pose and yields to pointer movement and inactive pages',()=>{
+    for(const end of ['recover','pointer','blur','hidden','escape']) {
+        const e=environment({mode:'selected',characters:['ghost'],trigger:'manual',sound:'yes'});e.click();e.tick(700);
+        const v=e.visitors()[0],sounds=e.sounds.length;e.window.funnyEffects.lightning();
+        assert(['startled','duck'].includes(v.attrs['data-reaction']));assert.equal(e.sounds.length,sounds);
+        const reaction=v.attrs['data-reaction'];e.window.funnyEffects.lightning();assert.equal(v.attrs['data-reaction'],reaction);
+        if(end==='recover') {e.tick(950);assert(!['startled','duck'].includes(v.attrs['data-reaction']));}
+        if(end==='pointer') {const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));e.tick(300);assert(!e.visitors().includes(v));}
+        if(end==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(end==='escape') e.document.emit('keydown',{key:'Escape'});
+        e.window.emit('blur');e.window.funnyEffects.lightning();e.tick(500);
+        assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+    const pair=pursuitFixture('cat','fly');pair.e.window.funnyEffects.lightning();
+    assert.equal(pair.chasing.attrs['data-encounter'],'chasing');assert(!['startled','duck'].includes(pair.chasing.attrs['data-reaction']));
 });
 
 console.log(`${checks} behavioral checks passed`);

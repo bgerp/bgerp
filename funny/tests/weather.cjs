@@ -435,4 +435,29 @@ check('gentle weather reduces particles, opacity, exposure and sound without cha
     assert(Math.max(...gentle.volumes)<Math.max(...normal.volumes));assert.equal(gentle.sounds.length,1);
     gentle.document.emit('pointermove');gentle.tick(1100);assert(!gentle.layer());assert.equal(gentle.frames.size,0);assert.equal(gentle.audio[0].state,'closed');
 });
+check('only storm snapshots produce sparse local lightning and notify heroes without extra sound',()=>{
+    for(const icon of ['rain','cloudy','thunder','thunder-rain','thunder-showers-day','thunder-showers-night']) {
+        const e=environment({icon,standalone:false});let signals=0,first=0,last=0;
+        e.window.funnyEffects={lightning(){signals++;if(!first) first=e.now();if(last) assert(e.now()-last>=20000);last=e.now();}};
+        e.window.funnyWeather.trigger('manual');
+        for(let t=0;t<60000;t+=50) {
+            e.tick(50);const bolts=e.layer().children.filter(n=>n.className==='funny-weather-lightning');
+            assert(bolts.length<=1);
+            if(bolts.length) {assert(parseFloat(bolts[0].style.top)<100);assert(signals>0);}
+        }
+        if(icon.startsWith('thunder')) {assert(first>=8000 && first<=14050);assert(signals>=2 && signals<=3);}
+        else assert.equal(signals,0);
+        assert.equal(e.sounds.length,0);
+        e.document.focused=false;e.window.emit('blur');const before=signals;e.tick(60000);
+        assert.equal(signals,before);assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);assert(!e.layer());
+    }
+});
+check('storm effects respect reduced motion, fresh forecasts, input stops and optional character integration',()=>{
+    const reduced=environment({icon:'thunder-rain',reduced:true});reduced.window.funnyWeather.trigger('manual');reduced.tick(30000);assert(!reduced.layer());
+    const expired=environment({icon:'thunder-rain',expires:5000,standalone:false});let calls=0;expired.window.funnyEffects={lightning(){calls++;}};
+    expired.window.funnyWeather.trigger('manual');expired.tick(15000);assert.equal(calls,0);assert(!expired.layer());
+    const e=environment({icon:'thunder-rain',standalone:false});e.window.funnyEffects={};e.window.funnyWeather.trigger('manual');e.tick(15000);
+    e.document.emit('pointermove',{clientX:10,clientY:10});e.tick(1100);assert(!e.layer());assert.equal(e.frames.size,0);
+});
+
 console.log(checks+' weather behavior checks passed');
