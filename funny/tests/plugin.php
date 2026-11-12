@@ -20,7 +20,7 @@ class core_Users
 class Mode
 {
     public static $values = array();
-    public static function is($key) { return !empty(self::$values[$key]); }
+    public static function is($key, $value = true) { return (self::$values[$key] ?? null) == $value; }
 }
 class Request
 {
@@ -30,7 +30,7 @@ class Request
 }
 class core_ProtoSetup
 {
-    public static $values = array('MODE' => 'auto', 'CHARACTERS' => 'ghost,casper', 'TRIGGER' => 'both', 'FREQUENCY' => 'normal', 'SOUND' => 'yes', 'WEATHER' => 'off', 'STRENGTH' => 'normal');
+    public static $values = array('MODE' => 'auto', 'CHARACTERS' => 'ghost,casper', 'TRIGGER' => 'both', 'FREQUENCY' => 'normal', 'SOUND' => 'yes', 'WEATHER' => 'off', 'STRENGTH' => 'normal', 'MOBILE' => 'no');
     public static function get($key) { return self::$values[$key]; }
 }
 class jquery_Jquery
@@ -112,7 +112,7 @@ if (strpos(jquery_Jquery::$script, '"sound":"scary"') === false || strpos(jquery
     strpos(jquery_Jquery::$script, '"frequency":"frequent"') === false || strpos(jquery_Jquery::$script, '"trigger":"manual"') === false) {
     throw new RuntimeException('Sound mode or Easter dates lost');
 }
-if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 28 || !in_array('wolf', explode(',', FUNNY_CHARACTERS), true)) {
+if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || FUNNY_MOBILE !== 'no' || count(explode(',', FUNNY_CHARACTERS)) !== 28 || !in_array('wolf', explode(',', FUNNY_CHARACTERS), true)) {
     throw new RuntimeException('Unexpected package defaults');
 }
 if (date('Y-m-d', dt::getOrthodoxEasterTms(2026)) !== '2026-04-12' || date('Y-m-d', dt::getOrthodoxEasterTms(2027)) !== '2027-05-02') {
@@ -189,3 +189,24 @@ funny_Setup::$values['WEATHER'] = 'on';
 $calls = visualcrossing_Forecasts::$calls;
 verifyWeather(true, 'one forecast snapshot serves both controllers', true);
 if (visualcrossing_Forecasts::$calls - $calls !== 1) throw new RuntimeException('Duplicate forecast lookup');
+
+/** Mobile permission gates both controllers and the forecast lookup before loading any assets. */
+Mode::$values = array('screenMode' => 'narrow');
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(false, 'mobile effects disabled by default');
+if (visualcrossing_Forecasts::$calls !== $calls || jquery_Jquery::$script !== '') throw new RuntimeException('Disabled mobile effects still do work');
+funny_Setup::$values['MODE'] = 'off';
+verifyWeather(false, 'mobile weather alone also disabled');
+funny_Setup::$values['MOBILE'] = 'yes';
+verifyWeather(true, 'mobile weather enabled explicitly');
+funny_Setup::$values['MODE'] = 'auto';
+verifyWeather(true, 'mobile characters and weather enabled explicitly', true);
+core_Users::$power = false;
+verifyWeather(false, 'mobile permission does not bypass powerUser');
+core_Users::$power = true;
+Mode::$values = array('screenMode' => 'wide');
+funny_Setup::$values['MOBILE'] = 'no';
+verifyWeather(true, 'desktop unaffected by disabled mobile effects', true);
+if (strpos($setup->configDescription['FUNNY_MOBILE'][1], 'customizeBy=powerUser') === false ||
+    strpos($setup->configDescription['FUNNY_MOBILE'][1], 'autohide=any') === false) throw new RuntimeException('Mobile setting must follow personal settings conventions');
+echo "6 mobile plugin checks passed\n";

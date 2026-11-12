@@ -14,6 +14,8 @@ defIfNot('FUNNY_SOUND', 'yes');
 defIfNot('FUNNY_WEATHER', 'on');
 /** Запазва досегашната сила, докато потребителят не избере по-деликатни ефекти. */
 defIfNot('FUNNY_STRENGTH', 'normal');
+/** Мобилният изглед остава без ефекти, докато не бъдат разрешени изрично. */
+defIfNot('FUNNY_MOBILE', 'no');
 
 
 /**
@@ -42,6 +44,7 @@ class funny_Setup extends core_ProtoSetup
         'FUNNY_FREQUENCY' => array('enum(normal=Нормална,frequent=Много често,off=Изключено)', 'caption=Забавни герои->Честота,hint=Честота на случайните появи. Изключено спира всички появи включително при двоен клик и известие,customizeBy=powerUser,autohide=any'),
         'FUNNY_SOUND' => array('enum(no=Изключен,yes=Тих и кратък,scary=Плашещ)', 'caption=Забавни герои->Звук (без известията),customizeBy=powerUser,autohide=any'),
         'FUNNY_STRENGTH' => array('enum(normal=Нормални,gentle=Деликатни)', 'caption=Общи ефекти->Сила,hint=Деликатни намалява броя на героите и частиците както и наситеността и звука,customizeBy=powerUser,autohide=any'),
+        'FUNNY_MOBILE' => array('enum(no=Не,yes=Да)', 'caption=Общи ефекти->В мобилен режим,hint=Разрешава героите и времето и в мобилния изглед,customizeBy=powerUser,autohide=any'),
         'FUNNY_WEATHER' => array('enum(off=Изключено,on=Включено,sound=Включено със звук)', 'caption=Време->Ефекти,hint=На всички страници при поява на герой или самостоятелно ако героите са изключени. Почасовата прогноза се зарежда при рефреш с дневна за резервен вариант. Скриват се плавно при движение и веднага при загуба на фокус,customizeBy=powerUser,autohide=any'),
     );
 

@@ -27,6 +27,11 @@ class funny_Plugin extends core_Plugin
             return;
         }
 
+        // В мобилен режим не зареждаме ресурси или прогноза без изрично разрешение.
+        if (Mode::is('screenMode', 'narrow') && funny_Setup::get('MOBILE') !== 'yes') {
+            return;
+        }
+
         $mode = funny_Setup::get('MODE');
         $frequency = funny_Setup::get('FREQUENCY');
         $weather = funny_Setup::get('WEATHER');
