@@ -1904,4 +1904,78 @@ check('lightning gives free actors one brief silent pose and yields to pointer m
     assert.equal(pair.chasing.attrs['data-encounter'],'chasing');assert(!['startled','duck'].includes(pair.chasing.attrs['data-reaction']));
 });
 
+check('strong rain wind flips a free umbrella once, follows its direction and restores it silently',()=>{
+    for(const direction of [-1,1]) for(const strength of ['normal','gentle']) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'manual',sound:'no',strength},{seed:997,weather:'rain clouds wind',wind:{x:direction,y:0,speed:28}});
+        e.click();const v=e.visitors()[0];e.tick(7000);assert(!v.history.some(([k,x])=>k==='data-reaction'&&x==='umbrella'));
+        for(let i=0;i<120 && v.attrs['data-reaction']!=='umbrella';i++) e.tick(50);
+        assert.equal(v.attrs['data-reaction'],'umbrella');
+        const prop=v.children.find(n=>n.attrs['class']==='funny-accessory');assert(prop.firstChild.attrs.href.endsWith('#accessory-umbrella-flipped'));
+        assert.equal(Math.sign(parseFloat(v.style['--funny-gust-angle'])),direction);
+        e.tick(1700);assert(prop.firstChild.attrs.href.endsWith('#accessory-umbrella'));
+        e.tick(22000);assert.equal(v.history.filter(([k,x])=>k==='data-reaction'&&x==='umbrella').length,1);assert.equal(e.sounds.length,0);
+    }
+});
+check('umbrella poses require strong rainy wind and yield to weather changes, catches and inactive pages',()=>{
+    for(const [weather,speed] of [['rain',8],['rain',19],['wind clouds',28],['sun',28]]) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'manual'},{weather,wind:{x:1,y:0,speed}});e.click();const v=e.visitors()[0];e.tick(20000);
+        assert(!v.history.some(([k,x])=>k==='data-reaction'&&x==='umbrella'));
+    }
+    for(const end of ['calm','dry','pointer','blur','escape']) {
+        const config={seed:997,weather:'rain wind',wind:{x:1,y:0,speed:28}},e=environment({mode:'selected',characters:['casper'],trigger:'manual'},config);
+        e.click();const v=e.visitors()[0];for(let i=0;i<260&&v.attrs['data-reaction']!=='umbrella';i++)e.tick(50);
+        assert.equal(v.attrs['data-reaction'],'umbrella');
+        if(end==='calm') config.wind={x:1,y:0,speed:5};
+        if(end==='dry') config.weather='sun';
+        if(end==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(end==='blur')e.window.emit('blur');
+        if(end==='escape')e.document.emit('keydown',{key:'Escape'});
+        e.tick(1200);
+        if(end==='calm'||end==='dry') {assert.notEqual(v.attrs['data-reaction'],'umbrella');assert(!v.children.some(n=>n.firstChild?.attrs.href.endsWith('#accessory-umbrella-flipped')));}
+        else assert.equal(e.visitors().length,0);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('fog lights only fireflies and changes their halo state without adding nodes or timers',()=>{
+    for(const character of ['firefly','butterfly']) {
+        const config={weather:'fog'},e=environment({mode:'selected',characters:[character],trigger:'manual',sound:'no'},config);
+        e.click();const v=e.visitors()[0];e.tick(2000);
+        assert.equal(v.attrs['data-fog-glow'],character==='firefly'?'true':undefined);
+        assert.equal(v.children.length,1);e.tick(2000);
+        if(character==='firefly')assert.equal(v.history.filter(([k])=>k==='data-fog-glow').length,1);
+        config.weather='clouds';e.tick(1100);assert.notEqual(v.attrs['data-fog-glow'],'true');
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('snow builds on heads and ears gradually, shakes off once and melts when the forecast changes',()=>{
+    for(const character of ['casper','cat','blackcat','imp']) for(const strength of ['normal','gentle']) {
+        const config={seed:997,weather:'snow clouds'},e=environment({mode:'selected',characters:[character],trigger:'manual',strength,sound:'no'},config);
+        e.click();const v=e.visitors()[0];assert(!v.children.some(n=>n.attrs['class']==='funny-snow-cover'));
+        e.tick(1500);const cover=v.children.find(n=>n.attrs['class']==='funny-snow-cover');assert(cover);const early=Number(cover.style.opacity);
+        e.tick(4000);assert(Number(cover.style.opacity)>early);assert(Number(cover.style.opacity)<0.5);
+        for(let i=0;i<300&&v.attrs['data-reaction']!=='snowshake';i++)e.tick(50);
+        assert.equal(v.attrs['data-reaction'],'snowshake');assert(Number(cover.style.opacity)<0.12);
+        const flakes=e.document.body.children.find(n=>n.className.includes('funny-snow-shower'));assert(flakes);assert.equal(flakes.children.length,3);
+        e.tick(2500);assert(!e.document.body.children.includes(flakes));const before=Number(cover.style.opacity);assert(before>0.12);
+        config.weather='clouds';e.tick(5000);assert(!v.children.includes(cover));assert.equal(e.sounds.length,0);
+        assert.equal(v.history.filter(([k,x])=>k==='data-reaction'&&x==='snowshake').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('snow stays off insects and umbrellas, and clearing a scene removes its covers and flakes',()=>{
+    for(const [character,weather] of [['fly','snow clouds'],['casper','snow rain']]) {
+        const e=environment({mode:'selected',characters:[character],trigger:'manual'},{weather});e.click();e.tick(16000);
+        assert(e.visitors().every(v=>!v.children.some(n=>n.attrs['class']==='funny-snow-cover')));
+    }
+    for(const end of ['pointer','hidden','escape']) {
+        const e=environment({mode:'selected',characters:['casper'],trigger:'manual'},{seed:997,weather:'snow clouds'});e.click();const v=e.visitors()[0];e.tick(5000);
+        assert(v.children.some(n=>n.attrs['class']==='funny-snow-cover'));
+        if(end==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(end==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(end==='escape')e.document.emit('keydown',{key:'Escape'});
+        e.tick(500);assert.equal(e.visitors().length,0);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+
 console.log(`${checks} behavioral checks passed`);

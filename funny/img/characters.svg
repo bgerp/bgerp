@@ -10,6 +10,20 @@
     <path d="M66 58l5 25 11-5-7-22z" fill="#d77489"/>
     <path d="M70 66l7-2m-5 10 7-2m-6 8 7-2" stroke="#f6d3ba" stroke-width="2"/>
   </symbol>
+  <symbol id="accessory-umbrella-flipped" viewBox="0 0 120 100" overflow="visible">
+    <path d="M86-26v69q0 12-9 9" fill="none" stroke="#72667f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M36-29q50 48 100 0-14 8-25-1-12 9-25 0-13 10-25 0-12 10-25 1z" fill="#f3bf65" stroke="#b48d50" stroke-width="2"/>
+    <path d="M86-5q-22-4-25-24m25 24q21-4 25-24" fill="none" stroke="#db9d53" stroke-width="2"/>
+  </symbol>
+  <symbol id="accessory-snow" viewBox="0 0 120 100" overflow="visible">
+    <g fill="#f6fcff" stroke="#b6d2e0" stroke-width="1"><path d="M40 14q4-9 10-5 7-7 13-2 11-2 17 8-20 6-40-1z"/><ellipse cx="38" cy="55" rx="10" ry="4"/><ellipse cx="82" cy="55" rx="10" ry="4"/></g>
+  </symbol>
+  <symbol id="accessory-snow-ears" viewBox="0 0 120 100" overflow="visible">
+    <g fill="#f6fcff" stroke="#b6d2e0" stroke-width="1"><ellipse cx="35" cy="-2" rx="8" ry="4"/><ellipse cx="85" cy="-2" rx="8" ry="4"/><path d="M43 19q9-7 17-3 9-4 17 3-17 6-34 0z"/><ellipse cx="38" cy="55" rx="9" ry="4"/></g>
+  </symbol>
+  <symbol id="accessory-snow-imp" viewBox="0 0 120 100" overflow="visible">
+    <g fill="#f6fcff" stroke="#b6d2e0" stroke-width="1"><path d="M44 18q4-7 10-4 7-4 12-1 8-1 12 6-17 5-34-1z"/><ellipse cx="10" cy="29" rx="8" ry="3"/><ellipse cx="110" cy="29" rx="8" ry="3"/><ellipse cx="38" cy="65" rx="8" ry="3"/><ellipse cx="82" cy="65" rx="8" ry="3"/></g>
+  </symbol>
   <symbol id="accessory-glasses" viewBox="0 0 120 100">
     <path d="M36 28h48m-26 3h5" fill="none" stroke="#34374c" stroke-width="3"/>
     <path d="M38 28h19l-2 10q-13 8-16-2zm25 0h19l-1 8q-3 10-16 2z" fill="#40526c" stroke="#303244" stroke-width="2"/>

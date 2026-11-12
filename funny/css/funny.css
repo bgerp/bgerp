@@ -36,6 +36,17 @@
 .funny-visitor.funny-gentle { opacity: .65; }
 .funny-visitor svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .funny-visitor .funny-accessory { position: absolute; left: 0; top: 0; }
+.funny-visitor .funny-snow-cover { position: absolute; left: 0; top: 0; transition: opacity .4s linear; }
+.funny-firefly::before { content: ''; position: absolute; left: 50%; top: 68%; width: 150px; height: 150px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, #fff7ae88 0, #fffac844 35%, #fffbd418 55%, transparent 72%); opacity: 0; transition: opacity 1.8s ease; pointer-events: none; }
+.funny-firefly[data-fog-glow="true"]::before { opacity: 1; }
+.funny-firefly.funny-gentle::before { width: 110px; height: 110px; }
+.funny-firefly > svg:first-child { transition: filter 1.8s ease; }
+.funny-firefly[data-fog-glow="true"] > svg:first-child { filter: drop-shadow(0 0 7px #fff6a4); }
+.funny-visitor[data-reaction="umbrella"] > svg { transform-origin: 50% 85%; animation: funny-umbrella-gust 1.6s ease-in-out; }
+.funny-visitor[data-reaction="snowshake"] > svg { animation: funny-shake .75s ease-in-out; }
+@keyframes funny-umbrella-gust { 20%,60% { transform: rotate(var(--funny-gust-angle)); } 75% { transform: rotate(0deg) translateY(-3px); } }
+.funny-snow-shower i { width: 5px; height: 5px; border-radius: 50%; background: #f8fdff; box-shadow: 0 0 1px #87aec8; animation: funny-snow-shower 2.4s ease-out both; }
+@keyframes funny-snow-shower { 0% { opacity: 0; transform: translate(0,0); } 15% { opacity: .9; } 65% { opacity: .8; transform: translate(var(--x),var(--y)); } 100% { opacity: 0; transform: translate(var(--x),calc(var(--y) + 8px)); } }
 .funny-visitor[data-rain-born="true"] > svg { transform-origin: 50% 70%; animation: funny-bubble-born .65s ease-out both; }
 @keyframes funny-bubble-born { 0%,20% { opacity: 0; transform: scale(.15); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 .funny-visitor[data-reaction="shiver"] > svg { animation: funny-shiver .12s linear 6; }

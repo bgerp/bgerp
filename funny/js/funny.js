@@ -16,6 +16,7 @@
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
             var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
             var pursuitPartners = {cat:['fly','spiders','butterfly'],blackcat:['fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
+            var faceAnchors = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
             var ghostKinds = ['ghost', 'ghostgirl', 'ghostplay', 'casper'];
             var seasonalPool = [];
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
@@ -522,8 +523,7 @@
                 accessory.setAttribute('class', 'funny-accessory');
                 if (kind !== 'umbrella') {
                     // Face centers are in the sprite's 120 x 100 coordinate space.
-                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
-                    var face = faces[v.character];
+                    var face = faceAnchors[v.character];
                     // The round monster's neck is below its wide mouth, rather than just below its eyes.
                     if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
                     if (v.character === 'blackcat' && kind === 'glasses') face = [60,33,.75];
@@ -531,6 +531,49 @@
                 }
                 v.node.appendChild(accessory);
                 v.accessory = accessory;
+            }
+
+            /** Weather props share the actor's frame and lifetime; danger always cancels their poses. */
+            function weatherProps(v, now, delta) {
+                var fogGlow = !v.leaving && weather.indexOf('fog') >= 0;
+                if (v.character === 'firefly' && v.fogGlow !== fogGlow) {
+                    v.fogGlow = fogGlow;
+                    v.node.setAttribute('data-fog-glow', fogGlow ? 'true' : '');
+                }
+                if (v.umbrellaInverted && v.reaction !== 'umbrella') {
+                    if (v.outfit === 'umbrella' && v.accessory) v.accessory.firstChild.setAttribute('href', options.spriteUrl + '#accessory-umbrella');
+                    v.umbrellaInverted = false;
+                }
+                if (v.launched || v.leaving || v.exiting) return;
+                var free = !v.pursuit && !v.fear && !v.perch && !v.eating && !v.munchTarget && !v.reactionUntil && availableForEncounter(v, now);
+                if (v.outfit === 'umbrella' && wind.speed >= 20 && !v.gustDone) {
+                    if (!v.gustAfter) v.gustAfter = now + random(7000, 12000);
+                    if (free && now >= v.gustAfter) {
+                        v.gustDone = v.umbrellaInverted = true;
+                        v.accessory.firstChild.setAttribute('href', options.spriteUrl + '#accessory-umbrella-flipped');
+                        v.node.style.setProperty('--funny-gust-angle', (wind.x * (gentle ? 8 : 15)) + 'deg');
+                        react(v, 'umbrella', now);
+                    }
+                } else v.gustAfter = 0;
+                if (v.insect || !faceAnchors[v.character]) return;
+                var snowing = weather.indexOf('snow') >= 0 && v.outfit !== 'umbrella';
+                v.snowAmount = clamp((v.snowAmount || 0) + delta * (snowing ? (gentle ? 0.045 : 0.075) : -0.3), 0, 1);
+                if (v.snowAmount > 0 && !v.snowCover) {
+                    var ears = v.character === 'cat' || v.character === 'blackcat';
+                    v.snowCover = sprite(v.character === 'imp' ? 'accessory-snow-imp' : ears ? 'accessory-snow-ears' : 'accessory-snow');
+                    v.snowCover.setAttribute('class', 'funny-snow-cover');
+                    var face = faceAnchors[v.character];
+                    if (v.character !== 'imp') v.snowCover.firstChild.setAttribute('transform', 'translate(' + face[0] + ' ' + face[1] + ') scale(' + face[2] + ') translate(-60 -32)');
+                    v.node.appendChild(v.snowCover);
+                }
+                if (snowing && v.snowAmount >= 0.8 && !v.snowShaken && free && !v.reactionUntil) {
+                    v.snowShaken = true; v.snowAmount = 0.08;
+                    react(v, 'snowshake', now);
+                    interactionEffect('snow-shower', v.x, v.y + v.height * 0.4,
+                        [{x:v.x - 16,y:v.y + v.height * 0.8},{x:v.x + 3,y:v.y + v.height},{x:v.x + 18,y:v.y + v.height * 0.7}], 2400);
+                }
+                if (v.snowCover) v.snowCover.style.opacity = v.snowAmount.toFixed(3);
+                if (!v.snowAmount && v.snowCover) { v.snowCover.remove(); v.snowCover = null; }
             }
 
             function removeBurst(effect) {
@@ -1203,7 +1246,7 @@
             /** One short gesture shares the existing animation loop and cannot extend a visitor's life. */
             function react(v, kind, now) {
                 v.reaction = kind;
-                v.reactionUntil = now + (kind === 'tired' ? 3000 : kind === 'gulp' ? 1500 : kind === 'paw' ? 550 : /^(sweep|peck)$/.test(kind) ? 1300 : kind === 'knock' ? 1200 : 900);
+                v.reactionUntil = now + (kind === 'tired' ? 3000 : kind === 'umbrella' ? 1600 : kind === 'gulp' ? 1500 : kind === 'paw' ? 550 : /^(sweep|peck)$/.test(kind) ? 1300 : kind === 'knock' ? 1200 : 900);
                 v.node.setAttribute('data-reaction', kind);
             }
 
@@ -1492,7 +1535,9 @@
                 var elapsed = now - v.born;
                 var delta = Math.min(0.05, (now - v.previous) / 1000);
                 v.previous = now;
-                if (/^(tired|paw|forage|peck|sweep|cool|thanks|startled|duck)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
+                if (/^(tired|paw|forage|peck|sweep|cool|thanks|startled|duck|umbrella|snowshake)$/.test(v.reaction) && !availableForEncounter(v, now, v.reaction === 'tired' ? 120 : 65)) v.reactionUntil = now;
+                if (/^(umbrella|snowshake)$/.test(v.reaction) && (v.pursuit || v.fear || v.eating || v.munchTarget)) v.reactionUntil = now;
+                if (v.reaction === 'umbrella' && (v.outfit !== 'umbrella' || wind.speed < 20)) v.reactionUntil = now;
                 if (v.peckTarget && (marks.indexOf(v.peckTarget) < 0 || v.peckTarget.ending)) v.reactionUntil = now;
                 if (v.reactionUntil && now >= v.reactionUntil) {
                     var startled = v.reaction === 'paw' && availableForEncounter(v, now, 65);
@@ -1508,6 +1553,7 @@
                     if (v.swallowed && !v.remainsCancelled) leaveMealRemains(v);
                     removeVisitor(v, !v.leaving); return;
                 }
+                weatherProps(v, now, delta);
                 if (v.descending && !v.leaving) {
                     if (now < v.fleeUntil || elapsed >= 1800) releaseThread(v);
                     else {
