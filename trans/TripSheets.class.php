@@ -45,19 +45,19 @@ class trans_TripSheets extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, plg_Search, plg_Sorting';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
 
 
     /**
      * Кой може да разглежда списъка?
      */
-    public $canList = 'ceo,trans,seePrice';
+    public $canList = 'ceo,trans';
 
 
     /**
      * Кой може да разглежда сингъла?
      */
-    public $canSingle = 'ceo,trans,seePrice';
+    public $canSingle = 'ceo,trans';
 
 
     /**
@@ -160,6 +160,13 @@ class trans_TripSheets extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'title=Документ,lineId,departure,vehicleNumber,driverName,distance,state,createdOn,createdBy';
+
+
+    /**
+     * Полета за филтриране по дата
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterDateField = 'departure,createdOn';
 
 
     /**
@@ -1103,6 +1110,15 @@ class trans_TripSheets extends core_Master
             $row->distance = doc_plg_HidePrices::getBuriedElement();
         } elseif (($rec->state ?? null) != 'active') {
             $row->distance = tr('Неотчетен');
+        }
+
+        if (isset($fields['-list']) && !empty($rec->driverId)) {
+            $driverName = $row->driverName ?? '';
+            if ($driverName === '') {
+                $driverName = $mvc->getVerbal($rec, 'driverId');
+            }
+            $attr = array('ef_icon' => cls::get('crm_Persons')->getSingleIcon($rec->driverId), 'class' => 'specialLink');
+            $row->driverName = ht::createLink($driverName, crm_Persons::getSingleUrlArray($rec->driverId), false, $attr);
         }
 
         if (isset($fields['-single'])) {

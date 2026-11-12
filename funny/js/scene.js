@@ -5,6 +5,7 @@
     var listeners = [], pausedUntil = 0, pauseTimer = 0, controls = null, status = null;
     var quality = 1, previous = 0, measured = 0, slow = 0, stable = 0;
     var cueUntil = 0, cuePriority = -1, cancelCue = null;
+    var quietUntil = 0, recentCues = [], lastCues = {};
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     var labels = {pause:'Временна пауза на ефектите',paused:'На пауза',pause15:'Пауза за 15 минути',pauseReload:'Пауза до презареждане',resume:'Продължи'};
 
@@ -13,8 +14,8 @@
 
     /** A pause belongs to this page; returning to it never resumes an almost-expired idle timer. */
     function sync(event) {
-        if (event && event.type === 'blur') focused = false;
-        if (event && event.type === 'focus') focused = true;
+        if (event && (event.type === 'blur' || event.type === 'pagehide')) focused = false;
+        if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = document.hasFocus();
         window.clearTimeout(pauseTimer); pauseTimer = 0;
         if (pausedUntil && !paused()) pausedUntil = 0;
         if (controls) {
@@ -66,17 +67,37 @@
             } else stable = 0;
             measured = slow = 0;
         },
-        /** Higher-priority cues may hush the current one; skipped sounds are never queued for later. */
-        cue: function (priority, duration, cancel) {
+        /** A short release avoids clicks; new cues start after this fade has finished. */
+        fade: function (param, now) {
+            if (param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(now);
+            else {
+                var value = param.value;
+                param.cancelScheduledValues(now); param.setValueAtTime(value, now);
+            }
+            param.linearRampToValueAtTime(0, now + 0.02);
+        },
+        /** One cue at a time, with quiet gaps and a shared rate limit; rejected cues are never queued. */
+        cue: function (priority, duration, cancel, key) {
             if (!foreground() || paused() || reduced.matches) return false;
             var now = performance.now();
-            if (now < cueUntil && priority <= cuePriority) return false;
-            if (now < cueUntil && cancelCue) cancelCue();
+            // Foreground sounds finish naturally. Only weather may yield to a character.
+            var replaceWeather = now < cueUntil && cuePriority === 0 && priority > 0;
+            if (now < cueUntil && !replaceWeather) return false;
+            if (key && lastCues[key] !== undefined && now - lastCues[key] < (priority === 0 ? 12000 : 4000)) return false;
+            recentCues = recentCues.filter(function (at) { return now - at < 15000; });
+            if (!replaceWeather && (now < quietUntil || recentCues.length >= 4)) return false;
+            if (replaceWeather && cancelCue) cancelCue();
+            // A weather/character handover belongs to the same audible event.
+            if (!replaceWeather) recentCues.push(now);
+            if (key) lastCues[key] = now;
             cueUntil = now + duration; cuePriority = priority; cancelCue = cancel;
+            quietUntil = cueUntil + 600;
             return true;
         }
     };
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('blur', sync);
     window.addEventListener('focus', sync);
+    window.addEventListener('pagehide', sync);
+    window.addEventListener('pageshow', sync);
 }(window, document));

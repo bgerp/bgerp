@@ -45,7 +45,7 @@ class trans_Waybills extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, doc_DocumentPlg, doc_ActivatePlg, trans_plg_LinesPlugin, plg_Printing, plg_Search, plg_Sorting';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, doc_DocumentPlg, doc_ActivatePlg, trans_plg_LinesPlugin, plg_Printing, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
 
 
     /**
@@ -160,6 +160,13 @@ class trans_Waybills extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'title=Документ,lineId,senderName,recipientName,loadingDate,vehicleNumber,state,createdOn';
+
+
+    /**
+     * Полета за филтриране по дата
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterDateField = 'issueDate,loadingDate,createdOn';
 
 
     /**
@@ -680,6 +687,16 @@ class trans_Waybills extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->lineId = !empty($rec->lineId) ? trans_Lines::getHyperlink($rec->lineId, true) : '';
+        if (isset($fields['-list'])) {
+            foreach (array('sender', 'recipient') as $party) {
+                $companyId = $rec->{"{$party}CompanyId"} ?? null;
+                if (!empty($companyId) && isset($row->{"{$party}Name"})) {
+                    $attr = array('ef_icon' => cls::get('crm_Companies')->getSingleIcon($companyId), 'class' => 'specialLink');
+                    $row->{"{$party}Name"} = ht::createLink($row->{"{$party}Name"}, crm_Companies::getSingleUrlArray($companyId), false, $attr);
+                }
+            }
+        }
+
         if (isset($fields['-single'])) {
             $row->waybillNumber = htmlspecialchars(self::getNumber($rec), ENT_QUOTES, 'UTF-8');
             $row->documentStatus = empty($rec->issuedOn) ? tr('ЧЕРНОВА — НЕИЗДАДЕНА') : (($rec->state ?? null) == 'rejected' ? tr('ОТТЕГЛЕНА') : '');

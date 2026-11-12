@@ -189,7 +189,11 @@
 
             /** Silence scheduled foreground notes without closing the unlocked audio context. */
             function hushVoices() {
-                voices.forEach(function (gain) { if (audio) { gain.gain.cancelScheduledValues(audio.currentTime); gain.gain.setValueAtTime(0, audio.currentTime); } });
+                voices.forEach(function (gain) {
+                    if (!audio) return;
+                    if (scene) scene.fade(gain.gain, audio.currentTime);
+                    else { gain.gain.cancelScheduledValues(audio.currentTime); gain.gain.setValueAtTime(0, audio.currentTime); }
+                });
                 voices = [];
             }
 
@@ -214,11 +218,12 @@
 
             /** Sharp attacks and short, inharmonic resonances suggest a fingertip tapping glass. */
             function playGlassKnock() {
-                var now = audio.currentTime;
+                var now = audio.currentTime + 0.025;
                 [0, 0.26].forEach(function (delay, index) {
                     [[640, 0.07, 0.038], [1510, 0.13, 0.022], [2630, 0.045, 0.013]].forEach(function (partial) {
                         var start = now + delay, end = start + partial[1];
                         var oscillator = audio.createOscillator(), gain = audio.createGain(); voices.push(gain);
+                        gain.gain.value = 0;
                         oscillator.type = 'sine';
                         oscillator.frequency.setValueAtTime(partial[0] * (index ? 0.97 : 1), start);
                         gain.gain.setValueAtTime(0, start);
@@ -236,26 +241,26 @@
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
-                if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices)) return;
+                if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
                     ghostgirl: {notes: [784, 1047], duration: 0.2, spacing: 0.16, pitch: 1.25, wave: 'sine'},
-                    ghostplay: {notes: [880, 1175, 1397, 1175], duration: 0.1, spacing: 0.11, pitch: 1.3, wave: 'triangle'},
+                    ghostplay: {notes: [880, 1175, 1397, 1175], duration: 0.1, spacing: 0.11, pitch: 1.3, wave: 'triangle', volume: 0.65},
                     zombie: {notes: [110, 80], duration: 0.28, spacing: 0.23, pitch: 0.6, wave: 'sawtooth', low: true},
                     sleigh: {notes: [135, 125, 115], duration: 0.20, spacing: 0.25, pitch: 0.7, wave: 'sawtooth', voice: true},
                     elf: {notes: [784, 988, 784], duration: 0.13, spacing: 0.14, pitch: 1.08, wave: 'triangle'},
-                    snowmaiden: {notes: [1047, 1319, 1568], duration: 0.14, spacing: 0.15, pitch: 1.1, wave: 'sine'},
+                    snowmaiden: {notes: [1047, 1319, 1568], duration: 0.14, spacing: 0.15, pitch: 1.1, wave: 'sine', volume: 0.75},
                     deer: {notes: [180, 240, 180, 240], duration: 0.09, spacing: 0.13, pitch: 0.35, wave: 'triangle'},
                     pumpkin: {notes: [220, 165], duration: 0.24, spacing: 0.25, pitch: 0.5, wave: 'triangle'},
                     vampire: {notes: [155, 130], duration: 0.3, spacing: 0.24, pitch: 0.65, wave: 'sawtooth', voice: true},
-                    bat: {notes: [1300, 1000, 1500], duration: 0.08, spacing: 0.12, pitch: 0.5, wave: 'sine'},
+                    bat: {notes: [1300, 1000, 1500], duration: 0.08, spacing: 0.12, pitch: 0.5, wave: 'sine', volume: 0.55},
                     spiderweb: {notes: [392, 370, 349], duration: 0.17, spacing: 0.17, pitch: 0.8, wave: 'triangle'},
-                    spiders: {notes: [523, 494, 523, 494, 523], duration: 0.06, spacing: 0.07, pitch: 1.1, wave: 'square'},
+                    spiders: {notes: [523, 494, 523, 494, 523], duration: 0.06, spacing: 0.07, pitch: 1.1, wave: 'triangle', volume: 0.55},
                     cat: {notes: [620, 860], duration: 0.24, spacing: 0.17, pitch: 0.7, wave: 'sawtooth', voice: true},
                     blackcat: {notes: [520, 740], duration: 0.28, spacing: 0.2, pitch: 0.65, wave: 'sawtooth', voice: true},
-                    witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true},
+                    witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true, volume: 0.65},
                     muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
                     wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
@@ -267,7 +272,7 @@
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
                     stork: {notes: [420, 360, 420], duration: 0.06, spacing: 0.11, pitch: 0.3, wave: 'triangle'},
                     bunny: {notes: [330, 660], duration: 0.15, spacing: 0.19, pitch: 1.8, wave: 'sine'},
-                    chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine'},
+                    chick: {notes: [1500, 1800], duration: 0.09, spacing: 0.14, pitch: 1.2, wave: 'sine', volume: 0.55},
                     butterfly: {notes: [880, 1175, 1568], duration: 0.12, spacing: 0.13, pitch: 1.02, wave: 'sine'},
                     firefly: {notes: [1047, 1568], duration: 0.3, spacing: 0.27, pitch: 0.98, wave: 'sine'},
                     fly: {notes: [185], duration: 0.55, spacing: 0, pitch: 1.15, wave: 'sawtooth', vibrato: true, low: true, volume: 0.3},
@@ -283,9 +288,10 @@
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
                 sound.notes.forEach(function (frequency, index) {
-                    var start = audio.currentTime + index * sound.spacing;
+                    var start = audio.currentTime + 0.025 + index * sound.spacing;
                     var duration = sound.duration;
                     var oscillator = audio.createOscillator(), gain = audio.createGain(); voices.push(gain);
+                    gain.gain.value = 0;
                     oscillator.type = sound.wave;
                     oscillator.frequency.setValueAtTime(frequency, start);
                     oscillator.frequency.exponentialRampToValueAtTime(frequency * sound.pitch, start + duration);
@@ -714,6 +720,8 @@
 
             /** All mice prefer the nearest existing hole; pursuit continues until they actually enter it. */
             function mouseExit(v, now, delta) {
+                // A blocked or crowded route must still finish through a hole before the hard cleanup.
+                if (now - v.born >= v.lifetime + 7000) { openMouseHole(v, now); return true; }
                 var digging = now - v.born >= v.lifetime - 2500;
                 if (now < v.fleeUntil && !digging) return false;
                 var hole = null, nearest = Infinity;
@@ -963,8 +971,12 @@
                     for (var i = 0; i < free.length; i++) {
                         for (var j = i + 1; j < free.length; j++) {
                             var a = free[i], b = free[j];
-                            // Only the active meal pair may overlap; other visitors still keep their distance.
+                            // An active meal pair may overlap; other visitors normally keep their distance.
                             if (a.pursuit && a.pursuit.hunt && a.pursuit.other === b) continue;
+                            // The shared doorway is narrow; allow mice to cross only while entering it.
+                            if (a.holeTarget && a.holeTarget === b.holeTarget &&
+                                Math.hypot(a.x - a.holeTarget.contact.x, a.y - a.holeTarget.contact.y) < 75 &&
+                                Math.hypot(b.x - b.holeTarget.contact.x, b.y - b.holeTarget.contact.y) < 75) continue;
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
                             if (a.pair && a.pair === b.pair && a.pair.kind === 'share') spacing *= 0.65;
@@ -1052,7 +1064,7 @@
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
-                        if (v === wolf || v.character === 'polarbear' || v.character === 'penguin' || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
+                        if (v === wolf || v.character === 'wolf' || v.character === 'polarbear' || v.character === 'penguin' || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
                         prey = v; nearest = distance;
                     });
                     if (!prey) return;

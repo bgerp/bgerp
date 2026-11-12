@@ -27,7 +27,7 @@
             var scene = window.funnyScene;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
             var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null;
-            var timer = 0, frame = 0, printing = false, appearances = 0;
+            var timer = 0, frame = 0, printing = false, appearances = 0, focused = document.hasFocus();
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
@@ -45,6 +45,7 @@
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
             // Software keyboards and IMEs also report edits without physical key events.
             var inputs = ['pointermove', 'pointerdown', 'keydown', 'input', 'compositionstart', 'focusin', 'wheel', 'touchmove', 'scroll'];
+            var interactive = 'a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[role="textbox"],[tabindex],[onclick],[contenteditable]:not([contenteditable="false"])';
 
             /** Every new idle period starts with the same interval as a freshly loaded page. */
             function initialDelay() {
@@ -53,7 +54,7 @@
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
             function active() {
-                return document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches && !(scene && scene.paused());
+                return focused && document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches && !(scene && scene.paused());
             }
 
             /** The server has already resolved the user's location and hourly/daily fallback. */
@@ -85,38 +86,46 @@
                 }
             }
 
-            /** A single soft rustle or chime, at most three seconds, without looping or downloads. */
+            /** Short rain, wind or snow rustles; clear skies use a brief chime, never a sustained beep. */
             function sound() {
                 if (!active() || !audio || audio.state !== 'running') return;
-                var gain = audio.createGain(), now = audio.currentTime;
-                if (scene && !scene.cue(0, 3000, function () {
-                    if (!audio) return;
-                    gain.gain.cancelScheduledValues(audio.currentTime);
-                    gain.gain.setValueAtTime(0.006 * strength, audio.currentTime);
-                    gain.gain.linearRampToValueAtTime(0, audio.currentTime + 0.25);
-                })) return;
-                var wet = weather.indexOf('rain') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
-                var duration = wet ? 3 : 2, source;
+                var wet = weather.indexOf('rain') >= 0, snowy = weather.indexOf('snow') >= 0;
+                var windy = weather.indexOf('wind') >= 0, airy = /snow|fog|wind|clouds/.test(weather);
+                var night = weather.indexOf('moon') >= 0;
+                var duration = wet ? 2.4 : windy ? 2 : snowy ? 1.2 : airy ? 1 : night ? 0.8 : 0.65;
+                var volume = wet ? 0.035 : windy ? 0.022 : snowy ? 0.012 : airy ? 0.008 : 0.018;
+                var owner = audio, gain, source, filter, now = owner.currentTime + 0.025;
+                if (scene && !scene.cue(0, duration * 1000 + 30, function () {
+                    if (gain && owner.state !== 'closed') scene.fade(gain.gain, owner.currentTime);
+                }, 'weather')) return;
+                gain = owner.createGain();
+                // A cue cancelled before its scheduled start must not fade from GainNode's default 1.
+                gain.gain.value = 0;
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime((wet ? 0.045 : 0.025) * strength, now + 0.5);
+                gain.gain.linearRampToValueAtTime(volume * strength, now + Math.min(0.4, duration / 4));
                 gain.gain.linearRampToValueAtTime(0, now + duration);
-                gain.connect(audio.destination);
+                gain.connect(owner.destination);
                 if (wet || airy) {
-                    var buffer = audio.createBuffer(1, audio.sampleRate * duration, audio.sampleRate);
+                    var buffer = owner.createBuffer(1, Math.ceil(owner.sampleRate * duration), owner.sampleRate);
                     var data = buffer.getChannelData(0);
                     for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-                    source = audio.createBufferSource();
+                    source = owner.createBufferSource();
                     source.buffer = buffer;
-                    var filter = audio.createBiquadFilter();
-                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1600 : 500;
+                    filter = owner.createBiquadFilter();
+                    filter.type = 'lowpass'; filter.frequency.value = wet ? 1400 : windy ? (snowy ? 700 : 380) : snowy ? 350 : 250;
                     source.connect(filter); filter.connect(gain);
                 } else {
-                    source = audio.createOscillator(); source.type = 'sine';
-                    source.frequency.setValueAtTime(weather.indexOf('moon') >= 0 ? 440 : 660, now);
+                    source = owner.createOscillator(); source.type = 'sine';
+                    source.frequency.setValueAtTime(night ? 440 : 880, now);
+                    source.frequency.exponentialRampToValueAtTime(night ? 392 : 1175, now + duration);
                     source.connect(gain);
                 }
                 source.start(now); source.stop(now + duration);
-                source.onended = stopSound;
+                // An old source ending after a new gesture must never close that gesture's context.
+                source.onended = function () {
+                    source.disconnect(); gain.disconnect(); if (filter) filter.disconnect();
+                    if (audio === owner) stopSound();
+                };
             }
 
             /** Decorations never participate in layout, focus, hit testing or accessibility. */
@@ -288,7 +297,7 @@
                     while (candidates.length && windMotions.length < limit) {
                         var target = candidates.splice(Math.floor(Math.random() * candidates.length), 1)[0], r = target.getBoundingClientRect();
                         var item = {target:target,weight:0.6 + Math.random() * 0.4,duration:2800 + Math.random() * 2800,
-                            loose:r.width <= 110 && r.height <= 50 && !target.closest('a,button,input,select,textarea,label,summary,[role="button"],[tabindex]')};
+                            loose:r.width <= 110 && r.height <= 50};
                         windMotions.push(item); sway(item);
                     }
                 }
@@ -299,7 +308,8 @@
                 });
                 if (wind.speed < 30 || fallen >= (gentle ? 1 : 2) || elapsed < fallAt || (scene && scene.quality() < 0.7)) return;
                 fallAt = elapsed + 18000 + Math.random() * 15000;
-                var loose = windMotions.filter(function (item) { return item.loose && !item.fell; });
+                // Recheck descendants because an AJAX refresh may have added a link or button.
+                var loose = windMotions.filter(function (item) { return item.loose && !item.fell && !item.target.closest(interactive) && !item.target.querySelector(interactive); });
                 if (!loose.length || Math.random() > 0.4) return;
                 var item = loose[Math.floor(Math.random() * loose.length)];
                 item.animation.cancel(); item.fell = item.falling = true; fallen++;
@@ -494,7 +504,7 @@
                 }, remaining);
             }
 
-            /** Input restarts idle waiting even before the first scene; clicks preserve an already running scene. */
+            /** Input restarts idle waiting; only blank clicks preserve an already running scene. */
             function activity(event) {
                 if (!active()) return;
                 if (event.type === 'pointermove' && typeof event.clientX === 'number') {
@@ -506,14 +516,16 @@
                 appearances = 0;
                 remaining = initialDelay();
                 if (layer) {
-                    if (event.type === 'pointerdown') return;
+                    if (event.type === 'pointerdown' && (!event.target || !event.target.closest(interactive))) return;
                     stop(true);
                 } else { window.clearTimeout(timer); timer = 0; }
                 schedule();
             }
 
             /** Focus starts a fresh idle interval instead of resuming a nearly expired countdown. */
-            function focusChanged() {
+            function focusChanged(event) {
+                if (event && (event.type === 'blur' || event.type === 'pagehide')) focused = false;
+                if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = document.hasFocus();
                 stop();
                 activity({type: 'focus'});
             }
@@ -544,7 +556,7 @@
             window.addEventListener('blur', focusChanged);
             window.addEventListener('focus', focusChanged);
             window.addEventListener('resize', focusChanged);
-            window.addEventListener('pagehide', stop);
+            window.addEventListener('pagehide', focusChanged);
             window.addEventListener('pageshow', focusChanged);
             window.addEventListener('beforeprint', function () { printing = true; stop(); });
             window.addEventListener('afterprint', function () { printing = false; focusChanged(); });
