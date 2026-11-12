@@ -202,6 +202,14 @@ class hclean_JSSanitizer extends core_Manager
                         /** Запазва всички останали ограничения на стандартната политика. */
                         function imagePolicy(tagName, attribs) {
                             var images = {}, i;
+                            // Поправяме непълните външни връзки само в прегледа, преди пречистването.
+                            if (tagName === 'a' || tagName === 'area') {
+                                for (i = 0; i < attribs.length; i += 2) {
+                                    if (attribs[i] !== 'href') continue;
+                                    var href = attribs[i + 1].trim();
+                                    if (/^www\./i.test(href)) attribs[i + 1] = 'https://' + href;
+                                }
+                            }
                             if (tagName === 'img') {
                                 for (i = 0; i < attribs.length; i += 2) {
                                     if (attribs[i] === 'src') images[i] = embeddedImage(attribs[i + 1]);
