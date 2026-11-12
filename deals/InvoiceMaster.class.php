@@ -216,6 +216,14 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Полета от записа, които чете fillSummaryRec
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $summaryRecFields = 'dealValue,discountAmount,vatAmount';
+
+
+    /**
      * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
      * @see acc_plg_DocumentSummary
      */

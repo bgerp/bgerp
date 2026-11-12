@@ -588,6 +588,12 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
 
+        // Само полетата нужни за сумирането, ако могат да се определят
+        $showFields = self::getSummaryShowFields($mvc, $sQuery, $fieldsArr);
+        if (countR($showFields)) {
+            $sQuery->show(implode(',', $showFields));
+        }
+
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
@@ -616,6 +622,58 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
         core_Debug::stopTimer('RENDER_SUMMARY');
+    }
+
+
+    /**
+     * Кои полета са нужни за сумирането в обобщението
+     *
+     * @param core_Mvc   $mvc       - класа към който е прикачен плъгина
+     * @param core_Query $sQuery    - заявката за обобщението
+     * @param array      $fieldsArr - полетата с атрибут "summary"
+     *
+     * @return array - имената на полетата или празен масив, ако трябва да се извлекат всички
+     */
+    private static function getSummaryShowFields($mvc, $sQuery, $fieldsArr)
+    {
+        // Ако заявката вече е ограничена или няма какво да се сумира, не се пипа
+        if (countR($sQuery->show) || !countR($fieldsArr)) {
+
+            return array();
+        }
+
+        // Изчислимите полета може да зависят от произволни полета на записа
+        $fields = array();
+        foreach ($fieldsArr as $fld) {
+            if (($fld->kind ?? null) != 'FLD') {
+
+                return array();
+            }
+            $fields[$fld->name] = $fld->name;
+        }
+
+        // Собствен fillSummaryRec чете от записа - трябва да е обявил от кои полета
+        if (method_exists($mvc, 'fillSummaryRec')) {
+            if (empty($mvc->summaryRecFields)) {
+
+                return array();
+            }
+            $fields += arr::make($mvc->summaryRecFields, true);
+        }
+
+        $fields += arr::make('state,rate,createdOn', true);
+        if (!empty($mvc->valiorFld)) {
+            $fields[$mvc->valiorFld] = $mvc->valiorFld;
+        }
+
+        foreach ($fields as $name) {
+            $field = $sQuery->fields[$name] ?? null;
+            if (!is_object($field) || ($field->kind ?? null) == 'FNC') {
+                unset($fields[$name]);
+            }
+        }
+
+        return $fields;
     }
 
 
