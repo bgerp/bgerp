@@ -6,7 +6,7 @@
  *
  * Наследникът описва само обмена с конкретния шлюз - пренасочване с подписана форма (БОРИКА),
  * сесия през API на шлюза (Stripe, PayPal) или вградена форма. Опитите, повторните известия,
- * проверката на висящите и предаването на платеното към поръчката са в cond_CardPayments.
+ * проверката на висящите и предаването на платеното към поръчката са в eshop_CardPayments.
  *
  *
  * @category  bgerp
@@ -37,7 +37,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Заявката към шлюза за опита за плащане
      *
-     * @param stdClass $rec       - опитът (cond_CardPayments)
+     * @param stdClass $rec       - опитът (eshop_CardPayments)
      * @param stdClass $methodRec - начинът на плащане с полетата на драйвера
      *
      * @return array - [url] адрес на шлюза, [fields] полета на формата, [method] POST (по подразбиране) или GET - пренасочване;
@@ -116,7 +116,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Полетата от проверката на статус направо в шлюза (TRTYPE=90 при БОРИКА, сесията при Stripe и PayPal)
      *
-     * @param stdClass $rec       - опитът (cond_CardPayments)
+     * @param stdClass $rec       - опитът (eshop_CardPayments)
      * @param stdClass $methodRec - начинът на плащане
      *
      * @return array|null - данните за parseResponse() или null, ако шлюзът не поддържа проверка
@@ -130,7 +130,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Номерът на опита в шлюза - шлюзовете с ограничение на дължината (БОРИКА - 6 цифри) го предефинират
      *
-     * @param stdClass $rec - опитът (cond_CardPayments)
+     * @param stdClass $rec - опитът (eshop_CardPayments)
      *
      * @return string
      */
@@ -143,7 +143,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Еднократна стойност за заявката - шлюзът я връща в отговора
      *
-     * @param stdClass $rec - опитът (cond_CardPayments)
+     * @param stdClass $rec - опитът (eshop_CardPayments)
      *
      * @return string
      */
@@ -173,7 +173,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     /**
      * Преди предаване на платеното към поръчката - изключение го отлага за повторен опит
      *
-     * @param stdClass $rec - опитът (cond_CardPayments)
+     * @param stdClass $rec - опитът (eshop_CardPayments)
      */
     public function beforeNotifyInitiator($rec)
     {
@@ -192,7 +192,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     {
         // Методът и опитът не се виждат в адреса и не могат да се подменят
         Request::setProtected('pm,cp');
-        $url = toUrl(array('cond_CardPayments', 'response', 'pm' => $paymentId, 'cp' => $id), 'absolute');
+        $url = toUrl(array('eshop_CardPayments', 'response', 'pm' => $paymentId, 'cp' => $id), 'absolute');
         Request::removeProtected('pm,cp');
 
         return $url;
@@ -209,7 +209,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     public function getNotifyUrl($paymentId)
     {
         Request::setProtected('pm');
-        $url = toUrl(array('cond_CardPayments', 'notify', 'pm' => $paymentId), 'absolute');
+        $url = toUrl(array('eshop_CardPayments', 'notify', 'pm' => $paymentId), 'absolute');
         Request::removeProtected('pm');
 
         return $url;
@@ -275,13 +275,13 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
         // Платеното, но неотразено не се плаща втори път
-        if (cond_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
+        if (eshop_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
 
             return null;
         }
 
         // Сумата се взема от поръчката при натискането - стар бутон не плаща стара сума
-        $url = cond_CardPayments::getPayUrl($paymentId, $okUrl, $cancelUrl, $initiatorClass, $initiatorId);
+        $url = eshop_CardPayments::getPayUrl($paymentId, $okUrl, $cancelUrl, $initiatorClass, $initiatorId);
 
         return ht::createBtn('Плащане с карта', $url, null, null, 'title=Плащане с банкова карта,class=order-btn eshop-btn eshop-cardPayBtn,rel=nofollow');
     }
@@ -325,7 +325,7 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getDisplayHtml($rec, $initiatorClass = null, $initiatorId = null)
     {
-        if (isset($initiatorClass, $initiatorId) && cond_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
+        if (isset($initiatorClass, $initiatorId) && eshop_CardPayments::fetchUnreflected($initiatorClass, $initiatorId)) {
 
             return '<b>' . tr('Плащането е получено') . '</b>. ' . tr('Поръчката ще бъде потвърдена допълнително - не плащайте повторно');
         }
