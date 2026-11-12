@@ -21,6 +21,7 @@ function environment(settings = {}, config = {}) {
         appendChild(child) { this.children.push(child); child.parent = this; }
         remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; (this.history ||= []).push([key,value]); }
+        getAttribute(key) { return this.attrs[key] === undefined ? null : this.attrs[key]; }
         closest(selector) {
             for(let el=this;el;el=el.parentElement) {
                 if(selector.includes('details:not([open])') && ((el.tagName==='DETAILS' && !el.open) || el.attrs.hidden !== undefined)) return el;
@@ -139,7 +140,7 @@ check('frequent, fully disabled and double-click-only modes keep their separate 
     manual.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});assert.equal(manual.visitors().length,0);
     manual.tick(900000);assert.equal(manual.visitors().length,0);manual.click();assert.equal(manual.visitors().length,1);
 });
-check('each double click adds 1-3 independent visitors at different positions', () => {
+check('each double click adds an independent group at different positions', () => {
     const e=environment({trigger:'notification'});
     for(let i=0;i<3;i++) {const before=e.visitors().length;e.click();const added=e.visitors().length-before;assert(added>=1 && added<=3);e.tick(700);}
     assert(e.visitors().length>=3);
@@ -147,20 +148,20 @@ check('each double click adds 1-3 independent visitors at different positions', 
     e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
 });
 check('each group has unique characters, with one visitor for a single available character', () => {
-    for (const pool of [['ghost'], ['ghost','ghost','unknown'], ['ghost','casper'], ['ghost','casper','zombie','bat']]) {
+    for (const pool of [['ghost'], ['ghost','ghost','unknown'], ['ghost','casper'], ['ghost','casper','zombie','bat'], ['ghost','casper','zombie','sleigh','elf','deer','pumpkin','bat']]) {
         const e=environment({mode:'selected',characters:pool,trigger:'notification'});
         const available=new Set(pool.filter(c=>c!=='unknown')).size;
-        let multi=false;
+        let multi=false, largest=0;
         for(let i=0;i<30;i++) {
             e.document.emit('keydown',{key:'Escape'});
             e.click();e.tick(2000);
             const group=e.visitors().map(v=>v.className);
-            assert(group.length>=1 && group.length<=Math.min(3,available));
+            assert(group.length>=1 && group.length<=Math.min(7,available));
             assert.equal(new Set(group).size,group.length);
             if(available===1) assert.equal(group.length,1);
-            multi ||= group.length>1;
+            multi ||= group.length>1;largest=Math.max(largest,group.length);
         }
-        assert.equal(multi,available>1);
+        assert.equal(multi,available>1);assert.equal(largest,Math.min(7,available));
     }
     const empty=environment({mode:'selected',characters:[],trigger:'notification'});empty.click();assert.equal(empty.visitors().length,0);
 });
@@ -188,6 +189,18 @@ check('a shared portal staggers unique visitors, retains the click origin and cl
     e.document.focused=true;e.window.emit('focus');e.tick(3000);
     assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);
     assert(e.document.body.children.every(n=>n.className==='funny-stats'));
+});
+check('seven unique visitors share one portal, stagger their launches and cancel on focus loss',()=>{
+    const pool=['ghost','casper','zombie','sleigh','elf','deer','pumpkin','bat'];let found=false;
+    for(let seed=1;seed<=80 && !found;seed++) {
+        const e=environment({mode:'selected',characters:pool,trigger:'manual'},{seed:seed*7919});e.click();
+        const nodes=watchVisitors(e,2000);if(nodes.length!==7) continue;found=true;
+        assert.equal(new Set(nodes.map(n=>n.className)).size,7);
+        for(let i=1;i<nodes.length;i++) {assert(nodes[i].createdAt-nodes[i-1].createdAt>=190);assert(nodes[i].createdAt<=1450);}
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-portal')));
+        e.click();e.window.emit('blur');e.tick(2500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+    assert(found,'seven visitors actually emerge');
 });
 check('focused score counts each catch once, counts exits and ignores Escape', () => {
     const e=environment({trigger:'manual',mode:'selected',characters:['ghost']});
@@ -251,7 +264,7 @@ check('automatic groups emerge from a distant portal with unique characters and 
         else {assert(portal);assert(Math.hypot(first.x-parseFloat(portal.style.left),first.y-parseFloat(portal.style.top))<4);}
         if(portal) assert(Math.hypot(parseFloat(portal.style.left)-500,parseFloat(portal.style.top)-400)>=160);
         e.tick(2000);const group=e.visitors().map(v=>v.className);
-        assert(group.length>=1 && group.length<=3);assert.equal(new Set(group).size,group.length);
+        assert(group.length>=1 && group.length<=7);assert.equal(new Set(group).size,group.length);
         assert(!e.document.body.children.includes(portal));
         if(trigger==='notification') assert.equal(e.sounds.length,0);
         else assert(e.sounds.length>0);
@@ -337,7 +350,7 @@ check('touches on controls, scroll gestures and long presses do not summon chara
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -350,15 +363,16 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
     const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
     const christmas=['sleigh','elf','snowmaiden','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
-    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','spiders'];
+    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
         ['2027-04-17',spring],['2027-04-18',easter],['2027-05-09',easter],['2027-05-10',spring],['2026-06-01',summer],['2026-08-31',summer],['2026-09-01',normal]]) {
         const e=environment({trigger:'notification'},{date:date+'T12:00:00'}), seen=new Set();
+        if(!pool.includes('wolf')) pool.push('wolf');
         for(let i=0;i<40;i++) {
             e.document.emit('keydown',{key:'Escape'});e.click();e.tick(2000);
-            const group=e.visitors().map(v=>v.className.replace('funny-visitor funny-',''));
+            const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
             assert.equal(new Set(group).size,group.length);
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
@@ -647,7 +661,7 @@ check('rare glass knocks are brief, respect sound and notifications, and have a 
     assert(silentKnock);
 });
 check('new characters support scarves and glasses and restore normal sprites on forecast change',()=>{
-    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher','snowmaiden']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
+    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher','snowmaiden','wolf']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
         const config={weather},e=environment({mode:'selected',characters:[character],trigger:'manual'},config);
         e.click();const v=e.visitors()[0];assert.equal(v.attrs['data-weather'],kind);
         assert(v.children.some(n=>n.firstChild.attrs.href.endsWith('#accessory-'+kind)));
@@ -711,7 +725,7 @@ check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print 
     }
 });
 check('all roaming characters leave their own short traces without weather and share one global cap',()=>{
-    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
     for(const [character,kind] of Object.entries(kinds)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
         const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
@@ -884,7 +898,7 @@ check('daytime favors flies and dusk favors mosquitoes without duplicate group m
         const e=environment({trigger:'manual',forecast:{icon:'clear-day',temperature:24,expires:Infinity}},{date:'2026-07-15T'+hour+':00:00'});
         const count={fly:0,mosquito:0};
         for(let i=0;i<160;i++) {
-            e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.replace('funny-visitor funny-',''));
+            e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
             assert.equal(group.length,new Set(group).size);group.forEach(c=>{if(c in count) count[c]++;});
             e.document.emit('keydown',{key:'Escape'});
         }
@@ -1124,6 +1138,166 @@ function pursuitFixture(hunter, prey) {
     }
     assert.fail('No natural encounter: '+hunter+' / '+prey);
 }
+check('waiting hunters notice compatible visitors summoned ten seconds after their own arrival',()=>{
+    for(const [hunter,prey,seed] of [['wolf','bunny',87109],['cat','fly',696872],['blackcat','spiders',696872],
+        ['ghost','ghostgirl',649358],['casper','ghostgirl',649358],['bunny','butterfly',696872],['stork','mosquito',696872]]) {
+        const e=environment({mode:'selected',characters:[hunter,prey],trigger:'manual',sound:'no'},{seed});
+        e.click();e.tick(2000);assert.equal(e.visitors().length,1);const actor=e.visitors()[0];
+        assert.equal(actor.className,'funny-visitor funny-'+hunter);e.tick(8000);const before=actor.history.length;
+        e.click();e.tick(6000);assert(e.visitors().includes(actor),hunter);
+        assert(actor.history.slice(before).some(([k,v])=>k==='data-encounter' && v==='chasing'),hunter+' notices the later group');
+        e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+/** Find a normal encounter using only public summons and a seeded clock. */
+function fearFixture(character, ghost, config={}, settings={}) {
+    for(let seed=1;seed<=40;seed++) {
+        const e=environment(Object.assign({mode:'selected',characters:[character,ghost],trigger:'manual',sound:'no'},settings),Object.assign({seed:seed*7919},config));
+        e.click();if(config.coarse) {e.tick(800);e.click();}
+        for(let t=0;t<6000;t+=32) {
+            e.tick(32);
+            const actor=e.visitors().find(v=>v.attrs['data-encounter']==='afraid');
+            const spirit=e.visitors().find(v=>v.className==='funny-visitor funny-'+ghost);
+            if(actor && spirit) return {e,actor,spirit};
+        }
+    }
+    assert.fail('No fear encounter: '+character+' / '+ghost);
+}
+check('wolves and munchers retreat from all four ghosts and never eat them',()=>{
+    for(const character of ['wolf','muncher']) for(const ghost of ['ghost','ghostgirl','ghostplay','casper']) {
+        const {e,actor,spirit}=fearFixture(character,ghost);
+        const p=e.center(actor),g=e.center(spirit),before=Math.hypot(p.x-g.x,p.y-g.y);
+        assert(before<230);assert.notEqual(actor.attrs['data-munching'],'true');e.tick(160);
+        const q=e.center(actor),h=e.center(spirit);assert(Math.hypot(q.x-h.x,q.y-h.y)>before+5,'retreat increases clearance');
+        const actors=watchVisitors(e,12000);
+        assert(![actor,...actors].some(v=>(v.history||[]).some(([k,val])=>k==='data-reaction' && val==='gulp')));
+        assert(!spirit.className.includes('funny-leaving'),'ghost is never swallowed');
+        assert.equal(e.audio.length,0);e.tick(80000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    }
+});
+check('a wolf chases an unfamiliar ghost, recognizes it close up and gives one quiet short cue',()=>{
+    for(const sound of ['yes','no','scary']) {
+        const {e,actor,spirit}=fearFixture('wolf','casper',{}, {sound});
+        assert(actor.history.some(([k,v])=>k==='data-encounter' && v==='chasing'),'the wolf chases before recognizing the ghost');
+        assert(!spirit.className.includes('funny-leaving'));
+        const signature=sound==='scary'?740*.65:740;
+        const cues=()=>e.sounds.filter(s=>s.frequency===signature);
+        assert.equal(cues().length,sound==='no'?0:1);
+        if(sound!=='no') {assert(cues()[0].time-cues()[0].start<0.11);assert(e.volumes.includes(0.065*.35));}
+        const starts=actor.history.filter(([k,v])=>k==='data-encounter' && v==='chasing').length;
+        e.tick(12000);assert.equal(cues().length,sound==='no'?0:1);
+        assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='chasing').length,starts);
+    }
+});
+check('one wolf retreats from a group of four ghosts once, then hunts later prey without repeated panic',()=>{
+    let fixture;
+    for(let seed=1;seed<=80 && !fixture;seed++) {
+        const e=environment({mode:'selected',characters:['wolf','ghost','ghostgirl','ghostplay','casper','bunny'],trigger:'manual',sound:'yes'},{seed:seed*7919,width:1400,height:1000});
+        e.click();let first,actor;
+        for(let t=0;t<6000;t+=32) {
+            e.tick(32);actor=e.visitors().find(v=>v.className==='funny-visitor funny-wolf');
+            if(actor && actor.attrs['data-encounter']==='afraid' && !first) first=e.center(actor);
+            const ghosts=e.visitors().filter(v=>['ghost','ghostgirl','ghostplay','casper'].some(c=>v.className==='funny-visitor funny-'+c));
+            if(first && ghosts.length===4) {fixture={e,actor,first};break;}
+        }
+    }
+    assert(fixture,'a complete ghost group appeared');const {e,actor,first}=fixture;
+    e.tick(4300);const away=e.center(actor);
+    assert(Math.hypot(away.x-first.x,away.y-first.y)>180,'retreat clears the whole nearby group');
+    assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='afraid').length,1);
+    assert.equal(e.sounds.filter(s=>s.frequency===740).length,1);
+    const previous=actor.history.length;e.click();e.tick(8000);
+    assert(actor.history.slice(previous).some(([k,v])=>k==='data-encounter' && v==='chasing'),'hunting resumes');
+    assert.equal(actor.history.filter(([k,v])=>k==='data-encounter' && v==='afraid').length,1,'no second visual panic');
+});
+check('ghost avoidance respects pointer capture, focus, reduced motion and mobile deadlines',()=>{
+    for(const character of ['wolf','muncher']) for(const exit of ['pointer','blur','hidden','escape','reduced','mobile']) {
+        const {e,actor}=fearFixture(character,'casper',exit==='mobile'?{coarse:true,width:390,height:844}:{});
+        if(exit==='pointer') {const p=e.center(actor);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert(actor.className.includes('funny-leaving'));}
+        if(exit==='blur') {e.document.focused=false;e.window.emit('blur');}
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(81000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('wolf hunting swallows a visitor briefly without recording a pointer catch',()=>{
+    for(const sound of ['yes','no']) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['wolf','bunny'],sound},{seed:7919});
+        e.click();e.click();let swallowed=null;
+        for(let t=0;t<10000 && !swallowed;t+=16) {e.tick(16);swallowed=e.visitors().find(v=>v.className.includes('funny-leaving'));}
+        assert(swallowed);const wolf=e.visitors().find(v=>v.attrs['data-reaction']==='gulp');assert(wolf);
+        const w=e.center(wolf),p=e.center(swallowed);assert(Math.hypot(w.x-p.x,w.y-p.y)<30,'the wolf reaches its prey before eating');
+        const before=e.sounds.length;e.tick(300);assert(e.visitors().includes(swallowed));e.tick(1000);assert(!e.visitors().includes(swallowed));
+        assert(!e.document.body.children.some(v=>v.className==='funny-stats'));
+        if(sound==='no') assert.equal(before,0);else assert(before>0);
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+/** Wait for a real meal; the fixture never selects the wolf's target directly. */
+function wolfMealFixture(character, strength='normal') {
+    for(let seed=1;seed<=50;seed++) {
+        const e=environment({trigger:'manual',mode:'selected',characters:['wolf',character],sound:'no',strength},{seed:seed*7919});
+        e.click();e.click();
+        for(let t=0;t<12000;t+=32) {
+            if(strength==='gentle' && t===1024) e.click();
+            e.tick(32);
+            const prey=e.visitors().find(v=>v.className.includes('funny-'+character+' ') && v.attrs['data-swallowed']==='true');
+            if(prey) return {e,prey};
+        }
+    }
+    assert.fail('No natural wolf meal: '+character);
+}
+check('slow wolf meals leave bounded themed remains only after swallowing, with normal expiry',()=>{
+    for(const [character,kind] of [['elf','cloth'],['chick','feather'],['bunny','fur'],['snowman','snow'],['pumpkin','seed'],['spiders','thread']]) for(const strength of ['normal','gentle']) {
+        const {e,prey}=wolfMealFixture(character,strength);
+        const remains=()=>e.document.body.children.filter(n=>n.className==='funny-meal-remains');
+        const before=remains();e.tick(900);assert(e.visitors().includes(prey));assert.deepEqual(remains(),before);
+        e.tick(350);assert(!e.visitors().includes(prey));const mark=remains().find(n=>!before.includes(n));assert(mark,character);
+        assert(mark.children.some(n=>n.className==='funny-remain-'+kind));assert(mark.children.length>=(strength==='gentle'?3:4));assert(mark.children.length<=6);
+        assert.equal(mark.attrs['aria-hidden'],'true');
+        assert(mark.children.some(n=>n.className==='funny-remain-blood')===['elf','chick','bunny'].includes(character));
+        if(character==='snowman') assert(mark.children.some(n=>n.className==='funny-remain-cloth'));
+        e.tick(12100);assert(!e.document.body.children.includes(mark));
+    }
+});
+check('pending and visible wolf meal remains clear on activity without reappearing',()=>{
+    for(const pending of [true,false]) for(const exit of ['blur','hidden','escape','scroll','reduced']) {
+        const {e}=wolfMealFixture('chick');if(!pending) e.tick(1300);
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(1500);assert(!e.document.body.children.some(n=>n.className==='funny-meal-remains'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('wolf hunting pauses the muncher and preserves its already eaten content until removal',()=>{
+    const e=environment({trigger:'manual',mode:'selected',characters:['wolf','muncher'],sound:'no'},{seed:31676,meals:true});
+    e.click();e.click();let hunted=false;
+    for(let t=0;t<14000;t+=32) {
+        e.tick(32);
+        for(const v of e.visitors()) if(v.className.includes('funny-muncher') && v.attrs['data-encounter']==='evading' && !v.className.includes('funny-leaving')) {
+            hunted=true;assert.notEqual(v.attrs['data-munching'],'true','the prey stops eating while fleeing');
+        }
+    }
+    assert(hunted);e.document.emit('keydown',{key:'Escape'});e.tick(6000);
+    assert(!e.block.className.includes('funny-eaten'));assert(!e.block.className.includes('funny-restoring'));
+});
+check('wolf meals leave an active score unchanged and notification fear stays silent',()=>{
+    const e=environment({mode:'selected',characters:['wolf','bunny'],trigger:'manual',sound:'no'},{seed:7919});
+    e.click();e.tick(700);const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+    e.document.emit('keydown',{key:'Escape'});
+    const stats=e.document.body.children.find(n=>n.className==='funny-stats'),before=stats.children.map(n=>n.textContent);
+    e.click();e.click();let eaten;
+    for(let t=0;t<10000 && !eaten;t+=16) {e.tick(16);eaten=e.visitors().find(v=>v.className.includes('funny-leaving'));}
+    assert(eaten);e.tick(1300);assert.deepEqual(stats.children.map(n=>n.textContent),before);
+    const n=environment({mode:'selected',characters:['wolf','casper'],trigger:'notification',sound:'yes'},{seed:7919});
+    n.document.emit('pointerdown',n.event());n.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000});let scared;
+    for(let t=0;t<12000 && !scared;t+=16) {n.tick(16);scared=n.visitors().find(v=>v.attrs['data-encounter']==='afraid');}
+    assert(scared);assert.equal(n.sounds.length,0);
+});
 check('compatible cats, storks and ghosts pursue their partners faster without swapping roles or catching them',()=>{
     for(const [hunter,prey] of [['cat','fly'],['cat','spiders'],['blackcat','spiders'],['cat','butterfly'],['blackcat','butterfly'],['stork','mosquito'],['ghost','ghostgirl'],['casper','ghostgirl']]) {
         const {e,chasing,evading}=pursuitFixture(hunter,prey);
@@ -1160,6 +1334,116 @@ check('unrelated characters never pursue each other',()=>{
     for(const pair of [['cat','chick'],['stork','butterfly'],['ghost','cat']]) {
         const e=environment({mode:'selected',characters:pair,trigger:'manual'},{seed:997});e.click();
         const actors=watchVisitors(e,6000);assert(actors.every(v=>!(v.history || []).some(([key,value])=>key==='data-encounter' && value==='chasing')));
+    }
+});
+/** Sample normal nearby meetings; fixtures alter only page content, never actor internals. */
+function friendlyFixture(pool, reaction, settings={}, config={}) {
+    for(let seed=1;seed<=70;seed++) {
+        const e=environment(Object.assign({mode:'selected',characters:pool,trigger:'manual',forecast:{temperature:22,expires:Infinity}},settings),Object.assign({seed:seed*7919},config));
+        e.click();let mealsPlaced=false;
+        for(let t=0;t<15000;t+=32) {
+            if(settings.strength==='gentle' && (t===1024 || t===2048 || t===3072)) e.click();
+            const previous=e.document.body.children.slice();e.tick(32);
+            if(config.meals && !mealsPlaced && t>=2048) {
+                const witch=e.visitors().find(n=>n.className.includes('funny-witch'));
+                if(witch) {
+                    const p=e.center(witch), meals=[e.block];
+                    for(let i=1;i<16;i++) {const meal=new e.blank.constructor();meal.isConnected=true;meals.push(meal);}
+                    meals.forEach((meal,i)=>{const x=p.x-25+(i%4)*16,y=p.y+Math.floor(i/4)*14;meal.rect={left:x-10,right:x+10,top:y-6,bottom:y+6,width:20,height:12};});
+                    e.document.body.querySelectorAll=()=>meals;mealsPlaced=true;
+                }
+            }
+            const actor=e.visitors().find(n=>n.attrs['data-reaction']===reaction);
+            if(actor) return {e,actor,previous,seed};
+        }
+    }
+    assert.fail('No nearby '+reaction+' for '+pool.join(','));
+}
+check('witches gather nearby dust once into a bounded pile that disperses without extra sounds',()=>{
+    for(const strength of ['normal','gentle']) {
+        const {e,actor,previous}=friendlyFixture(['witch','zombie'],'sweep',{strength});
+        const pile=e.document.body.children.find(n=>n.className==='funny-interaction funny-swept-pile');assert(pile);
+        assert(pile.children.length>=2 && pile.children.length<=(strength==='gentle'?3:6));
+        assert(previous.some(n=>n.className.includes('funny-trail-dust') && !e.document.body.children.includes(n)));
+        const sounds=e.sounds.length;e.tick(2800);assert(!e.document.body.children.includes(pile));assert.equal(e.sounds.length,sounds);
+        e.tick(6000);assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='sweep').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+});
+check('sweeping meal crumbs retains the bite outline and restores the original element normally',()=>{
+    const {e}=friendlyFixture(['witch','muncher'],'sweep',{}, {meals:true});
+    const tooth=e.document.body.children.find(n=>n.className.includes('funny-meal-mark') && n.attrs['data-swept']==='true');
+    assert(tooth,'only the loose crumbs on the meal mark are hidden');assert(tooth.children.length>0);assert(e.block.className.includes('funny-eaten'));
+    e.document.emit('keydown',{key:'Escape'});e.tick(1600);assert(!e.block.className.includes('funny-eaten'));assert(!e.document.body.children.includes(tooth));assert.equal(e.timers.size,0);
+});
+check('a cat taps a gift once, then jumps; the gift keeps its original lifetime and remains openable',()=>{
+    for(const open of [false,true]) {
+        const {e,actor}=friendlyFixture(['cat','elf'],'paw');
+        const gift=e.document.body.children.find(n=>n.attrs['data-nudged']==='true');assert(gift);assert(!gift.className.includes('funny-gift-open'));
+        const sounds=e.sounds.length;e.tick(600);assert.equal(actor.attrs['data-reaction'],'jump');assert.equal(e.sounds.length,sounds);
+        if(open) {e.document.emit('pointermove',e.event({clientX:parseFloat(gift.style.left),clientY:parseFloat(gift.style.top)}));assert(gift.className.includes('funny-gift-open'));e.tick(850);assert(!e.document.body.children.includes(gift));}
+        else {const remaining=gift.createdAt+16000-e.now();e.tick(remaining+32);assert(!e.document.body.children.includes(gift));}
+        assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='paw').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+    }
+});
+check('Snow Maiden cools a warm snowman once for eight seconds, with a thank-you and bounded flakes',()=>{
+    for(const strength of ['normal','gentle']) {
+        const {e,actor}=friendlyFixture(['snowmaiden','snowman'],'cool',{strength});
+        const snowman=e.visitors().find(n=>n.className.includes('funny-snowman'));assert(snowman);
+        e.tick(32);assert.equal(snowman.attrs['data-thawing'],'');assert.equal(snowman.attrs['data-cooled'],'true');assert.equal(snowman.attrs['data-reaction'],'thanks');
+        const flakes=e.document.body.children.find(n=>n.className==='funny-interaction funny-cooling-flakes');assert.equal(flakes.children.length,strength==='gentle'?3:5);
+        const sounds=e.sounds.length;e.tick(1300);assert(!e.document.body.children.includes(flakes));assert.equal(snowman.attrs['data-cooled'],'true');assert.equal(e.sounds.length,sounds);
+        e.tick(7000);assert.equal(snowman.attrs['data-cooled'],'');assert.equal(snowman.attrs['data-thawing'],'true');
+        assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='cool').length,1);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+    const e=environment({mode:'selected',characters:['snowmaiden','snowman'],trigger:'manual',forecast:{temperature:-4,expires:Infinity}},{seed:7919});
+    e.click();const actors=watchVisitors(e,10000);assert(actors.every(n=>!n.history.some(([key,value])=>key==='data-reaction' && value==='cool')));
+});
+check('chicks peck only pumpkin seeds once and the rabbit chases a butterfly then rests',()=>{
+    const {e,actor,previous}=friendlyFixture(['chick','pumpkin'],'peck');
+    const seeds=e.document.body.children.find(n=>n.attrs['data-pecked']==='true');assert(seeds);assert(seeds.className.includes('funny-trail-seeds'));
+    const other=previous.filter(n=>n.className.includes('funny-trail-seeds') && n!==seeds);assert(other.every(n=>!n.attrs['data-pecked']));
+    e.tick(1400);assert(!e.document.body.children.includes(seeds));e.tick(5000);assert.equal(actor.history.filter(([key,value])=>key==='data-reaction' && value==='peck').length,1);
+    const pair=pursuitFixture('bunny','butterfly');assert(pair.chasing.className.includes('funny-bunny'));
+    for(let t=0;t<3000 && pair.chasing.attrs['data-reaction']!=='tired';t+=32) pair.e.tick(32);
+    assert.equal(pair.chasing.attrs['data-reaction'],'tired');
+});
+check('crowded traces keep reserved seeds until arrival, without extending their original deadline',()=>{
+    const {e}=friendlyFixture(['chick','pumpkin'],'forage');
+    const seed=e.document.body.children.find(n=>n.attrs['data-forage']==='true');assert(seed);
+    for(let i=0;i<7;i++) e.click();
+    let full=false;
+    for(let t=0;t<3000;t+=32) {
+        e.tick(32);const marks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
+        if(marks.length>=24) full=true;
+        if(seed.attrs['data-forage']==='true') assert(e.document.body.children.includes(seed),'reserved seed survives cap pressure');
+    }
+    assert(full,'the shared cap was exercised');assert.notEqual(seed.attrs['data-forage'],'true');
+    e.tick(Math.max(0,seed.createdAt+12032-e.now()));assert(!e.document.body.children.includes(seed));
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);
+});
+check('a chick abandons vanished seeds and an interrupted approach without pecking empty space',()=>{
+    for(const exit of ['scroll','pointer','blur']) {
+        const {e,actor}=friendlyFixture(['chick','pumpkin'],'forage');const p=e.center(actor);
+        if(exit==='scroll') e.document.emit('scroll');
+        if(exit==='pointer') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*10,clientY:400+(p.y-400)/d*10}));}
+        if(exit==='blur') e.window.emit('blur');
+        e.tick(1600);assert(!actor.history.some(([key,value])=>key==='data-reaction' && value==='peck'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('new friendly effects yield to pointer pursuit and clear on scroll, focus loss and Escape',()=>{
+    for(const [pool,reaction] of [[['witch','zombie'],'sweep'],[['cat','elf'],'paw'],[['snowmaiden','snowman'],'cool'],[['chick','pumpkin'],'peck']]) {
+        for(const exit of ['pointer','scroll','blur','hidden','escape']) {
+            const {e,actor}=friendlyFixture(pool,reaction);const p=e.center(actor);
+            if(exit==='pointer') {const d=Math.hypot(p.x-500,p.y-400);e.document.emit('pointermove',e.event({clientX:500+(p.x-500)/d*10,clientY:400+(p.y-400)/d*10}));e.tick(32);assert.notEqual(actor.attrs['data-reaction'],reaction);}
+            if(exit==='scroll') {e.document.emit('scroll');assert(!e.document.body.children.some(n=>n.className.includes('funny-interaction')));}
+            if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+            if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+            e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);assert.equal(e.visitors().length,0);
+        }
     }
 });
 function wovenFixture(settings={}) {
