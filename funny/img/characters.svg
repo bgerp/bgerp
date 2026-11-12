@@ -247,8 +247,10 @@
     <path d="M28 96q0-30 32-38 32 8 32 38z" fill="#8c2f3b" stroke="#5e1f27" stroke-width="2" stroke-linejoin="round"/>
     <g fill="#f3c74f"><circle cx="36" cy="88" r="2.2"/><circle cx="84" cy="88" r="2.2"/><circle cx="34" cy="78" r="1.8"/><circle cx="86" cy="78" r="1.8"/></g>
     <path d="M28 92h64" stroke="#f3c74f" stroke-width="2" stroke-dasharray="4 3"/>
-    <path d="M46 96q-2-22 14-28 16 6 14 28z" fill="#f6efe2" stroke="#d6c9b2" stroke-width="1.5" stroke-linejoin="round"/>
-    <path d="M50 80h20M51 86h18" stroke="#c94a4a" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <g style="transform:scaleX(var(--funny-wolf-belly,1));transform-origin:60px 82px;transition:transform .8s ease-out">
+      <path d="M46 96q-2-22 14-28 16 6 14 28z" fill="#f6efe2" stroke="#d6c9b2" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M50 80h20M51 86h18" stroke="#c94a4a" stroke-width="1.5" stroke-dasharray="2 2"/>
+    </g>
     <path d="M34 66q8-10 26-10 18 0 26 10l-6 8q-8-6-20-6t-20 6z" fill="#3f5a8c" stroke="#2c4066" stroke-width="1.8" stroke-linejoin="round"/>
     <path d="M38 70l-3 6m50-6 3 6" stroke="#2c4066" stroke-width="1.5" stroke-linecap="round"/>
     <path d="M36 74q-6 2-6 8 4 2 8-1m46-7q6 2 6 8-4 2-8-1" fill="#8e909c" stroke="#4f515c" stroke-width="1.5" stroke-linejoin="round"/>

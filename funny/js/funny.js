@@ -55,18 +55,20 @@
                 var sunny = weather ? weather.indexOf('sun') >= 0 : /^(clear|partly-cloudy|showers|snow-showers)-day$/.test(icon);
                 return {sun:sunny && hour >= 6 && hour < 18,
                     rain:weather ? weather.indexOf('rain') >= 0 : /^(rain|showers|sleet|thunder)/.test(icon),
+                    snow:weather ? weather.indexOf('snow') >= 0 : /^(snow|sleet)/.test(icon),
                     warm:fresh && typeof saved.temperature === 'number' && saved.temperature > 0};
             }
 
             /** Weather changes only our decorative traces, never the content underneath them. */
             function weatherTrace(node, material, lifetime) {
-                var sky = climate(), effect = sky.rain && (material === 'dust' || material === 'crumbs') ? 'wash' :
+                var sky = climate(), effect = sky.snow && ['paws','blood','cloth','feather','fur','meal-remains'].indexOf(material) >= 0 ? 'cover' :
+                    sky.rain && ['dust','crumbs','blood','paws'].indexOf(material) >= 0 ? 'wash' :
                     material === 'puddle' && sky.sun && !sky.rain ? 'dry' : material === 'snow' && sky.warm ? 'thaw' : '';
                 if (!effect) return lifetime;
                 var duration = effect === 'wash' ? 6000 : effect === 'dry' ? 7000 : 12000;
                 node.setAttribute('data-weathering', effect);
                 node.style.setProperty('--funny-weathering-duration', Math.min(lifetime || duration, duration) + 'ms');
-                if (lifetime && effect !== 'thaw') {
+                if (lifetime && effect !== 'thaw' && effect !== 'cover') {
                     lifetime = Math.min(lifetime, duration);
                     node.style.animationDuration = lifetime + 'ms';
                 }
@@ -223,6 +225,7 @@
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
                     wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
                     startle: {notes: [740, 440], duration: 0.1, spacing: 0.08, pitch: 0.6, wave: 'sine', volume: 0.35},
+                    hiccup: {notes: [180], duration: 0.16, spacing: 0, pitch: 1.8, wave: 'triangle', volume: 0.35},
                     burp: {notes: [120, 95], duration: 0.3, spacing: 0.22, pitch: 0.6, wave: 'sawtooth', low: true},
                     snowman: {notes: [523, 784], duration: 0.26, spacing: 0.22, pitch: 1, wave: 'sine'},
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
@@ -711,7 +714,7 @@
                 });
                 // Wolves hunt free visitors, but remember ghosts after the first close encounter.
                 visitors.forEach(function (wolf) {
-                    if (wolf.character !== 'wolf' || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || !availableForEncounter(wolf, now)) return;
+                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || !availableForEncounter(wolf, now)) return;
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
@@ -737,6 +740,48 @@
                     encounterState(hunter, 'chasing'); encounterState(prey, 'evading');
                 });
                 visitors.forEach(function (v) { if (v.fear) encounterState(v, v.character === 'wolf' && now >= v.frightUntil ? 'retreating' : 'afraid'); });
+                visitors.forEach(function (v) {
+                    if (v.dodge && now >= v.dodge.until) {
+                        var hunter = v.pursuit && v.pursuit.other;
+                        v.dodge = null; v.node.setAttribute('data-dodge', '');
+                        if (hunter && v.pursuit.hunt && availableForEncounter(v, now)) warnNeighbor(v, hunter, now);
+                    }
+                    if (!v.pursuit || !v.pursuit.hunt || v.pursuit.chasing || v.dodgeChecked || !availableForEncounter(v, now) ||
+                        ['bunny','chick','cat','blackcat'].indexOf(v.character) < 0) return;
+                    var other = v.pursuit.other, distance = Math.hypot(v.x - other.x, v.y - other.y);
+                    if (distance > 100) return;
+                    v.dodgeChecked = true;
+                    if (Math.random() < 0.55) dodgeHunter(v, other, now);
+                });
+            }
+
+            /** One lateral escape per visitor; choose a clear route before committing to the trick. */
+            function dodgeHunter(v, hunter, now) {
+                var angle = Math.atan2(v.y - hunter.y, v.x - hunter.x), side = Math.random() < 0.5 ? -1 : 1;
+                for (var i = 0; i < 2; i++, side = -side) {
+                    var turn = angle + side * 1.1, dx = Math.cos(turn), dy = Math.sin(turn);
+                    var x = v.x + dx * 190, y = v.y + dy * 190;
+                    if (x < v.width || y < v.height || x > window.innerWidth - v.width || y > window.innerHeight - v.height ||
+                        segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 120) continue;
+                    v.dodge = {x:dx,y:dy,until:now + 650};
+                    v.node.setAttribute('data-dodge', v.character === 'bunny' ? 'hop' : v.character === 'chick' ? 'slip' : 'turn');
+                    return;
+                }
+            }
+
+            /** An escape warns just one nearby friend once, without starting a chain of alarms. */
+            function warnNeighbor(v, hunter, now) {
+                var friend = null, nearest = 240;
+                visitors.forEach(function (other) {
+                    if (other === v || other === hunter || other.warned || other.pursuit || other.fear || other.character === 'wolf' ||
+                        ghostKinds.indexOf(other.character) >= 0 || !availableForEncounter(other, now)) return;
+                    var distance = Math.hypot(v.x - other.x, v.y - other.y);
+                    if (distance < nearest) { friend = other; nearest = distance; }
+                });
+                if (!friend) return;
+                friend.warned = true; friend.warning = {x:hunter.x,y:hunter.y,until:now + 1400};
+                takeOff(friend, now); friend.fleeUntil = 0; interruptTrick(friend);
+                react(friend, 'warning', now); friend.reactionUntil = now + 1400;
             }
 
             /** A wider release radius keeps predators away from ghosts without jitter at the boundary. */
@@ -809,6 +854,13 @@
             /** A visible bite and a short rest keep meals distinct; they never change the score. */
             function devour(wolf, prey, now) {
                 wolf.pursuit = prey.pursuit = null; wolf.chaseAfter = now + 1800; encounterState(wolf, '');
+                wolf.meals = (wolf.meals || 0) + 1;
+                if (!wolf.mealLimit) wolf.mealLimit = Math.random() < 0.5 ? 2 : 3;
+                wolf.sated = wolf.meals >= wolf.mealLimit;
+                wolf.ateBird = wolf.ateBird || prey.character === 'chick' || prey.character === 'stork';
+                wolf.node.style.setProperty('--funny-wolf-belly', 1 + wolf.meals * 0.12);
+                wolf.node.setAttribute('data-meals', wolf.meals);
+                wolf.node.setAttribute('data-sated', wolf.sated ? 'true' : '');
                 react(wolf, 'gulp', now);
                 prey.swallowed = true; prey.leaveDuration = 1200;
                 prey.remainsX = wolf.x; prey.remainsY = wolf.y + wolf.height * 0.15;
@@ -817,6 +869,20 @@
                 prey.node.setAttribute('data-swallowed', 'true');
                 prey.leaving = now; prey.node.classList.add('funny-leaving');
                 if (!wolf.silent) playSound('munch');
+            }
+
+            /** Finish the bite, lick, hiccup once and leave; danger can interrupt every pose. */
+            function satisfiedWolf(v, now) {
+                if (!v.sated || v.leaving || v.exiting || v.fear || v.pursuit || now < v.fleeUntil || v.reactionUntil) return;
+                if (!v.licked) { v.licked = true; react(v, 'lick', now); return; }
+                if (!v.hiccupped) {
+                    v.hiccupped = true; react(v, 'hiccup', now);
+                    interactionEffect(v.ateBird ? 'hiccup-feather' : 'hiccup-crumb', v.x, v.y,
+                        [{x:v.x + 20,y:v.y - 10}], 2000);
+                    if (!v.silent) playSound('hiccup');
+                    return;
+                }
+                v.exiting = true; v.node.setAttribute('data-satisfied-exit', 'true');
             }
 
             /** Small themed scraps share the ordinary trace cap and disappear with page activity. */
@@ -838,6 +904,12 @@
                     piece.style.backgroundColor = kind === 'blood' ? '#ac5560' : v.character === 'snowman' && i === 0 ? '#659abd' : material[1];
                     piece.style.setProperty('--x', random(-28, 28) + 'px'); piece.style.setProperty('--y', random(8, 32) + 'px');
                     piece.style.setProperty('--turn', random(-150, 150) + 'deg'); node.appendChild(piece);
+                    weatherTrace(piece, kind, 12000);
+                    if ((kind === 'cloth' || kind === 'feather') && wind.speed > 0) {
+                        var drift = Math.min(120, wind.speed * 3) * random(0.6, 1) * (gentle ? 0.5 : 1);
+                        piece.style.setProperty('--drift-x', wind.x * drift + 'px');
+                        piece.style.setProperty('--drift-y', wind.y * drift + 'px');
+                    }
                 }
                 addMark(node, 12000, {kind:'meal-remains',x:v.remainsX,y:v.remainsY});
             }
@@ -876,7 +948,7 @@
                 if (v.pursuit) {
                     var other = v.pursuit.other, chasing = v.pursuit.chasing, hunt = !!v.pursuit.hunt;
                     dx = (other.x - v.x) * (chasing ? 1 : -1); dy = (other.y - v.y) * (chasing ? 1 : -1);
-                    speed = hunt ? (chasing ? 280 : 120) : (chasing ? 165 : 210);
+                    speed = hunt ? (chasing ? 280 * (1 - (v.meals || 0) * 0.07) : 120) : (chasing ? 165 : 210);
                     if (hunt && !chasing) {
                         // Near an edge the prey turns along it; heading for the centre led it into the pointer's range
                         var away = Math.hypot(dx, dy) || 1, margin = 140;
@@ -885,11 +957,13 @@
                         dy += Math.max(0, margin - v.y) / margin * 1.5 - Math.max(0, v.y - window.innerHeight + margin) / margin * 1.5;
                     }
                     var contact = hunt ? Math.min(v.width, other.width) * 0.28 : (v.width + other.width) / 2 + 20;
+                    if (!chasing && v.dodge) { dx = v.dodge.x; dy = v.dodge.y; speed = 290; }
                     if (chasing && Math.hypot(other.x - v.x, other.y - v.y) < contact) {
                         if (hunt) devour(v, other, now);
                         return true;
                     }
                 }
+                if (!v.pursuit && v.warning && now < v.warning.until) { dx = v.x - v.warning.x; dy = v.y - v.warning.y; speed = 125; }
                 if (v.fear) { dx = v.x - v.fear.x; dy = v.y - v.fear.y; speed = 170; }
                 if (v.retreat) { dx = v.retreat.x - v.x; dy = v.retreat.y - v.y; }
                 if (v.character === 'fly') {
@@ -1092,16 +1166,17 @@
                 }
             }
 
-            /** Insects and vampires visit small elements; other flying visitors rest above portal blocks. */
+            /** Visitors rest on elements or briefly shelter below them without changing page content. */
             function findPerch(v) {
                 var onElement = v.visitsElements;
-                if (v.perch || v.fed || performance.now() < v.perchAfter || (!onElement && (v.perchTried || ['butterfly', 'stork'].indexOf(v.character) < 0))) return;
+                var shelter = ['cat','blackcat','bunny','chick'].indexOf(v.character) >= 0 && climate().rain;
+                if (v.perch || v.fed || performance.now() < v.perchAfter || (!onElement && (v.perchTried || (!shelter && ['butterfly', 'stork'].indexOf(v.character) < 0)))) return;
                 v.perchTried = true;
                 v.perchAfter = performance.now() + 2500;
                 var best = null, nearest = onElement ? 320 : 230;
-                var selector = onElement ? 'button,input:not([type="hidden"]),select,textarea,a,span,label,h1,h2,h3,p,td,th,[id^="blockPortal_"]' : '[id^="blockPortal_"]';
+                var selector = onElement ? 'button,input:not([type="hidden"]),select,textarea,a,span,label,h1,h2,h3,p,td,th,[id^="blockPortal_"]' : shelter ? 'button,[id^="blockPortal_"],.listTable' : '[id^="blockPortal_"]';
                 Array.prototype.slice.call(document.querySelectorAll(selector), 0, 180).forEach(function (block) {
-                    if (onElement && (block === v.lastPerch || block.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
+                    if ((onElement || shelter) && (block === v.lastPerch || block.closest('.funny-eaten,.funny-stats,[aria-hidden="true"]') ||
                         block.closest('details:not([open]),[hidden]') ||
                         (document.activeElement && block.contains(document.activeElement)))) return;
                     var r = block.getBoundingClientRect();
@@ -1111,12 +1186,16 @@
                     if (style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return;
                     var x = onElement ? clamp(v.x, r.left + 12, r.right - 12) - v.contact.x : clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8);
                     var y = onElement ? r.top + Math.min(r.height / 2, 18) - v.contact.y : r.top - v.height / 2 + 5;
+                    if (shelter) {
+                        y = r.bottom + v.height / 2 - 5;
+                        if (y + v.height / 2 > window.innerHeight - 20 || segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 130) return;
+                    }
                     var distance = Math.hypot(x - v.x, y - v.y);
                     if (distance >= nearest || Math.hypot(x - pointer.x, y - pointer.y) < 150 || visitors.some(function (other) {
                         return other !== v && other.perch && Math.hypot(x - other.perch.x, y - other.perch.y) < v.width + 12;
                     })) return;
                     if (onElement && segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 85) return;
-                    nearest = distance; best = {block:block,x:x,y:y,top:r.top,left:r.left,right:r.right,width:r.width,height:r.height,checkAt:0,arrived:false};
+                    nearest = distance; best = {block:block,x:x,y:y,top:r.top,left:r.left,right:r.right,width:r.width,height:r.height,checkAt:0,arrived:false,shelter:shelter};
                 });
                 v.perch = best;
             }
@@ -1127,6 +1206,7 @@
                 v.lastPerch = v.perch.block;
                 v.perch = null;
                 v.node.setAttribute('data-perched', '');
+                v.node.setAttribute('data-shelter', '');
                 if (v.visitsElements) {
                     v.node.setAttribute('data-insect', '');
                     v.perchAfter = now + random(1800, 3000);
@@ -1144,7 +1224,7 @@
                     if (!p.block.isConnected || !r.width || Math.abs(r.top - p.top) > 2 || Math.abs(r.left - p.left) > 2 ||
                         Math.abs(r.width - p.width) > 2 || Math.abs(r.height - p.height) > 2) { takeOff(v, now); return false; }
                 }
-                if (now < v.fleeUntil || now - v.born >= v.lifetime || Math.hypot(v.x - pointer.x, v.y - pointer.y) < 130 || (p.arrived && now >= p.until)) {
+                if (now < v.fleeUntil || now - v.born >= v.lifetime || (p.shelter && !climate().rain) || Math.hypot(v.x - pointer.x, v.y - pointer.y) < 130 || (p.arrived && now >= p.until)) {
                     takeOff(v, now); return false;
                 }
                 if (v.visitsElements && p.arrived) { restOnElement(v, now, delta); return true; }
@@ -1152,10 +1232,11 @@
                 if (distance <= Math.max(1, step)) {
                     v.x = p.x; v.y = p.y;
                     if (!p.arrived) {
-                        p.arrived = now; p.until = now + (v.visitsElements ? 3600 : 2200); p.direction = Math.random() < 0.5 ? -1 : 1;
+                        p.arrived = now; p.until = now + (p.shelter ? 4000 : v.visitsElements ? 3600 : 2200); p.direction = Math.random() < 0.5 ? -1 : 1;
                         p.startBlood = v.blood || 0;
                         p.surfaceBlood = p.startBlood;
                         v.node.setAttribute('data-perched', 'true');
+                        if (p.shelter) v.node.setAttribute('data-shelter', 'true');
                         if (v.visitsElements) v.node.setAttribute('data-insect', v.feeds ? 'feeding' : v.character === 'spiders' ? 'weaving' : 'rubbing');
                     }
                 } else { v.x += dx / distance * step; v.y += dy / distance * step; }
@@ -1352,6 +1433,7 @@
                     if (startled) react(v, 'jump', now);
                     if (peck) peckSeeds(v, seed, now);
                 }
+                satisfiedWolf(v, now);
                 if (elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.leaveDuration || v.splatDuration || 250))) {
                     if (v.swallowed && !v.remainsCancelled) leaveMealRemains(v);
                     removeVisitor(v, !v.leaving); return;
@@ -1397,6 +1479,7 @@
                     if (distance < 30) catchVisitor(v);
                     else if (v.exiting || elapsed >= v.lifetime || now < v.fleeUntil) {
                         var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > v.lifetime + 15000 ? 900 : elapsed > v.lifetime + 7000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' || v.character === 'wolf' ? 170 : 145);
+                        if (v.sated && v.exiting && elapsed < v.lifetime + 7000 && now >= v.fleeUntil) speed = 85;
                         var awayX = dx / distance, awayY = dy / distance, web = nearbyWeb(v);
                         if (web) {
                             // The outward component always wins, so avoiding a web cannot turn into the pointer.
@@ -1410,17 +1493,9 @@
                         }
                         v.x += awayX * speed * delta;
                         v.y += awayY * speed * delta;
-                    } else if (!divert && v.insect) flyInsect(v, now, delta);
+                    } else if (!divert && v.insect && !v.wander && distance > 130) flyInsect(v, now, delta);
                     else if (!divert && !v.reactionUntil) {
-                        // Waiting hunters stay outside the pointer guard so they can notice later arrivals.
-                        var hunter = v.character === 'wolf' || pursuitPartners[v.character];
-                        var standOff = hunter ? 140 : Math.max(65, v.width), drift = v.character === 'wolf' ? 70 : 22;
-                        if (distance > standOff || (hunter && distance < 130)) {
-                            var direction = distance < 130 && hunter ? -1 : 1;
-                            var motion = avoidKnownGhosts(v, -dx * direction, -dy * direction), length = Math.hypot(motion.x, motion.y) || 1;
-                            v.x += motion.x / length * drift * delta;
-                            v.y += motion.y / length * drift * delta;
-                        }
+                        idleMotion(v, now, delta, dx, dy, distance);
                     }
                     if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil) {
                         v.x += wind.x * wind.speed * 0.18 * delta;
@@ -1432,6 +1507,41 @@
                         return;
                     }
                 }
+            }
+
+            /** Curious visitors turn away after seeing the pointer; cats circle it and reach with a paw. */
+            function idleMotion(v, now, delta, dx, dy, distance) {
+                var cat = v.character === 'cat' || v.character === 'blackcat', speed = v.character === 'wolf' ? 70 : 22;
+                if (!cat && !v.wander && distance <= 145) {
+                    var angle = Math.atan2(dy, dx) + random(-1.1, 1.1);
+                    v.wander = {x:Math.cos(angle),y:Math.sin(angle)}; v.node.setAttribute('data-curious', 'wander');
+                }
+                if (v.wander) {
+                    var marginX = v.width / 2 + 35, marginY = v.height / 2 + 35;
+                    if (v.x < marginX) v.wander.x = Math.abs(v.wander.x);
+                    if (v.x > window.innerWidth - marginX) v.wander.x = -Math.abs(v.wander.x);
+                    if (v.y < marginY) v.wander.y = Math.abs(v.wander.y);
+                    if (v.y > window.innerHeight - marginY) v.wander.y = -Math.abs(v.wander.y);
+                    if (distance < 140 && dx * v.wander.x + dy * v.wander.y < 0) {
+                        v.wander.x = dx / distance; v.wander.y = dy / distance;
+                    }
+                }
+                var mx = v.wander ? v.wander.x : -dx, my = v.wander ? v.wander.y : -dy;
+                if (cat && distance < 155) {
+                    if (!v.playSide) v.playSide = Math.random() < 0.5 ? -1 : 1;
+                    var radial = clamp((140 - distance) / 15, -1, 1);
+                    mx = dx * radial - dy * v.playSide; my = dy * radial + dx * v.playSide;
+                    if (v.node.getAttribute('data-curious') !== 'play') v.node.setAttribute('data-curious', 'play');
+                    if (!coarsePointer.matches && !(now < v.playAfter)) {
+                        v.playAfter = now + 4500;
+                        v.node.style.setProperty('--paw-x', -dx / distance * 20 + 'px');
+                        v.node.style.setProperty('--paw-y', -dy / distance * 20 + 'px');
+                        v.node.style.setProperty('--paw-angle', Math.atan2(-dy, -dx) + 'rad');
+                        react(v, 'play', now);
+                    }
+                }
+                var motion = avoidKnownGhosts(v, mx, my), length = Math.hypot(motion.x, motion.y) || 1;
+                v.x += motion.x / length * speed * delta; v.y += motion.y / length * speed * delta;
             }
 
             function finishRestore(effect) {
