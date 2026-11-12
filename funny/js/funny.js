@@ -714,6 +714,8 @@
 
             /** All mice prefer the nearest existing hole; pursuit continues until they actually enter it. */
             function mouseExit(v, now, delta) {
+                // A blocked or crowded route must still finish through a hole before the hard cleanup.
+                if (now - v.born >= v.lifetime + 7000) { openMouseHole(v, now); return true; }
                 var digging = now - v.born >= v.lifetime - 2500;
                 if (now < v.fleeUntil && !digging) return false;
                 var hole = null, nearest = Infinity;
@@ -963,8 +965,12 @@
                     for (var i = 0; i < free.length; i++) {
                         for (var j = i + 1; j < free.length; j++) {
                             var a = free[i], b = free[j];
-                            // Only the active meal pair may overlap; other visitors still keep their distance.
+                            // An active meal pair may overlap; other visitors normally keep their distance.
                             if (a.pursuit && a.pursuit.hunt && a.pursuit.other === b) continue;
+                            // The shared doorway is narrow; allow mice to cross only while entering it.
+                            if (a.holeTarget && a.holeTarget === b.holeTarget &&
+                                Math.hypot(a.x - a.holeTarget.contact.x, a.y - a.holeTarget.contact.y) < 75 &&
+                                Math.hypot(b.x - b.holeTarget.contact.x, b.y - b.holeTarget.contact.y) < 75) continue;
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
                             if (a.pair && a.pair === b.pair && a.pair.kind === 'share') spacing *= 0.65;
@@ -1052,7 +1058,7 @@
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
-                        if (v === wolf || v.character === 'polarbear' || v.character === 'penguin' || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
+                        if (v === wolf || v.character === 'wolf' || v.character === 'polarbear' || v.character === 'penguin' || v.fear || (wolf.knowsGhosts && ghostKinds.indexOf(v.character) >= 0) || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
                         prey = v; nearest = distance;
                     });
                     if (!prey) return;

@@ -13,8 +13,8 @@
 
     /** A pause belongs to this page; returning to it never resumes an almost-expired idle timer. */
     function sync(event) {
-        if (event && event.type === 'blur') focused = false;
-        if (event && event.type === 'focus') focused = true;
+        if (event && (event.type === 'blur' || event.type === 'pagehide')) focused = false;
+        if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = document.hasFocus();
         window.clearTimeout(pauseTimer); pauseTimer = 0;
         if (pausedUntil && !paused()) pausedUntil = 0;
         if (controls) {
@@ -79,4 +79,6 @@
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('blur', sync);
     window.addEventListener('focus', sync);
+    window.addEventListener('pagehide', sync);
+    window.addEventListener('pageshow', sync);
 }(window, document));

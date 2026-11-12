@@ -27,7 +27,7 @@
             var scene = window.funnyScene;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
             var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null;
-            var timer = 0, frame = 0, printing = false, appearances = 0;
+            var timer = 0, frame = 0, printing = false, appearances = 0, focused = document.hasFocus();
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
             var gentle = options.strength === 'gentle', strength = gentle ? 0.55 : 1;
@@ -45,6 +45,7 @@
             var wind = {x:-Math.sin(bearing),y:Math.cos(bearing),speed:typeof options.wind === 'number' ? Math.max(0, Math.min(60, options.wind)) : 8};
             // Software keyboards and IMEs also report edits without physical key events.
             var inputs = ['pointermove', 'pointerdown', 'keydown', 'input', 'compositionstart', 'focusin', 'wheel', 'touchmove', 'scroll'];
+            var interactive = 'a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[role="textbox"],[tabindex],[onclick],[contenteditable]:not([contenteditable="false"])';
 
             /** Every new idle period starts with the same interval as a freshly loaded page. */
             function initialDelay() {
@@ -53,7 +54,7 @@
 
             /** Neither visual nor audio work is allowed in a background or unfocused page. */
             function active() {
-                return document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches && !(scene && scene.paused());
+                return focused && document.visibilityState === 'visible' && document.hasFocus() && !printing && !reduced.matches && !(scene && scene.paused());
             }
 
             /** The server has already resolved the user's location and hourly/daily fallback. */
@@ -288,7 +289,7 @@
                     while (candidates.length && windMotions.length < limit) {
                         var target = candidates.splice(Math.floor(Math.random() * candidates.length), 1)[0], r = target.getBoundingClientRect();
                         var item = {target:target,weight:0.6 + Math.random() * 0.4,duration:2800 + Math.random() * 2800,
-                            loose:r.width <= 110 && r.height <= 50 && !target.closest('a,button,input,select,textarea,label,summary,[role="button"],[tabindex]')};
+                            loose:r.width <= 110 && r.height <= 50};
                         windMotions.push(item); sway(item);
                     }
                 }
@@ -299,7 +300,8 @@
                 });
                 if (wind.speed < 30 || fallen >= (gentle ? 1 : 2) || elapsed < fallAt || (scene && scene.quality() < 0.7)) return;
                 fallAt = elapsed + 18000 + Math.random() * 15000;
-                var loose = windMotions.filter(function (item) { return item.loose && !item.fell; });
+                // Recheck descendants because an AJAX refresh may have added a link or button.
+                var loose = windMotions.filter(function (item) { return item.loose && !item.fell && !item.target.closest(interactive) && !item.target.querySelector(interactive); });
                 if (!loose.length || Math.random() > 0.4) return;
                 var item = loose[Math.floor(Math.random() * loose.length)];
                 item.animation.cancel(); item.fell = item.falling = true; fallen++;
@@ -494,7 +496,7 @@
                 }, remaining);
             }
 
-            /** Input restarts idle waiting even before the first scene; clicks preserve an already running scene. */
+            /** Input restarts idle waiting; only blank clicks preserve an already running scene. */
             function activity(event) {
                 if (!active()) return;
                 if (event.type === 'pointermove' && typeof event.clientX === 'number') {
@@ -506,14 +508,16 @@
                 appearances = 0;
                 remaining = initialDelay();
                 if (layer) {
-                    if (event.type === 'pointerdown') return;
+                    if (event.type === 'pointerdown' && (!event.target || !event.target.closest(interactive))) return;
                     stop(true);
                 } else { window.clearTimeout(timer); timer = 0; }
                 schedule();
             }
 
             /** Focus starts a fresh idle interval instead of resuming a nearly expired countdown. */
-            function focusChanged() {
+            function focusChanged(event) {
+                if (event && (event.type === 'blur' || event.type === 'pagehide')) focused = false;
+                if (event && (event.type === 'focus' || event.type === 'pageshow')) focused = document.hasFocus();
                 stop();
                 activity({type: 'focus'});
             }
@@ -544,7 +548,7 @@
             window.addEventListener('blur', focusChanged);
             window.addEventListener('focus', focusChanged);
             window.addEventListener('resize', focusChanged);
-            window.addEventListener('pagehide', stop);
+            window.addEventListener('pagehide', focusChanged);
             window.addEventListener('pageshow', focusChanged);
             window.addEventListener('beforeprint', function () { printing = true; stop(); });
             window.addEventListener('afterprint', function () { printing = false; focusChanged(); });

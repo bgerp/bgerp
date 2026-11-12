@@ -23,6 +23,7 @@ function environment(config = {}) {
         setAttribute(key, value) { this.attrs[key] = value; }
         getBoundingClientRect() { return this.rect; }
         closest() { return this.hidden ? this : null; }
+        querySelector() { return null; }
         getContext() { return context; }
         contains(node) { return this === node || this.children.some(child => child.contains(node)); }
         animate(keys, options) { const started=now, motion={target:this,keys,options,cancelled:false,cancel(){this.cancelled=true;},get playState(){return this.cancelled?'idle':options.iterations===Infinity||now-started<options.duration?'running':'finished';}}; motions.push(motion);return motion; }
@@ -520,6 +521,30 @@ check('wind skips hidden, focused, inline, transformed and nested elements and s
     const {e,items}=windFixture();items[0].invisible=true;items[1].computedStyle={display:'inline'};items[2].computedStyle={transform:'rotate(4deg)'};items[3].computedStyle={position:'fixed'};items[4].computedStyle={animationName:'existing'};items[5].animate=null;e.document.activeElement=items[6];items[7].appendChild(items[8]);
     e.tick(6000);assert(e.motions.every(m=>!items.slice(0,7).includes(m.target)&&m.target!==items[8]));
     e.document.emit('input');assert(e.motions.every(m=>m.cancelled));
+});
+
+check('weather blur wins over stale focus and returning or restoring a page starts a full wait',()=>{
+    for(const scene of [false,true]) {
+        const e=environment({scene,mode:'sound'});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');e.tick(500);
+        e.window.emit('blur');assert.equal(e.timers.size,0);assert.equal(e.frames.size,0);assert.equal(e.window.funnyWeather.current(),'');assert(!e.layer());
+        e.window.funnyWeather.trigger('manual');e.document.emit('keydown',{isTrusted:true});assert(!e.layer());assert(e.audio.every(a=>a.state==='closed'));
+        e.tick(120000);e.window.emit('focus');const wait=[...e.timers.values()][0].at-e.now();assert(wait>=60000&&wait<=120000);e.tick(wait-1);assert(!e.layer());e.tick(1);assert(e.layer());
+        e.window.emit('pagehide');e.window.funnyWeather.trigger('manual');assert(!e.layer());assert.equal(e.timers.size,0);
+        e.window.emit('pageshow');assert.equal(e.timers.size,1);assert([...e.timers.values()][0].at-e.now()>=60000);
+    }
+});
+check('wind never drops a block containing a control, including controls added after a scene begins',()=>{
+    for(const addedLater of [false,true]) {
+        const {e,items}=windFixture();items.forEach(n=>{n.querySelector=()=>addedLater?null:e.block;});e.tick(6000);
+        if(addedLater)items.forEach(n=>{n.querySelector=()=>e.block;});
+        e.tick(360000);assert(!e.motions.some(m=>m.options.iterations!==Infinity));
+    }
+});
+check('pressing controls restores wind immediately while blank double-clicks preserve the weather scene',()=>{
+    const {e}=windFixture({standalone:false});e.tick(6000);const layer=e.layer();assert(layer);assert(e.motions.some(m=>!m.cancelled));
+    const blank=new e.Element();e.document.emit('pointerdown',{target:blank});e.window.funnyWeather.trigger('manual');assert.equal(e.layer(),layer);
+    const control=new e.Element();control.closest=()=>control;e.document.emit('pointerdown',{target:control});
+    assert(!e.layer());assert(e.motions.every(m=>m.cancelled));e.tick(1100);assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);
 });
 
 console.log(checks+' weather behavior checks passed');
