@@ -269,6 +269,7 @@ class core_Packs extends core_Manager
         $form->FLD('nonValid', 'set()', 'caption=Миграции->Невалидни');
         
         $rec = $form->input();
+        $this->invoke('AfterInputMigrationForm', array($form, &$data));
         
         $retUrl = getRetUrl();
         

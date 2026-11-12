@@ -1,4 +1,4 @@
-/* Страница с резултата от плащане с карта */
+/* Страници за плащане с карта - пренасочване и резултат */
 .cpr-box {
     max-width: 420px;
     margin: 30px auto;
@@ -25,6 +25,9 @@
 }
 .cpr-icon.cpr-fail {
     background: #c0392b;
+}
+.cpr-icon.cpr-go {
+    background: var(--c-accent, #2b6cb0);
 }
 .cpr-bank {
     padding: 8px;

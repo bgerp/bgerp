@@ -36,10 +36,17 @@ for (const loaded of [true, false]) {
             check(output.includes('width="40"') && output.includes('height="20"'), name + ': dimensions preserved');
             check(output.includes('Име: Иван Тестов') && output.includes('12,50 EUR &amp; 4'), name + ': text unchanged');
         }
-        if (name === 'normal') {
+        if (name === 'normal' || name === 'unchangedLinks') {
             const original = context.html_sanitize(payload.html[name], url => url)
                 .replace(/(<a\s)((.|\s)+?)(<\/a>)/ig, '$1 target="_blank" $2$4');
-            check(output === original, 'Ordinary preview exactly matches the previous sanitizer');
+            check(output === original, name + ': ordinary preview exactly matches the previous sanitizer');
+        }
+        if (name === 'wwwLinks') {
+            for (const url of ['www.example.test', 'WWW.example.test/path?x=1&amp;y=2#part',
+                'www.example.test/unquoted', 'www.example.test:8443/path',
+                'www.example.test/entities', 'www.example.test/map']) {
+                check(output.includes('href="https://' + url + '"'), 'Absolute www link: ' + url);
+            }
         }
         if (name === 'denied') {
             const data = output.match(/data:[^"\s>]*/g) || [];

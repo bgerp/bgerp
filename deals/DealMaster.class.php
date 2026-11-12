@@ -1484,7 +1484,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
-                        $cArr = core_Type::getByName('richtext')->toVerbal($cArr);
+                        $cArr = core_Type::getByName('richtext')->toVerbal(deals_Helper::conditionHtmlToRichtext($cArr));
                         if(!Mode::isReadOnly()){
                             $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
@@ -1497,7 +1497,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             foreach ($conditions as $aCond) {
                 if(!is_object($aCond)){
-                    $aCond = core_Type::getByName('richtext')->toVerbal($aCond);
+                    $aCond = core_Type::getByName('richtext')->toVerbal(deals_Helper::conditionHtmlToRichtext($aCond));
                 }
                 $row->notes .= "<li>{$aCond}</li>";
             }

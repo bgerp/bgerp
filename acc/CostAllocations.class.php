@@ -1001,8 +1001,11 @@ class acc_CostAllocations extends core_Manager
     
     /**
      * Кои са последно модифицираните контейнери
+     *
+     * @param datetime $timeline     - времева линия след който ще се филтрират документите
+     * @param array    $containerIds - само измежду тези контейнери
      */
-    private static function getLastModifiedContainers($timeline)
+    private static function getLastModifiedContainers($timeline, $containerIds)
     {
         $containers = array();
         
@@ -1016,6 +1019,7 @@ class acc_CostAllocations extends core_Manager
                 $dQuery->where("#modifiedOn >= '{$timeline}'");
             }
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
+            $dQuery->in('containerId', $containerIds);
             $dQuery->show('containerId');
             $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');
         }
@@ -1036,16 +1040,22 @@ class acc_CostAllocations extends core_Manager
     {
         $timeline = '';
         $eQuery = self::getQuery();
-        
-        $containers = self::getLastModifiedContainers($timeline);
-        if (!countR($containers)) {
-            
-            return $eQuery;
-        }
-        
         $eQuery->EXT('expenseClassId', 'acc_Items', 'externalName=classId,externalKey=expenseItemId');
         $eQuery->EXT('expenseObjectId', 'acc_Items', 'externalName=objectId,externalKey=expenseItemId');
         $eQuery->where('#expenseClassId = ' . sales_Sales::getClassId());
+
+        // Проверяват се само документите с разпределени разходи към продажба, а не всички
+        $cQuery = clone $eQuery;
+        $cQuery->show('containerId');
+        $cQuery->groupBy('containerId');
+        $candidates = arr::extractValuesFromArray($cQuery->fetchAll(), 'containerId');
+
+        $containers = countR($candidates) ? self::getLastModifiedContainers($timeline, $candidates) : array();
+        if (!countR($containers)) {
+            
+            return self::getQuery();
+        }
+        
         $eQuery->in('containerId', $containers);
         
         return $eQuery;
