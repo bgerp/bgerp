@@ -40,6 +40,7 @@
 .funny-visitor[data-reaction="shake"] > svg { animation: funny-shake .75s ease-in-out; }
 .funny-visitor[data-reaction="adjust"] > .funny-accessory { animation: funny-adjust .85s ease-in-out; }
 .funny-visitor[data-reaction="hello"] > svg { transform-origin: 50% 80%; animation: funny-hello .85s ease-in-out; }
+.funny-visitor[data-reaction="gulp"] > svg { transform-origin: 50% 80%; animation: funny-gulp .5s ease-in-out; }
 .funny-visitor[data-reaction="hello"]::after { content: '✦'; position: absolute; right: 0; top: -8px; font: 17px sans-serif; color: #cda45a; animation: funny-gesture-mark .85s ease-out both; }
 .funny-visitor[data-reaction="shake"]::after { content: ''; position: absolute; left: 50%; top: 40%; width: 3px; height: 6px; border-radius: 50%; box-shadow: -20px -4px #7cb8d3, 19px 8px #7cb8d3, -15px 14px #7cb8d3; animation: funny-gesture-mark .85s ease-out both; }
 .funny-visitor[data-perched="true"] { filter: drop-shadow(0 2px 2px #52617533); }
@@ -143,6 +144,7 @@
 @keyframes funny-shake { 20%,60% { transform: rotate(-9deg); } 40%,80% { transform: rotate(9deg); } }
 @keyframes funny-adjust { 35%,65% { transform: translateY(-3px) rotate(-5deg); } }
 @keyframes funny-hello { 30%,65% { transform: rotate(var(--greet-angle)); } }
+@keyframes funny-gulp { 35% { transform: scale(1.12, .9); } 70% { transform: scale(.95, 1.06); } }
 @keyframes funny-gesture-mark { 0%,100% { opacity: 0; } 30%,60% { opacity: .7; } 100% { transform: translateY(-10px) scale(1.2); } }
 .funny-visitor.funny-leaving { opacity: 0; transition: opacity .25s ease-out; }
 .funny-leaving svg { animation: funny-pop .2s ease-out forwards; }

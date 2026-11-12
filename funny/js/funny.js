@@ -87,7 +87,7 @@
                     return pool;
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -107,7 +107,7 @@
                 if (month === 3) return ['martenitsa', 'stork'];
                 if (month <= 5) return ['stork', 'butterfly', 'chick'];
                 if (month <= 8) return ['butterfly', 'firefly'];
-                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher'];
+                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher', 'wolf'];
             }
 
             /** Weighted sampling without replacement preserves unique groups, including at dusk. */
@@ -219,6 +219,7 @@
                     witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true},
                     muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
+                    wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
                     burp: {notes: [120, 95], duration: 0.3, spacing: 0.22, pitch: 0.6, wave: 'sawtooth', low: true},
                     snowman: {notes: [523, 784], duration: 0.26, spacing: 0.22, pitch: 1, wave: 'sine'},
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
@@ -463,7 +464,7 @@
                 accessory.setAttribute('class', 'funny-accessory');
                 if (kind !== 'umbrella') {
                     // Face centers are in the sprite's 120 x 100 coordinate space.
-                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
+                    var faces = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4]};
                     var face = faces[v.character];
                     // The round monster's neck is below its wide mouth, rather than just below its eyes.
                     if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
@@ -484,7 +485,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',wolf:'dust',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -552,7 +553,7 @@
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
                 var visitsElements = insect || feeds || character === 'spiders';
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : insect ? 58 : 76, height = width * 5 / 6;
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'wolf' ? 86 : insect ? 58 : 76, height = width * 5 / 6;
                 var destination = safePosition(width, height, reason === 'manual' ? null : origin);
                 if (!destination) return false;
                 if (timer) {
@@ -693,11 +694,25 @@
             function updatePursuits(now) {
                 visitors.forEach(function (v) {
                     if (!v.pursuit || (now < v.pursuit.until && availableForEncounter(v, now) && availableForEncounter(v.pursuit.other, now))) return;
-                    var other = v.pursuit.other;
+                    var other = v.pursuit.other, rest = v.pursuit.hunt ? 300 : 9000;
                     [v, other].forEach(function (actor) {
-                        if (actor.pursuit.chasing && now - actor.pursuit.started >= 600 && availableForEncounter(actor, now)) react(actor, 'tired', now);
-                        actor.pursuit = null; actor.chaseAfter = now + 9000; encounterState(actor, '');
+                        if (actor.pursuit.chasing && !actor.pursuit.hunt && now - actor.pursuit.started >= 600 && availableForEncounter(actor, now)) react(actor, 'tired', now);
+                        actor.pursuit = null; actor.chaseAfter = now + rest; encounterState(actor, '');
                     });
+                });
+                // The wolf hunts the nearest free visitor, other wolves included; only the pointer's close range stops it
+                visitors.forEach(function (wolf) {
+                    if (wolf.character !== 'wolf' || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || !availableForEncounter(wolf, now)) return;
+                    var prey = null, nearest = Infinity;
+                    visitors.forEach(function (v) {
+                        var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
+                        if (v === wolf || v.pursuit || !availableForEncounter(v, now) || distance >= nearest) return;
+                        prey = v; nearest = distance;
+                    });
+                    if (!prey) return;
+                    takeOff(prey, now); prey.fleeUntil = 0;
+                    wolf.pursuit = {other:prey,started:now,until:now + 12000,chasing:true,hunt:true}; prey.pursuit = {other:wolf,started:now,until:now + 12000,chasing:false,hunt:true};
+                    encounterState(wolf, 'chasing'); encounterState(prey, 'evading');
                 });
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
@@ -711,6 +726,16 @@
                     hunter.pursuit = {other:prey,started:now,until:now + 2400,chasing:true}; prey.pursuit = {other:hunter,started:now,until:now + 2400,chasing:false};
                     encounterState(hunter, 'chasing'); encounterState(prey, 'evading');
                 });
+            }
+
+            /** The wolf swallows its prey whole; eaten visitors never count as caught or escaped. */
+            function devour(wolf, prey, now) {
+                wolf.pursuit = prey.pursuit = null; wolf.chaseAfter = now + 300; encounterState(wolf, '');
+                react(wolf, 'gulp', now);
+                // Normal leaving removes it after the shrink, without touching the score
+                prey.leaving = now; prey.node.classList.add('funny-leaving');
+                burst(prey, 'puff');
+                if (!wolf.silent) playSound('munch');
             }
 
             /** Contact geometry is captured when a trace is made; no layout reads are needed per frame. */
@@ -741,9 +766,20 @@
                 var dx = 0, dy = 0, speed = 0;
                 if (v.propDirection && v.reactionUntil) { dx = v.propDirection.x; dy = v.propDirection.y; speed = v.character === 'elf' ? 38 : 55; }
                 if (v.pursuit) {
-                    var other = v.pursuit.other, chasing = v.pursuit.chasing;
-                    dx = (other.x - v.x) * (chasing ? 1 : -1); dy = (other.y - v.y) * (chasing ? 1 : -1); speed = chasing ? 165 : 210;
-                    if (chasing && Math.hypot(dx, dy) < (v.width + other.width) / 2 + 20) return true;
+                    var other = v.pursuit.other, chasing = v.pursuit.chasing, hunt = !!v.pursuit.hunt;
+                    dx = (other.x - v.x) * (chasing ? 1 : -1); dy = (other.y - v.y) * (chasing ? 1 : -1);
+                    speed = hunt ? (chasing ? 340 : 120) : (chasing ? 165 : 210);
+                    if (hunt && !chasing) {
+                        // Near an edge the prey turns along it; heading for the centre led it into the pointer's range
+                        var away = Math.hypot(dx, dy) || 1, margin = 140;
+                        dx /= away; dy /= away;
+                        dx += Math.max(0, margin - v.x) / margin * 1.5 - Math.max(0, v.x - window.innerWidth + margin) / margin * 1.5;
+                        dy += Math.max(0, margin - v.y) / margin * 1.5 - Math.max(0, v.y - window.innerHeight + margin) / margin * 1.5;
+                    }
+                    if (chasing && Math.hypot(other.x - v.x, other.y - v.y) < (v.width + other.width) / 2 + 20) {
+                        if (hunt) devour(v, other, now);
+                        return true;
+                    }
                 }
                 if (v.character === 'fly') {
                     var web = nearbyWeb(v);
@@ -1135,7 +1171,7 @@
                     }
                     if (distance < 30) catchVisitor(v);
                     else if (v.exiting || elapsed >= v.lifetime || now < v.fleeUntil) {
-                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > v.lifetime + 15000 ? 900 : elapsed > v.lifetime + 7000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' ? 170 : 145);
+                        var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > v.lifetime + 15000 ? 900 : elapsed > v.lifetime + 7000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' ? 170 : v.character === 'wolf' ? 190 : 145);
                         var awayX = dx / distance, awayY = dy / distance, web = nearbyWeb(v);
                         if (web) {
                             // The outward component always wins, so avoiding a web cannot turn into the pointer.
@@ -1151,8 +1187,9 @@
                         v.y += awayY * speed * delta;
                     } else if (!divert && v.insect) flyInsect(v, now, delta);
                     else if (!divert && !v.reactionUntil && distance > Math.max(65, v.width)) {
-                        v.x -= dx / distance * 22 * delta;
-                        v.y -= dy / distance * 22 * delta;
+                        var drift = v.character === 'wolf' ? 90 : 22;
+                        v.x -= dx / distance * drift * delta;
+                        v.y -= dy / distance * drift * delta;
                     }
                     if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil) {
                         v.x += wind.x * wind.speed * 0.18 * delta;
