@@ -582,6 +582,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         $sQuery = clone $data->listSummary->query;
         $sQuery->where("#state != 'rejected' OR #state IS NULL");
 
+        // Сумирането не зависи от подредбата, а сортирането на всички документи е скъпо
+        $sQuery->orderBy = array();
+
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
 
