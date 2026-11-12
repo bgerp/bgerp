@@ -1,4 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="accessory-shadow" viewBox="0 0 120 100"><ellipse cx="60" cy="96" rx="32" ry="4" fill="#405064"/></symbol>
+  <symbol id="mouse" viewBox="0 0 120 100">
+    <path d="M30 69Q-2 49 10 32q12-13 19-3" fill="none" stroke="#c9a7a5" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="53" cy="63" rx="30" ry="22" fill="#9da5b0" stroke="#707d8c" stroke-width="2"/>
+    <circle cx="58" cy="33" r="17" fill="#aeb6c0" stroke="#707d8c" stroke-width="2"/><circle cx="58" cy="33" r="11" fill="#e7b9bf"/>
+    <path d="M58 48q11-20 31-7l22 21q-12 22-42 13z" fill="#c6ccd3" stroke="#707d8c" stroke-width="2"/>
+    <circle cx="80" cy="48" r="4" fill="#263b4e"/><circle cx="81" cy="47" r="1.4" fill="white"/>
+    <ellipse cx="109" cy="61" rx="5" ry="4" fill="#d592a5"/><path d="M94 62l19-10m-19 14 22 3m-24 0 18 10" stroke="#6e7d8e" stroke-width="1.3"/>
+    <path d="M42 78l-6 8h17m25-8-6 8h17" fill="none" stroke="#c997a1" stroke-width="4" stroke-linecap="round"/>
+    <path d="M97 69v5h4v-5" fill="white"/>
+  </symbol>
+  <symbol id="polarbear" viewBox="0 0 120 100">
+    <g stroke="#8ca6b6" stroke-width="2" stroke-linejoin="round">
+      <ellipse cx="44" cy="64" rx="33" ry="24" fill="#eff6fa"/><circle cx="14" cy="59" r="8" fill="#f8fcff"/>
+      <path d="M24 70v18q8 7 17 0V72m22-3v20q10 6 17-1V66" fill="#e2edf4"/>
+      <circle cx="54" cy="17" r="10" fill="#e2edf4"/><circle cx="87" cy="16" r="10" fill="#e2edf4"/>
+      <path d="M45 30q0-17 24-17 28-2 31 27l9 6q1 15-20 15H64Q42 57 45 30z" fill="#f9fcff"/>
+      <ellipse cx="91" cy="47" rx="17" ry="12" fill="#e8f0f5"/>
+    </g>
+    <circle cx="65" cy="31" r="3" fill="#293c50"/><circle cx="84" cy="30" r="3" fill="#293c50"/>
+    <ellipse cx="100" cy="44" rx="7" ry="5" fill="#34485b"/><path d="M99 50q-7 9-15 3" fill="none" stroke="#647e91" stroke-width="2"/>
+    <path d="M26 88v4m6-4v4m35-4v4m6-4v4" stroke="#8ca6b6" stroke-width="2"/>
+  </symbol>
+  <symbol id="penguin" viewBox="0 0 120 100">
+    <path d="M40 48Q14 54 24 75l20-11m36-16q26 6 16 27L76 64" fill="#35465d" stroke="#203247" stroke-width="2"/>
+    <ellipse cx="45" cy="90" rx="16" ry="6" fill="#efad4b"/><ellipse cx="77" cy="90" rx="16" ry="6" fill="#efad4b"/>
+    <path d="M32 61V35q0-25 28-25t28 25v26q0 29-28 29T32 61" fill="#35465d" stroke="#203247" stroke-width="2"/>
+    <path d="M42 35q0-16 18-6 18-10 18 6v12q8 11 7 22-1 17-25 17S36 79 35 68q-1-11 7-21z" fill="#f4fafc"/>
+    <circle cx="51" cy="33" r="3" fill="#29384c"/><circle cx="69" cy="33" r="3" fill="#29384c"/>
+    <path d="M50 42l10 9 11-9q-10-7-21 0" fill="#efad4b" stroke="#bd873e" stroke-width="1.5"/>
+    <ellipse cx="42" cy="43" rx="5" ry="3" fill="#f3b9b0"/><ellipse cx="78" cy="43" rx="5" ry="3" fill="#f3b9b0"/>
+  </symbol>
   <!-- Accessories share the character coordinate system; face accessories pivot at (60, 32). -->
   <symbol id="accessory-umbrella" viewBox="0 0 120 100" overflow="visible">
     <path d="M86-26v69q0 12-9 9" fill="none" stroke="#72667f" stroke-width="3" stroke-linecap="round"/>

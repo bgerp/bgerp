@@ -3,11 +3,12 @@
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+const sceneSource = fs.readFileSync(require('node:path').join(__dirname, '../js/scene.js'), 'utf8');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../js/weather.js'), 'utf8');
 
 function environment(config = {}) {
     let now = 0, sequence = 0, seed = 51;
-    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [];
+    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [], motions = [];
     class Target {
         constructor() { this.listeners = {}; }
         addEventListener(type, fn) { (this.listeners[type] ||= new Set()).add(fn); }
@@ -15,16 +16,18 @@ function environment(config = {}) {
         emit(type, event = {}) { [...(this.listeners[type] || [])].forEach(fn => fn({type,...event})); }
     }
     const context = {clearRect() { paints.push(now); drawn.push(0); }, beginPath() {}, arc() {}, fill() {}, moveTo() {}, lineTo() {}, stroke() {drawn[drawn.length-1]++;}};
-    class Element {
-        constructor() { this.children = []; this.style = {setProperty(key,value){this[key]=value;},removeProperty(key){delete this[key];}}; this.attrs = {}; this.className = ''; this.classList = {add:n => {this.className += ' '+n;},remove:(...names)=>{this.className=this.className.split(' ').filter(n=>!names.includes(n)).join(' ');}}; this.rect = {left:10,right:510,top:100,bottom:300,width:500,height:200}; }
+    class Element extends Target {
+        constructor() { super(); this.children = []; this.style = {setProperty(key,value){this[key]=value;},removeProperty(key){delete this[key];}}; this.attrs = {}; this.className = ''; this.isConnected = true; this.tagName = 'DIV'; this.classList = {add:n => {this.className += ' '+n;},remove:(...names)=>{this.className=this.className.split(' ').filter(n=>!names.includes(n)).join(' ');}}; this.rect = {left:10,right:510,top:100,bottom:300,width:500,height:200}; }
         appendChild(node) { this.children.push(node); node.parent = this; }
         remove() { this.parent?.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; }
         getBoundingClientRect() { return this.rect; }
         closest() { return this.hidden ? this : null; }
         getContext() { return context; }
+        contains(node) { return this === node || this.children.some(child => child.contains(node)); }
+        animate(keys, options) { const started=now, motion={target:this,keys,options,cancelled:false,cancel(){this.cancelled=true;},get playState(){return this.cancelled?'idle':options.iterations===Infinity||now-started<options.duration?'running':'finished';}}; motions.push(motion);return motion; }
     }
-    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);}});
+    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);},cancelScheduledValues() {}});
     class AudioContext {
         constructor() { this.currentTime = now/1000; this.state = 'running'; this.sampleRate = 1000; this.destination = {}; audio.push(this); }
         resume() { return Promise.resolve(); }
@@ -44,19 +47,19 @@ function environment(config = {}) {
     Object.assign(document, {baseURI:'http://fixture.test/', visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(),
         hasFocus(){return this.focused;}, createElement(){return new Element();}, querySelectorAll(selector) {
             if(selector==='.bgerp_drivers_Calendar .portal-cal-today > .title img') return images;
-            if(selector==='[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th') return blocks;
+            if(selector.replace(/, img$/, '')==='[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th') return blocks;
             throw new Error('Unexpected selector '+selector);
         }
     });
     Object.assign(window, {innerWidth:config.width || 1000,innerHeight:config.height || 800, AudioContext,
-        getComputedStyle:node=>({visibility:node.invisible?'hidden':'visible'}),matchMedia:()=>reduced,setTimeout(fn,ms){const id=++sequence;timers.set(id,{fn,at:now+ms});return id;},clearTimeout:id=>timers.delete(id),
+        getComputedStyle:node=>Object.assign({visibility:node.invisible?'hidden':'visible',opacity:'1',display:'block',transform:'none',animationName:'none'},node.computedStyle),matchMedia:()=>reduced,setTimeout(fn,ms){const id=++sequence;timers.set(id,{fn,at:now+ms});return id;},clearTimeout:id=>timers.delete(id),
         requestAnimationFrame(fn){const id=++sequence;frames.set(id,fn);return id;},cancelAnimationFrame:id=>frames.delete(id)
     });
     window.self=window;window.top=config.iframe?{}:window;
     const math=Object.create(Math);math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     const options={mode:config.mode || 'on',icon:config.icon || 'rain',strength:config.strength,temperature:config.temperature,wind:config.wind,windDirection:config.windDirection,standalone:config.standalone !== false,frequency:config.frequency || 'normal',expires:config.expires || 86400000};
     class ClockDate extends Date { constructor(){super(new Date(config.date || '2026-10-30T12:00:00').getTime()+now);} static now(){return now;} }
-    vm.runInNewContext(source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
+    vm.runInNewContext((config.scene ? sceneSource : '') + source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
     window.funnyWeather.init(options);
     function tick(ms, step=20) {
         const end=now+ms;
@@ -66,8 +69,8 @@ function environment(config = {}) {
             const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));
         }
     }
-    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,image,block,options,Element,
-        layer:()=>document.body.children.find(n=>!n.className.includes('funny-weather-fading')), setImages:value=>{images=value;},setBlocks:value=>{blocks=value;}, now:()=>now};
+    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,motions,image,block,options,Element,
+        layer:()=>document.body.children.find(n=>n.className.includes('funny-weather-layer') && !n.className.includes('funny-weather-fading')), setImages:value=>{images=value;},setBlocks:value=>{blocks=value;}, now:()=>now};
 }
 let checks=0;
 function check(name,fn) {fn();checks++;console.log('PASS '+name);}
@@ -458,6 +461,65 @@ check('storm effects respect reduced motion, fresh forecasts, input stops and op
     expired.window.funnyWeather.trigger('manual');expired.tick(15000);assert.equal(calls,0);assert(!expired.layer());
     const e=environment({icon:'thunder-rain',standalone:false});e.window.funnyEffects={};e.window.funnyWeather.trigger('manual');e.tick(15000);
     e.document.emit('pointermove',{clientX:10,clientY:10});e.tick(1100);assert(!e.layer());assert.equal(e.frames.size,0);
+});
+
+check('subzero forecasts build frost gradually and remove it with the weather fade or focus loss',()=>{
+    for(const temperature of [-4,0,4,null,'-4']) {
+        const e=environment({icon:'cloudy',temperature,standalone:false});e.window.funnyWeather.trigger('manual');
+        assert.equal(e.document.body.className.includes('funny-weather-text-frost'),typeof temperature==='number'&&temperature<0);
+        e.tick(10000);const early=Number(e.document.body.style['--funny-weather-exposure']);e.tick(20000);assert(Number(e.document.body.style['--funny-weather-exposure'])>early);
+        e.document.emit('pointermove',{clientX:50,clientY:50});assert.equal(e.document.body.style['--funny-weather-exposure'],'0');e.tick(1100);assert(!e.document.body.className.includes('frost'));
+        e.window.funnyWeather.trigger('manual');e.document.focused=false;e.window.emit('blur');assert(!e.document.body.className.includes('frost'));assert.equal(e.frames.size,0);
+    }
+});
+check('weather pause blocks standalone and manual starts and preserves the full idle delay on resume',()=>{
+    const e=environment({scene:true,mode:'sound'});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert(e.layer());
+    const menu=e.document.body.children.find(n=>n.className==='funny-controls');assert(menu);menu.children[1].emit('click');assert(!e.layer());assert.equal(e.frames.size,0);assert(e.audio.every(a=>a.state==='closed'));
+    e.window.funnyWeather.trigger('manual');assert(!e.layer());e.document.focused=false;e.window.emit('blur');assert.equal(e.timers.size,0);
+    e.tick(10000);e.document.focused=true;e.window.emit('focus');assert(!e.layer());menu.children[3].emit('click');const due=[...e.timers.values()][0].at-e.now();assert(due>=60000&&due<=120000);
+});
+check('resting leaves are offered only during their rest and a single kick consumes their existing lifetime',()=>{
+    const e=environment({icon:'wind',standalone:false});e.window.funnyWeather.trigger('manual');let leaf;
+    for(let t=0;t<40000&&!leaf;t+=50){e.tick(50);leaf=e.window.funnyWeather.leafNear(260,87);}assert(leaf);assert(leaf.valid());assert(leaf.kick());assert(!leaf.kick());assert(!leaf.valid());
+    const kicked=e.layer().children.find(n=>n.className.includes('funny-weather-kicked'));assert(kicked);e.tick(1900);assert(!e.layer().children.includes(kicked));
+    e.document.emit('pointermove');assert.equal(e.window.funnyWeather.leafNear(260,87),null);
+});
+check('shared quality reduces live precipitation and foreground cues duck weather without queuing sounds',()=>{
+    const e=environment({scene:true,mode:'sound',width:1800,height:1200});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');const sounds=e.sounds.length;
+    assert(e.window.funnyScene.cue(3,1000,()=>{}));assert(e.volumes.includes(0));e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,sounds);
+    e.tick(24000,60);assert(e.window.funnyScene.quality()<1);assert(Math.max(...e.drawn.slice(-20))<=Math.ceil(90*e.window.funnyScene.quality()));
+});
+
+/** Wind fixtures contain small transformable decorations, unlike the large precipitation bank. */
+function windFixture(config={}) {
+    const e=environment(Object.assign({icon:'wind',wind:38,windDirection:90},config)),items=[];
+    for(let i=0;i<16;i++){const el=new e.Element();el.rect={left:20+i*50,right:60+i*50,top:200,bottom:225,width:40,height:25};items.push(el);}
+    e.setBlocks(items);e.window.funnyWeather.trigger('manual');return {e,items};
+}
+check('wind sways a bounded selection according to saved direction and speed without editing layout',()=>{
+    const sizes=[];
+    for(const wind of [0,18,48])for(const windDirection of [90,270]) {
+        const {e,items}=windFixture({wind,windDirection});e.tick(6000);
+        const active=e.motions.filter(m=>!m.cancelled);assert.equal(active.length,wind?9:0);
+        if(wind){const x=Number(active[0].keys[1].transform.match(/translate\(([-.\d]+)/)[1]);assert.equal(Math.sign(x),windDirection===90?-1:1);sizes.push(Math.abs(x));}
+        assert(items.every(n=>!n.style.transform&&!n.className));e.document.emit('pointermove');assert(e.motions.every(m=>m.cancelled));
+        e.tick(1100);assert(!e.layer());
+    }
+    assert(sizes[2]>sizes[0]);
+});
+check('only a few small decorations fall in strong wind, return and cancel on interaction or lost focus',()=>{
+    for(const wind of [18,38]) {
+        const {e}=windFixture({wind,scene:true});e.tick(360000);
+        const falls=e.motions.filter(m=>m.options.iterations!==Infinity);assert(wind<30?falls.length===0:falls.length>0&&falls.length<=2);
+        assert(falls.every(m=>m.keys.at(-1).transform==='none'&&m.options.duration===6000));
+        e.document.focused=false;e.window.emit('blur');assert(e.motions.every(m=>m.cancelled));assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);
+    }
+    const {e,items}=windFixture();items.forEach(n=>{n.closest=selector=>selector.includes('role="button"')?n:null;});e.tick(360000);assert(!e.motions.some(m=>m.options.iterations!==Infinity));
+});
+check('wind skips hidden, focused, inline, transformed and nested elements and supports browsers without animation',()=>{
+    const {e,items}=windFixture();items[0].invisible=true;items[1].computedStyle={display:'inline'};items[2].computedStyle={transform:'rotate(4deg)'};items[3].computedStyle={position:'fixed'};items[4].computedStyle={animationName:'existing'};items[5].animate=null;e.document.activeElement=items[6];items[7].appendChild(items[8]);
+    e.tick(6000);assert(e.motions.every(m=>!items.slice(0,7).includes(m.target)&&m.target!==items[8]));
+    e.document.emit('input');assert(e.motions.every(m=>m.cancelled));
 });
 
 console.log(checks+' weather behavior checks passed');
