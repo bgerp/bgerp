@@ -46,6 +46,12 @@ class deals_InvoicesToDocuments extends core_Manager
 
 
     /**
+     * Допустима разлика от закръгляне на сконтото при доставчика
+     */
+    public static $cashDiscountTolerance = 0.02;
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -141,7 +147,7 @@ class deals_InvoicesToDocuments extends core_Manager
                             $form->setWarning('fromContainerId', $warning);
                         }
                     } elseif(!empty($fRec->invoicesList)){
-                        list($invArr, $fullRecs) = static::prepareListSelection(keylist::toArray($fRec->invoicesList));
+                        list($invArr, $fullRecs) = static::prepareListSelection(keylist::toArray($fRec->invoicesList), $ctx);
                     }
 
                     foreach (static::checkSelection($Document, $rec, $ctx, $invArr, $fullRecs) as $check){
@@ -327,9 +333,10 @@ class deals_InvoicesToDocuments extends core_Manager
      * Разпределение към цели ф-ри (при сконто) - всяка за своята стойност
      *
      * @param array $containerIds - контейнери на ф-те
+     * @param stdClass|null $ctx    - от getSelectionContext()
      * @return array [разпределението, записите на ф-те по контейнер]
      */
-    public static function prepareListSelection($containerIds)
+    public static function prepareListSelection($containerIds, $ctx = null)
     {
         $invArr = $fullRecs = array();
         foreach (array_keys($containerIds) as $iContainerId){
@@ -338,6 +345,18 @@ class deals_InvoicesToDocuments extends core_Manager
             $iTotalValue = round($iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount, 2);
             $invArr[] = (object)array('containerId' => $iContainerId, 'amount' => $iTotalValue);
             $fullRecs[$iRec->containerId] = $iRec;
+        }
+
+        // Допустимата разлика спрямо РБД-то със сконто отива към ф-та, за да не остава неразпределен остатък
+        if(!empty($ctx->haveCashDiscount) && empty($ctx->isReverse)){
+            $invoices = array_filter($invArr, function($a) {return $a->amount > 0;});
+            if(countR($invoices) == 1){
+                $invoice = reset($invoices);
+                $diff = round($ctx->paymentData->amount - $invoice->amount, 2);
+                if($diff != 0 && abs($diff) <= static::$cashDiscountTolerance){
+                    $invoice->amount = round($invoice->amount + $diff, 2);
+                }
+            }
         }
 
         return array($invArr, $fullRecs);
@@ -367,6 +386,9 @@ class deals_InvoicesToDocuments extends core_Manager
         // Ако е към платежен документ проверка дали са допустими
         if($Document instanceof deals_PaymentDocument){
             $amountWarnings = $amountErrors = array();
+
+            // При сконто ф-та може да поеме допустимата разлика спрямо РБД-то
+            $overTolerance = ($haveCashDiscount && !$isReverse) ? static::$cashDiscountTolerance : 0;
             foreach ($invArr as $iRec){
                 $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId, $subtractPayedByNow);
                 $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
@@ -375,7 +397,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $Invoice = doc_Containers::getDocument($iRec->containerId);
                 $iInst = $Invoice->getInstance();
 
-                if(abs(round($iRec->amount, 2)) > abs(round($eAmount, 2))){
+                if(round(abs(round($iRec->amount, 2)) - abs(round($eAmount, 2)), 2) > $overTolerance){
                     if ($iInst->fields['number']) {
                         $number = $iInst->getVerbal($invRec, 'number');
                     } else {
@@ -448,12 +470,12 @@ class deals_InvoicesToDocuments extends core_Manager
                     $res[] = (object)array('type' => 'error', 'fields' => 'invoicesList', 'msg' => 'РБД със сконто, може да е само към една ф-ра и кредитни за сума към нея');
                 }
 
-                if($amountInvoice && round($amountInvoice, 2) != round($paymentData->amount, 2)){
+                if($amountInvoice && abs(round($amountInvoice - $paymentData->amount, 2)) > static::$cashDiscountTolerance){
                     $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($paymentData->amount);
                     $res[] = (object)array('type' => 'error', 'fields' => 'invoicesList', 'msg' => "Сумата на ф-та трябва да е точно толкова колкото е сумата на РБД-то без сконто|*: <b>{$amountVerbal} {$currencyCode}</b>");
                 }
 
-                if($amountCreditNotes && round($amountCreditNotes, 2) != round($paymentData->cashDiscount, 2)){
+                if($amountCreditNotes && abs(round($amountCreditNotes - $paymentData->cashDiscount, 2)) > static::$cashDiscountTolerance){
                     $amountCashDiscount = core_Type::getByName('double(smartRound)')->toVerbal($paymentData->cashDiscount);
                     $res[] = (object)array('type' => 'error', 'fields' => 'invoicesList', 'msg' => "Сумата на КИ трябва да е точно толкова колкото е сумата на сконтото на РБД-то|*: <b>{$amountCashDiscount} {$currencyCode}</b>");
                 }
