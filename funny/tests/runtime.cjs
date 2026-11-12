@@ -317,7 +317,7 @@ check('background and unfocused tabs stop effects and close sound without replay
     e.document.visibilityState='hidden';e.document.emit('visibilitychange');e.click();assert.equal(e.visitors().length,0);assert.equal(e.sounds.length,count);
 });
 check('notifications are silent including burst and ignore background changes', () => {
-    const e=environment({trigger:'notification'});e.document.emit('pointerdown',e.event());
+    const e=environment({mode:'selected',characters:['ghost'],trigger:'notification'});e.document.emit('pointerdown',e.event());
     assert.equal(e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1000}),6);assert.equal(e.visitors().length,1);assert.equal(e.sounds.length,0);
     e.tick(2000);const victim=e.visitors()[0],p=e.center(victim);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
     assert(e.document.body.children.some(n=>n.className.startsWith('funny-burst ')));assert.equal(e.sounds.length,0);e.tick(50000);
@@ -332,7 +332,7 @@ check('links, controls, text and disabled effects do not summon visitors', () =>
     const reduced=environment({}, {reduced:true});reduced.click();reduced.tick(100000);assert.equal(reduced.visitors().length,0);
 });
 check('touch double tap summons, scrolling and synthetic double-click do not duplicate', () => {
-    const e=environment({trigger:'notification'}, {coarse:true});e.touch(500,400);e.tick(100);e.touch(500,400);const first=e.visitors().length;assert.equal(first,1);
+    const e=environment({mode:'selected',characters:['ghost'],trigger:'notification'}, {coarse:true});e.touch(500,400);e.tick(100);e.touch(500,400);const first=e.visitors().length;assert.equal(first,1);
     e.document.emit('dblclick',e.event());assert.equal(e.visitors().length,first);e.tick(2000);const n=e.visitors().length;
     const p=e.center(e.visitors()[0]);e.touch(p.x,p.y);e.tick(300);assert(e.visitors().length<n);
     e.document.emit('pointerdown',e.event({pointerType:'touch'}));e.document.emit('pointercancel');e.touch(500,700);assert(e.visitors().length<n);
@@ -350,7 +350,7 @@ check('touches on controls, scroll gestures and long presses do not summon chara
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -360,10 +360,10 @@ check('every character has a sprite and a distinct, short sound signature', () =
     assert.equal(signatures.size,characters.length);
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
-    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher'];
+    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
     const christmas=['sleigh','elf','snowmaiden','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
-    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders'];
+    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
@@ -376,7 +376,8 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
             assert.equal(new Set(group).size,group.length);
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
-        assert.deepEqual([...seen].sort(),[...pool].sort());
+        // Rare year-round guests need not appear in every finite seasonal sample.
+        pool.filter(name=>!['wolf','spiders'].includes(name)).forEach(name=>assert(seen.has(name),date+': '+name));
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
@@ -661,7 +662,7 @@ check('rare glass knocks are brief, respect sound and notifications, and have a 
     assert(silentKnock);
 });
 check('new characters support scarves and glasses and restore normal sprites on forecast change',()=>{
-    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher','snowmaiden','wolf']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
+    for(const character of ['ghostgirl','ghostplay','spiders','cat','blackcat','witch','muncher','snowmaiden','wolf','imp']) for(const [weather,kind] of [['cold','scarf'],['sun','glasses']]) {
         const config={weather},e=environment({mode:'selected',characters:[character],trigger:'manual'},config);
         e.click();const v=e.visitors()[0];assert.equal(v.attrs['data-weather'],kind);
         assert(v.children.some(n=>n.firstChild.attrs.href.endsWith('#accessory-'+kind)));
@@ -725,7 +726,7 @@ check('winter tracks clear on scroll, escape, resize, lost focus, hiding, print 
     }
 });
 check('all roaming characters leave their own short traces without weather and share one global cap',()=>{
-    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+    const kinds={ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
     for(const [character,kind] of Object.entries(kinds)) {
         const e=environment({trigger:'manual',mode:'selected',characters:[character]});e.click();e.tick(2500);
         const tracks=e.document.body.children.filter(n=>n.className.includes('funny-character-trail'));
@@ -880,6 +881,7 @@ check('flies require a fresh sunny forecast above 9C; manual selection ignores s
     }
 });
 check('warm out-of-season insects remain rare even when all eligible characters fit a group',()=>{
+    const total={fly:0,mosquito:0};
     for(const [date,temperature,icon] of [['2026-03-15',15,'clear-day'],['2026-11-15',15,'clear-day'],['2026-11-15',10,'clear-day'],['2026-11-15',15,'cloudy']]) {
         const e=environment({trigger:'manual',forecast:{icon,temperature,expires:Infinity}},{date:date+'T12:00:00'});
         const counts={fly:0,mosquito:0};
@@ -889,17 +891,18 @@ check('warm out-of-season insects remain rare even when all eligible characters 
         }
         for(const name of ['fly','mosquito']) {
             if(temperature<=10 || (name==='fly' && icon==='cloudy')) assert.equal(counts[name],0,name);
-            else assert(counts[name]>0 && counts[name]<36,JSON.stringify({date,counts}));
+            else {assert(counts[name]<36,JSON.stringify({date,counts}));total[name]+=counts[name];}
         }
     }
+    assert(total.fly>0 && total.mosquito>0,'rare guests remain possible across the seasonal samples');
 });
-check('daytime favors flies and dusk favors mosquitoes without duplicate group members',()=>{
+check('first picks favor flies in daytime and mosquitoes at dusk without duplicate group members',()=>{
     function sample(hour) {
         const e=environment({trigger:'manual',forecast:{icon:'clear-day',temperature:24,expires:Infinity}},{date:'2026-07-15T'+hour+':00:00'});
         const count={fly:0,mosquito:0};
         for(let i=0;i<160;i++) {
             e.click();e.tick(2000);const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
-            assert.equal(group.length,new Set(group).size);group.forEach(c=>{if(c in count) count[c]++;});
+            assert.equal(group.length,new Set(group).size);if(group[0] in count) count[group[0]]++;
             e.document.emit('keydown',{key:'Escape'});
         }
         return count;
@@ -1299,7 +1302,7 @@ check('wolf meals leave an active score unchanged and notification fear stays si
     assert(scared);assert.equal(n.sounds.length,0);
 });
 check('compatible cats, storks and ghosts pursue their partners faster without swapping roles or catching them',()=>{
-    for(const [hunter,prey] of [['cat','fly'],['cat','spiders'],['blackcat','spiders'],['cat','butterfly'],['blackcat','butterfly'],['stork','mosquito'],['ghost','ghostgirl'],['casper','ghostgirl']]) {
+    for(const [hunter,prey] of [['cat','fly'],['cat','spiders'],['blackcat','spiders'],['cat','butterfly'],['blackcat','butterfly'],['stork','mosquito'],['ghost','ghostgirl'],['casper','ghostgirl'],['imp','butterfly'],['imp','firefly']]) {
         const {e,chasing,evading}=pursuitFixture(hunter,prey);
         assert(chasing.className.includes('funny-'+hunter));assert(evading.className.includes('funny-'+prey));
         assert(!evading.attrs['data-descending'],'a spider finishes its descent first');
@@ -1508,7 +1511,7 @@ check('flies avoid existing webs without landing on them or requiring pointer mo
 });
 
 check('fleeing visitors still leave sparse short traces and retain the same expiry and input cleanup',()=>{
-    for(const character of ['cat','sleigh','snowman']) {
+    for(const character of ['cat','sleigh','snowman','imp']) {
         const e=environment({mode:'selected',characters:[character],trigger:'manual'},{width:2400,height:1600});
         e.click({clientX:1200,clientY:800});e.tick(700);const v=e.visitors()[0];
         const start=e.center(v),dx=start.x-1200,dy=start.y-800,length=Math.hypot(dx,dy),nx=dx/length,ny=dy/length;
@@ -1736,6 +1739,119 @@ check('new wolf poses clear on inactive pages and reduced motion',()=>{
         if(stop==='escape') e.document.emit('keydown',{key:'Escape'});if(stop==='reduced') {e.reduced.matches=true;e.reduced.emit('change');}
         e.tick(10000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
     }
+});
+
+check('seasonal actors dominate whole groups, guests remain possible and manual choices stay uniform',()=>{
+    const fixtures=[['2026-01-20',['snowman','casper']],['2026-03-01',['martenitsa','stork']],
+        ['2026-04-12',['bunny','chick','butterfly']],['2026-07-01',['butterfly','firefly','mosquito']],
+        ['2026-10-30',['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp']],
+        ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman']]];
+    for(const [date,seasonal] of fixtures) {
+        const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00'});
+        let primary=0, guests=0, first=0;
+        for(let i=0;i<120;i++) {
+            e.document.emit('keydown',{key:'Escape'});e.click();
+            if(seasonal.includes(e.visitors()[0].className.split(' ')[1].slice(6))) first++;
+            const actors=watchVisitors(e,1500).map(v=>v.className.split(' ')[1].slice(6));
+            assert.equal(new Set(actors).size,actors.length);
+            actors.forEach(name=>{if(seasonal.includes(name)) primary++;else guests++;});
+        }
+        assert(primary>guests*3,date+' prioritizes the season throughout the group');
+        assert(guests>0,date+' still permits year-round guests');assert(first>100,date+' normally starts with its seasonal theme');
+    }
+    const pool=['snowman','casper','wolf','spiders'], e=environment({mode:'selected',characters:pool,trigger:'manual',strength:'gentle',sound:'no'},{date:'2026-01-20T12:00:00'});
+    const counts=Object.fromEntries(pool.map(name=>[name,0]));
+    for(let i=0;i<600;i++) {e.document.emit('keydown',{key:'Escape'});e.click();counts[e.visitors()[0].className.split(' ')[1].slice(6)]++;}
+    assert(Object.values(counts).every(n=>n>110 && n<190),'manual mode does not bias winter actors');
+});
+
+/** Exercise gremlins through the same pointer, clock and notification entry points as other actors. */
+function gremlinFixture(config={}, settings={}) {
+    const e=environment(Object.assign({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},settings),config);
+    if(settings.trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});}
+    else e.click();
+    e.tick(700);
+    return e;
+}
+check('gremlin clicks add one copy with a cooldown, preserve notification silence and do not count as catches',()=>{
+    for(const settings of [{sound:'yes'},{sound:'no'},{sound:'yes',trigger:'notification'}]) {
+        const e=gremlinFixture({},settings), original=e.visitors()[0], p=e.center(original);
+        e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,1);
+        const sounds=e.sounds.length;
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,2);
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,2);
+        assert.equal(e.sounds.length>sounds,settings.sound==='yes' && settings.trigger!=='notification');
+        e.tick(700);const copy=e.visitors().find(v=>v!==original), q=e.center(copy), before=e.sounds.length;
+        e.document.emit('pointerdown',e.event({clientX:q.x,clientY:q.y}));assert.equal(e.visitors().length,3);
+        if(settings.trigger==='notification') assert.equal(e.sounds.length,before);
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('gremlins ignore controls, modified clicks and touch scrolling; a short blank tap splits once',()=>{
+    for(const action of ['control','right','modified','scroll','hold','cancel','tap']) {
+        const e=gremlinFixture({coarse:['scroll','hold','cancel','tap'].includes(action)}), p=e.center(e.visitors()[0]);
+        const event=e.event({clientX:p.x,clientY:p.y});
+        if(action==='control') {e.block.interactive=true;event.target=e.block;}
+        if(action==='right') event.button=2;
+        if(action==='modified') event.ctrlKey=true;
+        if(['scroll','hold','cancel','tap'].includes(action)) event.pointerType='touch';
+        e.document.emit('pointerdown',event);assert.equal(e.visitors().length,1);
+        if(event.pointerType==='touch') {
+            e.tick(action==='hold'?400:50);
+            if(action==='scroll') event.clientY+=80;
+            e.document.emit(action==='cancel'?'pointercancel':'pointerup',event);
+        }
+        assert.equal(e.visitors().length,action==='tap'?2:1,action);
+    }
+});
+check('manual portals also obey the fifty-gremlin cap and only a deliberate click catches one at the cap',()=>{
+    const e=environment({mode:'selected',characters:['imp'],trigger:'manual',sound:'no'},{width:6000,height:4000});
+    for(let i=0;i<55;i++) e.document.emit('dblclick',e.event({clientX:3000,clientY:2000}));
+    assert.equal(e.visitors().length,50);e.tick(700,700);
+    const p=e.center(e.visitors()[0]);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+    assert(e.visitors().every(v=>!v.className.includes('funny-leaving')));
+    e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+    assert.equal(e.visitors().filter(v=>v.className.includes('funny-leaving')).length,1);
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+});
+check('rain splits slowly, each new copy waits twelve seconds and the family expires together',()=>{
+    const e=gremlinFixture({weather:'rain clouds',width:2400,height:1600});
+    const original=e.visitors()[0], all=new Set([original]);let first=null;
+    for(let t=700;t<61000;t+=32) {
+        e.tick(32);assert(e.raf.size<=1,'multiplying inside a frame must not create a second animation loop');
+        for(const v of e.visitors()) if(!all.has(v)) {all.add(v);if(!first) first=v;}
+        if(e.now()<12000) assert.equal(all.size,1);
+        if(first && e.now()<first.createdAt+12000) assert.equal(all.size,2,'a copy must wait its own full interval');
+    }
+    assert(first && first.createdAt>=12000 && first.createdAt<=18032);
+    assert(all.size>2,'rain can split the family again');assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    e.tick(20000);assert.equal(e.timers.size,0);
+});
+check('dry weather, expired forecasts and background pages never multiply gremlins',()=>{
+    for(const config of [{weather:'sun'},{weather:'clouds'},{}]) {
+        const e=gremlinFixture(config,{forecast:{icon:'rain',temperature:12,expires:0}});
+        assert.equal(watchVisitors(e,60000).length,1);
+    }
+    for(const exit of ['blur','hidden','escape']) {
+        const e=gremlinFixture({weather:'rain clouds'});
+        if(exit==='blur') e.window.emit('blur');
+        if(exit==='hidden') {e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape') e.document.emit('keydown',{key:'Escape'});
+        e.tick(81000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('gremlins leave normal bounded tracks, wash them in rain and rest after chasing lights',()=>{
+    const e=gremlinFixture({weather:'rain clouds'});e.tick(3000);
+    const tracks=e.document.body.children.filter(n=>n.className.includes('funny-imp-track'));
+    assert(tracks.length);assert(tracks.every(n=>n.className.includes('funny-trail-paws') && n.attrs['data-weathering']==='wash'));
+    e.document.emit('scroll');assert(tracks.every(n=>!e.document.body.children.includes(n)));
+    for(const prey of ['butterfly','firefly']) {
+        const pair=pursuitFixture('imp',prey);pair.e.tick(3000);
+        assert.equal(pair.chasing.attrs['data-reaction'],'tired');pair.e.tick(3100);
+        assert.notEqual(pair.chasing.attrs['data-reaction'],'tired');
+    }
+    const meal=wolfMealFixture('imp');assert(meal);
 });
 
 console.log(`${checks} behavioral checks passed`);

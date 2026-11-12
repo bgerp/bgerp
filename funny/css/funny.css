@@ -81,6 +81,7 @@
 .funny-trail-paws::after { left: 11px; top: 4px; }
 .funny-cat-track { color: #ae805c; } .funny-blackcat-track { color: #756780; } .funny-bunny-track { color: #c3a3a5; }
 .funny-wolf-track { color: #777583; }
+.funny-imp-track { color: #638d45; }
 .funny-trail-magic::before { left: -5px; top: -5px; width: 10px; height: 10px; background: #ba91df; clip-path: polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%); }
 .funny-snowmaiden-track::before { background: #9ecce5; filter: drop-shadow(0 0 2px #e5f5ff); }
 .funny-trail-snow::before { left: -5px; top: -3px; width: 11px; height: 7px; border-radius: 50%; background: #f6fbff; box-shadow: 0 1px 2px #80a9c9, 7px 2px 0 -2px #b7d4e8; }

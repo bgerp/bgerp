@@ -12,9 +12,10 @@
             started = true;
 
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
-            var pursuitPartners = {cat:['fly','spiders','butterfly'],blackcat:['fly','spiders','butterfly'],bunny:['butterfly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow'};
+            var pursuitPartners = {cat:['fly','spiders','butterfly'],blackcat:['fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
             var ghostKinds = ['ghost', 'ghostgirl', 'ghostplay', 'casper'];
+            var seasonalPool = [];
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
             var visitors = [], portals = [], marks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
@@ -80,6 +81,7 @@
             function characters() {
                 if (options.mode === 'auto') {
                     var now = new Date(), pool = seasonalCharacters(now), forecast = options.forecast || {};
+                    seasonalPool = pool.slice();
                     if (pool.indexOf('spiders') < 0) pool.push('spiders');
                     if (pool.indexOf('wolf') < 0) pool.push('wolf');
                     var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
@@ -87,9 +89,16 @@
                     var warm = fresh && forecast.temperature > 10;
                     // Gate rare out-of-season visitors before sampling, regardless of group size.
                     if (fresh && forecast.temperature > 9 && ['clear-day', 'partly-cloudy-day'].indexOf(forecast.icon) !== -1 &&
-                        (flySeason || (warm && Math.random() < 0.1))) pool.push('fly');
-                    if (mosquitoSeason || (warm && Math.random() < 0.1)) pool.push('mosquito');
-                    return pool;
+                        (flySeason || (warm && Math.random() < 0.1))) {
+                        pool.push('fly');
+                        if (flySeason) seasonalPool.push('fly');
+                    }
+                    if (mosquitoSeason || (warm && Math.random() < 0.1)) {
+                        pool.push('mosquito');
+                        if (mosquitoSeason) seasonalPool.push('mosquito');
+                    }
+                    // Occasional guests must stay rare even when every eligible character fits in a group.
+                    return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < 0.2; });
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
                     return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito'].indexOf(name) !== -1 && pool.indexOf(name) === index;
@@ -99,7 +108,7 @@
             /** Keep holiday precedence while weather-dependent insects join the current season. */
             function seasonalCharacters(now) {
                 var month = now.getMonth() + 1, day = now.getDate();
-                if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher'];
+                if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher', 'imp'];
                 if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
                 if (month <= 2) return ['snowman', 'casper'];
                 var easter = options.easterDates && options.easterDates[now.getFullYear()];
@@ -115,14 +124,15 @@
                 return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher', 'imp'];
             }
 
-            /** Weighted sampling without replacement preserves unique groups, including at dusk. */
+            /** Seasonal actors lead the group; manual choices stay uniform and groups remain unique. */
             function chooseCharacter(pool) {
                 var hour = new Date().getHours();
                 var weights = pool.map(function (name) {
                     if (options.mode !== 'auto') return 1;
-                    if (name === 'fly') return hour >= 8 && hour < 18 ? 3 : 0.5;
-                    if (name === 'mosquito') return hour >= 18 && hour < 23 ? 3 : 1;
-                    return 1;
+                    var weight = seasonalPool.indexOf(name) >= 0 ? 6 : 1;
+                    if (name === 'fly') weight *= hour >= 8 && hour < 18 ? 3 : 0.5;
+                    if (name === 'mosquito') weight *= hour >= 18 && hour < 23 ? 3 : 1;
+                    return weight;
                 });
                 var pick = Math.random() * weights.reduce(function (sum, weight) { return sum + weight; }, 0);
                 for (var i = 0; i < pool.length - 1; i++) { pick -= weights[i]; if (pick < 0) break; }
@@ -408,30 +418,40 @@
                 departures.push(departure);
             }
 
+            /** Count all active gremlins, including copies and visitors still leaving their portal. */
             function impCount() {
                 return visitors.filter(function (v) { return v.character === 'imp' && !v.leaving; }).length;
             }
 
-            /** A clicked imp splits in two, never above IMP_LIMIT; at the limit the click catches it. */
+            /** Clicks and rain share the cap, notification silence and the original family's deadline. */
+            function multiplyImp(imp, now) {
+                if (impCount() >= IMP_LIMIT || now >= imp.deadline - 2000) return false;
+                if (!show('copy', true, 'imp', {x:imp.x,y:imp.y,silent:imp.silent,deadline:imp.deadline})) return false;
+                imp.splitAfter = visitors[visitors.length - 1].splitAfter = now + 400;
+                imp.rainSplitAfter = now + random(12000, 18000);
+                burst(imp, 'star');
+                if (!imp.silent) playSound('imp');
+                return true;
+            }
+
+            /** Only deliberate blank-space clicks/taps split; controls and scroll gestures stay untouched. */
             function splitImp(event) {
-                if (!active()) return;
+                if (!active() || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return false;
                 var now = performance.now();
                 var imp = visitors.filter(function (v) {
-                    return v.character === 'imp' && !v.leaving && !v.launched && now >= (v.splitAfter || 0) &&
+                    return v.character === 'imp' && !v.leaving && !v.exiting && !v.launched && now - v.born < v.lifetime && now >= (v.splitAfter || 0) &&
                         Math.hypot(v.x - event.clientX, v.y - event.clientY) < v.width / 2 + 10;
                 })[0];
-                if (!imp) return;
-                if (impCount() >= IMP_LIMIT) { catchVisitor(imp, true); return; }
-                imp.splitAfter = now + 400;
-                burst(imp, 'star');
-                if (show('copy', true, 'imp', {x: imp.x, y: imp.y})) visitors[visitors.length - 1].splitAfter = now + 400;
-                if (!imp.silent) playSound('imp');
+                if (!imp) return false;
+                if (impCount() >= IMP_LIMIT) catchVisitor(imp, true);
+                else multiplyImp(imp, now);
+                return true;
             }
 
             function catchVisitor(v, force) {
                 if (!active() || v.leaving) return;
-                // Below the limit an imp is not caught: a click splits it (splitImp)
-                if (v.character === 'imp' && !force && impCount() < IMP_LIMIT) return;
+                // Gremlins need an explicit click even at the cap; hovering must not undo the last split.
+                if (v.character === 'imp' && !force) return;
                 v.leaving = performance.now();
                 releaseThread(v);
                 caughtCount++;
@@ -580,7 +600,7 @@
 
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
-                if (!active()) return false;
+                if (!active() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
                 var visitsElements = insect || feeds || character === 'spiders';
@@ -613,6 +633,11 @@
                     lifetime: character === 'muncher' ? 77000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
                     contact: {x:character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'vampire' ? -0.05 : 0.3)}
                 };
+                if (character === 'imp') {
+                    visitor.deadline = origin.deadline || now + 60000;
+                    visitor.rainSplitAfter = now + random(12000, 18000);
+                    if (reason === 'copy') visitor.silent = !!origin.silent;
+                }
                 if (character === 'spiders') {
                     // A vertical entry must not pass through the stationary pointer.
                     if (Math.abs(destination.x - pointer.x) < 110) destination.x = clamp(pointer.x + (pointer.x < window.innerWidth / 2 ? 130 : -130), width, window.innerWidth - width);
@@ -651,7 +676,7 @@
                 repelVisitors();
                 greetVisitors(now);
                 visitors.forEach(function (v) { positionVisitor(v, now); });
-                if (visitors.length) frame = window.requestAnimationFrame(animate);
+                if (visitors.length && !frame) frame = window.requestAnimationFrame(animate);
             }
 
             /** Keeps free visitors apart; launched ones must first clear their shared portal. */
@@ -1460,7 +1485,7 @@
                     if (peck) peckSeeds(v, seed, now);
                 }
                 satisfiedWolf(v, now);
-                if (elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.leaveDuration || v.splatDuration || 250))) {
+                if ((v.deadline && now >= v.deadline) || elapsed >= (v.character === 'muncher' ? 80000 : 60000) || (v.leaving && now - v.leaving >= (v.leaveDuration || v.splatDuration || 250))) {
                     if (v.swallowed && !v.remainsCancelled) leaveMealRemains(v);
                     removeVisitor(v, !v.leaving); return;
                 }
@@ -1480,6 +1505,11 @@
                     v.y = v.from.y + (v.destination.y - v.from.y) * ease;
                     if (progress === 1) v.launched = false;
                 } else if (!v.leaving) {
+                    // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
+                    if (v.character === 'imp' && now >= v.rainSplitAfter) {
+                        v.rainSplitAfter = now + random(12000, 18000);
+                        if (climate().rain && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now);
+                    }
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                     if (hideFromSun(v, now)) return;
                     encounterProps(v, now);
@@ -1502,11 +1532,11 @@
                         var reaction = v.outfit === 'scarf' ? 'shiver' : v.outfit === 'umbrella' ? 'shake' : v.outfit === 'glasses' ? 'adjust' : '';
                         if (reaction) { v.weatherReacted = true; react(v, reaction, now); }
                     }
-                    if (distance < 30) catchVisitor(v);
+                    if (distance < 30 && v.character !== 'imp') catchVisitor(v);
                     else if (v.exiting || elapsed >= v.lifetime || now < v.fleeUntil) {
                         var speed = v.exiting || elapsed >= v.lifetime ? (elapsed > v.lifetime + 15000 ? 900 : elapsed > v.lifetime + 7000 ? 480 : 240) : (v.character === 'zombie' ? 105 : v.character === 'muncher' || v.character === 'wolf' ? 170 : 145);
                         if (v.sated && v.exiting && elapsed < v.lifetime + 7000 && now >= v.fleeUntil) speed = 85;
-                        var awayX = dx / distance, awayY = dy / distance, web = nearbyWeb(v);
+                        var awayX = distance ? dx / distance : 1, awayY = distance ? dy / distance : 0, web = nearbyWeb(v);
                         if (web) {
                             // The outward component always wins, so avoiding a web cannot turn into the pointer.
                             if (awayX * web.x + awayY * web.y < 0.25) {
@@ -1842,6 +1872,7 @@
                 }
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
+                if (splitImp(event)) { lastTap = null; return; }
                 var caught = touchMarks(pointer.x, pointer.y, pointer.x, pointer.y);
                 visitors.forEach(function (v) {
                     if ((v.insect || v.feeds) && !v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 30) { catchVisitor(v); caught = true; return; }
@@ -1884,7 +1915,7 @@
             document.addEventListener('pointerdown', function (event) {
                 hidePeek();
                 retreatMunchers(event);
-                splitImp(event);
+                if (event.pointerType !== 'touch') splitImp(event);
                 if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
                 else movePointer(event);
                 unlockSound();
