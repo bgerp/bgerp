@@ -27,10 +27,16 @@ class funny_Plugin extends core_Plugin
             return;
         }
 
-        $weatherEnabled = $this->appendWeather($page, $files);
+        // В мобилен режим не зареждаме ресурси или прогноза без изрично разрешение.
+        if (Mode::is('screenMode', 'narrow') && funny_Setup::get('MOBILE') !== 'yes') {
+            return;
+        }
 
         $mode = funny_Setup::get('MODE');
         $frequency = funny_Setup::get('FREQUENCY');
+        $weather = funny_Setup::get('WEATHER');
+        $forecast = in_array($weather, array('on', 'sound'), true) || ($mode == 'auto' && $frequency != 'off') ? $this->getForecast() : array();
+        $weatherEnabled = $this->appendWeather($page, $files, $forecast);
         if (($mode == 'off' || $frequency == 'off') && !$weatherEnabled) {
             return;
         }
@@ -50,30 +56,28 @@ class funny_Plugin extends core_Plugin
             'strength' => funny_Setup::get('STRENGTH'),
             'scoreKey' => 'funny.best.' . EF_APP_NAME . '.' . (int) core_Users::getCurrent(),
             'easterDates' => $easterDates,
-            'labels' => array('caught' => tr('Уцелени'), 'escaped' => tr('Избягали'), 'best' => tr('Рекорд')),
+            'forecast' => $forecast,
+            'labels' => array(
+                'caught' => tr('Уцелени'), 'escaped' => tr('Избягали'), 'best' => tr('Рекорд'),
+                'pause' => tr('Временна пауза на ефектите'), 'paused' => tr('На пауза'),
+                'pause15' => tr('Пауза за 15 минути'), 'pauseReload' => tr('Пауза до презареждане'), 'resume' => tr('Продължи'),
+            ),
             'spriteUrl' => sbf('funny/img/characters.svg', ''),
         );
 
         $files->css = array_merge((array) ($files->css ?? array()), array('funny/css/funny.css'));
-        $files->js = array_merge((array) ($files->js ?? array()), array('funny/js/funny.js'));
+        $files->js = array_merge((array) ($files->js ?? array()), array('funny/js/scene.js', 'funny/js/funny.js'));
         jquery_Jquery::run($page, 'window.funnyEffects.init(' . json_encode($options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ');');
     }
 
 
     /**
-     * Зарежда наличната почасова прогноза веднъж за всяка нормална страница.
+     * Една налична прогноза за ефектите и сезонните герои, включително при изключени ефекти.
      *
-     * @param core_page_Active $page
-     * @param stdClass $files
-     * @return bool Има ли прогноза за обработване и на ръчните появи без герои.
+     * @return array Снимка от локалната прогноза без заявка към доставчика
      */
-    protected function appendWeather($page, &$files)
+    protected function getForecast()
     {
-        $weather = funny_Setup::get('WEATHER');
-        if (!in_array($weather, array('on', 'sound'), true)) {
-            return false;
-        }
-
         $today = dt::now(false);
         $icon = '';
         $forecast = null;
@@ -90,19 +94,37 @@ class funny_Plugin extends core_Plugin
             if ($icon && preg_match('/^[a-z-]+$/D', $icon)) { $forecast = $daily; break; }
             $icon = '';
         }
-        if (!$icon) return false;
+        if (!$icon) return array();
 
+        return array(
+            'icon' => $icon,
+            'temperature' => is_numeric($forecast->low ?? null) && is_numeric($forecast->high ?? null) ? ((float) ($forecast->low ?? 0) + (float) ($forecast->high ?? 0)) / 2 : null,
+            'wind' => is_numeric($forecast->wind ?? null) ? (float) ($forecast->wind ?? 0) : null,
+            'windDirection' => is_numeric($forecast->winddir ?? null) ? (float) ($forecast->winddir ?? 0) : null,
+            'expires' => strtotime($today . ' +1 day') * 1000,
+        );
+    }
+
+
+    /**
+     * Подаване на общата прогноза към визуалните ефекти.
+     *
+     * @param core_page_Active $page
+     * @param stdClass $files
+     * @param array $forecast
+     * @return bool Има ли прогноза за обработване и на ръчните появи без герои
+     */
+    protected function appendWeather($page, &$files, $forecast)
+    {
+        $weather = funny_Setup::get('WEATHER');
+        if (!in_array($weather, array('on', 'sound'), true) || !$forecast) return false;
         $frequency = funny_Setup::get('FREQUENCY');
-        $options = array(
-            'mode' => $weather, 'icon' => $icon,
+        $options = array_merge($forecast, array(
+            'mode' => $weather,
             'strength' => funny_Setup::get('STRENGTH'),
             'standalone' => funny_Setup::get('MODE') == 'off' || $frequency == 'off',
             'frequency' => $frequency,
-            'temperature' => is_numeric($forecast->low ?? null) && is_numeric($forecast->high ?? null) ? ((float) $forecast->low + (float) $forecast->high) / 2 : null,
-            'wind' => is_numeric($forecast->wind ?? null) ? (float) $forecast->wind : null,
-            'windDirection' => is_numeric($forecast->winddir ?? null) ? (float) $forecast->winddir : null,
-            'expires' => strtotime($today . ' +1 day') * 1000,
-        );
+        ));
         $files->css = array_merge((array) ($files->css ?? array()), array('funny/css/weather.css'));
         $files->js = array_merge((array) ($files->js ?? array()), array('funny/js/weather.js'));
         jquery_Jquery::run($page, 'window.funnyWeather.init(' . json_encode($options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ');');

@@ -3,11 +3,12 @@
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+const sceneSource = fs.readFileSync(require('node:path').join(__dirname, '../js/scene.js'), 'utf8');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../js/weather.js'), 'utf8');
 
 function environment(config = {}) {
     let now = 0, sequence = 0, seed = 51;
-    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [];
+    const timers = new Map(), frames = new Map(), sounds = [], audio = [], paints = [], drawn = [], volumes = [], motions = [], gains = [], filters = [];
     class Target {
         constructor() { this.listeners = {}; }
         addEventListener(type, fn) { (this.listeners[type] ||= new Set()).add(fn); }
@@ -15,25 +16,29 @@ function environment(config = {}) {
         emit(type, event = {}) { [...(this.listeners[type] || [])].forEach(fn => fn({type,...event})); }
     }
     const context = {clearRect() { paints.push(now); drawn.push(0); }, beginPath() {}, arc() {}, fill() {}, moveTo() {}, lineTo() {}, stroke() {drawn[drawn.length-1]++;}};
-    class Element {
-        constructor() { this.children = []; this.style = {setProperty(key,value){this[key]=value;},removeProperty(key){delete this[key];}}; this.attrs = {}; this.className = ''; this.classList = {add:n => {this.className += ' '+n;},remove:(...names)=>{this.className=this.className.split(' ').filter(n=>!names.includes(n)).join(' ');}}; this.rect = {left:10,right:510,top:100,bottom:300,width:500,height:200}; }
+    class Element extends Target {
+        constructor() { super(); this.children = []; this.style = {setProperty(key,value){this[key]=value;},removeProperty(key){delete this[key];}}; this.attrs = {}; this.className = ''; this.isConnected = true; this.tagName = 'DIV'; this.classList = {add:n => {this.className += ' '+n;},remove:(...names)=>{this.className=this.className.split(' ').filter(n=>!names.includes(n)).join(' ');}}; this.rect = {left:10,right:510,top:100,bottom:300,width:500,height:200}; }
         appendChild(node) { this.children.push(node); node.parent = this; }
         remove() { this.parent?.children.splice(this.parent.children.indexOf(this), 1); }
         setAttribute(key, value) { this.attrs[key] = value; }
         getBoundingClientRect() { return this.rect; }
         closest() { return this.hidden ? this : null; }
+        querySelector() { return null; }
         getContext() { return context; }
+        contains(node) { return this === node || this.children.some(child => child.contains(node)); }
+        animate(keys, options) { const started=now, motion={target:this,keys,options,cancelled:false,cancel(){this.cancelled=true;},get playState(){return this.cancelled?'idle':options.iterations===Infinity||now-started<options.duration?'running':'finished';}}; motions.push(motion);return motion; }
     }
-    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);}});
+    const param = () => ({value:0,setValueAtTime(value) {this.value=value;},linearRampToValueAtTime(value) {assert(value>=0 && value<=0.045);volumes.push(value);},exponentialRampToValueAtTime(value){this.endValue=value;},cancelScheduledValues() {}});
     class AudioContext {
-        constructor() { this.currentTime = now/1000; this.state = 'running'; this.sampleRate = 1000; this.destination = {}; audio.push(this); }
+        constructor() { this.state = 'running'; this.sampleRate = 1000; this.destination = {}; audio.push(this); }
+        get currentTime() { return now/1000; }
         resume() { return Promise.resolve(); }
         close() { this.state='closed'; return Promise.resolve(); }
-        createGain() { return {gain:param(), connect(){}}; }
+        createGain() { const gain={gain:param(),connect(){},disconnect(){this.disconnected=true;}};gains.push(gain);return gain; }
         createBuffer(channels, length) { return {getChannelData:()=>new Float32Array(length)}; }
-        createBiquadFilter() { return {frequency:param(),connect(){}}; }
+        createBiquadFilter() { const filter={frequency:param(),connect(){},disconnect(){this.disconnected=true;}};filters.push(filter);return filter; }
         createBufferSource() { return this.createOscillator(); }
-        createOscillator() { const node={frequency:param(),connect(){},start(at){this.startAt=at;},stop(at){this.stopAt=at;sounds.push(this);}}; return node; }
+        createOscillator() { const node={frequency:param(),connect(){},disconnect(){this.disconnected=true;},start(at){this.startAt=at;},stop(at){this.stopAt=at;sounds.push(this);}}; return node; }
     }
     const window = new Target(), document = new Target(), reduced = new Target();
     reduced.matches = !!config.reduced;
@@ -44,19 +49,19 @@ function environment(config = {}) {
     Object.assign(document, {baseURI:'http://fixture.test/', visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(),
         hasFocus(){return this.focused;}, createElement(){return new Element();}, querySelectorAll(selector) {
             if(selector==='.bgerp_drivers_Calendar .portal-cal-today > .title img') return images;
-            if(selector==='[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th') return blocks;
+            if(selector.replace(/, img$/, '')==='[id^="blockPortal_"], .listTable, .singleView, .formTable, button, input:not([type="hidden"]), select, textarea, a, span, label, summary, h1, h2, h3, h4, p, li, td, th') return blocks;
             throw new Error('Unexpected selector '+selector);
         }
     });
     Object.assign(window, {innerWidth:config.width || 1000,innerHeight:config.height || 800, AudioContext,
-        getComputedStyle:node=>({visibility:node.invisible?'hidden':'visible'}),matchMedia:()=>reduced,setTimeout(fn,ms){const id=++sequence;timers.set(id,{fn,at:now+ms});return id;},clearTimeout:id=>timers.delete(id),
+        getComputedStyle:node=>Object.assign({visibility:node.invisible?'hidden':'visible',opacity:'1',display:'block',transform:'none',animationName:'none'},node.computedStyle),matchMedia:()=>reduced,setTimeout(fn,ms){const id=++sequence;timers.set(id,{fn,at:now+ms});return id;},clearTimeout:id=>timers.delete(id),
         requestAnimationFrame(fn){const id=++sequence;frames.set(id,fn);return id;},cancelAnimationFrame:id=>frames.delete(id)
     });
     window.self=window;window.top=config.iframe?{}:window;
     const math=Object.create(Math);math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
     const options={mode:config.mode || 'on',icon:config.icon || 'rain',strength:config.strength,temperature:config.temperature,wind:config.wind,windDirection:config.windDirection,standalone:config.standalone !== false,frequency:config.frequency || 'normal',expires:config.expires || 86400000};
     class ClockDate extends Date { constructor(){super(new Date(config.date || '2026-10-30T12:00:00').getTime()+now);} static now(){return now;} }
-    vm.runInNewContext(source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
+    vm.runInNewContext((config.scene ? sceneSource : '') + source,{window,document,URL,performance:{now:()=>now},Date:ClockDate,Math:math});
     window.funnyWeather.init(options);
     function tick(ms, step=20) {
         const end=now+ms;
@@ -66,8 +71,8 @@ function environment(config = {}) {
             const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));
         }
     }
-    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,image,block,options,Element,
-        layer:()=>document.body.children.find(n=>!n.className.includes('funny-weather-fading')), setImages:value=>{images=value;},setBlocks:value=>{blocks=value;}, now:()=>now};
+    return {window,document,reduced,tick,timers,frames,sounds,audio,paints,drawn,volumes,motions,gains,filters,image,block,options,Element,
+        layer:()=>document.body.children.find(n=>n.className.includes('funny-weather-layer') && !n.className.includes('funny-weather-fading')), setImages:value=>{images=value;},setBlocks:value=>{blocks=value;}, now:()=>now};
 }
 let checks=0;
 function check(name,fn) {fn();checks++;console.log('PASS '+name);}
@@ -93,7 +98,7 @@ check('standalone weather first loaded in the background waits a full initial in
     }
 });
 check('standalone weather waits for uninterrupted inactivity after input, including while nothing is visible',()=>{
-    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','wheel','touchmove','scroll']) {
+    for(const frequency of ['normal','frequent']) for(const type of ['pointermove','pointerdown','keydown','input','compositionstart','focusin','wheel','touchmove','scroll']) {
         const e=environment({frequency}),min=frequency==='frequent'?10000:60000,max=frequency==='frequent'?24000:120000;
         for(let i=0;i<40;i++) {e.tick(min-100);e.document.emit(type,{clientX:100+i,clientY:50,key:'a'});assert(!e.layer(),type);assert.equal(e.timers.size,1);}
         const delay=[...e.timers.values()][0].at-e.now();assert(delay>=min && delay<=max);
@@ -179,7 +184,7 @@ check('returning from blur or a hidden tab gives standalone weather a full initi
     }
 });
 check('typing, scroll, touch movement, resizing, printing and page exit stop animation',()=>{
-    for(const name of ['keydown','wheel','touchmove','scroll']) {const e=environment();e.tick(121000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
+    for(const name of ['keydown','input','compositionstart','focusin','wheel','touchmove','scroll']) {const e=environment();e.tick(121000);e.document.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
     for(const name of ['resize','beforeprint','pagehide']) {const e=environment();e.tick(121000);e.window.emit(name);assert(!e.layer(),name);assert.equal(e.frames.size,0);}
     const e=environment();e.tick(121000);e.reduced.matches=true;e.reduced.emit('change');assert(!e.layer());
 });
@@ -435,4 +440,134 @@ check('gentle weather reduces particles, opacity, exposure and sound without cha
     assert(Math.max(...gentle.volumes)<Math.max(...normal.volumes));assert.equal(gentle.sounds.length,1);
     gentle.document.emit('pointermove');gentle.tick(1100);assert(!gentle.layer());assert.equal(gentle.frames.size,0);assert.equal(gentle.audio[0].state,'closed');
 });
+check('only storm snapshots produce sparse local lightning and notify heroes without extra sound',()=>{
+    for(const icon of ['rain','cloudy','thunder','thunder-rain','thunder-showers-day','thunder-showers-night']) {
+        const e=environment({icon,standalone:false});let signals=0,first=0,last=0;
+        e.window.funnyEffects={lightning(){signals++;if(!first) first=e.now();if(last) assert(e.now()-last>=20000);last=e.now();}};
+        e.window.funnyWeather.trigger('manual');
+        for(let t=0;t<60000;t+=50) {
+            e.tick(50);const bolts=e.layer().children.filter(n=>n.className==='funny-weather-lightning');
+            assert(bolts.length<=1);
+            if(bolts.length) {assert(parseFloat(bolts[0].style.top)<100);assert(signals>0);}
+        }
+        if(icon.startsWith('thunder')) {assert(first>=8000 && first<=14050);assert(signals>=2 && signals<=3);}
+        else assert.equal(signals,0);
+        assert.equal(e.sounds.length,0);
+        e.document.focused=false;e.window.emit('blur');const before=signals;e.tick(60000);
+        assert.equal(signals,before);assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);assert(!e.layer());
+    }
+});
+check('storm effects respect reduced motion, fresh forecasts, input stops and optional character integration',()=>{
+    const reduced=environment({icon:'thunder-rain',reduced:true});reduced.window.funnyWeather.trigger('manual');reduced.tick(30000);assert(!reduced.layer());
+    const expired=environment({icon:'thunder-rain',expires:5000,standalone:false});let calls=0;expired.window.funnyEffects={lightning(){calls++;}};
+    expired.window.funnyWeather.trigger('manual');expired.tick(15000);assert.equal(calls,0);assert(!expired.layer());
+    const e=environment({icon:'thunder-rain',standalone:false});e.window.funnyEffects={};e.window.funnyWeather.trigger('manual');e.tick(15000);
+    e.document.emit('pointermove',{clientX:10,clientY:10});e.tick(1100);assert(!e.layer());assert.equal(e.frames.size,0);
+});
+
+check('subzero forecasts build frost gradually and remove it with the weather fade or focus loss',()=>{
+    for(const temperature of [-4,0,4,null,'-4']) {
+        const e=environment({icon:'cloudy',temperature,standalone:false});e.window.funnyWeather.trigger('manual');
+        assert.equal(e.document.body.className.includes('funny-weather-text-frost'),typeof temperature==='number'&&temperature<0);
+        e.tick(10000);const early=Number(e.document.body.style['--funny-weather-exposure']);e.tick(20000);assert(Number(e.document.body.style['--funny-weather-exposure'])>early);
+        e.document.emit('pointermove',{clientX:50,clientY:50});assert.equal(e.document.body.style['--funny-weather-exposure'],'0');e.tick(1100);assert(!e.document.body.className.includes('frost'));
+        e.window.funnyWeather.trigger('manual');e.document.focused=false;e.window.emit('blur');assert(!e.document.body.className.includes('frost'));assert.equal(e.frames.size,0);
+    }
+});
+check('weather pause blocks standalone and manual starts and preserves the full idle delay on resume',()=>{
+    const e=environment({scene:true,mode:'sound'});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert(e.layer());
+    const menu=e.document.body.children.find(n=>n.className==='funny-controls');assert(menu);menu.children[1].emit('click');assert(!e.layer());assert.equal(e.frames.size,0);assert(e.audio.every(a=>a.state==='closed'));
+    e.window.funnyWeather.trigger('manual');assert(!e.layer());e.document.focused=false;e.window.emit('blur');assert.equal(e.timers.size,0);
+    e.tick(10000);e.document.focused=true;e.window.emit('focus');assert(!e.layer());menu.children[3].emit('click');const due=[...e.timers.values()][0].at-e.now();assert(due>=60000&&due<=120000);
+});
+check('resting leaves are offered only during their rest and a single kick consumes their existing lifetime',()=>{
+    const e=environment({icon:'wind',standalone:false});e.window.funnyWeather.trigger('manual');let leaf;
+    for(let t=0;t<40000&&!leaf;t+=50){e.tick(50);leaf=e.window.funnyWeather.leafNear(260,87);}assert(leaf);assert(leaf.valid());assert(leaf.kick());assert(!leaf.kick());assert(!leaf.valid());
+    const kicked=e.layer().children.find(n=>n.className.includes('funny-weather-kicked'));assert(kicked);e.tick(1900);assert(!e.layer().children.includes(kicked));
+    e.document.emit('pointermove');assert.equal(e.window.funnyWeather.leafNear(260,87),null);
+});
+check('shared quality reduces live precipitation and foreground cues duck weather without queuing sounds',()=>{
+    const e=environment({scene:true,mode:'sound',width:1800,height:1200});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');const sounds=e.sounds.length;
+    assert(e.window.funnyScene.cue(3,1000,()=>{}));assert(e.volumes.includes(0));e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,sounds);
+    e.tick(24000,60);assert(e.window.funnyScene.quality()<1);assert(Math.max(...e.drawn.slice(-20))<=Math.ceil(90*e.window.funnyScene.quality()));
+});
+
+/** Wind fixtures contain small transformable decorations, unlike the large precipitation bank. */
+function windFixture(config={}) {
+    const e=environment(Object.assign({icon:'wind',wind:38,windDirection:90},config)),items=[];
+    for(let i=0;i<16;i++){const el=new e.Element();el.rect={left:20+i*50,right:60+i*50,top:200,bottom:225,width:40,height:25};items.push(el);}
+    e.setBlocks(items);e.window.funnyWeather.trigger('manual');return {e,items};
+}
+check('wind sways a bounded selection according to saved direction and speed without editing layout',()=>{
+    const sizes=[];
+    for(const wind of [0,18,48])for(const windDirection of [90,270]) {
+        const {e,items}=windFixture({wind,windDirection});e.tick(6000);
+        const active=e.motions.filter(m=>!m.cancelled);assert.equal(active.length,wind?9:0);
+        if(wind){const x=Number(active[0].keys[1].transform.match(/translate\(([-.\d]+)/)[1]);assert.equal(Math.sign(x),windDirection===90?-1:1);sizes.push(Math.abs(x));}
+        assert(items.every(n=>!n.style.transform&&!n.className));e.document.emit('pointermove');assert(e.motions.every(m=>m.cancelled));
+        e.tick(1100);assert(!e.layer());
+    }
+    assert(sizes[2]>sizes[0]);
+});
+check('only a few small decorations fall in strong wind, return and cancel on interaction or lost focus',()=>{
+    for(const wind of [18,38]) {
+        const {e}=windFixture({wind,scene:true});e.tick(360000);
+        const falls=e.motions.filter(m=>m.options.iterations!==Infinity);assert(wind<30?falls.length===0:falls.length>0&&falls.length<=2);
+        assert(falls.every(m=>m.keys.at(-1).transform==='none'&&m.options.duration===6000));
+        e.document.focused=false;e.window.emit('blur');assert(e.motions.every(m=>m.cancelled));assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);
+    }
+    const {e,items}=windFixture();items.forEach(n=>{n.closest=selector=>selector.includes('role="button"')?n:null;});e.tick(360000);assert(!e.motions.some(m=>m.options.iterations!==Infinity));
+});
+check('wind skips hidden, focused, inline, transformed and nested elements and supports browsers without animation',()=>{
+    const {e,items}=windFixture();items[0].invisible=true;items[1].computedStyle={display:'inline'};items[2].computedStyle={transform:'rotate(4deg)'};items[3].computedStyle={position:'fixed'};items[4].computedStyle={animationName:'existing'};items[5].animate=null;e.document.activeElement=items[6];items[7].appendChild(items[8]);
+    e.tick(6000);assert(e.motions.every(m=>!items.slice(0,7).includes(m.target)&&m.target!==items[8]));
+    e.document.emit('input');assert(e.motions.every(m=>m.cancelled));
+});
+
+check('weather blur wins over stale focus and returning or restoring a page starts a full wait',()=>{
+    for(const scene of [false,true]) {
+        const e=environment({scene,mode:'sound'});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');e.tick(500);
+        e.window.emit('blur');assert.equal(e.timers.size,0);assert.equal(e.frames.size,0);assert.equal(e.window.funnyWeather.current(),'');assert(!e.layer());
+        e.window.funnyWeather.trigger('manual');e.document.emit('keydown',{isTrusted:true});assert(!e.layer());assert(e.audio.every(a=>a.state==='closed'));
+        e.tick(120000);e.window.emit('focus');const wait=[...e.timers.values()][0].at-e.now();assert(wait>=60000&&wait<=120000);e.tick(wait-1);assert(!e.layer());e.tick(1);assert(e.layer());
+        e.window.emit('pagehide');e.window.funnyWeather.trigger('manual');assert(!e.layer());assert.equal(e.timers.size,0);
+        e.window.emit('pageshow');assert.equal(e.timers.size,1);assert([...e.timers.values()][0].at-e.now()>=60000);
+    }
+});
+check('wind never drops a block containing a control, including controls added after a scene begins',()=>{
+    for(const addedLater of [false,true]) {
+        const {e,items}=windFixture();items.forEach(n=>{n.querySelector=()=>addedLater?null:e.block;});e.tick(6000);
+        if(addedLater)items.forEach(n=>{n.querySelector=()=>e.block;});
+        e.tick(360000);assert(!e.motions.some(m=>m.options.iterations!==Infinity));
+    }
+});
+check('pressing controls restores wind immediately while blank double-clicks preserve the weather scene',()=>{
+    const {e}=windFixture({standalone:false});e.tick(6000);const layer=e.layer();assert(layer);assert(e.motions.some(m=>!m.cancelled));
+    const blank=new e.Element();e.document.emit('pointerdown',{target:blank});e.window.funnyWeather.trigger('manual');assert.equal(e.layer(),layer);
+    const control=new e.Element();control.closest=()=>control;e.document.emit('pointerdown',{target:control});
+    assert(!e.layer());assert(e.motions.every(m=>m.cancelled));e.tick(1100);assert.equal(e.frames.size,0);assert.equal(e.timers.size,0);
+});
+
+check('weather audio distinguishes rain, wind, blizzard and clear skies with short quiet envelopes',()=>{
+    const profiles=[];
+    for(const [icon,wind] of [['rain',8],['wind',35],['snow',35],['snow',8],['cloudy',8],['fog',8],['clear-day',8],['clear-night',8]]) {
+        const e=environment({mode:'sound',icon,wind,standalone:false});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');
+        assert.equal(e.sounds.length,1);const sound=e.sounds[0],duration=sound.stopAt-sound.startAt;
+        assert(duration>0&&duration<=2.4);assert(Math.max(...e.volumes)<=.035);assert.equal(e.volumes.at(-1),0);
+        if(icon.startsWith('clear')){assert(duration<1);assert.equal(sound.type,'sine');assert(sound.frequency.endValue);}
+        profiles.push([duration,e.filters[0]?.frequency.value]);sound.onended();assert.equal(e.audio[0].state,'closed');assert(sound.disconnected&&e.gains[0].disconnected);
+    }
+    assert.notDeepEqual(profiles[1],profiles[2]);assert.notDeepEqual(profiles[2],profiles[3]);
+});
+check('an old weather source cannot close the next gesture audio context',()=>{
+    const e=environment({mode:'sound',standalone:false});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');const old=e.sounds[0];
+    e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.audio.length,2);
+    old.onended();assert.equal(e.audio[1].state,'running');e.sounds[1].onended();assert.equal(e.audio[1].state,'closed');
+});
+check('weather replay is throttled even after a manual restart and suppressed sounds allocate no nodes',()=>{
+    const e=environment({mode:'sound',standalone:false,scene:true});e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');
+    e.tick(4000);e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,1);assert.equal(e.gains.length,1);
+    e.tick(8000);e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,2);
+});
+
 console.log(checks+' weather behavior checks passed');

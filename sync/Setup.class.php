@@ -93,7 +93,7 @@ defIfNot('SYNC_UPDATE_EXISTING', 'no');
  * @package   sync
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -196,7 +196,7 @@ class sync_Setup extends core_ProtoSetup
 //            $description['SYNC_ESHOP_GROUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи, optionsFunc=sync_Eshop::getEshopGroups');
 
             if (core_Packs::isInstalled('cms')) {
-                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни,hint=Един локален домейн се избира автоматично; при няколко - единственият на същия език. Съответствията се използват при нееднозначност и поддържат * за входящите домейни');
+                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни,hint=При попълнен списък се допускат само съвпадащите входящи домейни; останалите се пропускат с notice. Поддържа *. При празен списък се избира единственият локален домейн или единственият на същия език');
             }
         }
         

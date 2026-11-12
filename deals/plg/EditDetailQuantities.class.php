@@ -8,7 +8,7 @@
  * @package   deals
  *
  * @author    Mustafa Mustafov <mmustafov084@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -585,7 +585,8 @@ class deals_plg_EditDetailQuantities extends core_Plugin
     {
         $detailForm->rec->{$mvc->packQuantityFld} = $newPackQuantity;
         $detailForm->ignore = $ignoreWarnings;
-        $detailForm->validate(null, false, (array) $detailForm->rec);
+        // Само количеството е въведено: другите полета са записани стойности и повторното им разчитане ги разваля (100% става 1%)
+        $detailForm->validate($mvc->packQuantityFld, false, array($mvc->packQuantityFld => $newPackQuantity));
         // Както в core_Manager::validate(), за да се изпълнят стандартните input handlers
         $detailForm->cmd = 'validate';
         $detailForm->method = $_SERVER['REQUEST_METHOD'];

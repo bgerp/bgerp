@@ -1082,6 +1082,7 @@ class eshop_Carts extends core_Master
         // Количката веднага се връзва към чернова на продажбата, за да не се създаде втора при нов опит за финализиране
         $rec->saleId = $saleId;
         self::save($rec, 'saleId');
+        eshop_Setup::addDocumentTags(sales_Sales::fetchField($saleId, 'containerId'));
 
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if (!empty($routerExplanation)) {
@@ -1141,7 +1142,7 @@ class eshop_Carts extends core_Master
             sales_Sales::save($saleRec);
 
             // Потвърденото от картов шлюз плащане не се спира от минималните цени
-            $isCardPayment = !empty($paymentData) && !empty($rec->paymentId) && is_object(cond_CardPayments::getDriver($rec->paymentId));
+            $isCardPayment = !empty($paymentData) && !empty($rec->paymentId) && is_object(eshop_CardPayments::getDriver($rec->paymentId));
             Mode::push('skipMinPriceCheck', $isCardPayment);
             try {
                 sales_Sales::conto($saleRec->id);

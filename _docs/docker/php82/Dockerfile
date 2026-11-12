@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
     libxml2-dev \
     libonig-dev \
-    libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+    libpng-dev libjpeg62-turbo-dev libfreetype6-dev libwebp-dev \
     libkrb5-dev libc-client2007e-dev \
     libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -17,7 +17,7 @@ RUN a2enmod rewrite headers
 
 # --- PHP extensions ---
 # mysqli, mbstring, soap, exif, gd, calendar, zip, intl
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         mysqli mbstring soap exif gd calendar zip intl ftp
 

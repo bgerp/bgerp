@@ -405,7 +405,7 @@ class lab_TestDetails extends core_Detail
                 $i ++;
             } while ($resArr->{$check}[$i]);
         } else {
-            $resultsArr = $resultsArr->value;
+            $resultsArr = $resultsArr->value ?? null;
         }
         
         // trim array elements

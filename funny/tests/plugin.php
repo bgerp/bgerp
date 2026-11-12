@@ -20,7 +20,7 @@ class core_Users
 class Mode
 {
     public static $values = array();
-    public static function is($key) { return !empty(self::$values[$key]); }
+    public static function is($key, $value = true) { return (self::$values[$key] ?? null) == $value; }
 }
 class Request
 {
@@ -30,7 +30,7 @@ class Request
 }
 class core_ProtoSetup
 {
-    public static $values = array('MODE' => 'auto', 'CHARACTERS' => 'ghost,casper', 'TRIGGER' => 'both', 'FREQUENCY' => 'normal', 'SOUND' => 'yes', 'WEATHER' => 'off', 'STRENGTH' => 'normal');
+    public static $values = array('MODE' => 'auto', 'CHARACTERS' => 'ghost,casper', 'TRIGGER' => 'both', 'FREQUENCY' => 'normal', 'SOUND' => 'yes', 'WEATHER' => 'off', 'STRENGTH' => 'normal', 'MOBILE' => 'no');
     public static function get($key) { return self::$values[$key]; }
 }
 class jquery_Jquery
@@ -72,7 +72,7 @@ function verify($expected, $label)
     jquery_Jquery::$script = '';
     $plugin = new funny_Plugin();
     $plugin->on_BeforeAppendFiles(new stdClass(), $result, $files);
-    if ((count($files->js) === 2) !== $expected || (jquery_Jquery::$script !== '') !== $expected) {
+    if ((count($files->js) === 3) !== $expected || (jquery_Jquery::$script !== '') !== $expected) {
         throw new RuntimeException($label);
     }
     if ($files->js[0] !== 'existing.js') throw new RuntimeException('Existing scripts changed');
@@ -112,7 +112,7 @@ if (strpos(jquery_Jquery::$script, '"sound":"scary"') === false || strpos(jquery
     strpos(jquery_Jquery::$script, '"frequency":"frequent"') === false || strpos(jquery_Jquery::$script, '"trigger":"manual"') === false) {
     throw new RuntimeException('Sound mode or Easter dates lost');
 }
-if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || count(explode(',', FUNNY_CHARACTERS)) !== 24) {
+if (FUNNY_MODE !== 'auto' || FUNNY_TRIGGER !== 'both' || FUNNY_FREQUENCY !== 'normal' || FUNNY_SOUND !== 'yes' || FUNNY_WEATHER !== 'on' || FUNNY_STRENGTH !== 'normal' || FUNNY_MOBILE !== 'no' || count(explode(',', FUNNY_CHARACTERS)) !== 32 || !in_array('wolf', explode(',', FUNNY_CHARACTERS), true)) {
     throw new RuntimeException('Unexpected package defaults');
 }
 if (date('Y-m-d', dt::getOrthodoxEasterTms(2026)) !== '2026-04-12' || date('Y-m-d', dt::getOrthodoxEasterTms(2027)) !== '2027-05-02') {
@@ -179,3 +179,34 @@ core_Users::$id = 23;
 verifyWeather(true, 'personal intensity reaches weather and heroes', true);
 if (substr_count(jquery_Jquery::$script, '"strength":"gentle"') !== 2 || strpos(jquery_Jquery::$script, '"scoreKey":"funny.best.fixture.23"') === false ||
     strpos($setup->configDescription['FUNNY_STRENGTH'][1], 'customizeBy=powerUser') === false) throw new RuntimeException('Personal intensity or isolated record key lost');
+
+/** Character eligibility shares the forecast even with visual weather disabled. */
+funny_Setup::$values['WEATHER'] = 'off';
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(false, 'seasonal forecast remains available without weather effects', true);
+if (strpos(jquery_Jquery::$script, '"forecast":{"icon":"snow"') === false || visualcrossing_Forecasts::$calls - $calls !== 1) throw new RuntimeException('Missing or repeated forecast lookup');
+funny_Setup::$values['WEATHER'] = 'on';
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(true, 'one forecast snapshot serves both controllers', true);
+if (visualcrossing_Forecasts::$calls - $calls !== 1) throw new RuntimeException('Duplicate forecast lookup');
+
+/** Mobile permission gates both controllers and the forecast lookup before loading any assets. */
+Mode::$values = array('screenMode' => 'narrow');
+$calls = visualcrossing_Forecasts::$calls;
+verifyWeather(false, 'mobile effects disabled by default');
+if (visualcrossing_Forecasts::$calls !== $calls || jquery_Jquery::$script !== '') throw new RuntimeException('Disabled mobile effects still do work');
+funny_Setup::$values['MODE'] = 'off';
+verifyWeather(false, 'mobile weather alone also disabled');
+funny_Setup::$values['MOBILE'] = 'yes';
+verifyWeather(true, 'mobile weather enabled explicitly');
+funny_Setup::$values['MODE'] = 'auto';
+verifyWeather(true, 'mobile characters and weather enabled explicitly', true);
+core_Users::$power = false;
+verifyWeather(false, 'mobile permission does not bypass powerUser');
+core_Users::$power = true;
+Mode::$values = array('screenMode' => 'wide');
+funny_Setup::$values['MOBILE'] = 'no';
+verifyWeather(true, 'desktop unaffected by disabled mobile effects', true);
+if (strpos($setup->configDescription['FUNNY_MOBILE'][1], 'customizeBy=powerUser') === false ||
+    strpos($setup->configDescription['FUNNY_MOBILE'][1], 'autohide=any') === false) throw new RuntimeException('Mobile setting must follow personal settings conventions');
+echo "6 mobile plugin checks passed\n";

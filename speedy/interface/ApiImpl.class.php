@@ -497,7 +497,12 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
             $parcelInfo = type_Table::toArray($rec->parcelInfo ?? null);
             $parcelCount = countR($parcelInfo);
-            $parcelCalcWeight = arr::sumValuesArray($parcelInfo, 'weight');
+            // Теглото в таблицата е текст като "2,5" - сумира се след разпознаване
+            $Double = core_Type::getByName('double');
+            $parcelCalcWeight = null;
+            foreach ($parcelInfo as $parcel) {
+                $parcelCalcWeight += (float) $Double->fromVerbal($parcel->weight ?? '');
+            }
             if($parcelCount && !empty($rec->palletCount)){
                 if($parcelCount != $rec->palletCount){
                     $form->setError('parcelInfo,palletCount', 'Има разминаване между броя на палетите');

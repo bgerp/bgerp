@@ -123,6 +123,7 @@ class acc_Features extends core_Manager
         
         $this->setDbUnique('itemId,featureTitleId');
         $this->setDbIndex('itemId');
+        $this->setDbIndex('itemId,featureTitleId,state,id');
     }
     
     
@@ -317,9 +318,13 @@ class acc_Features extends core_Manager
         }
         
         $query->groupBy('featureTitleId');
+
+        // Само колоните от индекса - иначе групирането минава през целите редове
+        $query->show('featureTitleId');
         
         while ($rec = $query->fetch()) {
-            $options[$rec->feature] = $rec->feature;
+            $feature = acc_FeatureTitles::fetchField($rec->featureTitleId, 'title');
+            $options[$feature] = $feature;
         }
         
         return $options;

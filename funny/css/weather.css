@@ -57,9 +57,19 @@
     transition: text-shadow 1s linear, box-shadow 1s linear;
 }
 @keyframes funny-weather-glow { to { transform: scale(1.15); opacity: .7; } }
+.funny-weather-lightning { position: absolute; width: 42px; height: 120px; background: #fff1bd; clip-path: polygon(48% 0, 95% 0, 62% 38%, 100% 38%, 12% 100%, 38% 51%, 0 51%); animation: funny-weather-lightning .85s ease-out both; }
+@keyframes funny-weather-lightning { 0% { opacity: 0; transform: translateY(-6px); } 20% { opacity: .8; } 100% { opacity: 0; transform: translateY(6px); } }
 @keyframes funny-weather-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
 @keyframes funny-weather-cloud-wind { from { transform: translate(0,0) scale(var(--cloud-scale,1)); } to { transform: translate(var(--cloud-travel-x),var(--cloud-travel-y)) scale(var(--cloud-scale,1)); } }
 @media print, (prefers-reduced-motion: reduce) {
     .funny-weather-layer { display: none !important; }
     .funny-weather-text-wet, .funny-weather-text-warm, .funny-weather-text-wet *, .funny-weather-text-warm * { text-shadow: none !important; box-shadow: none !important; transition: none; }
 }
+
+.funny-weather-wind-piece.funny-weather-kicked { animation-name: funny-weather-kicked; }
+@keyframes funny-weather-kicked { from { opacity: .8; transform: translate(0,0); } to { opacity: 0; transform: translate(var(--travel),var(--lift)); } }
+
+/* Frost follows the scene's exposure and fade, including replaced controls such as inputs. */
+.funny-weather-text-frost, .funny-weather-text-frost :is(button, input, textarea, select) { text-shadow: 0 -1px 1px rgba(220,244,255,calc(var(--funny-weather-exposure,0) * .8)), 0 1px 1px rgba(96,155,191,calc(var(--funny-weather-exposure,0) * .4)); transition: text-shadow 1s ease; }
+.funny-weather-text-frost :is([id^="blockPortal_"], .listTable, .singleView, .formTable, button, input, textarea, select, a, span, label, h1, h2, h3, p, td, th) { box-shadow: inset 0 2px 3px rgba(225,246,255,calc(var(--funny-weather-exposure,0) * .8)), inset 0 0 9px rgba(133,194,225,calc(var(--funny-weather-exposure,0) * .35)); transition: box-shadow 1s ease; }
+@media print, (prefers-reduced-motion: reduce) { .funny-weather-text-frost, .funny-weather-text-frost * { text-shadow: none !important; box-shadow: none !important; transition: none; } }

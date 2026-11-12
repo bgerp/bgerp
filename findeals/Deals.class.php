@@ -407,7 +407,7 @@ class findeals_Deals extends deals_DealBase
         // Само контрагенти могат да се избират
         $contragentListNum = acc_Lists::fetchBySystemId('contractors')->num;
         $form->setFieldTypeParams('contragentItemId', array('lists' => $contragentListNum));
-        $form->setField('baseAmount', "unit={$rec->currencyId}");
+        $form->setField('baseAmount', 'unit=' . ($rec->currencyId ?? ''));
 
         // След еврозоната няма да може да се създават ФД в лева
         if(dt::today() >= acc_Setup::getEurozoneDate()){
