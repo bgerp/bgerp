@@ -236,10 +236,12 @@ class eshop_CardPayments extends core_Manager
             return new Redirect($request['url']);
         }
 
-        $tpl = new ET(tr("|*<div style='margin:2em;text-align:center'><form method='POST' action='[#url#]' id='cardPaymentForm'>[#fields#]<p>|Пренасочване към страницата за плащане с карта|*...</p>[#btn#]</form></div>"));
+        $tpl = getTplFromFile('cond/tpl/CardPaymentRedirect.shtml');
+        $tpl->placeObject($this->recToVerbal($rec, 'amount,currencyCode'));
         $tpl->replace($request['url'], 'url');
         $tpl->replace(ht::createHidden($request['fields']), 'fields');
-        $tpl->replace(ht::createSbBtn('Към плащането'), 'btn');
+        $tpl->replace(ht::createSbBtn('Към плащането', 'default', null, null, 'class=order-btn eshop-btn'), 'btn');
+        $tpl->push('cond/tpl/CardPaymentResult.css', 'CSS');
         jquery_Jquery::run($tpl, "$('#cardPaymentForm').submit();");
 
         return $tpl;

@@ -1,0 +1,7 @@
+<div class="cpr-box">
+    <div class="cpr-icon cpr-go">&#10140;</div>
+    <h2>|Пренасочване към плащането|*</h2>
+    <p class="cpr-note">|Ще бъдете пренасочени към защитената страница на банката|*</p>
+    <div class="cpr-amount">[#amount#] <span>[#currencyCode#]</span></div>
+    <form method="POST" action="[#url#]" id="cardPaymentForm">[#fields#]<div class="cpr-btn">[#btn#]</div></form>
+</div>
