@@ -4243,7 +4243,8 @@ en,Отказано,Declined
 en,Терминал (TID),Terminal (TID)
 en,Вид по Н-18,Type under N-18
 en,Доставчик на платежни услуги,Payment service provider
-en,Пренасочване към страницата за плащане с карта,Redirecting to the card payment page
+en,Пренасочване към плащането,Redirecting to payment
+en,Ще бъдете пренасочени към защитената страница на банката,You will be redirected to the secure bank page
 en,Към плащането,Proceed to payment
 en,Плащане с банкова карта,Payment by bank card
 en,"Моля, завършете поръчката, като платите от бутона",Please complete the order by paying with the button
