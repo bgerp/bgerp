@@ -1,0 +1,58 @@
+<!--
+    Таблица за справката за документи по сделки.
+
+    @category  bgerp
+    @package   deals
+
+    @author    Stefan Arsov <stefan.arsof@gmail.com> with Codex
+    @copyright 2026 Experta EOOD
+    @license   GPL 3
+
+    @since     v 0.1
+-->
+
+<div class="scrolling-holder deal-documents" style="padding-bottom:10px">
+    <table class="listTable">
+        <thead>
+            <tr>
+                <th>|Дата|*</th>
+                <th>|Документ|*</th>
+                <th>|Номер|*</th>
+                <th class="aright">|Доставено|*, [#currency#]</th>
+                <th class="aright">|Платено|*, [#currency#]</th>
+                <th class="aright">|Фактурир.|*, [#currency#]</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--ET_BEGIN DOCUMENT_ROW-->
+            <tr class="[#stateClass#]">
+                <td class="centered nowrap">[#date#]</td>
+                <td>[#title#]<!--ET_BEGIN OTHER_THREAD--> <small class="quiet">(|друга нишка|*)</small><!--ET_END OTHER_THREAD--></td>
+                <td class="centered nowrap">[#handle#]</td>
+                <td class="aright nowrap">[#delivered#]</td>
+                <td class="aright nowrap">[#settled#]<!--ET_BEGIN NON_CASH--> <small class="quiet">|непарично|*</small><!--ET_END NON_CASH--></td>
+                <td class="aright nowrap deal-documents-invoiced">[#invoiced#]</td>
+            </tr>
+            <!--ET_END DOCUMENT_ROW-->
+            <!--ET_BEGIN NO_DOCUMENTS-->
+            <tr><td colspan="6" class="quiet">|Няма документи за показване|*.</td></tr>
+            <!--ET_END NO_DOCUMENTS-->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="centered">|Салдо|*</td>
+                <td class="centered nowrap">[#balance#] [#currency#]</td>
+                <td class="centered">|Общо|*</td>
+                <td class="aright nowrap">[#deliveredTotal#]</td>
+                <td class="aright nowrap">[#settledTotal#]</td>
+                <td class="aright nowrap deal-documents-invoiced">[#invoicedTotal#]</td>
+            </tr>
+        </tfoot>
+    </table>
+    <!--ET_BEGIN PARTIAL-->
+    <div class="quiet">|Част от документите не са показани. Общите суми са само за показаните документи|*.</div>
+    <!--ET_END PARTIAL-->
+    <!--ET_BEGIN DIFFERENCE-->
+    <div class="quiet">|Разлика между счетоводното салдо и сумите по редовете|*: [#difference#] [#currency#]</div>
+    <!--ET_END DIFFERENCE-->
+</div>
