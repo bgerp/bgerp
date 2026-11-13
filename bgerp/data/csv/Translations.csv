@@ -16656,3 +16656,7 @@ en,Тагове на документите от онлайн магазина,T
 en,"Ако не искате разпределение по сконто: изчистете разпределението и махнете отстъпката от РБД-то","If you do not want a cash discount allocation: clear the allocation and remove the discount from the outgoing bank document"
 en,"Условия към продажба (EN)","Sale conditions (EN)"
 en,"Условия към покупка (EN)","Purchase conditions (EN)"
+en,"Параметри на групи","Group parameters"
+en,"Предефиниране","Override"
+en,"Предефиниране на стойността","Override the value"
+en,"Параметърът не може да се задава за групи","The parameter cannot be set for groups"

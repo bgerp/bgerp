@@ -32,8 +32,12 @@
             <!--ET_BEGIN sysId-->
             <div style="margin-bottom:2px"><span class="quiet">System Id: </span> [#sysId#]</div>
             <!--ET_END sysId-->
+        </fieldset>
+        <!--ET_BEGIN PARAMS-->
+        <fieldset class="detail-info">
             [#PARAMS#]
         </fieldset>
+        <!--ET_END PARAMS-->
         <!--ET_BEGIN notes-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Бележки|*</legend>
