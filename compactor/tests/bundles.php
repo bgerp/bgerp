@@ -30,6 +30,14 @@ class core_Sbf
 {
     /** Връща изолирания SBF път. */
     public static function getSbfFilePath($file) { return EF_SBF_PATH . '/' . $file; }
+    /** Изолира същото атомарно записване за сборния файл. */
+    public static function saveFile_($content, $path, $full)
+    {
+        if (!is_dir(dirname($path)) && !core_Os::forceDir(dirname($path))) return false;
+        $tmp = $path . '.tmp';
+        if (file_put_contents($tmp, $content) === false) return false;
+        return rename($tmp, $path);
+    }
 }
 class core_Os
 {
@@ -70,6 +78,11 @@ function verifyBundle($condition, $message)
     $GLOBALS['checks']++;
 }
 require dirname(__DIR__) . '/Plugin.class.php';
+if (isset($argv[1])) {
+    $baseline = file_get_contents($argv[1]);
+    $baseline = str_replace('class compactor_Plugin', 'class BaselineCompactorPlugin', $baseline);
+    eval(substr($baseline, 5));
+}
 class TestCompactor extends compactor_Plugin
 {
     /** Излага CSS преобразуването само за теста. */
@@ -90,8 +103,24 @@ try {
     verifyBundle($first !== $second && $first !== $reverse, 'same mtime must not collide');
     $bundle = file_get_contents($directory . '/' . reset($first));
     verifyBundle(strpos($bundle, "var calls = []\n;\n(function") !== false, 'JS expression boundary');
+    if (class_exists('BaselineCompactorPlugin', false)) {
+        $previous = (new BaselineCompactorPlugin())->compactFiles(array('a.js'), array('a.js', 'b.js'), $directory . '/js');
+        verifyBundle(file_get_contents($directory . '/' . reset($previous)) === $bundle, 'same JS output as the baseline');
+    }
     verifyBundle(strpos(ltrim($bundle), '"use strict";') === 0, 'keep the first script directive prologue');
     verifyBundle($first === $compactor->compactFiles(array('a.js'), array('a.js', 'b.js'), $directory . '/js'), 'stable cache key');
+    $firstPath = $directory . '/' . reset($first);
+    unlink($firstPath);
+    touch($directory . '/a.js', 1800000000);
+    touch($directory . '/b.js', 1800000001);
+    clearstatcache();
+    verifyBundle($first === $compactor->compactFiles(array('a.js'), array('a.js', 'b.js'), $directory . '/js'), 'recreated SBF copies retain the bundle URL');
+    verifyBundle(file_get_contents($firstPath) === $bundle, 'recreated bundle retains its bytes');
+    file_put_contents($directory . '/a.js', '"use strict"; var changed = 1');
+    touch($directory . '/a.js', 1800000000);
+    $changed = $compactor->compactFiles(array('a.js'), array('a.js', 'b.js'), $directory . '/js');
+    verifyBundle($changed !== $first, 'changed content changes URL even with unchanged mtime');
+    verifyBundle(file_get_contents($firstPath) === $bundle, 'new content preserves the old bundle');
     $script = (object) array('src' => 'https://example.invalid/jquery.js', 'integrity' => 'synthetic', 'fallbackScript' => 'synthetic');
     $files = array($script, 'a.js');
     verifyBundle($compactor->compactFiles($files, array('a.js'), $directory . '/js') === $files, 'preserve script objects and order');
@@ -102,6 +131,13 @@ try {
     file_put_contents($directory . '/images/icon.svg', '<svg/>');
     $css = 'a{background:url( "../images/icon.svg?v=1#mark" )}';
     verifyBundle($compactor->rewrite($css, $directory . '/css/app.css') === 'a{background:url( "/sbf/images/icon.svg?v=1#mark" )}', 'CSS query/fragment and whitespace');
+    if (class_exists('BaselineCompactorPlugin', false)) {
+        file_put_contents($directory . '/style.css', $css);
+        $callback = array($compactor, 'rewrite');
+        $currentCss = $compactor->compactFiles(array('style.css'), array('style.css'), $directory . '/css', $callback);
+        $previousCss = (new BaselineCompactorPlugin())->compactFiles(array('style.css'), array('style.css'), $directory . '/css', $callback);
+        verifyBundle(file_get_contents($directory . '/' . reset($currentCss)) === file_get_contents($directory . '/' . reset($previousCss)), 'same rewritten CSS output as the baseline');
+    }
     foreach (array('data:image/png;base64,ABC', 'https://example.invalid/x/../a.png', '//example.invalid/a.png', '/root/a.png', '#mask', 'missing.png') as $url) {
         $css = 'a{background:url("' . $url . '")}';
         verifyBundle($compactor->rewrite($css, $directory . '/css/app.css') === $css, 'preserve external, embedded or missing URL');

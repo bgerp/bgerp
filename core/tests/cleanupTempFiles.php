@@ -102,6 +102,12 @@ define('EF_SBF_PATH', ($nestedSbf ? EF_TEMP_PATH : $base) . '/sbf "fixture"');
 define('FILEMAN_TEMP_PATH', $base . '/fileman');
 define('FCONV_TEMP_PATH', $base . '/fconv & <fixture>');
 define('THUMB_IMG_PATH', $base . '/thumb');
+class core_Mvc {}
+function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
+define('EF_INDEX_PATH', $base);
+define('EF_SBF', 'sbf');
+define('EF_APP_NAME', 'fixture');
+require dirname(__DIR__) . '/Sbf.class.php';
 foreach (array(EF_TEMP_PATH, EF_SBF_PATH, FILEMAN_TEMP_PATH, FCONV_TEMP_PATH, THUMB_IMG_PATH) as $path) {
     if (!is_dir($path)) {
         mkdir($path, 0700, true);
@@ -112,6 +118,7 @@ mkdir($work);
 $age = 10 * 86400;
 $old = time() - 11 * 86400;
 $recent = time() - 3600;
+$sbfOld = time() - core_Sbf::CACHE_MAX_AGE - 2 * 86400;
 
 try {
     if ($tempInSbf) {
@@ -119,7 +126,7 @@ try {
         cleanupFile(EF_TEMP_PATH . '/old', $old, $old);
         mkdir(EF_SBF_PATH . '/public');
         cleanupFile(EF_SBF_PATH . '/public/.htaccess', $old, $old);
-        cleanupFile(EF_SBF_PATH . '/public/old', $old, $old);
+        cleanupFile(EF_SBF_PATH . '/public/old', $sbfOld, $sbfOld);
         core_Os::cron_clearOldFiles();
         cleanupCheck(file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress'), 'SBF traversal also preserves the main setup marker');
         cleanupCheck(file_exists(EF_SBF_PATH . '/public/.htaccess'), 'SBF traversal preserves nested web-server configuration');
@@ -132,7 +139,7 @@ try {
     if ($nestedSbf) {
         foreach (array('public', '_keep', 'part_keep') as $name) {
             mkdir(EF_SBF_PATH . '/' . $name);
-            cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $old, $old);
+            cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $sbfOld, $sbfOld);
         }
         mkdir(EF_SBF_PATH . '-sibling');
         cleanupFile(EF_SBF_PATH . '-sibling/old', $old, $old);
@@ -394,15 +401,19 @@ try {
     cleanupCheck(!file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress.old'), 'The setup marker exclusion matches the exact filename');
     foreach (array('first', 'second', '_keep') as $name) {
         mkdir(EF_SBF_PATH . '/' . $name);
-        cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $old, $old);
+        cleanupFile(EF_SBF_PATH . '/' . $name . '/old', $sbfOld, $sbfOld);
     }
-    cleanupFile(EF_SBF_PATH . '/second/another', $old, $old);
+    cleanupFile(EF_SBF_PATH . '/second/another', $sbfOld, $sbfOld);
+    cleanupFile(EF_SBF_PATH . '/second/cached.js', $old, $old);
+    cleanupFile(EF_SBF_PATH . '/second/recently-used.js', $sbfOld, $recent);
     cleanupLink($base . '/outside', EF_SBF_PATH . '/linked', $old);
     $report = core_Os::cron_clearOldFiles();
     cleanupCheck(strpos($report, '3 файла от ' . htmlspecialchars(EF_SBF_PATH, ENT_QUOTES, 'UTF-8')) !== false, 'Sum deletions across sbf subdirectories with an HTML-escaped path');
     cleanupCheck(strpos($report, EF_SBF_PATH) === false, 'Escape quotes in the sbf path in the cron report');
     cleanupCheck(strpos($report, htmlspecialchars(EF_TEMP_PATH, ENT_QUOTES, 'UTF-8')) === false, 'Do not report tmp deletions from an earlier run');
     cleanupCheck(file_exists(EF_SBF_PATH . '/_keep/old'), 'Preserve excluded sbf directories');
+    cleanupCheck(file_exists(EF_SBF_PATH . '/second/cached.js'), 'Preserve versions within the browser cache lifetime even without filesystem access');
+    cleanupCheck(file_exists(EF_SBF_PATH . '/second/recently-used.js'), 'Preserve old versions still referenced by newly generated HTML');
     cleanupCheck(file_exists($base . '/outside/old'), 'Preserve targets of sbf directory links');
 
     cleanupFixtures(EF_SBF_PATH);

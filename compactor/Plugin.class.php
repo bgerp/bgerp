@@ -80,15 +80,12 @@ class compactor_Plugin extends core_Plugin
             return $filesArr;
         }
         
-        // Имената и редът също участват, защото различни файлове могат да имат еднакво mtime.
+        // Съдържанието и редът дават същия адрес и след пресъздаване на SBF копията.
         $cacheFiles = array();
         $originalFiles = $filesArr;
         
-        // Масив с пътищата до файловете за обединение
-        $contentFilePathsArr = array();
-        
-        // Акумолатор за сборното съдържание на всички файлове
-        $content = '';
+        $extension = '';
+        $compacted = '';
         
         foreach ($configFilesArr as $file) {
             
@@ -111,53 +108,37 @@ class compactor_Plugin extends core_Plugin
                 
                 log_System::add('compactor_Plugin', 'Липсващ файл: ' . $file, null, 'warning');
                 
-                continue;
+                return $originalFiles;
             }
             
-            $cacheFiles[] = array($sbfFilePath, filemtime($sbfFilePath), filesize($sbfFilePath));
+            $content = @file_get_contents($sbfFilePath);
+            if ($content === false) {
+                return $originalFiles;
+            }
+            if ($callback) {
+                $content = call_user_func($callback, $content, $sbfFilePath);
+            }
+            if ($extension === '') {
+                $extension = pathinfo($sbfFilePath, PATHINFO_EXTENSION);
+            }
+            // Нов ред сам по себе си не разделя JS израз и следващ IIFE.
+            $compacted .= ($extension === 'js' && $cacheFiles ? "\n;\n" : "\n") . $content;
+            $cacheFiles[] = array($file, hash('sha256', $content));
             if (isset($filesArr[$file])) {
                 unset($filesArr[$file]);
             }
-            $contentFilePathsArr[] = $sbfFilePath;
         }
-        if (!$contentFilePathsArr) {
+        if (!$cacheFiles) {
             return $originalFiles;
         }
-        $extension = pathinfo($contentFilePathsArr[0], PATHINFO_EXTENSION);
         
         $compactFilePath = $baseDir . '/' . md5(serialize($cacheFiles)) . '.' . $extension;
         
         $compactFile = str_replace(EF_SBF_PATH . '/', '', $compactFilePath);
         array_unshift($filesArr, $compactFile);
         
-        $force = false;
-        
-        // Ако файлът е компактиран преди един ден - регенерирам го
-        if (file_exists($compactFilePath)) {
-            $cFileTime = @filemtime($compactFilePath);
-            if ($cFileTime) {
-                $cBeforeSec = dt::mysql2timestamp() - $cFileTime;
-                if ($cBeforeSec > 86400) {
-                    $force = true;
-                }
-            }
-        }
-        
-        if ($force || !file_exists($compactFilePath)) {
-            // Подготвяме сбора на съдържанието на всички файлове
-            $compacted = '';
-            foreach ($contentFilePathsArr as $index => $filePath) {
-                $content = @file_get_contents($filePath);
-                if ($content === false) return $originalFiles;
-                if ($callback) {
-                    $content = call_user_func($callback, $content, $filePath);
-                }
-                // Нов ред сам по себе си не разделя JS израз и следващ IIFE.
-                $compacted .= ($extension === 'js' && $index > 0 ? "\n;\n" : "\n") . $content;
-            }
-            
-            if ((!is_dir($baseDir) && !core_Os::forceDir($baseDir))
-                || @file_put_contents($compactFilePath, $compacted) === false) {
+        if (!file_exists($compactFilePath)) {
+            if (!core_Sbf::saveFile_($compacted, $compactFilePath, true)) {
                 return $originalFiles;
             }
         }
@@ -166,6 +147,24 @@ class compactor_Plugin extends core_Plugin
     }
     
     
+    /**
+     * Пресъздава липсващ сборен файл само ако конфигурацията дава същата версия.
+     */
+    public static function restoreFile($name)
+    {
+        if (!preg_match('~^(css|js)/[a-f0-9]{32}\.(css|js)\z~', $name, $matches) || $matches[1] !== $matches[2]) {
+            return false;
+        }
+        $ext = $matches[1];
+        $conf = core_Packs::getConfig('compactor');
+        $files = $ext === 'css' ? ($conf->COMPACTOR_CSS_FILES ?? '') : ($conf->COMPACTOR_JS_FILES ?? '');
+        $plugin = cls::get('compactor_Plugin');
+        $callback = $ext === 'css' ? array($plugin, 'changePaths') : null;
+        $result = $plugin->compactFiles($files, $files, EF_SBF_PATH . '/' . $ext, $callback);
+        return in_array($name, $result, true) && is_file(EF_SBF_PATH . '/' . $name) ? EF_SBF_PATH . '/' . $name : false;
+    }
+
+
     /**
      * Преобразуват локоалните линкове от съдържанието в абсолютни
      *
