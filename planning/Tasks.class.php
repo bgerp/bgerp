@@ -2754,6 +2754,26 @@ JS
             $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
         }
 
+        if (Mode::is('planningTasksAnalyzeListSummary')) {
+            core_Debug::stopTimer('RENDER_SUMMARY');
+            $sql = $query->buildQuery();
+            $querySha256 = hash('sha256', $sql);
+            if ($querySha256 !== '01616d49ba0b68b4d06307ce264a6004b938a3b835c8cdca8e7e7a77e736693a') {
+                return array('querySha256' => $querySha256, 'error' => 'Заявката се различава от записаната в двата дебъга.');
+            }
+
+            // MariaDB изпълнява SELECT-а и връща измеренията по стъпки.
+            $startedAt = hrtime(true);
+            $dbRes = $this->db->query('ANALYZE FORMAT=JSON ' . $sql);
+            $queryTimeMs = (hrtime(true) - $startedAt) / 1000000;
+            $row = $this->db->fetchArray($dbRes, MYSQLI_NUM);
+            $this->db->freeResult($dbRes);
+            $profile = json_decode($row[0] ?? '', true);
+            expect(isset($profile['query_block']), 'Липсва профил от ANALYZE FORMAT=JSON');
+
+            return array('querySha256' => $querySha256, 'queryTimeMs' => $queryTimeMs, 'profile' => $profile);
+        }
+
         $counts = array_fill_keys(array_keys($states), 0);
         $quantities = array();
         while ($rec = $query->fetch(null, true)) {
@@ -2837,6 +2857,42 @@ JS
         $tpl->append('</table></div>');
 
         return $tpl;
+    }
+
+
+    /**
+     * Временен профил на статистиката при „Всички от 01.01.2023“
+     */
+    public function act_AnalyzeListSummary()
+    {
+        requireRole('debug');
+        $this->requireRightFor('list');
+
+        $filters = array_fill_keys(array_keys(self::getPersistentListFilterFields()), '');
+        $filters['state'] = 'all';
+        $filters['selectPeriod'] = 'gr0';
+        $filters['from'] = '01.01.2023';
+        $filters['filterDateField'] = 'expectedTimeStart';
+        $filters['folders'] = array('select2' => '1');
+        $filters['isFinalSelect'] = 'all';
+        $filters['Rejected'] = '';
+        $filters['Cmd'] = array('default' => '1');
+
+        Request::push($filters, 'planningTasksAnalyzeFilters');
+        Mode::push('preserveUserChoices', true);
+        Mode::push('planningTasksAnalyzeListSummary', true);
+        try {
+            $data = (object) array('action' => 'list', 'query' => $this->getQuery());
+            $this->prepareListFields($data);
+            $this->prepareListFilter($data);
+            $profile = $this->prepareListSummary_($data);
+        } finally {
+            Mode::pop('planningTasksAnalyzeListSummary');
+            Mode::pop('preserveUserChoices');
+            Request::pop('planningTasksAnalyzeFilters');
+        }
+
+        core_App::outputJson($profile);
     }
 
 
