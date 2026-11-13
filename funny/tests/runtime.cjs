@@ -365,7 +365,7 @@ check('every character has a sprite and a distinct, short sound signature', () =
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
     const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
-    const christmas=['sleigh','elf','snowmaiden','deer','snowman','spiders'], winter=['snowman','casper','spiders'];
+    const christmas=['sleigh','elf','snowmaiden','deer','snowman','present','spiders'], winter=['snowman','casper','present','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
     const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
@@ -1747,10 +1747,10 @@ check('new wolf poses clear on inactive pages and reduced motion',()=>{
 });
 
 check('seasonal actors dominate whole groups, guests remain possible and manual choices stay uniform',()=>{
-    const fixtures=[['2026-01-20',['snowman','casper']],['2026-03-01',['martenitsa','stork']],
+    const fixtures=[['2026-01-20',['snowman','casper','present']],['2026-03-01',['martenitsa','stork']],
         ['2026-04-12',['bunny','chick','butterfly']],['2026-07-01',['butterfly','firefly','mosquito']],
         ['2026-10-30',['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp']],
-        ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman']]];
+        ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman','present']]];
     for(const [date,seasonal] of fixtures) {
         const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00'});
         let primary=0, guests=0, first=0;
@@ -1792,6 +1792,31 @@ check('gremlin clicks add one copy with a cooldown, preserve notification silenc
         assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
         e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
     }
+});
+check('a winter present creeps slowly, ignores hovering and pops into ten gremlins when clicked or tapped anywhere on it',()=>{
+    for(const variant of ['click','tap','gentle']) {
+        const e=environment({mode:'selected',characters:['present'],trigger:'manual',sound:'no',strength:variant==='gentle'?'gentle':'normal'},{coarse:variant==='tap'});
+        if(variant==='tap') e.touch(500,400),e.tick(100),e.touch(500,400); else e.click();
+        e.tick(700);
+        const present=e.visitors()[0];assert(present.className.includes('funny-present'));assert.equal(parseFloat(present.style.width),200);
+        const start=e.center(present);e.tick(10000);const moved=e.center(present);
+        assert(Math.hypot(moved.x-start.x,moved.y-start.y)<=70,'present moves very slowly');
+        e.document.emit('pointermove',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'));
+        const hit=e.event({target:present,clientX:moved.x+80,clientY:moved.y+60});
+        e.document.emit('pointerdown',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'),'a click on the page below does not pop it');
+        if(variant==='tap') {e.document.emit('pointerdown',Object.assign({},hit,{pointerType:'touch'}));e.tick(50);e.document.emit('pointerup',Object.assign({},hit,{pointerType:'touch'}));}
+        else {e.document.emit('pointerdown',hit);e.document.emit('dblclick',hit);}
+        assert(present.className.includes('funny-leaving'));
+        const imps=e.visitors().filter(v=>v.className.includes('funny-imp'));assert.equal(imps.length,variant==='gentle'?5:10);
+        assert(e.visitors().every(v=>v===present||v.className.includes('funny-imp')),'the double click does not summon another group');
+        const starts=imps.map(e.center);assert(starts.every(q=>Math.hypot(q.x-starts[0].x,q.y-starts[0].y)<1),'gremlins leave one point');
+        e.tick(800);const spots=imps.map(e.center);
+        assert(Math.max(...spots.map(a=>Math.max(...spots.map(b=>Math.hypot(a.x-b.x,a.y-b.y)))))>350,'gremlins scatter across the screen');assert(!e.document.body.children.includes(present));
+        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+    const e=environment({mode:'selected',characters:['present'],trigger:'manual',sound:'no'});e.click();e.tick(700);
+    const present=e.visitors()[0];e.tick(51000,100);assert(!e.document.body.children.includes(present));
+    assert(!present.className.includes('funny-leaving'));assert(present.className.includes('funny-present-fading'));
 });
 check('gremlins ignore controls, modified clicks and touch scrolling; a short blank tap splits once',()=>{
     for(const action of ['control','right','modified','scroll','hold','cancel','tap']) {

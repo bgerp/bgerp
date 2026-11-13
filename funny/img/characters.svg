@@ -501,4 +501,17 @@
     </g>
     <path d="M0 0Q60 9 120 0" fill="none" stroke="#e8e4f0" stroke-width=".7"/>
   </symbol>
+  <symbol id="present" viewBox="0 0 120 100">
+    <rect x="22" y="44" width="76" height="52" rx="4" fill="#c8414f" stroke="#8f2a37" stroke-width="2"/>
+    <rect x="22" y="47" width="76" height="5" fill="#5a1c25"/>
+    <circle cx="35" cy="49.5" r="2" fill="#b8f06a"/><circle cx="43" cy="49.5" r="2" fill="#b8f06a"/>
+    <circle cx="34" cy="68" r="2.5" fill="#f6dfe2"/><circle cx="84" cy="62" r="2.5" fill="#f6dfe2"/><circle cx="40" cy="86" r="2.5" fill="#f6dfe2"/><circle cx="80" cy="86" r="2.5" fill="#f6dfe2"/>
+    <rect x="53" y="44" width="14" height="52" fill="#f2c45a"/>
+    <rect x="22" y="66" width="76" height="10" fill="#f2c45a"/>
+    <rect x="16" y="32" width="88" height="16" rx="3" fill="#d9505f" stroke="#8f2a37" stroke-width="2"/>
+    <rect x="53" y="32" width="14" height="16" fill="#f2c45a"/>
+    <path d="M58 33l-9 15m13-15 9 15" stroke="#e7b445" stroke-width="4" stroke-linecap="round"/>
+    <path d="M60 31C46 12 28 16 37 29c4 6 14 4 23 2zM60 31C74 12 92 16 83 29c-4 6-14 4-23 2z" fill="#f2c45a" stroke="#c8932d" stroke-width="2"/>
+    <circle cx="60" cy="31" r="5.5" fill="#e7b445" stroke="#c8932d" stroke-width="2"/>
+  </symbol>
 </svg>

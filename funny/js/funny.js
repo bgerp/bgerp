@@ -28,7 +28,7 @@
             var bursts = [], restorations = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
-            var IMP_LIMIT = 50;
+            var IMP_LIMIT = 50, PRESENT_IMPS = 10;
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
             var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
@@ -115,7 +115,7 @@
                     return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < 0.2; });
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse', 'present'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -123,8 +123,8 @@
             function seasonalCharacters(now) {
                 var month = now.getMonth() + 1, day = now.getDate();
                 if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher', 'imp'];
-                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
-                if (month <= 2) return ['snowman', 'casper'];
+                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman', 'present'];
+                if (month <= 2) return ['snowman', 'casper', 'present'];
                 var easter = options.easterDates && options.easterDates[now.getFullYear()];
                 if (easter) {
                     var today = Date.UTC(now.getFullYear(), month - 1, day);
@@ -267,6 +267,7 @@
                     startle: {notes: [740, 440], duration: 0.1, spacing: 0.08, pitch: 0.6, wave: 'sine', volume: 0.35},
                     hiccup: {notes: [180], duration: 0.16, spacing: 0, pitch: 1.8, wave: 'triangle', volume: 0.35},
                     imp: {notes: [988, 1175, 1319, 1175], duration: 0.07, spacing: 0.08, pitch: 1.2, wave: 'triangle'},
+                    present: {notes: [1319, 1568, 2093], duration: 0.12, spacing: 0.13, pitch: 1, wave: 'sine', volume: 0.6},
                     burp: {notes: [120, 95], duration: 0.3, spacing: 0.22, pitch: 0.6, wave: 'sawtooth', low: true},
                     snowman: {notes: [523, 784], duration: 0.26, spacing: 0.22, pitch: 1, wave: 'sine'},
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
@@ -483,10 +484,24 @@
                 return true;
             }
 
+            /** The present takes its own clicks, so it pops over text and controls as well. */
+            function openPresent(event) {
+                if (!active() || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return false;
+                var now = performance.now();
+                var present = visitors.filter(function (v) { return v.character === 'present' && !v.leaving && v.node === event.target; })[0];
+                if (!present) return false;
+                catchVisitor(present, true);
+                // All gremlins leave through the bow on the lid.
+                var origin = {x:present.x,y:present.y - present.height * 0.2,silent:present.silent,deadline:now + 60000};
+                for (var i = 0; i < (gentle ? PRESENT_IMPS / 2 : PRESENT_IMPS); i++) show('present', true, 'imp', origin);
+                if (!present.silent) playSound('imp');
+                return true;
+            }
+
             function catchVisitor(v, force) {
                 if (!active() || v.leaving) return;
-                // Gremlins need an explicit click even at the cap; hovering must not undo the last split.
-                if (v.character === 'imp' && !force) return;
+                // Gremlins and presents need an explicit click; hovering must not undo the last split.
+                if ((v.character === 'imp' || v.character === 'present') && !force) return;
                 v.leaving = performance.now();
                 releaseThread(v);
                 caughtCount++;
@@ -538,7 +553,7 @@
 
             /** Accessories use the same hourly snapshot as the page's weather effects. */
             function dress(v) {
-                if (v.insect || v.leaving) return;
+                if (v.insect || v.leaving || v.character === 'present') return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
                 if (v.sunHide) kind = '';
                 if (v.outfit === kind) return;
@@ -817,7 +832,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',wolf:'dust',imp:'star',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',wolf:'dust',imp:'star',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star',present:'confetti'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -881,13 +896,16 @@
 
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
-                if (!active() || visitors.length >= visitorLimit() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
+                // The present's family may exceed the area limit, but never the gremlin cap.
+                if (!active() || (reason !== 'present' && visitors.length >= visitorLimit()) || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
                 var visitsElements = insect || feeds || character === 'spiders' || character === 'mouse';
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'present' ? 200 : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
                 // A split copy jumps right beside its original, which is under the pointer that clicked it
-                var destination = reason === 'copy' ? {x: clamp(origin.x + random(-1.2, 1.2) * width, width / 2 + 20, window.innerWidth - width / 2 - 20),
+                // Gremlins from a present scatter across the whole screen at once.
+                var destination = reason === 'present' ? {x: random(width / 2 + 20, window.innerWidth - width / 2 - 20), y: random(height / 2 + 20, window.innerHeight - height / 2 - 20)} :
+                    reason === 'copy' ? {x: clamp(origin.x + random(-1.2, 1.2) * width, width / 2 + 20, window.innerWidth - width / 2 - 20),
                     y: clamp(origin.y + random(-1.2, 1.2) * height, height / 2 + 20, window.innerHeight - height / 2 - 20)} : safePosition(width, height, reason === 'manual' ? null : origin);
                 if (!destination) return false;
                 if (timer) {
@@ -917,8 +935,21 @@
                 if (character === 'imp') {
                     visitor.deadline = origin.deadline || now + 60000;
                     visitor.rainSplitAfter = now + random(12000, 18000);
-                    if (reason === 'copy') visitor.silent = !!origin.silent;
+                    if (reason === 'copy' || reason === 'present') visitor.silent = !!origin.silent;
                     if (reason === 'copy' && origin.rain) node.setAttribute('data-rain-born', 'true');
+                }
+                if (character === 'present') {
+                    visitor.lifetime = random(40000, 50000);
+                    visitor.greeted = true;
+                    var drift = random(0, Math.PI * 2);
+                    visitor.wander = {x:Math.cos(drift),y:Math.sin(drift)};
+                    var sparkles = document.createElement('div'); sparkles.className = 'funny-present-sparkles';
+                    [[8,20],[86,30],[18,72],[78,78],[50,8],[48,55]].forEach(function (p, i) {
+                        var star = document.createElement('i');
+                        star.style.left = p[0] + '%'; star.style.top = p[1] + '%'; star.style.animationDelay = (i * 0.27) + 's';
+                        sparkles.appendChild(star);
+                    });
+                    node.appendChild(sparkles);
                 }
                 if (character === 'spiders') {
                     // A vertical entry must not pass through the stationary pointer.
@@ -1043,7 +1074,7 @@
 
             /** Encounters never override escape, departure or the pointer's personal space. */
             function availableForEncounter(v, now, clearance) {
-                return visitors.indexOf(v) >= 0 && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
                     now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > (clearance === undefined ? 120 : clearance);
             }
 
@@ -1827,6 +1858,8 @@
                     v.x = v.from.x + (v.destination.x - v.from.x) * ease;
                     v.y = v.from.y + (v.destination.y - v.from.y) * ease;
                     if (progress === 1) { v.launched = false; v.node.setAttribute('data-rain-born', ''); }
+                } else if (v.character === 'present' && !v.leaving) {
+                    drawPresent(v, elapsed, delta);
                 } else if (!v.leaving) {
                     // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
                     if (v.character === 'imp' && now >= v.rainSplitAfter) {
@@ -1886,6 +1919,21 @@
                         return;
                     }
                 }
+            }
+
+            /** The present only creeps across the page and fades out at the end, without fleeing or encounters. */
+            function drawPresent(v, elapsed, delta) {
+                if (elapsed >= v.lifetime) {
+                    v.leaving = performance.now(); v.leaveDuration = 600;
+                    v.node.classList.add('funny-present-fading');
+                    return;
+                }
+                var marginX = v.width / 2 + 20, marginY = v.height / 2 + 20;
+                if (v.x < marginX) v.wander.x = Math.abs(v.wander.x);
+                if (v.x > window.innerWidth - marginX) v.wander.x = -Math.abs(v.wander.x);
+                if (v.y < marginY) v.wander.y = Math.abs(v.wander.y);
+                if (v.y > window.innerHeight - marginY) v.wander.y = -Math.abs(v.wander.y);
+                v.x += v.wander.x * 6 * delta; v.y += v.wander.y * 6 * delta;
             }
 
             /** Curious visitors turn away after seeing the pointer; cats circle it and reach with a paw. */
@@ -2179,6 +2227,7 @@
             }
 
             function blankDoubleClick(event) {
+                if (visitors.some(function (v) { return v.node === event.target; })) return;
                 if (!active() || performance.now() - lastTouch < 800 || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return;
                 movePointer(event);
                 summon('manual');
@@ -2189,6 +2238,7 @@
                 var start = touchStart;
                 touchStart = null;
                 lastTouch = performance.now();
+                if (openPresent(event)) { lastTap = null; return; }
                 if (!active() || lastTouch - start.time > 350 || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 12 || !isBlank(event.target)) {
                     lastTap = null;
                     return;
@@ -2238,7 +2288,7 @@
             document.addEventListener('pointerdown', function (event) {
                 hidePeek();
                 retreatMunchers(event);
-                if (event.pointerType !== 'touch') splitImp(event);
+                if (event.pointerType !== 'touch' && !openPresent(event)) splitImp(event);
                 if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
                 else movePointer(event);
                 unlockSound();
