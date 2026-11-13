@@ -1000,40 +1000,6 @@ class acc_CostAllocations extends core_Manager
     
     
     /**
-     * Кои са последно модифицираните контейнери
-     *
-     * @param datetime $timeline     - времева линия след който ще се филтрират документите
-     * @param array    $containerIds - само измежду тези контейнери [containerId => docClass]
-     */
-    private static function getLastModifiedContainers($timeline, $containerIds)
-    {
-        $containers = array();
-
-        // Кои документи ще се проверяват дали са променяни
-        $documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
-
-        foreach ($documents as $docName) {
-            $Doc = cls::get($docName);
-            $docContainerIds = array_keys($containerIds, $Doc->getClassId());
-
-            // На порции - при дълъг IN списък MySQL не ползва индекса и сканира цялата таблица
-            foreach (array_chunk($docContainerIds, 1000) as $chunk) {
-                $dQuery = $Doc->getQuery();
-                if(!empty($timeline)){
-                    $dQuery->where("#modifiedOn >= '{$timeline}'");
-                }
-                $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
-                $dQuery->in('containerId', $chunk);
-                $dQuery->show('containerId');
-                $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');
-            }
-        }
-        
-        return $containers;
-    }
-    
-    
-    /**
      * Заявката към записите от модела, чиито документи са променяни след $timeline
      *
      * @param datetime $timeline - времева линия след който ще се филтрират документите
@@ -1043,30 +1009,18 @@ class acc_CostAllocations extends core_Manager
      */
     public static function getIndicatorQuery($timeline)
     {
-        $timeline = '';
         $eQuery = self::getQuery();
         $eQuery->EXT('expenseClassId', 'acc_Items', 'externalName=classId,externalKey=expenseItemId');
         $eQuery->EXT('expenseObjectId', 'acc_Items', 'externalName=objectId,externalKey=expenseItemId');
         $eQuery->where('#expenseClassId = ' . sales_Sales::getClassId());
 
-        // Проверяват се само документите с разпределени разходи към продажба, а не всички
-        $cQuery = clone $eQuery;
-        $cQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
-        $cQuery->show('containerId,docClass');
-        $cQuery->groupBy('containerId');
-        $candidates = array();
-        while ($cRec = $cQuery->fetch()) {
-            $candidates[$cRec->containerId] = $cRec->docClass;
-        }
+        // Класът и състоянието на документа се взимат от контейнера, без дълги IN списъци
+        $eQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+        $eQuery->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
+        $eQuery->in('docClass', array_map(function ($docName) { return cls::get($docName)->getClassId(); }, $documents));
+        $eQuery->notIn('docState', array('draft', 'pending', 'stopped'));
 
-        $containers = countR($candidates) ? self::getLastModifiedContainers($timeline, $candidates) : array();
-        if (!countR($containers)) {
-            
-            return self::getQuery();
-        }
-        
-        $eQuery->in('containerId', $containers);
-        
         return $eQuery;
     }
     
