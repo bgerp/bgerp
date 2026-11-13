@@ -201,9 +201,18 @@ class core_Sbf extends core_Mvc
     {
         $file = getFullPath($name);
 
-        // Кеширан HTML може да сочи към изтрито sbf копие - сервираме оригинала без времевия суфикс
-        if (!$file && ($sourceName = self::getSourceName($name))) {
-            $file = getFullPath($sourceName);
+        // Кеширан HTML може да сочи към изтрито sbf копие - търсим оригинала без времевия суфикс
+        if (!$file && ($sourceName = self::getSourceName($name)) && ($sourceFile = getFullPath($sourceName))) {
+            $canonical = basename(self::getSbfFilePath_($sourceName));
+            if ($canonical === basename($name)) {
+                $file = $sourceFile;
+            } else {
+                // Чужд суфикс - пренасочваме към текущото име, без да записваме нов файл на диска
+                $dir = dirname($name);
+                $target = ($dir == '.' ? '' : $dir . '/') . $canonical;
+                header('Location: ' . core_App::getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $target, true, 302);
+                core_App::shutdown(false);
+            }
         }
 
         // Грешка. Файла липсва
