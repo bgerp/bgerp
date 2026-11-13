@@ -62,7 +62,7 @@ class cls {
     public static function isSubclass($o, $c) { return is_a($o, $c); }
 }
 $root = dirname(__DIR__, 2);
-foreach (array('core/BaseClass', 'core/Array', 'core/String', 'core/Type', 'core/FieldSet', 'core/Mvc', 'core/Manager', 'core/Master', 'embed/Manager', 'type/Keylist', 'type/Text', 'type/Int') as $file) {
+foreach (array('core/BaseClass', 'core/Array', 'core/String', 'core/Type', 'core/FieldSet', 'core/Mvc', 'core/Manager', 'core/Master', 'embed/Manager', 'type/Keylist', 'type/Keylist2', 'type/UserList', 'type/Users', 'type/Treelist', 'type/Text', 'type/Int') as $file) {
     require $root . '/' . $file . '.class.php';
 }
 class_alias('core_Array', 'arr');
@@ -158,6 +158,26 @@ function testRow($id, $f, $input, $expanded, $encoded) {
 }
 function lastSql($m) { return end($m->db->sql); }
 
+// The inherited hidden transport also keeps keylist2's array-based input contract.
+foreach (array(new type_Keylist(), new type_Keylist2(), new type_UserList(), new type_Treelist()) as $type) {
+    foreach (array(null, '', '|10|', '|10|30|') as $value) {
+        $request = array();
+        parse_str(http_build_query(array('tags' => $type->toHidden($value))), $request);
+        check(type_Keylist::toArray($type->fromVerbal($request['tags'] ?? null)) == type_Keylist::toArray($value), 'Keylist and keylist2 hidden input round trip without ExpandInput');
+    }
+}
+
+class ExpandUsersType extends type_Users {
+    public function prepareOptions($value = null) { $this->options = array('team_10' => (object) array('keylist' => '|10|30|')); }
+}
+$usersType = new ExpandUsersType();
+foreach (array(null, '', '|10|', '|10|30|', 'team_10') as $value) {
+    $request = array();
+    parse_str(http_build_query(array('users' => $usersType->toHidden($value))), $request);
+    check(!is_array($usersType->toHidden($value)), 'Users keeps its scalar hidden input contract');
+    check($usersType->fromVerbal($request['users'] ?? null) === $usersType->fromVerbal($value), 'Users hidden keylist or team survives the request unchanged');
+}
+
 // Actual field definitions, framework visibility selection and every native write entry point.
 foreach (array('groups', 'groupList', 'tags') as $f) {
     foreach (array(null, 'hidden', 'none') as $visibility) {
@@ -173,6 +193,13 @@ foreach (array('groups', 'groupList', 'tags') as $f) {
     check($m->getField($f . '36', false) !== null, 'Create fulltext even with predeclared input');
     check($m->getField($f . 'Input')->caption === 'Existing', 'Preserve existing input metadata');
     check($m->getField($f . 'Input')->input === 'hidden', 'Preserve predeclared hidden input');
+    $hiddenType = $m->getFieldType($f . 'Input');
+    foreach (array('|30|', '|20|30|', '') as $hiddenValue) {
+        $request = array();
+        parse_str(http_build_query(array($f . 'Input' => $hiddenType->toHidden($hiddenValue))), $request);
+        $roundTrip = $hiddenType->fromVerbal($request[$f . 'Input'] ?? null);
+        check(type_Keylist::toArray($roundTrip) == type_Keylist::toArray($hiddenValue), 'Hidden keylist survives HTML request decoding');
+    }
     $form = new core_FieldSet();
     $m->setExpandInputField($form, $f . 'Input', $f);
     check($form->getField($f . 'Input')->caption === 'Existing', 'Separate form uses the predeclared input caption');
@@ -212,8 +239,27 @@ foreach (array('groups', 'groupList', 'tags') as $f) {
     $m->invoke('AfterRead', array(&$read));
     check($read->{$f . 'Input'} === '|30|', 'Legacy groups are available to forms before backfill');
     $read->{$f . 'Input'} = '';
+    $m->_expandInput36Ready = true;
     $m->invoke('AfterRead', array(&$read));
-    check($read->{$f . 'Input'} === '', 'Explicitly empty input is preserved');
+    check($read->{$f . 'Input'} === '', 'Empty input after completed initialization is preserved');
+    $m->_expandInput36Ready = false;
+    $m->invoke('AfterRead', array(&$read));
+    check($read->{$f . 'Input'} === '|30|', 'New empty-string input preserves legacy groups before initialization');
+    $m->save($read);
+    check($read->$f === '|20|30|', 'Editing another field before initialization retains legacy groups');
+    $read->{$f . 'Input'} = '';
+    $m->save($read, $f . 'Input');
+    check($read->$f === '' && $read->{$f . '36'} === '', 'Explicitly clearing the input still clears groups while initialization is pending');
+    $r = testRow(1, $f, '|30|', '|30|', 'stale');
+    $m->save($r, array('state' => true, $f . 'Input' => true));
+    check(strpos(lastSql($m), '`state`') !== false && $r->{$f . '36'} === '00kz 00uz', 'Normal save accepts associative field masks');
+
+    $m->setParams($f, array('notNull' => true, 'value' => '|30|'));
+    $r = (object) array('id' => 1, $f => null);
+    $m->save_($r, $f);
+    check($r->{$f . '36'} === '00uz', 'Direct save encodes the effective NOT NULL default');
+    $m->saveArray(array($r), 'id,' . $f);
+    check($r->{$f . '36'} === '00uz', 'Bulk save encodes the effective NOT NULL default');
 
     $fieldset = new core_FieldSet();
     $fieldset->fields = array($f => $m->getField($f), $f . '36' => $m->getField($f . '36'));
@@ -250,6 +296,9 @@ class ExpandCountryQuery {
 class crm_Groups { public static function force($path) { return 40; } }
 $m = new ExpandFixture('groupList');
 $m->fixExpandFieldOnSetup = false;
+$m->countryFieldName = 'country';
+$m->groupFieldName = 'groupListInput';
+$m->FLD('country', 'int');
 $m->addTestPlugin(new crm_ContragentGroupsPlg());
 $m->rows = array(1 => testRow(1, 'groupList', '|10|', '|10|20|40|', 'stale'));
 $m->rows[1]->country = 1;
@@ -259,6 +308,18 @@ check($m->rows[1]->groupListInput === '|10|', 'CRM input is not polluted by auto
 $read = testRow(1, 'groupList', null, '|20|40|', null);
 $m->invoke('AfterRead', array(&$read));
 check($read->groupListInput === null, 'Disabled input initialization remains disabled in forms');
+$r = (object) array('id' => 1, 'state' => 'active');
+$m->save($r, 'state');
+check(strpos(lastSql($m), 'group_list_input') === false, 'Partial CRM state save does not erase manual groups');
+$r = (object) array('id' => 1, 'country' => 1);
+$m->save($r, 'country');
+check($r->groupListInput === '|10|' && $r->groupList === '|10|20|40|' && $r->groupList36 === '00az 00kz 015z', 'Country-only CRM save loads manual groups and rebuilds derived fields');
+$r = (object) array('id' => 1, 'country' => null);
+$m->save($r, 'country');
+check($r->groupListInput === '|10|' && $r->groupList === '|10|' && $r->groupList36 === '00az', 'Clearing the country retains manual groups and removes automatic ones');
+$r = (object) array('id' => 1, 'state' => 'active');
+$m->save($r);
+check($r->groupListInput === '|10|' && $r->groupList === '|10|20|40|', 'Sparse full CRM save retains manual and automatic groups');
 
 // Repeated setup never reads business records, including an already populated table.
 $m = new ExpandFixture();

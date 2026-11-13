@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -642,6 +642,15 @@ class type_Keylist extends core_Type
     }
     
     
+    /**
+     * Скритият вход използва същия масив от ключове като видимия избор.
+     */
+    public function toHidden($value)
+    {
+        return self::toArray($value);
+    }
+
+
     /**
      * Преобразува от масив с индекси ключовете към keylist
      *

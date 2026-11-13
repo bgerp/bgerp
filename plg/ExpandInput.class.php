@@ -52,8 +52,7 @@ class plg_ExpandInput extends core_Plugin
     {
         $inputName = $mvc->expandInputFieldName ?? 'expandInput';
         $expandName = $mvc->expandFieldName ?? 'expand';
-        if (($mvc->fixExpandFieldOnSetup ?? true) !== false && property_exists($rec, $inputName) &&
-            $rec->{$inputName} === null && !empty($rec->{$expandName})) {
+        if (property_exists($rec, $inputName) && self::needsLegacyInput($mvc, $rec->{$inputName}, $rec->{$expandName} ?? null)) {
             $rec->{$inputName} = $rec->{$expandName};
         }
     }
@@ -147,7 +146,7 @@ class plg_ExpandInput extends core_Plugin
                 $fieldsArr[$expandName] = $expandName;
                 $fieldsArr[$inputFieldName] = $inputFieldName;
                 $fieldsArr[$expand36Name] = $expand36Name;
-                $fields = implode(',', $fieldsArr);
+                $fields = implode(',', array_keys($fieldsArr));
                 $mustSave = true;
             }
         }
@@ -158,8 +157,9 @@ class plg_ExpandInput extends core_Plugin
                 if (!empty($rec->id)) {
                     $rec->{$inputFieldName} = $mvc->fetchField($rec->id, $inputFieldName, false);
                     // Новодобавеното входно поле може още да чака фоновото попълване.
-                    if ($rec->{$inputFieldName} === null && ($mvc->fixExpandFieldOnSetup ?? true) !== false) {
-                        $rec->{$inputFieldName} = $rec->{$expandName} ?? $mvc->fetchField($rec->id, $expandName, false);
+                    if (empty($rec->{$inputFieldName}) && ($mvc->fixExpandFieldOnSetup ?? true) !== false) {
+                        $expanded = $rec->{$expandName} ?? $mvc->fetchField($rec->id, $expandName, false);
+                        if (self::needsLegacyInput($mvc, $rec->{$inputFieldName}, $expanded)) $rec->{$inputFieldName} = $expanded;
                     }
                 } else {
                     $rec->{$inputFieldName} = $rec->{$expandName} ?? null;
@@ -192,8 +192,11 @@ class plg_ExpandInput extends core_Plugin
         }
 
         $expand36Name = $mvc->getExpandFieldName36();
+        $field = $mvc->getField($expandName);
         $expanded = $rec->{$expandName} ?? null;
-        $rec->{$expand36Name} = $expanded === null ? null : $mvc->getFieldType($expandName)->fromArray36(type_Keylist::toArray($expanded));
+        // toMysql заменя NULL с default при NOT NULL поле.
+        if ($expanded === null && !empty($field->notNull)) $expanded = $field->value ?? '';
+        $rec->{$expand36Name} = $expanded === null ? null : $field->type->fromArray36(type_Keylist::toArray($expanded));
         $fields[$expand36Name] = $expand36Name;
     }
 
@@ -299,6 +302,30 @@ class plg_ExpandInput extends core_Plugin
 
 
     /**
+     * Проверява готовността веднъж за модела в текущата заявка.
+     */
+    private static function isIndexReady($mvc)
+    {
+        if (!isset($mvc->_expandInput36Ready)) {
+            $mvc->_expandInput36Ready = core_Permanent::get(self::getSetupKey($mvc)) === 'done';
+        }
+
+        return $mvc->_expandInput36Ready;
+    }
+
+
+    /**
+     * Ново NOT NULL входно поле може да има празен низ вместо NULL при старите записи.
+     */
+    private static function needsLegacyInput($mvc, $input, $expanded)
+    {
+        if (($mvc->fixExpandFieldOnSetup ?? true) === false || empty($expanded)) return false;
+
+        return $input === null || ($input === '' && !self::isIndexReady($mvc));
+    }
+
+
+    /**
      * Инициализацията не обхожда таблицата; незавършена обработка продължава от последния id.
      */
     public static function scheduleRebuild($mvc)
@@ -348,7 +375,7 @@ class plg_ExpandInput extends core_Plugin
                 // За всеки запис се гледа има ли промени при разпънатите полета
                 $oldVal = $rec->{$expandName} ?? null;
                 $oldInput = $input = $rec->{$inputName} ?? null;
-                if ($input === null && ($mvc->fixExpandFieldOnSetup ?? true) !== false) $input = $oldVal;
+                if (self::needsLegacyInput($mvc, $input, $oldVal)) $input = $oldVal;
                 $inputArr = type_Keylist::toArray($input);
                 $resArr = $mvc->expandInput($inputArr, $rec);
                 $expandField = $mvc->getField($expandName);
@@ -509,13 +536,11 @@ class plg_ExpandInput extends core_Plugin
         // Обръщане на стойностите в масив
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
         $useFullTextSearch = bgerp_Setup::get('USE_FULLTEXT_GROUP_SEARCH');
-        if (!isset($mvc->_expandInput36Ready)) {
-            $mvc->_expandInput36Ready = core_Permanent::get(self::getSetupKey($mvc)) === 'done';
-        }
+        $indexReady = $useFullTextSearch != 'no' && self::isIndexReady($mvc);
 
         // Ако е избрано обикновенното търсене, то става с LOCATE в полето $mvc->expandFieldName
         // Празният MATCH има постоянен резултат и не зависи от попълването на индекса.
-        if($useFullTextSearch == 'no' || (!$mvc->_expandInput36Ready && countR($valueArr))){
+        if($useFullTextSearch == 'no' || (!$indexReady && countR($valueArr))){
             $expandName = $mvc->expandFieldName ?? 'expand';
 
             // Ако в заявката го няма полето, то се очаква да има външен ключ и се добавя към заявката

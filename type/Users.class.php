@@ -473,6 +473,15 @@ class type_Users extends type_Keylist
         
         return $this->options[$value]->keylist;
     }
+
+
+    /**
+     * За разлика от keylist този избор приема скаларна стойност, включително когато е скрит.
+     */
+    public function toHidden($value)
+    {
+        return $value;
+    }
     
     
     /**
