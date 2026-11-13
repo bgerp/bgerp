@@ -429,6 +429,8 @@ class cat_GroupParams extends cat_products_ProtoParams
         if (!empty($pRec->innerClass) && cls::load($pRec->innerClass, true) && (cls::get($pRec->innerClass)->inheritGroupParams ?? true) === false) return array();
 
         $groups = !empty($pRec->groupsInput) ? $pRec->groupsInput : ($pRec->groups ?? '');
+        // Разширенията на групите могат да добавят съвместими стари членства.
+        cls::get('cat_Groups')->invoke('AfterResolveProductParamGroups', array(&$groups, $pRec));
 
         return static::getParamRecsByGroups(keylist::toArray($groups));
     }
