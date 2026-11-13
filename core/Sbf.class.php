@@ -24,6 +24,12 @@ class core_Sbf extends core_Mvc
     const CACHE_MAX_AGE = 31536000;
 
 
+    /**
+     * Обработено съдържание само за текущата заявка, когато записът му е невъзможен.
+     */
+    private static $memoryFiles = array();
+
+
     public static function convertUrlToPath($url)
     {
         list($first, $last) = explode('/' . EF_SBF . '/' . EF_APP_NAME . '/', $url);
@@ -36,31 +42,32 @@ class core_Sbf extends core_Mvc
     /**
      * Записва посоченото съдържание на указания път
      * Връща FALSE при грешка или пълния път до новозаписания файл
+     * При $allowMemoryFallback връща пътя и за съдържание, запазено само в паметта.
      */
-    public static function saveFile_($content, $path, $isFullPath = false)
+    public static function saveFile_($content, $path, $isFullPath = false, $allowMemoryFallback = false)
     {
         if (!$isFullPath) {
             $path = EF_SBF_PATH . '/' . $path;
         }
         
-        // Ако директорията не съществува
-        if (!is_dir($dir = dirname($path))) {
-            
-            // Създаваме директория
-            if (!core_Os::forceDir($dir)) {
-                
-                return false;
+        $dir = dirname($path);
+        if (is_dir($dir) || core_Os::forceDir($dir)) {
+            // През временен файл, за да не се сервира/кешира наполовина записан файл при паралелни заявки
+            $tmpPath = $path . '.' . getmypid() . '_' . mt_rand() . '.tmp';
+            if (@file_put_contents($tmpPath, $content) !== false && @rename($tmpPath, $path)) {
+                unset(self::$memoryFiles[$path]);
+                usleep(1000);
+
+                return $path;
             }
+            @unlink($tmpPath);
         }
-        
-        // През временен файл, за да не се сервира/кешира наполовина записан файл при паралелни заявки
-        $tmpPath = $path . '.' . getmypid() . '_' . mt_rand() . '.tmp';
-        if (@file_put_contents($tmpPath, $content) !== false && @rename($tmpPath, $path)) {
-            usleep(1000);
-            
+        if ($allowMemoryFallback) {
+            // BeforeSaveFile плъгините вече са обработили съдържанието.
+            self::$memoryFiles[$path] = $content;
+
             return $path;
         }
-        @unlink($tmpPath);
         
         return false;
     }
@@ -135,7 +142,7 @@ class core_Sbf extends core_Mvc
         if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath[0] != '_') {
             
             // Ако файла не съществува в SBF
-            if (!file_exists($sbfPath)) {
+            if (!file_exists($sbfPath) && !isset(self::$memoryFiles[$sbfPath])) {
                 if (getFullPath($rPath)) {
                     $content = getFileContent($rPath);
                     
@@ -212,7 +219,7 @@ class core_Sbf extends core_Mvc
     /**
      * Възстановява само генерирания от приложението адрес и запазва старите налични версии.
      *
-     * @return array Файл с MIME тип, пренасочване или HTTP грешка
+     * @return array Файл или съдържание с MIME тип, пренасочване или HTTP грешка
      */
     public static function resolveStaticFile($name)
     {
@@ -272,7 +279,7 @@ class core_Sbf extends core_Mvc
                 $url = self::getUrl($sourceName, '');
                 $file = self::convertUrlToPath($url);
                 $hasCopy = is_file($file);
-                if (!$hasCopy && (!$original || !is_file($original))) {
+                if (!$hasCopy && !isset(self::$memoryFiles[$file]) && (!$original || !is_file($original))) {
                     return $missing;
                 }
                 $currentName = substr($file, strlen(EF_SBF_PATH) + 1);
@@ -282,6 +289,9 @@ class core_Sbf extends core_Mvc
                     return array('status' => 302, 'url' => $url);
                 }
                 if (!$hasCopy) {
+                    if (isset(self::$memoryFiles[$file])) {
+                        return array('status' => 200, 'content' => self::$memoryFiles[$file], 'mime' => $mime, 'immutable' => false);
+                    }
                     // При отказ на запис getUrl() връща оригиналното име; сервираме го без immutable кеш.
                     return array('status' => 200, 'file' => $original, 'mime' => $mime, 'immutable' => false);
                 }
@@ -301,7 +311,7 @@ class core_Sbf extends core_Mvc
     {
         $result = self::resolveStaticFile($name);
         $status = $result['status'];
-        $content = $status === 200 ? @file_get_contents($result['file']) : false;
+        $content = $status === 200 ? ($result['content'] ?? @file_get_contents($result['file'])) : false;
         if ($status === 200 && $content === false) {
             $status = 404;
         }

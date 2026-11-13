@@ -69,7 +69,12 @@ class sass_Setup {
     public static function get($key) { return $key === 'VERSION' ? self::$version : 'yes'; }
 }
 class sass_Converter {
-    public static function convert($path, $output) { return '/* compiled */ body { color: red; }'; }
+    public static $content = '/* compiled */ body { color: red; }';
+    public static $error;
+    public static function convert($path, $output) {
+        if (self::$error) throw self::$error;
+        return self::$content;
+    }
 }
 class minify_Css {
     public static function process($content) { return str_replace('/* compiled */ ', '', $content); }
@@ -214,6 +219,62 @@ try {
     checkSbf($info['status'] === 302 && $info['url'] !== '/sbf/fixture/blocked/main.js', 'resume normal versioned URLs when writes recover');
     $info = core_Sbf::resolveStaticFile(sbfName(core_Sbf::convertUrlToPath($info['url'])));
     checkSbf($info['status'] === 200 && $info['immutable'] && file_get_contents($info['file']) === 'window.privateLoaded = true;', 'recovered writes still use minify and private source precedence');
+
+    writeSbfSource('source/atomic/main.css', 'body { color: blue; }');
+    $atomicPath = core_Sbf::getSbfPathByTime('atomic/main.css', 1700000000);
+    mkdir($atomicPath, 0755, true);
+    checkSbf(core_Sbf::saveFile_('body{}', $atomicPath, true) === false, 'ordinary callers still receive false when atomic rename fails');
+    checkSbf(core_Sbf::saveFile_('body{}', $atomicPath, true, true) === $atomicPath, 'explicit memory fallback also handles a failed atomic rename');
+    $info = core_Sbf::resolveStaticFile(sbfName($atomicPath));
+    checkSbf(($info['content'] ?? null) === 'body{}' && !$info['immutable'], 'serve the memory fallback after an atomic rename failure');
+    checkSbf(!glob($atomicPath . '.*.tmp'), 'failed atomic writes leave no temporary files');
+    rmdir($atomicPath);
+    checkSbf(core_Sbf::saveFile_('', $atomicPath, true) === $atomicPath, 'ordinary writes recover without enabling memory fallback');
+    $info = core_Sbf::resolveStaticFile(sbfName($atomicPath));
+    checkSbf($info['status'] === 200 && !isset($info['content']) && file_get_contents($info['file']) === '', 'persisted content takes precedence over an earlier memory fallback');
+
+    foreach (array('1.13.0', '2.1.0') as $version) {
+        sass_Setup::$version = $version;
+        foreach (array('existing-css', 'missing-css', 'empty-css', 'zero-css') as $case) {
+            $dir = 'sass-blocked-' . str_replace('.', '-', $version) . '-' . $case;
+            $source = $dir . '/main.css';
+            writeSbfSource('source/' . $dir . '/main.scss', '$color: red;');
+            if ($case !== 'missing-css') writeSbfSource('source/' . $source, '/* retained legacy CSS */');
+            writeSbfSource('sbf/fixture/' . $dir, 'not a directory');
+            sass_Converter::$content = $case === 'empty-css' ? '' : ($case === 'zero-css' ? '0' : '/* compiled */ body { color: red; }');
+            $expected = str_replace('/* compiled */ ', '', sass_Converter::$content);
+            $canonical = substr(sbfName(core_Sbf::getSbfPathByTime($source, 1700000000)), 0, -4) . '_scssphp' . str_replace('.', '_', $version) . '.css';
+            $url = '/sbf/fixture/' . $canonical;
+            checkSbf(core_Sbf::getUrl($source, '') === $url, 'SASS rendering retains its versioned URL when cache writes fail');
+            $info = core_Sbf::resolveStaticFile($canonical);
+            checkSbf($info['status'] === 200 && ($info['content'] ?? null) === $expected, 'serve compiled and minified SASS from memory including empty and zero CSS');
+            checkSbf(!$info['immutable'] && !is_file(EF_SBF_PATH . '/' . $canonical), 'in-memory SASS does not claim a persisted immutable copy');
+            ob_start();
+            core_Sbf::serveStaticFile($canonical);
+            checkSbf(ob_get_clean() === $expected, 'serve in-memory CSS bytes through the HTTP handler');
+            foreach (array($source, preg_replace('/_[0-9]{10}_/', '_0101000000_', $canonical), str_replace('_scssphp' . str_replace('.', '_', $version), '_scssphp9_9_9', $canonical)) as $alias) {
+                $info = core_Sbf::resolveStaticFile($alias);
+                checkSbf($info['status'] === 302 && $info['url'] === $url, 'SASS aliases redirect to the current compiler and source version');
+            }
+            checkSbf($case === 'missing-css' ? !getFullPath($source) : getFileContent($source) === '/* retained legacy CSS */', 'do not create or overwrite legacy CSS during fallback');
+            unlink(EF_SBF_PATH . '/' . $dir);
+            $info = core_Sbf::resolveStaticFile($canonical);
+            checkSbf($info['status'] === 200 && $info['immutable'] && file_get_contents($info['file']) === $expected, 'SASS persists the same bytes and resumes immutable caching when writes recover');
+        }
+    }
+    sass_Converter::$content = '/* compiled */ body { color: red; }';
+    writeSbfSource('source/sass-invalid/main.scss', 'invalid fixture');
+    writeSbfSource('source/sass-invalid/main.css', '/* retained legacy CSS */');
+    writeSbfSource('sbf/fixture/sass-invalid', 'not a directory');
+    sass_Converter::$error = new RuntimeException('Compilation failed');
+    $compilationFailed = false;
+    try {
+        core_Sbf::resolveStaticFile('sass-invalid/main.css');
+    } catch (RuntimeException $e) {
+        $compilationFailed = $e === sass_Converter::$error;
+    }
+    sass_Converter::$error = null;
+    checkSbf($compilationFailed, 'do not hide compilation errors behind the old CSS source');
     echo "PASS: {$checks} SBF recovery checks on PHP " . PHP_VERSION . "\n";
 } finally {
     removeSbfFixtures(TEST_ROOT);
