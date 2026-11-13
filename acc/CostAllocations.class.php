@@ -1021,6 +1021,9 @@ class acc_CostAllocations extends core_Manager
         $eQuery->in('docClass', array_map(function ($docName) { return cls::get($docName)->getClassId(); }, $documents));
         $eQuery->notIn('docState', array('draft', 'pending', 'stopped'));
 
+        // Само полетата нужни за показателя - без данните за разпределението
+        $eQuery->show('containerId,detailClassId,detailRecId,expenseClassId,expenseObjectId');
+
         return $eQuery;
     }
     
