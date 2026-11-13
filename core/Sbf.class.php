@@ -174,6 +174,24 @@ class core_Sbf extends core_Mvc
     
     
     /**
+     * Връща пътя до изходния файл на sbf копие, като маха времевия суфикс от getSbfPathByTime()
+     *
+     * @param string $name Път в sbf, напр. img/menu_0829142525.png
+     *
+     * @return string|null Напр. img/menu.png или null, ако името няма времеви суфикс
+     */
+    public static function getSourceName($name)
+    {
+        if (preg_match('/^(.*[^\/])_[0-9]{10}(\.[a-z0-9]+)$/i', (string) $name, $m)) {
+
+            return $m[1] . $m[2];
+        }
+
+        return null;
+    }
+
+
+    /**
      * Функция, която проверява и ако се изисква, сервира
      * браузърно съдържание html, css, img ...
      *
@@ -182,8 +200,12 @@ class core_Sbf extends core_Mvc
     public static function serveStaticFile($name)
     {
         $file = getFullPath($name);
-        
-        
+
+        // Кеширан HTML може да сочи към изтрито sbf копие - сервираме оригинала без времевия суфикс
+        if (!$file && ($sourceName = self::getSourceName($name))) {
+            $file = getFullPath($sourceName);
+        }
+
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
