@@ -290,6 +290,12 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Натрупани планирани количества по мерки при подготовка на обобщението
+     */
+    private $plannedQuantitiesByMeasure;
+
+
+    /**
      * Дали при печат да може да се избира да се печата С/без фирмена бланка
      */
     public $allowPrintingWithoutBlank = true;
@@ -808,6 +814,105 @@ class planning_Jobs extends core_Master
         $type = Request::get('type', 'enum(manifacture,disassembly)');
 
         return !empty($type) ? $type : 'manifacture';
+    }
+
+
+    /**
+     * Започва сумиране в съществуващото обхождане за статистиката
+     */
+    protected static function on_BeforePrepareListSummary($mvc, &$res, &$data)
+    {
+        unset($data->plannedQuantitySummary);
+        $mvc->plannedQuantitiesByMeasure = Request::get('Rejected') ? null : array();
+    }
+
+
+    /**
+     * Натрупва количеството в мярката, в която се показва заданието
+     */
+    protected static function on_AfterFillSummaryRec($mvc, $res, &$rec, &$summaryFields)
+    {
+        if (!isset($mvc->plannedQuantitiesByMeasure)) {
+            return;
+        }
+
+        $measureId = $rec->packagingId ?? null;
+        if (!$measureId || !isset($rec->quantity) || ($rec->quantityInPack ?? 0) <= 0) {
+            $mvc->plannedQuantitiesByMeasure = null;
+
+            return;
+        }
+
+        $mvc->plannedQuantitiesByMeasure[$measureId] = ($mvc->plannedQuantitiesByMeasure[$measureId] ?? 0)
+            + $rec->quantity / $rec->quantityInPack;
+    }
+
+
+    /**
+     * Обобщава само еднакви мерки или размерности с обща базова мярка
+     */
+    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        $quantities = $mvc->plannedQuantitiesByMeasure;
+        $mvc->plannedQuantitiesByMeasure = null;
+        if (!$quantities) {
+            return;
+        }
+
+        $total = reset($quantities);
+        $measureId = key($quantities);
+        if (countR($quantities) > 1) {
+            $query = cat_UoM::getQuery();
+            $query->in('id', array_keys($quantities));
+            $units = $query->fetchAll(null, 'type,baseUnitId,baseUnitRatio');
+
+            $total = 0;
+            $measureId = null;
+            foreach ($quantities as $id => $quantity) {
+                $unit = $units[$id] ?? null;
+                if (($unit->type ?? null) != 'uom') {
+                    return;
+                }
+
+                $baseId = $unit->baseUnitId ?: $id;
+                $ratio = $unit->baseUnitId ? $unit->baseUnitRatio : 1;
+                if ($ratio <= 0 || (isset($measureId) && $measureId != $baseId)) {
+                    return;
+                }
+
+                $measureId = $baseId;
+                $total += $quantity * $ratio;
+            }
+        }
+
+        if ($measure = cat_UoM::fetch($measureId)) {
+            $data->plannedQuantitySummary = (object) array('quantity' => $total, 'measure' => cat_UoM::getVerbal($measure, 'shortName'));
+        }
+    }
+
+
+    /**
+     * Добавя реда към стандартната таблица на статистиката
+     */
+    protected static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    {
+        if (!isset($data->plannedQuantitySummary) || !($tpl instanceof core_ET)) {
+            return;
+        }
+
+        $summary = $data->plannedQuantitySummary;
+        $quantityColspan = !empty($data->hasDocumentBeforeEu) ? 3 : 1;
+        $columnSpan = $quantityColspan + 1;
+        $rowTpl = $tpl->getBlock('ROW');
+        $tpl->append("<tr><td colspan='{$columnSpan}' style='padding:0px 3px'><hr style='margin:0.15em 0'></td></tr>", 'ROW');
+        $rowTpl->placeObject((object) array(
+            'caption' => tr('План. колич.'),
+            'quantity' => $mvc->getFieldType('packQuantity')->toVerbal($summary->quantity),
+            'measure' => $summary->measure,
+            'colspan' => $quantityColspan,
+        ));
+        $rowTpl->removeBlocks();
+        $rowTpl->append2Master();
     }
 
 
