@@ -48,6 +48,13 @@
 .funny-present-sparkles i { position: absolute; width: 26px; height: 26px; margin: -13px; background: radial-gradient(circle, #fff 0 18%, #ffe27a 45%, #ffcf3f); clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); animation: funny-present-twinkle 1.6s ease-in-out infinite; }
 .funny-leaving .funny-present-sparkles { display: none; }
 .funny-present-fading { opacity: 0; transition: opacity .6s ease-out; }
+.funny-present-open { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; filter: drop-shadow(0 3px 5px #281e4140); }
+.funny-present-open * { pointer-events: none !important; }
+.funny-present-open svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.funny-present-open .funny-present-lid { position: absolute; inset: 0; transform-origin: 20% 40%; animation: funny-present-lift .45s ease-out forwards; }
+.funny-present-open.funny-portal-closing { animation: funny-present-close .2s ease-in forwards; }
+@keyframes funny-present-lift { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-32%) rotate(-16deg); } }
+@keyframes funny-present-close { from { opacity: 1; } to { opacity: 0; } }
 @keyframes funny-present-rock { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 @keyframes funny-present-glow { 0%,100% { filter: drop-shadow(0 0 6px #ffd75eaa) brightness(1.05); } 50% { filter: drop-shadow(0 0 14px #ffe27a) drop-shadow(0 0 28px #ffcf3f) brightness(1.2) saturate(1.2); } }
 @keyframes funny-present-twinkle { 0%,100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
@@ -352,7 +359,7 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-departing, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-departing, .funny-portal, .funny-present-open, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
     .funny-drained { opacity: revert !important; transition: none !important; }
     .funny-soiled { box-shadow: revert !important; transition: none !important; }

@@ -28,7 +28,7 @@
             var bursts = [], restorations = [], peeker = null, peeked = false, weather = '', weatherAt = -Infinity, wind = {x:0,y:0,speed:0};
             var stats = null, caughtLabel = null, escapedLabel = null, bestLabel = null, caughtCount = 0, escapedCount = 0, bestCount = 0;
             var gentle = options.strength === 'gentle';
-            var IMP_LIMIT = 50, lastPresentOpen = null;
+            var IMP_LIMIT = 50;
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
             var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
@@ -419,11 +419,17 @@
             }
 
             /** Ordinary groups and presents share portal cleanup, including delayed arrivals. */
-            function createPortal(origin) {
+            function createPortal(origin, present) {
                 var node = document.createElement('div');
-                node.className = 'funny-portal';
+                node.className = present ? 'funny-present-open' : 'funny-portal';
                 node.setAttribute('aria-hidden', 'true');
-                node.style.left = origin.x + 'px'; node.style.top = origin.y + 'px';
+                node.style.left = (present ? present.x - present.width / 2 : origin.x) + 'px';
+                node.style.top = (present ? present.y - present.height / 2 : origin.y) + 'px';
+                if (present) {
+                    node.style.width = present.width + 'px'; node.style.height = present.height + 'px';
+                    node.appendChild(sprite('present-open'));
+                    var lid = sprite('present-lid'); lid.setAttribute('class', 'funny-present-lid'); node.appendChild(lid);
+                }
                 document.body.appendChild(node);
                 var portal = {node:node,timers:[]};
                 portals.push(portal);
@@ -507,7 +513,7 @@
                 return true;
             }
 
-            /** Coordinate hits leave underlying links, controls, text and touch scrolling untouched. */
+            /** Double-click coordinate hits leave underlying controls, text and touch scrolling untouched. */
             function openPresent(event) {
                 if (!active() || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return false;
                 var now = performance.now();
@@ -516,27 +522,25 @@
                         Math.abs(v.x - event.clientX) <= v.width / 2 && Math.abs(v.y - event.clientY) <= v.height / 2;
                 })[0];
                 if (!present) return false;
-                var origin = {x:present.x,y:present.y - present.height * 0.2,silent:present.silent,deadline:now + 60000};
-                lastPresentOpen = {x:event.clientX,y:event.clientY,time:now};
+                var origin = {x:present.x,y:present.y - present.height * 0.06,silent:present.silent,deadline:now + 60000};
                 burst(present);
                 removeVisitor(present, false);
                 var count = Math.min(visitorLimit() - visitors.length, gentle ? Math.floor(random(3, 6)) : Math.floor(random(10, 17)));
-                var holiday = christmasCharacters.slice(), delay = 0, portal = createPortal(origin);
+                var holiday = christmasCharacters.slice(), delay = 350, portal = createPortal(origin, present);
                 for (var i = 0; i < count; i++) {
                     // Alternate holiday guests with gremlins; every group with room for two is mixed.
                     var character = i % 3 === 1 ? holiday.splice(Math.floor(random(0, holiday.length)), 1)[0] : 'imp';
                     if (!holiday.length) holiday = christmasCharacters.slice();
-                    if (!i) show('present', true, character, origin);
-                    else {
-                        delay += random(900 / (count - 1), 1800 / (count - 1));
-                        (function (selected) {
-                            portal.timers.push(window.setTimeout(function () {
-                                if (performance.now() - now < 2000) show('present', true, selected, origin);
-                            }, delay));
-                        }(character));
-                    }
+                    if (i) delay += random(650, 900);
+                    (function (selected, due) {
+                        portal.timers.push(window.setTimeout(function () {
+                            // Skip stale arrivals after a stalled tab instead of replaying the queue at once.
+                            if (performance.now() - due < 500) show('present', true, selected, origin);
+                        }, delay));
+                    }(character, now + delay));
                 }
-                closePortal(portal, delay);
+                // The final visitor needs its full launch animation before the open box fades.
+                closePortal(portal, delay + 650);
                 if (!present.silent) playSound('present');
                 return true;
             }
@@ -982,7 +986,6 @@
                     if (reason === 'copy' && origin.rain) node.setAttribute('data-rain-born', 'true');
                 }
                 if (character === 'present') {
-                    visitor.lifetime = random(40000, 50000);
                     visitor.greeted = true;
                     var drift = random(0, Math.PI * 2);
                     visitor.wander = {x:Math.cos(drift),y:Math.sin(drift)};
@@ -2262,9 +2265,8 @@
             }
 
             function blankDoubleClick(event) {
-                if (lastPresentOpen && performance.now() - lastPresentOpen.time < 800 &&
-                    Math.hypot(event.clientX - lastPresentOpen.x, event.clientY - lastPresentOpen.y) < 24) return;
                 if (!active() || performance.now() - lastTouch < 800 || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return;
+                if (openPresent(event)) return;
                 movePointer(event);
                 summon('manual');
             }
@@ -2278,17 +2280,19 @@
                     lastTap = null;
                     return;
                 }
-                if (openPresent(event)) { lastTap = null; return; }
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
+                var doubleTap = lastTap && lastTouch - lastTap.time < 350 && Math.hypot(pointer.x - lastTap.x, pointer.y - lastTap.y) < 24;
+                if (doubleTap && openPresent(event)) { lastTap = null; return; }
                 if (splitImp(event)) { lastTap = null; return; }
                 var caught = touchMarks(pointer.x, pointer.y, pointer.x, pointer.y);
                 visitors.forEach(function (v) {
+                    if (v.character === 'present') return;
                     if ((v.insect || v.feeds) && !v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 30) { catchVisitor(v); caught = true; return; }
                     if (v.perch) { takeOff(v, performance.now()); caught = true; return; }
                     if (!v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 40) { catchVisitor(v); caught = true; }
                 });
-                if (!caught && lastTap && lastTouch - lastTap.time < 350 && Math.hypot(pointer.x - lastTap.x, pointer.y - lastTap.y) < 24) {
+                if (!caught && doubleTap) {
                     summon('manual');
                     lastTap = null;
                 } else lastTap = {x: pointer.x, y: pointer.y, time: lastTouch};
@@ -2324,7 +2328,7 @@
             document.addEventListener('pointerdown', function (event) {
                 hidePeek();
                 retreatMunchers(event);
-                if (event.pointerType !== 'touch' && !openPresent(event)) splitImp(event);
+                if (event.pointerType !== 'touch') splitImp(event);
                 if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
                 else movePointer(event);
                 unlockSound();
