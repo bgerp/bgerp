@@ -243,11 +243,39 @@
                 });
             }
 
+            /** Uneven noise bursts suggest crumpling paper without a tonal beep or a sustained hiss. */
+            function playPaperCrumple() {
+                var duration = 0.55, start = audio.currentTime + 0.025;
+                var buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * duration), audio.sampleRate);
+                var data = buffer.getChannelData(0), envelope = 0, next = 0;
+                var decay = Math.exp(-1 / (audio.sampleRate * 0.009));
+                for (var i = 0; i < data.length; i++) {
+                    if (i >= next) { envelope = random(0.35, 1); next = i + Math.floor(audio.sampleRate * random(0.012, 0.05)); }
+                    data[i] = (Math.random() * 2 - 1) * envelope;
+                    envelope *= decay;
+                }
+                var source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+                source.buffer = buffer;
+                filter.type = 'bandpass'; filter.frequency.value = 1800; filter.Q.value = 0.7;
+                voices.push(gain); gain.gain.value = 0;
+                gain.gain.setValueAtTime(0, start);
+                gain.gain.linearRampToValueAtTime(gentle ? 0.0275 : 0.055, start + 0.025);
+                gain.gain.setValueAtTime(gentle ? 0.0275 : 0.055, start + 0.32);
+                gain.gain.linearRampToValueAtTime(0, start + duration);
+                source.connect(filter); filter.connect(gain); gain.connect(audio.destination);
+                source.start(start); source.stop(start + duration);
+                source.onended = function () {
+                    source.disconnect(); filter.disconnect(); gain.disconnect();
+                    voices = voices.filter(function (item) { return item !== gain; });
+                };
+            }
+
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
                 if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
+                if (character === 'paper') { playPaperCrumple(); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
@@ -437,8 +465,12 @@
             }
 
             /** Keep the opening through the last arrival and allow its closing animation to finish. */
-            function closePortal(portal, delay, duration) {
-                portal.timers.push(window.setTimeout(function () { portal.node.classList.add('funny-portal-closing'); }, delay + 350));
+            function closePortal(portal, delay, duration, sound) {
+                var closingAt = performance.now() + delay + 350;
+                portal.timers.push(window.setTimeout(function () {
+                    portal.node.classList.add('funny-portal-closing');
+                    if (sound && performance.now() - closingAt < 500) playSound(sound);
+                }, delay + 350));
                 portal.timers.push(window.setTimeout(function () { removePortal(portal); }, delay + 350 + (duration || 200)));
             }
 
@@ -540,7 +572,7 @@
                     }(character, now + delay));
                 }
                 // The final visitor needs its full launch animation before the empty box collapses.
-                closePortal(portal, delay + 650, 1000);
+                closePortal(portal, delay + 650, 1000, present.silent ? null : 'paper');
                 if (!present.silent) playSound('present');
                 return true;
             }

@@ -39,12 +39,15 @@ function environment(settings = {}, config = {}) {
     function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}, cancelScheduledValues() {}}; }
     class AudioContext {
         constructor() { this.state = 'running'; this.destination = {}; audio.push(this); }
+        get sampleRate() { return 44100; }
         get currentTime() { return now / 1000; }
         resume() { return Promise.resolve(); }
         close() { this.state = 'closed'; return Promise.resolve(); }
         createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, start:this.startTime, time}); }}; return node; }
         createGain() { return {gain:param(), connect() {}, disconnect() {}}; }
         createBiquadFilter() { return {frequency:param(), Q:param(), connect() {}, disconnect() {}}; }
+        createBuffer(channels, length) { const data=new Float32Array(length); return {getChannelData:()=>data}; }
+        createBufferSource() { return {connect(){},disconnect(){},start(time){this.startTime=time;},stop(time){sounds.push({type:'noise',start:this.startTime,time,buffer:this.buffer});}}; }
     }
     const window = new Target(), document = new Target();
     const storage = config.storage || new Map();
@@ -1918,6 +1921,25 @@ check('present opening uses one short shared cue and notification gifts keep all
         const before=e.sounds.length;e.click({clientX:p.x,clientY:p.y});e.tick(2000);
         assert.equal(e.sounds.length-before,notification?0:3);
         if(notification){e.tick(15000);assert.equal(e.sounds.length,0);}
+    }
+});
+check('paper crumpling sounds once at collapse, respects settings and never queues after interruption or a busy cue',()=>{
+    for(const state of ['normal','scary','gentle','off','notification','blur','hidden','busy','late']) {
+        const {e,present}=presentFixture({scene:true},{sound:state==='off'?'no':state==='scary'?'scary':'yes',strength:state==='gentle'?'gentle':'normal',trigger:state==='notification'?'notification':'manual'});
+        e.tick(2500);const p=e.center(present);e.click({clientX:p.x,clientY:p.y});
+        const box=e.document.body.children.find(n=>n.className==='funny-present-open');assert(box);
+        if(state==='blur')e.window.emit('blur');
+        if(state==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(state==='busy'){e.tick(1800);assert(e.window.funnyScene.cue(1,20000,()=>{},'busy'));}
+        if(state==='late')e.tick(20000,20000);
+        for(let t=0;t<16000;t+=20) {
+            if(!box.className.includes('funny-portal-closing'))assert(!e.sounds.some(s=>s.type==='noise'),'paper starts only with the collapse');
+            e.tick(20);
+        }
+        const paper=e.sounds.filter(s=>s.type==='noise'), audible=['normal','scary','gentle'].includes(state);
+        assert.equal(paper.length,audible?1:0,state);
+        if(audible){assert(Math.abs(paper[0].time-paper[0].start-.55)<.001);const data=paper[0].buffer.getChannelData(0);assert(data.some(v=>Math.abs(v)>.1));assert(data.every(v=>Number.isFinite(v)&&Math.abs(v)<=1));}
+        e.tick(10000);assert.equal(e.sounds.filter(s=>s.type==='noise').length,paper.length,'no deferred replay');
     }
 });
 check('gremlins ignore controls, modified clicks and touch scrolling; a short blank tap splits once',()=>{
