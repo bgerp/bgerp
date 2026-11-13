@@ -90,6 +90,18 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
+     * Ключ на опашката с групите, на чиито артикули да се обновят ключовите думи
+     */
+    protected static $keywordsQueueKey = 'cat_GroupParams|keywordsQueue';
+
+
+    /**
+     * Колко артикула да се обработят наведнъж при обновяване на ключовите думи
+     */
+    protected static $keywordsBatch = 2000;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -612,6 +624,129 @@ class cat_GroupParams extends cat_products_ProtoParams
             }
         }
         static::recalcTransportByGroups($transportGroupIds);
+
+        static::scheduleKeywordsUpdate(array_keys($changed));
+    }
+
+
+    /**
+     * Драйверите, които добавят параметрите в ключовите думи на артикула
+     *
+     * @return array $res - ид-та на класовете, с ключ ид
+     */
+    public static function getKeywordDriverIds()
+    {
+        $res = array();
+        foreach (core_Classes::getOptionsByInterface('cat_ProductDriverIntf') as $classId => $className) {
+            if (cls::load($className, true) && is_a($className, 'cat_GeneralProductDriver', true)) {
+                $res[$classId] = $classId;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Нарежда по разписание обновяване на ключовите думи на артикулите от групите и подгрупите им
+     *
+     * @param array $groupIds - ид-та на групи
+     *
+     * @return void
+     */
+    public static function scheduleKeywordsUpdate($groupIds)
+    {
+        $queue = core_Permanent::get(static::$keywordsQueueKey);
+        $queue = is_array($queue) ? $queue : array('groups' => array(), 'lastId' => 0);
+        $added = false;
+        foreach ($groupIds as $groupId) {
+            $groupId = (int) $groupId;
+            if ($groupId > 0) {
+                $queue['groups'][$groupId] = $groupId;
+                $added = true;
+            }
+        }
+        if (!$added) return;
+
+        // С нови групи артикулите се обхождат отначало
+        $queue['lastId'] = 0;
+        core_Permanent::set(static::$keywordsQueueKey, $queue, 7 * 24 * 60);
+        core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(60));
+    }
+
+
+    /**
+     * Обновява на порции ключовите думи на артикулите от групите в опашката
+     *
+     * @return void
+     */
+    public static function callback_updateKeywords()
+    {
+        $queue = core_Permanent::get(static::$keywordsQueueKey);
+        if (!is_array($queue) || !countR($queue['groups'] ?? null)) return;
+
+        $driverIds = static::getKeywordDriverIds();
+        $conds = array();
+        foreach ($queue['groups'] as $groupId) {
+            $conds[] = "#groups LIKE '%|" . (int) $groupId . "|%'";
+        }
+        $lastId = (int) ($queue['lastId'] ?? 0);
+
+        $Products = cls::get('cat_Products');
+        $Containers = cls::get('doc_Containers');
+        $productClassId = $Products->getClassId();
+        $done = true;
+        if (countR($driverIds)) {
+            $query = cat_Products::getQuery();
+            $query->in('innerClass', $driverIds);
+            $query->where("#id > {$lastId}");
+            $query->where('(' . implode(' OR ', $conds) . ')');
+            $query->orderBy('id', 'ASC');
+            $query->limit(static::$keywordsBatch);
+
+            $maxTime = dt::addSecs(40);
+            $cnt = 0;
+            while ($rec = $query->fetch()) {
+                if (dt::now() >= $maxTime) break;
+                $cnt++;
+                $lastId = $rec->id;
+
+                $keywords = plg_Search::purifyKeywods($Products->getSearchKeywords($rec));
+                if ($keywords != ($rec->searchKeywords ?? null)) {
+                    $rec->searchKeywords = $keywords;
+                    $Products->save_($rec, 'searchKeywords');
+                }
+
+                // Артикулът е документ - търсенето в папките е по ключовите думи на контейнера
+                if (!empty($rec->containerId)) {
+                    $cRec = $Containers->fetch($rec->containerId);
+                    if ($cRec && $cRec->docClass == $productClassId && ($cRec->searchKeywords ?? null) != $keywords) {
+                        $cRec->searchKeywords = $keywords;
+                        $Containers->save_($cRec, 'searchKeywords');
+                    }
+                }
+            }
+            $done = ($cnt < static::$keywordsBatch) && (dt::now() < $maxTime);
+        }
+
+        // Ако междувременно са добавени групи, опашката вече е с тях и започва отначало
+        $current = core_Permanent::get(static::$keywordsQueueKey);
+        if (is_array($current) && countR(array_diff_key($current['groups'] ?? array(), $queue['groups']))) {
+            core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(60));
+
+            return;
+        }
+
+        if ($done) {
+            core_Permanent::remove(static::$keywordsQueueKey);
+            $Products->logDebug('Обновени ключови думи след промяна в параметрите на групите');
+
+            return;
+        }
+
+        $queue['lastId'] = $lastId;
+        core_Permanent::set(static::$keywordsQueueKey, $queue, 7 * 24 * 60);
+        core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(30));
     }
 
 

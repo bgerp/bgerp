@@ -1687,6 +1687,11 @@ class cat_Products extends embed_Manager
             $touchedGroupIds = keylist::toArray($touchedGroups);
             if (countR(array_intersect_key($touchedGroupIds, cat_GroupParams::getMap()['recs']))) {
                 cat_products_ParamIndex::markDirty($productId);
+
+                // Ключовите думи са сметнати преди записа - още със старите групи
+                if (isset(cat_GroupParams::getKeywordDriverIds()[$rec->innerClass ?? $mvc->fetchField($productId, 'innerClass')])) {
+                    plg_Search::forceUpdateKeywords($mvc, $productId);
+                }
             }
 
             // При редакция от формата транспортът се преизчислява по-долу
