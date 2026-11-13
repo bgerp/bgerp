@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   cal
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -515,7 +515,7 @@ class cal_Calendar extends core_Master
                 $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
             
-            if (!$row->event) {
+            if (empty($row->event)) {
                 $row->event = tr('Липсваща връзка') . ' (' . crm_Profiles::createLink($rec->createdBy) . ')';
             }
         }

@@ -4496,7 +4496,15 @@ class cat_Products extends embed_Manager
         
         // Ако има параметър за дефолтни условия. Показва се
         $defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
-        if ($cValue = cat_Products::getParams($rec->id, $defParamName)) {
+        $lg = $lg ?? core_Lg::getCurrent();
+        $cValue = ($lg == 'en') ? cat_Products::getParams($rec->id, "{$defParamName}En") : null;
+
+        // Ако няма условия на английски, остават общите
+        if (empty($cValue)) {
+            $cValue = cat_Products::getParams($rec->id, $defParamName);
+        }
+
+        if (!empty($cValue)) {
             $dConditionArr = str::text2Array($cValue);
             foreach ($dConditionArr as $cText) {
                 $cText = str::replaceUrlsWithLinks($cText);

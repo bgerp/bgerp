@@ -9,7 +9,7 @@
  * @package   core
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -596,7 +596,7 @@ class core_DateTime
             if (preg_match($dPtr . $tPtr, $verbDate, $out)) {
                 $day = $out[1];
                 $month = $out[2];
-                $year = $out[3];
+                $year = $out[3] ?? null;
                 
                 $hours = $out[5] ?? null;
                 $minutes = $out[6] ?? null;
