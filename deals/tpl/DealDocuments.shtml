@@ -27,11 +27,11 @@
             <!--ET_BEGIN DOCUMENT_ROW-->
             <tr class="[#stateClass#]">
                 <td class="centered nowrap">[#date#]</td>
-                <td>[#title#]<!--ET_BEGIN OTHER_THREAD--> <small class="quiet">(|друга нишка|*)</small><!--ET_END OTHER_THREAD--></td>
+                <td class="deal-documents-title">[#title#]</td>
                 <td class="centered nowrap">[#handle#]</td>
                 <td class="aright nowrap">[#delivered#]</td>
-                <td class="aright nowrap">[#settled#]<!--ET_BEGIN NON_CASH--> <small class="quiet">|непарично|*</small><!--ET_END NON_CASH--></td>
-                <td class="aright nowrap deal-documents-invoiced">[#invoiced#]</td>
+                <td class="aright nowrap">[#settled#]</td>
+                <td class="aright nowrap deal-documents-invoiced [#invoiceHintClass#]">[#invoiced#]</td>
             </tr>
             <!--ET_END DOCUMENT_ROW-->
             <!--ET_BEGIN NO_DOCUMENTS-->

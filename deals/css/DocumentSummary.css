@@ -22,8 +22,49 @@
     color: #666;
 }
 
+.deal-documents .deal-documents-line {
+    display: block;
+    line-height: 1.8;
+    white-space: nowrap;
+}
+
+.deal-documents .deal-documents-line .document-handler {
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.deal-documents .deal-documents-note {
+    font-size: 85%;
+}
+
+.deal-documents .deal-documents-title .deal-documents-note {
+    padding-left: 0.75em;
+}
+
+.deal-documents td.deal-documents-invoice-hint {
+    position: relative;
+}
+
+.deal-documents .deal-documents-invoice-hint .textHint {
+    display: block;
+    border-bottom: 0;
+}
+
+.deal-documents .deal-documents-invoice-hint .textHint::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(225deg, #888 50%, transparent 50%) top right / 6px 6px no-repeat;
+    cursor: help;
+}
+
 .deal-documents tr.deal-documents-unposted td,
-.deal-documents tr.deal-documents-unposted a,
-.deal-documents tr.deal-documents-unposted small {
+.deal-documents .deal-documents-unposted,
+.deal-documents .deal-documents-unposted a,
+.deal-documents .deal-documents-unposted small {
     color: #888;
+}
+
+.deal-documents .deal-documents-unposted a[target="_blank"] {
+    color: #888 !important;
 }

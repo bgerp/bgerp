@@ -92,7 +92,12 @@ class deals_DocumentSummary
                     $document['title'] = $Doc->getVerbal($docRec, 'type') ?? $document['title'];
                 }
                 $document['date'] = $docRec->date ?? null;
-                if ($type === 'invoice' && !empty($docRec->number)) {
+                if ($type === 'invoice') {
+                    $document['invoiceContainerId'] = $docRec->containerId ?? null;
+                } elseif (in_array($type, array('dc_note', 'credit_note', 'debit_note'), true)) {
+                    $document['invoiceOriginId'] = $docRec->originId ?? null;
+                }
+                if (!empty($docRec->number)) {
                     $document['invoiceNumber'] = $Doc->getVerbal($docRec, 'number');
                 }
             }
@@ -117,12 +122,52 @@ class deals_DocumentSummary
         usort($rows, static function ($a, $b) {
             return array($a['date'] ?? '9999-12-31', $a['id']) <=> array($b['date'] ?? '9999-12-31', $b['id']);
         });
+        $rows = self::groupInvoiceNotes($rows);
 
         $balance = $isSale ? sales_transaction_Sale::getBlAmount($entries, $rec) : purchase_transaction_Purchase::getBlAmount($entries, $rec);
         $balance = round($balance / $dealRate, 2);
         $difference = $partial ? 0 : round($balance - $sign * ($totals['delivered'] - $totals['settled']), 2);
 
-        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'difference' => $difference);
+        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'difference' => $difference,
+            'dealContainerId' => $rec->containerId ?? null);
+    }
+
+
+    /**
+     * Подрежда известията към видимите фактури, без да размества останалите редове.
+     */
+    private static function groupInvoiceNotes($rows)
+    {
+        $invoices = array();
+        foreach ($rows as $index => $row) {
+            if (!empty($row['invoiceContainerId'])) {
+                $invoices[$row['invoiceContainerId']] = $index;
+            }
+        }
+
+        foreach ($rows as $index => $row) {
+            $invoiceIndex = $invoices[$row['invoiceOriginId'] ?? null] ?? null;
+            if (isset($invoiceIndex) && $rows[$invoiceIndex]['mvc']->className === $row['mvc']->className) {
+                $rows[$invoiceIndex]['invoiceNotes'][] = $row;
+                unset($rows[$index]);
+            }
+        }
+
+        foreach ($invoices as $index) {
+            $invoice = $rows[$index];
+            if (empty($invoice['invoiceNotes']) || !empty($invoice['unpostedState']) || !isset($invoice['invoiced'])) continue;
+
+            $total = $invoice['invoiced'];
+            foreach ($invoice['invoiceNotes'] as $note) {
+                if (!empty($note['unpostedState'])) continue;
+                if (!isset($note['invoiced'])) continue 2;
+
+                $total += $note['invoiced'];
+            }
+            $rows[$index]['invoiceTotalWithNotes'] = round($total, 2);
+        }
+
+        return array_values($rows);
     }
 
 
@@ -305,6 +350,54 @@ class deals_DocumentSummary
 
 
     /**
+     * Подготвя съдържанието на клетките за един документ.
+     */
+    private static function getDocumentCells($document, $amountType, $dateType, $currency, $tabParams)
+    {
+        $Doc = $document['mvc'];
+        $title = tr($document['title']);
+        if (!empty($document['invoiceNumber'])) {
+            $title .= ' № ' . $document['invoiceNumber'];
+        }
+        if ($document['otherThread']) {
+            $title .= ' ' . ht::createElement('small', array('class' => 'quiet'), '(' . tr('друга нишка') . ')');
+        }
+
+        $linkAttr = array('class' => 'document-handler');
+        if (isset($document['state'])) {
+            $linkAttr['class'] .= ' state-' . $document['state'];
+            $linkAttr['title'] = $document['stateTitle'] ?? '';
+        }
+        $id = $document['id'];
+        $url = $Doc->getSingleUrlArray($id);
+        if ($document['otherThread'] || Mode::is('currentExternalTab', 'cms_Profiles')) {
+            $linkAttr['target'] = '_blank';
+            $linkAttr['rel'] = 'noopener';
+        } elseif ($url) {
+            $url += $tabParams;
+        }
+
+        $cells = array(
+            'date' => $dateType->toVerbal($document['date'] ?? null) ?? '',
+            'title' => $title,
+            'handle' => ht::createLink('#' . $Doc->getHandle($id), $url, false, $linkAttr),
+        );
+        foreach (array('delivered', 'settled', 'invoiced') as $field) {
+            $cells[$field] = isset($document[$field]) ? $amountType->toVerbal($document[$field]) : '';
+        }
+        if (isset($document['postedAmount'])) {
+            $hint = tr('Счетоводен ефект') . ': ' . $amountType->toVerbal($document['postedAmount']) . ' ' . $currency;
+            $cells['settled'] = ht::createElement('span', array('title' => $hint), $cells['settled']);
+        }
+        if (!empty($document['nonCash'])) {
+            $cells['settled'] .= ' ' . ht::createElement('small', array('class' => 'quiet'), tr('непарично'));
+        }
+
+        return $cells;
+    }
+
+
+    /**
      * Рендира документите и общите суми във валутата на сделката.
      */
     public static function render($summary)
@@ -314,34 +407,36 @@ class deals_DocumentSummary
         $amountType = core_Type::getByName('double(decimals=2)');
         $dateType = core_Type::getByName('date(format=d.m.Y)');
         $rowTpl = $tpl->getBlock('DOCUMENT_ROW');
+        $currency = $summary['currency'];
+        $dealContainerId = $summary['dealContainerId'] ?? null;
+        $tabParams = $dealContainerId ? array("docTab{$dealContainerId}" => 'DealDocuments') : array();
 
         foreach ($summary['rows'] as $document) {
             $row = clone $rowTpl;
-            $Doc = $document['mvc'];
-            $row->replace($dateType->toVerbal($document['date'] ?? null) ?? '', 'date');
-            $title = tr($document['title']);
-            if (!empty($document['invoiceNumber'])) {
-                $title .= ' № ' . $document['invoiceNumber'];
-            }
-            $row->replace($title, 'title');
+            $notes = $document['invoiceNotes'] ?? array();
+            if ($notes) {
+                $cells = array();
+                foreach (array_merge(array($document), $notes) as $index => $lineDocument) {
+                    $class = 'deal-documents-line';
+                    if ($index > 0) $class .= ' deal-documents-note';
+                    if (!empty($lineDocument['unpostedState'])) $class .= ' deal-documents-unposted';
 
-            $linkAttr = array('ef_icon' => false, 'class' => 'document-handler');
-            if (isset($document['state'])) {
-                $linkAttr['class'] .= ' state-' . $document['state'];
-                $linkAttr['title'] = $document['stateTitle'] ?? '';
-            }
-            $row->replace($Doc->getLink($document['id'], 0, $linkAttr), 'handle');
-            $row->replace(empty($document['unpostedState']) ? '' : 'deal-documents-unposted', 'stateClass');
-            if (!$document['otherThread']) $row->removeBlock('OTHER_THREAD');
-            if (empty($document['nonCash'])) $row->removeBlock('NON_CASH');
-            foreach ($summary['totals'] as $field => $total) {
-                $amount = isset($document[$field]) ? $amountType->toVerbal($document[$field]) : '';
-                if ($field == 'settled' && isset($document['postedAmount'])) {
-                    $hint = tr('Счетоводен ефект') . ': ' . $amountType->toVerbal($document['postedAmount']) . ' ' . $summary['currency'];
-                    $amount = ht::createElement('span', array('title' => $hint), $amount);
+                    foreach (self::getDocumentCells($lineDocument, $amountType, $dateType, $currency, $tabParams) as $field => $value) {
+                        $cells[$field] = ($cells[$field] ?? '') . ht::createElement('span', array('class' => $class), $value ?: '&nbsp;');
+                    }
                 }
-                $row->replace($amount, $field);
+            } else {
+                $cells = self::getDocumentCells($document, $amountType, $dateType, $currency, $tabParams);
             }
+
+            if (isset($document['invoiceTotalWithNotes'])) {
+                $hint = tr('Общо за фактурата с осчетоводените известия') . ': '
+                    . $amountType->toVerbal($document['invoiceTotalWithNotes']) . ' ' . $currency;
+                $cells['invoiced'] = ht::createHint($cells['invoiced'], $hint, 'noicon');
+                $cells['invoiceHintClass'] = 'deal-documents-invoice-hint';
+            }
+            $cells['stateClass'] = !$notes && !empty($document['unpostedState']) ? 'deal-documents-unposted' : '';
+            $row->placeArray($cells);
             $row->append2Master();
         }
 
@@ -351,7 +446,7 @@ class deals_DocumentSummary
         // Отрицателното счетоводно салдо е наше задължение и при покупка, и при продажба.
         $balance = $summary['balance'];
         $tpl->replace(ht::styleNumber($amountType->toVerbal($balance), -$balance, 'green'), 'balance');
-        $tpl->replace($summary['currency'], 'currency');
+        $tpl->replace($currency, 'currency');
         if (!empty($summary['rows'])) $tpl->removeBlock('NO_DOCUMENTS');
         if (!$summary['partial']) $tpl->removeBlock('PARTIAL');
         if ($summary['difference'] != 0) {

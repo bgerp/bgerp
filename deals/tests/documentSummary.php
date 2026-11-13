@@ -135,27 +135,35 @@ testDocument('bank_IncomeDocuments', 40, 1, array('amountDeal' => 25, 'amount' =
 postTestEntry(10, 'bank_IncomeDocuments', 40, '481', '411', 26, null, 10);
 testDocument('bank_SpendingDocuments', 41, 1, array('amountDeal' => 5));
 postTestEntry(10, 'bank_SpendingDocuments', 41, '503', '411', -5, null, 10);
-testDocument('sales_Invoices', 50, 1, array('date' => '2026-03-11', 'dealValue' => 66, 'vatAmount' => 12, 'discountAmount' => 3));
-testDocument('sales_Invoices', 51, 1, array('date' => '2026-03-11', 'type' => 'dc_note', 'dealValue' => -10, 'vatAmount' => -2));
+testDocument('sales_Invoices', 50, 1, array('date' => '2026-03-09', 'type' => 'invoice', 'containerId' => 150, 'dealValue' => 66, 'vatAmount' => 12, 'discountAmount' => 3));
+testDocument('sales_Invoices', 51, 1, array('date' => '2026-03-13', 'type' => 'dc_note', 'originId' => 150, 'dealValue' => -10, 'vatAmount' => -2));
 testDocument('sales_Invoices', 52, 1, array('date' => '2026-03-11', 'dealValue' => 100, 'state' => 'draft'));
 testDocument('bank_IncomeDocuments', 53, 1, array('amountDeal' => 900, 'state' => 'pending'));
 testDocument('store_Receipts', 54, 1, array('amountDelivered' => 250, 'state' => 'draft', 'isReverse' => 'yes'));
+testDocument('sales_Invoices', 55, 1, array('date' => '2026-03-12', 'type' => 'debit_note', 'originId' => 150, 'dealValue' => 7, 'state' => 'draft'));
+testDocument('sales_Invoices', 56, 1, array('date' => '2026-03-08', 'type' => 'credit_note', 'originId' => 999, 'dealValue' => 5));
+testDocument('sales_Invoices', 57, 1, array('date' => '2026-03-14', 'type' => 'dc_note', 'originId' => 150, 'dealValue' => 10, 'vatAmount' => 2));
 
 $summary = deals_DocumentSummary::prepare(new sales_Sales(), $sale);
 $rows = array_column($summary['rows'], null, 'id');
-checkSummary(count($rows), 12, 'Един ред на документ');
+checkSummary(array_keys($rows), array(56, 50, 10, 21, 22, 30, 31, 40, 41, 53, 54, 52), 'Видимите известия са само при фактурата си, а несвързаното остава отделно');
+checkSummary(array_column($rows[50]['invoiceNotes'], 'id'), array(55, 51, 57), 'Известията в реда на фактурата са хронологични');
+checkSummary(array($rows[50]['invoiceTotalWithNotes'], $rows[50]['invoiceNotes'][0]['unpostedState']), array(75, 'draft'), 'Сбор за фактурата с видимите осчетоводени известия');
 checkSummary(array($rows[10]['delivered'], $rows[10]['settled']), array(120, 120), 'Договор с доставка и плащане');
 checkSummary($rows[22]['delivered'], -20, 'Връщане на стока');
 checkSummary(array($rows[30]['settled'], $rows[30]['otherThread'], $rows[30]['nonCash'], $rows[31]['settled']), array(40, true, true, -15), 'Прехвърляне в двете посоки');
 checkSummary(array($rows[40]['settled'], $rows[40]['postedAmount'], $rows[41]['settled']), array(25, 26, -5), 'Платени по сделката и обратно плащане');
-checkSummary(array($rows[50]['invoiced'], $rows[51]['invoiced'], $rows[51]['title']), array(75, -12, 'Кредитно известие'), 'Крайна сума с ДДС и отстъпка');
+checkSummary(array($rows[50]['invoiced'], $rows[50]['invoiceNotes'][1]['invoiced'], $rows[50]['invoiceNotes'][1]['title']), array(75, -12, 'Кредитно известие'), 'Крайна сума с ДДС и отстъпка');
 checkSummary(array($rows[52]['unpostedState'], $rows[52]['invoiced'], $rows[53]['unpostedState'], $rows[53]['settled'], $rows[54]['delivered']), array('draft', 100, 'pending', 900, -250), 'Видими чернови и заявки');
-checkSummary($summary['totals'], array('delivered' => 180, 'settled' => 165, 'invoiced' => 63), 'Общо без чернови и заявки');
+checkSummary($summary['totals'], array('delivered' => 180, 'settled' => 165, 'invoiced' => 70), 'Общо без повторно сумиране на известията и без черновите');
 checkSummary(array($summary['balance'], $summary['difference']), array(14, -1), 'Салдо по журнала и разлика със сбора');
 
 $transfer->restricted = true;
+testDocument('sales_Invoices', 58, 1, array('date' => '2026-03-15', 'type' => 'dc_note', 'originId' => 150, 'dealValue' => 900, 'restricted' => true));
 $summary = deals_DocumentSummary::prepare(new sales_Sales(), $sale);
 checkSummary(array($summary['partial'], $summary['totals']['settled'], $summary['balance']), array(true, 125, 14), 'Скрити документи извън сбора');
+$rows = array_column($summary['rows'], null, 'id');
+checkSummary(array($summary['totals']['invoiced'], $rows[50]['invoiceTotalWithNotes']), array(70, 75), 'Недостъпното известие не участва в общия сбор и в сбора за фактурата');
 
 $purchase = testDocument('purchase_Purchases', 60, 4);
 testDocument('store_Receipts', 61, 4);
