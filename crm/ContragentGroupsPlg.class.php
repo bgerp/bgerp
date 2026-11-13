@@ -117,6 +117,27 @@ class crm_ContragentGroupsPlg extends core_Plugin
 
 
     /**
+     * При преизчисляване се запазват автоматичните групи, които не стоят във входното поле.
+     */
+    public static function on_AfterExpandInput($mvc, &$res, $inputArr, $rec = null)
+    {
+        if (!is_object($rec)) return;
+
+        $countryField = $mvc->countryFieldName ?? 'country';
+        $countryId = property_exists($rec, $countryField) ? $rec->{$countryField} :
+            (!empty($rec->id) ? $mvc->fetchField($rec->id, $countryField) : null);
+        if (!$countryId) return;
+
+        $groupIds = self::getGroupsId();
+        $automatic = array();
+        foreach (drdata_CountryGroups::getGroupsArr($countryId) as $id => $group) {
+            if (!empty($groupIds[$id])) $automatic[$groupIds[$id]] = $groupIds[$id];
+        }
+        $res = ($res ?? array()) + $mvc->expandInput($automatic);
+    }
+
+
+    /**
      * Създава начални шаблони за трудови договори, ако такива няма
      */
     public static function on_AfterSetUpMvc($mvc, &$res)
