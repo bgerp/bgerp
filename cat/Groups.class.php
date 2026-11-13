@@ -291,9 +291,16 @@ class cat_Groups extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        // Нулите се показват с друг стил
+        $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
+        $productCountVerbal = ht::styleNumber($mvc->getFieldType('productCnt')->toVerbal($productCount), $productCount);
+        if (isset($fields['-list'])) {
+            $row->productCnt = $productCountVerbal;
+            $paramCount = $rec->paramCnt ?? 0;
+            $row->paramCnt = ht::styleNumber($mvc->getFieldType('paramCnt')->toVerbal($paramCount), $paramCount);
+        }
+
         if (cat_Products::haveRightFor('list')) {
-            $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
-            $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
 
             // Масив, защото запетаите в името разделят атрибутите от низ
             $linkAttr = array('title' => 'Филтър на|* "' . ($rec->name ?? '') . '"');

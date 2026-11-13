@@ -9,7 +9,7 @@
  * @package   type
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -626,6 +626,11 @@ class type_Keylist extends core_Type
      */
     public function fromVerbal_($value)
     {
+        // Скритите полета изпращат един keylist низ; видимият избор изпраща масив.
+        if (self::isKeylist($value)) {
+            $value = self::toArray($value);
+        }
+
         if (!is_array($value)) {
             
             return;
