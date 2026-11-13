@@ -74,6 +74,15 @@ class core_Sbf extends core_Mvc
     
     
     /**
+     * Връща обработеното съдържание от паметта по пълния SBF път или null, ако липсва.
+     */
+    public static function getMemoryFileContent($path)
+    {
+        return self::$memoryFiles[$path] ?? null;
+    }
+
+
+    /**
      * Връща съответстващия път в sbf на зададен вътрешен път
      */
     public static function getSbfFilePath_($path)

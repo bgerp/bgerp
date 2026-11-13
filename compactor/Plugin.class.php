@@ -99,24 +99,25 @@ class compactor_Plugin extends core_Plugin
             
             sbf($file);
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
-            if (!file_exists($sbfFilePath)) {
+            $memoryContent = file_exists($sbfFilePath) ? null : core_Sbf::getMemoryFileContent($sbfFilePath);
+            if ($memoryContent === null && !file_exists($sbfFilePath)) {
                 sleep(1);
                 Debug::log('Sleep 1 sec. in ' . __CLASS__);
             }
             
-            if (!file_exists($sbfFilePath)) {
+            if ($memoryContent === null && !file_exists($sbfFilePath)) {
                 Debug::log("Skip file {$sbfFilePath} " . __CLASS__);
                 
                 log_System::add('compactor_Plugin', 'Липсващ файл: ' . $file, null, 'warning');
                 
                 continue;
             }
-            $contentFilePaths[] = array($file, $sbfFilePath);
+            $contentFilePaths[] = array($file, $sbfFilePath, $memoryContent);
         }
 
         // Първо събираме наличните входове, за да различим липса от последваща грешка при четене.
-        foreach ($contentFilePaths as list($file, $sbfFilePath)) {
-            $content = @file_get_contents($sbfFilePath);
+        foreach ($contentFilePaths as list($file, $sbfFilePath, $memoryContent)) {
+            $content = $memoryContent ?? @file_get_contents($sbfFilePath);
             if ($content === false) {
                 return $originalFiles;
             }

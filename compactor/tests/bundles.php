@@ -30,6 +30,8 @@ class core_Sbf
 {
     /** Връща изолирания SBF път. */
     public static function getSbfFilePath($file) { return EF_SBF_PATH . '/' . $file; }
+    /** Тези проверки използват само дискови входове. */
+    public static function getMemoryFileContent($path) { return null; }
     /** Изолира същото атомарно записване за сборния файл. */
     public static function saveFile_($content, $path, $full)
     {

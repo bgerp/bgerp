@@ -55,9 +55,10 @@ class arr {
     }
 }
 class core_Packs {
+    public static $cssFiles = 'styles/main.css';
     public static function isInstalled($name) { return true; }
     public static function getConfig($name) {
-        return (object) array('COMPACTOR_JS_FILES' => 'js/one.js,js/two.js', 'COMPACTOR_CSS_FILES' => 'styles/main.css');
+        return (object) array('COMPACTOR_JS_FILES' => 'js/one.js,js/two.js', 'COMPACTOR_CSS_FILES' => self::$cssFiles);
     }
 }
 class core_Os {
@@ -112,6 +113,10 @@ class_alias('core_String', 'str');
 require dirname(__DIR__, 2) . '/sass/Plugin.class.php';
 require dirname(__DIR__, 2) . '/minify/Plugin.class.php';
 require dirname(__DIR__, 2) . '/compactor/Plugin.class.php';
+
+class SbfTestCompactor extends compactor_Plugin {
+    public function rewrite($content, $path) { return $this->changePaths($content, $path); }
+}
 
 if (PHP_SAPI === 'cli-server') {
     // HTTP проверките използват отделна временна директория, подготвена от теста.
@@ -275,6 +280,51 @@ try {
     }
     sass_Converter::$error = null;
     checkSbf($compilationFailed, 'do not hide compilation errors behind the old CSS source');
+
+    // Същият сборен CSS трябва да се получава от дискови и от налични само в паметта входове.
+    $memoryCompactor = new SbfTestCompactor();
+    $callback = array($memoryCompactor, 'rewrite');
+    writeSbfSource('source/plain/after.css', 'body{color:blue}');
+    writeSbfSource('source/plain/outside.css', 'p{margin:0}');
+    $compiledCss = '/* compiled */ body{color:red;background:url("../img/menu.png?v=1#icon")}';
+    $imageUrl = core_Sbf::getUrl('img/menu.png', '', true);
+    foreach (array('1.13.0', '2.1.0') as $version) {
+        sass_Setup::$version = $version;
+        foreach (array('compiled' => $compiledCss, 'empty' => '', 'zero' => '0') as $case => $compiled) {
+            sass_Converter::$content = $compiled;
+            $dir = 'compactor-memory-' . str_replace('.', '-', $version) . '-' . $case;
+            $source = $dir . '/main.css';
+            writeSbfSource('source/' . $dir . '/main.scss', '$color: red;');
+            writeSbfSource('source/' . $source, '/* retained legacy CSS */');
+            $configured = array($source, 'plain/after.css');
+            $normal = $memoryCompactor->compactFiles(array('plain/after.css'), $configured, EF_SBF_PATH . '/css', $callback);
+            $bundleName = reset($normal);
+            $bundlePath = EF_SBF_PATH . '/' . $bundleName;
+            $expected = "\n" . ($case === 'compiled' ? 'body{color:red;background:url("' . $imageUrl . '?v=1#icon")}' : $compiled) . "\nbody{color:blue}";
+            checkSbf(file_get_contents($bundlePath) === $expected, 'normal bundle retains minify, relative URLs and CSS order');
+            $sassPath = core_Sbf::getSbfFilePath($source);
+            unlink($sassPath);
+            rmdir(dirname($sassPath));
+            file_put_contents(dirname($sassPath), 'not a directory');
+            clearstatcache();
+            foreach (array('configured-only' => 'plain/after.css', 'explicit' => $source) as $requestCase => $requested) {
+                unlink($bundlePath);
+                $files = $memoryCompactor->compactFiles(array($requested, 'plain/outside.css'), $configured, EF_SBF_PATH . '/css', $callback);
+                checkSbf(array_values($files) === array($bundleName, 'plain/outside.css'), $requestCase . ': retain in-memory SASS in the same bundle without duplicate or reordered links');
+                checkSbf(file_get_contents($bundlePath) === $expected, $requestCase . ': retain in-memory CSS bytes, URL rewriting and cascade order');
+                checkSbf(!is_file($sassPath), $requestCase . ': input really exists only in memory');
+            }
+            checkSbf(getFileContent($source) === '/* retained legacy CSS */', 'compaction never substitutes or overwrites legacy CSS');
+            core_Packs::$cssFiles = $configured;
+            unlink($bundlePath);
+            $restored = core_Sbf::resolveStaticFile($bundleName);
+            checkSbf($restored['status'] === 200 && $restored['immutable'] && file_get_contents($restored['file']) === $expected, 'restore the same missing bundle using an in-memory SASS input');
+            unlink(dirname($sassPath));
+            unlink($bundlePath);
+            $recovered = $memoryCompactor->compactFiles(array($source), $configured, EF_SBF_PATH . '/css', $callback);
+            checkSbf($recovered === $normal && file_get_contents($bundlePath) === $expected && is_file($sassPath), 'restored disk writes preserve the same bundle URL and bytes');
+        }
+    }
     echo "PASS: {$checks} SBF recovery checks on PHP " . PHP_VERSION . "\n";
 } finally {
     removeSbfFixtures(TEST_ROOT);
