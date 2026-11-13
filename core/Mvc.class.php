@@ -400,6 +400,8 @@ class core_Mvc extends core_FieldSet
     public function save_(&$rec, $fields = null, $mode = null)
     {
         $fields = $this->prepareSaveFields($fields, $rec);
+        // Производните полета следват окончателните стойности, включително при директен save_().
+        $this->invoke('BeforeSaveFields', array(&$rec, &$fields));
         
         $table = $this->dbTableName;
         
@@ -533,6 +535,7 @@ class core_Mvc extends core_FieldSet
         
         // Гарантираме си, че $fields са масив
         $fields = arr::make($fields, true);
+        $this->invoke('BeforeSaveArrayFields', array(&$recs, &$fields));
         
         // Определяме полетата, които ще записваме
         $fieldsArr = array();

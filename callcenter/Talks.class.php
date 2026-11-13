@@ -287,17 +287,17 @@ class callcenter_Talks extends core_Master
                 $row->internalNum = ($row->internalNum ?? '') . $div . ($row->internalData ?? '') . '</div>';
                 
                 // Ако има продължителност
-                if ($rec->duration) {
+                if (!empty($rec->duration)) {
                     
                     // Ако няма вербална стойност
-                    if (!($duration = $row->duration)) {
+                    if (!($duration = $row->duration ?? null)) {
                         
                         // Вземаме вербалната стойност
                         $duration = static::getVerbal($rec, 'duration');
                     }
                     
                     // Добавяме след времето на позвъняване
-                    $row->startTime .= $div . $duration . '</div>';
+                    $row->startTime = ($row->startTime ?? '') . $div . $duration . '</div>';
                 }
             }
         }

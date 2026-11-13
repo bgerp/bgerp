@@ -37,7 +37,7 @@ class cat_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Наименование,productCnt,orderProductBy,createdOn,createdBy';
+    public $listFields = 'name=Наименование,productCnt,paramCnt,orderProductBy,createdOn,createdBy';
 
 
     /**
@@ -137,6 +137,12 @@ class cat_Groups extends core_Master
 
 
     /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+
+
+    /**
      * Детайла, на модела
      */
     protected $changedParentId = array();
@@ -151,6 +157,7 @@ class cat_Groups extends core_Master
         $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
+        $this->FNC('paramCnt', 'int', 'input=none,caption=Параметри');
         $this->FLD('defaultOverheadCostsPercent', 'percent(min=0)', 'input=none,caption=Настройки->Режийни разходи');
 
         // Свойства присъщи на продуктите в групата
@@ -746,6 +753,18 @@ class cat_Groups extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        // При смяна на родителя се сменят и наследените параметри на артикулите от групата
+        if (isset($rec->id) && isset($mvc->changedParentId[$rec->id])) {
+            cat_GroupParams::resetCache();
+            if (countR(cat_GroupParams::getMap()['recs'])) {
+                cat_products_ParamIndexState::markByGroups(array($rec->id));
+                cat_GroupParams::scheduleKeywordsUpdate(array($rec->id));
+            }
+            if (countR(cat_GroupParams::getTransportGroupIds())) {
+                cat_GroupParams::recalcTransportByGroups(array($rec->id));
+            }
+        }
+
         if(empty($rec->_addProductsArr)) return;
 
         $count =  countR($rec->_addProductsArr);
@@ -757,5 +776,53 @@ class cat_Groups extends core_Master
 
         $mvc->cron_UpdateTouchedGroupsCnt();
         core_Statuses::newStatus("Добавени артикули в групата|*: {$count}");
+    }
+
+
+    /**
+     * Броят на параметрите се смята за всички групи на страницата наведнъж
+     */
+    protected static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        if (!countR($data->recs ?? null)) return;
+
+        $counts = cat_GroupParams::countParams(array_keys($data->recs));
+        foreach ($data->recs as $id => $rec) {
+            $rec->paramCnt = $counts[$id] ?? 0;
+        }
+    }
+
+
+    /**
+     * Подготовка на параметрите в сингъла
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $data->paramData = cat_GroupParams::prepareGroupParams($data->rec);
+    }
+
+
+    /**
+     * Показване на параметрите в сингъла
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Блокът се показва само ако има параметри или може да се добавят
+        $paramData = $data->paramData ?? null;
+        if (is_object($paramData) && (countR($paramData->params ?? null) || isset($paramData->addUrl))) {
+            $tpl->append(cat_GroupParams::renderParams($paramData), 'PARAMS');
+        }
+    }
+
+
+    /**
+     * След изтриване се трият и параметрите на групите
+     */
+    public static function on_AfterDelete($mvc, &$res, $query, $cond)
+    {
+        $ids = arr::extractValuesFromArray($query->getDeletedRecs(), 'id');
+        if (countR($ids)) {
+            cat_GroupParams::delete('#groupId IN (' . implode(',', $ids) . ')');
+        }
     }
 }

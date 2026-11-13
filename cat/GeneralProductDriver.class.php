@@ -349,7 +349,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
     {
         $preview = null;
-        $previewHandler = $this->getParams($Embedder, $rec->id, 'preview');
+        $previewHandler = ($Embedder instanceof cat_Products) ? cat_Products::getParams($rec->id, 'preview', false, $this) : $this->getParams($Embedder, $rec->id, 'preview');
         $handler = !empty($previewHandler) ? $previewHandler : ($rec->photo ?? null);
 
         if (!empty($handler)) {
@@ -391,7 +391,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Вербализиране на снимката, да е готова за показване
         if(empty($data->_hidePhoto)){
-            $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
+            $Embedder = cls::get($data->Embedder);
+            $data->rec->photo = ($Embedder instanceof cat_Products) ? cat_Products::getParams($data->rec->id, 'preview', false, $this) : $this->getParams($Embedder->getClassId(), $data->rec->id, 'preview');
         } else {
             unset($data->rec->photo);
         }
@@ -450,7 +451,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getTolerance($id, $quantity)
     {
-        return $this->getParams(cat_Products::getClassId(), $id, 'tolerance');
+        return cat_Products::getParams($id, 'tolerance', false, $this);
     }
     
     
@@ -464,7 +465,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getDeliveryTime($id, $quantity)
     {
-        return $this->getParams(cat_Products::getClassId(), $id, 'term');
+        return cat_Products::getParams($id, 'term', false, $this);
     }
     
     
@@ -513,7 +514,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getTransportWeight($rec, $quantity)
     {
-        $weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
+        $weight = cat_Products::getParams($rec->id, 'transportWeight', false, $this);
         if ($weight) {
             $weight *= $quantity;
             
@@ -532,7 +533,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getTransportVolume($rec, $quantity)
     {
-        $volume = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportVolume');
+        $volume = cat_Products::getParams($rec->id, 'transportVolume', false, $this);
         if ($volume) {
             $volume *= $quantity;
             
@@ -548,7 +549,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Добавяне на параметрите към ключовите думи
         if(isset($rec->id)){
-            $params = $Driver->getParams(cat_Products::getClassId(), $rec->id, null, true);
+            $params = ($Embedder instanceof cat_Products) ? cat_Products::getParams($rec->id, null, true, $Driver) : $Driver->getParams(cat_Products::getClassId(), $rec->id, null, true);
             if(is_array($params)){
                 foreach ($params as $paramId => $value){
                     $paramName = cat_Params::getTitleById($paramId, false);

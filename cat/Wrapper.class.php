@@ -11,7 +11,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,8 @@ class cat_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('cat_Products', 'Списък', 'powerUser');
-        $this->TAB('cat_Groups', 'Групи', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_Groups', 'Групи->Списък', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_GroupParams', 'Групи->Параметри', 'cat,ceo');
         $this->TAB('cat_Categories', 'Категории', 'cat,ceo,sales,purchase');
         $this->TAB('cat_Listings', 'Листвания', 'cat,ceo');
         $this->TAB('cat_Boms', 'Рецепти->Производство', 'cat,ceo,sales,purchase,planning');

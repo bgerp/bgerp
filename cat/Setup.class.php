@@ -219,6 +219,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Categories',
         'cat_Products',
         'cat_products_Params',
+        'cat_GroupParams',
         'cat_products_Packagings',
         'cat_products_VatGroups',
         'cat_products_SharedInFolders',
@@ -523,9 +524,7 @@ class cat_Setup extends core_ProtoSetup
      */
     public static function fillEmptyExpand36Field2646()
     {
-        $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null, 'onlyEmpty' => true);
-        $callOn = dt::addSecs(60);
-        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+        plg_ExpandInput::scheduleRebuild('cat_Products');
     }
 
 

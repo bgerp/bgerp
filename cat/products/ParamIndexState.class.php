@@ -10,7 +10,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -307,6 +307,49 @@ class cat_products_ParamIndexState extends core_Manager
         $generalClassId = cat_GeneralProductDriver::getClassId();
 
         return self::markProducts("p.#innerClass != {$generalClassId}", true);
+    }
+
+
+    /**
+     * Маркира незатворените артикули от групите и подгрупите им, както и затворените, ползвани в е-магазина
+     * Полето с групите на артикула съдържа и родителите, затова едно условие хваща цялото поддърво
+     *
+     * @param array $groupIds - ид-та на групи
+     *
+     * @return int - брой засегнати записи
+     */
+    public static function markByGroups($groupIds)
+    {
+        $conds = array();
+        foreach ($groupIds as $groupId) {
+            $groupId = (int) $groupId;
+            if ($groupId > 0) {
+                $conds[] = "p.#groups LIKE '%|{$groupId}|%'";
+            }
+        }
+        if (!countR($conds)) return 0;
+
+        $where = '(' . implode(' OR ', $conds) . ')';
+        $res = self::markProducts($where, true, true);
+
+        // Затворените се пропускат при индексиране, ако хешът им не е нулиран
+        if (core_Packs::isInstalled('eshop')) {
+            $me = cls::get(get_called_class());
+            $Products = cls::get('cat_Products');
+            $Details = cls::get('eshop_ProductDetails');
+            $productIdCol = str::phpToMysqlName('productId');
+            $status = str::phpToMysqlName('status');
+            $hash = str::phpToMysqlName('hash');
+            $productState = str::phpToMysqlName('state');
+            $where = str_replace('p.#groups', 'p.`' . str::phpToMysqlName('groups') . '`', $where);
+
+            $me->db->query("UPDATE `{$me->dbTableName}` s JOIN `{$Products->dbTableName}` p ON p.`id` = s.`{$productIdCol}`
+                            SET s.`{$status}` = 'dirty', s.`{$hash}` = NULL
+                            WHERE p.`{$productState}` = 'closed' AND p.`id` IN (SELECT `{$productIdCol}` FROM `{$Details->dbTableName}`) AND {$where}");
+            $me->dbTableUpdated();
+        }
+
+        return $res;
     }
 
 
