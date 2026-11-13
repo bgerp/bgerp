@@ -1003,25 +1003,30 @@ class acc_CostAllocations extends core_Manager
      * Кои са последно модифицираните контейнери
      *
      * @param datetime $timeline     - времева линия след който ще се филтрират документите
-     * @param array    $containerIds - само измежду тези контейнери
+     * @param array    $containerIds - само измежду тези контейнери [containerId => docClass]
      */
     private static function getLastModifiedContainers($timeline, $containerIds)
     {
         $containers = array();
-        
+
         // Кои документи ще се проверяват дали са променяни
         $documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
-        
+
         foreach ($documents as $docName) {
             $Doc = cls::get($docName);
-            $dQuery = $Doc->getQuery();
-            if(!empty($timeline)){
-                $dQuery->where("#modifiedOn >= '{$timeline}'");
+            $docContainerIds = array_keys($containerIds, $Doc->getClassId());
+
+            // На порции - при дълъг IN списък MySQL не ползва индекса и сканира цялата таблица
+            foreach (array_chunk($docContainerIds, 1000) as $chunk) {
+                $dQuery = $Doc->getQuery();
+                if(!empty($timeline)){
+                    $dQuery->where("#modifiedOn >= '{$timeline}'");
+                }
+                $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
+                $dQuery->in('containerId', $chunk);
+                $dQuery->show('containerId');
+                $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');
             }
-            $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
-            $dQuery->in('containerId', $containerIds);
-            $dQuery->show('containerId');
-            $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');
         }
         
         return $containers;
@@ -1046,9 +1051,13 @@ class acc_CostAllocations extends core_Manager
 
         // Проверяват се само документите с разпределени разходи към продажба, а не всички
         $cQuery = clone $eQuery;
-        $cQuery->show('containerId');
+        $cQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+        $cQuery->show('containerId,docClass');
         $cQuery->groupBy('containerId');
-        $candidates = arr::extractValuesFromArray($cQuery->fetchAll(), 'containerId');
+        $candidates = array();
+        while ($cRec = $cQuery->fetch()) {
+            $candidates[$cRec->containerId] = $cRec->docClass;
+        }
 
         $containers = countR($candidates) ? self::getLastModifiedContainers($timeline, $candidates) : array();
         if (!countR($containers)) {
