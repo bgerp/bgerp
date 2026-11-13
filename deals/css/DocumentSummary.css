@@ -1,0 +1,29 @@
+/**
+ * Стилове за справката за документи по сделки.
+ *
+ * @category  bgerp
+ * @package   deals
+ *
+ * @author    Stefan Arsov <stefan.arsof@gmail.com> with Codex
+ * @copyright 2026 Experta EOOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
+
+.deal-documents .listTable > tfoot > tr > td {
+    background-color: #f5f5f5;
+    border: 1px solid #bbb;
+    padding: 4px 3px 3px;
+    font-weight: bold;
+}
+
+.deal-documents td.deal-documents-invoiced {
+    color: #666;
+}
+
+.deal-documents tr.deal-documents-unposted td,
+.deal-documents tr.deal-documents-unposted a,
+.deal-documents tr.deal-documents-unposted small {
+    color: #888;
+}
