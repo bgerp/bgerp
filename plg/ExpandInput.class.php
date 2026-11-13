@@ -262,6 +262,7 @@ class plg_ExpandInput extends core_Plugin
             core_Debug::startTimer('recalcExpandedInputs');
 
             // За кои записи
+            $expand36Name = $mvc->getExpandFieldName36();
             $query = $mvc->getQuery();
             $query->show("id,{$mvc->expandInputFieldName},{$mvc->expandFieldName}");
             if(isset($id)){
@@ -281,13 +282,16 @@ class plg_ExpandInput extends core_Plugin
                 $newVal = $expandField->type->fromArray($resArr);
                 if($oldVal != $newVal){
                     $rec->{$mvc->expandFieldName} = $newVal;
+
+                    // Полето за пълнотекстово търсене трябва да следва разпънатото
+                    $rec->{$expand36Name} = $expandField->type->fromArray36($resArr);
                     $updateRecs[] = $rec;
                 }
             }
 
             // Ако има промени само те ще се запишат
             if(countR($updateRecs)){
-                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}");
+                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName},{$expand36Name}");
             }
             core_Debug::stopTimer('recalcExpandedInputs');
             core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime ?? 0, 2));
@@ -330,6 +334,11 @@ class plg_ExpandInput extends core_Plugin
             $query->where("#id > {$data->lastId}");
         }
 
+        // Само записите с групи, но без изчислено поле
+        if(!empty($data->onlyEmpty)){
+            $query->where("#{$mvc->expandFieldName} != '' AND (#{$expand36Name} IS NULL OR #{$expand36Name} = '')");
+        }
+
         $count = $query->count();
         if(empty($count)){
             $mvc->logDebug('Приключи миграцията на разширените полета за двоично търсене');
@@ -352,6 +361,9 @@ class plg_ExpandInput extends core_Plugin
         if(!empty($lastId)){
             $callOn = dt::addSecs(60);
             $newData = (object)array('mvc' => $data->mvc, 'lastId' => $lastId);
+            if(!empty($data->onlyEmpty)){
+                $newData->onlyEmpty = true;
+            }
             core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
         }
     }

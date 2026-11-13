@@ -250,6 +250,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::deleteParamIndexStateWithoutProduct2640',
         'migrate::deleteProductUsedMeasures2643',
         'migrate::fillBaseMeasureUsages2643',
+        'migrate::fillEmptyExpand36Field2646',
     );
     
     
@@ -514,6 +515,17 @@ class cat_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
+    }
+
+
+    /**
+     * Попълване на празното поле за пълнотекстово търсене по групи при артикулите с групи
+     */
+    public static function fillEmptyExpand36Field2646()
+    {
+        $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null, 'onlyEmpty' => true);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
     }
 
 
