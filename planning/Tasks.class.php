@@ -2754,19 +2754,6 @@ JS
             $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
         }
 
-        if (Mode::is('planningTasksExplainListSummary')) {
-            core_Debug::stopTimer('RENDER_SUMMARY');
-            $sql = $query->buildQuery();
-            $dbRes = $this->db->query('EXPLAIN ' . $sql);
-            $plan = array();
-            while ($row = $this->db->fetchObject($dbRes)) {
-                $plan[] = $row;
-            }
-            $this->db->freeResult($dbRes);
-
-            return array('querySha256' => hash('sha256', $sql), 'plan' => $plan);
-        }
-
         $counts = array_fill_keys(array_keys($states), 0);
         $quantities = array();
         while ($rec = $query->fetch(null, true)) {
@@ -2850,42 +2837,6 @@ JS
         $tpl->append('</table></div>');
 
         return $tpl;
-    }
-
-
-    /**
-     * Временен EXPLAIN за статистиката при „Всички от 01.01.2023“
-     */
-    public function act_ExplainListSummary()
-    {
-        requireRole('debug');
-        $this->requireRightFor('list');
-
-        $filters = array_fill_keys(array_keys(self::getPersistentListFilterFields()), '');
-        $filters['state'] = 'all';
-        $filters['selectPeriod'] = 'gr0';
-        $filters['from'] = '01.01.2023';
-        $filters['filterDateField'] = 'expectedTimeStart';
-        $filters['folders'] = array('select2' => '1');
-        $filters['isFinalSelect'] = 'all';
-        $filters['Rejected'] = '';
-        $filters['Cmd'] = array('default' => '1');
-
-        Request::push($filters, 'planningTasksExplainFilters');
-        Mode::push('preserveUserChoices', true);
-        Mode::push('planningTasksExplainListSummary', true);
-        try {
-            $data = (object) array('action' => 'list', 'query' => $this->getQuery());
-            $this->prepareListFields($data);
-            $this->prepareListFilter($data);
-            $plan = $this->prepareListSummary_($data);
-        } finally {
-            Mode::pop('planningTasksExplainListSummary');
-            Mode::pop('preserveUserChoices');
-            Request::pop('planningTasksExplainFilters');
-        }
-
-        core_App::outputJson($plan);
     }
 
 
