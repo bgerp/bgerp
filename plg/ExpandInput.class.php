@@ -59,6 +59,65 @@ class plg_ExpandInput extends core_Plugin
 
 
     /**
+     * Автоматичният списък запазва първоначалното поле без дублиращия вход.
+     */
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        if (isset($data->listFields) || isset($mvc->listFields)) return;
+
+        $fields = self::getDisplayFields($mvc, $mvc->selectFields("#column != 'none'"), 'column');
+        $data->listFields = array();
+        foreach ($fields as $name => $field) {
+            $data->listFields[$name] = $field->caption ?? $name;
+        }
+    }
+
+
+    /**
+     * Запомня автоматичния избор, за да не променя последващ изричен избор на полета.
+     */
+    public static function on_AfterPrepareSingleFields($mvc, &$res, $data)
+    {
+        if (!isset($mvc->singleFields)) {
+            $data->_expandAutomaticSingleFields = $data->singleFields ?? array();
+        }
+    }
+
+
+    /**
+     * Премахва повторението само от автоматичния изглед; вербализираните полета остават за шаблоните.
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$res, $data)
+    {
+        if (isset($mvc->singleFields) || isset($mvc->singleLayoutFile) || isset($mvc->singleLayoutTpl) || isset($data->singleLayout)) return;
+        if (isset($data->_expandAutomaticSingleFields) && ($data->singleFields ?? array()) === $data->_expandAutomaticSingleFields) {
+            $data->singleFields = self::getDisplayFields($mvc, $data->singleFields ?? array(), 'single');
+        }
+    }
+
+
+    /**
+     * Изричните настройки имат предимство пред автоматично избраното поле.
+     */
+    private static function getDisplayFields($mvc, $fields, $param)
+    {
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        $inputName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
+        if (isset($fields[$expandName]) && isset($fields[$inputName])) {
+            $expanded = $mvc->getField($expandName);
+            $input = $mvc->getField($inputName);
+            if (!isset($input->{$param})) {
+                unset($fields[$inputName]);
+            } elseif (!isset($expanded->{$param})) {
+                unset($fields[$expandName]);
+            }
+        }
+
+        return $fields;
+    }
+
+
+    /**
      * След като е готово вербалното представяне
      */
     public static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
@@ -110,6 +169,8 @@ class plg_ExpandInput extends core_Plugin
             // При отделна форма се използва вече описаното входно поле на модела.
             foreach (array('input', 'single', 'column', 'readOnly') as $param) {
                 if (isset($sourceField->{$param})) {
+                    // Видимостта на оригинала не е изрично искане за второ поле в изгледа.
+                    if ($sourceField === $expandField && in_array($param, array('single', 'column')) && $sourceField->{$param} !== 'none') continue;
                     $fieldset->setParams($inputFieldName, array($param => $sourceField->{$param}));
                 }
             }

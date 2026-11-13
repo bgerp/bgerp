@@ -134,7 +134,7 @@ class ExpandQuery {
 }
 class ExpandFixture extends embed_Manager {
     public $rows = array(), $queries = 0, $writes = 0;
-    public function __construct($field = 'groups', $visibility = null, $predeclared = false) {
+    public function __construct($field = 'groups', $visibility = null, $predeclared = false, $displayParams = array()) {
         $this->className = get_class($this);
         $this->dbTableName = 'test_expand_items';
         $this->db = new ExpandDb();
@@ -146,7 +146,9 @@ class ExpandFixture extends embed_Manager {
         $this->FLD('driverClass', 'text');
         $this->FLD($field, 'keylist(mvc=ExpandGroups,select=id)', 'caption=Groups');
         if ($visibility) $this->setParams($field, array('input' => $visibility, 'column' => 'none', 'single' => 'none'));
+        $this->setParams($field, $displayParams);
         if ($predeclared) $this->FLD($field . 'Input', 'keylist(mvc=ExpandGroups,select=id)', 'caption=Existing,input=hidden');
+        if (is_array($predeclared)) $this->setParams($field . 'Input', $predeclared);
         cls::$models[$this->className] = $this;
         plg_ExpandInput::on_AfterDescription($this);
     }
@@ -219,6 +221,72 @@ foreach (array('keylist', 'keylist2') as $typeName) {
     }
     check($form->getFieldType('tags')->fromVerbal('not a keylist') === null, 'Arbitrary scalar text is not converted to identifiers');
 }
+
+// Automatic views keep one group field; explicit display choices take precedence.
+foreach (array('groups', 'groupList', 'tags') as $fieldName) {
+    foreach (array(
+        array(false, array(), array($fieldName)),
+        array(true, array(), array($fieldName)),
+        array(false, array('column' => 'show', 'single' => 'show'), array($fieldName)),
+        array(array('column' => 'show', 'single' => 'show'), array(), array($fieldName . 'Input')),
+        array(array('column' => 'show', 'single' => 'show'), array('column' => 'show', 'single' => 'show'), array($fieldName, $fieldName . 'Input')),
+        array(false, array('column' => 'none', 'single' => 'none'), array()),
+        array(array('column' => 'none', 'single' => 'none'), array(), array($fieldName)),
+        array(array('column' => 'show', 'single' => 'show'), array('column' => 'none', 'single' => 'none'), array($fieldName . 'Input'))
+    ) as $case) {
+        list($predeclared, $displayParams, $expected) = $case;
+        $m = new ExpandFixture($fieldName, null, $predeclared, $displayParams);
+        $data = (object) array('rec' => testRow(1, $fieldName, '|30|', '|20|30|', '00kz 00uz'));
+        $m->prepareListFields($data);
+        $m->prepareSingleFields($data);
+        $layout = null;
+        $m->invoke('BeforeRenderSingleLayout', array(&$layout, &$data));
+        foreach (array('listFields', 'singleFields') as $view) {
+            $shown = array_keys(array_intersect_key($data->{$view} ?? array(), array_flip(array($fieldName, $fieldName . 'Input'))));
+            check($shown === $expected, 'Automatic ' . $view . ' respects explicit group visibility');
+            check(!isset($data->{$view}[$fieldName . '36']), 'Automatic view excludes the service index');
+        }
+    }
+}
+
+foreach (array(false, true) as $onManager) {
+    $m = new ExpandFixture('tags');
+    $data = (object) array('rec' => testRow(1, 'tags', '|30|', '|20|30|', '00kz 00uz'));
+    $explicit = array('tagsInput' => 'Selected', 'tags' => 'Expanded');
+    if ($onManager) $m->listFields = $explicit;
+    else $data->listFields = $explicit;
+    $m->prepareListFields($data);
+    check(($data->listFields ?? null) === $explicit, 'Explicit list fields and captions are preserved');
+
+    $m->singleFields = $explicit;
+    $m->prepareSingleFields($data);
+    $layout = null;
+    $m->invoke('BeforeRenderSingleLayout', array(&$layout, &$data));
+    check(($data->singleFields ?? null) === $explicit, 'Explicit single fields and captions are preserved');
+}
+
+foreach (array('singleLayoutFile', 'singleLayoutTpl', 'dataLayout', 'laterFields') as $custom) {
+    $m = new ExpandFixture('tags');
+    $data = (object) array('rec' => testRow(1, 'tags', '|30|', '|20|30|', '00kz 00uz'));
+    $m->prepareSingleFields($data);
+    if ($custom === 'dataLayout') $data->singleLayout = '[#tagsInput#]';
+    elseif ($custom === 'laterFields') $data->singleFields['tagsInput'] = 'Explicit caption';
+    else $m->{$custom} = 'Synthetic template';
+    $expected = $data->singleFields ?? array();
+    $layout = null;
+    $m->invoke('BeforeRenderSingleLayout', array(&$layout, &$data));
+    check(($data->singleFields ?? null) === $expected, 'Custom single layout and subsequent field choices retain their fields');
+}
+
+$m = new ExpandFixture('tags', null, array('column' => 'show', 'single' => 'none'));
+$data = (object) array('rec' => testRow(1, 'tags', '|30|', '|20|30|', '00kz 00uz'));
+$m->prepareListFields($data);
+$m->prepareSingleFields($data);
+$layout = null;
+$m->invoke('BeforeRenderSingleLayout', array(&$layout, &$data));
+check(isset($data->listFields['tagsInput']) && !isset($data->listFields['tags']), 'List independently prefers explicitly visible input');
+check(isset($data->singleFields['tags']) && !isset($data->singleFields['tagsInput']), 'Single independently preserves hidden input');
+check($m->queries === 0 && $m->writes === 0, 'Display selection does not query or modify business data');
 
 // Actual field definitions, framework visibility selection and every native write entry point.
 foreach (array('groups', 'groupList', 'tags') as $f) {
