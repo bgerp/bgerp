@@ -25,7 +25,8 @@ class cat_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('cat_Products', 'Списък', 'powerUser');
-        $this->TAB('cat_Groups', 'Групи', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_Groups', 'Групи->Списък', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_GroupParams', 'Групи->Параметри', 'cat,ceo');
         $this->TAB('cat_Categories', 'Категории', 'cat,ceo,sales,purchase');
         $this->TAB('cat_Listings', 'Листвания', 'cat,ceo');
         $this->TAB('cat_Boms', 'Рецепти->Производство', 'cat,ceo,sales,purchase,planning');
@@ -43,7 +44,6 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
-        $this->TAB('cat_GroupParams', 'Дебъг->Параметри на групи', 'debug');
         $this->TAB('cat_products_ParamIndex', 'Дебъг->Индекс на параметрите', 'debug');
         $this->TAB('cat_products_EshopParamIndex', 'Дебъг->Индекс в е-магазина', 'debug');
         $this->TAB('cat_products_ParamIndexState', 'Дебъг->Състояние на индекса', 'debug');

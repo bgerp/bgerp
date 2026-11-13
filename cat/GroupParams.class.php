@@ -36,6 +36,12 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
+     * Кой може да вижда списъка
+     */
+    public $canList = 'cat,ceo';
+
+
+    /**
      * Кой може да добавя
      */
     public $canAdd = 'cat,ceo';
@@ -88,7 +94,7 @@ class cat_GroupParams extends cat_products_ProtoParams
      */
     public function description()
     {
-        $this->FLD('groupId', 'key(mvc=cat_Groups,select=name)', 'input=hidden,silent');
+        $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,input=hidden,silent,mandatory,removeAndRefreshForm=paramId|paramValue|paramValue[lP]|paramValue[rP]');
         $this->addParamFields();
 
         $this->setDbUnique('groupId,paramId');
@@ -97,10 +103,96 @@ class cat_GroupParams extends cat_products_ProtoParams
 
     /**
      * Групите не са документи, затова формата не минава през doc_Detail
+     * При нов запис групата се избира във формата, за да може да се добавя и от списъка
      */
     public function prepareEditForm_($data)
     {
-        return core_Detail::prepareEditForm_($data);
+        setPartIfNot($data, 'singleTitle', $this->singleTitle);
+        core_Manager::prepareEditForm_($data);
+
+        $data->masterMvc = cls::get('cat_Groups');
+        $data->masterKey = 'groupId';
+        $rec = $data->form->rec;
+        if (empty($rec->id)) {
+            $data->form->setField('groupId', 'input');
+        }
+
+        // Без избрана група core_Manager::prepareRetUrl_() чете полето
+        $rec->groupId = $rec->groupId ?? null;
+        $data->masterId = $rec->groupId;
+        if (!empty($data->masterId)) {
+            expect($data->masterRec = cat_Groups::fetch($data->masterId));
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Заглавие на формата - с групата, ако вече е избрана
+     */
+    public function prepareEditTitle_($data)
+    {
+        if (empty($data->masterId)) {
+            return core_Manager::prepareEditTitle_($data);
+        }
+
+        return core_Detail::prepareEditTitle_($data);
+    }
+
+
+    /**
+     * Бутон за нов запис и в списъка, където групата се избира във формата
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        if (empty($data->masterId) && $mvc->haveRightFor('add')) {
+            $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'ret_url' => true), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+        }
+    }
+
+
+    /**
+     * В списъка се подреждат по дървото на групите - подгрупите след родителя си
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $groupIds = array_keys(static::getGroupPaths());
+        if (countR($groupIds)) {
+            $data->query->XPR('groupOrder', 'int', 'FIELD(#groupId, ' . implode(',', $groupIds) . ')');
+            $data->query->orderBy('groupOrder', 'ASC');
+        }
+    }
+
+
+    /**
+     * Пълните пътища на групите, подредени като дърво
+     *
+     * @return array $res - път "Родител » Дете", с ключ ид на група
+     */
+    protected static function getGroupPaths()
+    {
+        $res = array();
+        $query = cat_Groups::getQuery();
+        $query->show('id');
+        while ($gRec = $query->fetch()) {
+            $res[(int) $gRec->id] = cat_Groups::getVerbal($gRec->id, 'name');
+        }
+        uasort($res, 'strnatcasecmp');
+
+        return $res;
+    }
+
+
+    /**
+     * В списъка групата е с пълния път и е линк
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (isset($fields['-list']) && !empty($rec->groupId)) {
+            $attr = array('ef_icon' => cls::get('cat_Groups')->getSingleIcon($rec->groupId), 'class' => 'specialLink');
+            $row->groupId = ht::createLink(cat_Groups::getVerbal($rec->groupId, 'name'), cat_Groups::getSingleUrlArray($rec->groupId), false, $attr);
+        }
     }
 
 
