@@ -626,6 +626,11 @@ class type_Keylist extends core_Type
      */
     public function fromVerbal_($value)
     {
+        // Скритите полета изпращат един keylist низ; видимият избор изпраща масив.
+        if (self::isKeylist($value)) {
+            $value = self::toArray($value);
+        }
+
         if (!is_array($value)) {
             
             return;
@@ -642,15 +647,6 @@ class type_Keylist extends core_Type
     }
     
     
-    /**
-     * Скритият вход използва същия масив от ключове като видимия избор.
-     */
-    public function toHidden($value)
-    {
-        return self::toArray($value);
-    }
-
-
     /**
      * Преобразува от масив с индекси ключовете към keylist
      *

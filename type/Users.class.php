@@ -476,15 +476,6 @@ class type_Users extends type_Keylist
 
 
     /**
-     * За разлика от keylist този избор приема скаларна стойност, включително когато е скрит.
-     */
-    public function toHidden($value)
-    {
-        return $value;
-    }
-    
-    
-    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     public function toVerbal_($value)

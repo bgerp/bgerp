@@ -21,6 +21,7 @@ function expect($ok, ...$args) { if (!$ok) throw new RuntimeException('Expect fa
 function error(...$args) { throw new RuntimeException(implode(' ', array_filter($args, 'is_string'))); }
 function countR($v) { return is_countable($v) ? count($v) : 0; }
 function defIfNot($name, $value) { if (!defined($name)) define($name, $value); }
+function setIfNot(&$value, ...$defaults) { foreach ($defaults as $default) { if (isset($value)) break; $value = $default; } }
 function setPartIfNot(&$object, $key, ...$values) {
     foreach ($values as $v) {
         if (is_array($object)) { if (!isset($object[$key]) && isset($v)) $object[$key] = $v; }
@@ -49,6 +50,10 @@ class core_CallOnTime {
     public static function setOnce($c, $m, $data, $when) { self::$calls[serialize($data)] = clone $data; }
 }
 class bgerp_Setup { public static $search = 'yes'; public static function get($key) { return self::$search; } }
+class Request {
+    public static $data = array();
+    public static function get($name, $type = null) { return self::$data[$name] ?? null; }
+}
 class cls {
     public static $models = array();
     public static function get($name, $params = null) {
@@ -62,7 +67,7 @@ class cls {
     public static function isSubclass($o, $c) { return is_a($o, $c); }
 }
 $root = dirname(__DIR__, 2);
-foreach (array('core/BaseClass', 'core/Array', 'core/String', 'core/Type', 'core/FieldSet', 'core/Mvc', 'core/Manager', 'core/Master', 'embed/Manager', 'type/Keylist', 'type/Keylist2', 'type/UserList', 'type/Users', 'type/Treelist', 'type/Text', 'type/Int') as $file) {
+foreach (array('core/BaseClass', 'core/Array', 'core/String', 'core/Type', 'core/FieldSet', 'core/Form', 'core/Mvc', 'core/Manager', 'core/Master', 'embed/Manager', 'type/Keylist', 'type/Keylist2', 'type/UserList', 'type/Users', 'type/Treelist', 'type/Text', 'type/Int') as $file) {
     require $root . '/' . $file . '.class.php';
 }
 class_alias('core_Array', 'arr');
@@ -158,11 +163,12 @@ function testRow($id, $f, $input, $expanded, $encoded) {
 }
 function lastSql($m) { return end($m->db->sql); }
 
-// The inherited hidden transport also keeps keylist2's array-based input contract.
+// Scalar hidden transport and visible array input are both accepted, without ExpandInput.
 foreach (array(new type_Keylist(), new type_Keylist2(), new type_UserList(), new type_Treelist()) as $type) {
     foreach (array(null, '', '|10|', '|10|30|') as $value) {
         $request = array();
         parse_str(http_build_query(array('tags' => $type->toHidden($value))), $request);
+        check($type->toHidden($value) === $value, 'Hidden transport preserves the original scalar value');
         check(type_Keylist::toArray($type->fromVerbal($request['tags'] ?? null)) == type_Keylist::toArray($value), 'Keylist and keylist2 hidden input round trip without ExpandInput');
     }
 }
@@ -176,6 +182,42 @@ foreach (array(null, '', '|10|', '|10|30|', 'team_10') as $value) {
     parse_str(http_build_query(array('users' => $usersType->toHidden($value))), $request);
     check(!is_array($usersType->toHidden($value)), 'Users keeps its scalar hidden input contract');
     check($usersType->fromVerbal($request['users'] ?? null) === $usersType->fromVerbal($value), 'Users hidden keylist or team survives the request unchanged');
+}
+
+// Real form validation: options/read-only values must remain scalar before conversion.
+foreach (array('30', '|10|30|') as $value) {
+    $form = new core_Form();
+    $form->rec = new stdClass();
+    $form->FLD('tags', 'keylist', 'caption=Tags,input=hidden');
+    $form->setOptions('tags', array($value => 'Synthetic selection'));
+    parse_str(http_build_query(array('tags' => $form->getFieldType('tags')->toHidden($value), 'Cmd' => 'save')), Request::$data);
+    $form->input();
+    check($form->isSubmitted() && ($form->rec->tags ?? null) === $value, 'Hidden keylist preserves scalar setOptions/read-only selection');
+}
+
+$manyIds = array_combine(range(1, 1200), range(1, 1200));
+$many = type_Keylist::fromArray($manyIds);
+foreach (array('keylist', 'keylist2') as $typeName) {
+    $form = new core_Form();
+    $form->rec = new stdClass();
+    $form->FLD('tags', $typeName, 'caption=Tags,input=hidden,silent');
+    $form->FLD('after', 'int', 'caption=After');
+    $encoded = http_build_query(array('tags' => $form->getFieldType('tags')->toHidden($many), 'after' => 42, 'Cmd' => 'save'));
+    parse_str($encoded, Request::$data);
+    $form->input();
+    check($form->isSubmitted() && ($form->rec->tags ?? null) === $many && ($form->rec->after ?? null) === 42, 'Large hidden lists preserve following fields below max_input_vars');
+
+    foreach (array('refresh', 'save') as $command) {
+        Request::$data = array('tags' => '|30|10|', 'Cmd' => $command);
+        $form->input('tags', true);
+        check(($form->rec->tags ?? null) === '|10|30|', 'Silent/refresh input normalizes a hidden keylist');
+    }
+    foreach (array(array(10 => '10', 30 => '30'), '|10|30|') as $input) {
+        Request::$data = array('tags' => $input, 'Cmd' => 'save');
+        $form->input('tags');
+        check($form->isSubmitted() && ($form->rec->tags ?? null) === '|10|30|', 'Existing visible and hidden submissions remain accepted');
+    }
+    check($form->getFieldType('tags')->fromVerbal('not a keylist') === null, 'Arbitrary scalar text is not converted to identifiers');
 }
 
 // Actual field definitions, framework visibility selection and every native write entry point.

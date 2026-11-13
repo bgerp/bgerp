@@ -12,7 +12,7 @@
  * @package   type
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -310,15 +310,16 @@ class type_Keylist2 extends type_Keylist
     /**
      * Конвертира стойността от вербална (масив от Select2 multiple) към keylist стринг
      *
-     * Обработва два формата:
+     * Обработва три формата:
      * - [0 => 'id1', 1 => 'id2']  - от <select multiple name="field[]">
      * - ['id1' => 'id1', ...]      - от чекбокс-стил (съвместимост с type_Keylist)
+     * - '|id1|id2|'               - от скрито поле
      */
     public function fromVerbal_($value)
     {
         if (!is_array($value)) {
 
-            return;
+            return parent::fromVerbal_($value);
         }
 
         $mapped = array();
