@@ -1416,8 +1416,8 @@ class cat_Products extends embed_Manager
                 $result->features += $groupFeatures;
             }
             
-            // Добавяме и свойствата от драйвера, ако има такива
-            $result->features = array_merge($Driver->getFeatures($objectId), $result->features);
+            // Добавяме и свойствата от драйвера и наследените от групите, ако има такива
+            $result->features = array_merge($Driver->getFeatures($objectId), cat_GroupParams::getProductFeatures($objectId, $Driver), $result->features);
         }
         
         return $result;

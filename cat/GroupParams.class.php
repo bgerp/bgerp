@@ -465,6 +465,32 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
+     * Наследените от групите параметри на артикула, които са счетоводни свойства и артикулът няма собствени
+     *
+     * @param int               $productId - ид на артикул
+     * @param cat_ProductDriver $Driver    - драйвер на артикула
+     *
+     * @return array $res - вербалните стойности, с ключ името на параметъра
+     */
+    public static function getProductFeatures($productId, $Driver)
+    {
+        $res = array();
+        $productClassId = cat_Products::getClassId();
+        foreach (static::getProductParamRecs($productId) as $paramId => $gRec) {
+            if (cat_Params::fetchField($paramId, 'isFeature') != 'yes') continue;
+            if (static::hasValue($Driver->getParams($productClassId, $productId, $paramId))) continue;
+
+            // Вербализира се като собствен параметър, за да е същото свойство
+            $pRec = (object) array('productId' => $productId, 'classId' => $productClassId, 'paramId' => $paramId, 'paramValue' => $gRec->paramValue);
+            $row = cat_products_Params::recToVerbal($pRec, 'paramId,paramValue');
+            $res[$row->paramId] = $row->paramValue;
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Дали артикулът има собствена стойност на параметъра - иначе се наследява от групите
      *
      * @param mixed $value - стойност на параметъра
