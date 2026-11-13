@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>new-design.scss regression</title>
+<style>
+body { font: 16px sans-serif; margin: 20px; }
+iframe { height: 700px; border: 1px solid #aaa; }
+.pair { display: flex; gap: 16px; overflow: auto; }
+.pair iframe { flex-shrink: 0; }
+pre { white-space: pre-wrap; }
+</style>
+<h1>new-design.scss: изглед и селектори</h1>
+<p>Ляво: предишен CSS. Дясно: текущ CSS. Проверяват се 12 цвята при ширини 360, 1024 и 1440px.</p>
+<pre id="result">Проверява се...</pre>
+<div id="frames"></div>
+<script>
+'use strict';
+const query = new URLSearchParams(location.search);
+const current = new URL(query.get('css') || 'new-design.css', location.href);
+const before = new URL(query.get('before') || 'before.css', location.href);
+const colors = ['lightgray', 'darkgray', 'lightgreen', 'darkgreen', 'darkblue', 'lightblue', 'lightred', 'darkred', 'purple', 'pink', 'yellow', 'orange'];
+const properties = ['color', 'background-color', 'background-image', 'transition-duration', 'transition-property', 'display', 'position', 'top', 'left', 'right', 'font-size', 'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin-top', 'margin-bottom', 'border-top-width', 'border-top-color', 'box-shadow'];
+const samples = '<div class="gradient-dark" data-check="gradient">Градиент на темата</div>' +
+    '<div class="center-block" data-check="center"><span class="notificationsCnt" data-check="notification">Известия</span></div>' +
+    colors.map(color => '<section><h3>' + color + '</h3>' +
+        '<span class="color-' + color + '" data-check="span">Етикет <a data-check="span-link">Връзка</a></span>' +
+        '<ul><li class="color-' + color + '" data-check="li">Меню <a data-check="li-link">Връзка</a></li></ul>' +
+        '<div class="color-' + color + '" data-check="plain-div">Обикновен div' +
+        '<span data-check="plain-span">Вложен span</span><div class="portal" data-check="portal">' +
+        '<div class="legend" data-check="legend">Заглавие <a data-check="legend-link">Връзка</a></div></div></div></section>').join('');
+
+function frame(url, width, label) {
+    const element = document.createElement('iframe');
+    element.width = width;
+    element.title = label + ' ' + width;
+    const doc = document.implementation.createHTMLDocument(label);
+    const css = doc.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = url.href;
+    doc.head.appendChild(css);
+    doc.body.style.cssText = '--themeColor:rgb(120,160,200);--themeColorD30:rgb(90,130,170);--themeColorD100:rgb(20,60,100)';
+    doc.body.innerHTML = samples;
+    element.srcdoc = '<!doctype html>' + doc.documentElement.outerHTML;
+    return {element, ready: new Promise(resolve => element.onload = resolve)};
+}
+
+(async function () {
+    let comparisons = 0;
+    const differences = [];
+    for (const width of [360, 1024, 1440]) {
+        const row = document.createElement('div');
+        row.className = 'pair';
+        const oldFrame = frame(before, width, 'Преди');
+        const newFrame = frame(current, width, 'След');
+        row.append(oldFrame.element, newFrame.element);
+        document.getElementById('frames').appendChild(row);
+        await Promise.all([oldFrame.ready, newFrame.ready]);
+        const oldElements = oldFrame.element.contentDocument.querySelectorAll('[data-check]');
+        const newElements = newFrame.element.contentDocument.querySelectorAll('[data-check]');
+        if (!oldFrame.element.contentDocument.styleSheets.length || !newFrame.element.contentDocument.styleSheets.length) throw new Error('Липсва CSS');
+        oldElements.forEach((element, index) => {
+            const a = oldFrame.element.contentWindow.getComputedStyle(element);
+            const b = newFrame.element.contentWindow.getComputedStyle(newElements[index]);
+            properties.forEach(property => {
+                comparisons++;
+                if (a.getPropertyValue(property) !== b.getPropertyValue(property)) differences.push({width, index, target: element.dataset.check, property, before: a.getPropertyValue(property), after: b.getPropertyValue(property)});
+            });
+        });
+    }
+    document.getElementById('result').textContent = JSON.stringify({status: differences.length ? 'FAIL' : 'PASS', comparisons, differences}, null, 2);
+})().catch(error => document.getElementById('result').textContent = 'FAIL: ' + error.message);
+</script>
+</html>
