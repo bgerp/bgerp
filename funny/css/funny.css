@@ -43,7 +43,6 @@
 .funny-firefly > svg:first-child { transition: filter 1.8s ease; }
 .funny-firefly[data-fog-glow="true"] > svg:first-child { filter: drop-shadow(0 0 7px #fff6a4); }
 .funny-visitor.funny-present { opacity: 1; }
-.funny-visitor.funny-present:not(.funny-leaving):not(.funny-present-fading) { pointer-events: auto !important; cursor: pointer; }
 .funny-present:not(.funny-leaving) > svg:first-child { transform-origin: 50% 95%; animation: funny-present-rock 1.3s ease-in-out infinite alternate, funny-present-glow 1.4s ease-in-out infinite; }
 .funny-present-sparkles { position: absolute; inset: 0; }
 .funny-present-sparkles i { position: absolute; width: 26px; height: 26px; margin: -13px; background: radial-gradient(circle, #fff 0 18%, #ffe27a 45%, #ffcf3f); clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); animation: funny-present-twinkle 1.6s ease-in-out infinite; }

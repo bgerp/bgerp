@@ -365,7 +365,7 @@ check('every character has a sprite and a distinct, short sound signature', () =
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
     const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
-    const christmas=['sleigh','elf','snowmaiden','deer','snowman','present','spiders'], winter=['snowman','casper','present','spiders'];
+    const christmas=['sleigh','elf','snowmaiden','deer','snowman','present','spiders'], winter=['snowman','casper','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
     const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
@@ -382,7 +382,7 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
         // Rare year-round guests need not appear in every finite seasonal sample.
-        pool.filter(name=>!['wolf','spiders','mouse'].includes(name)).forEach(name=>assert(seen.has(name),date+': '+name));
+        pool.filter(name=>!['wolf','spiders','mouse','present'].includes(name)).forEach(name=>assert(seen.has(name),date+': '+name));
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
@@ -1747,7 +1747,7 @@ check('new wolf poses clear on inactive pages and reduced motion',()=>{
 });
 
 check('seasonal actors dominate whole groups, guests remain possible and manual choices stay uniform',()=>{
-    const fixtures=[['2026-01-20',['snowman','casper','present']],['2026-03-01',['martenitsa','stork']],
+    const fixtures=[['2026-01-20',['snowman','casper']],['2026-03-01',['martenitsa','stork']],
         ['2026-04-12',['bunny','chick','butterfly']],['2026-07-01',['butterfly','firefly','mosquito']],
         ['2026-10-30',['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp']],
         ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman','present']]];
@@ -1793,30 +1793,105 @@ check('gremlin clicks add one copy with a cooldown, preserve notification silenc
         e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
     }
 });
-check('a winter present creeps slowly, ignores hovering and pops into ten gremlins when clicked or tapped anywhere on it',()=>{
-    for(const variant of ['click','tap','gentle']) {
-        const e=environment({mode:'selected',characters:['present'],trigger:'manual',sound:'no',strength:variant==='gentle'?'gentle':'normal'},{coarse:variant==='tap'});
-        if(variant==='tap') e.touch(500,400),e.tick(100),e.touch(500,400); else e.click();
-        e.tick(700);
-        const present=e.visitors()[0];assert(present.className.includes('funny-present'));assert.equal(parseFloat(present.style.width),200);
-        const start=e.center(present);e.tick(10000);const moved=e.center(present);
-        assert(Math.hypot(moved.x-start.x,moved.y-start.y)<=70,'present moves very slowly');
-        e.document.emit('pointermove',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'));
-        const hit=e.event({target:present,clientX:moved.x+80,clientY:moved.y+60});
-        e.document.emit('pointerdown',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'),'a click on the page below does not pop it');
-        if(variant==='tap') {e.document.emit('pointerdown',Object.assign({},hit,{pointerType:'touch'}));e.tick(50);e.document.emit('pointerup',Object.assign({},hit,{pointerType:'touch'}));}
-        else {e.document.emit('pointerdown',hit);e.document.emit('dblclick',hit);}
-        assert(present.className.includes('funny-leaving'));
-        const imps=e.visitors().filter(v=>v.className.includes('funny-imp'));assert.equal(imps.length,variant==='gentle'?5:10);
-        assert(e.visitors().every(v=>v===present||v.className.includes('funny-imp')),'the double click does not summon another group');
-        const starts=imps.map(e.center);assert(starts.every(q=>Math.hypot(q.x-starts[0].x,q.y-starts[0].y)<1),'gremlins leave one point');
-        e.tick(800);const spots=imps.map(e.center);
-        assert(Math.max(...spots.map(a=>Math.max(...spots.map(b=>Math.hypot(a.x-b.x,a.y-b.y)))))>350,'gremlins scatter across the screen');assert(!e.document.body.children.includes(present));
-        e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+/** A seeded holiday group reaches the real seasonal lottery, without a production preview bypass. */
+function presentFixture(config={}, settings={}) {
+    const e=environment({trigger:'manual',sound:'no',...settings},{date:'2026-12-25T12:00:00',seed:settings.strength==='gentle'?251:403,...config});
+    if(settings.trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});}
+    else e.click({clientX:e.window.innerWidth/2,clientY:e.window.innerHeight/2});
+    e.tick(2100);
+    const present=e.visitors().find(v=>v.className.includes('funny-present'));
+    assert(present,'seeded holiday group contains the present');
+    return {e,present};
+}
+check('presents are rare Christmas and New Year surprises, never manual selections or winter guests',()=>{
+    for(const date of ['2026-11-30','2026-12-01','2026-12-31','2027-01-07','2027-01-08','2026-02-01','2026-07-01']) {
+        const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00',seed:403});e.click();e.tick(2000);
+        assert.equal(e.visitors().some(v=>v.className.includes('funny-present')),['2026-12-01','2026-12-31','2027-01-07'].includes(date),date);
     }
-    const e=environment({mode:'selected',characters:['present'],trigger:'manual',sound:'no'});e.click();e.tick(700);
-    const present=e.visitors()[0];e.tick(51000,100);assert(!e.document.body.children.includes(present));
-    assert(!present.className.includes('funny-leaving'));assert(present.className.includes('funny-present-fading'));
+    const manual=environment({mode:'selected',characters:['present'],trigger:'manual'},{date:'2026-12-25T12:00:00'});manual.click();assert.equal(manual.visitors().length,0);
+    const e=environment({trigger:'manual',sound:'no'},{date:'2026-12-25T12:00:00'});let gifts=0;
+    for(let i=0;i<1000;i++) {
+        e.document.emit('keydown',{key:'Escape'});e.click();e.tick(2000,100);
+        if(e.visitors().some(v=>v.className.includes('funny-present')))gifts++;
+    }
+    assert(gifts>0 && gifts<30,'rare but reachable: '+gifts+' gifts per 1000 groups');
+});
+check('a present keeps its appearance, ignores hovering and expires without scoring a hit',()=>{
+    const {e,present}=presentFixture({}, {strength:'gentle'}), start=e.center(present);assert.equal(parseFloat(present.style.width),200);
+    e.tick(10000);const moved=e.center(present);
+    assert(Math.hypot(moved.x-start.x,moved.y-start.y)<80,'slow drift');
+    e.document.emit('pointermove',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'));
+    e.tick(51000,100);assert(!e.visitors().includes(present));assert(present.className.includes('funny-present-fading'));
+    assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+});
+check('automatic holiday presents fit narrow screens with the pointer inside the viewport',()=>{
+    for(const [width,height] of [[320,568],[390,844],[844,390]]) {
+        const e=environment({sound:'no'},{width,height,date:'2026-12-25T12:00:00',seed:403});
+        e.tick([...e.timers.values()][0].at+2100,100);
+        const gift=e.visitors().find(v=>v.className.includes('funny-present'));assert(gift,width+'x'+height);
+        const p=e.center(gift),w=parseFloat(gift.style.width),h=parseFloat(gift.style.height);
+        assert(p.x>=w/2 && p.x<=width-w/2 && p.y>=h/2 && p.y<=height-h/2);
+    }
+});
+check('a present opens only over blank space, never on controls, text, modified clicks or touch gestures',()=>{
+    for(const action of ['control','text','right','modified','scroll','hold','cancel','click','tap']) {
+        const {e,present}=presentFixture({coarse:['scroll','hold','cancel','tap'].includes(action)}), p=e.center(present);
+        const event=e.event({clientX:p.x,clientY:p.y});
+        if(action==='control') {e.block.interactive=true;event.target=e.block;}
+        if(action==='text') {e.blank.childNodes=[{nodeType:3,textContent:'Important document text'}];}
+        if(action==='right')event.button=2;if(action==='modified')event.ctrlKey=true;
+        if(['scroll','hold','cancel','tap'].includes(action)) {
+            event.pointerType='touch';e.document.emit('pointerdown',event);e.tick(action==='hold'?500:50);
+            if(action==='cancel')e.document.emit('pointercancel');
+            if(action==='scroll')event.clientY+=30;
+            e.document.emit('pointerup',event);
+        } else e.document.emit('pointerdown',event);
+        assert.equal(e.visitors().includes(present),!['click','tap'].includes(action),action);
+        assert(!e.document.body.children.some(n=>n.className==='funny-stats'),'opening is not a kill');
+    }
+    const css=fs.readFileSync(require('node:path').join(__dirname,'../css/funny.css'),'utf8');
+    assert(!/\.funny-visitor\.funny-present[^}]+pointer-events:\s*auto/.test(css));
+});
+check('present contents are staggered, mixed, mainly gremlins and bounded by each screen and gentle mode',()=>{
+    for(const [width,height,strength] of [[1920,1080,'normal'],[1000,800,'normal'],[390,844,'normal'],[320,568,'normal'],[390,844,'gentle']]) {
+        const {e,present}=presentFixture({width,height},{strength}), before=e.visitors().filter(v=>v!==present), p=e.center(present);
+        const limit=Math.max(4,Math.min(50,Math.floor(width*height/40000*(strength==='gentle'?.5:1))));
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+        const first=e.visitors().filter(v=>!before.includes(v));assert.equal(first.length,1);
+        e.document.emit('dblclick',e.event({clientX:p.x,clientY:p.y}));
+        assert.equal(e.visitors().length,before.length+1,'opening double click creates no extra group');
+        const released=new Set(first);let maximum=e.visitors().length;
+        for(let t=0;t<2000;t+=20) {e.tick(20);maximum=Math.max(maximum,e.visitors().length);e.visitors().filter(v=>!before.includes(v)).forEach(v=>released.add(v));}
+        assert(maximum<=limit,'viewport limit '+width+' '+strength+': '+maximum);
+        const children=[...released];assert(children.length<= (strength==='gentle'?5:16));
+        if(limit-before.length>=2) {
+            assert(children.length>=2);assert(children.some(v=>!v.className.includes('funny-imp')),'mixed group');
+            const imps=children.filter(v=>v.className.includes('funny-imp'));assert(imps.length>=children.length/2);
+            assert(children[1].createdAt>children[0].createdAt,'delayed second arrival');
+        }
+        assert(children.every(v=>['imp','sleigh','elf','snowmaiden','deer','snowman'].some(c=>v.className.split(' ').includes('funny-'+c))));
+        e.window.emit('blur');e.tick(3000);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('delayed present contents stop on blur, hidden page, Escape, resize, reduced motion and a stale timer',()=>{
+    for(const stop of ['blur','hidden','escape','resize','reduced','late']) {
+        const {e,present}=presentFixture(), p=e.center(present);
+        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+        if(stop==='blur')e.window.emit('blur');if(stop==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(stop==='escape')e.document.emit('keydown',{key:'Escape'});if(stop==='resize')e.window.emit('resize');
+        if(stop==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        const before=e.visitors().slice();e.tick(4000,stop==='late'?4000:16);
+        if(stop==='late')assert(e.visitors().every(v=>before.includes(v)),'stale callbacks do not replay');
+        else {assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);}
+    }
+});
+check('present opening uses one short shared cue and notification gifts keep all contents silent',()=>{
+    for(const notification of [false,true]) {
+        const {e,present}=presentFixture({scene:true},{sound:'yes',trigger:notification?'notification':'manual'});e.tick(2500);const p=e.center(present);
+        const before=e.sounds.length;e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));e.tick(2000);
+        assert.equal(e.sounds.length-before,notification?0:3);
+        if(notification){e.tick(15000);assert.equal(e.sounds.length,0);}
+    }
 });
 check('gremlins ignore controls, modified clicks and touch scrolling; a short blank tap splits once',()=>{
     for(const action of ['control','right','modified','scroll','hold','cancel','tap']) {
