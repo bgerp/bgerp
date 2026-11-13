@@ -958,32 +958,53 @@ class acc_CostAllocations extends core_Manager
             return $result;
         }
         
+        // Продажбите, документите и профилите се повтарят в много редове - помнят се за това изпълнение
+        $sales = $docs = $personIds = array();
+
         while ($eRec = $eQuery->fetch()) {
-            $saleRec = cls::get($eRec->expenseClassId)->fetch($eRec->expenseObjectId);
+            $saleKey = "{$eRec->expenseClassId}|{$eRec->expenseObjectId}";
+            if (!array_key_exists($saleKey, $sales)) {
+                $fullSaleRec = cls::get($eRec->expenseClassId)->fetch($eRec->expenseObjectId);
+                $sales[$saleKey] = (object) array('containerId' => $fullSaleRec->containerId, 'valior' => $fullSaleRec->valior);
+            }
+            $saleRec = $sales[$saleKey];
             
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($saleRec->containerId);
             if (empty($persons['dealerId'])) {
                 continue;
             }
             
-            $Document = doc_Containers::getDocument($eRec->containerId);
-            if (!acc_Journal::fetchByDoc($Document->getInstance(), $Document->that)) {
+            if (!array_key_exists($eRec->containerId, $docs)) {
+                $Document = doc_Containers::getDocument($eRec->containerId);
+                $docInfo = (object) array('classId' => $Document->getClassId(), 'that' => $Document->that, 'isRejected' => null);
+                $docInfo->hasJournal = (bool) acc_Journal::fetchByDoc($Document->getInstance(), $Document->that);
+                if ($docInfo->hasJournal) {
+                    $docInfo->isRejected = ($Document->fetchField('state') == 'rejected');
+                }
+                $docs[$eRec->containerId] = $docInfo;
+            }
+            $docInfo = $docs[$eRec->containerId];
+            if (!$docInfo->hasJournal) {
                 continue;
             }
+
             $dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
             $amount = $dRec->amount;
             
             $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
-            $personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
-            $key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
-            $isRejected = ($Document->fetchField('state') == 'rejected');
+            if (!array_key_exists($persons['dealerId'], $personIds)) {
+                $personIds[$persons['dealerId']] = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
+            }
+            $personId = $personIds[$persons['dealerId']];
+            $key = "{$personId}|{$docInfo->classId}|{$docInfo->that}|{$saleRec->valior}|{$expenseIndicatorId}";
+            $isRejected = $docInfo->isRejected;
             
             // Ако няма данни, добавят се
             if (!array_key_exists($key, $result)) {
                 $result[$key] = (object) array('date' => $saleRec->valior,
                     'personId' => $personId,
-                    'docId' => $Document->that,
-                    'docClass' => $Document->getClassId(),
+                    'docId' => $docInfo->that,
+                    'docClass' => $docInfo->classId,
                     'indicatorId' => $expenseIndicatorId,
                     'value' => round($sign * $amount, 4),
                     'isRejected' => $isRejected,);
@@ -1020,6 +1041,9 @@ class acc_CostAllocations extends core_Manager
         $documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
         $eQuery->in('docClass', array_map(function ($docName) { return cls::get($docName)->getClassId(); }, $documents));
         $eQuery->notIn('docState', array('draft', 'pending', 'stopped'));
+
+        // Само полетата нужни за показателя - без данните за разпределението
+        $eQuery->show('containerId,detailClassId,detailRecId,expenseClassId,expenseObjectId');
 
         return $eQuery;
     }
