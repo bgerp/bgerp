@@ -327,8 +327,8 @@ class cat_products_Params extends cat_products_ProtoParams
             $sortRecs[$rec->id] = $rec;
         }
 
-        // В сингъла на артикула се показват и наследените от групите му параметри
-        if (!empty($data->isSingle) && $data->masterClassId == cat_Products::getClassId()) {
+        // Наследените от групите параметри се показват в сингъла и в описанието на артикула в документите
+        if ($data->masterClassId == cat_Products::getClassId()) {
             static::addGroupParams($data, $sortRecs);
         }
         
@@ -340,6 +340,7 @@ class cat_products_Params extends cat_products_ProtoParams
     
     /**
      * Добавя наследените от групите параметри, които артикулът няма, подредени заедно със собствените
+     * Извън сингъла са като обикновен ред, а за външните документи - само показваните в тях
      *
      * @param stdClass $data
      * @param array    $sortRecs - собствените записи, с ключ ключа на реда
@@ -352,6 +353,7 @@ class cat_products_Params extends cat_products_ProtoParams
         if (!countR($groupRecs)) return;
 
         $GroupParams = cls::get('cat_GroupParams');
+        $isSingle = !empty($data->isSingle);
         foreach ($sortRecs as $key => $rec) {
             $gRec = $groupRecs[$rec->paramId] ?? null;
             if (!is_object($gRec)) continue;
@@ -359,14 +361,17 @@ class cat_products_Params extends cat_products_ProtoParams
             if (cat_GroupParams::hasValue($rec->paramValue ?? null)) continue;
 
             // Собственият запис е празен - важи наследената стойност, а редакцията е на собствения
-            $editUrl = static::haveRightFor('edit', $rec) ? array(get_called_class(), 'edit', $rec->id, 'ret_url' => true) : null;
-            $data->params[$key] = $GroupParams->prepareInheritedRow($gRec, $editUrl);
+            $editUrl = ($isSingle && static::haveRightFor('edit', $rec)) ? array(get_called_class(), 'edit', $rec->id, 'ret_url' => true) : null;
+            $data->params[$key] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $editUrl);
         }
 
+        $isPublic = in_array($data->documentType ?? null, array('public', 'invoice'), true);
         foreach ($groupRecs as $gRec) {
+            if ($isPublic && cat_Params::fetchField($gRec->paramId, 'showInPublicDocuments') != 'yes') continue;
+
             $overrideRec = (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId);
-            $overrideUrl = static::haveRightFor('add', $overrideRec) ? array(get_called_class(), 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId, 'ret_url' => true) : null;
-            $data->params["g{$gRec->id}"] = $GroupParams->prepareInheritedRow($gRec, $overrideUrl);
+            $overrideUrl = ($isSingle && static::haveRightFor('add', $overrideRec)) ? array(get_called_class(), 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId, 'ret_url' => true) : null;
+            $data->params["g{$gRec->id}"] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $overrideUrl);
             $sortRecs["g{$gRec->id}"] = $gRec;
         }
 
@@ -387,6 +392,27 @@ class cat_products_Params extends cat_products_ProtoParams
             $params[$key] = $data->params[$key];
         }
         $data->params = $params;
+    }
+
+
+    /**
+     * Ред за наследен параметър - в сингъла маркиран като наследен, иначе като обикновен ред без бутони
+     *
+     * @param cat_GroupParams $GroupParams
+     * @param stdClass        $gRec        - запис на параметър на група
+     * @param bool            $isSingle    - дали е за сингъла на артикула
+     * @param array|null      $url         - адрес за предефиниране на стойността
+     *
+     * @return stdClass $row
+     */
+    private static function prepareGroupParamRow($GroupParams, $gRec, $isSingle, $url)
+    {
+        $row = $GroupParams->prepareInheritedRow($gRec, $url);
+        if (!$isSingle) {
+            unset($row->_inheritedHint);
+        }
+
+        return $row;
     }
 
 
