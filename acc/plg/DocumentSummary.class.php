@@ -536,6 +536,13 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if ($data->listFilter->rec->{$fF} || $data->listFilter->rec->{$fT}) {
                         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
                         $data->query->useIndex($indexName);
+
+                        // Съставните индекси с createdOn (напр. storeId,createdOn) са по-селективни при филтър по водещото поле
+                        foreach ((array) ($mvc->dbIndexes ?? array()) as $iName => $iRec) {
+                            if (($iRec->type ?? null) == 'INDEX' && in_array('createdOn', arr::make($iRec->fields ?? ''))) {
+                                $data->query->useIndex($iName);
+                            }
+                        }
                     }
                 }
 
@@ -600,7 +607,12 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
+
+        // Копие преди изпълнението, по което страньорът проверява дали броят е за същите записи
+        $cntQuery = clone $sQuery;
+        $totalCount = 0;
         while ($rec = $sQuery->fetch()) {
+            $totalCount++;
             if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
                 if($rec->{$mvc->valiorFld} < $eurozoneDate){
                     $data->hasDocumentBeforeEu = true;
@@ -621,7 +633,22 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+
+        $data->listSummary->itemsCount = $totalCount;
+        $data->listSummary->itemsCountQuery = $cntQuery;
         core_Debug::stopTimer('RENDER_SUMMARY');
+    }
+
+
+    /**
+     * След подготовка на страньора
+     */
+    public static function on_AfterPrepareListPager($mvc, &$res, &$data)
+    {
+        // Обобщението вече е преброило записите - страньорът да не ги брои отново
+        if (isset($data->listSummary->itemsCountQuery) && (($data->pager ?? null) instanceof core_Pager)) {
+            $data->pager->setKnownItemsCount($data->listSummary->itemsCount, $data->listSummary->itemsCountQuery);
+        }
     }
 
 

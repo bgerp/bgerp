@@ -81,7 +81,19 @@ class core_Pager extends core_BaseClass
      * Брояч за текущия резултат
      */
     public $currentResult;
-    
+
+
+    /**
+     * Предварително известен брой на резултатите (напр. от обобщението на списъка)
+     */
+    protected $knownItemsCount;
+
+
+    /**
+     * Хеш на заявката, за която е известен броят на резултатите
+     */
+    protected $knownItemsCountHash;
+
     
     /**
      * Инициализиране на обекта
@@ -205,8 +217,58 @@ class core_Pager extends core_BaseClass
     {
         return $this->rangeEnd;
     }
-    
-    
+
+
+    /**
+     * Задава вече известния брой резултати на заявката, за да не се броят отново
+     *
+     * @param int        $count - броят на резултатите
+     * @param core_Query $query - неизпълнено копие на преброената заявка
+     */
+    public function setKnownItemsCount($count, $query)
+    {
+        $this->knownItemsCount = $count;
+        $this->knownItemsCountHash = self::getRecsHash($query);
+    }
+
+
+    /**
+     * Връща вече известния брой резултати, ако е за заявка със същите записи
+     *
+     * @param core_Query $query
+     *
+     * @return int|null
+     */
+    protected function getKnownItemsCount($query)
+    {
+        if (!isset($this->knownItemsCount) || !empty($query->addId)) {
+
+            return null;
+        }
+
+        return (self::getRecsHash($query) === $this->knownItemsCountHash) ? $this->knownItemsCount : null;
+    }
+
+
+    /**
+     * Хеш на заявката, зависещ само от това кои записи връща
+     *
+     * @param core_Query $query
+     *
+     * @return string
+     */
+    protected static function getRecsHash($query)
+    {
+        $q = clone $query;
+        $q->show = array();
+        $q->show('id');
+        $q->orderBy = array();
+        $q->highPriority = false;
+
+        return $q->getHash(true);
+    }
+
+
     /**
      * @todo Чака за документация...
      */
@@ -235,8 +297,15 @@ class core_Pager extends core_BaseClass
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
 
+        $knownCnt = null;
         if (!$useCache && !($query->mvc->simplePaging ?? false)) {
-            $query->addOption('SQL_CALC_FOUND_ROWS');
+            // Ако броят вече е известен, заявката за id-тата спира след страницата, вместо да обхожда всички записи
+            $knownCnt = $this->getKnownItemsCount($query);
+            if (isset($knownCnt)) {
+                $this->itemsCount = $knownCnt;
+            } else {
+                $query->addOption('SQL_CALC_FOUND_ROWS');
+            }
         } else {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
             if ($resCntCache !== false) {
@@ -317,6 +386,8 @@ class core_Pager extends core_BaseClass
                 }
                 core_QueryCnts::delayCount($qCnt);
             }
+        } elseif (isset($knownCnt)) {
+            $resCnt = $knownCnt;
         } else {
             // FOUND_ROWS() се чете от връзката, на която е изпълнена заявката за id-тата
             $foundRows = function () use ($qCnt) {
