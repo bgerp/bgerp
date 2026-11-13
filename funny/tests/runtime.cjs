@@ -1821,7 +1821,9 @@ check('a present keeps its appearance, ignores hovering and expires without scor
     e.tick(10000);const moved=e.center(present);
     assert(Math.hypot(moved.x-start.x,moved.y-start.y)<80,'slow drift');
     e.document.emit('pointermove',e.event({clientX:moved.x,clientY:moved.y}));assert(!present.className.includes('funny-leaving'));
-    e.tick(51000,100);assert(!e.visitors().includes(present));assert(present.className.includes('funny-present-fading'));
+    while(e.visitors().includes(present) && e.now()<36000)e.tick(100);
+    assert(e.now()>=20000 && e.now()<=35700,'unopened gift uses the normal 20-35 second lifetime');
+    assert(!e.visitors().includes(present));assert(present.className.includes('funny-present-fading'));
     assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
 });
 check('automatic holiday presents fit narrow screens with the pointer inside the viewport',()=>{
@@ -1833,20 +1835,24 @@ check('automatic holiday presents fit narrow screens with the pointer inside the
         assert(p.x>=w/2 && p.x<=width-w/2 && p.y>=h/2 && p.y<=height-h/2);
     }
 });
-check('a present opens only over blank space, never on controls, text, modified clicks or touch gestures',()=>{
-    for(const action of ['control','text','right','modified','scroll','hold','cancel','click','tap']) {
-        const {e,present}=presentFixture({coarse:['scroll','hold','cancel','tap'].includes(action)}), p=e.center(present);
+check('a present requires a blank-space double click or double tap, ignoring single clicks and touch gestures',()=>{
+    for(const action of ['control','text','right','modified','scroll','hold','cancel','click','tap','doubleclick','doubletap']) {
+        const {e,present}=presentFixture({coarse:['scroll','hold','cancel','tap','doubletap'].includes(action)}), p=e.center(present);
         const event=e.event({clientX:p.x,clientY:p.y});
         if(action==='control') {e.block.interactive=true;event.target=e.block;}
         if(action==='text') {e.blank.childNodes=[{nodeType:3,textContent:'Important document text'}];}
         if(action==='right')event.button=2;if(action==='modified')event.ctrlKey=true;
-        if(['scroll','hold','cancel','tap'].includes(action)) {
+        if(['scroll','hold','cancel','tap','doubletap'].includes(action)) {
             event.pointerType='touch';e.document.emit('pointerdown',event);e.tick(action==='hold'?500:50);
             if(action==='cancel')e.document.emit('pointercancel');
             if(action==='scroll')event.clientY+=30;
             e.document.emit('pointerup',event);
-        } else e.document.emit('pointerdown',event);
-        assert.equal(e.visitors().includes(present),!['click','tap'].includes(action),action);
+            if(action==='doubletap') {e.tick(80);e.document.emit('pointerdown',event);e.tick(50);e.document.emit('pointerup',event);}
+        } else {
+            e.document.emit('pointerdown',event);
+            if(action!=='click')e.document.emit('dblclick',event);
+        }
+        assert.equal(e.visitors().includes(present),!['doubleclick','doubletap'].includes(action),action);
         assert(!e.document.body.children.some(n=>n.className==='funny-stats'),'opening is not a kill');
     }
     const css=fs.readFileSync(require('node:path').join(__dirname,'../css/funny.css'),'utf8');
@@ -1856,12 +1862,26 @@ check('present contents are staggered, mixed, mainly gremlins and bounded by eac
     for(const [width,height,strength] of [[1920,1080,'normal'],[1000,800,'normal'],[390,844,'normal'],[320,568,'normal'],[390,844,'gentle']]) {
         const {e,present}=presentFixture({width,height},{strength}), before=e.visitors().filter(v=>v!==present), p=e.center(present);
         const limit=Math.max(4,Math.min(50,Math.floor(width*height/40000*(strength==='gentle'?.5:1))));
-        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
-        const first=e.visitors().filter(v=>!before.includes(v));assert.equal(first.length,1);
-        e.document.emit('dblclick',e.event({clientX:p.x,clientY:p.y}));
-        assert.equal(e.visitors().length,before.length+1,'opening double click creates no extra group');
-        const released=new Set(first);let maximum=e.visitors().length;
-        for(let t=0;t<2000;t+=20) {e.tick(20);maximum=Math.max(maximum,e.visitors().length);e.visitors().filter(v=>!before.includes(v)).forEach(v=>released.add(v));}
+        e.click({clientX:p.x,clientY:p.y});
+        assert.equal(e.visitors().length,before.length,'the lid opens before the first arrival');
+        const box=e.document.body.children.find(n=>n.className==='funny-present-open');assert(box);
+        assert.equal(box.children[0].children[0].attrs.href,'/characters.svg#present-open');
+        assert.equal(box.children[1].children[0].attrs.href,'/characters.svg#present-lid');
+        assert.equal(e.visitors().length,before.length,'opening double click creates no extra group');
+        const released=new Set();let maximum=e.visitors().length,lastArrival=0;
+        for(let t=0;t<16000;t+=20) {
+            e.tick(20);maximum=Math.max(maximum,e.visitors().length);
+            for(const v of e.visitors().filter(v=>!before.includes(v))) if(!released.has(v)) {
+                assert(e.document.body.children.includes(box),'the box remains for every arrival');
+                if(lastArrival)assert(v.createdAt-lastArrival>=640,'characters leave one after another');
+                lastArrival=v.createdAt;released.add(v);
+            }
+            if(lastArrival && e.now()-lastArrival<650) {
+                assert(e.document.body.children.includes(box),'the last arrival has time to clear the box');
+                assert(!box.className.includes('funny-portal-closing'));
+            }
+        }
+        assert(!e.document.body.children.includes(box),'the empty box fades away');
         assert(maximum<=limit,'viewport limit '+width+' '+strength+': '+maximum);
         const children=[...released];assert(children.length<= (strength==='gentle'?5:16));
         if(limit-before.length>=2) {
@@ -1876,19 +1896,22 @@ check('present contents are staggered, mixed, mainly gremlins and bounded by eac
 check('delayed present contents stop on blur, hidden page, Escape, resize, reduced motion and a stale timer',()=>{
     for(const stop of ['blur','hidden','escape','resize','reduced','late']) {
         const {e,present}=presentFixture(), p=e.center(present);
-        e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));
+        e.click({clientX:p.x,clientY:p.y});
         if(stop==='blur')e.window.emit('blur');if(stop==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
         if(stop==='escape')e.document.emit('keydown',{key:'Escape'});if(stop==='resize')e.window.emit('resize');
         if(stop==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
         const before=e.visitors().slice();e.tick(4000,stop==='late'?4000:16);
-        if(stop==='late')assert(e.visitors().every(v=>before.includes(v)),'stale callbacks do not replay');
-        else {assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);}
+        if(stop==='late') {
+            assert(e.visitors().filter(v=>!before.includes(v)).length<=1,'a stalled frame cannot replay a crowd');
+            e.tick(20000,20000);assert(!e.document.body.children.some(n=>n.className.includes('funny-present-open')));
+        }
+        else {assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);assert(!e.document.body.children.some(n=>n.className.includes('funny-present-open')));}
     }
 });
 check('present opening uses one short shared cue and notification gifts keep all contents silent',()=>{
     for(const notification of [false,true]) {
         const {e,present}=presentFixture({scene:true},{sound:'yes',trigger:notification?'notification':'manual'});e.tick(2500);const p=e.center(present);
-        const before=e.sounds.length;e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));e.tick(2000);
+        const before=e.sounds.length;e.click({clientX:p.x,clientY:p.y});e.tick(2000);
         assert.equal(e.sounds.length-before,notification?0:3);
         if(notification){e.tick(15000);assert.equal(e.sounds.length,0);}
     }

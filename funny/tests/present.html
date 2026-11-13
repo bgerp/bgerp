@@ -16,7 +16,7 @@
 </style>
 <h1>Коледен подарък</h1>
 <p>Самостоятелен тест с реалния контролер и синтетична дата 25 декември. Двойният клик използва фиксирана случайна последователност за рядката поява; в системата шансът остава до 2% на сезонна група от 1 декември до 7 януари.</p>
-<p>Подаръкът се отваря с клик върху празното място под него. Бутоните, линковете и писането остават свободни. Проверете малък прозорец, Escape и друг таб: отложените герои трябва да спрат.</p>
+<p>Подаръкът се отваря с двоен клик върху празното място под него. Неотворен, изчезва след 20-35 секунди. Капакът се повдига и героите излизат един след друг през 0,65-0,9 секунди. Кутията остава отворена до последния герой. Бутоните, линковете и писането остават свободни. Проверете малък прозорец, Escape и друг таб: отложените герои трябва да спрат.</p>
 <button id="place" type="button">Постави контроли под подаръка</button>
 <button id="remove" type="button">Прибери контролите</button>
 <output id="status">Изчакване на подарък</output>
@@ -42,13 +42,13 @@
         Math.random(); // The controller consumes one initial idle-delay draw in the matching runtime fixture.
         setTimeout(function () { Math.random = nativeRandom; }, 0);
     });
-    funnyEffects.init({mode:'auto',trigger:'manual',frequency:'normal',sound:'yes',spriteUrl:'../img/characters.svg'});
+    funnyEffects.init({mode:'auto',trigger:'manual',frequency:'normal',sound:'yes',spriteUrl:'../img/characters.svg?preview=' + NativeDate.now()});
     var clicks = 0, links = 0, probe = document.getElementById('probe'), giftStatus = document.getElementById('status');
     document.getElementById('test-button').addEventListener('click', function () { this.textContent = 'Кликове: ' + (++clicks); });
     document.getElementById('test-link').addEventListener('click', function () { this.textContent = 'Линкът работи: ' + (++links); });
     document.getElementById('remove').addEventListener('click', function () { probe.hidden = true; });
     document.getElementById('place').addEventListener('click', function () {
-        var gift = document.querySelector('.funny-present:not(.funny-present-fading)');
+        var gift = document.querySelector('.funny-present:not(.funny-present-fading), .funny-present-open');
         if (!gift) { giftStatus.textContent = 'Първо извикайте подарък с двоен клик.'; return; }
         var rect = gift.getBoundingClientRect();
         probe.style.left = Math.max(0, Math.min(innerWidth - 188, rect.left + rect.width / 2 - 94)) + 'px';
@@ -61,8 +61,8 @@
         var counts = {}, nodes = document.querySelectorAll('.funny-visitor');
         nodes.forEach(function (node) { var kind = node.classList[1].slice(6); counts[kind] = (counts[kind] || 0) + 1; });
         maximum = Math.max(maximum, nodes.length);
-        var gift = document.querySelector('.funny-present');
-        giftStatus.textContent = gift ? 'Подаръкът е видим; кликовете преминават: ' + (getComputedStyle(gift).pointerEvents === 'none' ? 'Да' : 'Не') : 'Подаръкът е отворен или няма активен подарък';
+        var gift = document.querySelector('.funny-present'), opening = document.querySelector('.funny-present-open');
+        giftStatus.textContent = gift ? 'Подаръкът е видим; кликовете преминават: ' + (getComputedStyle(gift).pointerEvents === 'none' ? 'Да' : 'Не') : opening ? 'Подаръкът е отворен; героите излизат един след друг' : 'Няма активен подарък';
         document.getElementById('roster').textContent = 'Герои: ' + nodes.length + ' / Максимум: ' + maximum + ' / Лимит: ' + Math.max(4, Math.min(50, Math.floor(innerWidth * innerHeight / 40000 * funnyScene.quality()))) + ' / ' + Object.keys(counts).map(function (key) { return (names[key] || key) + ': ' + counts[key]; }).join(', ');
     }).observe(document.body, {childList:true});
 </script>
