@@ -61,7 +61,7 @@ class core_Packs {
     }
 }
 class core_Os {
-    public static function forceDir($path) { return is_dir($path) || mkdir($path, 0755, true); }
+    public static function forceDir($path) { return is_dir($path) || @mkdir($path, 0755, true); }
     public static function getTimeOfLastModifiedFile($dir, $exclude, $pattern) { return filemtime($dir . '/main.scss'); }
 }
 class sass_Setup {
@@ -182,6 +182,38 @@ try {
         checkSbf(core_Sbf::resolveStaticFile($name)['status'] === 404, 'reject invalid static request');
     }
     checkSbf(core_Sbf::resolveStaticFile('img/missing_0101000000.png')['status'] === 404, 'missing source remains missing');
+
+    // Файл вместо директория прави записа невъзможен и при изпълнение като root.
+    writeSbfSource('sbf/fixture/blocked', 'not a directory');
+    foreach (array('main.js' => '/* source */ window.loaded = true;', 'plain.css' => 'body { color: blue; }', 'icon.svg' => '<svg/>', 'empty.js' => '', 'zero.js' => '0') as $file => $content) {
+        $source = 'blocked/' . $file;
+        writeSbfSource('source/' . $source, $content);
+        if ($file === 'main.js') {
+            $content = '/* source */ window.privateLoaded = true;';
+            writeSbfSource('private/' . $source, $content);
+        }
+        $url = core_Sbf::getUrl($source, '');
+        checkSbf($url === '/sbf/fixture/' . $source, 'failed writes retain the unversioned fallback URL');
+        $info = core_Sbf::resolveStaticFile($source);
+        checkSbf($info['status'] === 200 && file_get_contents($info['file']) === $content, 'serve the original including private overrides when SBF is unwritable');
+        checkSbf(!$info['immutable'], 'do not cache an unversioned source as immutable');
+        ob_start();
+        core_Sbf::serveStaticFile($source);
+        checkSbf(ob_get_clean() === $content, 'HTTP serving retains original bytes including empty and zero content');
+        $canonical = sbfName(core_Sbf::getSbfPathByTime($source, 1700000000));
+        $alternate = preg_replace('/_[0-9]{10}\./', '_0101000000.', $canonical);
+        foreach (array($canonical, $alternate) as $name) {
+            $info = core_Sbf::resolveStaticFile($name);
+            checkSbf($info['status'] === 302 && $info['url'] === $url, 'versioned URLs redirect to the working fallback when writes fail');
+            checkSbf(!is_file(EF_SBF_PATH . '/' . $name), 'failed writes create neither canonical nor alternate copies');
+        }
+    }
+    checkSbf(core_Sbf::resolveStaticFile('blocked/missing.js')['status'] === 404, 'write failure does not make a missing source valid');
+    unlink(EF_SBF_PATH . '/blocked');
+    $info = core_Sbf::resolveStaticFile('blocked/main.js');
+    checkSbf($info['status'] === 302 && $info['url'] !== '/sbf/fixture/blocked/main.js', 'resume normal versioned URLs when writes recover');
+    $info = core_Sbf::resolveStaticFile(sbfName(core_Sbf::convertUrlToPath($info['url'])));
+    checkSbf($info['status'] === 200 && $info['immutable'] && file_get_contents($info['file']) === 'window.privateLoaded = true;', 'recovered writes still use minify and private source precedence');
     echo "PASS: {$checks} SBF recovery checks on PHP " . PHP_VERSION . "\n";
 } finally {
     removeSbfFixtures(TEST_ROOT);

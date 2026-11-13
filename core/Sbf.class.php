@@ -271,7 +271,8 @@ class core_Sbf extends core_Mvc
                 // getUrl() минава през същите SASS и minify плъгини като нормалното рендиране.
                 $url = self::getUrl($sourceName, '');
                 $file = self::convertUrlToPath($url);
-                if (!is_file($file)) {
+                $hasCopy = is_file($file);
+                if (!$hasCopy && (!$original || !is_file($original))) {
                     return $missing;
                 }
                 $currentName = substr($file, strlen(EF_SBF_PATH) + 1);
@@ -279,6 +280,10 @@ class core_Sbf extends core_Mvc
                 $currentName = ltrim($currentName, '/');
                 if ($currentName !== $name) {
                     return array('status' => 302, 'url' => $url);
+                }
+                if (!$hasCopy) {
+                    // При отказ на запис getUrl() връща оригиналното име; сервираме го без immutable кеш.
+                    return array('status' => 200, 'file' => $original, 'mime' => $mime, 'immutable' => false);
                 }
                 $immutable = self::getSourceName($currentName) !== null;
             }

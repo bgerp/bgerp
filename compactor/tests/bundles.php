@@ -108,6 +108,14 @@ try {
         verifyBundle(file_get_contents($directory . '/' . reset($previous)) === $bundle, 'same JS output as the baseline');
     }
     verifyBundle(strpos(ltrim($bundle), '"use strict";') === 0, 'keep the first script directive prologue');
+    foreach (array(array('missing.js', 'a.js', 'b.js'), array('a.js', 'missing.js', 'b.js'), array('a.js', 'b.js', 'missing.js')) as $configured) {
+        $partial = $compactor->compactFiles(array('a.js', 'c.js'), $configured, $directory . '/js');
+        verifyBundle(reset($partial) === reset($first), 'missing configured files retain the same bundle of available dependencies');
+        verifyBundle(file_get_contents($directory . '/' . reset($partial)) === $bundle, 'missing configured files preserve JS content and order');
+        verifyBundle(array_values($partial) === array(reset($first), 'c.js'), 'preserve non-compacted requested files');
+    }
+    $partial = $compactor->compactFiles(array('a.js', 'missing.js', 'c.js'), array('a.js', 'missing.js', 'b.js'), $directory . '/js');
+    verifyBundle(array_values($partial) === array(reset($first), 'missing.js', 'c.js'), 'keep explicitly requested missing files in the fallback list');
     verifyBundle($first === $compactor->compactFiles(array('a.js'), array('a.js', 'b.js'), $directory . '/js'), 'stable cache key');
     $firstPath = $directory . '/' . reset($first);
     unlink($firstPath);
@@ -131,6 +139,11 @@ try {
     file_put_contents($directory . '/images/icon.svg', '<svg/>');
     $css = 'a{background:url( "../images/icon.svg?v=1#mark" )}';
     verifyBundle($compactor->rewrite($css, $directory . '/css/app.css') === 'a{background:url( "/sbf/images/icon.svg?v=1#mark" )}', 'CSS query/fragment and whitespace');
+    mkdir($directory . '/css');
+    file_put_contents($directory . '/css/first.css', $css);
+    file_put_contents($directory . '/css/last.css', 'b{color:red}');
+    $partialCss = $compactor->compactFiles(array('css/first.css'), array('css/first.css', 'css/missing.css', 'css/last.css'), $directory . '/css', array($compactor, 'rewrite'));
+    verifyBundle(file_get_contents($directory . '/' . reset($partialCss)) === "\n" . 'a{background:url( "/sbf/images/icon.svg?v=1#mark" )}' . "\nb{color:red}", 'missing CSS keeps other dependencies, URL rewriting and cascade order');
     if (class_exists('BaselineCompactorPlugin', false)) {
         file_put_contents($directory . '/style.css', $css);
         $callback = array($compactor, 'rewrite');

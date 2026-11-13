@@ -83,6 +83,7 @@ class compactor_Plugin extends core_Plugin
         // Съдържанието и редът дават същия адрес и след пресъздаване на SBF копията.
         $cacheFiles = array();
         $originalFiles = $filesArr;
+        $contentFilePaths = array();
         
         $extension = '';
         $compacted = '';
@@ -108,9 +109,13 @@ class compactor_Plugin extends core_Plugin
                 
                 log_System::add('compactor_Plugin', 'Липсващ файл: ' . $file, null, 'warning');
                 
-                return $originalFiles;
+                continue;
             }
-            
+            $contentFilePaths[] = array($file, $sbfFilePath);
+        }
+
+        // Първо събираме наличните входове, за да различим липса от последваща грешка при четене.
+        foreach ($contentFilePaths as list($file, $sbfFilePath)) {
             $content = @file_get_contents($sbfFilePath);
             if ($content === false) {
                 return $originalFiles;
