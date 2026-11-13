@@ -157,7 +157,6 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->setDbIndex('valior');
         $mvc->setDbIndex('contragentId,contragentClassId');
         $mvc->setDbIndex('modifiedOn');
-        $mvc->setDbIndex('storeId,createdOn');
     }
     
     
