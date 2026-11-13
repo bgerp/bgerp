@@ -422,8 +422,11 @@ class cat_GroupParams extends cat_products_ProtoParams
         // Без параметри на групи артикулът не се чете
         if (!countR(static::getMap()['recs'])) return array();
 
-        $pRec = cat_Products::fetch($productId, 'groups,groupsInput');
+        $pRec = cat_Products::fetch($productId, 'groups,groupsInput,innerClass');
         if (!is_object($pRec)) return array();
+
+        // Драйверът може да не позволява наследяване
+        if (!empty($pRec->innerClass) && cls::load($pRec->innerClass, true) && (cls::get($pRec->innerClass)->inheritGroupParams ?? true) === false) return array();
 
         $groups = !empty($pRec->groupsInput) ? $pRec->groupsInput : ($pRec->groups ?? '');
 

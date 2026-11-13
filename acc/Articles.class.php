@@ -763,4 +763,11 @@ class acc_Articles extends core_Master
             }
         }
     }
+
+
+    function act_Test()
+    {
+        $r = cat_Products::getParams(5985);
+        bp($r);
+    }
 }
