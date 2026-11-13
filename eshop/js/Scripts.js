@@ -143,7 +143,7 @@ function eshopActions() {
 	    	packQuantity = 1;
 	    }
 	    
-	    if(!$.isNumeric(packQuantity) || packQuantity < 1){
+	    if(!efIsNumeric(packQuantity) || packQuantity < 1){
 	    	$(this).addClass('inputError');
 	    	return;
 	    }
@@ -177,7 +177,7 @@ function eshopActions() {
 			}, 2000);
 		}
 		disableBtns();
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
+		if(packQuantity && (!efIsNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
 			
 		} else {
@@ -206,7 +206,7 @@ function eshopActions() {
 		
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 0)){
+		if(packQuantity && (!efIsNumeric(packQuantity) || packQuantity < 0)){
 			$(this).addClass('inputError');
 		}
 	});

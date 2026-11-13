@@ -1560,7 +1560,7 @@ function openCurrentTab(lastNotifyTime) {
 
     var id = $(current).attr('id');
     setCookie('portalTabs', id);
-    timeOfSettingTab = jQuery.now();
+    timeOfSettingTab = Date.now();
 
     var tab = $('li[data-tab="' + id + '"]');
     $(tab).addClass('activeTab');
@@ -3658,12 +3658,12 @@ function preventDoubleSubmission(id) {
 
     jQuery(form).bind('submit', function (event, data) {
         if (lastSubmitTime) {
-            timeSinceSubmit = jQuery.now() - lastSubmitTime;
+            timeSinceSubmit = Date.now() - lastSubmitTime;
         }
         submitStr = $(form).serialize();
 
         if ((typeof lastSubmitStr == 'undefined') || (lastSubmitStr != submitStr) || ((typeof timeSinceSubmit != 'undefined') && timeSinceSubmit > 10000)) {
-            lastSubmitTime = jQuery.now();
+            lastSubmitTime = Date.now();
             lastSubmitStr = submitStr;
 
             return true;
@@ -3681,11 +3681,11 @@ var lastClickTime, timeSinceClick;
 
 function preventDoubleClick() {
     if (lastClickTime) {
-        timeSinceClick = jQuery.now() - lastClickTime;
+        timeSinceClick = Date.now() - lastClickTime;
     }
 
     if ((typeof lastClickTime == 'undefined') || ((typeof timeSinceClick != 'undefined') && timeSinceClick > 3000)) {
-        lastClickTime = jQuery.now();
+        lastClickTime = Date.now();
         return true;
     }
 
@@ -4447,7 +4447,7 @@ function processRenderQueue(res, efaeInst) {
             return;
         }
 
-        if (renderResult && $.isFunction(renderResult.done) && $.isFunction(renderResult.fail)) {
+        if (renderResult && typeof renderResult.done === 'function' && typeof renderResult.fail === 'function') {
             renderResult.done(next);
             renderResult.fail(function (error) {
                 if (!queueFailed) {
@@ -6339,7 +6339,7 @@ Experta.prototype.saveFormData = function (formId, data) {
     if (!formObj) {
         formObj = {};
     } else {
-        formObj = $.parseJSON(formObj);
+        formObj = JSON.parse(formObj);
 
         // Определяме най-голямата и най-малка стойност
         // За да ги премахнем от сесията, при достигане на лимита
@@ -6383,7 +6383,7 @@ Experta.prototype.reloadFormData = function () {
 
     if (!formObj) return;
 
-    formObj = $.parseJSON(formObj);
+    formObj = JSON.parse(formObj);
 
     if (!formObj[bodyId]) return;
 
@@ -7992,3 +7992,14 @@ runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
 runOnLoad(doubleClickOnLink);
 runOnLoad(radioButtonActions);
+
+
+/**
+ * Дали стойността е число или текст с число - вместо $.isNumeric(), махнат в jQuery 4
+ */
+function efIsNumeric(value)
+{
+    var type = typeof value;
+
+    return (type === 'number' || type === 'string') && !isNaN(value - parseFloat(value));
+}
