@@ -2415,7 +2415,8 @@ class planning_Tasks extends core_Master
      */
     protected static function savePersistentListFilter($data)
     {
-        if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
+        if (Mode::is('planningTasksMeasureListSummaryIo') ||
+            !Mode::get('planningTasksListFilterHasExplicitValues') ||
             !empty($data->masterMvc) ||
             $data->listFilter->gotErrors() ||
             Mode::is('isReorder')) {
@@ -2754,6 +2755,13 @@ JS
             $query->show('measureId,plannedTotal')->groupBy($query->getMysqlField('measureId'));
         }
 
+        $diagnosticMode = Mode::get('planningTasksMeasureListSummaryIo');
+        if ($diagnosticMode) {
+            core_Debug::stopTimer('RENDER_SUMMARY');
+
+            return $this->measureListSummaryIo($query->buildQuery(), $diagnosticMode === 'mmap');
+        }
+
         $counts = array_fill_keys(array_keys($states), 0);
         $quantities = array();
         while ($rec = $query->fetch(null, true)) {
@@ -2837,6 +2845,334 @@ JS
         $tpl->append('</table></div>');
 
         return $tpl;
+    }
+
+
+    /**
+     * Временна диагностика на четенията и заключванията при „Всички от 01.01.2023“
+     */
+    public function act_MeasureListSummaryIo()
+    {
+        requireRole('debug');
+        $this->requireRightFor('list');
+
+        core_App::outputJson($this->runListSummaryIoDiagnostic(true));
+    }
+
+
+    /**
+     * Временно сравнение на достъпа до doc_threads само във ВСКР
+     */
+    public function act_CompareListSummaryMmap()
+    {
+        requireRole('debug');
+        requireRole('admin');
+        $this->requireRightFor('list');
+        $appTitle = core_Setup::get('EF_APP_TITLE', true);
+        expect404(parse_url(getSelfURL(), PHP_URL_HOST) === 'bckp.bags.bg' &&
+            strcasecmp($appTitle ?? '', 'BCKP.Bags.BG') === 0);
+
+        $requiredGrants = array('SUPER' => true, 'RELOAD' => true);
+        $res = $this->db->query('SHOW GRANTS');
+        while ($row = $this->db->fetchArray($res, MYSQLI_NUM)) {
+            if (preg_match('/^GRANT (.+?) ON \*\.\* TO /i', $row[0] ?? '', $match)) {
+                $grants = explode(', ', strtoupper($match[1]));
+                if (in_array('ALL PRIVILEGES', $grants, true)) {
+                    $requiredGrants = array();
+                }
+                $requiredGrants = array_diff_key($requiredGrants, array_flip($grants));
+            }
+        }
+        $this->db->freeResult($res);
+        if ($requiredGrants) {
+            core_App::outputJson(array('missingPrivileges' => array_keys($requiredGrants)));
+        }
+
+        $token = Request::getSessHash(__METHOD__, 16);
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            expect(hash_equals($token, Request::get('mmapToken', 'varchar') ?? ''));
+            core_App::outputJson($this->runListSummaryIoDiagnostic('mmap'));
+        }
+
+        $form = cls::get('core_Form');
+        $form->title = 'Сравнение на mmap за doc_threads във ВСКР';
+        $form->info = 'Три проби с един и същ филтър (OFF, ON и отново OFF). Таблицата doc_threads се отваря отново при всяка проба.';
+        $form->FLD('mmapToken', 'varchar(16)', 'input=hidden');
+        $form->setDefault('mmapToken', $token);
+        $form->toolbar->addSbBtn('Измери', 'default');
+
+        return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    private function runListSummaryIoDiagnostic($mode)
+    {
+        $filters = array_fill_keys(array_keys(self::getPersistentListFilterFields()), '');
+        $filters['state'] = 'all';
+        $filters['selectPeriod'] = 'gr0';
+        $filters['from'] = '01.01.2023';
+        $filters['filterDateField'] = 'expectedTimeStart';
+        $filters['folders'] = array('select2' => '1');
+        $filters['isFinalSelect'] = 'all';
+        $filters['Rejected'] = '';
+        $filters['Cmd'] = array('default' => '1');
+
+        Request::push($filters, 'planningTasksMeasureIoFilters');
+        Mode::push('preserveUserChoices', true);
+        Mode::push('planningTasksMeasureListSummaryIo', $mode);
+        try {
+            $data = (object) array('action' => 'list', 'query' => $this->getQuery());
+            $this->prepareListFields($data);
+            $this->prepareListFilter($data);
+            $profile = $this->prepareListSummary_($data);
+        } finally {
+            Mode::pop('planningTasksMeasureListSummaryIo');
+            Mode::pop('preserveUserChoices');
+            Request::pop('planningTasksMeasureIoFilters');
+        }
+
+        return $profile;
+    }
+
+
+    /**
+     * Измерва точно заявката от двата дебъга, без промяна на настройките на сървъра
+     */
+    private function measureListSummaryIo($sql, $compareMmap = false)
+    {
+        $querySha256 = hash('sha256', $sql);
+        if ($querySha256 !== '01616d49ba0b68b4d06307ce264a6004b938a3b835c8cdca8e7e7a77e736693a') {
+            return array('querySha256' => $querySha256, 'error' => 'Заявката се различава от записаната в двата дебъга.');
+        }
+
+        if ($compareMmap) {
+            return $this->compareListSummaryMmap($sql);
+        }
+
+        $db = $this->db;
+        $dbRes = $db->query('SELECT VERSION() AS version, @@performance_schema AS performanceSchema,
+            @@myisam_use_mmap AS myisamUseMmap, @@thread_handling AS threadHandling, @@datadir AS dataDir,
+            @@session.profiling AS sessionProfiling, @@session.profiling_history_size AS profilingHistorySize,
+            (SELECT TID FROM information_schema.PROCESSLIST WHERE ID = CONNECTION_ID()) AS tid');
+        $settings = $db->fetchArray($dbRes);
+        $db->freeResult($dbRes);
+
+        $hostInfo = $db->connect()->host_info ?? '';
+        $localDb = strpos($hostInfo, ' via UNIX socket') !== false ||
+            in_array($hostInfo, array('127.0.0.1 via TCP/IP', '::1 via TCP/IP', 'localhost via TCP/IP'), true);
+        $tid = (int) ($settings['tid'] ?? 0);
+        $dataDir = rtrim($settings['dataDir'] ?? '', '/');
+        unset($settings['tid'], $settings['dataDir']);
+        $threadPath = null;
+        if (PHP_OS_FAMILY === 'Linux' && $localDb && $tid > 0 && ($settings['threadHandling'] ?? '') === 'one-thread-per-connection') {
+            $status = @file_get_contents("/proc/{$tid}/status");
+            if (preg_match('/^Tgid:\s*(\d+)$/m', $status ?: '', $match) &&
+                in_array(trim(@file_get_contents("/proc/{$match[1]}/comm") ?: ''), array('mariadbd', 'mysqld'), true)) {
+                $threadPath = "/proc/{$match[1]}/task/{$tid}";
+                $delayAccounting = @file_get_contents('/proc/sys/kernel/task_delayacct');
+                $settings['taskDelayAccounting'] = $delayAccounting === false ? null : (int) trim($delayAccounting);
+            }
+        }
+
+        // Ако /proc/<tid>/io е недостъпен, поне виждаме активността на целия том.
+        $deviceStat = null;
+        if ($threadPath !== null && $dataDir !== '') {
+            $table = cls::get('doc_Threads')->dbTableName;
+            $stat = @stat("{$dataDir}/{$db->dbName}/{$table}.MYD");
+            $settings['deviceScope'] = $stat === false ? 'dataDirectory' : 'docThreadsData';
+            $stat = $stat === false ? @stat($dataDir) : $stat;
+            if (isset($stat['dev'])) {
+                $dev = $stat['dev'];
+                $major = ($dev >> 8) & 0xfff;
+                $minor = ($dev & 0xff) | (($dev >> 12) & 0xfff00);
+                $deviceStat = "/sys/dev/block/{$major}:{$minor}/stat";
+            }
+        }
+
+        $filesBefore = empty($settings['performanceSchema']) ? null : $this->readDocThreadsFileIo();
+        $oldProfiling = (int) ($settings['sessionProfiling'] ?? 0);
+        $oldHistorySize = (int) ($settings['profilingHistorySize'] ?? 0);
+        $historySize = max(1, $oldHistorySize);
+        $db->query("SET SESSION profiling = 1, SESSION profiling_history_size = {$historySize}");
+        try {
+            $deviceBefore = self::readListSummaryDeviceIo($deviceStat);
+            $threadBefore = self::readListSummaryThreadIo($threadPath);
+            $startedAt = hrtime(true);
+            $dbRes = $db->query('ANALYZE FORMAT=JSON ' . $sql);
+            $queryTimeMs = (hrtime(true) - $startedAt) / 1000000;
+            $threadAfter = self::readListSummaryThreadIo($threadPath);
+            $deviceAfter = self::readListSummaryDeviceIo($deviceStat);
+            $row = $db->fetchArray($dbRes, MYSQLI_NUM);
+            $db->freeResult($dbRes);
+
+            // Профилът е на последната заявка в същата връзка.
+            $queryStages = array();
+            $dbRes = $db->query('SHOW PROFILE');
+            while ($stage = $db->fetchArray($dbRes)) {
+                $queryStages[] = $stage;
+            }
+            $db->freeResult($dbRes);
+        } finally {
+            $db->query("SET SESSION profiling = {$oldProfiling}, SESSION profiling_history_size = {$oldHistorySize}");
+        }
+        $filesAfter = empty($settings['performanceSchema']) ? null : $this->readDocThreadsFileIo();
+
+        return array(
+            'querySha256' => $querySha256,
+            'queryTimeMs' => $queryTimeMs,
+            'settings' => $settings,
+            'queryStages' => $queryStages,
+            'docThreadsFiles' => array('before' => $filesBefore, 'after' => $filesAfter),
+            'queryThread' => array('before' => $threadBefore, 'after' => $threadAfter),
+            'dataVolume' => array('before' => $deviceBefore, 'after' => $deviceAfter),
+            // В MariaDB 10.6 може да има повтарящи се ключове "table".
+            'profileRaw' => $row[0] ?? null,
+        );
+    }
+
+
+    /**
+     * Отваря само doc_threads в избрания режим. Общата настройка се връща преди пробата.
+     */
+    private function compareListSummaryMmap($sql)
+    {
+        $db = $this->db;
+        $tableName = cls::get('doc_Threads')->dbTableName ?? '';
+        $table = '`' . str_replace('`', '``', $tableName) . '`';
+        $flush = "SET STATEMENT lock_wait_timeout = 3 FOR FLUSH LOCAL TABLES {$table}";
+        $res = $db->query("SELECT GET_LOCK('planningTasksMmapComparison', 0), @@GLOBAL.myisam_use_mmap");
+        $lock = $db->fetchArray($res, MYSQLI_NUM);
+        $db->freeResult($res);
+        if ((int) ($lock[0] ?? 0) !== 1) {
+            return array('error' => 'Вече се изпълнява сравнение на mmap.');
+        }
+
+        try {
+            if ((string) ($lock[1] ?? '') !== '0') {
+                return array('error' => 'За сравнението ВСКР трябва да е в режим OFF.');
+            }
+
+            $res = $db->query("SELECT ENGINE, ROW_FORMAT, DATA_LENGTH, @@GLOBAL.myisam_mmap_size AS mmapLimit
+                FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $db->escape($tableName) . "'");
+            $tableInfo = $db->fetchArray($res);
+            $db->freeResult($res);
+            if (($tableInfo['ENGINE'] ?? '') !== 'MyISAM' || ($tableInfo['ROW_FORMAT'] ?? '') === 'Compressed' ||
+                (float) ($tableInfo['DATA_LENGTH'] ?? 0) <= 0 || $tableInfo['DATA_LENGTH'] > ($tableInfo['mmapLimit'] ?? 0)) {
+                return array('error' => 'Таблицата doc_threads не отговаря на условията за сравнението.');
+            }
+
+            $samples = array();
+            try {
+                foreach (array(0, 1, 0) as $mmap) {
+                    if ($mmap) {
+                        // Възстановяването на глобалната стойност е в самата SQL заявка.
+                        $db->query("BEGIN NOT ATOMIC
+                            DECLARE probeId BIGINT;
+                            DECLARE EXIT HANDLER FOR SQLEXCEPTION
+                            BEGIN
+                                SET GLOBAL myisam_use_mmap = OFF;
+                                RESIGNAL;
+                            END;
+                            SET GLOBAL myisam_use_mmap = ON;
+                            {$flush};
+                            SET STATEMENT lock_wait_timeout = 3 FOR
+                                SET probeId = (SELECT id FROM {$table} LIMIT 1);
+                            SET GLOBAL myisam_use_mmap = OFF;
+                        END");
+                    } else {
+                        $db->query($flush);
+                    }
+
+                    $db->query("SET STATEMENT lock_wait_timeout = 3 FOR HANDLER {$table} OPEN");
+                    try {
+                        $sample = $this->measureListSummaryIo($sql);
+                        $samples[] = array('docThreadsRequestedMmap' => $mmap) + $sample;
+                    } finally {
+                        $db->query("HANDLER {$table} CLOSE");
+                    }
+                }
+            } finally {
+                $db->query($flush);
+            }
+
+            return array('samples' => $samples, 'restoredMmap' => $db->getVariable('myisam_use_mmap'), 'tableInfo' => $tableInfo);
+        } finally {
+            $db->freeResult($db->query("SELECT RELEASE_LOCK('planningTasksMmapComparison')"));
+        }
+    }
+
+
+    /**
+     * Общите броячи за файловете с данни и индекси, ако са достъпни
+     */
+    private function readDocThreadsFileIo()
+    {
+        $db = $this->db;
+        $table = cls::get('doc_Threads')->dbTableName;
+        $file = $db->escape($db->dbName . '/' . $table);
+        try {
+            $dbRes = $db->query("SELECT RIGHT(f.FILE_NAME, 3) AS fileType,
+                f.COUNT_READ AS readCount, f.SUM_TIMER_READ AS readPicoseconds, f.SUM_NUMBER_OF_BYTES_READ AS readBytes,
+                i.ENABLED AS enabled, i.TIMED AS timed
+                FROM performance_schema.file_summary_by_instance f
+                LEFT JOIN performance_schema.setup_instruments i ON i.NAME = f.EVENT_NAME
+                WHERE SUBSTRING_INDEX(f.FILE_NAME, '/', -2) IN ('{$file}.MYD', '{$file}.MYI')");
+        } catch (core_exception_Db $e) {
+            // Потребителят на приложението може да няма достъп до Performance Schema.
+            return null;
+        }
+
+        $files = array();
+        while ($row = $db->fetchArray($dbRes)) {
+            $files[] = $row;
+        }
+        $db->freeResult($dbRes);
+
+        return $files;
+    }
+
+
+    /**
+     * Броячи за всички четения на тома, включително от други процеси
+     */
+    private static function readListSummaryDeviceIo($path)
+    {
+        $stat = $path === null ? '' : (@file_get_contents($path) ?: '');
+        $fields = preg_split('/\s+/', trim($stat));
+        if (!isset($fields[3])) {
+            return null;
+        }
+
+        return array('reads' => $fields[0], 'sectorsRead' => $fields[2], 'readMs' => $fields[3]);
+    }
+
+
+    /**
+     * Броячи на Linux за нишката, изпълняваща заявката, когато са достъпни
+     */
+    private static function readListSummaryThreadIo($path)
+    {
+        if ($path === null) {
+            return null;
+        }
+
+        $io = @file_get_contents("{$path}/io") ?: '';
+        preg_match('/^read_bytes:\s*(\d+)$/m', $io, $readBytes);
+        $stat = @file_get_contents("{$path}/stat") ?: '';
+        $commEnd = strrpos($stat, ')');
+        $fields = $commEnd === false ? array() : explode(' ', trim(substr($stat, $commEnd + 1)));
+        $sched = @file_get_contents("{$path}/schedstat") ?: '';
+        preg_match('/^(\d+)\s+(\d+)\s+\d+/', $sched, $schedTimes);
+
+        return array(
+            'readBytes' => $readBytes[1] ?? null,
+            'majorFaults' => $fields[9] ?? null,      // Поле 12 в /proc/<tid>/stat
+            'userCpuTicks' => $fields[11] ?? null,
+            'systemCpuTicks' => $fields[12] ?? null,
+            'blockIoTicks' => $fields[39] ?? null,   // Поле 42 в /proc/<tid>/stat
+            'cpuNs' => $schedTimes[1] ?? null,
+            'runQueueNs' => $schedTimes[2] ?? null,
+        );
     }
 
 
