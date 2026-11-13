@@ -436,10 +436,10 @@
                 return portal;
             }
 
-            /** Keep the opening visible until the last scheduled arrival. */
-            function closePortal(portal, delay) {
+            /** Keep the opening through the last arrival and allow its closing animation to finish. */
+            function closePortal(portal, delay, duration) {
                 portal.timers.push(window.setTimeout(function () { portal.node.classList.add('funny-portal-closing'); }, delay + 350));
-                portal.timers.push(window.setTimeout(function () { removePortal(portal); }, delay + 550));
+                portal.timers.push(window.setTimeout(function () { removePortal(portal); }, delay + 350 + (duration || 200)));
             }
 
             /** Cancels delayed launches as well as their portal, so they cannot reappear after blur. */
@@ -539,8 +539,8 @@
                         }, delay));
                     }(character, now + delay));
                 }
-                // The final visitor needs its full launch animation before the open box fades.
-                closePortal(portal, delay + 650);
+                // The final visitor needs its full launch animation before the empty box collapses.
+                closePortal(portal, delay + 650, 1000);
                 if (!present.silent) playSound('present');
                 return true;
             }

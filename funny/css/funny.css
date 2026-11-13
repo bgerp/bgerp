@@ -52,9 +52,11 @@
 .funny-present-open * { pointer-events: none !important; }
 .funny-present-open svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .funny-present-open .funny-present-lid { position: absolute; inset: 0; transform-origin: 20% 40%; animation: funny-present-lift .45s ease-out forwards; }
-.funny-present-open.funny-portal-closing { animation: funny-present-close .2s ease-in forwards; }
+.funny-present-open.funny-portal-closing { transform-origin: 50% 96%; animation: funny-present-crush 1s ease-in-out forwards; }
+.funny-present-open.funny-portal-closing .funny-present-lid { animation: funny-present-lid-drop .25s ease-in forwards; }
 @keyframes funny-present-lift { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-32%) rotate(-16deg); } }
-@keyframes funny-present-close { from { opacity: 1; } to { opacity: 0; } }
+@keyframes funny-present-lid-drop { from { transform: translateY(-32%) rotate(-16deg); } to { transform: translateY(0) rotate(0deg); } }
+@keyframes funny-present-crush { 0%,20% { opacity: 1; transform: scale(1) skewX(0deg); } 55% { opacity: 1; transform: scale(1.15,.12) skewX(-9deg); } 70%,80% { opacity: 1; transform: scale(1.12,.16) skewX(5deg); } 100% { opacity: 0; transform: scale(1.12,.16) skewX(5deg); } }
 @keyframes funny-present-rock { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 @keyframes funny-present-glow { 0%,100% { filter: drop-shadow(0 0 6px #ffd75eaa) brightness(1.05); } 50% { filter: drop-shadow(0 0 14px #ffe27a) drop-shadow(0 0 28px #ffcf3f) brightness(1.2) saturate(1.2); } }
 @keyframes funny-present-twinkle { 0%,100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }

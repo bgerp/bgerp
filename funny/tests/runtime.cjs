@@ -1868,11 +1868,12 @@ check('present contents are staggered, mixed, mainly gremlins and bounded by eac
         assert.equal(box.children[0].children[0].attrs.href,'/characters.svg#present-open');
         assert.equal(box.children[1].children[0].attrs.href,'/characters.svg#present-lid');
         assert.equal(e.visitors().length,before.length,'opening double click creates no extra group');
-        const released=new Set();let maximum=e.visitors().length,lastArrival=0;
+        const released=new Set();let maximum=e.visitors().length,lastArrival=0,closingAt=0;
         for(let t=0;t<16000;t+=20) {
             e.tick(20);maximum=Math.max(maximum,e.visitors().length);
             for(const v of e.visitors().filter(v=>!before.includes(v))) if(!released.has(v)) {
                 assert(e.document.body.children.includes(box),'the box remains for every arrival');
+                assert(!closingAt,'no characters arrive while the empty box collapses');
                 if(lastArrival)assert(v.createdAt-lastArrival>=640,'characters leave one after another');
                 lastArrival=v.createdAt;released.add(v);
             }
@@ -1880,8 +1881,11 @@ check('present contents are staggered, mixed, mainly gremlins and bounded by eac
                 assert(e.document.body.children.includes(box),'the last arrival has time to clear the box');
                 assert(!box.className.includes('funny-portal-closing'));
             }
+            if(!closingAt && box.className.includes('funny-portal-closing'))closingAt=e.now();
+            if(closingAt && e.now()-closingAt<980)assert(e.document.body.children.includes(box),'the box stays for the full collapse and fade');
         }
-        assert(!e.document.body.children.includes(box),'the empty box fades away');
+        assert(closingAt,'the empty box begins its collapse');
+        assert(!e.document.body.children.includes(box),'the collapsed box fades away');
         assert(maximum<=limit,'viewport limit '+width+' '+strength+': '+maximum);
         const children=[...released];assert(children.length<= (strength==='gentle'?5:16));
         if(limit-before.length>=2) {
