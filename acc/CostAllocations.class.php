@@ -958,65 +958,146 @@ class acc_CostAllocations extends core_Manager
             return $result;
         }
         
-        // Продажбите, документите и профилите се повтарят в много редове - помнят се за това изпълнение
-        $sales = $docs = $personIds = array();
+        // Продажбите и профилите се повтарят в много редове - помнят се за това изпълнение
+        $memo = (object) array('sales' => array(), 'personIds' => array());
 
+        // Детайлите, документите и журналът се зареждат на порции, а не за всеки ред
+        $batch = array();
         while ($eRec = $eQuery->fetch()) {
-            $saleKey = "{$eRec->expenseClassId}|{$eRec->expenseObjectId}";
-            if (!array_key_exists($saleKey, $sales)) {
-                $fullSaleRec = cls::get($eRec->expenseClassId)->fetch($eRec->expenseObjectId);
-                $sales[$saleKey] = (object) array('containerId' => $fullSaleRec->containerId, 'valior' => $fullSaleRec->valior);
+            $batch[] = $eRec;
+            if (countR($batch) >= 1000) {
+                self::addIndicatorValues($batch, $expenseIndicatorId, $memo, $result);
+                $batch = array();
             }
-            $saleRec = $sales[$saleKey];
-            
+        }
+        self::addIndicatorValues($batch, $expenseIndicatorId, $memo, $result);
+
+        return $result;
+    }
+
+
+    /**
+     * Добавя към показателите порция редове от getIndicatorQuery()
+     *
+     * @param array    $batch              - редове от заявката
+     * @param int      $expenseIndicatorId - ид на показателя
+     * @param stdClass $memo               - помнените продажби и визитки за това изпълнение
+     * @param array    $result             - натрупаните показатели
+     *
+     * @return void
+     */
+    private static function addIndicatorValues($batch, $expenseIndicatorId, $memo, &$result)
+    {
+        // Само редовете, чиято продажба има търговец, стигат до детайлите
+        $rows = $detailIds = array();
+        foreach ($batch as $eRec) {
+            $saleKey = "{$eRec->expenseClassId}|{$eRec->expenseObjectId}";
+            if (!array_key_exists($saleKey, $memo->sales)) {
+                $fullSaleRec = cls::get($eRec->expenseClassId)->fetch($eRec->expenseObjectId);
+                $memo->sales[$saleKey] = (object) array('containerId' => $fullSaleRec->containerId ?? null, 'valior' => $fullSaleRec->valior ?? null);
+            }
+            $saleRec = $memo->sales[$saleKey];
+
+            // Без контейнер getDealerAndInitiatorId() само чака и връща празно
+            if (empty($saleRec->containerId)) {
+                continue;
+            }
+
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($saleRec->containerId);
             if (empty($persons['dealerId'])) {
                 continue;
             }
-            
-            if (!array_key_exists($eRec->containerId, $docs)) {
-                $Document = doc_Containers::getDocument($eRec->containerId);
-                $docInfo = (object) array('classId' => $Document->getClassId(), 'that' => $Document->that, 'isRejected' => null);
-                $docInfo->hasJournal = (bool) acc_Journal::fetchByDoc($Document->getInstance(), $Document->that);
-                if ($docInfo->hasJournal) {
-                    $docInfo->isRejected = ($Document->fetchField('state') == 'rejected');
+
+            $rows[] = (object) array('eRec' => $eRec, 'saleRec' => $saleRec, 'dealerId' => $persons['dealerId']);
+            $detailIds[$eRec->detailClassId][$eRec->detailRecId] = $eRec->detailRecId;
+        }
+
+        if (!countR($rows)) {
+
+            return;
+        }
+
+        // Редовете на детайлите - по една заявка на клас детайл
+        $details = $masterIds = array();
+        foreach ($detailIds as $detailClassId => $ids) {
+            $Detail = cls::get($detailClassId);
+            $masterClassId = $Detail->Master->getClassId();
+            $dQuery = $Detail->getQuery();
+            $dQuery->in('id', $ids);
+            while ($dRec = $dQuery->fetch()) {
+                $details[$detailClassId][$dRec->id] = $dRec;
+                $masterId = $dRec->{$Detail->masterKey} ?? null;
+                if (!empty($masterId)) {
+                    $masterIds[$masterClassId][$masterId] = $masterId;
                 }
-                $docs[$eRec->containerId] = $docInfo;
             }
-            $docInfo = $docs[$eRec->containerId];
-            if (!$docInfo->hasJournal) {
+        }
+
+        // Състоянието на документите и дали са контирани - по класа на детайла, без doc_Containers
+        $docs = array();
+        foreach ($masterIds as $masterClassId => $ids) {
+            $mQuery = cls::get($masterClassId)->getQuery();
+            $mQuery->in('id', $ids);
+            $mQuery->show('id,state');
+            while ($mRec = $mQuery->fetch()) {
+                $docs[$masterClassId][$mRec->id] = (object) array('state' => $mRec->state, 'hasJournal' => false);
+            }
+
+            $jQuery = acc_Journal::getQuery();
+            $jQuery->where("#docType = {$masterClassId}");
+            $jQuery->in('docId', $ids);
+            $jQuery->show('docId');
+            while ($jRec = $jQuery->fetch()) {
+                if (isset($docs[$masterClassId][$jRec->docId])) {
+                    $docs[$masterClassId][$jRec->docId]->hasJournal = true;
+                }
+            }
+        }
+
+        foreach ($rows as $row) {
+            $eRec = $row->eRec;
+            $saleRec = $row->saleRec;
+
+            // Детайлите изтриват разпределенията си, затова ред без детайл няма документ
+            $dRec = $details[$eRec->detailClassId][$eRec->detailRecId] ?? null;
+            if (!$dRec) {
                 continue;
             }
 
-            $dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
-            $amount = $dRec->amount;
-            
-            $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
-            if (!array_key_exists($persons['dealerId'], $personIds)) {
-                $personIds[$persons['dealerId']] = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
+            $Detail = cls::get($eRec->detailClassId);
+            $docClassId = $Detail->Master->getClassId();
+            $docId = $dRec->{$Detail->masterKey} ?? null;
+            $docInfo = $docs[$docClassId][$docId] ?? null;
+
+            // Без чернови, заявки и спрени документи, и само контирани
+            if (!$docInfo || in_array($docInfo->state, array('draft', 'pending', 'stopped')) || !$docInfo->hasJournal) {
+                continue;
             }
-            $personId = $personIds[$persons['dealerId']];
-            $key = "{$personId}|{$docInfo->classId}|{$docInfo->that}|{$saleRec->valior}|{$expenseIndicatorId}";
-            $isRejected = $docInfo->isRejected;
-            
+
+            $amount = $dRec->amount ?? null;
+            $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
+            if (!array_key_exists($row->dealerId, $memo->personIds)) {
+                $memo->personIds[$row->dealerId] = crm_Profiles::fetchField("#userId = '{$row->dealerId}'", 'personId');
+            }
+            $personId = $memo->personIds[$row->dealerId];
+            $key = "{$personId}|{$docClassId}|{$docId}|{$saleRec->valior}|{$expenseIndicatorId}";
+
             // Ако няма данни, добавят се
             if (!array_key_exists($key, $result)) {
                 $result[$key] = (object) array('date' => $saleRec->valior,
                     'personId' => $personId,
-                    'docId' => $docInfo->that,
-                    'docClass' => $docInfo->classId,
+                    'docId' => $docId,
+                    'docClass' => $docClassId,
                     'indicatorId' => $expenseIndicatorId,
                     'value' => round($sign * $amount, 4),
-                    'isRejected' => $isRejected,);
+                    'isRejected' => ($docInfo->state == 'rejected'),);
             } else {
-                
+
                 // Ако има вече се сумират
                 $ref = &$result[$key];
                 $ref->value += round($sign * $amount, 4);
             }
         }
-        
-        return $result;
     }
     
     
@@ -1035,12 +1116,10 @@ class acc_CostAllocations extends core_Manager
         $eQuery->EXT('expenseObjectId', 'acc_Items', 'externalName=objectId,externalKey=expenseItemId');
         $eQuery->where('#expenseClassId = ' . sales_Sales::getClassId());
 
-        // Класът и състоянието на документа се взимат от контейнера, без дълги IN списъци
-        $eQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
-        $eQuery->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
-        $eQuery->in('docClass', array_map(function ($docName) { return cls::get($docName)->getClassId(); }, $documents));
-        $eQuery->notIn('docState', array('draft', 'pending', 'stopped'));
+        // Документът се определя от класа на детайла - без връзка към голямата doc_Containers.
+        // Състоянието и контирането се проверяват в getIndicatorValues()
+        $details = array('purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_ServicesDetails', 'findeals_AdvanceReportDetails');
+        $eQuery->in('detailClassId', array_map(function ($detailName) { return cls::get($detailName)->getClassId(); }, $details));
 
         // Само полетата нужни за показателя - без данните за разпределението
         $eQuery->show('containerId,detailClassId,detailRecId,expenseClassId,expenseObjectId');
