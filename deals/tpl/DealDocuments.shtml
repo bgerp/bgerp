@@ -11,48 +11,48 @@
     @since     v 0.1
 -->
 
-<div class="scrolling-holder deal-documents" style="padding-bottom:10px">
+<div class="scrolling-holder deal-documents [#directionClass#]" style="padding-bottom:10px">
     <table class="listTable">
         <thead>
             <tr>
                 <th>|Дата|*</th>
                 <th>|Документ|*</th>
                 <th>|Номер|*</th>
-                <th class="aright">|Доставено|*, [#currency#]</th>
-                <th class="aright">|Платено|*, [#currency#]</th>
-                <th class="aright">|Фактурир.|*, [#currency#]</th>
+                <th>|Доставено|*, [#currency#]</th>
+                <th>|Платено|*, [#currency#]</th>
+                <th>|Фактурир.|*, [#currency#]</th>
             </tr>
         </thead>
         <tbody>
             <!--ET_BEGIN DOCUMENT_ROW-->
             <tr class="[#stateClass#]">
                 <td class="centered nowrap">[#date#]</td>
-                <td class="deal-documents-title">[#title#]</td>
+                <td class="aleft deal-documents-title">[#title#]</td>
                 <td class="centered nowrap">[#handle#]</td>
-                <td class="aright nowrap">[#delivered#]</td>
-                <td class="aright nowrap">[#settled#]</td>
+                <td class="aright nowrap deal-documents-delivered">[#delivered#]</td>
+                <td class="aright nowrap deal-documents-settled">[#settled#]</td>
                 <td class="aright nowrap deal-documents-invoiced [#invoiceHintClass#]">[#invoiced#]</td>
             </tr>
             <!--ET_END DOCUMENT_ROW-->
             <!--ET_BEGIN NO_DOCUMENTS-->
-            <tr><td colspan="6" class="quiet">|Няма документи за показване|*.</td></tr>
+            <tr><td colspan="6" class="aleft quiet">|Няма документи за показване|*.</td></tr>
             <!--ET_END NO_DOCUMENTS-->
         </tbody>
         <tfoot>
             <tr>
-                <td class="centered">|Салдо|*</td>
-                <td class="centered nowrap">[#balance#] [#currency#]</td>
-                <td class="centered">|Общо|*</td>
-                <td class="aright nowrap">[#deliveredTotal#]</td>
-                <td class="aright nowrap">[#settledTotal#]</td>
+                <td class="aright">|Салдо|*</td>
+                <td class="aleft nowrap">
+                    <span class="[#balanceClass#]">[#balance#] [#currency#]</span>
+                    <span class="deal-documents-balance-legend">(<span class="deal-documents-incoming">[#incomingLabel#]</span> - <span class="deal-documents-outgoing">[#outgoingLabel#]</span>)</span>
+                </td>
+                <td class="aright">|Общо|*</td>
+                <td class="aright nowrap deal-documents-delivered">[#deliveredTotal#]</td>
+                <td class="aright nowrap deal-documents-settled">[#settledTotal#]</td>
                 <td class="aright nowrap deal-documents-invoiced">[#invoicedTotal#]</td>
             </tr>
         </tfoot>
     </table>
     <!--ET_BEGIN PARTIAL-->
-    <div class="quiet">|Част от документите не са показани. Общите суми са само за показаните документи|*.</div>
+    <div class="quiet">|За част от документите липсват данни или достъп. Салдото и общите суми са по показаните стойности|*.</div>
     <!--ET_END PARTIAL-->
-    <!--ET_BEGIN DIFFERENCE-->
-    <div class="quiet">|Разлика между счетоводното салдо и сумите по редовете|*: [#difference#] [#currency#]</div>
-    <!--ET_END DIFFERENCE-->
 </div>
