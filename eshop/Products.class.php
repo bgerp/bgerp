@@ -1152,7 +1152,8 @@ class eshop_Products extends core_Master
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
 
         $settings = cms_Domains::getSettings();
-        $showProductsWithoutPrices = ($data->groups->rec->showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $data->groups->rec->showProductsWithoutPrices;
+        $groupShowWithoutPrices = $data->groups->rec->showProductsWithoutPrices ?? null;
+        $showProductsWithoutPrices = ($groupShowWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? null) : $groupShowWithoutPrices;
         $data->hideProductIfItIsWithoutPrices = ($showProductsWithoutPrices == 'no' && $data->rec->detailActions == 'onlySell' && $data->rec->haveProductsWithPrice == 'no' && empty($data->rec->coDriver));
         if(!haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
@@ -1902,7 +1903,8 @@ class eshop_Products extends core_Master
         if ($groupRec->menuId) {
             $domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
             $settings = cms_Domains::getSettings($domainId);
-            $res = keylist::isKeylist($settings->{$field}) ? keylist::toArray($settings->{$field}) : arr::make($settings->{$field}, true);
+            $value = $settings->{$field} ?? null;
+            $res = keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true);
             $hint = 'Стойността е зададена в настройките на домейна';
         }
         
