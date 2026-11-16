@@ -219,6 +219,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Categories',
         'cat_Products',
         'cat_products_Params',
+        'cat_GroupParams',
         'cat_products_Packagings',
         'cat_products_VatGroups',
         'cat_products_SharedInFolders',
@@ -250,6 +251,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::deleteParamIndexStateWithoutProduct2640',
         'migrate::deleteProductUsedMeasures2643',
         'migrate::fillBaseMeasureUsages2643',
+        'migrate::fillEmptyExpand36Field2646',
     );
     
     
@@ -514,6 +516,15 @@ class cat_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
+    }
+
+
+    /**
+     * Попълване на празното поле за пълнотекстово търсене по групи при артикулите с групи
+     */
+    public static function fillEmptyExpand36Field2646()
+    {
+        plg_ExpandInput::scheduleRebuild('cat_Products');
     }
 
 

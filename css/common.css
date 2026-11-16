@@ -363,7 +363,9 @@ select {
  * * 3. Improve usability and consistency of cursor style between image-type
  * *    `input` and others.
  */
-
+/*
+ * Запазва досегашната специфичност; button има отделно правило по-долу.
+ */
 input[type="reset"],
 input[type="submit"] {
   cursor: pointer;
@@ -580,7 +582,6 @@ select {
  * reseting webkit differences
  */
 @media screen and (-webkit-min-device-pixel-ratio:0),
-@media screen and (-ms-high-contrast: active),
 (-ms-high-contrast: none) {
   select::-ms-expand {
     display: none; }
@@ -755,8 +756,9 @@ input[type=checkbox]:checked + label {
   background: #dddddd;
   border: solid 1px #aaaaaa;
   min-width: 100px; }
-  select.readonly {
-    max-width: 36em; }
+
+select.readonly {
+  max-width: 36em; }
 
 .calendar,
 .calendar table {
@@ -2093,14 +2095,14 @@ input:focus[type=button] {
   margin-bottom: 10px; }
 
 .flashElem {
-  background-color: #fffa99;
-  transition: background-color linear 500; }
-  .flashElem label,
-  .flashEleminput.combo,
-  .flashEleminput[type="checkbox"],
-  .flashEleminput[type="radio"],
-  small.flashElem {
-    background: none; }
+  background-color: #fffa99; }
+
+.flashEleminput.combo,
+.flashEleminput[type="checkbox"],
+.flashEleminput[type="radio"],
+.flashElem label,
+small.flashElem {
+  background: none; }
 
 .flashElem.select2 > .selection > .select2-selection {
   background-color: #fffa99 !important; }
@@ -2615,7 +2617,7 @@ div.alphabet.twoRows {
   .domestic-waybill .trip-type {
     margin-bottom: 4px;
     font-size: 0.95em;
-    letter-spacing: 0px; }
+    letter-spacing: 0; }
   .trip-sheet h3,
   .domestic-waybill h3 {
     margin: 16px 0 6px;

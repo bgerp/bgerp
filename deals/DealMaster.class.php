@@ -2276,6 +2276,10 @@ abstract class deals_DealMaster extends deals_DealBase
         // Заданията са само за екран - не и при печат/експорт
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) return;
 
+        $rec = $data->rec ?? null;
+        $containerId = $rec->containerId ?? null;
+        if ($containerId && Request::get("docTab{$containerId}") === 'DealDocuments') return;
+
         if (haveRole('ceo,planning,sales,purchase,store,job')) {
             $dealTab = Request::get('dealTab');
             if (empty($dealTab) || $dealTab == 'Statistic') {
@@ -3096,11 +3100,62 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
+        $rec = $data->rec ?? null;
+        $tabs = $data->tabs ?? null;
+        $containerId = $rec->containerId ?? null;
+        if (!$containerId || !$tabs) return;
+
+        $tabParam = "docTab{$containerId}";
+        $url = getCurrentUrl();
+        if (doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+            $documentsUrl = $url;
+            unset($documentsUrl['export']);
+            $documentsUrl[$tabParam] = 'DealDocuments';
+            $tabs->TAB('DealDocuments', 'Документи', $documentsUrl, null, 1.5);
+        }
+
         // Добавяне на таб показващ поръчано/доставено
-        if ($data->rec->state != 'draft') {
-            $url = getCurrentUrl();
-            $url["docTab{$data->rec->containerId}"] = 'DealReport';
-            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
+        if (($rec->state ?? null) != 'draft') {
+            $url[$tabParam] = 'DealReport';
+            $tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
+        }
+    }
+
+
+    /**
+     * Справката зависи и от документи извън нишката, затова не се кешира с договора.
+     */
+    public static function on_BeforeGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        $containerId = $cRec->id ?? null;
+        if ($containerId && Request::get("docTab{$containerId}") === 'DealDocuments') {
+            $res = false;
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Зарежда справката само при избор на таба.
+     */
+    public function prepareDealDocuments(&$data)
+    {
+        $tabs = $data->tabs ?? null;
+        if (!$tabs || !$tabs->hasTab('DealDocuments')) return;
+
+        $data->dealDocuments = deals_DocumentSummary::prepare($this, $data->rec ?? null);
+    }
+
+
+    /**
+     * Заменя статистиката със справката за документите.
+     */
+    public function renderDealDocuments(&$tpl, $data)
+    {
+        if (isset($data->dealDocuments)) {
+            $tpl->replace(deals_DocumentSummary::render($data->dealDocuments), 'DEAL_DOCUMENTS');
+            $tpl->removeBlock('STATISTIC_BAR');
         }
     }
 

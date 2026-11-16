@@ -49,21 +49,34 @@ class crm_ContragentGroupsPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    protected static function on_BeforeSave($mvc, $id, $rec)
+    protected static function on_BeforeSave($mvc, $id, $rec, &$fields = null)
     {
+        $countryField = $mvc->countryFieldName ?? 'country';
+        $groupField = $mvc->groupFieldName ?? 'groupListInput';
+        $expandField = $mvc->expandFieldName ?? 'groupList';
+        $saveFields = isset($fields) ? arr::make($fields, true) : null;
+        if (isset($saveFields)) {
+            // Частичен запис на друго поле не променя групите, включително в AfterSave.
+            if (!isset($saveFields[$countryField]) && !isset($saveFields[$groupField]) && !isset($saveFields[$expandField])) return;
+
+            $saveFields[$groupField] = $groupField;
+            $fields = implode(',', array_keys($saveFields));
+        }
+
         $oCountryId = null;
-        $countryId = $rec->{$mvc->countryFieldName} ?? null;
+        $countryId = $rec->{$countryField} ?? null;
 
         if (!empty($rec->id)) {
-            $oCountryId = $mvc->fetchField($rec->id, $mvc->countryFieldName);
+            $oCountryId = $mvc->fetchField($rec->id, $countryField);
 
             // При частичен запис (напр. само групите) държавата не се променя
-            if (!property_exists($rec, $mvc->countryFieldName)) {
+            if (!property_exists($rec, $countryField) && !isset($saveFields[$countryField])) {
                 $countryId = $oCountryId;
             }
 
-            if ($oCountryId != $countryId) {
-                $oCountryId = $oCountryId;
+            // Добавянето на автоматичните групи не трябва да скрие липсващия ръчен вход.
+            if (!property_exists($rec, $groupField)) {
+                $rec->{$groupField} = $mvc->fetchField($rec->id, $groupField);
             }
         }
 
@@ -85,14 +98,14 @@ class crm_ContragentGroupsPlg extends core_Plugin
 
                 $gId = $gIdArr[$id];
 
-                $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName} ?? null, $gId);
+                $rec->{$groupField} = type_Keylist::removeKey($rec->{$groupField} ?? null, $gId);
             }
         }
 
         foreach ($gForAdd as $id => $gRec) {
             $gId = $gIdArr[$id];
 
-            $rec->{$mvc->groupFieldName} = type_Keylist::addKey($rec->{$mvc->groupFieldName} ?? null, $gId);
+            $rec->{$groupField} = type_Keylist::addKey($rec->{$groupField} ?? null, $gId);
         }
     }
 
@@ -102,17 +115,43 @@ class crm_ContragentGroupsPlg extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        $groupField = $mvc->groupFieldName ?? 'groupListInput';
+        if (isset($fields)) {
+            $saveFields = arr::make($fields, true);
+            if (!isset($saveFields[$groupField])) return;
+        }
         $gArr = self::getGroupsId(true);
 
-        $prevVal = $rec->{$mvc->groupFieldName};
+        $prevVal = $rec->{$groupField} ?? null;
 
         foreach ($gArr as $gId) {
-            $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName}, $gId);
+            $rec->{$groupField} = type_Keylist::removeKey($rec->{$groupField} ?? null, $gId);
         }
 
-        if ($prevVal != $rec->{$mvc->groupFieldName}) {
-            $mvc->save_($rec, $mvc->groupFieldName);
+        if ($prevVal != ($rec->{$groupField} ?? null)) {
+            $mvc->save_($rec, $groupField);
         }
+    }
+
+
+    /**
+     * При преизчисляване се запазват автоматичните групи, които не стоят във входното поле.
+     */
+    public static function on_AfterExpandInput($mvc, &$res, $inputArr, $rec = null)
+    {
+        if (!is_object($rec)) return;
+
+        $countryField = $mvc->countryFieldName ?? 'country';
+        $countryId = property_exists($rec, $countryField) ? $rec->{$countryField} :
+            (!empty($rec->id) ? $mvc->fetchField($rec->id, $countryField) : null);
+        if (!$countryId) return;
+
+        $groupIds = self::getGroupsId();
+        $automatic = array();
+        foreach (drdata_CountryGroups::getGroupsArr($countryId) as $id => $group) {
+            if (!empty($groupIds[$id])) $automatic[$groupIds[$id]] = $groupIds[$id];
+        }
+        $res = ($res ?? array()) + $mvc->expandInput($automatic);
     }
 
 

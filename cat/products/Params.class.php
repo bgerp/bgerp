@@ -15,24 +15,12 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Params extends doc_Detail
+class cat_products_Params extends cat_products_ProtoParams
 {
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'productId';
-    
-    
-    /**
-     * Заглавие
-     */
-    public $title = 'Параметри';
-    
-    
-    /**
-     * Единично заглавие
-     */
-    public $singleTitle = 'Параметър';
     
     
     /**
@@ -42,27 +30,9 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'paramId';
-    
-    
-    /**
      * Кой може да добавя
      */
     public $canAdd = 'powerUser';
-    
-    
-    /**
-     * Кой може да листва
-     */
-    public $canList = 'debug';
     
     
     /**
@@ -87,20 +57,6 @@ class cat_products_Params extends doc_Detail
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id, classId, productId, paramId';
-    
-    
-    /**
-     * Предлог в формата за добавяне/редактиране
-     */
-    public $formTitlePreposition = 'на';
-
-
-    /**
-     * Брой записи на страница
-     *
-     * @var int
-     */
-    public $listItemsPerPage = 20;
 
 
     /**
@@ -110,8 +66,7 @@ class cat_products_Params extends doc_Detail
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност');
+        $this->addParamFields();
         $this->FLD('type', 'enum(mandatory=Задължителен,optional=Незадължителен,readOnly=Само за четене)', 'input=none,caption=Тип');
 
         $this->setDbUnique('classId,productId,paramId');
@@ -129,6 +84,28 @@ class cat_products_Params extends doc_Detail
 
         return $masterMvc;
     }
+
+
+    /**
+     * Връща ид на класа на обекта, към който е параметърът
+     */
+    public function getDomainClassId($rec)
+    {
+        return $rec->classId;
+    }
+
+
+    /**
+     * Връща параметрите, които могат да се добавят към обекта
+     */
+    public function getParamOptions($rec, &$warningMsg)
+    {
+        if($rec->classId == cat_BomDetails::getClassId()){
+            $warningMsg = 'Няма повече планиращи параметри|*!';
+        }
+
+        return self::getRemainingOptions($rec->classId, $rec->productId, $rec->id ?? null);
+    }
     
     
     /**
@@ -140,32 +117,6 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $paramRec = cat_Params::fetch($rec->paramId);
-        $paramRec->name = tr($paramRec->name);
-        $row->paramId = cat_Params::getVerbal($paramRec, 'name');
-        if (!empty($paramRec->group)) {
-            $paramRec->group = tr($paramRec->group);
-            $row->group = cat_Params::getVerbal($paramRec, 'group');
-        }
-
-        try{
-            if(trim($rec->paramValue ?? '') !== ''){
-                $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
-
-                if (!empty($paramRec->suffix)) {
-                    $suffix = cat_Params::getVerbal($paramRec, 'suffix');
-                    $row->paramValue .= ' ' . tr($suffix);
-                }
-            } else {
-                $row->paramValue = "<span class='blueText'>n/a</span>";
-            }
-            if(!empty($rec->type)){
-                $row->paramValue = ht::createHint($row->paramValue, $row->type ?? '', 'notice', false);
-            }
-        } catch(core_exception_Expect $e){
-            $row->paramValue = "<span class='color'>" . tr("Проблем при показване") . "</span>";
-        }
-
         if(isset($fields['-list'])){
             $Class = cls::get($rec->classId);
             if($Class instanceof core_Master){
@@ -183,75 +134,32 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-        $rec = $form->rec;
 
         // Ако параметърът се добавя към прототипен артикул да може да се посочва параметрите му дали да са опционални
-        $isValueMandatory = true;
-        $Master = $mvc->getMasterMvc($rec);
-        if($Master instanceof cat_Products){
-            if($data->masterRec->state == 'template'){
-                $form->setField('type', 'input,mandatory');
-                $form->setDefault('type', 'optional');
-                $isValueMandatory = false;
-            }
+        if($mvc->isTemplateProduct($data)){
+            $form->setField('type', 'input,mandatory');
+            $form->setDefault('type', 'optional');
         }
+    }
 
-        if($isValueMandatory){
-            $form->setField('paramValue', 'mandatory');
-        }
 
-        if (empty($rec->id)) {
-            $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
-            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id ?? null);
-            
-            if (!countR($options)) {
-                $warningMsg = 'Няма параметри за добавяне';
-                if($rec->classId == cat_BomDetails::getClassId()){
-                    $warningMsg = 'Няма повече планиращи параметри|*!';
-                }
+    /**
+     * Стойността не е задължителна само при прототипен артикул
+     */
+    public function isParamValueMandatory($data)
+    {
+        return !$this->isTemplateProduct($data);
+    }
 
-                followRetUrl(null, $warningMsg, 'warning');
-            }
-            
-            $form->setOptions('paramId', array('' => '') + $options);
-            $form->paramOptions = $options;
-            
-            if (countR($options) == 1) {
-                $form->setDefault('paramId', key($options));
-                $form->setReadOnly('paramId');
-            }
-        } else {
-            $form->setReadOnly('paramId');
-        }
-        
-        if (!empty($rec->paramId)) {
-            $pRec = cat_Params::fetch($rec->paramId);
-            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null)) {
-                $form->setField('paramValue', 'input');
-                $form->setFieldType('paramValue', $Type);
-                if($Type instanceof type_Key2 || $Type instanceof type_Key){
-                    $form->setField('paramValue', 'class=w100');
-                }
-            
-                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null);
-                $form->setDefault('paramValue', $defaultValue);
-                if($pRec->valueType == 'readonly' && isset($rec->id)){
-                    if(isset($defaultValue)){
-                        $form->info = tr("|*<div class='richtext-message richtext-warning'>|Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?<br>Съвет|*: |Опитайте първо да презапишете с автоматично заредената дефолтна стойност|*!</div>");
-                    }
-                    else {
-                        $form->info = tr("|*<div class='richtext-message richtext-warning'>|Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?</div>");
-                    }
-                }
 
-                if (!empty($pRec->suffix)) {
-                    $suffix = cat_Params::getVerbal($pRec, 'suffix');
-                    $form->setField('paramValue', "unit={$suffix}");
-                }
-            } else {
-                $form->setError('paramId', 'Има проблем при зареждането на типа');
-            }
-        }
+    /**
+     * Дали параметърът се добавя към прототипен артикул
+     */
+    protected function isTemplateProduct($data)
+    {
+        $Master = $this->getMasterMvc($data->form->rec);
+
+        return ($Master instanceof cat_Products) && (($data->masterRec->state ?? null) == 'template');
     }
     
     
@@ -321,17 +229,6 @@ class cat_products_Params extends doc_Detail
         return core_Detail::getEditTitle($master, $masterId, $singleTitle, $recId, $preposition);
     }
 
-
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-        if (isset($data->form->paramOptions) && countR($data->form->paramOptions) <= 1) {
-            $data->form->toolbar->removeBtn('saveAndNew');
-        }
-    }
-    
     
     /**
      * Връща не-използваните параметри за конкретния продукт, като опции
@@ -407,61 +304,14 @@ class cat_products_Params extends doc_Detail
     }
     
     
-    /**
-     * Рендиране на общия изглед за 'List'
-     */
-    public static function renderDetail($data)
-    {
-        // При експорт (sync_plg_ProductExport) описанието се рендира без подготвени параметри
-        $params = $data->params ?? null;
-        if (is_array($params)) {
-            foreach ($params as &$row) {
-                
-                // Ревербализиране на файловете да се покажат с подходящите права
-                if(!empty($row->_paramId)){
-                    $ParamDriver = cat_Params::getDriver($row->_paramId);
-                    if($ParamDriver instanceof cond_type_File || $ParamDriver instanceof cond_type_Image){
-                        $row->paramValue = cat_Params::toVerbal($row->_paramId, $row->classId, $row->productId, $row->_paramValue);
-                    }
-                }
-                
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                if (empty($data->noChange) && !Mode::isReadOnly()) {
-                    $minRowToolbar = $data->minRowToolbar ?? null;
-                    $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
-                } else {
-                    unset($row->tools);
-                }
-            }
-        }
-
-        $paramCaption = $data->paramCaption ?? null;
-
-        $tpl = cat_Params::renderParamBlock($params, $paramCaption);
-        $tpl->replace(get_called_class(), 'DetailName');
-        
-        if (($data->noChange ?? null) !== true) {
-            $tpl->append($data->changeBtn ?? null, 'addParamBtn');
-        }
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
-    }
-    
     
     /**
      * Подготвя данните за екстеншъна с параметрите на продукта
      */
     public static function prepareParams(&$data)
     {
-        $query = self::getQuery();
-        $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
-        $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
-        $query->EXT('state', 'cat_Params', 'externalName=state,externalKey=paramId');
-        $query->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
-        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId} AND #state != 'rejected'");
-        $query->orderBy('group,orderEx,id', 'ASC');
+        $query = static::getParamQuery();
+        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
         if (in_array($data->documentType ?? null, array('public', 'invoice'), true)) {
@@ -469,11 +319,17 @@ class cat_products_Params extends doc_Detail
             $query->where("#showInPublicDocuments = 'yes'");
         }
 
+        $me = cls::get(get_called_class());
         $data->params = array();
+        $sortRecs = array();
         while ($rec = $query->fetch()) {
-            $data->params[$rec->id] = static::recToVerbal($rec);
-            $data->params[$rec->id]->_paramId = $rec->paramId;
-            $data->params[$rec->id]->_paramValue = $rec->paramValue;
+            $data->params[$rec->id] = $me->prepareParamRow($rec);
+            $sortRecs[$rec->id] = $rec;
+        }
+
+        // Наследените от групите параметри се показват в сингъла и в описанието на артикула в документите
+        if ($data->masterClassId == cat_Products::getClassId()) {
+            static::addGroupParams($data, $sortRecs);
         }
         
         if (self::haveRightFor('add', (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
@@ -482,6 +338,84 @@ class cat_products_Params extends doc_Detail
     }
     
     
+    /**
+     * Добавя наследените от групите параметри, които артикулът няма, подредени заедно със собствените
+     * Извън сингъла са като обикновен ред, а за външните документи - само показваните в тях
+     *
+     * @param stdClass $data
+     * @param array    $sortRecs - собствените записи, с ключ ключа на реда
+     *
+     * @return void
+     */
+    private static function addGroupParams($data, $sortRecs)
+    {
+        $groupRecs = cat_GroupParams::getProductParamRecs($data->masterId);
+        if (!countR($groupRecs)) return;
+
+        $GroupParams = cls::get('cat_GroupParams');
+        $isSingle = !empty($data->isSingle);
+        foreach ($sortRecs as $key => $rec) {
+            $gRec = $groupRecs[$rec->paramId] ?? null;
+            if (!is_object($gRec)) continue;
+            unset($groupRecs[$rec->paramId]);
+            if (cat_GroupParams::hasValue($rec->paramValue ?? null)) continue;
+
+            // Собственият запис е празен - важи наследената стойност, а редакцията е на собствения
+            $editUrl = ($isSingle && static::haveRightFor('edit', $rec)) ? array(get_called_class(), 'edit', $rec->id, 'ret_url' => true) : null;
+            $data->params[$key] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $editUrl);
+        }
+
+        $isPublic = in_array($data->documentType ?? null, array('public', 'invoice'), true);
+        foreach ($groupRecs as $gRec) {
+            if ($isPublic && cat_Params::fetchField($gRec->paramId, 'showInPublicDocuments') != 'yes') continue;
+
+            $overrideRec = (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId);
+            $overrideUrl = ($isSingle && static::haveRightFor('add', $overrideRec)) ? array(get_called_class(), 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId, 'ret_url' => true) : null;
+            $data->params["g{$gRec->id}"] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $overrideUrl);
+            $sortRecs["g{$gRec->id}"] = $gRec;
+        }
+
+        // Подредба като в заявката: група на параметъра, ред, собствените преди наследените
+        $keys = array_keys($sortRecs);
+        $pos = array_flip($keys);
+        usort($keys, function ($a, $b) use ($sortRecs, $pos) {
+            $cmp = strcmp(mb_strtolower($sortRecs[$a]->group ?? ''), mb_strtolower($sortRecs[$b]->group ?? ''));
+            if ($cmp == 0) {
+                $cmp = (int) ($sortRecs[$a]->orderEx ?? 0) <=> (int) ($sortRecs[$b]->orderEx ?? 0);
+            }
+
+            return ($cmp == 0) ? ($pos[$a] <=> $pos[$b]) : $cmp;
+        });
+
+        $params = array();
+        foreach ($keys as $key) {
+            $params[$key] = $data->params[$key];
+        }
+        $data->params = $params;
+    }
+
+
+    /**
+     * Ред за наследен параметър - в сингъла маркиран като наследен, иначе като обикновен ред без бутони
+     *
+     * @param cat_GroupParams $GroupParams
+     * @param stdClass        $gRec        - запис на параметър на група
+     * @param bool            $isSingle    - дали е за сингъла на артикула
+     * @param array|null      $url         - адрес за предефиниране на стойността
+     *
+     * @return stdClass $row
+     */
+    private static function prepareGroupParamRow($GroupParams, $gRec, $isSingle, $url)
+    {
+        $row = $GroupParams->prepareInheritedRow($gRec, $url);
+        if (!$isSingle) {
+            unset($row->_inheritedHint);
+        }
+
+        return $row;
+    }
+
+
     /**
      * След проверка на ролите
      */
@@ -528,27 +462,6 @@ class cat_products_Params extends doc_Detail
                 }
             }
         }
-        
-        // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
-        if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
-            $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
-            if (!empty($pRec->roles) && !haveRole($pRec->roles, $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
-     * Рендира екстеншъна с параметри на продукт
-     */
-    public static function renderParams($data)
-    {
-        if (isset($data->addUrl) && !Mode::isReadOnly()) {
-            $data->changeBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нов параметър');
-        }
-        
-        return self::renderDetail($data);
     }
 
 
@@ -578,29 +491,6 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        if(isset($rec->id)){
-
-            // Кои са старите стойности
-            $exRec = $mvc->fetch($rec->id, '*', 'paramId,paramValue');
-            $rec->_exParamId = $exRec->paramId;
-            $rec->_exParamValue = $exRec->paramValue;
-        } else {
-            $rec->_isCreated = true;
-        }
-    }
-    
-    
-    /**
      * След запис се обновяват свойствата на перата
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
@@ -613,33 +503,6 @@ class cat_products_Params extends doc_Detail
 
         // Параметрите може да се ползват във формули на рецепти
         cat_Boms::clearProductParamsCache();
-
-        // Има ли промяна на стойноста на параметъра
-        $exValue = $rec->_exParamValue ?? null;
-        $paramValue = $rec->paramValue ?? null;
-        if($exValue != $paramValue){
-            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $paramValue, $exValue);
-            if(!empty($res['msg'])){
-                core_Statuses::newStatus($res['msg']);
-            }
-            if(!empty($res['error'])){
-                core_Statuses::newStatus($res['error'], 'error');
-            }
-        }
-
-        $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
-        $logMsg = (!empty($rec->_isCreated)) ? 'Добавяне на параметър' : 'Редактиране на параметър';
-
-        $Class->logWrite($logMsg, $rec->productId);
-        $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
-        if(cls::haveInterface('doc_DocumentIntf', $Class)){
-            $Class->touchRec($rec->productId);
-        } else {
-            $cRec = $Class->fetch($rec->productId);
-            $cRec->modifiedOn = dt::now();
-            $cRec->modifiedBy = core_Users::getCurrent();
-            $Class->save_($cRec, 'modifiedOn,modifiedBy');
-        }
     }
     
     
@@ -656,10 +519,6 @@ class cat_products_Params extends doc_Detail
             if ($rec->classId == $productClassId) {
                 cat_products_ParamIndex::markDirty($rec->productId);
             }
-            
-            $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
-            cls::get($rec->classId)->logWrite('Изтриване на параметър', $rec->productId);
-            cls::get($rec->classId)->logDebug("Изтриване на параметър: {$paramName}", $rec->productId);
         }
     }
     
@@ -953,26 +812,5 @@ class cat_products_Params extends doc_Detail
         cat_products_Params::prepareParams($d);
 
         return $d;
-    }
-
-
-    /**
-     * Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'paramId';
-        $data->listFilter->setFieldTypeParams('paramId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('paramId', 'placeholderType=all');
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input();
-        if($filter = $data->listFilter->rec){
-            if(!empty($filter->paramId)){
-                $data->query->where("#paramId = {$filter->paramId}");
-            }
-        }
-
-        $data->query->orderBy('id', 'DESC');
     }
 }

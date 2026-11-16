@@ -36,7 +36,7 @@ defIfNot('BACKUP_PATH', '/var/www/backup');
  * @package   core
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1659,8 +1659,8 @@ die('sss');
      */
     public static function hasEqualDb($mvc1, $mvc2)
     {
-        $db1 = $mvc1->db1;
-        $db2 = $mvc2->db2;
+        $db1 = $mvc1->db;
+        $db2 = $mvc2->db;
         
         $res = $db1->dbName == $db2->dbName && $db1->dbHost == $db2->dbHost && $db1->dbUser == $db2->dbUser;
         

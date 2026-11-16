@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>common.scss regression</title>
+<link rel="icon" href="data:,">
+<style>
+body { font: 16px sans-serif; margin: 20px; }
+iframe { height: 700px; border: 1px solid #aaa; flex-shrink: 0; }
+.pair { display: flex; gap: 16px; overflow: auto; }
+pre { white-space: pre-wrap; }
+</style>
+<h1>common.scss: форми, маркиране и потвърждения</h1>
+<p>Ляво: предишен CSS. Дясно: текущ CSS. Сравнение на CSS правилата и изгледа при 360, 1024 и 1440px.</p>
+<pre id="result">Проверява се...</pre>
+<div id="frames"></div>
+<template id="samples">
+    <h2>Форма</h2>
+    <select class="readonly" data-check="readonly-select"><option>Непроменено поле</option></select>
+    <div class="readonly" data-check="readonly-div"><select data-check="descendant-select"><option>Вложен select</option></select></div>
+    <input type="text" value="Пробна стойност" data-check="text">
+    <input type="button" value="Бутон" data-check="button">
+    <input type="reset" value="Изчисти" data-check="reset">
+    <h2>Маркиране</h2>
+    <div class="flashElem" data-check="flash-div">Маркиран текст <label data-check="flash-label">Етикет</label></div>
+    <input class="flashElem combo" value="Маркирано поле" data-check="flash-input">
+    <input type="checkbox" class="flashElem" id="flash-check" data-check="flash-checkbox"><label for="flash-check" data-check="checkbox-label">Избор</label>
+    <small class="flashElem" data-check="flash-small">Малък текст</small>
+    <input class="flashEleminput combo" value="Стар суфикс" data-check="suffix-input">
+    <div class="trip-sheet"><div class="trip-type" data-check="trip-type">Пътен лист</div></div>
+    <div class="domestic-waybill"><div class="trip-type" data-check="waybill-type">Товарителница</div></div>
+    <div class="ef-confirm-modal ef-confirm-notice" data-check="notice"><span class="ef-confirm-icon" data-check="notice-icon">i</span><h3 class="ef-confirm-title" data-check="notice-title">Информация</h3><button class="ef-confirm-ok" data-check="notice-button">Продължи</button></div>
+    <div class="ef-confirm-modal ef-confirm-warning" data-check="warning"><span class="ef-confirm-icon" data-check="warning-icon">!</span><h3 class="ef-confirm-title" data-check="warning-title">Предупреждение</h3><button class="ef-confirm-ok" data-check="warning-button">Продължи</button></div>
+    <div class="ef-confirm-modal ef-confirm-error" data-check="error"><span class="ef-confirm-icon" data-check="error-icon">!</span><h3 class="ef-confirm-title" data-check="error-title">Грешка</h3><button class="ef-confirm-ok" data-check="error-button">Затвори</button></div>
+</template>
+<script>
+'use strict';
+const query = new URLSearchParams(location.search);
+const before = new URL(query.get('before') || 'before.css', location.href);
+const current = new URL(query.get('css') || 'common.css', location.href);
+const colorNames = {black: 'rgb(0, 0, 0)', white: 'rgb(255, 255, 255)', yellow: 'rgb(255, 255, 0)', blue: 'rgb(0, 0, 255)', red: 'rgb(255, 0, 0)', whitesmoke: 'rgb(245, 245, 245)', transparent: 'rgba(0, 0, 0, 0)'};
+function declarations(style) {
+    return style.cssText.replace(/(^|[ :])(black|white|yellow|blue|red|whitesmoke|transparent)(?=[ ;])/g, (match, prefix, color) => prefix + colorNames[color]);
+}
+// Подреждането на селектори в една група не променя каскадата.
+function rules(list) {
+    return Array.from(list, rule => {
+        if (rule.selectorText) return {selector: rule.selectorText.split(',').map(s => s.trim()).sort(), style: declarations(rule.style)};
+        if (rule.cssRules) return {condition: (rule.conditionText || '').split(',').map(s => s.trim()).filter(s => s !== 'not all').join(','), rules: rules(rule.cssRules)};
+        return {text: rule.cssText};
+    });
+}
+function frame(url, width, label) {
+    const element = document.createElement('iframe');
+    element.width = width;
+    element.title = label + ' ' + width;
+    const doc = document.implementation.createHTMLDocument(label);
+    const css = doc.createElement('link');
+    css.rel = 'stylesheet'; css.href = url.href; doc.head.appendChild(css);
+    // Показваме трите модала един под друг; оригиналните им правила се сравняват отделно.
+    const layout = doc.createElement('style');
+    layout.textContent = '.ef-confirm-modal{position:relative;top:auto;left:auto;transform:none;margin:12px 0}';
+    doc.head.appendChild(layout);
+    doc.body.className = width < 640 ? 'narrow' : 'wide';
+    doc.body.innerHTML = document.getElementById('samples').innerHTML;
+    element.srcdoc = '<!doctype html>' + doc.documentElement.outerHTML;
+    return {element, ready: new Promise(resolve => element.onload = resolve)};
+}
+(async function () {
+    let comparisons = 0, ruleCount = 0;
+    const differences = [];
+    for (const width of [360, 1024, 1440]) {
+        const row = document.createElement('div'); row.className = 'pair';
+        const oldFrame = frame(before, width, 'Преди'), newFrame = frame(current, width, 'След');
+        row.append(oldFrame.element, newFrame.element); document.getElementById('frames').appendChild(row);
+        await Promise.all([oldFrame.ready, newFrame.ready]);
+        const oldDoc = oldFrame.element.contentDocument, newDoc = newFrame.element.contentDocument;
+        const aRules = rules(oldDoc.styleSheets[0].cssRules), bRules = rules(newDoc.styleSheets[0].cssRules);
+        if (aRules.length < 500 || bRules.length < 500) throw new Error('Липсва пълният common.css');
+        if (width === 360) {
+            ruleCount = aRules.length;
+            if (aRules.length !== bRules.length) differences.push({ruleCountBefore: aRules.length, ruleCountAfter: bRules.length});
+            aRules.forEach((rule, index) => {
+                if (JSON.stringify(rule) !== JSON.stringify(bRules[index])) differences.push({rule: index, before: rule, after: bRules[index]});
+            });
+        }
+        const aElements = oldDoc.querySelectorAll('[data-check]'), bElements = newDoc.querySelectorAll('[data-check]');
+        aElements.forEach((element, index) => {
+            const a = oldFrame.element.contentWindow.getComputedStyle(element), b = newFrame.element.contentWindow.getComputedStyle(bElements[index]);
+            Array.from(a).forEach(property => {
+                comparisons++;
+                if (a.getPropertyValue(property) !== b.getPropertyValue(property)) differences.push({width, target: element.dataset.check, property, before: a.getPropertyValue(property), after: b.getPropertyValue(property)});
+            });
+        });
+    }
+    document.getElementById('result').textContent = JSON.stringify({status: differences.length ? 'FAIL' : 'PASS', ruleCount, comparisons, differences}, null, 2);
+})().catch(error => document.getElementById('result').textContent = 'FAIL: ' + error.message);
+</script>
+</html>

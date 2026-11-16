@@ -402,6 +402,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
+            $fld->FLD('code', 'varchar', 'caption=Код');
             if (($rec->period ?? 'byWeeks') == 'byWeeks') {
                 $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
                 $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
@@ -444,8 +445,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $row->week = 'Седмица: '.$week;
 
         if (isset($dRec->materialId)) {
-            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').' / '.
-                               cat_Products::fetchField("{$dRec->materialId}", 'code');
+            $row->code = cat_Products::getVerbal($dRec->materialId, 'code');
+            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name');
         }
 
         if (isset($dRec->originDoc)) {

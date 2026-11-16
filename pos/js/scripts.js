@@ -483,8 +483,8 @@ function posActions() {
 		var operation = getSelectedOperation();
 		if(operation != 'add') return;
 
-		var ph = $.trim($(this).attr('placeholder'));   // placeholder-ът като текст
-		if (!ph || !$.isNumeric(ph.replace(',', '.'))) return;
+		var ph = ($(this).attr('placeholder') || '').trim();   // placeholder-ът като текст
+		if (!ph || !efIsNumeric(ph.replace(',', '.'))) return;
 
 		$(this).val(ph + '*');           // записваме стойност + звездичка
 	});
@@ -1019,7 +1019,7 @@ function pressNavigable(element)
 				amount = $("input[name=ean]").attr('data-defaultpayment');
 			}
 
-			if(!$.isNumeric(amount) || amount == 0){
+			if(!efIsNumeric(amount) || amount == 0){
 				var msg = element.attr("data-notnumericmsg");
 				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 				return;
@@ -1230,7 +1230,7 @@ function submitInputString(){
 
 // Дали подадения стринг е операция за задаване на количество
 function isMicroformat(string) {
-	var string = $.trim(string);
+	var string = String(string == null ? '' : string).trim();
 
 	// Ако има въведен непразен стринг
 	if(string){
@@ -1244,7 +1244,7 @@ function isMicroformat(string) {
 			quantity = quantity.replace(",", ".");
 			console.log("NUM: '" + string + "' Q:" + quantity);
 			// Ако останалата част от стринга е положително число
-			if($.isNumeric(quantity) && quantity > 0){
+			if(efIsNumeric(quantity) && quantity > 0){
 				if(string.startsWith("*")){
 
 					var split = quantity.split(".");
@@ -1262,7 +1262,7 @@ function isMicroformat(string) {
 			var quantity = string.replace("%", "");
 			quantity = quantity.replace(",", ".");
 			
-			if($.isNumeric(quantity)){
+			if(efIsNumeric(quantity)){
 				if(string.startsWith("%")){
 					
 					let split = quantity.split(".");
@@ -1466,7 +1466,7 @@ function disableOrEnableCurrencyBtn()
 		return
 	}
 	
-	if(!value.length || !$.isNumeric(value)){
+	if(!value.length || !efIsNumeric(value)){
 		$('.currencyBtn').addClass('disabledBtn');
 		$('.currencyBtn').prop('disabled', true);
 	} else {
@@ -1543,7 +1543,7 @@ function addProduct(el) {
 	} else {
 		if (typeof readWeightScale === 'function' && weightSysId) {
 			let scaleVal =  document.querySelector("input[name=ean]").getAttribute("placeholder")
-			if($.isNumeric(scaleVal)){
+			if(efIsNumeric(scaleVal)){
 				if(weightSysId == 'g'){
 					scaleVal = parseFloat(scaleVal) * 1000;
 				}

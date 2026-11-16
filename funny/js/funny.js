@@ -21,7 +21,7 @@
             var pursuitPartners = {polarbear:['penguin'],cat:['mouse','fly','spiders','butterfly'],blackcat:['mouse','fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
             var faceAnchors = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4],polarbear:[72,31,.85],penguin:[60,30,.6],mouse:[73,45,.5]};
             var ghostKinds = ['ghost', 'ghostgirl', 'ghostplay', 'casper'];
-            var seasonalPool = [];
+            var seasonalPool = [], christmasCharacters = ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
             var pointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
             var visitors = [], portals = [], marks = [], surfaceEffects = [], departures = [], frame = 0, timer = 0;
@@ -98,6 +98,11 @@
                     if (pool.indexOf('wolf') < 0) pool.push('wolf');
                     pool.push('mouse');
                     var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
+                    // At most 2% of holiday groups can contain a present, including manual summons.
+                    if ((month === 12 || (month === 1 && now.getDate() <= 7)) &&
+                        !visitors.some(function (v) { return v.character === 'present'; }) && Math.random() < 0.02) {
+                        pool.push('present'); seasonalPool.push('present');
+                    }
                     var fresh = forecast.expires > now.getTime() && typeof forecast.temperature === 'number';
                     var warm = fresh && forecast.temperature > 10;
                     if (fresh && forecast.temperature < 0) { pool.push('polarbear', 'penguin'); seasonalPool.push('polarbear', 'penguin'); }
@@ -123,7 +128,7 @@
             function seasonalCharacters(now) {
                 var month = now.getMonth() + 1, day = now.getDate();
                 if ((month === 10 && day >= 15) || (month === 11 && day <= 2)) return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'blackcat', 'witch', 'muncher', 'imp'];
-                if (month === 12 || (month === 1 && day <= 7)) return ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
+                if (month === 12 || (month === 1 && day <= 7)) return christmasCharacters.slice();
                 if (month <= 2) return ['snowman', 'casper'];
                 var easter = options.easterDates && options.easterDates[now.getFullYear()];
                 if (easter) {
@@ -238,11 +243,39 @@
                 });
             }
 
+            /** Uneven noise bursts suggest crumpling paper without a tonal beep or a sustained hiss. */
+            function playPaperCrumple() {
+                var duration = 0.55, start = audio.currentTime + 0.025;
+                var buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * duration), audio.sampleRate);
+                var data = buffer.getChannelData(0), envelope = 0, next = 0;
+                var decay = Math.exp(-1 / (audio.sampleRate * 0.009));
+                for (var i = 0; i < data.length; i++) {
+                    if (i >= next) { envelope = random(0.35, 1); next = i + Math.floor(audio.sampleRate * random(0.012, 0.05)); }
+                    data[i] = (Math.random() * 2 - 1) * envelope;
+                    envelope *= decay;
+                }
+                var source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+                source.buffer = buffer;
+                filter.type = 'bandpass'; filter.frequency.value = 1800; filter.Q.value = 0.7;
+                voices.push(gain); gain.gain.value = 0;
+                gain.gain.setValueAtTime(0, start);
+                gain.gain.linearRampToValueAtTime(gentle ? 0.0275 : 0.055, start + 0.025);
+                gain.gain.setValueAtTime(gentle ? 0.0275 : 0.055, start + 0.32);
+                gain.gain.linearRampToValueAtTime(0, start + duration);
+                source.connect(filter); filter.connect(gain); gain.connect(audio.destination);
+                source.start(start); source.stop(start + duration);
+                source.onended = function () {
+                    source.disconnect(); filter.disconnect(); gain.disconnect();
+                    voices = voices.filter(function (item) { return item !== gain; });
+                };
+            }
+
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
                 if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
+                if (character === 'paper') { playPaperCrumple(); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
@@ -267,6 +300,7 @@
                     startle: {notes: [740, 440], duration: 0.1, spacing: 0.08, pitch: 0.6, wave: 'sine', volume: 0.35},
                     hiccup: {notes: [180], duration: 0.16, spacing: 0, pitch: 1.8, wave: 'triangle', volume: 0.35},
                     imp: {notes: [988, 1175, 1319, 1175], duration: 0.07, spacing: 0.08, pitch: 1.2, wave: 'triangle'},
+                    present: {notes: [1319, 1568, 2093], duration: 0.12, spacing: 0.13, pitch: 1, wave: 'sine', volume: 0.6},
                     burp: {notes: [120, 95], duration: 0.3, spacing: 0.22, pitch: 0.6, wave: 'sawtooth', low: true},
                     snowman: {notes: [523, 784], duration: 0.26, spacing: 0.22, pitch: 1, wave: 'sine'},
                     martenitsa: {notes: [587, 740, 880], duration: 0.16, spacing: 0.15, pitch: 1, wave: 'triangle'},
@@ -412,6 +446,34 @@
                 }
             }
 
+            /** Ordinary groups and presents share portal cleanup, including delayed arrivals. */
+            function createPortal(origin, present) {
+                var node = document.createElement('div');
+                node.className = present ? 'funny-present-open' : 'funny-portal';
+                node.setAttribute('aria-hidden', 'true');
+                node.style.left = (present ? present.x - present.width / 2 : origin.x) + 'px';
+                node.style.top = (present ? present.y - present.height / 2 : origin.y) + 'px';
+                if (present) {
+                    node.style.width = present.width + 'px'; node.style.height = present.height + 'px';
+                    node.appendChild(sprite('present-open'));
+                    var lid = sprite('present-lid'); lid.setAttribute('class', 'funny-present-lid'); node.appendChild(lid);
+                }
+                document.body.appendChild(node);
+                var portal = {node:node,timers:[]};
+                portals.push(portal);
+                return portal;
+            }
+
+            /** Keep the opening through the last arrival and allow its closing animation to finish. */
+            function closePortal(portal, delay, duration, sound) {
+                var closingAt = performance.now() + delay + 350;
+                portal.timers.push(window.setTimeout(function () {
+                    portal.node.classList.add('funny-portal-closing');
+                    if (sound && performance.now() - closingAt < 500) playSound(sound);
+                }, delay + 350));
+                portal.timers.push(window.setTimeout(function () { removePortal(portal); }, delay + 350 + (duration || 200)));
+            }
+
             /** Cancels delayed launches as well as their portal, so they cannot reappear after blur. */
             function removePortal(portal) {
                 portal.timers.forEach(function (id) { window.clearTimeout(id); });
@@ -483,10 +545,42 @@
                 return true;
             }
 
+            /** Double-click coordinate hits leave underlying controls, text and touch scrolling untouched. */
+            function openPresent(event) {
+                if (!active() || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return false;
+                var now = performance.now();
+                var present = visitors.filter(function (v) {
+                    return v.character === 'present' && !v.launched && !v.leaving &&
+                        Math.abs(v.x - event.clientX) <= v.width / 2 && Math.abs(v.y - event.clientY) <= v.height / 2;
+                })[0];
+                if (!present) return false;
+                var origin = {x:present.x,y:present.y - present.height * 0.06,silent:present.silent,deadline:now + 60000};
+                burst(present);
+                removeVisitor(present, false);
+                var count = Math.min(visitorLimit() - visitors.length, gentle ? Math.floor(random(3, 6)) : Math.floor(random(10, 17)));
+                var holiday = christmasCharacters.slice(), delay = 350, portal = createPortal(origin, present);
+                for (var i = 0; i < count; i++) {
+                    // Alternate holiday guests with gremlins; every group with room for two is mixed.
+                    var character = i % 3 === 1 ? holiday.splice(Math.floor(random(0, holiday.length)), 1)[0] : 'imp';
+                    if (!holiday.length) holiday = christmasCharacters.slice();
+                    if (i) delay += random(650, 900);
+                    (function (selected, due) {
+                        portal.timers.push(window.setTimeout(function () {
+                            // Skip stale arrivals after a stalled tab instead of replaying the queue at once.
+                            if (performance.now() - due < 500) show('present', true, selected, origin);
+                        }, delay));
+                    }(character, now + delay));
+                }
+                // The final visitor needs its full launch animation before the empty box collapses.
+                closePortal(portal, delay + 650, 1000, present.silent ? null : 'paper');
+                if (!present.silent) playSound('present');
+                return true;
+            }
+
             function catchVisitor(v, force) {
                 if (!active() || v.leaving) return;
-                // Gremlins need an explicit click even at the cap; hovering must not undo the last split.
-                if (v.character === 'imp' && !force) return;
+                // Gremlins and presents need an explicit click; hovering must not undo the last split.
+                if ((v.character === 'imp' || v.character === 'present') && !force) return;
                 v.leaving = performance.now();
                 releaseThread(v);
                 caughtCount++;
@@ -538,7 +632,7 @@
 
             /** Accessories use the same hourly snapshot as the page's weather effects. */
             function dress(v) {
-                if (v.insect || v.leaving) return;
+                if (v.insect || v.leaving || v.character === 'present') return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
                 if (v.sunHide) kind = '';
                 if (v.outfit === kind) return;
@@ -817,7 +911,7 @@
             function burst(v, kind) {
                 if (bursts.length >= 12) removeBurst(bursts[0]);
                 var crumbs = kind === 'crumb', knocking = kind === 'knock';
-                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',wolf:'dust',imp:'star',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star'};
+                var kinds = {ghost:'puff',ghostgirl:'puff',ghostplay:'puff',casper:'puff',zombie:'smoke',vampire:'smoke',bat:'smoke',pumpkin:'pumpkin',spiderweb:'web',spiders:'web',cat:'puff',blackcat:'smoke',witch:'star',muncher:'puff',wolf:'dust',imp:'star',martenitsa:'thread',butterfly:'petal',bunny:'puff',chick:'puff',stork:'feather',firefly:'glow',deer:'dust',elf:'confetti',snowmaiden:'star',present:'confetti'};
                 kind = kind || kinds[v.character] || 'star';
                 var node = document.createElement('div');
                 node.className = crumbs ? 'funny-crumbs' : knocking ? 'funny-knock' : 'funny-burst funny-burst-' + kind;
@@ -841,7 +935,7 @@
             /** At most one silent peek per page, replacing an automatic group near a visible block. */
             function showPeek() {
                 if (!active()) return false;
-                var pool = characters().filter(function (name) { return name !== 'fly' && name !== 'mosquito'; }), positions = [];
+                var pool = characters().filter(function (name) { return name !== 'fly' && name !== 'mosquito' && name !== 'present'; }), positions = [];
                 if (!pool.length) return false;
                 Array.prototype.forEach.call(document.querySelectorAll('[id^="blockPortal_"]'), function (block) {
                     var rect = block.getBoundingClientRect(), x = (rect.left + rect.right) / 2;
@@ -882,12 +976,15 @@
             /** Adds a visitor at the shared portal; every delayed launch retains that origin. */
             function show(reason, silent, character, origin) {
                 if (!active() || visitors.length >= visitorLimit() || (character === 'imp' && impCount() >= IMP_LIMIT)) return false;
+                if (character === 'present' && visitors.some(function (v) { return v.character === 'present'; })) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
                 var visitsElements = insect || feeds || character === 'spiders' || character === 'mouse';
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'present' ? Math.min(200, Math.min(window.innerWidth, window.innerHeight) * 0.25) : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
                 // A split copy jumps right beside its original, which is under the pointer that clicked it
-                var destination = reason === 'copy' ? {x: clamp(origin.x + random(-1.2, 1.2) * width, width / 2 + 20, window.innerWidth - width / 2 - 20),
+                // Visitors from a present scatter from the lid, with a short delay between arrivals.
+                var destination = reason === 'present' ? {x: random(width / 2 + 20, window.innerWidth - width / 2 - 20), y: random(height / 2 + 20, window.innerHeight - height / 2 - 20)} :
+                    reason === 'copy' ? {x: clamp(origin.x + random(-1.2, 1.2) * width, width / 2 + 20, window.innerWidth - width / 2 - 20),
                     y: clamp(origin.y + random(-1.2, 1.2) * height, height / 2 + 20, window.innerHeight - height / 2 - 20)} : safePosition(width, height, reason === 'manual' ? null : origin);
                 if (!destination) return false;
                 if (timer) {
@@ -914,11 +1011,23 @@
                     lifetime: character === 'muncher' ? 77000 : character === 'mouse' ? 45000 : random(20000, 35000), fleeUntil: 0, silent: reason === 'notification', eaten: [], mealMarks: [], insect: insect, feeds: feeds, visitsElements: visitsElements,
                     contact: {x:character === 'mouse' ? width * 0.4 : character === 'mosquito' ? -width * 0.13 : 0,y:height * (character === 'mouse' ? 0.11 : character === 'vampire' ? -0.05 : 0.3)}
                 };
+                if (reason === 'copy' || reason === 'present') visitor.silent = !!origin.silent;
                 if (character === 'imp') {
                     visitor.deadline = origin.deadline || now + 60000;
                     visitor.rainSplitAfter = now + random(12000, 18000);
-                    if (reason === 'copy') visitor.silent = !!origin.silent;
                     if (reason === 'copy' && origin.rain) node.setAttribute('data-rain-born', 'true');
+                }
+                if (character === 'present') {
+                    visitor.greeted = true;
+                    var drift = random(0, Math.PI * 2);
+                    visitor.wander = {x:Math.cos(drift),y:Math.sin(drift)};
+                    var sparkles = document.createElement('div'); sparkles.className = 'funny-present-sparkles';
+                    [[8,20],[86,30],[18,72],[78,78],[50,8],[48,55]].forEach(function (p, i) {
+                        var star = document.createElement('i');
+                        star.style.left = p[0] + '%'; star.style.top = p[1] + '%'; star.style.animationDelay = (i * 0.27) + 's';
+                        sparkles.appendChild(star);
+                    });
+                    node.appendChild(sparkles);
                 }
                 if (character === 'spiders') {
                     // A vertical entry must not pass through the stationary pointer.
@@ -1043,7 +1152,7 @@
 
             /** Encounters never override escape, departure or the pointer's personal space. */
             function availableForEncounter(v, now, clearance) {
-                return visitors.indexOf(v) >= 0 && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
                     now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > (clearance === undefined ? 120 : clearance);
             }
 
@@ -1827,6 +1936,8 @@
                     v.x = v.from.x + (v.destination.x - v.from.x) * ease;
                     v.y = v.from.y + (v.destination.y - v.from.y) * ease;
                     if (progress === 1) { v.launched = false; v.node.setAttribute('data-rain-born', ''); }
+                } else if (v.character === 'present' && !v.leaving) {
+                    drawPresent(v, elapsed, delta);
                 } else if (!v.leaving) {
                     // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
                     if (v.character === 'imp' && now >= v.rainSplitAfter) {
@@ -1886,6 +1997,21 @@
                         return;
                     }
                 }
+            }
+
+            /** The present only creeps across the page and fades out at the end, without fleeing or encounters. */
+            function drawPresent(v, elapsed, delta) {
+                if (elapsed >= v.lifetime) {
+                    v.leaving = performance.now(); v.leaveDuration = 600;
+                    v.node.classList.add('funny-present-fading');
+                    return;
+                }
+                var marginX = v.width / 2 + 20, marginY = v.height / 2 + 20;
+                if (v.x < marginX) v.wander.x = Math.abs(v.wander.x);
+                if (v.x > window.innerWidth - marginX) v.wander.x = -Math.abs(v.wander.x);
+                if (v.y < marginY) v.wander.y = Math.abs(v.wander.y);
+                if (v.y > window.innerHeight - marginY) v.wander.y = -Math.abs(v.wander.y);
+                v.x += v.wander.x * 6 * delta; v.y += v.wander.y * 6 * delta;
             }
 
             /** Curious visitors turn away after seeing the pointer; cats circle it and reach with a paw. */
@@ -2142,7 +2268,7 @@
                 var pool = characters();
                 var count = Math.min(gentle ? 1 : 1 + Math.floor(Math.random() * 7), pool.length, visitorLimit() - visitors.length);
                 if (count <= 0) return false;
-                var width = pool.indexOf('sleigh') !== -1 ? 120 : 76;
+                var width = Math.min(pool.indexOf('sleigh') !== -1 ? 120 : 76, Math.min(window.innerWidth, window.innerHeight) * 0.25);
                 var origin = reason === 'manual' ? {x: pointer.x, y: pointer.y} : safePosition(width, width * 5 / 6);
                 if (!origin) return false;
                 var delay = 0, portal = null;
@@ -2156,14 +2282,7 @@
                         appearances++;
                         lastAppearance = summonedAt;
                         if (count === 1 && character === 'spiders') return true;
-                        var node = document.createElement('div');
-                        node.className = 'funny-portal';
-                        node.setAttribute('aria-hidden', 'true');
-                        node.style.left = origin.x + 'px';
-                        node.style.top = origin.y + 'px';
-                        document.body.appendChild(node);
-                        portal = {node: node, timers: []};
-                        portals.push(portal);
+                        portal = createPortal(origin);
                     } else {
                         delay += random(Math.min(250, 1200 / (count - 1)), 1400 / (count - 1));
                         (function (selected) {
@@ -2173,13 +2292,13 @@
                         }(character));
                     }
                 }
-                portal.timers.push(window.setTimeout(function () { portal.node.classList.add('funny-portal-closing'); }, delay + 350));
-                portal.timers.push(window.setTimeout(function () { removePortal(portal); }, delay + 550));
+                closePortal(portal, delay);
                 return true;
             }
 
             function blankDoubleClick(event) {
                 if (!active() || performance.now() - lastTouch < 800 || event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || !isBlank(event.target)) return;
+                if (openPresent(event)) return;
                 movePointer(event);
                 summon('manual');
             }
@@ -2195,14 +2314,17 @@
                 }
                 pointer.x = event.clientX;
                 pointer.y = event.clientY;
+                var doubleTap = lastTap && lastTouch - lastTap.time < 350 && Math.hypot(pointer.x - lastTap.x, pointer.y - lastTap.y) < 24;
+                if (doubleTap && openPresent(event)) { lastTap = null; return; }
                 if (splitImp(event)) { lastTap = null; return; }
                 var caught = touchMarks(pointer.x, pointer.y, pointer.x, pointer.y);
                 visitors.forEach(function (v) {
+                    if (v.character === 'present') return;
                     if ((v.insect || v.feeds) && !v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 30) { catchVisitor(v); caught = true; return; }
                     if (v.perch) { takeOff(v, performance.now()); caught = true; return; }
                     if (!v.launched && Math.hypot(v.x - pointer.x, v.y - pointer.y) < 40) { catchVisitor(v); caught = true; }
                 });
-                if (!caught && lastTap && lastTouch - lastTap.time < 350 && Math.hypot(pointer.x - lastTap.x, pointer.y - lastTap.y) < 24) {
+                if (!caught && doubleTap) {
                     summon('manual');
                     lastTap = null;
                 } else lastTap = {x: pointer.x, y: pointer.y, time: lastTouch};

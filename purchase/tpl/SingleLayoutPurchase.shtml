@@ -1,5 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     	[#TABS#]
+        [#DEAL_DOCUMENTS#]
         <!--ET_BEGIN DEAL_HISTORY-->
         <div class='scrolling-holder' style='padding-bottom:10px'>
             [#DEAL_HISTORY#]
