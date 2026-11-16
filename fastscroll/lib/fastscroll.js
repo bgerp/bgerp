@@ -1,29 +1,35 @@
 /**
  * Скролиране надолу и нагоре
  */
-function fastScroll(hideAfterSec, activateRatio)
+function fastScroll(hideAfterSec, activateRatio, topLabel, bottomLabel)
 {
 	var bodyHeight = $(document).height();
-	var screenHeight = screen.height;
+	var screenHeight = $(window).height();
     var hideAfterMilisec = hideAfterSec * 1000;
+	if ($('.scroll-btn-container').length) return;
 	if(bodyHeight / screenHeight > activateRatio){
+        var buttons = $('<div class="scroll-btn-container"></div>');
+        $('<button type="button" id="scroll-to-top"></button>')
+            .attr({'aria-label': topLabel || 'Scroll to top', title: topLabel || 'Scroll to top'}).appendTo(buttons);
+        $('<button type="button" id="scroll-to-bottom"></button>')
+            .attr({'aria-label': bottomLabel || 'Scroll to bottom', title: bottomLabel || 'Scroll to bottom'}).appendTo(buttons);
         if($("#main-container").length && !$('.narrow .vertical .formTable').length){
-            $("#main-container").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+            $("#main-container").append(buttons);
         } else if ( $(".background-holder").length) {
             $(".background-holder").css('position', 'relative');
-            $(".background-holder").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+            $(".background-holder").append(buttons);
         } else {
             return;
         }
 
-		$("#scroll-to-top").click(function(){
+		$("#scroll-to-top").on('click', function(){
 			$("html, body").animate({ 
 				scrollTop: 0 
 				}, 500);
 			return false;
 	     });
 		
-		$('#scroll-to-bottom').click(function(){
+		$('#scroll-to-bottom').on('click', function(){
 			$("html,body").animate({ 
 				scrollTop: $(document).height()  
 				}, 500 );
@@ -31,16 +37,18 @@ function fastScroll(hideAfterSec, activateRatio)
 	     });
 		
 	     var scrollTimeout;
-	     $(window).scroll(function() {
+	     $(window).on('scroll.fastscroll', function() {
+              bodyHeight = $(document).height();
+              screenHeight = $(window).height();
 	    	  if(scrollTimeout) clearTimeout(scrollTimeout);
 
 		      scrollTimeout = setTimeout(function(){
-				  $('#scroll-to-bottom').fadeOut('slow');
-			      $('#scroll-to-top').fadeOut('slow');
+				  $('#scroll-to-bottom').stop(true, true).fadeOut('fast');
+			      $('#scroll-to-top').stop(true, true).fadeOut('fast');
 			  }, hideAfterMilisec);
 		   
 		      if($(this).scrollTop() > 200) {
-		          $('#scroll-to-top').fadeIn('slow');
+		          $('#scroll-to-top').stop(true, true).show();
                   if($('.toast-item-wrapper').length) {
                       if ($('.toast-type-success').length){
                           $('.toast-type-success').parent().fadeOut('slow');
@@ -50,13 +58,13 @@ function fastScroll(hideAfterSec, activateRatio)
                       }
                   }
 		      } else {
-		          $('#scroll-to-top').fadeOut('slow');
+		          $('#scroll-to-top').stop(true, true).fadeOut('fast');
 		      }
 
-			  if($(this).scrollTop() > bodyHeight - screenHeight) {
-		         $('#scroll-to-bottom').fadeOut('slow');
+			  if($(this).scrollTop() + screenHeight >= bodyHeight - 1) {
+		         $('#scroll-to-bottom').stop(true, true).fadeOut('fast');
 		      } else {
-		         $('#scroll-to-bottom').fadeIn('slow');
+		         $('#scroll-to-bottom').stop(true, true).show();
 		         if($('.toast-item-wrapper').length) {
                       if ($('.toast-type-success').length){
                           $('.toast-type-success').parent().fadeOut('slow');

@@ -2533,6 +2533,10 @@ class eshop_Carts extends core_Master
             if (countR($emptyFields)) {
                 $form->setError($emptyFields, 'Липсват данните за фактуриране');
             }
+
+            if (!$form->gotErrors()) {
+                self::checkInvoiceCompany($form);
+            }
             
             if (!$form->gotErrors()) {
                 
@@ -2704,6 +2708,86 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Сверява фирмата за фактуриране в България с регистъра по ЗДДС или с Търговския регистър
+     *
+     * @param core_Form $form
+     */
+    private static function checkInvoiceCompany($form)
+    {
+        $rec = $form->rec;
+        if (($rec->makeInvoice ?? null) != 'company' || empty($rec->invoiceNames)) {
+
+            return;
+        }
+
+        if (($rec->invoiceCountry ?? null) != drdata_Countries::getIdByName('Bulgaria')) {
+
+            return;
+        }
+
+        if (!empty($rec->invoiceVatNo)) {
+            $Vats = cls::get('drdata_Vats');
+            $vatNo = $Vats->canonize($rec->invoiceVatNo);
+
+            // Без актуален регистър проверката не би била надеждна
+            if (strpos($vatNo, 'BG') !== 0 || !drdata_VatRegister::isActual()) {
+
+                return;
+            }
+
+            $regRec = drdata_VatRegister::fetch(array("#vatNo = '[#1#]'", $vatNo));
+            if (is_object($regRec)) {
+                if ($regRec->state != 'registered') {
+                    $form->setError('invoiceVatNo', 'Регистрацията по ЗДДС с този номер е прекратена|*!');
+
+                    return;
+                }
+                $regName = $regRec->name;
+            } else {
+
+                // Регистрираните след последния бюлетин ги има само във VIES
+                list($status, $info) = $Vats->check($vatNo);
+                if ($status != drdata_Vats::statusValid) {
+                    $form->setError('invoiceVatNo', 'Няма регистрация по ЗДДС с този номер|*!');
+
+                    return;
+                }
+                $regName = trim(strtok((string) $info, "\n"));
+            }
+
+            if (!empty($regName) && drdata_VatRegister::isSameCompany($rec->invoiceNames, $regName) === false) {
+                $form->setError('invoiceNames,invoiceVatNo', 'ДДС номерът не е на тази фирма|*!');
+            }
+
+            return;
+        }
+
+        if (!empty($rec->invoiceUicNo) && drdata_Vats::isBulstat($rec->invoiceUicNo)) {
+
+            // Недостъпен или празен Търговски регистър не спира поръчката; предупрежденията на PHP
+            // иначе показват страница с грешка, затова тук стават изключения
+            set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+                throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+            });
+            try {
+                $brraData = drdata_Vats::getFromBrra(trim($rec->invoiceUicNo), 5);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
+            } catch (Throwable $t) {
+                eshop_Carts::logNotice('Търговският регистър не отговори: ' . $t->getMessage(), $rec->id ?? null);
+                $brraData = false;
+            } finally {
+                restore_error_handler();
+            }
+
+            if (is_object($brraData) && !empty($brraData->name) && drdata_VatRegister::isSameCompany($rec->invoiceNames, $brraData->name) === false) {
+                $form->setWarning('invoiceNames,invoiceUicNo', '|Според Търговския регистър този ЕИК е на|*: ' . core_Type::escape($brraData->name) . '!');
+            }
+        }
+    }
+
+
     /**
      * Дефолти от избраната папка
      *

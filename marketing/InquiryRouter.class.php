@@ -8,7 +8,7 @@
  * @package   marketing
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -82,7 +82,7 @@ class marketing_InquiryRouter extends core_Manager
 
         foreach (array('vatId' => $vatId, 'egn' => $uicId) as $field => $value){
             if(!empty($value)){
-                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
+                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge, $personNames);
                 if ($folderId) {
                     $explained = "Рутиране: лице по " . strtoupper($field);
 
@@ -165,7 +165,7 @@ class marketing_InquiryRouter extends core_Manager
             // И има вече фирма с него, рутира се към нея
             foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
                 if(!empty($value)){
-                    $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
+                    $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge, $company);
                     if ($folderId) {
                         $explained = "Рутиране: фирма по {$field}";
 

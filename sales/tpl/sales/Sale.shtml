@@ -127,11 +127,11 @@
                 <td>
                     <table class='signature-table' style='width:1%;'>
                         <tr>
-                            <td class="nowrap" style='width:1%;'>|За получателя|*: [#RESPONSIBLE_SIGN_PAD#] </td>
-                            <td></td>
+                            <td class="nowrap" style='width:1%;'>|За получателя|*: </td>
+                            <td class='centered' style='position:relative; z-index:3;'>[#RESPONSIBLE_SIGN_PAD#]</td>
                         </tr>
                         <tr>
-                            <td colspan = 2'>[#RESPONSIBLE_SIGN#]</td>
+                            <td></td><td class='nowrap centered' style="position: relative; top: -10px;">[#RESPONSIBLE_SIGN#]</td>
                         </tr>
                         <tr>
                             <td></td>
@@ -142,11 +142,11 @@
                 <td>
                     <table style='width:1%' class='fright signature-table'>
                         <tr>
-                            <td class="nowrap" style='width:1%;'>|За доставчика|*:  [#USERNAME_SIGN_PAD#]</td>
-                            <td></td>
+                            <td class="nowrap" style='width:1%;'>|За доставчика|*:</td>
+                            <td class="centered" style="position:relative; z-index:3;">[#USERNAME_SIGN_PAD#]</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class='nowrap centered'>[#USERNAME_SIGN#]</td>
+                            <td></td><td class='nowrap centered' style="position: relative; top: -30px;">[#USERNAME_SIGN#]</td>
                         </tr>
                         <tr>
                             <td></td>

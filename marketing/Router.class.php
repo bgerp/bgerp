@@ -6,7 +6,7 @@
  * @package   marketing
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -380,8 +380,8 @@ class marketing_Router extends core_Manager
             
             // Сортиране от дългите към късите символи
             usort(self::$companyTypes, function ($a, $b) {
-                
-                return strlen($a) < strlen($b);
+
+                return strlen($b) - strlen($a);
             });
         }
         
@@ -392,8 +392,88 @@ class marketing_Router extends core_Manager
         }
         
         $name = trim(str_replace('#', '', $nameL));
-        
+
         return $name;
+    }
+
+
+    /**
+     * Дали две имена са на една фирма, след нормализация (без правна форма, латиница)
+     *
+     * Допускат се правописни грешки - поне една и до четвърт от дължината, и разменени думи.
+     * Различни числа (напр. "Пак 1" и "Пак 2") означават различни фирми.
+     *
+     * @param string $name1
+     * @param string $name2
+     *
+     * @return bool|null - null, ако някое име е празно след нормализация
+     */
+    public static function isSameCompanyName($name1, $name2)
+    {
+        $n1 = self::normalizeCompanyName($name1);
+        $n2 = self::normalizeCompanyName($name2);
+        if ($n1 === '' || $n2 === '') {
+
+            return null;
+        }
+
+        preg_match_all('/\d+/', $n1, $digits1);
+        preg_match_all('/\d+/', $n2, $digits2);
+        if (countR($digits1[0]) && countR($digits2[0])) {
+            sort($digits1[0]);
+            sort($digits2[0]);
+            if ($digits1[0] != $digits2[0]) {
+
+                return false;
+            }
+        }
+
+        $maxLen = 0;
+        $distance = self::getCompanyNameDistance($n1, $n2, $maxLen, false);
+
+        return $distance <= max(1, floor($maxLen / 4));
+    }
+
+
+    /**
+     * Разстояние по Левенщайн между две имена на фирми, без интервалите
+     *
+     * Взема се по-малкото от сравнението в реда на думите и с подредени думи, за да не пречи разменен ред.
+     *
+     * @param string $name1
+     * @param string $name2
+     * @param int    $maxLen    - дължината на по-дългото име, по която се преценява разстоянието
+     * @param bool   $normalize - дали имената да се нормализират (без правна форма, латиница)
+     *
+     * @return int|null - null, ако някое име е празно след нормализация
+     */
+    public static function getCompanyNameDistance($name1, $name2, &$maxLen = null, $normalize = true)
+    {
+        $n1 = $normalize ? self::normalizeCompanyName($name1) : $name1;
+        $n2 = $normalize ? self::normalizeCompanyName($name2) : $name2;
+        if ($n1 === '' || $n2 === '') {
+
+            return null;
+        }
+
+        $words1 = explode(' ', $n1);
+        $words2 = explode(' ', $n2);
+        sort($words1);
+        sort($words2);
+
+        $distance = null;
+        $pairs = array(array($n1, $n2), array(implode(' ', $words1), implode(' ', $words2)));
+        foreach ($pairs as $pair) {
+
+            // levenshtein в PHP 7.4 работи до 255 знака
+            $j1 = substr(str_replace(' ', '', $pair[0]), 0, 255);
+            $j2 = substr(str_replace(' ', '', $pair[1]), 0, 255);
+            $maxLen = max(strlen($j1), strlen($j2));
+            $d = levenshtein($j1, $j2);
+            $distance = isset($distance) ? min($distance, $d) : $d;
+        }
+
+        return $distance;
     }
     
     
@@ -439,10 +519,11 @@ class marketing_Router extends core_Manager
      * @param string $field
      * @param mixed $class
      * @param int $inCharge
+     * @param string|null $name - въведеното име, по което се избира при няколко визитки с номера
      * 
      * @return int|null
      */
-    public static function routeByUniqueId($vatId, $field, $class, $inCharge)
+    public static function routeByUniqueId($vatId, $field, $class, $inCharge, $name = null)
     {
         $Class = cls::get($class);
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
@@ -452,7 +533,22 @@ class marketing_Router extends core_Manager
         $query->where(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId));
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $query->orderBy('#orderByState=ASC');
-        $foundRec = $query->fetch();
+        $query->orderBy('id', 'ASC');
+        $recs = $query->fetchAll();
+        $foundRec = reset($recs);
+
+        // При няколко визитки с този номер се избира тази с най-близко име; при равенство остава реда по-горе
+        if (countR($recs) > 1 && !empty($name)) {
+            $bestDistance = null;
+            foreach ($recs as $rec) {
+                $distance = self::getCompanyNameDistance($name, $rec->name ?? '');
+                if (isset($distance) && (!isset($bestDistance) || $distance < $bestDistance)) {
+                    $bestDistance = $distance;
+                    $foundRec = $rec;
+                }
+            }
+        }
+
         if(is_object($foundRec)){
 
             return $Class->forceCoverAndFolder((object) array('id' => $foundRec->id, 'inCharge' => $inCharge));

@@ -11,7 +11,7 @@
  * @package   bgerp
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -226,11 +226,11 @@ class bgerp_Portal extends embed_Manager
                             ");
             
             // Включваме необходимия JS
-            $tpl->push("slick/1.8/js/slick.js", 'JS');
+            $tpl->push("slick/2.0.1/js/slick.js", 'JS');
             
             // Включваме необходимия CSS
-            $tpl->push("slick/1.8/css/slick.css", 'CSS');
-            $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
+            $tpl->push("slick/2.0.1/css/slick.css", 'CSS');
+            $tpl->push("slick/2.0.1/css/slick-theme.css", 'CSS');
             
             jquery_Jquery::run($tpl, "openNewCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         } else {
