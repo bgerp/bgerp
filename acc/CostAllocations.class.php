@@ -1070,7 +1070,7 @@ class acc_CostAllocations extends core_Manager
             $docInfo = $docs[$docClassId][$docId] ?? null;
 
             // Без чернови, заявки и спрени документи, и само контирани
-            if (!$docInfo || in_array($docInfo->state, array('draft', 'pending', 'stopped')) || !$docInfo->hasJournal) {
+            if (!isset($docInfo->state) || in_array($docInfo->state, array('draft', 'pending', 'stopped')) || !$docInfo->hasJournal) {
                 continue;
             }
 
