@@ -485,7 +485,7 @@ class core_Roles extends core_Manager
             $pattern = '/^[a-zА-Я\\_]{1}[a-z0-9А-Я\\_\\-]*$/iu';
             
             // Ако не е валидна роля
-            if (!preg_match($pattern, $rec->role)) {
+            if (!preg_match($pattern, $rec->role ?? '')) {
                 
                 // Сетваме грешка
                 $form->setError('role', 'Некоректно име на роля|*: ' . $mvc->getVerbal($form->rec, 'role').' - |допустими са само: букви, цифри|*, "&nbsp_&nbsp", "&nbsp-&nbsp".');
@@ -493,9 +493,15 @@ class core_Roles extends core_Manager
         }
         
         // Ако формата е субмитната и редактираме запис
-        if ($form->isSubmitted() && ($rec->id)) {
-            if ($rec->inheritInput || $rec->inherit) {
-                $expandedRoles = self::expand($form->rec->inheritInput);
+        if ($form->isSubmitted() && !empty($rec->id)) {
+            // Формата не предлага всички наследявания, например рангове и екипи.
+            $oldRec = $mvc->fetch((int) ($rec->id ?? null));
+            $suggestions = $form->getFieldType('inheritInput')->getSuggestions();
+            $hiddenRoles = array_diff_key(keylist::toArray($oldRec->inheritInput ?? null), $suggestions);
+            $rec->inheritInput = keylist::fromArray(keylist::toArray($rec->inheritInput ?? null) + $hiddenRoles);
+
+            if (!empty($rec->inheritInput) || !empty($rec->inherit)) {
+                $expandedRoles = self::expand($rec->inheritInput);
                 
                 // Ако има грешки
                 if (!empty($expandedRoles[$rec->id])) {

@@ -21,7 +21,7 @@ function countR($value) { return is_array($value) ? count($value) : 0; }
 function expect($ok) { if (!$ok) throw new RuntimeException('Expectation failed'); }
 function check($ok, $message) { global $checks; if (!$ok) throw new RuntimeException($message); $checks++; }
 define('EF_SALT', 'synthetic-role-test');
-class core_Type {}
+class core_Type { public $suggestions; }
 class arr
 {
     public static function make($value) { return is_array($value) ? $value : explode(',', $value); }
@@ -135,6 +135,69 @@ function recalculateUser($input, $oldRoles)
     core_Users::on_BeforeSave(cls::get('core_Users'), $id, $rec, 'roles');
     return $rec;
 }
+
+class RoleFixtureForm
+{
+    public $rec;
+    public $errors = array();
+    public $submitted = true;
+    public $inheritType;
+    public function __construct($rec, $suggestions)
+    {
+        $this->rec = $rec;
+        $this->inheritType = new type_Keylist();
+        $this->inheritType->suggestions = $suggestions;
+    }
+    public function isSubmitted() { return $this->submitted && !$this->errors; }
+    public function getFieldType($name)
+    {
+        check($name === 'inheritInput', 'Only the editable inheritance field supplies suggestions');
+        return $this->inheritType;
+    }
+    public function setError($field, $message) { $this->errors[$field] = $message; }
+}
+function editRoleFixture($id, $input, $suggestions)
+{
+    $rec = clone core_Manager::$records[$id];
+    $rec->inheritInput = $input;
+    $form = new RoleFixtureForm($rec, $suggestions);
+    core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+    return $form;
+}
+
+resetRoles();
+$visibleRoles = array(2 => 'powerUser', 13 => 'ai', 14 => 'aiMaster', 15 => 'demo');
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check(!$form->errors && $form->rec->inheritInput === '|2|3|13|', 'Adding ai to officer preserves hidden executive');
+check($form->rec->inherit === '|2|3|13|', 'Calculated inheritance includes the preserved rank immediately');
+core_Manager::$records[4] = clone $form->rec;
+check(recalculateUser('|4|9|', '|1|2|3|4|9|')->roles === '|1|2|3|4|9|13|', 'Officer user receives ai without losing inherited roles or setup');
+check(keylist::isIn(13, recalculateUser('|6|9|', '')->roles), 'CEO receives ai through officer without setup');
+$form = editRoleFixture(4, '|2|', $visibleRoles);
+check($form->rec->inheritInput === '|2|3|' && $form->rec->inherit === '|2|3|', 'Removing visible ai preserves the hidden rank');
+core_Manager::$records[4] = clone $form->rec;
+check(recalculateUser('|4|9|', '|1|2|3|4|9|13|')->roles === '|1|2|3|4|9|', 'Removing ai revokes only that inherited access');
+$form = editRoleFixture(4, null, $visibleRoles);
+check($form->rec->inheritInput === '|3|' && $form->rec->inherit === '|2|3|', 'Clearing all visible choices retains only hidden direct inheritance');
+core_Manager::$records[4]->inheritInput = '|2|3|9|15|';
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check($form->rec->inheritInput === '|2|3|9|13|', 'Hidden team is preserved while unchecked visible demo is removed');
+$form = editRoleFixture(4, '|13|', array(13 => 'ai'));
+check($form->rec->inheritInput === '|2|3|9|13|15|', 'Preservation follows the actual form suggestions');
+core_Manager::$records[3]->inheritInput = '|4|';
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check(!empty($form->errors), 'Cycle validation includes restored hidden inheritance');
+resetRoles();
+$form = editRoleFixture(14, null, $visibleRoles);
+check($form->rec->inheritInput === '' && $form->rec->inherit === '', 'A role without hidden links can remove all inheritance');
+$form = new RoleFixtureForm((object) array('role' => 'newRole', 'inheritInput' => '|13|'), $visibleRoles);
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check(!$form->errors && $form->rec->inheritInput === '|13|', 'New role does not acquire inherited links from another record');
+$form = new RoleFixtureForm((object) array('id' => 4, 'role' => 'officer', 'inheritInput' => '|13|'), $visibleRoles);
+$form->submitted = false;
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check($form->rec->inheritInput === '|13|', 'Opening or refreshing the form does not process a save');
+echo "PASS: role form preserves hidden inheritance, removals and cycle checks\n";
 
 resetRoles();
 foreach (array(null, '', array()) as $empty) check(expanded($empty) === '', 'Empty input must stay empty');
