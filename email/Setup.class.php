@@ -522,7 +522,6 @@ class email_Setup extends core_ProtoSetup
         'email_IncomingsShowTypes',
         'email_AutomaticResponse',
         'email_AutomaticResponseLog',
-        'migrate::serviceRules2121',
     );
     
     
@@ -682,32 +681,6 @@ class email_Setup extends core_ProtoSetup
         }
 
         core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
-    }
-
-
-    /**
-     * Поправка на записите за сервизните имейли
-     */
-    public static function serviceRules2121()
-    {
-        $inst = cls::get('email_ServiceRules');
-
-        // Старото поле липсва при таблици, създадени с новия модел.
-        if (!$inst->db->isFieldExists($inst->dbTableName, str::phpToMysqlName('classId'))) {
-            return;
-        }
-
-        $inst->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
-
-        $query = $inst->getQuery();
-        while ($rec = $query->fetch()) {
-            $classId = $rec->classId ?? null;
-            if ($classId && empty($rec->driverClass)) {
-                $rec->driverClass = $classId;
-
-                $inst->save($rec, 'driverClass');
-            }
-        }
     }
 
 
