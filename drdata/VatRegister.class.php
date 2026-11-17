@@ -158,6 +158,90 @@ class drdata_VatRegister extends core_Manager
 
 
     /**
+     * Бележка за модела какво казват регистърът на НАП или VIES за ДДС номера на фирмата
+     *
+     * @param string $vatNo - ДДС номер
+     * @param string $name      - името на фирмата в системата
+     * @param bool   $withMatch - дали да има бележка и при съвпадение
+     * @param string $date      - дата на документа: дерегистрация след нея не е проблем за него
+     *
+     * @return string - празен низ, ако няма с какво да се сравни
+     */
+    public static function getLlmNote($vatNo, $name, $withMatch = true, $date = null)
+    {
+        $Vats = cls::get('drdata_Vats');
+        $vatNo = $Vats->canonize($vatNo ?? '');
+        if (!drdata_Vats::isHaveVatPrefix($vatNo)) {
+
+            return '';
+        }
+
+        if (strpos($vatNo, 'BG') === 0 && self::isActual()) {
+            $regRec = self::fetch(array("#vatNo = '[#1#]'", $vatNo));
+            if (is_object($regRec)) {
+                $regName = self::getInvoiceName($regRec->name);
+                if ($regRec->state != 'registered') {
+                    if (!empty($date) && !empty($regRec->deregDate) && $regRec->deregDate > substr($date, 0, 10)) {
+
+                        return '';
+                    }
+
+                    return "VAT registration ended per NRA register" . (!empty($regRec->deregDate) ? " on {$regRec->deregDate}" : '') . " ({$regName})";
+                }
+
+                if (self::isSameCompany($name ?? '', $regRec->name) === false) {
+
+                    return "Per NRA VAT register this number belongs to {$regName}";
+                }
+
+                if (!$withMatch) {
+
+                    return '';
+                }
+
+                // Потвърждението е изрично: иначе липсата на бележка не казва дали номерът е проверен
+                return "Matches NRA VAT register: {$regName}" . (!empty($regRec->regDate) ? ", VAT-registered since {$regRec->regDate}" : '');
+            }
+        }
+
+        // Чуждите и новорегистрираните след бюлетина - по кеша на VIES, който показването на номера вече е обновило
+        list($status, $info) = $Vats->check($vatNo);
+        $viesName = trim((string) strtok((string) $info, "\n"));
+        if ($status != drdata_Vats::statusValid || $viesName === '' || $viesName === '---') {
+
+            return '';
+        }
+
+        // VIES връща юридическото име с правна форма в местен запис - сигнал е само име без нито една обща дума
+        $words = function ($str) {
+            $str = marketing_Router::normalizeCompanyName($str, true);
+
+            return array_filter(preg_split('/[^\p{L}\p{N}]+/u', $str), function ($w) {
+                return mb_strlen($w) >= 3;
+            });
+        };
+        $nameWords = $words($name ?? '');
+        $viesWords = $words($viesName);
+        $differs = !empty($nameWords) && !empty($viesWords) && !array_intersect($nameWords, $viesWords);
+
+        // Слепени или разделени думи: "2WIN" и "2 WIN", "EUNIQ PAC" и "Euniqpac"
+        if ($differs) {
+            $nameJoined = implode('', $nameWords);
+            $viesJoined = implode('', $viesWords);
+            $differs = strpos($nameJoined, $viesJoined) === false && strpos($viesJoined, $nameJoined) === false
+                && strpos($viesJoined, reset($nameWords)) === false && strpos($nameJoined, reset($viesWords)) === false;
+        }
+
+        if ($differs) {
+
+            return "VIES registered name for this number: {$viesName}";
+        }
+
+        return $withMatch ? "Valid in VIES: {$viesName}" : '';
+    }
+
+
+    /**
      * Името от регистъра във вида за фактура: "ВИТАЛИТИ АКТИВ /ЕООД/" -> "ВИТАЛИТИ АКТИВ ЕООД"
      *
      * Правната форма в наклонени черти се премества след името, а други пояснения (напр. "/Осигурител/") се махат.
