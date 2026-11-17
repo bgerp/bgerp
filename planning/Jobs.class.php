@@ -1092,6 +1092,9 @@ class planning_Jobs extends core_Master
         }
 
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
+        if (Mode::is('renderForLlm') && $packagingTpl instanceof core_ET) {
+            $packagingTpl->append(doc_plg_LlmExportable::systemNote('Packagings of the product, not events of this job'));
+        }
         $tpl->replace($packagingTpl, 'PACKAGINGS');
         
         if (!empty($data->components)) {
