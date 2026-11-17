@@ -518,13 +518,27 @@ class deals_DocumentSummary
             'handle' => ht::createLink('#' . $Doc->getHandle($id), $url, false, $linkAttr),
         );
         foreach (array('delivered', 'settled', 'invoiced') as $field) {
-            $cells[$field] = isset($document[$field]) ? $amountType->toVerbal($document[$field]) : '';
+            $cells[$field] = isset($document[$field]) ? self::formatAmount($document[$field], $amountType) : '';
         }
         if (!empty($document['nonCash'])) {
             $cells['settled'] = ht::createElement('small', array('class' => 'quiet'), tr('непарично')) . ' ' . $cells['settled'];
         }
 
         return $cells;
+    }
+
+
+    /**
+     * Отбелязва отрицателните суми за оцветяване според колоната.
+     */
+    private static function formatAmount($amount, $amountType)
+    {
+        $verbal = $amountType->toVerbal($amount);
+        if (round($amount, 2) < 0) {
+            return ht::createElement('span', array('class' => 'deal-documents-negative'), $verbal);
+        }
+
+        return $verbal;
     }
 
 
@@ -572,7 +586,7 @@ class deals_DocumentSummary
         }
 
         foreach ($summary['totals'] as $field => $total) {
-            $tpl->replace($amountType->toVerbal($total), "{$field}Total");
+            $tpl->replace(self::formatAmount($total, $amountType), "{$field}Total");
         }
         $balance = $summary['balance'];
         $isSale = !empty($summary['isSale']);
