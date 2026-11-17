@@ -184,10 +184,14 @@ class fileman_Get extends core_Manager
         $context = stream_context_create($opts);
         
         // Вземаме данните от посоченото URL
-        $data = @file_get_contents($rec->url, false, $context);
-        
-        if (!$data) {
-            $data = @file_get_contents($rec->url);
+        $url = $rec->url ?? '';
+        $data = false;
+        if (trim($url) !== '') {
+            $data = @file_get_contents($url, false, $context);
+
+            if (!$data) {
+                $data = @file_get_contents($url);
+            }
         }
         
         $fh = null;
