@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -98,7 +98,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,filterable=Филтриране,createdOn,createdBy';
+    public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Документи->Външни,showInTasks=Документи->Операции,filterable=Филтър,allowInGroups=Групи,createdOn,createdBy';
 
 
     /**
@@ -131,6 +131,7 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
         $this->FLD('filterable', 'enum(no=Не,yes=Да)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=2');
         $this->FLD('filterMode', 'enum(auto=Автоматично,values=Отделни стойности,ranges=Диапазони)', 'caption=Филтриране на артикулите по параметъра->Стойности,notNull,value=auto,hint=Автоматично - отделни стойности, а при много различни - диапазони');
+        $this->FLD('allowInGroups', 'enum(no=Не,yes=Да)', 'caption=Задаване на параметъра->Продуктови групи,notNull,value=no,maxRadio=2');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
     
@@ -406,7 +407,8 @@ class cat_Params extends bgerp_ProtoParam
             6 => 'state',
             7 => 'csv_params',
             8 => 'showInTasks',
-            9 => 'group',
+            9 => 'allowInGroups',
+            10 => 'group',
         );
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -524,10 +526,11 @@ class cat_Params extends bgerp_ProtoParam
      * @param NULL|bool   $groupName   - група
      *@param NULL|bool   $params   - параметри
      * @param bool        $filterable - дали да е филтрируем при създаване
+     * @param bool        $allowInGroups - може ли да се задава на продуктови групи
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null, $filterable = false)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null, $filterable = false, $allowInGroups = false)
     {
         // Ако има параметър с това систем ид,връща се
         if($sysId){
@@ -551,6 +554,7 @@ class cat_Params extends bgerp_ProtoParam
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
         $nRec->filterable = ($filterable) ? 'yes' : 'no';
+        $nRec->allowInGroups = ($allowInGroups) ? 'yes' : 'no';
         if (isset($params)) {
             $params = arr::make($params);
             foreach ($params as $k => $v) {

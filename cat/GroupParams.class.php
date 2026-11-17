@@ -232,7 +232,7 @@ class cat_GroupParams extends cat_products_ProtoParams
         foreach (static::$notAllowedDrivers as $driver) {
             $driverIds[] = core_Classes::getId($driver);
         }
-        $where = '#driverClass NOT IN (' . implode(',', $driverIds) . ')';
+        $where = "#allowInGroups = 'yes' AND #driverClass NOT IN (" . implode(',', $driverIds) . ')';
         if (countR($notIn)) {
             $where .= ' AND #id NOT IN (' . implode(',', $notIn) . ')';
         }
@@ -249,6 +249,19 @@ class cat_GroupParams extends cat_products_ProtoParams
         $rec = $form->rec;
         if (!empty($rec->paramId) && cat_Params::haveDriver($rec->paramId, static::$notAllowedDrivers)) {
             $form->setError('paramId', 'Параметърът не може да се задава за групи|*!');
+        }
+    }
+
+
+    /**
+     * Нов параметър на група може да се добавя само ако е разрешен за групи
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && !empty($rec->paramId) && $requiredRoles != 'no_one') {
+            if (cat_Params::fetchField($rec->paramId, 'allowInGroups') != 'yes') {
+                $requiredRoles = 'no_one';
+            }
         }
     }
 
