@@ -352,8 +352,12 @@ class cat_products_Params extends cat_products_ProtoParams
         $groupRecs = cat_GroupParams::getProductParamRecs($data->masterId);
         if (!countR($groupRecs)) return;
 
-        $GroupParams = cls::get('cat_GroupParams');
         $isSingle = !empty($data->isSingle);
+
+        // В сингъла наследените се виждат само от потребители с роля debug
+        if ($isSingle && !haveRole('debug')) return;
+
+        $GroupParams = cls::get('cat_GroupParams');
         foreach ($sortRecs as $key => $rec) {
             $gRec = $groupRecs[$rec->paramId] ?? null;
             if (!is_object($gRec)) continue;

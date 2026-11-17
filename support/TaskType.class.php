@@ -327,7 +327,17 @@ class support_TaskType extends core_Mvc
         $rec = &$form->rec;
         if($form->isSubmitted()){
             if(empty($rec->assetResourceId) && empty($rec->stepId) && !empty($rec->_assetsAllowed)){
-                $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
+
+                // Ако потребителят сам е избрал на кого да възложи, ресурсът не е нужен за отговорниците
+                $defRec = clone $rec;
+                unset($defRec->assign);
+                $defaultUsers = keylist::toArray($Embedder->getDefaultAssignUsers($defRec));
+                $assignUsers = keylist::toArray($rec->assign ?? null);
+                ksort($defaultUsers);
+                ksort($assignUsers);
+                if(empty($assignUsers) || $assignUsers == $defaultUsers){
+                    $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
+                }
             }
         }
     }

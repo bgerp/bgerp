@@ -9,7 +9,7 @@
  * @package   hwgroup
  *
  * @author    Dimiter Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -80,7 +80,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         core_Xml::toArrayFlat(simplexml_load_string($xml), $parsed);
         
         foreach ($this->inputs as $param => $details) {
-            $res[$param] = $parsed[$details['xmlPath']];
+            $res[$param] = $parsed[$details['xmlPath']] ?? '';
         }
         
         return $res;

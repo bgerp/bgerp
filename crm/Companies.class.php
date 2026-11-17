@@ -2461,9 +2461,9 @@ class crm_Companies extends core_Master
         $fields = array();
         
         foreach ($Dfields as $name => $fld) {
-            if ($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
-                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
-                if ($name == $mvc->expandInputFieldName) {
+            if (($fld->input ?? null) != 'none' && ($fld->input ?? null) != 'hidden' && ($fld->kind ?? null) != 'FNC') {
+                $fields[$name] = array('caption' => $fld->caption ?? $name, 'mandatory' => $fld->mandatory ?? null);
+                if ($name == ($mvc->expandInputFieldName ?? null)) {
                     $tGroup = $fields[$name];
                     unset($fields[$name]);
 

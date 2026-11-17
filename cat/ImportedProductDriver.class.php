@@ -135,6 +135,11 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         
         $Embedder = cls::get($data->Embedder);
         $params = $Embedder->getParams($data->rec);
+
+        // В сингъла наследените от групите се виждат само от потребители с роля debug
+        if (($data->isSingle ?? null) === true && ($Embedder instanceof cat_Products) && !haveRole('debug')) {
+            $params = $this->getParams($Embedder->getClassId(), $data->rec->id);
+        }
         $paramsTpl = $this->renderParams($Embedder, $data->rec, $params);
         $tpl->append($paramsTpl, 'PARAMETERS');
         

@@ -127,20 +127,26 @@
                 <td>
                     <table class='signature-table' style='width:1%;'>
                         <tr>
-                            <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
-                            <td></td>
+                            <td class="nowrap" style='width:1%;'>|За получателя|*: </td>
+                            <td class='centered' style='position:relative; z-index:3;'>[#RESPONSIBLE_SIGN_PAD#]</td>
+                        </tr>
+                        <tr>
+                            <td></td><td class='nowrap centered' style="position: relative; top: -10px;">[#RESPONSIBLE_SIGN#]</td>
                         </tr>
                         <tr>
                             <td></td>
-                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
+                            <td class='centered'> <span class="sign_names">[#responsible#]</span></td>
                         </tr>
                     </table>
                 </td>
                 <td>
                     <table style='width:1%' class='fright signature-table'>
                         <tr>
-                            <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
-                            <td></td>
+                            <td class="nowrap" style='width:1%;'>|За доставчика|*:</td>
+                            <td class="centered" style="position:relative; z-index:3;">[#USERNAME_SIGN_PAD#]</td>
+                        </tr>
+                        <tr>
+                            <td></td><td class='nowrap centered' style="position: relative; top: -30px;">[#USERNAME_SIGN#]</td>
                         </tr>
                         <tr>
                             <td></td>

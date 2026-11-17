@@ -359,19 +359,22 @@ function sidebarBookmarkActions() {
 function openNewCurrentTab(lastNotifyTime){
 	if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
 
-	var current;
 	// взимаме данните за портала в бисквитката
 	var portalTabs = getCookie('newPortalTabs');
+	var $tabs = $('.swipe-tabs .swipe-tab');
+	var current = $tabs.filter(function () {
+		return this.id === portalTabs;
+	}).first();
 	var lastLoggedNotification = getCookie('notifyTime');
 
 	if(typeof lastLoggedNotification !== 'undefined' && lastLoggedNotification < lastNotifyTime) {
-		current = $(".bgerp_drivers_Notifications").first();
-	} else if($("#" +  portalTabs).length) {
-		current = $("#" + portalTabs );
-	}  else {
-		// първия таб да е активен
-		current = $('.narrow .swipe-tabs').first();
+		current = $tabs.filter('.bgerp_drivers_Notifications').first();
 	}
+	if (!current.length) {
+		// първия таб да е активен
+		current = $tabs.first();
+	}
+	if (!current.length) return;
 	if(current.hasClass('bgerp_drivers_Notifications')) {
 		setCookie('notifyTime', lastNotifyTime);
 	}
@@ -402,12 +405,16 @@ function prepareTabs(currentTab, lastNotifyTime){
 
 		currentIndex = slick.getCurrent();
 		$swipeTabs.removeClass(activeTabClassName);
-		$('.swipe-tab[data-slick-index=' + currentIndex + ']').addClass(activeTabClassName);
+		$('.swipe-tab[data-index=' + currentIndex + ']').addClass(activeTabClassName);
 	});
 
-	var indexNum = parseInt(currentTab.attr('data-index'));
+	var indexNum = parseInt(currentTab.attr('data-index'), 10);
+	if (isNaN(indexNum) || indexNum < 0 || indexNum >= $swipeTabs.length) {
+		indexNum = 0;
+	}
 
 	$swipeTabsContainer.slick({
+		rows: 0,
 		slidesToShow: 2.4,
 		waitForAnimate: false,
 		slidesToScroll: 1,
@@ -419,6 +426,7 @@ function prepareTabs(currentTab, lastNotifyTime){
 	});
 
 	$swipeTabsContentContainer.slick({
+		rows: 0,
 		asNavFor: $swipeTabsContainer,
 		waitForAnimate: false,
 		slidesToShow: 1,
@@ -435,9 +443,9 @@ function prepareTabs(currentTab, lastNotifyTime){
 
 	$swipeTabs.on('click', function(event) {
 		// gets index of clicked tab
-		currentIndex = $(this).data('slick-index');
+		currentIndex = $(this).data('index');
 		$swipeTabs.removeClass(activeTabClassName);
-		$('.swipe-tab[data-slick-index=' + currentIndex +']').addClass(activeTabClassName);
+		$('.swipe-tab[data-index=' + currentIndex +']').addClass(activeTabClassName);
 		$swipeTabsContainer.slick('slickGoTo', currentIndex);
 		$swipeTabsContentContainer.slick('slickGoTo', currentIndex);
 	});
@@ -446,7 +454,7 @@ function prepareTabs(currentTab, lastNotifyTime){
 	$swipeTabsContentContainer.on('swipe', function(event, slick, direction) {
 		currentIndex = $(this).slick('slickCurrentSlide');
 		$swipeTabs.removeClass(activeTabClassName);
-		$('.swipe-tab[data-slick-index=' + currentIndex + ']').addClass(activeTabClassName);
+		$('.swipe-tab[data-index=' + currentIndex + ']').addClass(activeTabClassName);
 
 
 	});

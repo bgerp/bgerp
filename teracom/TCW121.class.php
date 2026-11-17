@@ -115,16 +115,17 @@ class teracom_TCW121 extends sens2_ProtoDriver
         }
         
         // Извличаме състоянията на входовете от парсирания XML
+        $res = array();
         foreach ($this->inputs as $name => $details) {
-            if ($inputs[$name]) {
-                $res[$name] = $result[$details['xmlPath']];
+            if (!empty($inputs[$name])) {
+                $res[$name] = $result[$details['xmlPath']] ?? '';
             }
         }
         
         // Извличаме състоянията на изходите от парсирания XML
         foreach ($this->outputs as $name => $details) {
-            if ($inputs[$name]) {
-                $res[$name] = $result[$details['xmlPath']];
+            if (!empty($inputs[$name])) {
+                $res[$name] = $result[$details['xmlPath']] ?? '';
             }
         }
         

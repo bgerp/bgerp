@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -800,7 +800,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $rec = $this->fetchRec($rec);
 
-        return $rec->type == 'subProduct' ? 'in' : 'out';
+        return ($rec->type ?? null) == 'subProduct' ? 'in' : 'out';
     }
 
     public function act_importsubproducts()

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny - шест срещи с времето</title>
+<link rel="stylesheet" href="../css/funny.css">
+<link rel="stylesheet" href="../css/weather.css">
+<style>
+body { margin: 20px; font: 15px/1.5 sans-serif; color: #334155; background: #edf2f7; min-height: 120vh; }
+h1 { width: max-content; font-size: 22px; margin: 0; } p { margin: 8px 0; max-width: 650px; }
+button,select,input { padding: 7px; } output { display: block; min-height: 28px; }
+#blocks { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 45px; margin-top: 60px; }
+#blocks section { height: 70px; padding: 6px; border: 1px solid #b8c7d8; border-radius: 5px; background: white; }
+#launch { position: fixed; right: 24vw; bottom: 30vh; width: 150px; height: 80px; border: 2px dashed #859ab4; }
+#launch::before { content: 'Двоен клик тук'; padding: 6px; display: block; pointer-events: none; }
+</style>
+<h1>Шест кратки срещи с времето</h1>
+<label>Сцена <select id="scenario"><option value="slide">Пингвин на лед</option><option value="gather">Снежен човек събира сняг</option><option value="scent">Вълк търси следи</option><option value="mend">Паяк поправя паяжина</option><option value="huddle">Пингвини във виелица</option><option value="hat">Вятър отнася шапката</option></select></label>
+<button id="weather">Пусни времето</button> <button id="bear">Следващият герой е мечка</button> <button id="warm">Затопляне</button>
+<button id="prey">Следващият герой е зайче</button>
+<button id="test">Кликове: 0</button> <input aria-label="Писане под ефектите" placeholder="Проверка на писането">
+<p>Самостоятелна страница с реалните контролери, фиксиран жребий и тестова прогноза. Пуснете времето и направете двоен клик на празно място. За сгушване извикайте 2-3 групи пингвини, после мечка. Сцените се включват само при подходяща близост; вълкът трябва първо да изгуби плячката. Escape, скролът и загубата на фокус прекъсват сцената. Снегът и скрежът се натрупват постепенно.</p>
+<iframe id="focus-test" title="Друг екран за проверка на фокус" src="focus.html" style="display:block;width:300px;height:34px;border:0"></iframe>
+<output id="status">Наблюдавани сцени: изчакване</output>
+<div id="blocks"></div><div id="launch"></div>
+<script src="../js/scene.js"></script><script src="../js/weather.js"></script><script src="../js/funny.js"></script>
+<script>
+// Seed only this fixture; production keeps its ordinary lottery, timers and forecast snapshot.
+var params = new URLSearchParams(location.search), kind = params.get('scene') || 'hat', seed = Number(params.get('seed')) || 997;
+Math.random = function () { return ((seed = seed * 16807 % 2147483647) - 1) / 2147483646; };
+var select = document.getElementById('scenario'); select.value = kind;
+select.addEventListener('change', function () { location.search = new URLSearchParams({scene:select.value,seed:params.get('seed') || 997}); });
+for (var i = 0; i < 18; i++) { var block = document.createElement('section'); block.id = 'blockPortal_test' + i; block.textContent = 'Тестов блок ' + (i + 1); document.getElementById('blocks').appendChild(block); }
+var forecast = {icon:kind === 'scent' ? 'rain' : kind === 'hat' ? 'wind' : 'snow',temperature:kind === 'hat' || kind === 'scent' ? 12 : -5,wind:kind === 'huddle' || kind === 'hat' || kind === 'mend' ? 28 : 8,windDirection:270,expires:Date.now() + 86400000};
+var weatherOptions = Object.assign({mode:'on',standalone:false}, forecast);
+funnyWeather.init(weatherOptions);
+var choices = {slide:['polarbear','penguin'],gather:['snowman'],scent:['wolf','bunny','chick'],mend:['spiders'],huddle:['penguin'],hat:['elf']}[kind];
+funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:'no',spriteUrl:'../img/characters.svg',forecast:forecast});
+document.getElementById('weather').addEventListener('click', function () { funnyWeather.trigger('manual'); });
+document.getElementById('bear').addEventListener('click', function () { choices.splice(0, choices.length, 'polarbear'); });
+document.getElementById('prey').addEventListener('click', function () { choices.splice(0, choices.length, 'bunny'); });
+document.getElementById('warm').addEventListener('click', function () { forecast.temperature = weatherOptions.temperature = 12; forecast.icon = weatherOptions.icon = 'clear-day'; funnyWeather.trigger('manual'); });
+var clicks=0; document.getElementById('test').addEventListener('click', function () { this.textContent='Кликове: '+(++clicks); });
+var names={slide:'Пързаляне',brake:'Спиране на мечката',gather:'Към снега',packing:'Събиране на сняг',scent:'По следите',sniff:'Следите са измити',mend:'Към паяжината',weaving:'Поправяне',huddle:'Сгушване',scatter:'Разпръскване',hat:'Гонене на шапката',broken:'Скъсана нишка',done:'Поправена нишка'},seen={};
+new MutationObserver(function (records) {
+    records.forEach(function (record) { var value=record.target.getAttribute(record.attributeName);if(names[value])seen[value]=true; });
+    document.getElementById('status').textContent='Наблюдавани сцени: '+Object.keys(seen).map(function (key) {return names[key];}).join(' / ');
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-weather-act','data-web-repair']});
+</script>
+</html>

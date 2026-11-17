@@ -11,7 +11,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,6 +31,7 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_IpToCountry', 'IP-to-Country', 'debug');
         $this->TAB('drdata_DialCodes', 'Тел. кодове', 'admin');
         $this->TAB('drdata_Vats', 'ЗДДС №', 'admin');
+        $this->TAB('drdata_VatRegister', 'Регистър ЗДДС', 'admin');
         $this->TAB('drdata_Eori', 'EORI №', 'admin');
         $this->TAB('drdata_PhoneCache', 'Дебъг->T. Кеш', 'debug');
         $this->TAB('drdata_CanonizedStrings', 'Дебъг->Канонизирани стрингове', 'debug');

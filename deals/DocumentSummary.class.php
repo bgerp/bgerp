@@ -16,32 +16,119 @@
 class deals_DocumentSummary
 {
     /**
-     * Извлича документите по перото, включително тези от други нишки.
+     * Събира сумите от документите и допълва липсващите по перото на сделката.
      */
     public static function prepare($deal, $rec)
     {
         $dealId = $rec->id ?? null;
-        $dealValior = $rec->valior ?? null;
-        $dealRate = ($rec->currencyRate ?? null) ?: 1;
-        $currency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($dealValior);
-        $isSale = $deal instanceof sales_Sales;
-        $sign = $isSale ? 1 : -1;
-        $item = null;
-        $entries = acc_Journal::getEntries(array($deal->className, $dealId), $item);
-        $partial = false;
-        $documents = self::getPostedDocuments($entries, $item->id ?? null, $deal->getClassId(), $dealId, $isSale, $dealValior, $dealRate, $currency, $partial);
-
         $threadId = $rec->threadId ?? null;
-        $threads = empty($rec->closedDocuments) ? array($threadId) : deals_Helper::getCombinedThreads($threadId);
+        $currency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($rec->valior ?? null);
+        $isSale = $deal instanceof sales_Sales;
+        $combinedIds = keylist::toArray($rec->closedDocuments ?? null);
+        $dealRecs = array($dealId => $rec);
+        $groupIds = array();
+        if ($combinedIds) {
+            $query = $deal->getQuery();
+            $query->in('id', $combinedIds);
+            $dealRecs += $query->fetchAll();
+            $groupIds = $combinedIds + array($dealId => $dealId);
+        }
+        $partial = (bool) array_diff_key($combinedIds, $dealRecs);
+
         $unpostedStates = array('draft', 'pending');
         $invoiceClasses = array('sales_Invoices', 'purchase_Invoices');
-        $unpostedClasses = array(
+        $documentClasses = array(
             $deal->className, 'store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services',
             'cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments',
             'findeals_DebitDocuments', 'findeals_CreditDocuments', 'acc_ValueCorrections', 'sales_ClosedDeals', 'purchase_ClosedDeals',
         );
+        $threads = array_column($dealRecs, 'threadId');
         $containers = self::getThreadDocuments($threads, $invoiceClasses, array_merge(array('active'), $unpostedStates));
-        $containers += self::getThreadDocuments(array($threadId), $unpostedClasses, $unpostedStates);
+        $containers += self::getThreadDocuments($threads, $documentClasses, array_merge(array('active', 'closed'), $unpostedStates));
+        $containersByThread = array();
+        foreach ($containers as $container) {
+            $containersByThread[$container->threadId ?? null][] = $container;
+        }
+
+        $rows = $threadDeals = array();
+        foreach ($dealRecs as $sourceId => $source) {
+            $sourceThread = $source->threadId ?? null;
+            if ($groupIds && $sourceThread && $sourceThread != $threadId) {
+                $threadDeals[$sourceThread] = array(
+                    'handle' => '#' . $deal->getHandle($sourceId),
+                    'url' => $deal->getSingleUrlArray($sourceId),
+                );
+            }
+
+            $sourceRows = self::getDealRows($deal, $source, $containersByThread[$sourceThread] ?? array(), $groupIds, $currency, $isSale, $unpostedStates, $partial);
+            foreach ($sourceRows as $key => $document) {
+                $amounts = $document['amounts'];
+                unset($document['amounts']);
+                $rows[$key] ??= $document;
+                foreach ($amounts as $field => $amount) {
+                    // Фактурата има една сума, независимо по колко пера е намерена.
+                    if ($field === 'invoiced' && isset($rows[$key][$field])) continue;
+
+                    $rows[$key][$field] = ($rows[$key][$field] ?? 0) + $amount;
+                }
+            }
+        }
+
+        $totals = array('delivered' => 0, 'settled' => 0, 'invoiced' => 0);
+        foreach ($rows as &$row) {
+            $docThread = $row['threadId'];
+            $row['otherThread'] = $docThread != $threadId;
+            if ($groupIds && $docThread && $row['otherThread']) {
+                if (!array_key_exists($docThread, $threadDeals)) {
+                    $first = doc_Threads::getFirstDocument($docThread);
+                    $threadDeals[$docThread] = $first && $first->isInstanceOf('deals_DealBase') && $first->haveRightFor('single')
+                        ? array('handle' => '#' . $first->getHandle(), 'url' => $first->getSingleUrlArray()) : null;
+                }
+                $row['threadDeal'] = $threadDeals[$docThread];
+            }
+            if (isset($row['settled'])) {
+                $Doc = $row['mvc'];
+                $row['nonCash'] = !($Doc instanceof cash_Document || $Doc instanceof bank_Document || $Doc instanceof deals_DealMaster);
+            }
+            foreach ($totals as $field => $total) {
+                if (!isset($row[$field])) continue;
+                $row[$field] = round($row[$field], 2);
+                if (empty($row['unpostedState'])) $totals[$field] += $row[$field];
+            }
+        }
+        unset($row);
+
+        usort($rows, static function ($a, $b) {
+            return array($a['date'] ?? '9999-12-31', $a['createdOn'] ?? '9999-12-31 23:59:59', $a['containerId'] ?? $a['id'])
+                <=> array($b['date'] ?? '9999-12-31', $b['createdOn'] ?? '9999-12-31 23:59:59', $b['containerId'] ?? $b['id']);
+        });
+        $rows = self::groupInvoiceNotes($rows);
+
+        $incoming = $totals[$isSale ? 'settled' : 'delivered'];
+        $outgoing = $totals[$isSale ? 'delivered' : 'settled'];
+        $balance = round($incoming - $outgoing, 2);
+
+        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'isSale' => $isSale,
+            'dealContainerId' => $rec->containerId ?? null);
+    }
+
+
+    /**
+     * Изчислява участието на документите по конкретния договор.
+     */
+    private static function getDealRows($deal, $rec, $containers, $groupIds, $currency, $isSale, $unpostedStates, &$partial)
+    {
+        $dealId = $rec->id ?? null;
+        $threadId = $rec->threadId ?? null;
+        $dealValior = $rec->valior ?? null;
+        $dealRate = ($rec->currencyRate ?? null) ?: 1;
+        $dealCurrency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($dealValior);
+        $accounts = $isSale ? array('411', '412') : array('401', '402');
+        $item = null;
+        $entries = acc_Journal::getEntries(array($deal->className, $dealId), $item);
+        $itemId = $item->id ?? null;
+        $documents = self::getJournalDocuments($entries, $itemId, $accounts, $partial);
+
         foreach ($containers as $container) {
             $classId = $container->docClass ?? null;
             $id = $container->docId ?? null;
@@ -55,11 +142,22 @@ class deals_DocumentSummary
         }
 
         $rows = array();
-        $totals = array('delivered' => 0, 'settled' => 0, 'invoiced' => 0);
-        foreach ($documents as $document) {
+        foreach ($documents as $key => $document) {
             $Doc = $document['mvc'];
-            $unposted = !empty($document['unpostedState']);
             $docRec = $Doc->fetchRec($document['id']);
+            $state = $docRec->state ?? ($document['unpostedState'] ?? null);
+            $unposted = in_array($state, $unpostedStates, true);
+            if ($state === 'rejected') continue;
+
+            // Тези приключвания само прехвърлят обороти между договорите в групата.
+            if ($Doc instanceof deals_ClosedDeals && isset($groupIds[$docRec->docId ?? null], $groupIds[$docRec->closeWith ?? null])
+                && ($docRec->docClassId ?? null) == $deal->getClassId()) continue;
+
+            $docEntries = $document['entries'] ?? array();
+            if (!$unposted && !$docEntries && ($Doc instanceof deals_ClosedDeals
+                || ($Doc instanceof acc_ValueCorrections && !empty($docRec->correspondingDealOriginId)
+                    && $docRec->correspondingDealOriginId != ($rec->containerId ?? null)))) continue;
+
             if (!$docRec || !$Doc->haveRightFor('single', $docRec)
                 || ($Doc->hasPlugin('doc_plg_HidePrices') && !doc_plg_HidePrices::canSeePriceFields($Doc, $docRec))) {
                 $partial = $partial || !$unposted;
@@ -67,24 +165,20 @@ class deals_DocumentSummary
             }
 
             $document['title'] = $Doc->singleTitle ?? $Doc->title ?? '';
-            $document['state'] = $docRec->state ?? null;
+            $document['state'] = $state;
+            $document['unpostedState'] = $unposted ? $state : null;
             if (isset($document['state'])) {
                 $document['stateTitle'] = $Doc->getVerbal($docRec, 'state');
             }
-            $document['otherThread'] = ($docRec->threadId ?? $threadId) != $threadId;
-            if ($unposted) {
-                $document = self::prepareUnpostedAmounts($document, $docRec, $rec, $isSale, $dealRate);
-                if ($Doc instanceof deals_DealMaster && !isset($document['delivered']) && !isset($document['settled'])) continue;
-            }
+            $document['threadId'] = $docRec->threadId ?? $threadId;
+            $document['otherThread'] = $document['threadId'] != $threadId;
+            $document['date'] = $docRec->valior ?? ($docEntries[0]->valior ?? null);
+            $document['createdOn'] = $docRec->createdOn ?? null;
+            $document['containerId'] = $docRec->containerId ?? null;
+            unset($document['entries']);
 
-            if ($Doc instanceof deals_InvoiceMaster) {
-                try {
-                    $document['invoiced'] = self::getInvoicedAmount($docRec, $dealValior, $dealRate);
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    $partial = $partial || !$unposted;
-                }
-
+            $isInvoice = $Doc instanceof deals_InvoiceMaster;
+            if ($isInvoice) {
                 $type = $docRec->type ?? null;
                 if ($type === 'dc_note') {
                     $document['title'] = ($docRec->dealValue ?? 0) <= 0 ? 'Кредитно известие' : 'Дебитно известие';
@@ -102,34 +196,36 @@ class deals_DocumentSummary
                 }
             }
 
-            if (($Doc instanceof cash_Document || $Doc instanceof bank_Document) && isset($document['settled'])) {
-                try {
-                    $document = self::usePaymentAmount($document, $docRec, $currency);
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    if ($unposted) unset($document['settled']);
+            try {
+                $amounts = self::getDocumentAmounts($document, $docRec, $rec, $isInvoice ? $currency : $dealCurrency, $isSale);
+                if (!$amounts && !$unposted && $docEntries && !$isInvoice) {
+                    $isOwnDeal = $Doc === $deal && $document['id'] == $dealId;
+                    $amounts = self::getJournalAmounts($docEntries, $itemId, $accounts, $Doc, $isOwnDeal, $isSale, $dealValior, $dealRate, $dealCurrency);
+                    if (!$amounts) continue;
                 }
+                if (!$isInvoice && $currency !== $dealCurrency) {
+                    foreach ($amounts as $field => $value) {
+                        $amount = self::convertDocumentAmount($value, $dealCurrency, $currency, $document['date']);
+                        if (isset($amount)) {
+                            $amounts[$field] = $amount;
+                        } else {
+                            unset($amounts[$field]);
+                            $partial = $partial || !$unposted;
+                        }
+                    }
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                $amounts = array();
+                $partial = $partial || !$unposted;
             }
-
-            foreach ($totals as $field => $total) {
-                if (!isset($document[$field])) continue;
-                $document[$field] = round($document[$field], 2);
-                if (!$unposted) $totals[$field] += $document[$field];
-            }
-            $rows[] = $document;
+            if (!$amounts && $Doc instanceof deals_DealMaster) continue;
+            $partial = $partial || (!$unposted && !$amounts);
+            $document['amounts'] = $amounts;
+            $rows[$key] = $document;
         }
 
-        usort($rows, static function ($a, $b) {
-            return array($a['date'] ?? '9999-12-31', $a['id']) <=> array($b['date'] ?? '9999-12-31', $b['id']);
-        });
-        $rows = self::groupInvoiceNotes($rows);
-
-        $balance = $isSale ? sales_transaction_Sale::getBlAmount($entries, $rec) : purchase_transaction_Purchase::getBlAmount($entries, $rec);
-        $balance = round($balance / $dealRate, 2);
-        $difference = $partial ? 0 : round($balance - $sign * ($totals['delivered'] - $totals['settled']), 2);
-
-        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'difference' => $difference,
-            'dealContainerId' => $rec->containerId ?? null);
+        return $rows;
     }
 
 
@@ -174,20 +270,20 @@ class deals_DocumentSummary
     /**
      * Крайна сума на фактурата или известието за колоната „Фактурир.“.
      */
-    private static function getInvoicedAmount($rec, $dealValior, $dealRate)
+    private static function getInvoicedAmount($rec, $currency)
     {
+        if (!isset($rec->dealValue)) return null;
+
         $total = ($rec->dealValue ?? 0) + ($rec->vatAmount ?? 0) - ($rec->discountAmount ?? 0);
         if (($rec->type ?? null) === 'credit_note') {
             $total = -$total;
         }
-        if (($rec->currencyId ?? null) === 'EUR') {
-            return deals_Helper::getSmartBaseCurrency($total, $rec->date ?? null, $dealValior) / $dealRate;
-        }
 
-        $displayRate = ($rec->displayRate ?? null) ?: ($rec->rate ?? null);
-        expect($displayRate > 0, 'Липсва валутен курс на фактурата', $rec->id ?? null);
+        $from = $rec->currencyId ?? null;
+        $date = $rec->date ?? null;
+        $rate = ($rec->displayRate ?? null) ?: ($rec->rate ?? null);
 
-        return $total / $displayRate;
+        return self::convertDocumentAmount(self::fromBaseAmount($total, $from, $rate, $date), $from, $currency, $date);
     }
 
 
@@ -205,114 +301,144 @@ class deals_DocumentSummary
         $query->in('threadId', $threads);
         $query->in('docClass', $classIds);
         $query->in('state', $states);
-        $query->show('docClass,docId,state');
+        $query->show('threadId,docClass,docId,state');
 
         return $query->fetchAll();
     }
 
 
     /**
-     * Черновите и заявките нямат запис в журнала, затова четем сумите от документа.
+     * Взема сумите от полетата, използвани в единичния изглед на документа.
      */
-    private static function prepareUnpostedAmounts($document, $rec, $dealRec, $isSale, $dealRate)
+    private static function getDocumentAmounts($document, $rec, $dealRec, $currency, $isSale)
     {
         $Doc = $document['mvc'];
-        $document['date'] = $rec->valior ?? null;
-        unset($document['delivered'], $document['settled']);
-        if ($Doc instanceof cash_Document || $Doc instanceof bank_Document) {
-            $isIncome = $Doc instanceof cash_Pko || $Doc instanceof bank_IncomeDocuments;
-            if (isset($rec->amountDeal)) $document['settled'] = ($isIncome === $isSale ? 1 : -1) * abs($rec->amountDeal);
-        } elseif ($Doc instanceof findeals_DebitDocuments || $Doc instanceof findeals_CreditDocuments) {
-            $isDebit = $Doc instanceof findeals_DebitDocuments;
-            if (isset($rec->amount)) $document['settled'] = ($isDebit === $isSale ? 1 : -1) * $rec->amount;
-            $document['nonCash'] = true;
-        } elseif ($Doc instanceof store_DocumentMaster || $Doc instanceof deals_ServiceMaster) {
-            if (isset($rec->amountDelivered)) {
-                $valior = $dealRec->valior ?? null;
-                $sign = ($rec->isReverse ?? null) == 'yes' ? -1 : 1;
-                if (($rec->currencyId ?? null) == ($dealRec->currencyId ?? null) && !empty($rec->currencyRate)) {
-                    $document['delivered'] = $sign * $rec->amountDelivered / $rec->currencyRate;
-                } else {
-                    $document['delivered'] = $sign * deals_Helper::getSmartBaseCurrency($rec->amountDelivered, $document['date'] ?? $valior, $valior) / $dealRate;
-                }
-            }
-        } elseif ($Doc instanceof acc_ValueCorrections && isset($rec->amount)) {
-            $vatRate = 0;
-            if (in_array($dealRec->chargeVat ?? null, array('yes', 'separate'), true) && !empty($rec->productsData)) {
-                $vatRate = $Doc->getAverageVatRate($rec->productsData, $rec);
-            }
-            $valior = $dealRec->valior ?? null;
-            $sign = ($rec->action ?? null) == 'decrease' ? -1 : 1;
-            $amount = deals_Helper::getSmartBaseCurrency($rec->amount, $document['date'] ?? $valior, $valior) / $dealRate;
-            $document['delivered'] = $sign * $amount * (1 + $vatRate);
-        } elseif ($Doc instanceof deals_DealMaster) {
-            $actions = type_Set::toArray($rec->contoActions ?? null);
-            $amount = ($rec->amountDeal ?? 0) / $dealRate;
-            if (!empty($actions['ship'])) $document['delivered'] = $amount;
-            if (!empty($actions['pay'])) $document['settled'] = $amount;
+        $date = $document['date'];
+        $sameThread = !$document['otherThread'];
+        $dealContainerId = $dealRec->containerId ?? null;
+        if ($Doc instanceof deals_InvoiceMaster) {
+            $amount = self::getInvoicedAmount($rec, $currency);
+
+            return isset($amount) ? array('invoiced' => $amount) : array();
         }
 
-        return $document;
+        if ($Doc instanceof deals_DealMaster) {
+            if (!$sameThread || ($rec->doTransaction ?? 'yes') === 'no') return array();
+
+            $actions = type_Set::toArray($rec->contoActions ?? null);
+            $fields = array_intersect_key(array('ship' => 'delivered', 'pay' => 'settled'), $actions);
+            if (!$fields) return array();
+
+            $amount = self::fromBaseAmount($rec->amountDeal ?? null, $currency, $rec->currencyRate ?? null, $date);
+
+            return isset($amount) ? array_fill_keys($fields, $amount) : array();
+        }
+
+        $sign = 1;
+        if ($sameThread && ($Doc instanceof cash_Document || $Doc instanceof bank_Document)) {
+            $isIncome = $Doc instanceof cash_Pko || $Doc instanceof bank_IncomeDocuments;
+            $sign = $isIncome === $isSale ? 1 : -1;
+            $field = 'settled';
+            $amount = $rec->amountDeal ?? null;
+            $currencyId = $rec->dealCurrencyId ?? null;
+            $from = $currencyId ? currency_Currencies::getCodeById($currencyId) : $currency;
+        } elseif ($Doc instanceof findeals_DebitDocuments || $Doc instanceof findeals_CreditDocuments) {
+            $isCounterDeal = $dealContainerId && ($rec->dealId ?? null) == $dealContainerId;
+            if (!$sameThread && !$isCounterDeal) return array();
+
+            $isDebit = $Doc instanceof findeals_DebitDocuments;
+            $sign = $isDebit === $isSale ? 1 : -1;
+            $field = 'settled';
+            $amount = $rec->amount ?? null;
+            $from = $currency;
+            if ($isCounterDeal) {
+                $sign = -$sign;
+                $amount = $rec->amountDeal ?? null;
+                $currencyId = $rec->currencyId ?? null;
+                $from = $currencyId ? currency_Currencies::getCodeById($currencyId) : null;
+            }
+        } elseif ($sameThread && ($Doc instanceof store_DocumentMaster || $Doc instanceof deals_ServiceMaster)) {
+            $field = 'delivered';
+            $sign = ($rec->isReverse ?? null) === 'yes' ? -1 : 1;
+            $from = $rec->currencyId ?? null;
+            $amount = self::fromBaseAmount($rec->amountDelivered ?? null, $from, $rec->currencyRate ?? null, $date);
+        } elseif ($Doc instanceof acc_ValueCorrections) {
+            $correctedDeal = $rec->correspondingDealOriginId ?? null;
+            if (($correctedDeal ? $correctedDeal != $dealContainerId : !$sameThread)
+                || !isset($rec->amount) || empty($rec->productsData) || ($rec->rate ?? 0) <= 0) return array();
+
+            $payment = $Doc->getPaymentData($rec);
+            $field = 'delivered';
+            $sign = !empty($payment->isReverse) ? -1 : 1;
+            $amount = $payment->amount ?? null;
+            $from = $rec->currencyId ?? null;
+        } else {
+            return array();
+        }
+
+        $amount = self::convertDocumentAmount($amount, $from, $currency, $date);
+
+        return isset($amount) ? array($field => $sign * $amount) : array();
     }
 
 
     /**
-     * Групира контировките по документ и взема само страната на текущата сделка.
+     * Възстановява показаната стойност по курса на документа.
      */
-    private static function getPostedDocuments($entries, $itemId, $dealClassId, $dealId, $isSale, $valior, $rate, $currency, &$partial)
+    private static function fromBaseAmount($amount, $currency, $rate, $date)
     {
-        if (!$itemId) return array();
+        if (!isset($amount)) return null;
 
-        $groups = $documents = array();
+        return $rate > 0 ? $amount / $rate : self::convertDocumentAmount($amount, acc_Periods::getBaseCurrencyCode($date), $currency, $date);
+    }
+
+
+    /**
+     * Обръща сумата във валутата на сделката, ако има надежден курс.
+     */
+    private static function convertDocumentAmount($amount, $from, $to, $date)
+    {
+        if (!isset($amount) || $amount == 0 || $from === $to) return $amount;
+        if (!$from || !$to) return null;
+
+        $converted = currency_CurrencyRates::convertAmount($amount, $date, $from, $to);
+
+        return $converted != 0 ? $converted : null;
+    }
+
+
+    /**
+     * Намира документите по перото без да изчислява сумите им от журнала.
+     */
+    private static function getJournalDocuments($entries, $itemId, $accounts, &$partial)
+    {
+        if (!$itemId || !$entries) return array();
+
+        $accountIds = array();
+        foreach ($accounts as $account) {
+            $accountIds[] = acc_Accounts::getRecBySystemId($account)->id ?? null;
+        }
+        $documents = array();
         foreach ($entries as $entry) {
+            $debit = ($entry->debitItem2 ?? null) == $itemId && in_array($entry->debitAccId ?? null, $accountIds);
+            $credit = ($entry->creditItem2 ?? null) == $itemId && in_array($entry->creditAccId ?? null, $accountIds);
+            if (!$debit && !$credit) continue;
+
             $classId = $entry->docType ?? null;
             $id = $entry->docId ?? null;
             if (!$classId || !$id) {
                 $partial = true;
                 continue;
             }
-            $groups["{$classId}:{$id}"][] = $entry;
-        }
-
-        $accounts = $isSale ? '411,412' : '401,402';
-        $useCurrency = !in_array($currency, array('BGN', 'EUR'), true);
-        $divisor = ($isSale ? 1 : -1) * ($useCurrency ? 1 : $rate);
-        $getBalance = static function ($group, $corresponding = null) use ($accounts, $itemId, $valior, $useCurrency) {
-            return acc_Balances::getBlAmounts($group, $accounts, null, $corresponding, array(null, $itemId), array(), $valior, $useCurrency);
-        };
-
-        foreach ($groups as $key => $group) {
-            $result = $getBalance($group);
-            if (empty($result->recs)) continue;
-
-            $entry = reset($group);
-            $classId = $entry->docType ?? null;
-            $id = $entry->docId ?? null;
-            $net = ($result->amount ?? 0) / $divisor;
-            if (!cls::load($classId, true)) {
-                $partial = $partial || $net != 0;
-                continue;
+            $key = "{$classId}:{$id}";
+            if (!isset($documents[$key])) {
+                if (!cls::load($classId, true)) {
+                    $partial = true;
+                    continue;
+                }
+                $documents[$key] = array('mvc' => cls::get($classId), 'id' => $id);
             }
-
-            $Doc = cls::get($classId);
-            $document = array('mvc' => $Doc, 'id' => $id, 'date' => $entry->valior ?? null);
-            if ($classId == $dealClassId && $id == $dealId) {
-                // Договорът може едновременно да доставя и плаща, дори при нулев нетен ефект.
-                $payment = $getBalance($group, '501,503,481,482');
-                $settled = -($payment->amount ?? 0) / $divisor;
-                $delivered = $net + $settled;
-                if ($settled != 0) $document['settled'] = $settled;
-                if (round($delivered, 8) != 0) $document['delivered'] = $delivered;
-            } elseif ($Doc instanceof store_DocumentMaster || $Doc instanceof deals_ServiceMaster || $Doc instanceof acc_ValueCorrections) {
-                $document['delivered'] = $net;
-            } elseif ($net != 0) {
-                $document['settled'] = -$net;
-                $document['nonCash'] = !($Doc instanceof cash_Document || $Doc instanceof bank_Document);
-            }
-
-            if (isset($document['settled']) || isset($document['delivered'])) {
-                $documents[$key] = $document;
-            }
+            $documents[$key]['entries'][] = $entry;
         }
 
         return $documents;
@@ -320,39 +446,40 @@ class deals_DocumentSummary
 
 
     /**
-     * Запазва сумата „Платени по сделката“ и взема знака от движението по перото.
+     * Взема ефекта по сделката, когато документът не пази такава сума.
      */
-    private static function usePaymentAmount($document, $rec, $currency)
+    private static function getJournalAmounts($entries, $itemId, $accounts, $Doc, $isOwnDeal, $isSale, $valior, $rate, $currency)
     {
-        $amount = $rec->amountDeal ?? null;
-        if (!isset($amount)) return $document;
+        $useCurrency = !in_array($currency, array('BGN', 'EUR'), true);
+        $divisor = ($isSale ? 1 : -1) * ($useCurrency ? 1 : $rate);
+        $getBalance = static function ($corresponding = null) use ($entries, $accounts, $itemId, $valior, $useCurrency, $divisor) {
+            $result = acc_Balances::getBlAmounts($entries, $accounts, null, $corresponding, array(null, $itemId), array(), $valior, $useCurrency);
 
-        $currencyId = $rec->dealCurrencyId ?? null;
-        $paymentCurrency = $currencyId ? currency_Currencies::getCodeById($currencyId) : $currency;
-        if ($paymentCurrency && $paymentCurrency != $currency) {
-            $converted = currency_CurrencyRates::convertAmount($amount, $document['date'] ?? null, $paymentCurrency, $currency);
-            if ($converted == 0 && $amount != 0) {
-                if (!empty($document['unpostedState'])) unset($document['settled']);
+            return ($result->amount ?? 0) / $divisor;
+        };
+        $net = $getBalance();
+        if ($isOwnDeal) {
+            // Договорът може едновременно да доставя и плаща, дори при нулев нетен ефект.
+            $settled = -$getBalance('501,503,481,482');
+            $delivered = $net + $settled;
+            $amounts = array();
+            if ($settled != 0) $amounts['settled'] = $settled;
+            if (round($delivered, 8) != 0) $amounts['delivered'] = $delivered;
 
-                return $document;
-            }
-            $amount = $converted;
+            return $amounts;
+        }
+        if ($Doc instanceof store_DocumentMaster || $Doc instanceof deals_ServiceMaster || $Doc instanceof acc_ValueCorrections) {
+            return array('delivered' => $net);
         }
 
-        $settled = ($document['settled'] < 0 ? -1 : 1) * abs($amount);
-        if (empty($document['unpostedState']) && round($settled, 2) != round($document['settled'], 2)) {
-            $document['postedAmount'] = $document['settled'];
-        }
-        $document['settled'] = $settled;
-
-        return $document;
+        return $net != 0 ? array('settled' => -$net) : array();
     }
 
 
     /**
      * Подготвя съдържанието на клетките за един документ.
      */
-    private static function getDocumentCells($document, $amountType, $dateType, $currency, $tabParams)
+    private static function getDocumentCells($document, $amountType, $dateType, $tabParams)
     {
         $Doc = $document['mvc'];
         $title = tr($document['title']);
@@ -360,7 +487,12 @@ class deals_DocumentSummary
             $title .= ' № ' . $document['invoiceNumber'];
         }
         if ($document['otherThread']) {
-            $title .= ' ' . ht::createElement('small', array('class' => 'quiet'), '(' . tr('друга нишка') . ')');
+            $threadDeal = $document['threadDeal'] ?? array();
+            $threadLabel = $threadDeal['handle'] ?? tr('друга нишка');
+            if (!empty($threadDeal['url'])) {
+                $threadLabel = ht::createLink($threadLabel, $threadDeal['url'], false, array('target' => '_blank', 'rel' => 'noopener'));
+            }
+            $title .= ' ' . ht::createElement('small', array('class' => 'quiet'), '(' . $threadLabel . ')');
         }
 
         $linkAttr = array('class' => 'document-handler');
@@ -369,6 +501,9 @@ class deals_DocumentSummary
             $linkAttr['title'] = $document['stateTitle'] ?? '';
         }
         $id = $document['id'];
+        if ($icon = $Doc->getIcon($id)) {
+            $title = ht::createImg(array('path' => $icon, 'alt' => '', 'class' => 'deal-documents-icon')) . $title;
+        }
         $url = $Doc->getSingleUrlArray($id);
         if ($document['otherThread'] || Mode::is('currentExternalTab', 'cms_Profiles')) {
             $linkAttr['target'] = '_blank';
@@ -385,12 +520,8 @@ class deals_DocumentSummary
         foreach (array('delivered', 'settled', 'invoiced') as $field) {
             $cells[$field] = isset($document[$field]) ? $amountType->toVerbal($document[$field]) : '';
         }
-        if (isset($document['postedAmount'])) {
-            $hint = tr('Счетоводен ефект') . ': ' . $amountType->toVerbal($document['postedAmount']) . ' ' . $currency;
-            $cells['settled'] = ht::createElement('span', array('title' => $hint), $cells['settled']);
-        }
         if (!empty($document['nonCash'])) {
-            $cells['settled'] .= ' ' . ht::createElement('small', array('class' => 'quiet'), tr('непарично'));
+            $cells['settled'] = ht::createElement('small', array('class' => 'quiet'), tr('непарично')) . ' ' . $cells['settled'];
         }
 
         return $cells;
@@ -421,12 +552,12 @@ class deals_DocumentSummary
                     if ($index > 0) $class .= ' deal-documents-note';
                     if (!empty($lineDocument['unpostedState'])) $class .= ' deal-documents-unposted';
 
-                    foreach (self::getDocumentCells($lineDocument, $amountType, $dateType, $currency, $tabParams) as $field => $value) {
+                    foreach (self::getDocumentCells($lineDocument, $amountType, $dateType, $tabParams) as $field => $value) {
                         $cells[$field] = ($cells[$field] ?? '') . ht::createElement('span', array('class' => $class), $value ?: '&nbsp;');
                     }
                 }
             } else {
-                $cells = self::getDocumentCells($document, $amountType, $dateType, $currency, $tabParams);
+                $cells = self::getDocumentCells($document, $amountType, $dateType, $tabParams);
             }
 
             if (isset($document['invoiceTotalWithNotes'])) {
@@ -443,17 +574,19 @@ class deals_DocumentSummary
         foreach ($summary['totals'] as $field => $total) {
             $tpl->replace($amountType->toVerbal($total), "{$field}Total");
         }
-        // Отрицателното счетоводно салдо е наше задължение и при покупка, и при продажба.
         $balance = $summary['balance'];
-        $tpl->replace(ht::styleNumber($amountType->toVerbal($balance), -$balance, 'green'), 'balance');
+        $isSale = !empty($summary['isSale']);
+        $delivered = tr('доставено');
+        $settled = tr('платено');
+        $balanceClass = $balance > 0 ? 'deal-documents-incoming' : ($balance < 0 ? 'deal-documents-outgoing' : '');
+        $tpl->replace($amountType->toVerbal($balance), 'balance');
+        $tpl->replace($balanceClass, 'balanceClass');
+        $tpl->replace($isSale ? $settled : $delivered, 'incomingLabel');
+        $tpl->replace($isSale ? $delivered : $settled, 'outgoingLabel');
+        $tpl->replace($isSale ? 'deal-documents-sale' : 'deal-documents-purchase', 'directionClass');
         $tpl->replace($currency, 'currency');
         if (!empty($summary['rows'])) $tpl->removeBlock('NO_DOCUMENTS');
         if (!$summary['partial']) $tpl->removeBlock('PARTIAL');
-        if ($summary['difference'] != 0) {
-            $tpl->replace($amountType->toVerbal($summary['difference']), 'difference');
-        } else {
-            $tpl->removeBlock('DIFFERENCE');
-        }
 
         return $tpl;
     }

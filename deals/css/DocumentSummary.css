@@ -18,6 +18,55 @@
     font-weight: bold;
 }
 
+/* Общият стил за клетки в документ също налага отстъпа с !important. */
+.deal-documents .listTable tr > .aright {
+    text-align: right;
+    padding-right: 6px !important;
+}
+
+.deal-documents .listTable tr > .aleft {
+    text-align: left;
+    padding-left: 6px !important;
+}
+
+.deal-documents .deal-documents-outgoing,
+.deal-documents-sale .deal-documents-delivered,
+.deal-documents-purchase .deal-documents-settled {
+    color: #b22;
+}
+
+.deal-documents .deal-documents-incoming,
+.deal-documents-sale .deal-documents-settled,
+.deal-documents-purchase .deal-documents-delivered {
+    color: #38761d;
+}
+
+.deal-documents .deal-documents-balance-legend {
+    color: #aaa;
+    font-size: 85%;
+    font-weight: normal;
+}
+
+.deal-documents-balance-legend .deal-documents-incoming {
+    color: #4e7935;
+}
+
+.deal-documents-balance-legend .deal-documents-outgoing {
+    color: #9b5858;
+}
+
+.deal-documents .deal-documents-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.deal-documents .deal-documents-unposted .deal-documents-icon {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
 .deal-documents td.deal-documents-invoiced {
     color: #666;
 }

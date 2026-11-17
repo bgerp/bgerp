@@ -50,7 +50,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
-        if ($data->form->rec->folderId) {
+        if (!empty($data->form->rec->folderId)) {
             $documentsInThreadOptions = doc_Threads::getDocumentTypesOptionsByFolder($data->form->rec->folderId);
             if (countR($documentsInThreadOptions)) {
                 $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
