@@ -1,0 +1,5 @@
+<div class="eshop-group-button studio-group-row">
+    <h2 class="eshop-group-button-title">[#name#]</h2>
+    <div class="eshop-group-button-img">[#img#]</div>
+    <span class="eshop-group-arrow" aria-hidden="true">&#8599;</span>
+</div>

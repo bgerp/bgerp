@@ -63,7 +63,7 @@
 .funny-visitor[data-reaction="umbrella"] > svg { transform-origin: 50% 85%; animation: funny-umbrella-gust 1.6s ease-in-out; }
 .funny-visitor[data-reaction="snowshake"] > svg { animation: funny-shake .75s ease-in-out; }
 @keyframes funny-umbrella-gust { 20%,60% { transform: rotate(var(--funny-gust-angle)); } 75% { transform: rotate(0deg) translateY(-3px); } }
-.funny-snow-shower i { width: 5px; height: 5px; border-radius: 50%; background: #f8fdff; box-shadow: 0 0 1px #87aec8; animation: funny-snow-shower 2.4s ease-out both; }
+.funny-snow-shower i, .funny-sneeze-flurry i, .funny-snow-clearing i { width: 5px; height: 5px; border-radius: 50%; background: #f8fdff; box-shadow: 0 0 1px #87aec8; animation: funny-snow-shower 2.4s ease-out both; }
 @keyframes funny-snow-shower { 0% { opacity: 0; transform: translate(0,0); } 15% { opacity: .9; } 65% { opacity: .8; transform: translate(var(--x),var(--y)); } 100% { opacity: 0; transform: translate(var(--x),calc(var(--y) + 8px)); } }
 .funny-visitor[data-rain-born="true"] > svg { transform-origin: 50% 70%; animation: funny-bubble-born .65s ease-out both; }
 @keyframes funny-bubble-born { 0%,20% { opacity: 0; transform: scale(.15); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
@@ -482,3 +482,64 @@
 .funny-visitor[data-weather-act="flutter"] > svg:first-child { animation: funny-bat-flutter .14s ease-in-out infinite alternate; }
 @keyframes funny-bat-flutter { to { transform: scaleX(.75) rotate(8deg); } }
 @media print, (prefers-reduced-motion: reduce) { .funny-pool-reflection { display: none !important; } }
+
+/* Seasonal encounters keep their motion in the actor, with no extra hit targets. */
+.funny-visitor[data-weather-act="hopping"] > svg:first-child { animation: funny-hop-stretch 1.25s ease-in-out; }
+@keyframes funny-hop-stretch { 20% { transform: scale(1.08,.88); } 55% { transform: scale(.95,1.08); } 90% { transform: scale(1.08,.9); } }
+.funny-visitor[data-weather-act="going-around"] > svg:first-child { animation: funny-follow-step .36s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="broom"] > svg:not(.funny-sun-shadow) { transform: rotate(var(--funny-broom-turn,0deg)); }
+.funny-snowman[data-shade="true"] > svg:first-child { filter: brightness(.9) drop-shadow(0 -3px 3px #65758d55); transition: filter .4s; }
+.funny-snowman[data-shade="true"]::after { animation-duration: 4.5s; }
+.funny-visitor[data-weather-act="lantern"] > svg:first-child { filter: drop-shadow(0 0 5px #efc56c66); }
+.funny-visitor[data-weather-act="lantern-fly"] > svg:first-child { animation: funny-guide-blink 1.1s ease-in-out infinite; }
+.funny-visitor[data-weather-act="stuck"] > svg:first-child { transform-origin: 50% 75%; animation: funny-sleigh-rock .7s ease-in-out infinite alternate; }
+@keyframes funny-sleigh-rock { from { transform: rotate(-3deg) translateY(2px); } to { transform: rotate(3deg) translateY(4px); } }
+.funny-visitor[data-weather-act="unstuck"] > svg:first-child { animation: funny-sleigh-free .6s ease-out; }
+@keyframes funny-sleigh-free { 40% { transform: translateY(-7px) rotate(-4deg); } }
+.funny-visitor[data-weather-act="tow"] > svg:not(.funny-sun-shadow) { transform: scaleX(var(--funny-tow-face,1)); }
+.funny-visitor[data-weather-act="tow"] > svg:first-child { transform-origin: 50% 85%; animation: funny-tow-step .35s ease-in-out infinite alternate; }
+@keyframes funny-tow-step { from { transform: scaleX(var(--funny-tow-face,1)); } to { transform: scaleX(var(--funny-tow-face,1)) translateY(-3px) rotate(-3deg); } }
+
+/* Weather mishaps share the scene deadline; transforms stay on decorative children. */
+.funny-visitor[data-weather-act="shaking-wet"] > svg:not(.funny-sun-shadow) { animation: funny-shake .32s ease-in-out 3; }
+.funny-visitor[data-weather-act="wet-cat-jump"] > svg:not(.funny-sun-shadow) { animation: funny-wet-jump .55s ease-out; }
+@keyframes funny-wet-jump { 25% { transform: translateY(-17px) rotate(-7deg) scale(.92,1.08); } 65% { transform: translateY(-6px) rotate(4deg); } }
+.funny-visitor[data-weather-act="sneeze"] > svg:first-child { animation: funny-sniff .55s ease-in-out 2; }
+.funny-visitor[data-weather-act="sneezing"] > svg:first-child { transform-origin: 80% 80%; animation: funny-sneeze .65s ease-out; }
+@keyframes funny-sneeze { 20% { transform: rotate(-6deg) scale(.95,1.05); } 40% { transform: rotate(9deg) translateX(5px) scale(1.07,.92); } }
+.funny-visitor[data-weather-act="sneeze-skid"] > svg:not(.funny-sun-shadow) { animation: funny-sneeze-skid .65s ease-out; }
+@keyframes funny-sneeze-skid { 20%,65% { transform: rotate(-28deg) scaleY(.88); } }
+.funny-nose-flake i { width: 7px; height: 7px; background: #fff; clip-path: polygon(40% 0,60% 0,60% 34%,92% 15%,100% 34%,68% 50%,100% 67%,90% 85%,60% 66%,60% 100%,40% 100%,40% 66%,10% 85%,0 67%,32% 50%,0 33%,10% 15%,40% 34%); animation: funny-nose-flake 1.1s ease-out both; }
+@keyframes funny-nose-flake { from { transform: translate(7px,-24px) rotate(0); opacity: 0; } 70%,90% { transform: translate(0,0) rotate(75deg); opacity: 1; } to { opacity: 0; } }
+.funny-shed-drops i { width: 5px; height: 7px; border-radius: 45% 55% 55% 50%; background: #7eb5d5; box-shadow: inset 1px 1px #e4f7ff,0 1px 1px #638fa266; animation: funny-shed-drop .9s ease-in both; }
+@keyframes funny-shed-drop { from { opacity: 0; transform: translate(0,0) scale(.4); } 20% { opacity: .9; } 75% { transform: translate(var(--x),var(--y)); opacity: .85; } to { transform: translate(var(--x),calc(var(--y) + 7px)) scale(1.4,.3); opacity: 0; } }
+.funny-visitor[data-weather-act="dry-wings"] > svg:first-child { transform: rotate(-8deg); }
+.funny-visitor[data-weather-act="folded-wings"] > svg:first-child { transform: scaleX(.3) rotate(-5deg); transition: transform .45s; }
+.funny-visitor[data-weather-act="dry-flight"] > svg:first-child { animation: funny-bat-flutter .22s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="folded-wings"] .funny-accessory { opacity: 0; }
+.funny-mouse-hole[data-snow-covered="true"]::after { content: ''; position: absolute; left: -2px; top: -3px; width: 27px; height: 10px; border-radius: 65% 50% 45% 40%; background: #f8fcff; box-shadow: 0 1px 1px #a9c6d7; opacity: var(--funny-hole-snow,1); transform: scaleY(var(--funny-hole-snow,1)); transform-origin: top; animation: funny-hole-snow 1.2s ease-out; }
+@keyframes funny-hole-snow { from { opacity: 0; } to { opacity: 1; } }
+.funny-visitor[data-weather-act="snow-hole"] > svg:first-child { animation: funny-mouse-gnaw .24s ease-in-out infinite alternate; }
+.funny-tiny-snow-steps i { width: 3px; height: 5px; border-radius: 50%; background: #b1c8d6; box-shadow: 0 1px 1px #f4fcff; transform: translate(var(--x),var(--y)); animation: funny-nibble-fade 2.5s ease-out both; }
+.funny-sneeze-flurry i { animation-duration: 1s; }
+.funny-snow-clearing i { animation-duration: 1.8s; }
+.funny-spider-thread[data-web-shake="true"] > svg { transform-origin: 50% 0; animation: funny-web-tug .32s ease-in-out 3; }
+@keyframes funny-web-tug { 30% { transform: scaleY(1.25); } 70% { transform: scaleY(.85); } }
+.funny-visitor[data-weather-act="tug-web"] > svg:first-child { animation: funny-snow-pack .35s ease-in-out 3; }
+.funny-visitor[data-weather-act="raise-umbrella"] .funny-accessory { transform: translateY(-9px) rotate(-8deg); transition: transform .2s; }
+.funny-visitor[data-weather-act="drip-dodge"] > svg:first-child { animation: funny-wet-jump .4s ease-out; }
+.funny-visitor[data-weather-act="wind-ghost"] > svg:first-child { transform-origin: 50% 40%; transform: rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-stretch,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad))); }
+.funny-deep-runner i { width: 22px; height: 2px; border-radius: 50%; background: #6f90a288; box-shadow: 0 6px #6f90a288,0 -2px 1px white,0 4px 1px white; animation: funny-hoof-fill 4s ease-out forwards; }
+
+/* A local metal glow and clipped scorch marks never participate in hit testing or page layout. */
+.funny-pointer-heat { position: fixed; z-index: 10003; left: 0; top: 0; width: 150px; height: 150px; margin: -75px; pointer-events: none !important; user-select: none; opacity: var(--funny-heat,0); border-radius: 50%; background: radial-gradient(circle, #fff6c9 0, #ffc167 3%, #eb642888 8%, #57261944 22%, #17141022 40%, transparent 65%); }
+.funny-pointer-heat::before { content: ''; position: absolute; inset: 45px; border-radius: 50%; box-shadow: 0 0 12px #ff943b88,inset 0 0 8px #bf3a2255; animation: funny-heat-glow 1.7s ease-in-out infinite alternate; }
+.funny-pointer-heat[data-cooling="true"]::before { animation-play-state: paused; }
+.funny-pointer-heat[data-wet="rain"], .funny-pointer-heat[data-wet="snow"] { filter: saturate(.7); }
+@keyframes funny-heat-glow { to { transform: scale(1.15); opacity: .55; } }
+.funny-heat-scorch { position: fixed; z-index: 9998; width: 88px; height: 88px; pointer-events: none !important; user-select: none; background: radial-gradient(ellipse, #16100bd9 0, #2d1c10b3 17%, #cc59285c 38%, #ff9f3533 55%, transparent 70%); animation: funny-scorch-fade 10s ease-out both; }
+@keyframes funny-scorch-fade { 0% { opacity: 0; } 12%,45% { opacity: calc(var(--funny-burn,.5) * .8); } to { opacity: 0; } }
+.funny-heat-steam i { width: 18px; height: 13px; border-radius: 50%; background: #e8edf3bb; box-shadow: 0 0 6px #a8bac077; animation: funny-heat-steam 1.4s ease-out both; }
+@keyframes funny-heat-steam { from { opacity: 0; transform: scale(.3); } 25% { opacity: .7; } to { opacity: 0; transform: translate(var(--x),var(--y)) scale(1.9); } }
+.funny-visitor[data-heat-flee="true"]:not(.funny-leaving) > svg:first-child { animation: funny-follow-step .2s ease-in-out infinite alternate; }
+@media print, (prefers-reduced-motion: reduce) { .funny-pointer-heat, .funny-heat-scorch { display: none !important; } }

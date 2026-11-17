@@ -414,7 +414,11 @@ class cal_Holidays extends core_Master
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
         
-        if ($force || $cntObj->created || $cntObj->updated) {
+        if ($force || $cntObj->created || $cntObj->updated || $deleted > 0) {
+            
+            $deleted = static::deleteMissingFromCsv($mvc, $file);
+            
+            $res .= "<li>Изтрити {$deleted} празника, които липсват в CSV файла</li>";
             // Обновяваме празниците в календара
             $res .= '<li> ' . static::updateCalendarHolidays() . '</li>';
         }
@@ -587,5 +591,62 @@ class cal_Holidays extends core_Master
                 }
             }
         }
+    }
+    
+   
+    /**
+     * Изтрива от базата данни празниците, които вече ги няма в CSV файла
+     *
+     * @param cal_Holidays $mvc
+     * @param string $file
+     * @return int Брой изтрити записи
+     */
+    private static function deleteMissingFromCsv($mvc, $file)
+    {
+        $path = getFullPath($file);
+        
+        expect(($handle = fopen($path, 'r')) !== false);
+        
+        $csvKeys = array();
+        
+        while (($data = fgetcsv($handle)) !== false) {
+            if (empty($data) || !isset($data[0])) {
+                continue;
+            }
+            
+            $rawKey = $data[0];
+            
+            // Премахваме UTF-8 BOM знак ако съществува в началото на файла
+            if (substr($rawKey, 0, 3) === "\xEF\xBB\xBF") {
+                $rawKey = substr($rawKey, 3);
+            }
+            
+            // Изчистваме кавички, шпации и скрити символи
+            $key = trim($rawKey, " \t\n\r\0\x0B\"");
+            
+            if ($key === '' || $key[0] === '#') {
+                continue;
+            }
+            
+            $csvKeys[$key] = true;
+        }
+        
+        fclose($handle);
+        
+        $deleted = 0;
+        $query = $mvc->getQuery();
+        
+        while ($rec = $query->fetch()) {
+            // Почистваме и ключа от базата данни за сигурно сравнение
+            $dbKey = trim($rec->key, " \t\n\r\0\x0B\"");
+            
+            // Ако ключът от базата го няма в новия масив от CSV файла -> изтриваме записа
+            if (!isset($csvKeys[$dbKey])) {
+                $mvc->delete($rec->id);
+                $deleted++;
+            }
+        }
+        
+        return $deleted;
     }
 }

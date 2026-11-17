@@ -405,7 +405,8 @@ class Datamatrix {
 		}
 		ksort($c);
 		// total number of data codewords
-		$num_wd = ($nb * $nd);
+		// 144x144 has eight 156-codeword blocks and two 155-codeword blocks.
+		$num_wd = count($wd);
 		// total number of error codewords
 		$num_we = ($nb * $nc);
 		// for each block
@@ -418,8 +419,8 @@ class Datamatrix {
 			// initialize error codewords
 			$we = array_fill(0, ($nc + 1), 0);
 			// calculate error correction codewords for this block
-			for ($i = 0; $i < $nd; ++$i) {
-				$k = ($we[0] ^ $block[$i]);
+			foreach ($block as $data_codeword) {
+				$k = ($we[0] ^ $data_codeword);
 				for ($j = 0; $j < $nc; ++$j) {
 					$we[$j] = ($we[($j + 1)] ^ $this->getGFProduct($k, $c[($nc - $j - 1)], $log, $alog, $gf));
 				}

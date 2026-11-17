@@ -1,0 +1,138 @@
+/* Studio keeps the shared controls and palettes, with an open, geometric layout. */
+body.studio-theme {
+    --commerce-page-width: 1440px;
+    --c-accent: #326348;
+    --c-accent-dark: #234a34;
+    --c-accent-deep: #2a503b;
+    --c-accent-muted: #526e58;
+    --c-accent-soft: #edf2e8;
+    --c-accent-soft-2: #e6eedd;
+    --c-accent-soft-3: #f4f7ef;
+    --c-accent-line: #cbd8bf;
+    --c-accent-line-strong: #93ab84;
+    --c-focus: #326348;
+    --c-highlight: #d6edab;
+    --c-ink: #202b25;
+    --c-text: #465449;
+    --c-text-2: #59665b;
+    --c-muted: #667268;
+    --c-dark: #202b25;
+    --c-line: #dce1d7;
+    --c-line-2: #dce1d7;
+    --c-line-3: #d0d9ca;
+    --c-line-4: #edf0e9;
+    --c-line-5: #e3e8de;
+    --c-line-6: #dce1d7;
+    --c-line-strong: #aab9a3;
+    --c-line-strong-2: #c2cebb;
+    --c-bg: #f7f8f3;
+    --c-surface: #f7f8f3;
+    --c-surface-2: #edf1e7;
+    --c-surface-3: #fafbf7;
+    --c-accent-rgb: 50, 99, 72;
+    --c-ink-rgb: 32, 43, 37;
+    background: var(--c-bg);
+    color: var(--c-ink);
+    font-family: Arial, Helvetica, sans-serif;
+}
+body.studio-theme .externalPage #maincontent { background: var(--c-bg); }
+body.studio-theme .externalPage .centerContent {
+    width: calc(100% - 64px) !important;
+    max-width: var(--commerce-page-width);
+    margin-inline: auto;
+}
+body.studio-theme #cmsMenu.menuRow { box-shadow: none; border-bottom: 3px solid var(--c-highlight) !important; }
+body.studio-theme #cmsMenu.menuRow a { border-radius: 2px; }
+body.studio-theme #cmsMenu.menuRow a.selected { box-shadow: inset 0 -3px 0 var(--c-accent); }
+body.studio-theme .externalPage > header {
+    box-sizing: border-box;
+    margin: 32px auto 0;
+    border-radius: 0;
+    background: var(--c-accent-soft) !important;
+    border: 1px solid var(--c-line);
+}
+/* Branding occupies its own panel, so text never competes with the banner. */
+body.studio-theme header .narrowCenter:has(.headerImg):has(.app-name, .app-subtitle) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 20px 40px;
+    height: auto !important;
+    min-height: 280px;
+    padding: 36px;
+}
+body.studio-theme header .narrowCenter:has(.headerImg):has(.app-name, .app-subtitle)::before { display: none; }
+body.studio-theme header .narrowCenter:has(.headerImg):has(.app-name, .app-subtitle) > a {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    min-width: 0;
+}
+body.studio-theme header .narrowCenter:has(.headerImg) :is(.app-name, .app-subtitle) {
+    grid-column: 1;
+    color: var(--c-ink) !important;
+    max-width: 100%;
+}
+body.studio-theme header .narrowCenter:has(.headerImg) .app-name {
+    grid-row: 1;
+    align-self: end;
+    font-size: clamp(2rem, 3.5vw, 3.75rem) !important;
+    letter-spacing: -.045em;
+    line-height: 1.08;
+}
+body.studio-theme header .narrowCenter:has(.headerImg) .app-subtitle {
+    grid-row: 2;
+    color: var(--c-text) !important;
+    font-size: 1.125rem !important;
+}
+body.studio-theme .externalPage > header .headerImg:not(.commerce-default-banner) {
+    height: auto !important;
+    object-fit: contain;
+}
+body.studio-theme .externalPage #cmsBottom { background: var(--c-dark); }
+body.studio-theme .footer-menus p { text-shadow: none; }
+body.studio-theme :is(a, button, input, select, summary):focus-visible {
+    outline: 3px solid var(--c-focus);
+    outline-offset: 3px;
+}
+@media (max-width: 700px) {
+    body.studio-theme .externalPage .centerContent { width: calc(100% - 24px) !important; }
+    body.studio-theme .externalPage > header { width: calc(100% - 24px) !important; margin: 12px auto 0; }
+    body.studio-theme header .narrowCenter:has(.headerImg):has(.app-name, .app-subtitle) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        min-height: 0;
+        padding: 20px;
+        gap: 16px;
+    }
+    body.studio-theme header .narrowCenter:has(.headerImg):has(.app-name, .app-subtitle) > a {
+        grid-column: 1;
+        grid-row: 3;
+    }
+}
+/* The decorative geometry follows every palette, including the default one. */
+body.commerce-theme.studio-theme {
+    --banner-base: var(--c-accent-soft);
+    --banner-end: var(--c-accent-soft-2);
+    --banner-art: radial-gradient(circle at 76% 50%, var(--c-accent-soft) 0 9%, var(--c-accent) 9.2% 18%, var(--c-accent-line-strong) 18.2% 28%, transparent 28.2%),
+        linear-gradient(150deg, transparent 30%, var(--c-accent-line) 30.2% 45%, transparent 45.2%);
+}
+body.commerce-theme.studio-theme[class][class][class] .externalPage > header:has(.app-name, .app-subtitle) {
+    background: var(--c-accent-soft) !important;
+}
+body.commerce-theme.studio-theme header .narrowCenter:has(.app-name, .app-subtitle) > a:has(.commerce-default-banner) {
+    background: var(--banner-art), linear-gradient(120deg, var(--banner-base), var(--banner-end));
+}
+body.commerce-theme.studio-theme[class][class][class] header .narrowCenter:has(.headerImg) :is(.app-name, .app-subtitle),
+body.commerce-theme.studio-theme[class][class][class] header .narrowCenter:has(.headerImg) :is(.app-name, .app-subtitle) span {
+    color: var(--c-ink) !important;
+}
+body.commerce-theme.studio-theme.cms-menu-below #cmsMenu.menuRow {
+    width: calc(100% - 64px);
+    border-radius: 0;
+}
+@media (max-width: 700px) {
+    body.commerce-theme.studio-theme.cms-menu-below #cmsMenu.menuRow { width: calc(100% - 24px); }
+}

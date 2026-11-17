@@ -11,7 +11,7 @@
  * @package   email
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,7 +161,7 @@ class email_Router extends core_Manager
      * @param string $toEmail   има значение само при $type == email_Router::RuleFromTo, в противен
      *                          случай се игнорира (може да е NULL)
      * @param string $type      email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
-     * @param bool   $bForce
+     * @param bool   $bForce    false за справка без създаване на папки и изтриване на правила
      *
      * @return int key(mvc=doc_Folders)
      */
@@ -193,9 +193,9 @@ class email_Router extends core_Manager
                 expect(false, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
             }
             
-            // Ако не сме успели да намерим $folderId значи обекта в правилото е невалиден
-            // Изтриваме правилото и отново извикваме тази функция
-            if (!$folderId) {
+            // Само при реално маршрутизиране изчистваме правило без валидна папка.
+            // При справка папката може да е скрита от ограниченията за достъп.
+            if ($bForce && !$folderId) {
                 self::delete($rec->id);
                 
                 return self::route($fromEmail, $toEmail, $type);

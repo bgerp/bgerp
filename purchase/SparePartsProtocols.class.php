@@ -8,7 +8,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -166,7 +166,8 @@ class purchase_SparePartsProtocols extends core_Master
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        $dCount = purchase_SparePartsProtocolDetails::count("#protocolId = '{$data->form->rec->id}'");
+        $id = $data->form->rec->id ?? null;
+        $dCount = !empty($id) ? purchase_SparePartsProtocolDetails::count(array("#protocolId = [#1#]", (int) $id)) : 0;
         if (!$dCount) {
             $data->form->toolbar->removeBtn('activate');
         }

@@ -40,13 +40,14 @@ require dirname(__DIR__) . '/DefaultTheme.class.php';
 require dirname(__DIR__) . '/FancyTheme.class.php';
 require dirname(__DIR__) . '/themes/cards/Theme.class.php';
 require dirname(__DIR__) . '/themes/editorial/Theme.class.php';
+require dirname(__DIR__) . '/themes/studio/Theme.class.php';
 $checks = 0;
 function check($ok, $message) {
     if (!$ok) throw new RuntimeException($message);
     $GLOBALS['checks']++;
 }
 $sections = array('page', 'shop', 'blog', 'article', 'checkout', 'forum');
-foreach (array('cms_DefaultTheme', 'cms_FancyTheme', 'cms_themes_cards_Theme', 'cms_themes_editorial_Theme') as $class) {
+foreach (array('cms_DefaultTheme', 'cms_FancyTheme', 'cms_themes_cards_Theme', 'cms_themes_editorial_Theme', 'cms_themes_studio_Theme') as $class) {
     $theme = new $class();
     $form = new core_FieldSet();
     $theme->addEmbeddedFields($form);
