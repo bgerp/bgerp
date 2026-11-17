@@ -2749,8 +2749,22 @@ class eshop_Carts extends core_Master
             $Vats = cls::get('drdata_Vats');
             $vatNo = $Vats->canonize($rec->invoiceVatNo);
 
+            if (strpos($vatNo, 'BG') !== 0) {
+
+                return;
+            }
+
+            // Клоновете използват основния 9-цифрен ЕИК; 10-цифрените лични/служебни номера не са пряко съпоставими.
+            $uicNo = (string) ($rec->invoiceUicNo ?? '');
+            if (preg_match('/^BG[0-9]{9}(?:[0-9]{4})?$/D', $vatNo) && preg_match('/^[0-9]{9}(?:[0-9]{4})?$/D', $uicNo)
+                && substr($vatNo, 2, 9) !== substr($uicNo, 0, 9)) {
+                $form->setError('invoiceVatNo,invoiceUicNo', 'ЕИК не съответства на ДДС номера|*!');
+
+                return;
+            }
+
             // Без актуален регистър проверката не би била надеждна
-            if (strpos($vatNo, 'BG') !== 0 || !drdata_VatRegister::isActual()) {
+            if (!drdata_VatRegister::isActual()) {
 
                 return;
             }
