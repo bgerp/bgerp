@@ -365,10 +365,11 @@ class marketing_Router extends core_Manager
      * Нормализира името на фирмата
      *
      * @param string $name - името на фирмата
+     * @param bool $everywhere - дали правната форма да се маха и по средата на името (за сравнение на имена)
      *
      * @return string $name - нормализираното име на фирмата
      */
-    public static function normalizeCompanyName($name)
+    public static function normalizeCompanyName($name, $everywhere = false)
     {
         $name = plg_Search::normalizeText($name);
         $nameL = "#{$name}#";
@@ -385,10 +386,13 @@ class marketing_Router extends core_Manager
             });
         }
         
-        // За всяка дума ако е в началото или края на името се маха
+        // За всяка дума ако е в началото или края на името се маха, а при $everywhere - и по средата
         foreach (self::$companyTypes as $word) {
             $word = trim($word, '|');
             $nameL = str_replace(array("#{$word} ", " {$word}#"), array('', ''), $nameL);
+            while ($everywhere && strpos($nameL, " {$word} ") !== false) {
+                $nameL = str_replace(" {$word} ", ' ', $nameL);
+            }
         }
         
         $name = trim(str_replace('#', '', $nameL));
@@ -410,8 +414,8 @@ class marketing_Router extends core_Manager
      */
     public static function isSameCompanyName($name1, $name2)
     {
-        $n1 = self::normalizeCompanyName($name1);
-        $n2 = self::normalizeCompanyName($name2);
+        $n1 = self::normalizeCompanyName($name1, true);
+        $n2 = self::normalizeCompanyName($name2, true);
         if ($n1 === '' || $n2 === '') {
 
             return null;
@@ -449,8 +453,8 @@ class marketing_Router extends core_Manager
      */
     public static function getCompanyNameDistance($name1, $name2, &$maxLen = null, $normalize = true)
     {
-        $n1 = $normalize ? self::normalizeCompanyName($name1) : $name1;
-        $n2 = $normalize ? self::normalizeCompanyName($name2) : $name2;
+        $n1 = $normalize ? self::normalizeCompanyName($name1, true) : $name1;
+        $n2 = $normalize ? self::normalizeCompanyName($name2, true) : $name2;
         if ($n1 === '' || $n2 === '') {
 
             return null;

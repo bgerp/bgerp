@@ -158,6 +158,30 @@ class drdata_VatRegister extends core_Manager
 
 
     /**
+     * Името от регистъра във вида за фактура: "ВИТАЛИТИ АКТИВ /ЕООД/" -> "ВИТАЛИТИ АКТИВ ЕООД"
+     *
+     * Правната форма в наклонени черти се премества след името, а други пояснения (напр. "/Осигурител/") се махат.
+     *
+     * @param string $regName
+     *
+     * @return string
+     */
+    public static function getInvoiceName($regName)
+    {
+        $regName = trim($regName ?? '');
+        if (!preg_match('/^(.*?)\s*\/([^\/]*)\/\s*$/u', $regName, $m)) {
+
+            return $regName;
+        }
+
+        $legalForm = trim($m[2]);
+        $isLegalForm = preg_match('/^(ЕООД|ООД|ЕАД|АД|ЕТ|КД|КДА|СД|ДЗЗД|АДСИЦ)$/iu', $legalForm);
+
+        return trim($m[1]) . ($isLegalForm ? " {$legalForm}" : '');
+    }
+
+
+    /**
      * Бутон за регенериране на регистъра (само за debug)
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)

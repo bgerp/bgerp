@@ -2709,6 +2709,25 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Дали разминаването на името с регистъра по ЗДДС е грешка или предупреждение
+     *
+     * По подразбиране няма решение (остава грешка); задава се от плъгини, напр. ai_plg_VatNameMismatch.
+     *
+     * @param string $enteredName    - въведеното име
+     * @param string $registeredName - името от регистъра по ЗДДС
+     * @param string $vatNo          - ДДС номерът
+     * @param string|null $uicNo     - въведеният национален номер (ЕИК)
+     *
+     * @return string|null - 'error', 'warning' или null
+     */
+    public function resolveVatNameMismatch_($enteredName, $registeredName, $vatNo, $uicNo = null)
+    {
+
+        return null;
+    }
+
+
+    /**
      * Сверява фирмата за фактуриране в България с регистъра по ЗДДС или с Търговския регистър
      *
      * @param core_Form $form
@@ -2757,7 +2776,15 @@ class eshop_Carts extends core_Master
             }
 
             if (!empty($regName) && drdata_VatRegister::isSameCompany($rec->invoiceNames, $regName) === false) {
-                $form->setError('invoiceNames,invoiceVatNo', 'ДДС номерът не е на тази фирма|*!');
+
+                // При номер от регистъра плъгин (агентът на Аида) може да прецени, че е същата фирма с друго изписване
+                $decision = is_object($regRec) ? cls::get('eshop_Carts')->resolveVatNameMismatch($rec->invoiceNames, $regName, $vatNo, $rec->invoiceUicNo ?? null) : null;
+                if ($decision == 'warning') {
+                    $rec->invoiceNames = drdata_VatRegister::getInvoiceName($regName);
+                    $form->setWarning('invoiceNames', 'Името на фирмата е поправено според регистъра по ЗДДС|*!');
+                } else {
+                    $form->setError('invoiceNames,invoiceVatNo', 'ДДС номерът не е на тази фирма|*!');
+                }
             }
 
             return;
