@@ -21,19 +21,20 @@ class deals_DocumentSummary
     public static function prepare($deal, $rec)
     {
         $dealId = $rec->id ?? null;
-        $dealValior = $rec->valior ?? null;
-        $dealRate = ($rec->currencyRate ?? null) ?: 1;
-        $currency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($dealValior);
-        $isSale = $deal instanceof sales_Sales;
-        $accounts = $isSale ? array('411', '412') : array('401', '402');
-        $item = null;
-        $entries = acc_Journal::getEntries(array($deal->className, $dealId), $item);
-        $itemId = $item->id ?? null;
-        $partial = false;
-        $documents = self::getJournalDocuments($entries, $itemId, $accounts, $partial);
-
         $threadId = $rec->threadId ?? null;
-        $threads = empty($rec->closedDocuments) ? array($threadId) : deals_Helper::getCombinedThreads($threadId);
+        $currency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($rec->valior ?? null);
+        $isSale = $deal instanceof sales_Sales;
+        $combinedIds = keylist::toArray($rec->closedDocuments ?? null);
+        $dealRecs = array($dealId => $rec);
+        $groupIds = array();
+        if ($combinedIds) {
+            $query = $deal->getQuery();
+            $query->in('id', $combinedIds);
+            $dealRecs += $query->fetchAll();
+            $groupIds = $combinedIds + array($dealId => $dealId);
+        }
+        $partial = (bool) array_diff_key($combinedIds, $dealRecs);
+
         $unpostedStates = array('draft', 'pending');
         $invoiceClasses = array('sales_Invoices', 'purchase_Invoices');
         $documentClasses = array(
@@ -41,8 +42,92 @@ class deals_DocumentSummary
             'cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments',
             'findeals_DebitDocuments', 'findeals_CreditDocuments', 'acc_ValueCorrections', 'sales_ClosedDeals', 'purchase_ClosedDeals',
         );
+        $threads = array_column($dealRecs, 'threadId');
         $containers = self::getThreadDocuments($threads, $invoiceClasses, array_merge(array('active'), $unpostedStates));
-        $containers += self::getThreadDocuments(array($threadId), $documentClasses, array_merge(array('active', 'closed'), $unpostedStates));
+        $containers += self::getThreadDocuments($threads, $documentClasses, array_merge(array('active', 'closed'), $unpostedStates));
+        $containersByThread = array();
+        foreach ($containers as $container) {
+            $containersByThread[$container->threadId ?? null][] = $container;
+        }
+
+        $rows = $threadDeals = array();
+        foreach ($dealRecs as $sourceId => $source) {
+            $sourceThread = $source->threadId ?? null;
+            if ($groupIds && $sourceThread && $sourceThread != $threadId) {
+                $threadDeals[$sourceThread] = array(
+                    'handle' => '#' . $deal->getHandle($sourceId),
+                    'url' => $deal->getSingleUrlArray($sourceId),
+                );
+            }
+
+            $sourceRows = self::getDealRows($deal, $source, $containersByThread[$sourceThread] ?? array(), $groupIds, $currency, $isSale, $unpostedStates, $partial);
+            foreach ($sourceRows as $key => $document) {
+                $amounts = $document['amounts'];
+                unset($document['amounts']);
+                $rows[$key] ??= $document;
+                foreach ($amounts as $field => $amount) {
+                    // Фактурата има една сума, независимо по колко пера е намерена.
+                    if ($field === 'invoiced' && isset($rows[$key][$field])) continue;
+
+                    $rows[$key][$field] = ($rows[$key][$field] ?? 0) + $amount;
+                }
+            }
+        }
+
+        $totals = array('delivered' => 0, 'settled' => 0, 'invoiced' => 0);
+        foreach ($rows as &$row) {
+            $docThread = $row['threadId'];
+            $row['otherThread'] = $docThread != $threadId;
+            if ($groupIds && $docThread && $row['otherThread']) {
+                if (!array_key_exists($docThread, $threadDeals)) {
+                    $first = doc_Threads::getFirstDocument($docThread);
+                    $threadDeals[$docThread] = $first && $first->isInstanceOf('deals_DealBase') && $first->haveRightFor('single')
+                        ? array('handle' => '#' . $first->getHandle(), 'url' => $first->getSingleUrlArray()) : null;
+                }
+                $row['threadDeal'] = $threadDeals[$docThread];
+            }
+            if (isset($row['settled'])) {
+                $Doc = $row['mvc'];
+                $row['nonCash'] = !($Doc instanceof cash_Document || $Doc instanceof bank_Document || $Doc instanceof deals_DealMaster);
+            }
+            foreach ($totals as $field => $total) {
+                if (!isset($row[$field])) continue;
+                $row[$field] = round($row[$field], 2);
+                if (empty($row['unpostedState'])) $totals[$field] += $row[$field];
+            }
+        }
+        unset($row);
+
+        usort($rows, static function ($a, $b) {
+            return array($a['date'] ?? '9999-12-31', $a['id']) <=> array($b['date'] ?? '9999-12-31', $b['id']);
+        });
+        $rows = self::groupInvoiceNotes($rows);
+
+        $incoming = $totals[$isSale ? 'settled' : 'delivered'];
+        $outgoing = $totals[$isSale ? 'delivered' : 'settled'];
+        $balance = round($incoming - $outgoing, 2);
+
+        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'isSale' => $isSale,
+            'dealContainerId' => $rec->containerId ?? null);
+    }
+
+
+    /**
+     * Изчислява участието на документите по конкретния договор.
+     */
+    private static function getDealRows($deal, $rec, $containers, $groupIds, $currency, $isSale, $unpostedStates, &$partial)
+    {
+        $dealId = $rec->id ?? null;
+        $threadId = $rec->threadId ?? null;
+        $dealValior = $rec->valior ?? null;
+        $dealRate = ($rec->currencyRate ?? null) ?: 1;
+        $dealCurrency = $rec->currencyId ?? acc_Periods::getBaseCurrencyCode($dealValior);
+        $accounts = $isSale ? array('411', '412') : array('401', '402');
+        $item = null;
+        $entries = acc_Journal::getEntries(array($deal->className, $dealId), $item);
+        $itemId = $item->id ?? null;
+        $documents = self::getJournalDocuments($entries, $itemId, $accounts, $partial);
+
         foreach ($containers as $container) {
             $classId = $container->docClass ?? null;
             $id = $container->docId ?? null;
@@ -56,13 +141,16 @@ class deals_DocumentSummary
         }
 
         $rows = array();
-        $totals = array('delivered' => 0, 'settled' => 0, 'invoiced' => 0);
-        foreach ($documents as $document) {
+        foreach ($documents as $key => $document) {
             $Doc = $document['mvc'];
             $docRec = $Doc->fetchRec($document['id']);
             $state = $docRec->state ?? ($document['unpostedState'] ?? null);
             $unposted = in_array($state, $unpostedStates, true);
             if ($state === 'rejected') continue;
+
+            // Тези приключвания само прехвърлят обороти между договорите в групата.
+            if ($Doc instanceof deals_ClosedDeals && isset($groupIds[$docRec->docId ?? null], $groupIds[$docRec->closeWith ?? null])
+                && ($docRec->docClassId ?? null) == $deal->getClassId()) continue;
 
             $docEntries = $document['entries'] ?? array();
             if (!$unposted && !$docEntries && ($Doc instanceof deals_ClosedDeals
@@ -81,11 +169,13 @@ class deals_DocumentSummary
             if (isset($document['state'])) {
                 $document['stateTitle'] = $Doc->getVerbal($docRec, 'state');
             }
-            $document['otherThread'] = ($docRec->threadId ?? $threadId) != $threadId;
+            $document['threadId'] = $docRec->threadId ?? $threadId;
+            $document['otherThread'] = $document['threadId'] != $threadId;
             $document['date'] = $docRec->valior ?? ($docEntries[0]->valior ?? null);
             unset($document['entries']);
 
-            if ($Doc instanceof deals_InvoiceMaster) {
+            $isInvoice = $Doc instanceof deals_InvoiceMaster;
+            if ($isInvoice) {
                 $type = $docRec->type ?? null;
                 if ($type === 'dc_note') {
                     $document['title'] = ($docRec->dealValue ?? 0) <= 0 ? 'Кредитно известие' : 'Дебитно известие';
@@ -104,43 +194,35 @@ class deals_DocumentSummary
             }
 
             try {
-                $amounts = self::getDocumentAmounts($document, $docRec, $rec, $currency, $isSale);
+                $amounts = self::getDocumentAmounts($document, $docRec, $rec, $isInvoice ? $currency : $dealCurrency, $isSale);
+                if (!$amounts && !$unposted && $docEntries && !$isInvoice) {
+                    $isOwnDeal = $Doc === $deal && $document['id'] == $dealId;
+                    $amounts = self::getJournalAmounts($docEntries, $itemId, $accounts, $Doc, $isOwnDeal, $isSale, $dealValior, $dealRate, $dealCurrency);
+                    if (!$amounts) continue;
+                }
+                if (!$isInvoice && $currency !== $dealCurrency) {
+                    foreach ($amounts as $field => $value) {
+                        $amount = self::convertDocumentAmount($value, $dealCurrency, $currency, $document['date']);
+                        if (isset($amount)) {
+                            $amounts[$field] = $amount;
+                        } else {
+                            unset($amounts[$field]);
+                            $partial = $partial || !$unposted;
+                        }
+                    }
+                }
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $amounts = array();
-            }
-            if (!$amounts && !$unposted && $docEntries && !($Doc instanceof deals_InvoiceMaster)) {
-                $isOwnDeal = $Doc === $deal && $document['id'] == $dealId;
-                $amounts = self::getJournalAmounts($docEntries, $itemId, $accounts, $Doc, $isOwnDeal, $isSale, $dealValior, $dealRate, $currency);
-                if (!$amounts) continue;
+                $partial = $partial || !$unposted;
             }
             if (!$amounts && $Doc instanceof deals_DealMaster) continue;
             $partial = $partial || (!$unposted && !$amounts);
-            $document += $amounts;
-
-            if (isset($document['settled'])) {
-                $document['nonCash'] = !($Doc instanceof cash_Document || $Doc instanceof bank_Document || $Doc instanceof deals_DealMaster);
-            }
-
-            foreach ($totals as $field => $total) {
-                if (!isset($document[$field])) continue;
-                $document[$field] = round($document[$field], 2);
-                if (!$unposted) $totals[$field] += $document[$field];
-            }
-            $rows[] = $document;
+            $document['amounts'] = $amounts;
+            $rows[$key] = $document;
         }
 
-        usort($rows, static function ($a, $b) {
-            return array($a['date'] ?? '9999-12-31', $a['id']) <=> array($b['date'] ?? '9999-12-31', $b['id']);
-        });
-        $rows = self::groupInvoiceNotes($rows);
-
-        $incoming = $totals[$isSale ? 'settled' : 'delivered'];
-        $outgoing = $totals[$isSale ? 'delivered' : 'settled'];
-        $balance = round($incoming - $outgoing, 2);
-
-        return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'isSale' => $isSale,
-            'dealContainerId' => $rec->containerId ?? null);
+        return $rows;
     }
 
 
@@ -216,7 +298,7 @@ class deals_DocumentSummary
         $query->in('threadId', $threads);
         $query->in('docClass', $classIds);
         $query->in('state', $states);
-        $query->show('docClass,docId,state');
+        $query->show('threadId,docClass,docId,state');
 
         return $query->fetchAll();
     }
@@ -402,7 +484,12 @@ class deals_DocumentSummary
             $title .= ' № ' . $document['invoiceNumber'];
         }
         if ($document['otherThread']) {
-            $title .= ' ' . ht::createElement('small', array('class' => 'quiet'), '(' . tr('друга нишка') . ')');
+            $threadDeal = $document['threadDeal'] ?? array();
+            $threadLabel = $threadDeal['handle'] ?? tr('друга нишка');
+            if (!empty($threadDeal['url'])) {
+                $threadLabel = ht::createLink($threadLabel, $threadDeal['url'], false, array('target' => '_blank', 'rel' => 'noopener'));
+            }
+            $title .= ' ' . ht::createElement('small', array('class' => 'quiet'), '(' . $threadLabel . ')');
         }
 
         $linkAttr = array('class' => 'document-handler');
