@@ -2434,7 +2434,7 @@ function natureFixture(kind, seed=997, overrides={}) {
     let valid=true,steps=0,reserved=0,released=0,moves=[];
     e.window.funnyWeather.visible=()=>valid;
     e.window.funnyWeather.sky=()=>valid?{kind:kind==='howl'?'moon':'sun',phase:.5,x:1000,y:80}:null;
-    e.window.funnyWeather.surfaceNear=(x,y)=>valid?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;return true;}}:null;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>valid && (type==='water' ? ['boat','reflection'].includes(kind) : kind==='plow')?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;return true;}}:null;
     if(kind==='boat')e.window.funnyWeather.leafNear=(x,y)=>reserved?null:({x,y,valid:()=>valid,reserve:()=>{reserved++;return true;},release:()=>{released++;},move:(x,y)=>moves.push({x,y})});
     e.click();return {e,config,choices,invalidate:()=>{valid=false;},stats:()=>({steps,reserved,released,moves})};
 }
@@ -2517,6 +2517,111 @@ check('nature scenes: howl sound is short, quiet, optional and silenced on loss 
         const notes=e.sounds.filter(s=>s.type==='sine'&&(s.frequency===220||s.frequency===290));assert.equal(notes.length,sound==='yes'?2:0);
         if(sound==='yes'){assert(notes.at(-1).time-notes[0].start<.9);assert(e.volumes.slice(before).every(v=>v<=.023));}
         e.window.emit('blur');e.tick(500);assert(e.audio.every(a=>a.state==='closed'));const count=e.sounds.length;e.tick(70000);assert.equal(e.sounds.length,count);
+    }
+});
+
+/** Public gestures and small surface doubles keep seasonal checks independent of page content. */
+function seasonFixture(kind, seed=997, overrides={}) {
+    const choices={hop:['bunny'],detour:['chick'],broom:['witch'],shade:['snowman'],lantern:['pumpkin','firefly'],tow:['sleigh','deer'],tassels:['martenitsa']}[kind];
+    const config={seed,width:1400,height:1000,weather:{hop:'rain',detour:'rain',broom:'wind',shade:'sun',lantern:'fog',tow:'snow',tassels:'wind'}[kind],wind:{x:1,y:0,speed:28},...overrides};
+    const forecast={temperature:kind==='tow'?-5:18,expires:Infinity};
+    const e=environment({trigger:'manual',mode:'selected',characters:choices,sound:'no',forecast},config);
+    let valid=true,steps=0;
+    e.window.funnyWeather.visible=()=>valid;
+    e.window.funnyWeather.sky=()=>valid?{kind:'sun',x:700,y:50}:null;
+    e.window.funnyWeather.surfaceNear=(x,y)=>valid?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;}}:null;
+    e.click();
+    if(kind==='shade') {
+        e.tick(900);const p=e.center(e.visitors()[0]);config.blocks=[e.block];
+        e.block.rect={left:p.x-100,right:p.x+100,top:p.y-70,bottom:p.y-40,width:200,height:30};
+    }
+    return {e,config,forecast,choices,invalidate:()=>{valid=false;},steps:()=>steps};
+}
+check('season scenes: bunny jumps a real puddle and lands with splashes, while chick pauses and walks around',()=>{
+    for(const kind of ['hop','detour']){
+        const {e}=seasonFixture(kind),v=waitWeatherAct(e,kind==='hop'?'hopping':'going-around'),start=e.center(v);
+        e.tick(kind==='hop'?750:1700);const middle=e.center(v);assert(middle.y<start.y-15);assert(middle.x>start.x+15);
+        e.tick(2200);assert(!v.attrs['data-weather-act']);
+        assert.equal(v.history.filter(([k,x])=>k==='data-weather-act'&&x===(kind==='hop'?'puddle-hop':'puddle-around')).length,1);
+        const dry=seasonFixture(kind);dry.e.window.funnyWeather.surfaceNear=()=>null;
+        assert(watchVisitors(dry.e,16000).every(a=>!a.history.some(([k])=>k==='data-weather-act')));
+    }
+});
+check('season scenes: broom recovers in either wind direction and calm weather cannot start a gust scene',()=>{
+    for(const direction of [-1,1]){
+        const {e}=seasonFixture('broom',997,{wind:{x:direction,y:0,speed:28}}),v=waitWeatherAct(e,'broom'),start=e.center(v);
+        e.tick(1300);assert(e.center(v).y>start.y+10);assert(v.style['--funny-broom-turn']);
+        e.tick(2400);assert((e.center(v).x-start.x)*direction>55);e.tick(400);assert(!v.attrs['data-weather-act']);
+    }
+    for(const direction of [-1,1]){
+        const {e}=seasonFixture('broom',997,{wind:{x:0,y:direction,speed:28}}),v=waitWeatherAct(e,'broom'),start=e.center(v);
+        e.tick(3800);const end=e.center(v);assert((end.y-start.y)*direction>35);assert(Math.abs(end.x-start.x)<8);
+    }
+    for(const kind of ['broom','tassels']){const {e}=seasonFixture(kind,997,{wind:{x:0,y:0,speed:5}});assert(watchVisitors(e,15000).every(v=>!v.history.some(([k])=>k==='data-weather-act')));}
+});
+check('season scenes: snowman borrows a real shade edge, melts slower there and releases removed edges',()=>{
+    for(const end of ['timeout','removed','weather']){
+        const {e,config}=seasonFixture('shade'),v=waitWeatherAct(e,'shade');
+        for(let t=0;t<3000&&v.attrs['data-shade']!=='true';t+=32)e.tick(32);
+        assert.equal(v.attrs['data-shade'],'true');const before=Number(v.style['--funny-snow-body']);e.tick(1000);
+        const shaded=before-Number(v.style['--funny-snow-body']);assert(shaded>=0&&shaded<=.002);
+        if(end==='removed')e.block.isConnected=false;if(end==='weather')config.weather='clouds';
+        e.tick(end==='timeout'?6000:1200);assert(!v.attrs['data-weather-act']);assert(!v.attrs['data-shade']);
+        const after=Number(v.style['--funny-snow-body']);e.tick(1000);assert(after-Number(v.style['--funny-snow-body'])>=.003);
+    }
+    const {e}=seasonFixture('shade');e.block.computedStyle={visibility:'hidden'};assert(watchVisitors(e,15000).every(v=>!v.history.some(([k])=>k==='data-weather-act')));
+});
+check('season scenes: firefly lights pumpkin only in visible fog or at night and both release together',()=>{
+    for(const night of [false,true]){
+        const {e,invalidate}=seasonFixture('lantern',997,night?{weather:'moon',date:'2026-11-24T23:00:00'}:{});
+        const pumpkin=waitWeatherAct(e,'lantern'),fly=e.visitors().find(v=>v.attrs['data-weather-act']==='lantern-fly');assert(fly);
+        e.tick(1000);assert(Number(pumpkin.style['--funny-lantern'])>0);const bright=pumpkin.style['--funny-lantern'];e.tick(250);assert.notEqual(pumpkin.style['--funny-lantern'],bright);
+        invalidate();e.tick(32);assert(!pumpkin.attrs['data-weather-act']);assert(!fly.attrs['data-weather-act']);assert.equal(pumpkin.style['--funny-lantern'],'0');
+    }
+    const {e}=seasonFixture('lantern',997,{weather:'sun'});assert(watchVisitors(e,15000).every(v=>!v.history.some(([k])=>k==='data-weather-act')));
+});
+check('season scenes: deer pulls a stuck sleigh across real snow, leaving a bounded deeper track',()=>{
+    const {e,steps}=seasonFixture('tow',7919),sleigh=waitWeatherAct(e,'unstuck'),deer=e.visitors().find(v=>v.attrs['data-weather-act']==='tow');assert(deer);
+    const start=e.center(sleigh);e.tick(1000);assert(Math.abs(e.center(sleigh).x-start.x)>20);assert(steps()>0&&steps()<6);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-deep-runner')));e.tick(6000);assert(!sleigh.attrs['data-weather-act']);assert(!deer.attrs['data-weather-act']);
+    const absent=seasonFixture('tow',7919);absent.e.window.funnyWeather.surfaceNear=()=>null;assert(watchVisitors(absent.e,15000).every(v=>!v.history.some(([k])=>k==='data-weather-act')));
+});
+check('season scenes: martenitsa tassels sway independently, stretch and return to the original sprite',()=>{
+    for(const direction of [-1,1]){
+        const {e}=seasonFixture('tassels',997,{wind:{x:direction,y:0,speed:28}}),v=waitWeatherAct(e,'tassels');e.tick(1500);
+        assert(Number(v.style['--funny-thread-stretch'])>1);assert.notEqual(v.style['--funny-pizho-turn'],v.style['--funny-penda-turn']);
+        assert(parseFloat(v.style['--funny-pizho-x'])<parseFloat(v.style['--funny-penda-x']));e.tick(3000);
+        assert(!v.attrs['data-weather-act']);assert(!v.style['--funny-thread-stretch']);assert(!v.style['--funny-pizho-turn']);
+    }
+});
+check('season scenes: gestures, removed surfaces, focus and motion preferences cancel every new scene',()=>{
+    for(const kind of ['hop','detour','broom','shade','lantern','tow','tassels'])for(const end of ['pointer','scroll','escape','blur','reduced']){
+        const {e}=seasonFixture(kind,kind==='tow'?7919:997),state={hop:'hopping',detour:'going-around',tow:'unstuck'}[kind]||kind,v=waitWeatherAct(e,state);
+        if(end==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(end==='scroll')e.document.emit('scroll');if(end==='escape')e.document.emit('keydown',{key:'Escape'});if(end==='blur')e.window.emit('blur');if(end==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(80);assert(!v.attrs['data-weather-act'],kind+'/'+end);e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);assert.equal(e.sounds.length,0);
+    }
+});
+
+check('season scenes: water interrupts only the approach to a rain shelter and never prolongs the visitor',()=>{
+    for(const kind of ['hop','detour']){
+        const {e,config}=seasonFixture(kind);e.tick(900);const actor=e.visitors()[0],p=e.center(actor);
+        config.blocks=[e.block];e.block.rect={left:p.x-100,right:p.x+100,top:p.y-45,bottom:p.y-20,width:200,height:25};
+        waitWeatherAct(e,kind==='hop'?'hopping':'going-around');e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+    }
+});
+
+check('scene turns: nearby actors wait for completion and a quiet interval, while distant scenes can overlap',()=>{
+    for(const nearby of [true,false]){
+        const {e}=seasonFixture('broom',nearby?2991:997);e.tick(700);e.click();
+        const states=new Map(),starts=[],ends=[];let simultaneous=0;
+        for(let t=0;t<18000;t+=32){
+            e.tick(32);const actors=e.visitors();simultaneous=Math.max(simultaneous,actors.filter(v=>v.attrs['data-weather-act']==='broom').length);
+            for(const v of actors){const active=v.attrs['data-weather-act']==='broom';if(active&&!states.get(v))starts.push(e.now());if(!active&&states.get(v))ends.push(e.now());states.set(v,active);}
+        }
+        assert.equal(starts.length,2);assert.equal(ends.length,2);
+        if(nearby){assert.equal(simultaneous,1);assert(starts[1]-ends[0]>=2500);}else assert.equal(simultaneous,2);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
     }
 });
 

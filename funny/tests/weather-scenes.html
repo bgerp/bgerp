@@ -3,8 +3,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Funny - срещи с времето</title>
-<link rel="stylesheet" href="../css/funny.css?v=nature-scenes">
-<link rel="stylesheet" href="../css/weather.css?v=nature-scenes">
+<link rel="stylesheet" href="../css/funny.css?v=season-scenes">
+<link rel="stylesheet" href="../css/weather.css?v=season-scenes">
 <style>
 body { margin: 20px; font: 15px/1.5 sans-serif; color: #334155; background: #edf2f7; min-height: 120vh; }
 h1 { width: max-content; font-size: 22px; margin: 0; } p { margin: 8px 0; max-width: 650px; }
@@ -21,15 +21,20 @@ body[data-nature="boat"] #launch { top: 170px; bottom: auto; }
 body[data-nature="boat"] #blocks { display: block; top: 430px; }
 body[data-nature="boat"] #blocks section:not(:first-child) { display: none; }
 body[data-nature="boat"] #blocks section { height: 170px; }
+body[data-nature="shade"] #blocks { left: 8%; right: 38%; }
+body[data-nature="hop"] #blocks, body[data-nature="detour"] #blocks, body[data-nature="tow"] #blocks { display: block; left: 8%; right: 6%; top: 70vh; }
+body[data-nature="hop"] #blocks section:not(:first-child), body[data-nature="detour"] #blocks section:not(:first-child), body[data-nature="tow"] #blocks section:not(:first-child) { display: none; }
+body[data-nature="hop"] #blocks, body[data-nature="detour"] #blocks { top: 55vh; }
+body[data-nature="hop"] #blocks section, body[data-nature="detour"] #blocks section { height: 20px; }
 @media(max-width:700px) { body[data-nature] #fixture-controls { max-width: 100%; } body[data-nature] #blocks { position: static; margin-top: 40px; } }
 </style>
 <details id="fixture-controls" open><summary>Настройки на теста</summary><h1>Кратки срещи с времето</h1>
-<label>Сцена <select id="scenario"><option value="slide">Пингвин на лед</option><option value="gather">Снежен човек събира сняг</option><option value="scent">Вълк търси следи</option><option value="mend">Паяк поправя паяжина</option><option value="huddle">Пингвини във виелица</option><option value="hat">Вятър отнася шапката</option><option value="reflection">Коте и отражение</option><option value="boat">Мишка в листо</option><option value="guide">Светулка в мъглата</option><option value="thermal">Щъркел в топъл въздух</option><option value="plow">Елен проправя пътека</option><option value="howl">Вълк при пълнолуние</option></select></label>
+<label>Сцена <select id="scenario"><option value="slide">Пингвин на лед</option><option value="gather">Снежен човек събира сняг</option><option value="scent">Вълк търси следи</option><option value="mend">Паяк поправя паяжина</option><option value="huddle">Пингвини във виелица</option><option value="hat">Вятър отнася шапката</option><option value="reflection">Коте и отражение</option><option value="boat">Мишка в листо</option><option value="guide">Светулка в мъглата</option><option value="thermal">Щъркел в топъл въздух</option><option value="plow">Елен проправя пътека</option><option value="howl">Вълк при пълнолуние</option><option value="hop">Зайче прескача локва</option><option value="detour">Пиленце заобикаля локва</option><option value="broom">Вещица срещу вятъра</option><option value="shade">Снежен човек на сянка</option><option value="lantern">Тиквен фенер и светулка</option><option value="tow">Затънала шейна и елен</option><option value="tassels">Мартеница във вятъра</option></select></label>
 <button id="weather">Пусни времето</button> <button id="bear">Следващият герой е мечка</button> <button id="warm">Затопляне</button>
 <label><input id="sound" type="checkbox"> Звук</label> <button id="cat">Следващият герой е коте</button>
 <button id="prey">Следващият герой е зайче</button>
 <button id="test">Кликове: 0</button> <input aria-label="Писане под ефектите" placeholder="Проверка на писането">
-<p>Самостоятелна страница с реалните контролери, фиксиран жребий и тестова прогноза. Пуснете времето и направете двоен клик на празно място. За сгушване извикайте 2-3 групи пингвини, после мечка. Сцените се включват само при подходяща близост; вълкът трябва първо да изгуби плячката. Escape, скролът и загубата на фокус прекъсват сцената. Снегът, скрежът и водата се натрупват постепенно. Лодката изисква кацнало листо до натрупана вода; извикайте котето по-късно. За луната и слънцето се използва фиксирана тестова дата, без заявки.</p>
+<p>Самостоятелна страница с реалните контролери, фиксиран жребий и тестова прогноза. Пуснете времето и направете двоен клик на празно място. За сгушване извикайте 2-3 групи пингвини, после мечка. Сцените се включват само при подходяща близост; вълкът трябва първо да изгуби плячката. Escape, скролът и загубата на фокус прекъсват сцената. Снегът, скрежът и водата се натрупват постепенно. Лодката изисква кацнало листо до натрупана вода; извикайте котето по-късно. За зайчето и пиленцето изчакайте натрупване на вода; шейната изисква сняг и близък елен. Фенерът изисква тиква и светулка наблизо. Сценките в една група се редуват с пауза. За луната и слънцето се използва фиксирана тестова дата, без заявки.</p>
 <iframe id="focus-test" title="Друг екран за проверка на фокус" src="focus.html" style="display:block;width:300px;height:34px;border:0"></iframe>
 </details>
 <output id="status">Наблюдавани сцени: изчакване</output><div id="blocks"></div><div id="launch"></div>
@@ -38,17 +43,17 @@ body[data-nature="boat"] #blocks section { height: 170px; }
 // Seed only this fixture; production keeps its ordinary lottery, timers and forecast snapshot.
 var params = new URLSearchParams(location.search), kind = params.get('scene') || 'hat', seed = Number(params.get('seed')) || 997;
 // A local test date makes the moon/sun reproducible without changing production clocks.
-if (/^(reflection|boat|guide|thermal|plow|howl)$/.test(kind)) document.body.setAttribute('data-nature', kind);
+if (/^(reflection|boat|guide|thermal|plow|howl|hop|detour|broom|shade|lantern|tow|tassels)$/.test(kind)) document.body.setAttribute('data-nature', kind);
 var RealDate = Date, dateStart = performance.now(), dateBase = new RealDate(kind === 'howl' ? '2026-11-24T23:00:00' : '2026-10-30T12:00:00').getTime();
 window.Date = class extends RealDate { constructor(...args) { super(...(args.length ? args : [dateBase + performance.now() - dateStart])); } static now() { return dateBase + performance.now() - dateStart; } };
 Math.random = function () { return ((seed = seed * 16807 % 2147483647) - 1) / 2147483646; };
 var select = document.getElementById('scenario'); select.value = kind;
 select.addEventListener('change', function () { location.search = new URLSearchParams({scene:select.value,seed:params.get('seed') || 997,sound:document.getElementById('sound').checked ? 'yes' : 'no'}); });
 for (var i = 0; i < 18; i++) { var block = document.createElement('section'); block.id = 'blockPortal_test' + i; block.textContent = 'Тестов блок ' + (i + 1); document.getElementById('blocks').appendChild(block); }
-var forecast = {icon:{scent:'rain',hat:'wind',reflection:'rain',boat:'rain',guide:'fog',thermal:'clear-day',howl:'clear-night'}[kind] || 'snow',temperature:/^(hat|scent|reflection|boat|guide|thermal|howl)$/.test(kind) ? 18 : -5,wind:kind === 'huddle' || kind === 'hat' || kind === 'mend' ? 28 : 8,windDirection:270,expires:Date.now() + 86400000};
+var forecast = {icon:{scent:'rain',hat:'wind',reflection:'rain',boat:'rain',guide:'fog',thermal:'clear-day',howl:'clear-night',hop:'rain',detour:'rain',broom:'wind',shade:'clear-day',lantern:'fog',tassels:'wind'}[kind] || 'snow',temperature:/^(hat|scent|reflection|boat|guide|thermal|howl|hop|detour|broom|shade|lantern|tassels)$/.test(kind) ? 18 : -5,wind:kind === 'huddle' || kind === 'hat' || kind === 'mend' || kind === 'broom' || kind === 'tassels' ? 28 : 8,windDirection:270,expires:Date.now() + 86400000};
 var weatherOptions = Object.assign({mode:'on',standalone:false}, forecast);
 funnyWeather.init(weatherOptions);
-var choices = {slide:['polarbear','penguin'],gather:['snowman'],scent:['wolf','bunny','chick'],mend:['spiders'],huddle:['penguin'],hat:['elf'],reflection:['cat'],boat:['mouse'],guide:['firefly','bunny','chick'],thermal:['stork'],plow:['deer','elf'],howl:['wolf','bat']}[kind];
+var choices = {slide:['polarbear','penguin'],gather:['snowman'],scent:['wolf','bunny','chick'],mend:['spiders'],huddle:['penguin'],hat:['elf'],reflection:['cat'],boat:['mouse'],guide:['firefly','bunny','chick'],thermal:['stork'],plow:['deer','elf'],howl:['wolf','bat'],hop:['bunny'],detour:['chick'],broom:['witch'],shade:['snowman'],lantern:['pumpkin','firefly'],tow:['sleigh','deer'],tassels:['martenitsa']}[kind];
 funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:params.get('sound') === 'yes' ? 'yes' : 'no',spriteUrl:'../img/characters.svg',forecast:forecast});
 document.getElementById('sound').checked = params.get('sound') === 'yes';
 document.getElementById('sound').addEventListener('change', function () { select.dispatchEvent(new Event('change')); });
@@ -58,7 +63,7 @@ document.getElementById('bear').addEventListener('click', function () { choices.
 document.getElementById('prey').addEventListener('click', function () { choices.splice(0, choices.length, 'bunny'); });
 document.getElementById('warm').addEventListener('click', function () { forecast.temperature = weatherOptions.temperature = 12; forecast.icon = weatherOptions.icon = 'clear-day'; funnyWeather.trigger('manual'); });
 var clicks=0; document.getElementById('test').addEventListener('click', function () { this.textContent='Кликове: '+(++clicks); });
-var names={reflection:'Към локвата','reflection-look':'Отражение','reflection-paw':'Лапичка във водата',boat:'Към листото',sailing:'Плаване','boat-watch':'Коте на брега',guide:'Светулка водач',guided:'Следване на светулката',thermal:'Реене',plow:'Към снега','snow-path':'Проправяне на пътека','snow-follow':'Елф следва пътеката',howl:'Вой към луната',flutter:'Прилепи се разпръскват',slide:'Пързаляне',brake:'Спиране на мечката',gather:'Към снега',packing:'Събиране на сняг',scent:'По следите',sniff:'Следите са измити',mend:'Към паяжината',weaving:'Поправяне',huddle:'Сгушване',scatter:'Разпръскване',hat:'Гонене на шапката',broken:'Скъсана нишка',done:'Поправена нишка'},seen={};
+var names={hopping:'Прескачане', 'puddle-hop':'Към локвата', 'puddle-around':'Спиране пред локвата', 'going-around':'Заобикаляне',broom:'Вещица във вятъра',shade:'Към сянката',lantern:'Тиквен фенер','lantern-fly':'Светулка до тиквата',stuck:'Затънала шейна',unstuck:'Освобождаване на шейната',tow:'Елен изтегля шейната',tassels:'Пижо и Пенда във вятъра',reflection:'Към локвата','reflection-look':'Отражение','reflection-paw':'Лапичка във водата',boat:'Към листото',sailing:'Плаване','boat-watch':'Коте на брега',guide:'Светулка водач',guided:'Следване на светулката',thermal:'Реене',plow:'Към снега','snow-path':'Проправяне на пътека','snow-follow':'Елф следва пътеката',howl:'Вой към луната',flutter:'Прилепи се разпръскват',slide:'Пързаляне',brake:'Спиране на мечката',gather:'Към снега',packing:'Събиране на сняг',scent:'По следите',sniff:'Следите са измити',mend:'Към паяжината',weaving:'Поправяне',huddle:'Сгушване',scatter:'Разпръскване',hat:'Гонене на шапката',broken:'Скъсана нишка',done:'Поправена нишка'},seen={};
 new MutationObserver(function (records) {
     records.forEach(function (record) { var value=record.target.getAttribute(record.attributeName);if(names[value])seen[value]=true; });
     document.getElementById('status').textContent='Наблюдавани сцени: '+Object.keys(seen).map(function (key) {return names[key];}).join(' / ');

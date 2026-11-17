@@ -482,3 +482,21 @@
 .funny-visitor[data-weather-act="flutter"] > svg:first-child { animation: funny-bat-flutter .14s ease-in-out infinite alternate; }
 @keyframes funny-bat-flutter { to { transform: scaleX(.75) rotate(8deg); } }
 @media print, (prefers-reduced-motion: reduce) { .funny-pool-reflection { display: none !important; } }
+
+/* Seasonal encounters keep their motion in the actor, with no extra hit targets. */
+.funny-visitor[data-weather-act="hopping"] > svg:first-child { animation: funny-hop-stretch 1.25s ease-in-out; }
+@keyframes funny-hop-stretch { 20% { transform: scale(1.08,.88); } 55% { transform: scale(.95,1.08); } 90% { transform: scale(1.08,.9); } }
+.funny-visitor[data-weather-act="going-around"] > svg:first-child { animation: funny-follow-step .36s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="broom"] > svg:not(.funny-sun-shadow) { transform: rotate(var(--funny-broom-turn,0deg)); }
+.funny-snowman[data-shade="true"] > svg:first-child { filter: brightness(.9) drop-shadow(0 -3px 3px #65758d55); transition: filter .4s; }
+.funny-snowman[data-shade="true"]::after { animation-duration: 4.5s; }
+.funny-visitor[data-weather-act="lantern"] > svg:first-child { filter: drop-shadow(0 0 5px #efc56c66); }
+.funny-visitor[data-weather-act="lantern-fly"] > svg:first-child { animation: funny-guide-blink 1.1s ease-in-out infinite; }
+.funny-visitor[data-weather-act="stuck"] > svg:first-child { transform-origin: 50% 75%; animation: funny-sleigh-rock .7s ease-in-out infinite alternate; }
+@keyframes funny-sleigh-rock { from { transform: rotate(-3deg) translateY(2px); } to { transform: rotate(3deg) translateY(4px); } }
+.funny-visitor[data-weather-act="unstuck"] > svg:first-child { animation: funny-sleigh-free .6s ease-out; }
+@keyframes funny-sleigh-free { 40% { transform: translateY(-7px) rotate(-4deg); } }
+.funny-visitor[data-weather-act="tow"] > svg:not(.funny-sun-shadow) { transform: scaleX(var(--funny-tow-face,1)); }
+.funny-visitor[data-weather-act="tow"] > svg:first-child { transform-origin: 50% 85%; animation: funny-tow-step .35s ease-in-out infinite alternate; }
+@keyframes funny-tow-step { from { transform: scaleX(var(--funny-tow-face,1)); } to { transform: scaleX(var(--funny-tow-face,1)) translateY(-3px) rotate(-3deg); } }
+.funny-deep-runner i { width: 22px; height: 2px; border-radius: 50%; background: #6f90a288; box-shadow: 0 6px #6f90a288,0 -2px 1px white,0 4px 1px white; animation: funny-hoof-fill 4s ease-out forwards; }

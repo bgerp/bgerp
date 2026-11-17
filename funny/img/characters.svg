@@ -181,6 +181,7 @@
     <ellipse cx="60" cy="57" rx="45" ry="34" fill="#ee963e" stroke="#c56b30" stroke-width="2.5"/>
     <ellipse cx="60" cy="57" rx="29" ry="34" fill="#f6a84d" stroke="#d87c34" stroke-width="2"/>
     <path d="M34 49l15-8 1 13zm35-8 16 8-17 5zM35 65l12 4 3-5 10 8 10-8 3 5 12-4q-25 29-50 0" fill="#553a39"/>
+    <path d="M34 49l15-8 1 13zm35-8 16 8-17 5zM35 65l12 4 3-5 10 8 10-8 3 5 12-4q-25 29-50 0" fill="#ffe48b" style="opacity:var(--funny-lantern,0);transition:opacity .35s"/>
     <path d="M64 23q19-13 25-1-14 6-25 1" fill="#79a866"/>
   </symbol>
   <symbol id="vampire" viewBox="0 0 120 100">
@@ -384,15 +385,22 @@
     <path d="M68 81l4 5m4-7-1 8" stroke="#dfedf5" stroke-width="2" stroke-linecap="round"/>
   </symbol>
   <symbol id="martenitsa" viewBox="0 0 120 100">
+    <g style="transform-origin:60px 27px;transform:scaleX(var(--funny-thread-stretch,1))">
     <path d="M40 27Q23 4 54 9q28-6 26 18" fill="none" stroke="#d45b6a" stroke-width="4"/>
     <path d="M39 27Q26 7 54 9q23-3 25 18" fill="none" stroke="#fff7ef" stroke-width="2" stroke-dasharray="5 5"/>
+    </g>
+    <g style="transform-origin:39px 27px;transform:translateX(var(--funny-pizho-x,0px)) rotate(var(--funny-pizho-turn,0deg))">
     <circle cx="39" cy="35" r="10" fill="#fff8ef" stroke="#c8bdc4" stroke-width="2"/>
-    <circle cx="80" cy="35" r="10" fill="#d8596c" stroke="#ab4055" stroke-width="2"/>
     <path d="M39 46v25m-2-18-16 9m20-9 16 9m-23 8-7 20m18-20 7 20" stroke="#d5cbd0" stroke-width="10" stroke-linecap="round"/>
     <path d="M39 46v25m-2-18-16 9m20-9 16 9m-23 8-7 20m18-20 7 20" stroke="#fffaf3" stroke-width="7" stroke-linecap="round"/>
+    <path d="M31 64h16" stroke="#d8596c" stroke-width="4"/>
+    </g>
+    <g style="transform-origin:80px 27px;transform:translateX(var(--funny-penda-x,0px)) rotate(var(--funny-penda-turn,0deg))">
+    <circle cx="80" cy="35" r="10" fill="#d8596c" stroke="#ab4055" stroke-width="2"/>
     <path d="M80 46L62 84h36z" fill="#d8596c" stroke="#ab4055" stroke-width="2"/>
     <path d="M74 54l-13 8m25-8 13 8" stroke="#d8596c" stroke-width="7" stroke-linecap="round"/>
-    <path d="M31 64h16" stroke="#d8596c" stroke-width="4"/><path d="M73 57h14" stroke="#fff8ef" stroke-width="4"/>
+    <path d="M73 57h14" stroke="#fff8ef" stroke-width="4"/>
+    </g>
   </symbol>
   <symbol id="accessory-stork-wings" viewBox="0 0 120 100" overflow="visible">
     <path d="M51 56Q20 18-8 19L3 30l-7 1 14 9-5 3 17 8 28 11M54 54Q74 28 101 39l-8 5 5 4-15 3 4 4-16 4-17 3" fill="#faf9f4" stroke="#a6b3bf" stroke-width="2" stroke-linejoin="round"/>
