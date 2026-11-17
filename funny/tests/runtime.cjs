@@ -2332,4 +2332,97 @@ check('mixed crowds remain bounded, catchable and disposable with late arrivals 
     }
 });
 
+/** Natural actors with a small deposit-provider double; no controller state is exposed. */
+function weatherActorFixture(kind, seed=997) {
+    const config={seed,weather:kind==='hat'?'wind':kind==='scent'?'rain':'snow',wind:{x:1,y:0,speed:kind==='hat'||kind==='huddle'?28:8},width:1400,height:1000};
+    const choices=kind==='slide'?['polarbear','penguin']:kind==='scent'?['wolf','bunny','chick']:kind==='huddle'?['penguin']:kind==='hat'?['elf']:['snowman'];
+    const forecast={temperature:-5,expires:Infinity};
+    const e=environment({trigger:'manual',mode:'selected',characters:choices,sound:'no',forecast},config);
+    let valid=true,collections=0;
+    if(kind==='slide'||kind==='gather') e.window.funnyWeather.surfaceNear=(x,y)=>({x,y,valid:()=>valid,collect:()=>{if(!valid)return false;collections++;return true;}});
+    e.click();if(kind==='huddle'){e.tick(700);e.click();e.tick(700);e.click();}
+    return {e,config,forecast,choices,invalidate:()=>{valid=false;},collections:()=>collections};
+}
+function waitWeatherAct(e, kind, duration=20000) {
+    for(let t=0;t<duration;t+=32){e.tick(32);const actor=e.visitors().find(v=>v.attrs['data-weather-act']===kind);if(actor)return actor;}
+    assert.fail('Missing weather scene: '+kind);
+}
+check('weather scenes: icy penguins accelerate, bears brake and neither catches nor blocks the pointer',()=>{
+    const {e}=weatherActorFixture('slide',10967),penguin=waitWeatherAct(e,'slide');
+    const bear=e.visitors().find(v=>v.attrs['data-weather-act']==='brake');assert(bear);
+    const a=e.center(penguin),b=e.center(bear);e.tick(100);const aa=e.center(penguin),bb=e.center(bear);
+    assert(Math.hypot(aa.x-a.x,aa.y-a.y)>Math.hypot(bb.x-b.x,bb.y-b.y)*2);
+    assert(!penguin.attrs['data-swallowed']);e.tick(1700);assert(!penguin.attrs['data-weather-act']);assert(!bear.attrs['data-weather-act']);
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+});
+check('weather scenes: snow repair consumes one real deposit, fills gradually and melts in warmth',()=>{
+    const {e,config,forecast,collections}=weatherActorFixture('gather'),v=waitWeatherAct(e,'packing');
+    assert.equal(collections(),1);e.tick(500);const early=Number(v.style['--funny-snow-body']);assert(early>0.88&&early<1);
+    e.tick(1400);assert.equal(v.attrs['data-snow-repaired'],'true');assert.equal(Number(v.style['--funny-snow-body']),1);
+    config.weather='sun';forecast.temperature=12;e.tick(3000);assert(Number(v.style['--funny-snow-body'])<1);assert(Number(v.style['--funny-snow-body'])>0.88);
+    e.tick(5500);assert.equal(Number(v.style['--funny-snow-body']),0.88);assert.equal(collections(),1);
+});
+check('weather scenes: absent or expired deposits cannot start ice sliding or snow repair',()=>{
+    for(const kind of ['slide','gather']){
+        const {e}=weatherActorFixture(kind);e.window.funnyWeather.surfaceNear=()=>null;
+        const actors=watchVisitors(e,20000);assert(actors.every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&/slide|packing/.test(x))));
+        const trial=weatherActorFixture(kind,kind==='slide'?10967:997),v=waitWeatherAct(trial.e,kind==='slide'?'slide':'packing');
+        if(kind==='slide'){trial.invalidate();trial.e.tick(32);assert(!v.attrs['data-weather-act']);}
+        trial.e.window.emit('blur');trial.e.tick(500);assert.equal(trial.e.raf.size,0);
+    }
+});
+check('weather scenes: a gust breaks one strand and its spider repairs it without extending the web deadline',()=>{
+    const {e,v,web}=wovenFixture({sound:'no'},{seed:997,weather:'snow',wind:{x:1,y:0,speed:28},width:1400,height:1000});
+    waitWeatherAct(e,'weaving');assert.equal(web.attrs['data-web-repair'],'mending');assert(web.firstChild.firstChild.attrs.href.endsWith('#spider-thread-broken'));
+    const deadline=web.createdAt+16000;e.tick(1900);assert.equal(web.attrs['data-web-repair'],'done');assert(web.firstChild.firstChild.attrs.href.endsWith('#spider-thread'));
+    assert.equal(web.history.filter(([k,x])=>k==='data-web-repair'&&x==='broken').length,1);e.tick(Math.max(0,deadline-e.now())+32);assert(!e.document.body.children.includes(web));assert(!v.attrs['data-weather-act']);
+});
+check('weather scenes: elf hat rolls with the wind, returns crooked and is always click-through',()=>{
+    const {e}=weatherActorFixture('hat'),elf=waitWeatherAct(e,'hat'),hat=e.document.body.children.find(n=>n.className==='funny-wind-hat');assert(hat);
+    const x=Number.parseFloat(hat.style.left);e.tick(600);assert(Number.parseFloat(hat.style.left)>x);
+    assert.equal(elf.style['--funny-elf-hat-opacity'],'0');assert.equal(hat.attrs['aria-hidden'],'true');e.tick(3500);
+    assert(!e.document.body.children.includes(hat));assert.equal(elf.style['--funny-elf-hat-opacity'],'1');assert.equal(elf.style['--funny-elf-hat-tilt'],'12deg');
+    assert.equal(elf.history.filter(([k,x])=>k==='data-weather-act'&&x==='hat').length,1);assert.equal(e.sounds.length,0);
+});
+check('weather scenes: two or three penguins huddle briefly and release each other on input or weather change',()=>{
+    for(const exit of ['timeout','weather','pointer','blur','escape','scroll','reduced']){
+        const {e,config}=weatherActorFixture('huddle'),v=waitWeatherAct(e,'huddle'),group=e.visitors().filter(a=>a.attrs['data-weather-act']==='huddle');assert(group.length>=2&&group.length<=3);
+        if(exit==='weather')config.weather='clouds';
+        if(exit==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(exit==='blur')e.window.emit('blur');if(exit==='escape')e.document.emit('keydown',{key:'Escape'});if(exit==='scroll')e.document.emit('scroll');if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(exit==='timeout'?5000:1200);assert(group.every(a=>!a.attrs['data-weather-act']));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+check('weather scenes: pointer, Escape, focus loss, scroll and reduced motion release hats and repairs',()=>{
+    for(const kind of ['hat','gather'])for(const exit of ['pointer','escape','blur','scroll','reduced']){
+        const {e}=weatherActorFixture(kind),v=waitWeatherAct(e,kind==='hat'?'hat':'packing');
+        if(exit==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(exit==='escape')e.document.emit('keydown',{key:'Escape'});if(exit==='blur')e.window.emit('blur');if(exit==='scroll')e.document.emit('scroll');if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(50);assert(!v.attrs['data-weather-act']);assert(!e.document.body.children.some(n=>n.className==='funny-wind-hat'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+
+check('weather scenes: a lost wolf follows its prey tracks, sniffs when rain washes them away and moves on',()=>{
+    const {e}=weatherActorFixture('scent',11964),wolf=waitWeatherAct(e,'scent');
+    const first=e.center(wolf);e.tick(160);const next=e.center(wolf);assert(Math.hypot(next.x-first.x,next.y-first.y)>1);
+    waitWeatherAct(e,'sniff',6000);e.tick(1500);assert(!wolf.attrs['data-weather-act']);
+    assert.equal(wolf.history.filter(([k,x])=>k==='data-weather-act'&&x==='scent').length,1);assert.equal(e.sounds.length,0);
+    e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+});
+check('weather scenes: an approaching bear scatters the huddle in different directions without catching it',()=>{
+    const {e,choices}=weatherActorFixture('huddle',9970);waitWeatherAct(e,'huddle');const penguins=e.visitors().slice();
+    choices.splice(0,1,'polarbear');e.click();const v=waitWeatherAct(e,'scatter',5000),others=e.visitors().filter(a=>a.attrs['data-weather-act']==='scatter');assert(others.length>=2);
+    const positions=others.map(e.center);e.tick(100);const directions=others.map((a,i)=>{const p=e.center(a);return Math.atan2(p.y-positions[i].y,p.x-positions[i].x);});
+    assert(Math.abs(directions[0]-directions[1])>0.1);e.tick(2500);assert(penguins.every(a=>!a.attrs['data-swallowed']));assert(!v.attrs['data-weather-act']);
+});
+check('weather scenes: removing a web during repairs cancels its reservation and pose',()=>{
+    for(const end of ['pointer','scroll','blur']){
+        const {e,v,web,x,y}=wovenFixture({sound:'no'},{seed:997,weather:'fog',wind:{x:1,y:0,speed:28},width:1400,height:1000});waitWeatherAct(e,'weaving');
+        if(end==='pointer')e.document.emit('pointermove',e.event({clientX:x,clientY:y}));if(end==='scroll')e.document.emit('scroll');if(end==='blur')e.window.emit('blur');
+        e.tick(1000);assert(!v.attrs['data-weather-act']);e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+
 console.log(`${checks} behavioral checks passed`);

@@ -570,4 +570,19 @@ check('weather replay is throttled even after a manual restart and suppressed so
     e.tick(8000);e.document.emit('pointermove');e.document.emit('pointerdown',{isTrusted:true});e.window.funnyWeather.trigger('manual');assert.equal(e.sounds.length,2);
 });
 
+check('actors use only accumulated nearby frost and snow, with invalidation on layout and weather stop',()=>{
+    for(const icon of ['snow','cloudy']){
+        const e=environment({icon,temperature:-5,standalone:false}),w=e.window.funnyWeather;
+        assert.equal(w.surfaceNear(100,100,'frost',45),null);w.trigger('manual');
+        assert.equal(w.surfaceNear(100,100,'frost',45),null);e.tick(7000);
+        const ice=w.surfaceNear(100,100,'frost',45);assert(ice&&ice.valid());assert.equal(w.surfaceNear(100,300,'frost',45),null);
+        assert.equal(ice.collect(),false);e.tick(23000);
+        const snow=w.surfaceNear(100,100,'snow',45);
+        if(icon==='snow'){assert(snow&&snow.valid());const bank=e.layer().children.find(n=>n.className==='funny-weather-bank');const before=parseFloat(bank.style.height);assert(snow.collect());assert(parseFloat(bank.style.height)<before);}
+        else assert.equal(snow,null);
+        e.block.rect.top+=30;e.tick(1100);assert(!ice.valid());
+        const next=w.surfaceNear(100,130,'frost',45);assert(next);e.document.emit('pointermove',{clientX:50,clientY:50});assert(!next.valid());assert.equal(w.surfaceNear(100,130,'frost',45),null);
+    }
+});
+
 console.log(checks+' weather behavior checks passed');
