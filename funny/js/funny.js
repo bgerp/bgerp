@@ -31,7 +31,7 @@
             var IMP_LIMIT = 50;
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
-            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
+            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity, lastHowl = -Infinity;
             var remaining = nextDelay();
             var audio = null, printing = false, focused = document.hasFocus();
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
@@ -296,6 +296,7 @@
                     witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true, volume: 0.65},
                     muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
+                    howl: {notes:[220,290],duration:0.5,spacing:0.35,pitch:0.8,wave:'sine',volume:0.35,vibrato:true,voice:true},
                     wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
                     startle: {notes: [740, 440], duration: 0.1, spacing: 0.08, pitch: 0.6, wave: 'sine', volume: 0.35},
                     hiccup: {notes: [180], duration: 0.16, spacing: 0, pitch: 1.8, wave: 'triangle', volume: 0.35},
@@ -831,6 +832,7 @@
                     if (distance < nearest) { nearest = distance; hole = mark; }
                 });
                 v.holeTarget = hole;
+                if (hole || digging) endWeatherAct(v);
                 if (!hole) {
                     v.node.setAttribute('data-hole-running', '');
                     if (!digging) return false;
@@ -923,13 +925,16 @@
                     if (act.kind === 'hat' && marks.indexOf(act.mark) >= 0) removeMark(act.mark);
                     if (act.kind === 'mend' && !act.mark.ending) act.mark.node.setAttribute('data-web-repair', act.mark.repaired ? 'done' : 'broken');
                 }
+                if (act.boat) act.boat.release();
+                if (act.wings) act.wings.remove();
+                if (act.prop && marks.indexOf(act.prop) >= 0) removeMark(act.prop);
                 if (act.kind === 'hat') v.node.style.setProperty('--funny-elf-hat-opacity', '1');
                 if (act.group) act.group.forEach(function (actor) { if (actor.weatherAct && actor.weatherAct.group === act.group) endWeatherAct(actor); });
             }
 
             /** Optional scenes cannot take over an existing encounter, perch or gesture. */
             function freeForWeather(v, now) {
-                return availableForEncounter(v, now) && !v.pair && !v.leaf && !v.pursuit && !v.fear && !v.perch && !v.reactionUntil;
+                return availableForEncounter(v, now) && !v.pair && !v.leaf && !v.pursuit && !v.fear && !v.perch && !v.holeTarget && !v.reactionUntil;
             }
 
             /** Huddles disperse before a bear chooses its target, so friends flee in distinct directions. */
@@ -962,11 +967,17 @@
                 if (act && (now >= act.until || !availableForEncounter(v, now) || v.fear || v.pair ||
                     (v.pursuit && !/^(slide|brake)$/.test(act.kind)) ||
                     (act.surface && !act.collected && !act.surface.valid()) ||
-                    (act.kind === 'gather' && !sky.snow) ||
+                    ((act.kind === 'gather' || act.kind === 'plow' || act.kind === 'snow-follow') && !sky.snow) ||
+                    (act.boat && (!sky.rain || !act.boat.valid())) ||
+                    (act.group && act.kind !== 'huddle' && act.group.some(function (actor) { return !freeForWeather(actor, now); })) ||
+                    (/^(guide|guided)$/.test(act.kind) && (weather.indexOf('fog') < 0 || !window.funnyWeather.visible())) ||
+                    (act.kind === 'thermal' && (!sky.sun || sky.temperature < 15 || !window.funnyWeather.sky())) ||
+                    (act.kind === 'howl' && (!window.funnyWeather || !window.funnyWeather.sky || !window.funnyWeather.sky() || window.funnyWeather.sky().kind !== 'moon')) ||
                     (act.kind === 'hat' && wind.speed < 24) ||
                     (act.kind === 'mend' && (marks.indexOf(act.mark) < 0 || act.mark.ending)))) {
                     endWeatherAct(v); act = null;
                 }
+                if (!act && !v.weatherDone && availableForEncounter(v, now) && startNatureAct(v, now, sky)) return;
                 if (act || v.weatherDone || !availableForEncounter(v, now) || ['penguin','snowman','wolf','spiders','elf'].indexOf(v.character) < 0) return;
                 var surfaces = window.funnyWeather && window.funnyWeather.surfaceNear;
                 if (v.character === 'snowman' && (!sky.snow || !surfaces) ||
@@ -1028,6 +1039,163 @@
                 }
             }
 
+            /** Existing water marks and accumulated rain expose the same small, temporary contact area. */
+            function wetSpot(v, now) {
+                var mark = marks.filter(function (item) {
+                    return item.contact && item.contact.kind === 'puddle' && !item.ending && !item.reserved && item.expires > now + 4500 &&
+                        distanceToMark(item.contact, v.x, v.y + v.height / 2) < 130;
+                })[0];
+                if (mark) return {x:mark.contact.x,y:mark.contact.y,mark:mark,valid:function () { return marks.indexOf(mark) >= 0 && !mark.ending && mark.contact.kind === 'puddle'; }};
+                return window.funnyWeather && window.funnyWeather.surfaceNear ? window.funnyWeather.surfaceNear(v.x, v.y + v.height / 2, 'water', 130) : null;
+            }
+
+            /** Reserve nearby free companions once; a shared deadline prevents chains of followers. */
+            function natureCompanions(v, kinds, now, radius, count) {
+                return visitors.filter(function (other) {
+                    return other !== v && kinds.indexOf(other.character) >= 0 && !other.weatherAct && !other.weatherDone && freeForWeather(other, now) &&
+                        Math.hypot(other.x - v.x, other.y - v.y) < radius && segmentDistance(pointer.x, pointer.y, v.x, v.y, other.x, other.y) > 130;
+                }).slice(0, count);
+            }
+
+            /** New scenes reuse the visible weather, the actor's single scene allowance and shared prop cap. */
+            function startNatureAct(v, now, sky) {
+                var api = window.funnyWeather, light = api && api.sky ? api.sky() : null;
+                var cat = v.character === 'cat' || v.character === 'blackcat';
+                var howling = v.character === 'wolf' && light && light.kind === 'moon' && Math.abs(light.phase - 0.5) <= 0.04 &&
+                    (new Date().getHours() >= 18 || new Date().getHours() < 6) && now - lastHowl >= 60000 && !v.sated;
+                var eligible = cat || v.character === 'mouse' && sky.rain && api && api.leafNear && api.surfaceNear ||
+                    v.character === 'firefly' && weather.indexOf('fog') >= 0 && api && api.visible && api.visible() || v.character === 'deer' && sky.snow && api && api.surfaceNear ||
+                    v.character === 'stork' && sky.sun && sky.temperature >= 15 && light && light.kind === 'sun' || howling;
+                var batChase = howling && v.pursuit && v.pursuit.other.character === 'bat' && !v.fear && !v.pair && !v.reactionUntil;
+                var boarding = v.character === 'mouse' && v.perch && !v.pursuit && !v.fear && !v.pair && !v.holeTarget && !v.reactionUntil;
+                if (!eligible || !(freeForWeather(v, now) || (batChase || boarding) && availableForEncounter(v, now))) return false;
+                // Cats keep their old lottery until there is actual water to investigate.
+                var spot = cat ? wetSpot(v, now) : null;
+                if (cat && !spot) return false;
+                if (!v.natureAfter) v.natureAfter = howling ? Math.max(now, v.born + 1800) : now + random(3200, 5500);
+                if (now < v.natureAfter) return false;
+                v.natureAfter = now + 500;
+                if (cat) {
+                    if (segmentDistance(pointer.x, pointer.y, v.x, v.y, spot.x, spot.y - v.height / 2) < 130) return false;
+                    if (spot.mark) spot.mark.reserved = true;
+                    beginWeatherAct(v, 'reflection', now, 5200, {surface:spot,mark:spot.mark});
+                } else if (v.character === 'mouse') {
+                    var leaf = api.leafNear(v.x, v.y + v.height / 2);
+                    if (!leaf || !leaf.reserve || Math.hypot(leaf.x - v.x, leaf.y - v.y - v.height / 2) > 150) return false;
+                    var water = api.surfaceNear(leaf.x, leaf.y + 13, 'water', 30);
+                    if (!water || water.right - water.left < 80) return false;
+                    var direction = wind.x < 0 ? -1 : 1;
+                    var toX = clamp(water.x + direction * 90, water.left + 18, water.right - 18);
+                    var fromX = clamp(water.x, water.left + 18, water.right - 18), y = water.y - v.height / 2;
+                    if (Math.abs(toX - fromX) < 35 || segmentDistance(pointer.x, pointer.y, v.x, v.y, fromX, y) < 130 ||
+                        segmentDistance(pointer.x, pointer.y, fromX, y, toX, y) < 130 || !leaf.reserve()) return false;
+                    takeOff(v, now); v.fleeUntil = 0; v.perchAfter = now + 5300;
+                    beginWeatherAct(v, 'boat', now, 4300, {surface:water,boat:leaf,x:fromX,y:y,toX:toX});
+                    leaf.move(fromX, water.y);
+                } else if (v.character === 'firefly') {
+                    var followers = natureCompanions(v, ['bunny','chick','mouse'], now, 210, 2);
+                    if (!followers.length) return false;
+                    var angle = Math.atan2(v.y - pointer.y, v.x - pointer.x), group = [v].concat(followers);
+                    group.forEach(function (actor, i) { beginWeatherAct(actor, i ? 'guided' : 'guide', now, 4200, {group:group,leader:v,slot:i,dx:Math.cos(angle),dy:Math.sin(angle)}); });
+                } else if (v.character === 'stork') {
+                    var to = clamp(v.x + (light.x < v.x ? -90 : 90), v.width, window.innerWidth - v.width);
+                    if (v.y < v.height + 55 || segmentDistance(pointer.x, pointer.y, v.x, v.y - 45, to, v.y) < 140) return false;
+                    var wings = sprite('accessory-stork-wings'); wings.setAttribute('class', 'funny-soaring-wings'); v.node.appendChild(wings);
+                    beginWeatherAct(v, 'thermal', now, 3800, {x:v.x,y:v.y,toX:to,wings:wings});
+                } else if (v.character === 'deer') {
+                    var snow = api.surfaceNear(v.x, v.y + v.height / 2, 'snow', 130);
+                    if (!snow || snow.right - snow.left < 100) return false;
+                    var side = snow.right - snow.x > snow.x - snow.left ? 1 : -1;
+                    var endX = clamp(snow.x + side * 110, snow.left + 15, snow.right - 15), endY = snow.y - v.height / 2;
+                    if (Math.abs(endX - snow.x) < 55 || segmentDistance(pointer.x, pointer.y, v.x, v.y, snow.x, endY) < 130 ||
+                        segmentDistance(pointer.x, pointer.y, snow.x, endY, endX, endY) < 130) return false;
+                    var elves = natureCompanions(v, ['elf'], now, 210, 1), party = [v].concat(elves);
+                    beginWeatherAct(v, 'plow', now, 5500, {group:party,surface:snow,x:snow.x,y:endY,toX:endX,dx:side});
+                    elves.forEach(function (elf) { beginWeatherAct(elf, 'snow-follow', now, 5500, {group:party,leader:v,dx:side}); });
+                } else if (howling) {
+                    // The moon may briefly distract a wolf chasing a bat; all other hunts keep priority.
+                    if (batChase) [v, v.pursuit.other].forEach(function (actor) { actor.pursuit = null; actor.chaseAfter = now + 3000; encounterState(actor, ''); });
+                    lastHowl = now; beginWeatherAct(v, 'howl', now, 1600);
+                    v.node.style.setProperty('--funny-howl-turn', light.x < v.x ? '-10deg' : '10deg');
+                    natureCompanions(v, ['bat'], now, 240, gentle ? 1 : 3).forEach(function (bat) {
+                        var angle = Math.atan2(bat.y - v.y, bat.x - v.x);
+                        beginWeatherAct(bat, 'flutter', now, 1200, {dx:Math.cos(angle),dy:Math.sin(angle)});
+                    });
+                    if (!v.silent) playSound('howl');
+                } else return false;
+                return true;
+            }
+
+            /** Short water and flight paths use the same collision, lifetime and pointer guards as other scenes. */
+            function natureMotion(v, act, now, delta) {
+                if (act.kind === 'reflection') {
+                    var dx = act.surface.x - v.x, dy = act.surface.y - v.height / 2 - v.y, distance = Math.hypot(dx, dy);
+                    if (distance > 24 && !act.touched) return {dx:dx,dy:dy,speed:75};
+                    if (!act.touched) {
+                        act.touched = now;
+                        var node = document.createElement('div'); node.className = 'funny-pool-reflection'; node.appendChild(sprite(v.character));
+                        node.style.left = act.surface.x + 'px'; node.style.top = act.surface.y + 'px';
+                        act.prop = addMark(node, Math.max(1, act.until - now), {kind:'reflection',x:act.surface.x,y:act.surface.y}); act.prop.reserved = true;
+                        v.node.setAttribute('data-weather-act', 'reflection-look');
+                    }
+                    if (!act.paw && now - act.touched >= 550) {
+                        act.paw = true; v.node.setAttribute('data-weather-act', 'reflection-paw');
+                        v.node.style.setProperty('--paw-x', dx + 'px'); v.node.style.setProperty('--paw-y', (act.surface.y - v.y) + 'px');
+                        interactionEffect('pool-ripple', act.surface.x, act.surface.y, [{x:act.surface.x,y:act.surface.y}], 1000);
+                    }
+                    if (now - act.touched >= 1250) {
+                        interactionEffect('pool-drops', act.surface.x, act.surface.y, [{x:act.surface.x-12,y:act.surface.y-18},{x:act.surface.x+8,y:act.surface.y-25},{x:act.surface.x+18,y:act.surface.y-10}], 850);
+                        endWeatherAct(v); react(v, 'jump', now);
+                    }
+                    return {};
+                }
+                if (act.kind === 'boat') {
+                    if (!act.boarded) {
+                        var dx = act.x - v.x, dy = act.y - v.y;
+                        if (Math.hypot(dx, dy) > 18) return {dx:dx,dy:dy,speed:110};
+                        act.boarded = now; v.node.setAttribute('data-weather-act', 'sailing');
+                    }
+                    var progress = Math.min(1, (now - act.boarded) / 2300);
+                    var x = act.x + (act.toX - act.x) * progress;
+                    v.x = x; v.y = act.y; act.boat.move(x, act.surface.y);
+                    if (progress === 1) { v.perchAfter = now + 1000; endWeatherAct(v); }
+                    return {};
+                }
+                if (act.kind === 'boat-watch') {
+                    var boat = act.leader.weatherAct;
+                    if (!boat || boat.kind !== 'boat') { endWeatherAct(v); return {}; }
+                    v.node.style.setProperty('--funny-watch-turn', act.leader.x < v.x ? '-8deg' : '8deg'); return {};
+                }
+                if (act.kind === 'guide') return {dx:act.dx,dy:act.dy,speed:28,cruise:true};
+                if (act.kind === 'guided') {
+                    var spacing = 60 + (act.slot - 1) * 42;
+                    return {dx:act.leader.x - act.dx * spacing - v.x,dy:act.leader.y - act.dy * spacing + 18 - v.y,speed:85};
+                }
+                if (act.kind === 'thermal') {
+                    var p = clamp((now - act.born) / 3500, 0, 1), gust = clamp(wind.x * wind.speed / 4, -10, 10);
+                    v.node.style.setProperty('--funny-glide-turn', (Math.cos(p * Math.PI) * 9 + gust * Math.sin(p * Math.PI)) + 'deg');
+                    return {dx:act.x + (act.toX - act.x) * p + Math.sin(p * Math.PI) * gust - v.x,dy:act.y - Math.sin(p * Math.PI) * 45 - v.y,speed:105};
+                }
+                if (act.kind === 'plow') {
+                    if (!act.walking && Math.hypot(act.x - v.x, act.y - v.y) < 16) { act.walking = true; v.node.setAttribute('data-weather-act', 'snow-path'); }
+                    if (act.walking && (!act.lastPrint || Math.abs(v.x - act.lastPrint) >= 20)) {
+                        act.lastPrint = v.x;
+                        if (act.surface.step) act.surface.step(v.x);
+                        interactionEffect('deep-hoof', v.x, act.surface.y, [{x:v.x,y:act.surface.y}], 4000);
+                    }
+                    if (act.walking && Math.abs(v.x - act.toX) < 5) { endWeatherAct(v); return {}; }
+                    return {dx:(act.walking ? act.toX : act.x) - v.x,dy:act.y - v.y,speed:act.walking ? 42 : 80};
+                }
+                if (act.kind === 'snow-follow') {
+                    var leader = act.leader, path = leader.weatherAct;
+                    if (!path || !path.walking) return {};
+                    return {dx:leader.x - act.dx * 65 - v.x,dy:leader.y + (leader.height - v.height) / 2 - v.y,speed:80};
+                }
+                if (act.kind === 'flutter') return {dx:act.dx,dy:act.dy,speed:145,cruise:true};
+                if (act.kind === 'howl') return {};
+                return null;
+            }
+
             /** Scent belongs to the lost prey, not to the wolf or an unrelated visitor. */
             function scentNear(v, prey, previous, now) {
                 return marks.filter(function (mark) {
@@ -1040,7 +1208,8 @@
             function weatherMotion(v, now, delta) {
                 var act = v.weatherAct;
                 if (!act || /^(slide|brake)$/.test(act.kind) && v.pursuit) return false;
-                var dx = 0, dy = 0, speed = 0;
+                var nature = natureMotion(v, act, now, delta);
+                var dx = nature ? nature.dx || 0 : 0, dy = nature ? nature.dy || 0 : 0, speed = nature ? nature.speed || 0 : 0;
                 if (act.kind === 'slide' || act.kind === 'scatter') { dx = act.dx; dy = act.dy; speed = act.kind === 'slide' ? 190 : 245; }
                 if (act.kind === 'huddle') { dx = act.x + (act.slot - (act.group.length - 1) / 2) * 46 - v.x; dy = act.y + (act.slot % 2) * 7 - v.y; speed = 60; }
                 if (act.kind === 'gather') {
@@ -1094,7 +1263,7 @@
                     var remaining = Math.hypot(dx, dy), direction = avoidKnownGhosts(v, dx, dy);
                     dx = direction.x; dy = direction.y;
                     var distance = Math.hypot(dx, dy) || 1, step = speed * delta;
-                    if (!/^(slide|scatter)$/.test(act.kind)) step = Math.min(step, remaining);
+                    if (!(nature && nature.cruise) && !/^(slide|scatter)$/.test(act.kind)) step = Math.min(step, remaining);
                     var x = v.x + dx / distance * step, y = v.y + dy / distance * step;
                     if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 120) { endWeatherAct(v); return false; }
                     v.x = x; v.y = y;
@@ -1374,7 +1543,7 @@
                 });
                 // Wolves hunt free visitors, but remember ghosts after the first close encounter.
                 visitors.forEach(function (wolf) {
-                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || !availableForEncounter(wolf, now)) return;
+                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && wolf.weatherAct.kind === 'howl') || !availableForEncounter(wolf, now)) return;
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
@@ -1391,8 +1560,13 @@
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
                     if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || hunter.pair || !availableForEncounter(hunter, now)) return;
+                    if (hunter.weatherAct && hunter.weatherAct.kind === 'boat-watch') return;
+                    if ((hunter.character === 'cat' || hunter.character === 'blackcat') && !hunter.weatherAct && !hunter.weatherDone) {
+                        var passenger = visitors.filter(function (v) { return v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded && Math.hypot(v.x - hunter.x, v.y - hunter.y) < 240; })[0];
+                        if (passenger) { beginWeatherAct(hunter, 'boat-watch', now, Math.min(3000, passenger.weatherAct.until - now), {leader:passenger}); return; }
+                    }
                     var prey = visitors.filter(function (v) {
-                        return choices.indexOf(v.character) >= 0 && !v.pair && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
+                        return !(v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded) && choices.indexOf(v.character) >= 0 && !v.pair && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
                             Math.hypot(hunter.x - v.x, hunter.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, hunter.x, hunter.y, v.x, v.y) > 100;
                     })[0];
                     if (!prey) return;

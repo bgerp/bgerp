@@ -35,7 +35,7 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_Routes', 'Маршрути', 'ceo,sales');
 
         if(core_Packs::isInstalled('bgfisc')){
-            $this->TAB('bgfisc_Register', 'УНП', 'sales,ceo');
+            $this->TAB('bgfisc_Register', 'Отчитане->УНП', 'sales,ceo');
             $this->TAB('bgfisc_PrintedReceipts', 'Отчитане->Фиск. бонове', 'sales,ceo');
         }
 

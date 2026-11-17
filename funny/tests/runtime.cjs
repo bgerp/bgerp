@@ -90,7 +90,8 @@ function environment(settings = {}, config = {}) {
     return {window,document,reduced,visitors,center,tick,event,click,touch,timers,raf,audio,sounds,volumes,blank,block,traces,weatherTriggers,storage, Element, now:()=>now};
 }
 let checks = 0;
-function check(name, fn) { fn(); checks++; console.log('PASS '+name); }
+/** Let completed audio promises release each VM fixture before starting the next check. */
+function check(name, fn) { setImmediate(()=>{ fn(); checks++; console.log('PASS '+name); }); }
 check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 minutes', () => {
     const e = environment({sound:false,mode:'selected',characters:['ghost']});
     let delay = [...e.timers.values()][0].at;
@@ -2425,4 +2426,98 @@ check('weather scenes: removing a web during repairs cancels its reservation and
     }
 });
 
-console.log(`${checks} behavioral checks passed`);
+/** Narrow weather-provider doubles exercise actors through public gestures, without private state hooks. */
+function natureFixture(kind, seed=997, overrides={}) {
+    const choices={reflection:['cat'],boat:['mouse'],guide:['firefly','bunny','chick'],thermal:['stork'],plow:['deer','elf'],howl:['wolf','bat']}[kind];
+    const config={seed,width:1400,height:1000,weather:{reflection:'rain',boat:'rain',guide:'fog',thermal:'sun',plow:'snow',howl:'moon'}[kind],wind:{x:1,y:0,speed:8},date:kind==='howl'?'2026-11-24T23:00:00':'2026-10-30T12:00:00',...overrides};
+    const e=environment({trigger:'manual',mode:'selected',characters:choices,sound:overrides.sound || 'yes',forecast:{temperature:kind==='plow'?-5:18,expires:Infinity}},config);
+    let valid=true,steps=0,reserved=0,released=0,moves=[];
+    e.window.funnyWeather.visible=()=>valid;
+    e.window.funnyWeather.sky=()=>valid?{kind:kind==='howl'?'moon':'sun',phase:.5,x:1000,y:80}:null;
+    e.window.funnyWeather.surfaceNear=(x,y)=>valid?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;return true;}}:null;
+    if(kind==='boat')e.window.funnyWeather.leafNear=(x,y)=>reserved?null:({x,y,valid:()=>valid,reserve:()=>{reserved++;return true;},release:()=>{released++;},move:(x,y)=>moves.push({x,y})});
+    e.click();return {e,config,choices,invalidate:()=>{valid=false;},stats:()=>({steps,reserved,released,moves})};
+}
+check('nature scenes: a cat paws its reflection once, splashes, recoils and releases the reflection',()=>{
+    const {e}=natureFixture('reflection'),cat=waitWeatherAct(e,'reflection-paw');
+    assert(e.document.body.children.some(n=>n.className==='funny-pool-reflection'));
+    assert(e.document.body.children.some(n=>n.className.includes('funny-pool-ripple')));
+    e.tick(800);assert.equal(cat.attrs['data-reaction'],'jump');assert(!cat.attrs['data-weather-act']);
+    assert(!e.document.body.children.some(n=>n.className==='funny-pool-reflection'));
+    assert(e.document.body.children.some(n=>n.className.includes('funny-pool-drops')));
+    e.tick(8000);assert.equal(cat.history.filter(([k,v])=>k==='data-weather-act'&&v==='reflection-paw').length,1);
+});
+check('nature scenes: a mouse borrows one leaf, sails with either wind and still exits through a hole',()=>{
+    for(const direction of [-1,1]) {
+        const {e,stats}=natureFixture('boat',997,{wind:{x:direction,y:0,speed:8}}),mouse=waitWeatherAct(e,'sailing');
+        const start=e.center(mouse);e.tick(500);const next=e.center(mouse);assert((next.x-start.x)*direction>10);assert(Math.abs(next.y-start.y)<12);assert(stats().moves.every(p=>p.y===stats().moves[0].y));
+        e.tick(2400);assert.equal(stats().reserved,1);assert.equal(stats().released,1);assert(!mouse.attrs['data-weather-act']);
+        assert(stats().moves.length>5);e.tick(60000);assert(mouse.className.includes('funny-burrowing'));assert.equal(e.visitors().length,0);
+    }
+});
+check('nature scenes: missing water, missing leaves and blocked routes cannot conjure a boat or reflection',()=>{
+    for(const kind of ['boat','reflection'])for(const missing of ['water','leaf']){
+        if(kind==='reflection'&&missing==='leaf')continue;
+        const {e,stats}=natureFixture(kind);if(missing==='water')e.window.funnyWeather.surfaceNear=()=>null;else e.window.funnyWeather.leafNear=()=>null;
+        const actors=watchVisitors(e,15000);assert(actors.every(v=>!v.history.some(([k])=>k==='data-weather-act')));assert.equal(stats().reserved,0);
+    }
+    const {e,stats}=natureFixture('boat');e.window.funnyWeather.surfaceNear=()=>({x:500,y:400,left:300,right:700,valid:()=>true});
+    e.tick(14000);assert.equal(stats().reserved,0);
+});
+check('nature scenes: one firefly briefly leads one or two companions only through visible fog',()=>{
+    const {e,invalidate}=natureFixture('guide',7919),lead=waitWeatherAct(e,'guide'),followers=e.visitors().filter(v=>v.attrs['data-weather-act']==='guided');
+    assert(followers.length>=1&&followers.length<=2);const start=e.center(lead);e.tick(300);assert(Math.hypot(e.center(lead).x-start.x,e.center(lead).y-start.y)>3);
+    invalidate();e.tick(32);assert(!lead.attrs['data-weather-act']);assert(followers.every(v=>!v.attrs['data-weather-act']));
+    const quiet=natureFixture('guide',7919);quiet.e.window.funnyWeather.visible=()=>false;const actors=watchVisitors(quiet.e,16000);assert(actors.every(v=>!v.history.some(([k])=>k==='data-weather-act')));
+});
+check('nature scenes: stork spreads its wings in a sunlit arc, banks with wind and releases the pose',()=>{
+    const {e}=natureFixture('thermal'),stork=waitWeatherAct(e,'thermal'),start=e.center(stork);
+    assert(stork.children.some(n=>n.attrs.class==='funny-soaring-wings'));e.tick(1700);assert(e.center(stork).y<start.y-25);assert(stork.style['--funny-glide-turn']);
+    e.tick(2400);assert(!stork.attrs['data-weather-act']);assert(!stork.children.some(n=>n.attrs.class==='funny-soaring-wings'));
+    for(const sky of [null,{kind:'moon',x:500,y:100}]){const trial=natureFixture('thermal');trial.e.window.funnyWeather.sky=()=>sky;assert(watchVisitors(trial.e,15000).every(v=>!v.history.some(([k])=>k==='data-weather-act')));}
+});
+check('nature scenes: deer makes spaced prints in existing snow and an elf follows until snow disappears',()=>{
+    const {e,stats,invalidate}=natureFixture('plow'),deer=waitWeatherAct(e,'snow-path'),elf=e.visitors().find(v=>v.attrs['data-weather-act']==='snow-follow');assert(elf);
+    e.tick(1200);assert(stats().steps>=2&&stats().steps<=4);assert(e.document.body.children.some(n=>n.className.includes('funny-deep-hoof')));
+    invalidate();e.tick(32);assert(!deer.attrs['data-weather-act']);assert(!elf.attrs['data-weather-act']);
+});
+check('nature scenes: a near-full visible moon permits one short howl, while daytime and other phases do not',()=>{
+    for(const phase of [.05,.25,.49,.5,.75]){
+        const {e}=natureFixture('howl');e.window.funnyWeather.sky=()=>({kind:'moon',phase,x:900,y:80});
+        const actors=watchVisitors(e,18000),howls=actors.flatMap(v=>v.history.filter(([k,a])=>k==='data-weather-act'&&a==='howl'));
+        assert.equal(howls.length,phase===.49||phase===.5?1:0);
+    }
+    const {e}=natureFixture('howl',997,{date:'2026-11-24T12:00:00'});assert(watchVisitors(e,18000).every(v=>!v.history.some(([k,v])=>k==='data-weather-act'&&v==='howl')));
+});
+check('nature scenes: props and companion reservations stop on pointer, scroll, Escape, blur and reduced motion',()=>{
+    for(const kind of ['reflection','boat','guide','thermal','plow','howl'])for(const ending of ['pointer','scroll','escape','blur','reduced']){
+        const {e,stats}=natureFixture(kind,kind==='guide'?7919:997),actor=waitWeatherAct(e,kind==='boat'?'sailing':kind==='reflection'?'reflection-paw':kind==='plow'?'snow-path':kind);
+        if(ending==='pointer'){const p=e.center(actor);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(ending==='scroll')e.document.emit('scroll');if(ending==='escape')e.document.emit('keydown',{key:'Escape'});if(ending==='blur')e.window.emit('blur');if(ending==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(80);assert(!actor.attrs['data-weather-act'],kind+'/'+ending);if(kind==='boat')assert.equal(stats().released,1);
+        assert(!e.document.body.children.some(n=>n.className==='funny-pool-reflection'));assert(!actor.children.some(n=>n.attrs.class==='funny-soaring-wings'));
+        e.window.emit('blur');e.tick(500);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
+    }
+});
+
+check('nature scenes: a later cat watches the sailing mouse briefly and cannot swallow it aboard',()=>{
+    const {e,choices}=natureFixture('boat'),mouse=waitWeatherAct(e,'sailing');choices.splice(0,1,'cat');e.click();
+    const cat=waitWeatherAct(e,'boat-watch',4000);assert(!mouse.attrs['data-swallowed']);e.tick(2800);assert(!cat.attrs['data-weather-act']);
+});
+check('nature scenes: a howl interrupts a bat chase, scatters the bat and respects the page cooldown',()=>{
+    const {e,choices}=natureFixture('howl',8973),bat=waitWeatherAct(e,'flutter'),wolf=e.visitors().find(n=>n.className.includes('funny-wolf'));
+    assert.equal(wolf.attrs['data-weather-act'],'howl');assert(!bat.attrs['data-swallowed']);const first=e.center(bat),origin=e.center(wolf);e.tick(150);const next=e.center(bat);
+    assert(Math.hypot(next.x-origin.x,next.y-origin.y)>Math.hypot(first.x-origin.x,first.y-origin.y));
+    choices.splice(0,choices.length,'wolf');e.click();const actors=watchVisitors(e,18000);actors.push(wolf);
+    assert.equal([...new Set(actors)].flatMap(n=>n.history.filter(([k,v])=>k==='data-weather-act'&&v==='howl')).length,1);
+});
+check('nature scenes: howl sound is short, quiet, optional and silenced on loss of focus',()=>{
+    for(const sound of ['yes','no']){
+        const {e}=natureFixture('howl',997,{sound,scene:true});const before=e.volumes.length;waitWeatherAct(e,'howl');
+        const notes=e.sounds.filter(s=>s.type==='sine'&&(s.frequency===220||s.frequency===290));assert.equal(notes.length,sound==='yes'?2:0);
+        if(sound==='yes'){assert(notes.at(-1).time-notes[0].start<.9);assert(e.volumes.slice(before).every(v=>v<=.023));}
+        e.window.emit('blur');e.tick(500);assert(e.audio.every(a=>a.state==='closed'));const count=e.sounds.length;e.tick(70000);assert.equal(e.sounds.length,count);
+    }
+});
+
+process.once('beforeExit',()=>console.log(`${checks} behavioral checks passed`));

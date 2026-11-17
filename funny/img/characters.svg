@@ -394,6 +394,10 @@
     <path d="M74 54l-13 8m25-8 13 8" stroke="#d8596c" stroke-width="7" stroke-linecap="round"/>
     <path d="M31 64h16" stroke="#d8596c" stroke-width="4"/><path d="M73 57h14" stroke="#fff8ef" stroke-width="4"/>
   </symbol>
+  <symbol id="accessory-stork-wings" viewBox="0 0 120 100" overflow="visible">
+    <path d="M51 56Q20 18-8 19L3 30l-7 1 14 9-5 3 17 8 28 11M54 54Q74 28 101 39l-8 5 5 4-15 3 4 4-16 4-17 3" fill="#faf9f4" stroke="#a6b3bf" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M-8 19L3 30l-7 1 14 9-5 3 17 8-7-19zM101 39l-8 5 5 4-15 3 4 4-16 4 9-18z" fill="#56616f"/>
+  </symbol>
   <symbol id="stork" viewBox="0 0 120 100">
     <path d="M48 69l-6 24h-9m30-24 5 23h10" fill="none" stroke="#d77454" stroke-width="4" stroke-linecap="round"/>
     <ellipse cx="51" cy="57" rx="29" ry="18" fill="#f9f7f1" stroke="#b9c4cb" stroke-width="2"/>

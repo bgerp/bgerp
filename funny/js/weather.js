@@ -21,13 +21,15 @@
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
         surfaceNear: function () { return null; },
+        visible: function () { return false; },
+        sky: function () { return null; },
         /** Uses the forecast snapshot loaded with the page, without background requests. */
         init: function (options) {
             if (initialized || ['on', 'sound'].indexOf(options.mode) < 0 || window.self !== window.top) return;
             initialized = true;
             var scene = window.funnyScene;
             var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null;
+            var layer = null, canvas = null, context = null, audio = null, sun = null, moon = null, skyState = null;
             var timer = 0, frame = 0, printing = false, appearances = 0, focused = document.hasFocus();
             var fadingLayer = null, fadeTimer = 0;
             var lastPointer = null;
@@ -335,16 +337,18 @@
             /** Local decorative arcs run in opposite directions: sun 06:00-18:00, moon 18:00-06:00. */
             function positionSky() {
                 var node = sun || moon;
-                if (!node) return;
+                if (!node) { skyState = null; return; }
                 var now = new Date(), hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
                 var progress = Math.max(0, Math.min(1, moon ? (hour < 12 ? hour + 6 : hour - 18) / 12 : (hour - 6) / 12));
                 var size = moon ? 52 : 90, x = moon ? 0.1 + 0.8 * progress : 0.9 - 0.8 * progress;
                 node.style.left = (Math.max(0, width - size) * x).toFixed(2) + 'px';
                 node.style.top = (Math.max(0, height - size) * (0.08 + 0.3 * (1 - Math.sin(progress * Math.PI)))).toFixed(2) + 'px';
+                skyState = {kind:moon ? 'moon' : 'sun',x:Number.parseFloat(node.style.left) + size / 2,y:Number.parseFloat(node.style.top) + size / 2};
                 if (moon) {
                     // Mean phase from NASA's 2000-01-06 18:14 UTC new moon; decorative, not an ephemeris.
                     var cycles = (now.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / (29.530588 * 86400000);
                     var phase = cycles - Math.floor(cycles), curve = Math.cos(phase * Math.PI * 2);
+                    skyState.phase = phase;
                     moon.style.setProperty('--moon-lit-left', phase < 0.5 ? '50%' : '0%');
                     moon.style.setProperty('--moon-curve', Math.abs(curve).toFixed(4));
                     moon.style.setProperty('--moon-curve-color', curve >= 0 ? '#657184' : '#f1f4ea');
@@ -531,14 +535,18 @@
                 activity({type: 'focus'});
             }
             window.funnyWeather.current = function () { return active() ? forecast() : ''; };
+            /** Share the position and phase already used to draw the visible sky. */
+            window.funnyWeather.visible = function () { return !!layer && active() && forecast() === weather; };
+            window.funnyWeather.sky = function () { return window.funnyWeather.visible() ? skyState : null; };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
-                if (!layer || !active() || (kind !== 'snow' && kind !== 'frost')) return null;
+                if (!layer || !active() || ['snow','frost','water'].indexOf(kind) < 0) return null;
                 if (kind === 'frost' && !(typeof options.temperature === 'number' && options.temperature < 0 && elapsed >= 6000)) return null;
                 if (kind === 'snow' && weather.indexOf('snow') < 0) return null;
+                if (kind === 'water' && (weather.indexOf('rain') < 0 || weather.indexOf('snow') >= 0 || options.temperature < 0)) return null;
                 var best = null, nearest = radius;
                 banks.forEach(function (bank) {
-                    if (kind === 'snow' && bank.amount < 0.25) return;
+                    if (kind !== 'frost' && bank.amount < 0.25) return;
                     var px = Math.max(bank.left + 4, Math.min(bank.right - 4, x)), distance = Math.hypot(px - x, bank.top - y);
                     if (distance < nearest) { nearest = distance; best = {bank:bank,x:px,y:bank.top}; }
                 });
@@ -546,23 +554,40 @@
                 var bank = best.bank, left = bank.left, right = bank.right, top = bank.top;
                 function valid() {
                     return !!layer && active() && banks.indexOf(bank) >= 0 && bank.target.isConnected &&
-                        bank.left === left && bank.right === right && bank.top === top && (kind !== 'snow' || bank.amount >= 0.25);
+                        bank.left === left && bank.right === right && bank.top === top && (kind === 'frost' || bank.amount >= 0.25);
                 }
-                return {x:best.x,y:best.y,valid:valid,collect:function () {
+                return {x:best.x,y:best.y,left:bank.left,right:bank.right,valid:valid,step:function (x) {
+                    if (kind !== 'snow' || !valid() || x < bank.left || x > bank.right) return false;
+                    detail('footprints', x, bank.top - bank.amount / 2, 3200); return true;
+                },collect:function () {
                     if (kind !== 'snow' || !valid()) return false;
                     bank.amount = Math.max(0, bank.amount - 0.35); bank.node.style.height = bank.amount + 'px';
                     return true;
                 }};
             };
-            /** Offer only leaves currently resting; a paw changes their CSS path without new timers. */
+            /** Resting leaves allow one paw kick or one boat ride without adding timers. */
             window.funnyWeather.leafNear = function (x, y) {
                 if (!layer || !active()) return null;
                 var now = performance.now(), item = details.filter(function (d) {
-                    return d.rest && !d.kicked && now >= d.rest.from && now < d.rest.to && Math.hypot(d.rest.x - x, d.rest.y - y) < 170;
+                    return d.rest && !d.borrowed && !d.kicked && now >= d.rest.from && now < d.rest.to && Math.hypot(d.rest.x - x, d.rest.y - y) < 170;
                 })[0];
                 if (!item) return null;
-                return {x:item.rest.x,y:item.rest.y,valid:function () { return !!layer && details.indexOf(item) >= 0 && !item.kicked && performance.now() < item.rest.to; },kick:function () {
-                    if (!layer || item.kicked || details.indexOf(item) < 0) return false;
+                var borrowed = false;
+                function valid() { return !!layer && active() && details.indexOf(item) >= 0 && !item.kicked &&
+                    (borrowed ? item.borrowed && performance.now() < item.until : !item.borrowed && performance.now() < item.rest.to); }
+                return {x:item.rest.x,y:item.rest.y,valid:valid,reserve:function () {
+                    if (borrowed || !valid() || item.until - performance.now() < 4500) return false;
+                    borrowed = item.borrowed = true; item.node.classList.add('funny-weather-borrowed');
+                    item.node.style.animation = 'none'; return true;
+                },move:function (x, y) {
+                    if (!borrowed || !valid()) return false;
+                    item.node.style.left = (x - 24) + 'px'; item.node.style.top = (y - 8) + 'px'; return true;
+                },release:function () {
+                    if (!borrowed) return;
+                    borrowed = item.borrowed = false; item.kicked = true; item.node.remove();
+                    if (details.indexOf(item) >= 0) details.splice(details.indexOf(item), 1);
+                },kick:function () {
+                    if (!valid() || item.borrowed) return false;
                     item.kicked = true; item.node.classList.remove('funny-weather-resting');
                     item.node.style.left = item.rest.x + 'px'; item.node.style.top = item.rest.y + 'px';
                     item.node.style.animationDelay = '0ms'; item.node.style.setProperty('--travel', wind.x * 200 + 'px');
