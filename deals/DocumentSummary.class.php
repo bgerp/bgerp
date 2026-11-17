@@ -99,7 +99,8 @@ class deals_DocumentSummary
         unset($row);
 
         usort($rows, static function ($a, $b) {
-            return array($a['date'] ?? '9999-12-31', $a['id']) <=> array($b['date'] ?? '9999-12-31', $b['id']);
+            return array($a['date'] ?? '9999-12-31', $a['createdOn'] ?? '9999-12-31 23:59:59', $a['containerId'] ?? $a['id'])
+                <=> array($b['date'] ?? '9999-12-31', $b['createdOn'] ?? '9999-12-31 23:59:59', $b['containerId'] ?? $b['id']);
         });
         $rows = self::groupInvoiceNotes($rows);
 
@@ -172,6 +173,8 @@ class deals_DocumentSummary
             $document['threadId'] = $docRec->threadId ?? $threadId;
             $document['otherThread'] = $document['threadId'] != $threadId;
             $document['date'] = $docRec->valior ?? ($docEntries[0]->valior ?? null);
+            $document['createdOn'] = $docRec->createdOn ?? null;
+            $document['containerId'] = $docRec->containerId ?? null;
             unset($document['entries']);
 
             $isInvoice = $Doc instanceof deals_InvoiceMaster;

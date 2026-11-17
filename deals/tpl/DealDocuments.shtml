@@ -15,7 +15,7 @@
     <table class="listTable">
         <thead>
             <tr>
-                <th>|Дата|*</th>
+                <th>|Вальор|*</th>
                 <th>|Документ|*</th>
                 <th>|Номер|*</th>
                 <th>|Доставено|*, [#currency#]</th>
