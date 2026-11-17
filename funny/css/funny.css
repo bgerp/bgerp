@@ -450,3 +450,35 @@
 .funny-visitor[data-weather-act="hat"] > svg:first-child { transform-origin: 50% 90%; animation: funny-hat-chase .3s ease-in-out infinite alternate; }
 @keyframes funny-hat-chase { to { transform: rotate(-6deg) translateY(-2px); } }
 @media print, (prefers-reduced-motion: reduce) { .funny-wind-hat { display: none !important; } }
+
+/* Small nature scenes reuse fixed, non-interactive props and the shared actor lifetime. */
+.funny-pool-reflection { position: fixed; z-index: 9999; width: 64px; height: 22px; margin: -7px -32px; border-radius: 50%; overflow: hidden; background: #b3d9ed44; opacity: .4; pointer-events: none !important; }
+.funny-pool-reflection svg { width: 64px; height: 53px; transform: scaleY(-.5) translateY(35px); pointer-events: none !important; }
+.funny-visitor[data-weather-act="reflection-look"] > svg:first-child { transform: rotate(8deg) translateY(3px); }
+.funny-visitor[data-weather-act="reflection-paw"] > svg:first-child { transform: rotate(-8deg) translateY(4px); }
+.funny-visitor[data-weather-act="reflection-paw"]::after { content: ''; position: absolute; left: calc(50% + var(--paw-x)); top: calc(50% + var(--paw-y) - 7px); width: 13px; height: 7px; margin-left: -6px; border-radius: 50%; background: #d7c3a9; border: 1px solid #8e8176; animation: funny-paw-dip .4s ease-in-out 2; }
+@keyframes funny-paw-dip { 50% { transform: translateY(3px) scaleX(1.2); } }
+.funny-pool-ripple i { width: 26px; height: 7px; margin: -3px -13px; border: 1px solid #78b1cd; border-radius: 50%; animation: funny-pool-ripple 1s ease-out forwards; }
+@keyframes funny-pool-ripple { to { transform: scale(2.3); opacity: 0; } }
+.funny-pool-drops i { width: 4px; height: 6px; border-radius: 50%; background: #70b5db; animation: funny-pool-drop .85s ease-out forwards; }
+@keyframes funny-pool-drop { 65% { transform: translate(var(--x),var(--y)); opacity: .8; } to { transform: translate(var(--x),5px); opacity: 0; } }
+.funny-visitor[data-weather-act="sailing"] > svg:first-child { transform-origin: 50% 90%; animation: funny-boat-rock .7s ease-in-out infinite alternate; }
+@keyframes funny-boat-rock { from { transform: rotate(-5deg) translateY(-2px); } to { transform: rotate(5deg) translateY(1px); } }
+.funny-visitor[data-weather-act="boat-watch"] > svg:first-child { transform: rotate(var(--funny-watch-turn,8deg)); transition: transform .3s; }
+.funny-visitor[data-weather-act="guide"] > svg:first-child { animation: funny-guide-blink .8s ease-in-out infinite; }
+@keyframes funny-guide-blink { 50% { filter: drop-shadow(0 0 7px #f5e49b); opacity: .65; } }
+.funny-visitor[data-weather-act="guided"] > svg:first-child, .funny-visitor[data-weather-act="snow-follow"] > svg:first-child { animation: funny-follow-step .4s ease-in-out infinite alternate; }
+@keyframes funny-follow-step { to { transform: translateY(-3px) rotate(3deg); } }
+.funny-visitor .funny-soaring-wings { position: absolute; inset: 0; pointer-events: none !important; }
+.funny-visitor[data-weather-act="thermal"] > svg:not(.funny-sun-shadow) { transform: rotate(var(--funny-glide-turn,0deg)); }
+.funny-visitor[data-weather-act="snow-path"] > svg:first-child { transform-origin: 50% 85%; animation: funny-snow-step .5s ease-in-out infinite alternate; }
+@keyframes funny-snow-step { to { transform: translateY(-4px) rotate(-4deg); } }
+.funny-deep-hoof i { width: 4px; height: 6px; margin: -2px -4px; border-radius: 40%; background: #7997aa88; box-shadow: 6px 1px #7997aa88,0 -2px 1px #f6fcff,6px -1px 1px #f6fcff; animation: funny-hoof-fill 4s ease-out forwards; }
+@keyframes funny-hoof-fill { 70% { opacity: .8; } to { opacity: 0; transform: scale(.7); } }
+.funny-visitor[data-weather-act="howl"] > svg:first-child { transform-origin: 50% 80%; animation: funny-moon-howl 1.6s ease-in-out; }
+@keyframes funny-moon-howl { 25%,75% { transform: rotate(var(--funny-howl-turn,-10deg)) scale(.96,1.07) translateY(-4px); } }
+.funny-visitor[data-weather-act="howl"]::after { content: ''; position: absolute; left: 63%; top: 4%; width: 22px; height: 22px; border: 2px solid #a8bbcf; border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%; animation: funny-howl-ring .75s ease-out 2; }
+@keyframes funny-howl-ring { to { transform: translate(8px,-12px) scale(1.5); opacity: 0; } }
+.funny-visitor[data-weather-act="flutter"] > svg:first-child { animation: funny-bat-flutter .14s ease-in-out infinite alternate; }
+@keyframes funny-bat-flutter { to { transform: scaleX(.75) rotate(8deg); } }
+@media print, (prefers-reduced-motion: reduce) { .funny-pool-reflection { display: none !important; } }
