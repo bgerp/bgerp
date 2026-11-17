@@ -1156,6 +1156,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->where("#isPublic = '{$rec->articleType}'");
         }
 
+        // Без филтър по артикули и групи - от вальора: при остарели статистики MariaDB тръгва от всички папки
+        // и артикулите в тях (10 s срещу 0.2 s); индексът по търговец остава за филтъра по търговци
+        $groupFilter = isset($filterGroupsType) ? ($rec->{$filterGroupsType} ?? null) : null;
+        if ($rec->quantityType == 'shipped' && empty($rec->products) && empty($rec->grFilter) && empty($groupFilter)) {
+            $query->useIndex('valior');
+            $query->useIndex('dealer_id_valior');
+        }
+
         $fields = 'productId,containerId,quantity,folderId,contragentClassId,contragentId,valior,groupMat,category,code,productMeasureId,productIsPublic';
         if ($rec->quantityType == 'shipped') {
             $fields .= ',detailClassId,sellCost,primeCost';
