@@ -2781,6 +2781,11 @@ class eshop_Carts extends core_Master
 
                 // Регистрираните след последния бюлетин ги има само във VIES
                 list($status, $info) = $Vats->check($vatNo);
+                if ($status == drdata_Vats::statusUnknown) {
+                    $form->setError('invoiceVatNo', 'Не може да се определи статуса на VAT номера|*!');
+
+                    return;
+                }
                 if ($status != drdata_Vats::statusValid) {
                     $form->setError('invoiceVatNo', 'Няма регистрация по ЗДДС с този номер|*!');
 

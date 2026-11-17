@@ -28,7 +28,7 @@ class drdata_VatRegister
     /** Синтетична актуалност на регистъра. */
     public static function isActual() { return self::$actual; }
     /** Синтетична регистрирана фирма. */
-    public static function fetch($query) { self::$reads++; return (object) array('name'=>'QA Company', 'state'=>self::$state); }
+    public static function fetch($query) { self::$reads++; return self::$state === null ? false : (object) array('name'=>'QA Company', 'state'=>self::$state); }
     /** Сравнява имена без външни зависимости. */
     public static function isSameCompany($name, $registered) { return $name === $registered; }
     /** Запазва фиксираното име от регистъра. */
@@ -37,7 +37,7 @@ class drdata_VatRegister
 class cls
 {
     /** Използва реалната нормализация на ДДС номера. */
-    public static function get($class) { return $class === 'eshop_Carts' ? new InvoiceCartFixture() : new $class(); }
+    public static function get($class) { return $class === 'eshop_Carts' ? new InvoiceCartFixture() : new InvoiceVatsFixture(); }
 }
 class InvoiceFormFixture
 {
@@ -50,6 +50,13 @@ class InvoiceFormFixture
 
 require dirname(__DIR__, 2) . '/drdata/Vats.class.php';
 require dirname(__DIR__) . '/Carts.class.php';
+
+class InvoiceVatsFixture extends drdata_Vats
+{
+    public static $calls = array(), $result = array('valid', "QA Company\nQA Address");
+    /** Връща контролиран резултат от проверката, без заявка към VIES. */
+    public function check($vat, $force = false) { self::$calls[] = array($vat, $force); return self::$result; }
+}
 
 class InvoiceCartFixture extends eshop_Carts
 {
@@ -69,6 +76,7 @@ function invoiceForm($values = array())
     $form->rec = (object) ($values + array('makeInvoice'=>'company', 'invoiceCountry'=>1,
         'invoiceNames'=>'QA Company', 'invoiceVatNo'=>'BG123456786', 'invoiceUicNo'=>'123456786'));
     drdata_VatRegister::$reads = InvoiceCartFixture::$calls = 0;
+    InvoiceVatsFixture::$calls = array();
     $method = new ReflectionMethod('eshop_Carts', 'checkInvoiceCompany');
     $method->setAccessible(true);
     $method->invoke(null, $form);
@@ -120,5 +128,36 @@ drdata_VatRegister::$state = 'deregistered';
 check((bool) invoiceForm()->errors, 'Deregistered VAT remains rejected');
 drdata_VatRegister::$actual = false;
 check(!invoiceForm()->errors && drdata_VatRegister::$reads === 0, 'Stale registry still skips name verification for matching identifiers');
+
+// Липсващ запис в актуалния бюлетин: разграничаваме неизвестния статус от потвърден невалиден номер.
+drdata_VatRegister::$actual = true;
+drdata_VatRegister::$state = null;
+InvoiceVatsFixture::$result = array('unknown', 'QA internal service diagnostic');
+for ($attempt = 0; $attempt < 2; $attempt++) {
+    $form = invoiceForm();
+    check(($form->errors['invoiceVatNo'] ?? null) === 'Не може да се определи статуса на VAT номера|*!', 'Unknown VIES status is not reported as no registration');
+    check(!$form->warnings && $form->rec->invoiceNames === 'QA Company', 'Unknown status blocks without rewriting company data');
+    check(InvoiceVatsFixture::$calls === array(array('BG123456786', false)), 'Repeated validation uses normal cached VAT check without forced refresh');
+    check(InvoiceCartFixture::$calls === 0, 'Unknown registration does not invoke name-matching AI');
+    check(strpos(implode(' ', $form->errors), 'internal service') === false, 'Internal service diagnostics are not shown in the public form');
+}
+foreach (array('invalid', 'syntax') as $status) {
+    InvoiceVatsFixture::$result = array($status, null);
+    $form = invoiceForm();
+    check(($form->errors['invoiceVatNo'] ?? null) === 'Няма регистрация по ЗДДС с този номер|*!', 'Existing rejection remains for ' . $status);
+}
+InvoiceVatsFixture::$result = array('valid', "QA Company\nQA Address");
+check(!invoiceForm()->errors, 'Newly registered company confirmed by VIES remains accepted');
+$form = invoiceForm(array('invoiceNames'=>'Other company'));
+check(isset($form->errors['invoiceNames,invoiceVatNo']), 'VIES company-name mismatch remains rejected');
+check(InvoiceCartFixture::$calls === 0, 'VIES name mismatch does not gain an AI override');
+InvoiceVatsFixture::$result = array('unknown', null);
+drdata_VatRegister::$state = 'registered';
+check(!invoiceForm()->errors && !InvoiceVatsFixture::$calls, 'Local registration remains sufficient without VIES');
+drdata_VatRegister::$state = 'deregistered';
+check((bool) invoiceForm()->errors && !InvoiceVatsFixture::$calls, 'Local deregistration remains rejected without VIES');
+drdata_VatRegister::$state = null;
+drdata_VatRegister::$actual = false;
+check(!invoiceForm()->errors && !InvoiceVatsFixture::$calls, 'Stale bulletin retains existing behavior without an extra VIES request');
 
 echo "OK: {$checks} invoice company checks\n";
