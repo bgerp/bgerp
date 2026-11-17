@@ -636,16 +636,31 @@ class cat_Groups extends core_Master
     {
         $res = array_fill_keys($groupArr, 0);
 
-        // По еднаквите набори от групи; по хеша, защото GROUP BY по TEXT колона минава през временна таблица на диска
-        $pQuery = cat_Products::getQuery();
-        $pQuery->XPR('groupsHash', 'varchar', 'MD5(#groups)');
-        $pQuery->XPR('groupsCnt', 'int', 'COUNT(*)');
-        $pQuery->show('groups,groupsHash,groupsCnt');
-        $pQuery->groupBy('groupsHash');
-        while ($pRec = $pQuery->fetch()) {
-            foreach (keylist::toArray($pRec->groups ?? '') as $groupId) {
-                if (isset($res[$groupId])) {
-                    $res[$groupId] += (int) $pRec->groupsCnt;
+        $mQuery = cat_Products::getQuery();
+        $mQuery->XPR('maxId', 'int', 'MAX(#id)');
+        $mQuery->show('maxId');
+        $maxId = (int) ($mQuery->fetch()->maxId ?? 0);
+
+        // На порции по id: MyISAM заключва таблицата за четене, а чакащ запис спира и следващите четения -
+        // така записите чакат една порция (~1 s), а не цялото обхождане (~14 s при 750 хил. артикула)
+        $step = 50000;
+        for ($fromId = 0; $fromId < $maxId; $fromId += $step) {
+
+            // По еднаквите набори от групи; по хеша, защото GROUP BY по TEXT колона минава през временна таблица на диска
+            $pQuery = cat_Products::getQuery();
+            $pQuery->XPR('groupsHash', 'varchar', 'MD5(#groups)');
+            $pQuery->XPR('groupsCnt', 'int', 'COUNT(*)');
+            $pQuery->where('#id > ' . $fromId . ' AND #id <= ' . ($fromId + $step));
+            $pQuery->show('groups,groupsHash,groupsCnt');
+            $pQuery->groupBy('groupsHash');
+
+            // На репликата, ако е настроена и в синхрон - иначе на основната база
+            $pQuery->onReplica = true;
+            while ($pRec = $pQuery->fetch()) {
+                foreach (keylist::toArray($pRec->groups ?? '') as $groupId) {
+                    if (isset($res[$groupId])) {
+                        $res[$groupId] += (int) $pRec->groupsCnt;
+                    }
                 }
             }
         }
