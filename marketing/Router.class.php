@@ -335,6 +335,7 @@ class marketing_Router extends core_Manager
         $mQuery->where("#coverClass = {$CoverClass->getClassId()}");
         $mQuery->show('folderId');
         $mQuery->orderBy('createdOn', 'DESC');
+        $mQuery->limit(1);
 
         $mRec = $mQuery->fetch();
         $folderId = $mRec->folderId ?? null;
