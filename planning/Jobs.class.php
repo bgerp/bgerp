@@ -58,8 +58,16 @@ class planning_Jobs extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, cat_plg_LogPackUsage, doc_DocumentPlg, doc_plg_Tabs, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew, bgerp_plg_Blank';
-    
-    
+
+
+    /**
+     * Полетата, които on_AfterFillSummaryRec чете - статистиката извлича само тях
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $summaryRecFields = 'packagingId,quantity,quantityInPack';
+
+
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
