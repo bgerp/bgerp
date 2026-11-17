@@ -1099,38 +1099,28 @@ class cms_Content extends core_Master
                         }
                     }
 
-                    $html .= "<h2><strong style='color:green'>" . type_Varchar::escape(!empty($rec->title) ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
-                    $itemsInTable = $itemsInUl = '';
+                    $groupTitle = type_Varchar::escape(!empty($rec->title) ? $rec->title : ($rec->menu ?? ''));
+                    $html .= "<section class='cms-search-group'><h2 class='cms-search-group-title'>{$groupTitle}<span class='cms-search-domain'>" . type_Varchar::escape($domainName) . "</span></h2>";
+                    $items = '';
 
                     // Плъгините (напр. JSON-LD) виждат показаните резултати, с адресите на домейна им
                     $cls->invoke('AfterGetSearchResults', array(&$res, $rec->id, $q));
 
                     foreach ($res as $o) {
-                        $info = !empty($o->info) ? "<div class='searchInfo'>{$o->info}</div>" : '';
+                        $info = !empty($o->info) ? "<div class='cms-search-info'>{$o->info}</div>" : '';
+                        $image = '';
                         if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $titleLink = ht::createLink($o->title, $o->url, false, array('class' => "searchName"));
-                            if (haveRole('debug') && isset($o->rating)) {
-                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
-                            }
-                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . $info . '</td></tr>';
-                        } else {
-                            $titleLink = ht::createLink($o->title, $o->url);
-                            if (haveRole('debug') && isset($o->rating)) {
-                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
-                            }
-
-                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . $info . '</li>';
+                            $image = ht::createLink($img, $o->url ?? array(), false, array('class' => 'cms-search-image', 'tabindex' => '-1', 'aria-hidden' => 'true'));
                         }
+                        $titleLink = ht::createLink($o->title ?? '', $o->url ?? array(), false, array('class' => 'cms-search-link'));
+                        if (haveRole('debug') && isset($o->rating)) {
+                            $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
+                        }
+                        $items .= "<li class='cms-search-item'>{$image}<div class='cms-search-text'>{$titleLink}{$info}</div></li>";
                     }
 
-                    if (!empty($itemsInUl)) {
-                        $html .= "<ul>{$itemsInUl}</ul>";
-                    }
-
-                    if (!empty($itemsInTable)) {
-                        $html .= "<table class='searchResult'>{$itemsInTable}</table>";
-                    }
+                    $html .= "<ul class='cms-search-list'>{$items}</ul></section>";
 
                     if ($rec->domainId != $domainId) {
                         Mode::pop('BGERP_CURRENT_DOMAIN');
@@ -1141,25 +1131,28 @@ class cms_Content extends core_Master
         
         if ($html) {
             if (!isset($oQ)) {
-                $html = new ET('<h3>' . tr('Търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+                $html = new ET('<h1 class="cms-search-title">' . tr('Търсене на') . " \"<strong class='cms-search-query'>" . type_Varchar::escape($q) . "</strong>\"</h1><div class='cms-search-results'>[#1#]</div>", $html);
             } else {
-                $html = new ET('<h3>' . tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($oQ) . '</strong>" ' . tr('не бяха открити точни резултати, затова са показани приблизителни') . ":</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+                $html = new ET('<h1 class="cms-search-title">' . tr('При търсене на') . " \"<strong class='cms-search-query'>" . type_Varchar::escape($oQ) . '</strong>" ' . tr('не бяха открити точни резултати, затова са показани приблизителни') . ":</h1><div class='cms-search-results'>[#1#]</div>", $html);
             }
-            plg_Search::highlight($html, $q, 'results');
+            plg_Search::highlight($html, $q, 'cms-search-results');
         } else {
             if (!isset($oQ)) {
                 // Правим опит да подобрим заявката
                 if ($nQ = self::reduceSearch($q)) {
-                    $html = self::renderSearchResults($menuId, $nQ, $q);
+                    return self::renderSearchResults($menuId, $nQ, $q);
                 }
             }
             
             if (empty($html)) {
-                $html = new ET('<h1>'. tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape(!empty($oQ) ? $oQ : $q) . '</strong>" ' . tr('не бяха открити резултати') . '</h1>');
+                $html = new ET('<h1 class="cms-search-title">'. tr('При търсене на') . " \"<strong class='cms-search-query'>" . type_Varchar::escape(!empty($oQ) ? $oQ : $q) . '</strong>" ' . tr('не бяха открити резултати') . '</h1>');
             }
         }
         
-        return  $html;
+        $html = new ET("<div class='cms-search'>[#1#]</div>", $html);
+        $html->push('cms/css/SearchResults.css', 'CSS');
+
+        return $html;
     }
     
     
