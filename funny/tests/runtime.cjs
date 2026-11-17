@@ -8,7 +8,7 @@ const weatherSource = fs.readFileSync(require('node:path').join(__dirname, '../j
 const source = fs.readFileSync(require('node:path').join(__dirname, '../js/funny.js'), 'utf8');
 function environment(settings = {}, config = {}) {
     let now = 0, serial = 0, seed = config.seed || 73;
-    const timers = new Map(), raf = new Map(), audio = [], sounds = [], volumes = [];
+    const timers = new Map(), raf = new Map(), audio = [], sounds = [], volumes = [], buffers = [];
     class Target {
         constructor() { this.listeners = {}; }
         addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); }
@@ -36,7 +36,7 @@ function environment(settings = {}, config = {}) {
         }
         contains(node) { return this===node || this.children.some(child=>child.contains(node)); }
     }
-    function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); }, exponentialRampToValueAtTime() {}, cancelScheduledValues() {}}; }
+    function param() { return {value: 0, setValueAtTime(value) { this.value = value; }, linearRampToValueAtTime(value) { assert(value <= 0.065); volumes.push(value); this.peak = Math.max(this.peak || 0,value); }, exponentialRampToValueAtTime() {}, cancelScheduledValues() {this.cancelled=true;}}; }
     class AudioContext {
         constructor() { this.state = 'running'; this.destination = {}; audio.push(this); }
         get sampleRate() { return 44100; }
@@ -44,10 +44,10 @@ function environment(settings = {}, config = {}) {
         resume() { return Promise.resolve(); }
         close() { this.state = 'closed'; return Promise.resolve(); }
         createOscillator() { const node = {frequency: param(), connect() {}, disconnect() {}, start(time) { this.startTime = time; }, stop(time) { assert(time - this.startTime < 1); sounds.push({type:this.type, frequency:this.frequency.value, start:this.startTime, time}); }}; return node; }
-        createGain() { return {gain:param(), connect() {}, disconnect() {}}; }
-        createBiquadFilter() { return {frequency:param(), Q:param(), connect() {}, disconnect() {}}; }
+        createGain() { return {gain:param(), connect(node) {this.next=node;}, disconnect() {this.disconnected=true;}}; }
+        createBiquadFilter() { return {frequency:param(), Q:param(), connect(node) {this.next=node;}, disconnect() {this.disconnected=true;}}; }
         createBuffer(channels, length) { const data=new Float32Array(length); return {getChannelData:()=>data}; }
-        createBufferSource() { return {connect(){},disconnect(){},start(time){this.startTime=time;},stop(time){sounds.push({type:'noise',start:this.startTime,time,buffer:this.buffer});}}; }
+        createBufferSource() { const node={connect(next){this.next=next;},disconnect(){this.disconnected=true;},start(time){this.startTime=time;},stop(time){sounds.push({type:'noise',start:this.startTime,time,buffer:this.buffer});}};buffers.push(node);return node; }
     }
     const window = new Target(), document = new Target();
     const storage = config.storage || new Map();
@@ -88,7 +88,7 @@ function environment(settings = {}, config = {}) {
     const event = (extra={}) => Object.assign({target:blank,button:0,clientX:500,clientY:400,pointerType:'mouse'},extra);
     const click = extra => {document.emit('pointerdown',event(extra));document.emit('dblclick',event(extra));};
     const touch = (x,y) => {document.emit('pointerdown',event({pointerType:'touch',clientX:x,clientY:y}));tick(50);document.emit('pointerup',event({pointerType:'touch',clientX:x,clientY:y}));};
-    return {window,document,reduced,visitors,center,tick,event,click,touch,timers,raf,audio,sounds,volumes,blank,block,traces,weatherTriggers,storage, Element, now:()=>now};
+    return {window,document,reduced,visitors,center,tick,event,click,touch,timers,raf,audio,sounds,volumes,buffers,blank,block,traces,weatherTriggers,storage, Element, now:()=>now};
 }
 let checks = 0;
 /** Let completed audio promises release each VM fixture before starting the next check. */
@@ -2821,6 +2821,47 @@ check('pointer heat: it expires without input and cannot recur for ten minutes d
     const {e,heat}=heatFixture();e.tick(13000);assert(heat());e.tick(50000);assert(!heat());
     for(let i=0;i<6;i++){e.document.emit('keydown',{key:'Escape'});e.tick(13000);assert(!heat());}
 });
+check('pointer heat audio: quiet crackling once, one wetter hiss and no overlap or repeated steam sound',()=>{
+    for(const weather of ['sun','rain','snow'])for(const strength of ['normal','gentle']){
+        const {e}=heatFixture({sound:'yes',strength},{weather,scene:true});e.document.emit('pointerdown',e.event({clientX:400,clientY:300}));e.tick(18000);
+        const noise=e.sounds.filter(n=>n.type==='noise');assert.equal(noise.length,weather==='sun'?1:2);
+        assert(Math.abs(noise[0].time-noise[0].start-.65)<.001);assert.equal(e.buffers[0].next.type,'lowpass');
+        if(weather!=='sun'){assert(Math.abs(noise[1].time-noise[1].start-.8)<.001);assert(noise[1].start-noise[0].time>.6);assert.equal(e.buffers[1].next.type,'bandpass');}
+        e.buffers.forEach((node,i)=>{
+            const data=node.buffer.getChannelData(0);assert(data.every(x=>Number.isFinite(x)&&Math.abs(x)<=1));assert(new Set(data).size>100);
+            assert.equal(node.next.next.gain.peak,(strength==='gentle'?.5:1)*(i?.028:.035));
+        });
+        e.tick(10000);assert.equal(e.sounds.filter(n=>n.type==='noise').length,noise.length);
+    }
+});
+check('pointer heat audio: disabled and locked audio stay silent, scary mode keeps these cues quiet',()=>{
+    for(const sound of ['no','yes','scary'])for(const unlocked of [false,true]){
+        const {e}=heatFixture({sound},{weather:'rain',scene:true});if(unlocked)e.document.emit('pointerdown',e.event({clientX:400,clientY:300}));e.tick(18000);
+        assert.equal(e.buffers.length,unlocked&&sound!=='no'?2:0);
+        if(unlocked&&sound!=='no')assert(e.buffers.every(n=>n.next.next.gain.peak<=.035));
+        if(!unlocked){e.document.emit('keydown',{key:'a'});e.tick(8000);assert.equal(e.buffers.length,0,'old heat sounds never replay after audio unlock');}
+    }
+});
+check('pointer heat audio: busy shared cues skip both sounds without a delayed queue',()=>{
+    const {e}=heatFixture({sound:'yes'},{weather:'rain',scene:true});e.document.emit('pointerdown',e.event({clientX:400,clientY:300}));e.tick(11850);
+    assert(e.window.funnyScene.cue(2,6000,()=>{},'other-effect'));e.tick(20000);assert.equal(e.buffers.length,0);
+});
+check('pointer heat audio: ongoing weather yields its shared slot before the heating cue',()=>{
+    const {e}=heatFixture({sound:'yes'},{weather:'rain',scene:true});e.document.emit('pointerdown',e.event({clientX:400,clientY:300}));e.tick(11850);
+    let stopped=false;assert(e.window.funnyScene.cue(0,6000,()=>{stopped=true;},'weather'));e.tick(1000);
+    assert(stopped);assert.equal(e.buffers.length,1);assert.equal(e.buffers[0].next.type,'lowpass');
+});
+check('pointer heat audio: interruptions mute the current noise and ended sources release their nodes',()=>{
+    for(const exit of ['scroll','touch','blur','hidden','escape','reduced']){
+        const {e,heat}=heatFixture({sound:'yes'},{weather:'rain',scene:true});e.document.emit('pointerdown',e.event({clientX:400,clientY:300}));e.tick(12200);
+        const source=e.buffers[0];assert(source);const filter=source.next,gain=filter.next;
+        if(exit==='scroll')e.document.emit('scroll');if(exit==='touch')e.document.emit('pointerdown',e.event({pointerType:'touch'}));if(exit==='blur')e.window.emit('blur');
+        if(exit==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}if(exit==='escape')e.document.emit('keydown',{key:'Escape'});
+        if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}assert(!heat());assert(gain.gain.cancelled);
+        source.onended();assert(source.disconnected&&filter.disconnected&&gain.disconnected);e.tick(5000);assert.equal(e.buffers.length,1);
+    }
+});
+
 check('seasonal priority: gremlins and monsters are rare guests outside Halloween while seasonal groups still lead',()=>{
     for(const date of ['2026-09-20T12:00:00','2026-11-17T12:00:00','2026-12-20T12:00:00']){
         const e=environment({trigger:'manual',mode:'auto',sound:'no'},{date,seed:997});let rare=0,total=0;

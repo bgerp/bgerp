@@ -237,7 +237,13 @@
 
             /** All decoration is disposable; application content, styles and hit testing stay intact. */
             function clearPointerHeat() {
-                if (pointerHeat) pointerHeat.node.remove();
+                if (pointerHeat) {
+                    pointerHeat.node.remove();
+                    if (pointerHeat.soundGain && audio) {
+                        if (scene) scene.fade(pointerHeat.soundGain.gain, audio.currentTime);
+                        else { pointerHeat.soundGain.gain.cancelScheduledValues(audio.currentTime); pointerHeat.soundGain.gain.setValueAtTime(0, audio.currentTime); }
+                    }
+                }
                 pointerHeat = null;
             }
 
@@ -274,6 +280,10 @@
                 heat.node.style.transform = 'translate('+pointer.x+'px,'+pointer.y+'px)';
                 heat.node.style.setProperty('--funny-heat', heat.power.toFixed(3));
                 heat.node.setAttribute('data-wet', sky.snow ? 'snow' : sky.rain ? 'rain' : '');
+                // Leave room for the arrival cue; a rejected sound is never queued or retried.
+                if (!heat.heatSound && heat.power > 0.15 && now-heat.born >= 1900) {
+                    heat.heatSound = true; playSound('heat');
+                }
                 if (heat.power > 0.12 && now >= heat.traceAt) {
                     heat.traceAt = now + 250;
                     scorchPointer(heat.power);
@@ -282,6 +292,7 @@
                 if (wet && heat.power > 0.15 && now >= heat.steamAt) {
                     heat.steamAt = now + 1000;
                     interactionEffect('heat-steam',pointer.x,pointer.y,[{x:pointer.x-12,y:pointer.y-30},{x:pointer.x+15,y:pointer.y-45}],1400);
+                    if (!heat.hissSound && now-heat.born >= 4200) { heat.hissSound = true; playSound('heat-hiss'); }
                 }
                 if (heat.power <= 0.12) return;
                 visitors.forEach(function (v) {
@@ -371,12 +382,41 @@
                 };
             }
 
+            /** Filtered noise suggests warm crackling or cooling steam without a sustained hiss. */
+            function playHeatSound(hiss) {
+                var duration = hiss ? 0.8 : 0.65, start = audio.currentTime + 0.025;
+                var buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate*duration), audio.sampleRate), data = buffer.getChannelData(0);
+                // A local noise stream does not consume thousands of character-lottery draws.
+                var seed = Math.floor(Math.random()*2147483646)+1, low = 0;
+                for (var i = 0; i < data.length; i++) {
+                    seed = seed*16807%2147483647;
+                    var white = (seed-1)/1073741823-1;
+                    low = (low+white*0.12)/1.12;
+                    data[i] = hiss ? white*0.65 : low*2.3*(0.65+0.35*Math.sin(i/audio.sampleRate*55));
+                }
+                var source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+                source.buffer = buffer; filter.type = hiss ? 'bandpass' : 'lowpass'; filter.frequency.value = hiss ? 1800 : 800; filter.Q.value = 0.6;
+                voices.push(gain); gain.gain.value = 0;
+                if (pointerHeat) pointerHeat.soundGain = gain;
+                gain.gain.setValueAtTime(0, start);
+                gain.gain.linearRampToValueAtTime((gentle ? 0.5 : 1)*(hiss ? 0.028 : 0.035), start+(hiss ? 0.015 : 0.04));
+                gain.gain.exponentialRampToValueAtTime(0.0001, start+duration);
+                source.connect(filter); filter.connect(gain); gain.connect(audio.destination);
+                source.start(start); source.stop(start+duration);
+                source.onended = function () {
+                    source.disconnect(); filter.disconnect(); gain.disconnect();
+                    voices = voices.filter(function (item) { return item !== gain; });
+                    if (pointerHeat && pointerHeat.soundGain === gain) pointerHeat.soundGain = null;
+                };
+            }
+
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
                 if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
                 if (character === 'paper') { playPaperCrumple(); return; }
+                if (character === 'heat' || character === 'heat-hiss') { playHeatSound(character === 'heat-hiss'); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
