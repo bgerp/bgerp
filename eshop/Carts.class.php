@@ -2792,6 +2792,19 @@ class eshop_Carts extends core_Master
 
         if (!empty($rec->invoiceUicNo) && drdata_Vats::isBulstat($rec->invoiceUicNo)) {
 
+            // Регистрираните по ДДС са в локалния регистър - тогава Търговският регистър не се пита
+            if (drdata_VatRegister::isActual()) {
+                $uicNo = preg_replace('/\D/', '', $rec->invoiceUicNo);
+                $regRec = drdata_VatRegister::fetch(array("#vatNo = '[#1#]' AND #state = 'registered'", "BG{$uicNo}"));
+                if (is_object($regRec)) {
+                    if (drdata_VatRegister::isSameCompany($rec->invoiceNames, $regRec->name) === false) {
+                        $form->setWarning('invoiceNames,invoiceUicNo', '|Според регистъра по ЗДДС този ЕИК е на|*: ' . core_Type::escape(drdata_VatRegister::getInvoiceName($regRec->name)) . '!');
+                    }
+
+                    return;
+                }
+            }
+
             // Недостъпен или празен Търговски регистър не спира поръчката; предупрежденията на PHP
             // иначе показват страница с грешка, затова тук стават изключения
             set_error_handler(function ($errno, $errstr, $errfile, $errline) {
