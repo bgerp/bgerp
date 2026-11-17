@@ -2216,9 +2216,10 @@ class planning_Tasks extends core_Master
             }
             $countNotes = countR($notes);
             if ($countNotes) {
-                $row->title->append("<div style='padding-bottom:2px;' class='taskInJobListRow pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>");
+                // Отделно от заглавието: то се сглобява наново при рендиране на таблицата
+                $row->productionNotes = "<div style='padding-bottom:2px;' class='taskInJobListRow pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>";
                 if(!Mode::isReadOnly()){
-                    $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Показване на протоколи за производство') . "\"</a>";
+                    $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" title="' . tr('Показване на протоколи за производство') . "\"></a>";
                 }
             }
 
@@ -2309,6 +2310,7 @@ class planning_Tasks extends core_Master
         }
         foreach ($data->rows as $row){
             $row->title = $row->title->append($row->notes);
+            $row->title->append($row->productionNotes ?? '');
         }
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {
