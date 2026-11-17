@@ -295,7 +295,8 @@ class cat_products_Params extends cat_products_ProtoParams
 
         if (!empty($paramId)) {
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$Class->getClassId()}", 'paramValue');
-            if ($verbal === true) {
+            // Липсващата стойност не се вербализира, за да не скрие наследената от групите
+            if ($verbal === true && $paramValue !== false && $paramValue !== null) {
                 $paramValue = cat_Params::toVerbal($paramId, $Class->getClassId(), $productId, $paramValue);
             }
             

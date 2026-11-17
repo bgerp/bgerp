@@ -457,7 +457,13 @@ class core_Master extends core_Manager
                 // Подготвяме горни и долни табове
                 $tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam));
                 $tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-                
+
+                // При експорт за LLM: поисканият таб (select) и списък на всички табове на детайлите
+                // owner е "клас|ид" на изнасяния документ - вложено рендиран мастер не го пипа
+                $llmTabs = Mode::get('llmDetailTabs');
+                $llmOwner = $this->className . '|' . ($data->rec->id ?? '');
+                $llmTabs = (is_object($llmTabs) && ($llmTabs->owner ?? null) === $llmOwner) ? $llmTabs : null;
+
                 foreach ($detailTabbed as $var => $order) {
                     $url = getCurrentUrl();
                     
@@ -476,6 +482,11 @@ class core_Master extends core_Manager
                     
                     if (!($data->{$var}->disabled ?? null)) {
                         $tab->TAB($var, ($data->{$var}->TabCaption ?? null) ? $data->{$var}->TabCaption : $var, toUrl($url));
+                        if ($llmTabs) {
+                            $caption = $data->{$var}->TabCaption ?? $var;
+                            $caption = ($caption instanceof core_ET) ? $caption->getContent() : tr($caption);
+                            $llmTabs->tabs[$var] = trim(strip_tags($caption));
+                        }
                     }
                 }
                 
@@ -483,8 +494,15 @@ class core_Master extends core_Manager
                 
                 // Ако има избран детайл от горния таб, показваме го, ако няма винаги рендираме първия
                 $selectedTop = $tabTop->getSelected();
+                $llmSelect = $llmTabs->select ?? null;
+                if (isset($llmSelect) && array_key_exists($llmSelect, $tabTop->getTabs())) {
+                    $selectedTop = $llmSelect;
+                }
                 if (!$selectedTop) {
                     $selectedTop = $tabTop->getFirstTab();
+                }
+                if ($llmTabs && $selectedTop) {
+                    $llmTabs->shown[$selectedTop] = $selectedTop;
                 }
                 
                 // Ако има избран детайл от горния таб рендираме го
@@ -506,10 +524,16 @@ class core_Master extends core_Manager
 
                 // Проверяваме имали избран детайл от долния таб
                 $selectedBottom = $tabBottom->getSelected();
-                
+                if (isset($llmSelect) && array_key_exists($llmSelect, $tabBottom->getTabs())) {
+                    $selectedBottom = $llmSelect;
+                }
+
                 // Ако няма и горния детайл няма табове, показваме първия таб на долния
                 if (!$selectedBottom && !countR($tabTop->getTabs())) {
                     $selectedBottom = $tabBottom->getFirstTab();
+                }
+                if ($llmTabs && $selectedBottom) {
+                    $llmTabs->shown[$selectedBottom] = $selectedBottom;
                 }
                 
                 // Ако има избран детайл от долния таб, добавяме го

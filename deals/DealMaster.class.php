@@ -2565,9 +2565,10 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if($me instanceof sales_Sales){
-            if(isset($fields['deliveryTermId'])){
-                if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+            // Условието може да е дошло и от дефолтите, не само от $fields
+            if(!empty($rec->deliveryTermId)){
+                if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                 }
             }
         }

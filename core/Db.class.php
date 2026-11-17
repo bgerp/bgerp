@@ -900,6 +900,14 @@ REGEX;
         
         // Правим типа с главни букви
         $res->type = strtoupper($res->type);
+
+        // MariaDB връща празния BLOB default като SQL литерал, включително кавичките.
+        if (($res->default ?? null) === "''" && in_array($res->type ?? '', array('TINYBLOB', 'BLOB', 'MEDIUMBLOB', 'LONGBLOB'), true)) {
+            $link = $this->connect();
+            if (stripos($link->server_info ?? '', 'MariaDB') !== false) {
+                $res->default = '';
+            }
+        }
         
         // Конвертираме Yes/No стойността на ->null към TRUE/FALSE
         $res->notNull = (strpos(strtolower($res->null), 'no') !== false);

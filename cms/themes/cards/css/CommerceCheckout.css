@@ -39,7 +39,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFields
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField { width: 100%; border-spacing: 0; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption {
     width: 150px;
-    padding: 6px 16px 6px 0;
+    padding: 3px 16px 3px 0;
     text-align: left;
     vertical-align: middle;
     color: var(--c-text-2);
@@ -47,9 +47,9 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldC
     white-space: normal;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption b { font-weight: 600; color: #263f4d; }
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 4px 0; min-width: 0; font-size: 0.9375em; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 2px 0; min-width: 0; font-size: 0.9375em; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup {
-    margin: 16px 0 8px;
+    margin: 4px 0 2px;
     padding: 12px 0 0;
     border: 0;
     border-top: 1px solid #e3ebef;
@@ -163,6 +163,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar {
 /* Псевдоелементите на clearfix във flex заемат място и отстояние */
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar::before,
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar::after { display: none; }
+body.commerce-theme #newEnquiryForm input[type=button][id^="dblRow_"],
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .button {
     min-height: 2.25rem;
     margin: 0;
@@ -199,7 +200,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit t
 }
 
 /* Keep framework combo widths and paired controls intact. */
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.combo):not([name="captcha[value]"]):not([inputmode=decimals]):not([inputmode=decimal]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.combo):not(:where(#newEnquiryForm [inputmode=numeric])):not([name="captcha[value]"]):not([inputmode=decimals]):not([inputmode=decimal]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select:not(.combo):not(.select2-hidden-accessible),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea { width: 100% !important; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inlineTo > .select2-container { width: calc(50% - 12px) !important; }
@@ -251,6 +252,12 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElemen
     vertical-align: middle;
     margin-right: 6px;
 }
+/* Integer inputs in public inquiries also need room for their units. */
+body.commerce-theme #newEnquiryForm .formElement input[inputmode=numeric]:not(.combo) {
+    width: min(160px, 65%) !important;
+    vertical-align: middle;
+    margin-right: 6px;
+}
 /* Collapsible optional groups use a chevron instead of the legacy plus image. */
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup {
     display: flex;
@@ -289,6 +296,63 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select.comb
     border-radius: 0 7px 7px 0;
     cursor: pointer;
     outline: none;
+}
+/* The browser's native popup ignores option spacing; opt into the CSS picker. */
+@supports (appearance: base-select) {
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]),
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size])::picker(select) {
+        appearance: base-select;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) {
+        align-items: center;
+        background-image: none !important;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size])::picker-icon {
+        content: "";
+        width: 0;
+        height: 0;
+        margin-left: auto;
+        margin-right: 7px;
+        border: solid transparent;
+        border-width: 5px 4px 0;
+        border-top-color: #888;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]):open::picker-icon {
+        border-width: 0 4px 5px;
+        border-top-color: transparent;
+        border-bottom-color: #888;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]):not(.combo)::picker-icon { margin-right: -3px; }
+    /* Match select2-custom.css without changing other public or internal forms. */
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size])::picker(select) {
+        padding: 0;
+        border: 1px solid #9999ff;
+        border-radius: 0;
+        background: #fff;
+        color: var(--c-ink);
+        font: 1rem Arial, Helvetica, sans-serif;
+        box-shadow: none;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) option {
+        display: block;
+        padding: 4px 6px;
+        box-sizing: border-box;
+        min-height: calc(1lh + 8px);
+        border-radius: 0;
+        font: normal 1rem Arial, Helvetica, sans-serif;
+        outline: none;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) option::checkmark { display: none; }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) option:checked { background: #ddd; }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) option:enabled:hover,
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]):not(:has(option:hover)) option:enabled:focus {
+        background: #5897fb;
+        color: #fff;
+    }
+    body.commerce-theme #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size]) option:disabled { color: #999; }
+    body.commerce-theme.narrow #newEnquiryForm select:not(:has(optgroup)):not(.select2-hidden-accessible):not([multiple]):not([size])::picker(select) { max-height: 200px; }
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement > select.w25 + .select2-container {
     width: min(150px, 45%) !important;
@@ -335,12 +399,14 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit {
     border-collapse: separate;
     background-clip: padding-box;
 }
+body.commerce-theme #newEnquiryForm .formElement:has(> span[id$="_file_name_id"]),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement:has(> .input_align_vertical_btn) {
     padding: 10px;
     border: 1px dashed var(--c-line-strong);
     border-radius: 7px;
     background: var(--c-bg);
 }
+body.commerce-theme #newEnquiryForm .formElement:has(> span[id$="_file_name_id"]) > input[type=button],
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical_btn {
     float: none;
     display: inline-block;
@@ -358,6 +424,8 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_alig
     cursor: pointer;
 }
 
+body.commerce-theme #newEnquiryForm .formElement > span[id$="_file_name_id"] { box-sizing: border-box; }
+body.commerce-theme #newEnquiryForm .formElement > span[id$="_file_name_id"],
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical {
     float: none;
     display: inline-block;
@@ -376,6 +444,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .simple-too
     cursor: pointer;
 }
 
+body.commerce-theme #newEnquiryForm .vFormField:has(span[id$="_file_name_id"]),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField:has(.input_align_vertical_btn) {
     border-collapse: separate;
 }
@@ -556,3 +625,40 @@ body.commerce-theme .srd-actions .button + .button {
     color: var(--c-accent) !important;
 }
 body.commerce-theme .srd-actions .button + .button:hover { background-color: var(--c-accent-soft) !important; }
+
+/* Compact editable tables in public inquiries. */
+body.commerce-theme #newEnquiryForm #table_hotPrinting {
+    width: 100%;
+    border-collapse: collapse;
+}
+body.commerce-theme #newEnquiryForm #table_hotPrinting > tbody > tr > td {
+    padding: 3px 5px;
+    border: 1px solid var(--c-line-2);
+    background: #fff;
+}
+body.commerce-theme #newEnquiryForm #table_hotPrinting > tbody > tr > td.formTypeTable {
+    background: var(--c-accent-soft);
+    color: var(--c-text-2);
+    font-weight: 500;
+}
+body.commerce-theme #newEnquiryForm #table_hotPrinting select {
+    min-width: 7em !important;
+    width: auto !important;
+    white-space: nowrap;
+}
+body.commerce-theme #newEnquiryForm #table_hotPrinting input {
+    width: 5em !important;
+}
+body.commerce-theme #newEnquiryForm input[type=button][id^="dblRow_"] {
+    min-height: 2rem;
+    padding: 4px 12px !important;
+    box-sizing: border-box;
+}
+body.commerce-theme #newEnquiryForm input[type=button][id^="dblRow_"]:hover {
+    background: var(--c-accent-soft) !important;
+}
+@media (max-width: 600px) {
+    body.commerce-theme #newEnquiryForm #table_hotPrinting > tbody > tr > td { padding: 3px 2px; }
+    body.commerce-theme #newEnquiryForm #table_hotPrinting select { white-space: normal; }
+    body.commerce-theme #newEnquiryForm #table_hotPrinting input { width: 4em !important; }
+}

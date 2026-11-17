@@ -1489,7 +1489,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                             if(haveRole('debug')){
                                 $msg .= "<br>debug info:<br>{$deviationRec->debugInfo}";
                             }
-                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true));
+                            // За LLM - кратка бележка с нивото на отклонението, без debug информацията
+                            $aiLevel = ($iconHint == 'img/16/red-warning.png') ? 'critical' : (($iconHint == 'warning') ? 'significant' : 'minor');
+                            $aiHint = sprintf('Net %+.2f%% vs expected %s kg (%s)', $deviationRec->deviation * 100, round($deviationRec->expectedNetWeight, 3), $aiLevel);
+                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true, 'aiHint' => $aiHint));
                         }
                     } else {
                         $row->netWeight = ht::createHint($row->netWeight, 'Няма информация за очакваното нето тегло', 'notice', false);
