@@ -1,0 +1,69 @@
+body.studio-theme .commerce-blog-layout { gap: 40px; padding-block: 40px; }
+body.studio-theme.commerce-blog #cmsNavigation {
+    background: transparent;
+    border: 0;
+    border-top: 3px solid var(--c-ink);
+    border-radius: 0;
+    padding: 20px 0;
+}
+body.studio-theme .blogm-browse > h1 {
+    padding: 0 0 24px;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--c-ink);
+    border-radius: 0;
+    font-size: clamp(2rem, 4vw, 3.25rem) !important;
+    letter-spacing: -.04em;
+}
+body.studio-theme .blogm-browse-article {
+    padding: 28px 0;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--c-line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+body.studio-theme .blogm-browse-article:hover { border-color: var(--c-accent); box-shadow: none; }
+body.studio-theme .blogm-article-title { font-size: clamp(1.5rem, 2.3vw, 2rem); letter-spacing: -.025em; }
+body.studio-theme .commerce-article-content {
+    padding: 0 0 32px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+body.studio-theme .commerce-article-content h1 {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -.04em;
+    border-bottom: 1px solid var(--c-ink);
+    padding-bottom: 24px;
+}
+body.studio-theme :is(.commerce-article-content, .blogm-article-body) .richtext {
+    color: var(--c-text);
+    font-size: 1.0625rem;
+    line-height: 1.85;
+}
+body.studio-theme :is(.commerce-article-content, .blogm-article-body) blockquote {
+    border-left: 4px solid var(--c-accent);
+    background: var(--c-accent-soft);
+    padding: 20px 24px;
+    margin-inline: 0;
+}
+@media (min-width: 1001px) {
+    body.studio-theme.commerce-blog:not(.commerce-article) .commerce-blog-layout {
+        grid-template-columns: minmax(0, 1fr) 230px;
+    }
+    body.studio-theme.commerce-blog:not(.commerce-article) .commerce-blog-layout > #cmsNavigation { grid-column: 2; grid-row: 1; }
+    body.studio-theme.commerce-blog:not(.commerce-article) .commerce-blog-layout > .commerce-blog-content { grid-column: 1; grid-row: 1; }
+}
+@media (max-width: 700px) {
+    body.studio-theme .commerce-blog-layout { gap: 20px; padding-block: 24px; }
+    body.studio-theme .blogm-browse-article { padding-block: 20px; }
+}
+body.studio-theme.commerce-blog .commerce-blog-content,
+body.studio-theme.commerce-blog .commerce-blog-content:has(> .blogm-article-title) {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
