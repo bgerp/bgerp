@@ -4243,7 +4243,8 @@ en,Отказано,Declined
 en,Терминал (TID),Terminal (TID)
 en,Вид по Н-18,Type under N-18
 en,Доставчик на платежни услуги,Payment service provider
-en,Пренасочване към страницата за плащане с карта,Redirecting to the card payment page
+en,Пренасочване към плащането,Redirecting to payment
+en,Ще бъдете пренасочени към защитената страница на банката,You will be redirected to the secure bank page
 en,Към плащането,Proceed to payment
 en,Плащане с банкова карта,Payment by bank card
 en,"Моля, завършете поръчката, като платите от бутона",Please complete the order by paying with the button
@@ -16652,3 +16653,18 @@ en,Сума без отстъпка,Amount before discount
 en,Поръчки с доставка,Orders with delivery
 en,С грешка,With error
 en,Тагове на документите от онлайн магазина,Tags of online shop documents
+en,"Ако не искате разпределение по сконто: изчистете разпределението и махнете отстъпката от РБД-то","If you do not want a cash discount allocation: clear the allocation and remove the discount from the outgoing bank document"
+en,"Условия към продажба (EN)","Sale conditions (EN)"
+en,"Условия към покупка (EN)","Purchase conditions (EN)"
+en,"Параметри на групи","Group parameters"
+en,"Предефиниране","Override"
+en,"Предефиниране на стойността","Override the value"
+en,"Параметърът не може да се задава за групи","The parameter cannot be set for groups"
+en,"Регистрирани по ЗДДС лица","VAT registered persons"
+en,"Регистрирано по ЗДДС лице","VAT registered person"
+en,"Регистриран","Registered"
+en,"Дерегистриран","Deregistered"
+en,"Дата на дерегистрация","Deregistration date"
+en,"Регистър ЗДДС","VAT register"
+en,"Синхронизиране на регистрираните по ЗДДС лица с бюлетина на НАП","Synchronize VAT registered persons with the NRA bulletin"
+en,"Задаване на параметъра","Setting the parameter"

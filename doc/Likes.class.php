@@ -71,6 +71,7 @@ class doc_Likes extends core_Manager
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption = Нишка');
         
         $this->setDbIndex('threadId');
+        $this->setDbIndex('createdBy, threadId');
         $this->setDbUnique('containerId, createdBy');
     }
     

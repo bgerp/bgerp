@@ -42,6 +42,24 @@
 .funny-firefly.funny-gentle::before { width: 110px; height: 110px; }
 .funny-firefly > svg:first-child { transition: filter 1.8s ease; }
 .funny-firefly[data-fog-glow="true"] > svg:first-child { filter: drop-shadow(0 0 7px #fff6a4); }
+.funny-visitor.funny-present { opacity: 1; }
+.funny-present:not(.funny-leaving) > svg:first-child { transform-origin: 50% 95%; animation: funny-present-rock 1.3s ease-in-out infinite alternate, funny-present-glow 1.4s ease-in-out infinite; }
+.funny-present-sparkles { position: absolute; inset: 0; }
+.funny-present-sparkles i { position: absolute; width: 26px; height: 26px; margin: -13px; background: radial-gradient(circle, #fff 0 18%, #ffe27a 45%, #ffcf3f); clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); animation: funny-present-twinkle 1.6s ease-in-out infinite; }
+.funny-leaving .funny-present-sparkles { display: none; }
+.funny-present-fading { opacity: 0; transition: opacity .6s ease-out; }
+.funny-present-open { position: fixed; z-index: 9999; pointer-events: none !important; user-select: none; filter: drop-shadow(0 3px 5px #281e4140); }
+.funny-present-open * { pointer-events: none !important; }
+.funny-present-open svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.funny-present-open .funny-present-lid { position: absolute; inset: 0; transform-origin: 20% 40%; animation: funny-present-lift .45s ease-out forwards; }
+.funny-present-open.funny-portal-closing { transform-origin: 50% 96%; animation: funny-present-crush 1s ease-in-out forwards; }
+.funny-present-open.funny-portal-closing .funny-present-lid { animation: funny-present-lid-drop .25s ease-in forwards; }
+@keyframes funny-present-lift { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-32%) rotate(-16deg); } }
+@keyframes funny-present-lid-drop { from { transform: translateY(-32%) rotate(-16deg); } to { transform: translateY(0) rotate(0deg); } }
+@keyframes funny-present-crush { 0%,20% { opacity: 1; transform: scale(1) skewX(0deg); } 55% { opacity: 1; transform: scale(1.15,.12) skewX(-9deg); } 70%,80% { opacity: 1; transform: scale(1.12,.16) skewX(5deg); } 100% { opacity: 0; transform: scale(1.12,.16) skewX(5deg); } }
+@keyframes funny-present-rock { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+@keyframes funny-present-glow { 0%,100% { filter: drop-shadow(0 0 6px #ffd75eaa) brightness(1.05); } 50% { filter: drop-shadow(0 0 14px #ffe27a) drop-shadow(0 0 28px #ffcf3f) brightness(1.2) saturate(1.2); } }
+@keyframes funny-present-twinkle { 0%,100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
 .funny-visitor[data-reaction="umbrella"] > svg { transform-origin: 50% 85%; animation: funny-umbrella-gust 1.6s ease-in-out; }
 .funny-visitor[data-reaction="snowshake"] > svg { animation: funny-shake .75s ease-in-out; }
 @keyframes funny-umbrella-gust { 20%,60% { transform: rotate(var(--funny-gust-angle)); } 75% { transform: rotate(0deg) translateY(-3px); } }
@@ -343,7 +361,7 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
-    .funny-visitor, .funny-departing, .funny-portal, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift, .funny-peeker { display: none !important; }
+    .funny-visitor, .funny-departing, .funny-portal, .funny-present-open, .funny-stats, .funny-burst, .funny-crumbs, .funny-knock, .funny-meal-mark, .funny-insect-mark, .funny-character-trail, .funny-melt-puddle, .funny-gift, .funny-peeker { display: none !important; }
     .funny-eaten, .funny-restoring { opacity: 1 !important; filter: none !important; transition: none !important; }
     .funny-drained { opacity: revert !important; transition: none !important; }
     .funny-soiled { box-shadow: revert !important; transition: none !important; }
@@ -404,3 +422,31 @@
 .funny-burrowing > svg { transform-origin: 75% 65%; animation: funny-burrow .65s ease-in forwards !important; }
 @keyframes funny-burrow { to { opacity: 0; transform: translate(var(--hole-x,0px),var(--hole-y,0px)) scale(.05); } }
 @media print, (prefers-reduced-motion: reduce) { .funny-controls, .funny-mouse-hole { display: none !important; } }
+
+/* Brief weather scenes animate only decorative children, never the application layout. */
+.funny-visitor[data-weather-act="slide"] > svg:first-child { transform: rotate(var(--funny-slide-angle,-65deg)) scaleY(.85); transition: transform .2s; }
+.funny-visitor[data-weather-act="slide"]::after { content: ''; position: absolute; left: 12%; top: 83%; width: 24px; height: 3px; border-radius: 50%; background: #c1e3f1; box-shadow: 8px 5px #d9edf7; }
+.funny-visitor[data-weather-act="brake"] > svg:first-child { transform-origin: 50% 85%; animation: funny-ice-brake 1.1s ease-out; }
+@keyframes funny-ice-brake { 20% { transform: rotate(-18deg) translateX(5px); } 50% { transform: rotate(13deg) translateX(-3px); } 80% { transform: rotate(-6deg); } }
+.funny-visitor[data-weather-act="huddle"] > svg:first-child { transform-origin: 50% 85%; animation: funny-huddle .7s ease-in-out infinite alternate; }
+@keyframes funny-huddle { to { transform: scale(.94,1.02) rotate(3deg); } }
+.funny-visitor[data-weather-act="packing"] > svg:first-child { transform-origin: 50% 85%; animation: funny-snow-pack .55s ease-in-out infinite; }
+@keyframes funny-snow-pack { 50% { transform: rotate(7deg) translateY(3px); } }
+.funny-visitor .funny-snow-patch { position: absolute; inset: 0; pointer-events: none; }
+.funny-visitor[data-weather-act="scent"] > svg:first-child { transform-origin: 50% 80%; animation: funny-sniff .7s ease-in-out infinite; }
+.funny-visitor[data-weather-act="sniff"] > svg:first-child { animation: funny-sniff .5s ease-in-out 3; }
+.funny-visitor[data-weather-act="sniff"]::after { content: '?'; position: absolute; left: 70%; top: -8px; font: bold 20px sans-serif; color: #65768c; animation: funny-gesture-mark 1.4s ease-out both; }
+@keyframes funny-sniff { 45% { transform: rotate(9deg) translateY(3px); } }
+.funny-spider-thread[data-web-repair="broken"] > svg { transform-origin: 0 0; animation: funny-web-tremble .4s ease-in-out 3 alternate; }
+.funny-spider-thread[data-web-repair="mending"] > svg { animation: funny-web-tremble .18s ease-in-out infinite alternate; }
+.funny-spider-thread[data-web-repair="done"] > svg { animation: funny-web-mended .7s ease-out; }
+@keyframes funny-web-mended { from { filter: drop-shadow(0 0 3px #d2e6f4); } to { filter: none; } }
+.funny-visitor[data-weather-act="weaving"] > svg:first-child { animation: funny-shiver .22s ease-in-out infinite; }
+.funny-web-dew[data-gust="true"] i:nth-child(odd) { animation: funny-dew-sway .5s ease-in-out infinite alternate; }
+@keyframes funny-dew-sway { to { transform: translateX(2px) rotate(12deg); } }
+.funny-wind-hat { position: fixed; z-index: 10001; width: 40px; height: 25px; margin: -12px -20px; pointer-events: none !important; filter: drop-shadow(0 2px 2px #64748b55); }
+.funny-wind-hat * { pointer-events: none !important; }
+.funny-wind-hat svg { width: 100%; height: 100%; overflow: visible; }
+.funny-visitor[data-weather-act="hat"] > svg:first-child { transform-origin: 50% 90%; animation: funny-hat-chase .3s ease-in-out infinite alternate; }
+@keyframes funny-hat-chase { to { transform: rotate(-6deg) translateY(-2px); } }
+@media print, (prefers-reduced-motion: reduce) { .funny-wind-hat { display: none !important; } }

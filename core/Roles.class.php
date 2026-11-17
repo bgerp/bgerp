@@ -52,7 +52,7 @@ class core_Roles extends core_Manager
     /**
      * Кой може да редактира системните роли
      */
-    public $canEditsysdata = 'no_one';
+    public $canEditsysdata = 'admin';
     
     
     /**
@@ -70,7 +70,7 @@ class core_Roles extends core_Manager
     /**
      * Колонки в списъчния изглед
      */
-    public $listFields = 'id,role, inheritInput, type';
+    public $listFields = 'id,role, inheritInput, inheritAdd, inheritRemove, type';
     
     
     public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2, plg_Search, core_UserTranslatePlg';
@@ -87,6 +87,8 @@ class core_Roles extends core_Manager
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory, translate=user|tr|transliterate');
         $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\' AND #type !\\= \\\'team\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
+        $this->FLD('inheritAdd', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Допълнителни роли,notNull');
+        $this->FLD('inheritRemove', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Изключени роли,notNull,hint=Изключването важи само за наследяването през тази роля');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност,external=Външен достъп)', 'caption=Тип,notNull');
         $this->XPR('orderByRole', 'int', "(CASE #type WHEN 'team' THEN 1 WHEN 'rang' THEN 2 WHEN 'job' THEN 3 WHEN 'position' THEN 4 ELSE 5 END)");
         
@@ -241,41 +243,80 @@ class core_Roles extends core_Manager
     
     
     /**
-     * Създава рекурсивно списък с всички роли, които наследява посочената роля
+     * Създава списък с всички роли, достъпни по разрешените пътища на наследяване.
      *
      * @param mixed $roles keylist или масив от роли, където елементите са id-тата, наименованията или записите на ролите
+     * @param array $current Натрупани роли от независими пътища
+     * @param array $excluded Изключени роли само за текущите пътища
+     * @param array|null $records Предложен граф за проверка преди запис; null използва базата
      *
      * @return array масив от първични ключове на роли
      */
-    public static function expand($roles, &$current = array())
+    public static function expand($roles, &$current = array(), $excluded = array(), $records = null)
     {
         if (!is_array($roles)) {
             $roles = keylist::toArray($roles, true);
         }
-        
+
+        $byKey = array();
+        if (isset($records)) {
+            foreach ($records as $record) {
+                $byKey[$record->id ?? 0] = $record;
+                $byKey[$record->role ?? ''] = $record;
+            }
+        }
+        $pending = array();
         foreach ($roles as $role) {
+            $pending[] = array($role, $excluded);
+        }
+        $visited = array();
+
+        while ($pending) {
+            list($role, $blocked) = array_pop($pending);
             if (is_object($role)) {
                 $rec = $role;
+            } elseif (isset($records)) {
+                $rec = $byKey[$role] ?? null;
             } elseif (is_numeric($role)) {
                 $rec = static::fetch($role);
             } else {
                 $rec = static::fetch(array("#role = '[#1#]'", $role));
             }
             
-            // Прескачаме насъсществуващите роли
+            // Изключената роля не предава и собствените си наследявания по този път.
             $roleId = $rec->id ?? null;
-            if (!$roleId) {
+            if (!$roleId || isset($blocked[$roleId])) {
                 continue;
             }
-            
-            if (!isset($current[$roleId])) {
-                $current[$roleId] = $roleId;
-                // Зададените връзки са източникът за преизчисляване на наследяването.
-                $current += static::expand($rec->inheritInput ?? null, $current);
+
+            $blocked += keylist::toArray($rec->inheritRemove ?? null);
+            $visitKey = $roleId . ':' . keylist::fromArray($blocked);
+            if (isset($visited[$visitKey])) {
+                continue;
+            }
+            $visited[$visitKey] = true;
+            $current[$roleId] = $roleId;
+
+            // Един и същ възел може да е достъпен и по път с други изключвания.
+            $inherited = keylist::toArray($rec->inheritInput ?? null) + keylist::toArray($rec->inheritAdd ?? null);
+            foreach ($inherited as $child) {
+                $pending[] = array($child, $blocked);
             }
         }
         
         return $current;
+    }
+
+
+    /**
+     * Изчислява наследяванията с локалните добавки и изключвания.
+     */
+    public static function getInheritedRoles($rec)
+    {
+        $roles = keylist::toArray($rec->inheritInput ?? null) + keylist::toArray($rec->inheritAdd ?? null);
+        $current = array();
+
+        return static::expand($roles, $current, keylist::toArray($rec->inheritRemove ?? null));
     }
     
     
@@ -387,16 +428,18 @@ class core_Roles extends core_Manager
         $query = self::getQuery();
         
         while ($rec = $query->fetch()) {
-            $iArr = keylist::toArray($rec->inheritInput);
-            foreach ($rArr as $r) {
-                if ($r > 0) {
-                    unset($iArr[$r]);
+            foreach (array('inheritInput', 'inheritAdd', 'inheritRemove') as $field) {
+                $iArr = keylist::toArray($rec->{$field} ?? null);
+                foreach ($rArr as $r) {
+                    if ($r > 0) {
+                        unset($iArr[$r]);
+                    }
                 }
+                $rec->{$field} = keylist::fromArray($iArr);
             }
-            $rec->inheritInput = keylist::fromArray($iArr);
-            $rec->inherit = keylist::fromArray(self::expand($iArr));
+            $rec->inherit = keylist::fromArray(self::getInheritedRoles($rec));
             
-            $query->mvc->save_($rec, 'inheritInput,inherit');
+            cls::get('core_Roles')->save_($rec, 'inheritInput,inheritAdd,inheritRemove,inherit');
         }
         
         foreach ($rArr as $r) {
@@ -442,15 +485,21 @@ class core_Roles extends core_Manager
         $Roles = cls::get('core_Roles');
         $rQuery = self::getQuery();
         $rQuery->likeKeylist('inheritInput', keylist::fromArray($oldIds));
+        $rQuery->likeKeylist('inheritAdd', keylist::fromArray($oldIds), true);
+        $rQuery->likeKeylist('inheritRemove', keylist::fromArray($oldIds), true);
         while ($rec = $rQuery->fetch()) {
-            $inheritArr = array_diff_key(keylist::toArray($rec->inheritInput), $oldIds);
-
-            // Новата роля не може да наследява сама себе си
-            if ($rec->id != $newId) {
-                $inheritArr[$newId] = $newId;
+            foreach (array('inheritInput', 'inheritAdd', 'inheritRemove') as $field) {
+                $inheritArr = keylist::toArray($rec->{$field} ?? null);
+                if (!array_intersect_key($inheritArr, $oldIds)) {
+                    continue;
+                }
+                $inheritArr = array_diff_key($inheritArr, $oldIds);
+                if (($rec->id ?? null) != $newId) {
+                    $inheritArr[$newId] = $newId;
+                }
+                $rec->{$field} = keylist::fromArray($inheritArr);
             }
-            $rec->inheritInput = keylist::fromArray($inheritArr);
-            $Roles->save($rec, 'inheritInput');
+            $Roles->save($rec, 'inheritInput,inheritAdd,inheritRemove');
         }
 
         // На потребителите старите роли се сменят с новата
@@ -470,11 +519,59 @@ class core_Roles extends core_Manager
     
     
     /**
+     * Редакцията на добавките не разрешава затваряне на системните роли.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'changestate' && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
+            $requiredRoles = 'no_one';
+        }
+    }
+
+
+    /**
+     * Администраторът настройва само добавките и изключванията на системните роли.
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $form = $data->form ?? null;
+        $oldRec = !empty($form->rec->id) ? $mvc->fetch((int) $form->rec->id) : null;
+        if (($oldRec->createdBy ?? null) == core_Users::SYSTEM_USER) {
+            foreach (array('role', 'type', 'inheritInput') as $field) {
+                $form->rec->{$field} = $oldRec->{$field} ?? null;
+                // Ограничените опции са само за формата, не за групирането на всички роли.
+                $form->fields[$field]->type = clone $form->getFieldType($field);
+                $form->setReadOnly($field);
+            }
+        } else {
+            $form->setField('inheritAdd,inheritRemove', 'input=none');
+        }
+    }
+
+
+    /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        $rec = $form->rec;
+        $rec = $form->rec ?? null;
+        if (!$form->isSubmitted()) {
+            return;
+        }
+
+        $oldRec = !empty($rec->id) ? $mvc->fetch((int) $rec->id) : null;
+        $isSystem = ($oldRec->createdBy ?? null) == core_Users::SYSTEM_USER;
+        if ($isSystem) {
+            // Игнорираме подадени защитени стойности и при подправена заявка.
+            foreach ((array) $oldRec as $field => $value) {
+                if ($field != 'inheritAdd' && $field != 'inheritRemove') {
+                    $rec->{$field} = $value;
+                }
+            }
+        } else {
+            $rec->inheritAdd = $oldRec->inheritAdd ?? '';
+            $rec->inheritRemove = $oldRec->inheritRemove ?? '';
+        }
         
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
@@ -485,7 +582,7 @@ class core_Roles extends core_Manager
             $pattern = '/^[a-zА-Я\\_]{1}[a-z0-9А-Я\\_\\-]*$/iu';
             
             // Ако не е валидна роля
-            if (!preg_match($pattern, $rec->role)) {
+            if (!preg_match($pattern, $rec->role ?? '')) {
                 
                 // Сетваме грешка
                 $form->setError('role', 'Некоректно име на роля|*: ' . $mvc->getVerbal($form->rec, 'role').' - |допустими са само: букви, цифри|*, "&nbsp_&nbsp", "&nbsp-&nbsp".');
@@ -493,16 +590,19 @@ class core_Roles extends core_Manager
         }
         
         // Ако формата е субмитната и редактираме запис
-        if ($form->isSubmitted() && ($rec->id)) {
-            if ($rec->inheritInput || $rec->inherit) {
-                $expandedRoles = self::expand($form->rec->inheritInput);
-                
-                // Ако има грешки
-                if (!empty($expandedRoles[$rec->id])) {
-                    $form->setError('inherit', '|Не може да се наследи роля, която е или наследява текущата роля');
-                } else {
-                    $rec->inherit = keylist::fromArray($expandedRoles);
-                }
+        if ($form->isSubmitted() && !empty($rec->id)) {
+            if (!$isSystem) {
+                // Формата не предлага всички наследявания, например рангове и екипи.
+                $suggestions = $form->getFieldType('inheritInput')->getSuggestions();
+                $hiddenRoles = array_diff_key(keylist::toArray($oldRec->inheritInput ?? null), $suggestions);
+                $rec->inheritInput = keylist::fromArray(keylist::toArray($rec->inheritInput ?? null) + $hiddenRoles);
+            }
+
+            $expandedRoles = self::getInheritedRoles($rec);
+            if (isset($expandedRoles[$rec->id]) || keylist::isIn($rec->id, $rec->inheritAdd ?? '') || keylist::isIn($rec->id, $rec->inheritRemove ?? '')) {
+                $form->setError($isSystem ? 'inheritAdd,inheritRemove' : 'inheritInput', '|Не може да се наследи или изключи текущата роля или да се създаде цикъл');
+            } else {
+                $rec->inherit = keylist::fromArray($expandedRoles);
             }
         }
     }
@@ -513,8 +613,8 @@ class core_Roles extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $rolesInputArr = keylist::toArray($rec->inheritInput);
-        $rolesArr = keylist::toArray($rec->inherit);
+        $rolesInputArr = keylist::toArray($rec->inheritInput ?? null) + keylist::toArray($rec->inheritAdd ?? null);
+        $rolesArr = keylist::toArray($rec->inherit ?? null);
         $addRoles = '';
 
         foreach ($rolesArr as $roleId) {
@@ -551,11 +651,11 @@ class core_Roles extends core_Manager
             $query = self::getQuery();
             
             while ($rec = $query->fetch()) {
-                $calcRolesArr = self::expand($rec->inheritInput);
+                $calcRolesArr = self::getInheritedRoles($rec);
                 
                 $calcRolesKeylist = keylist::fromArray($calcRolesArr);
                 
-                if (($calcRolesKeylist || $rec->inherit) && ($calcRolesKeylist != $rec->inherit)) {
+                if ($calcRolesKeylist != ($rec->inherit ?? '')) {
                     $rec->inherit = $calcRolesKeylist;
                     $haveChanges = true;
                     $Roles->save_($rec, 'inherit');

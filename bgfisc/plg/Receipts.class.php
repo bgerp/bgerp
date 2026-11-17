@@ -9,7 +9,7 @@
  * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -500,7 +500,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     if ($result) {
                         $redirectUrl = $successUrl . "&res={$result}";
                         
-                        if ($lRec->isElectronic == 'yes' && empty($rec->revertId)) {
+                        if (($lRec->isElectronic ?? 'no') == 'yes' && empty($rec->revertId)) {
                             list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                             try {
                                 usleep(1000000);

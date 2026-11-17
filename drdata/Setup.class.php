@@ -66,7 +66,7 @@ defIfNot('DRDATA_LAST_USED_EXP', core_DateTime::SECONDS_IN_MONTH);
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -132,7 +132,25 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_Languages',
         'drdata_bg_Places',
         'drdata_CanonizedStrings',
-        'migrate::fixPhoneCachePartialNumbers2637'
+        'drdata_VatRegister',
+        'migrate::fixPhoneCachePartialNumbers2637',
+        'migrate::forceSyncVatRegister2647',
+    );
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'SyncVatRegisterWithNra',
+            'description' => 'Синхронизиране на регистрираните по ЗДДС лица с бюлетина на НАП',
+            'controller' => 'drdata_VatRegister',
+            'action' => 'SyncWithNra',
+            'period' => 1440,
+            'offset' => 660,
+            'timeLimit' => 900
+        ),
     );
 
 
@@ -142,5 +160,15 @@ class drdata_Setup extends core_ProtoSetup
     public static function fixPhoneCachePartialNumbers2637()
     {
         drdata_PhoneCache::delete('1=1');
+    }
+
+
+    /**
+     * Първоначално зареждане на регистъра по ЗДДС, без да се чака дневното пускане
+     */
+    public static function forceSyncVatRegister2647()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'SyncVatRegisterWithNra', $callOn);
     }
 }

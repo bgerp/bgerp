@@ -54,6 +54,14 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Операциите са в малко на брой папки - достъпът се ограничава по тях, без JOIN към папки и нишки
+     *
+     * @see doc_Threads::restrictAccessByUsedFolders()
+     */
+    public $restrictAccessByUsedFolders = true;
+
+
+    /**
      * Приложените стойности на филтъра за периодичното AJAX обновяване
      */
     protected $refreshRowsListFilterValues = array();
@@ -410,7 +418,8 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
-        $this->setDbIndex('expectedTimeStart,state');
+        // Покрива листа и обобщението - на MyISAM редовете не се четат; id е изрично, защото индексът не съдържа PK
+        $this->setDbIndex('expectedTimeStart,state,folderId,threadId,createdOn,timeClosed,id', 'expected_time_start_list');
         $this->setDbIndex('saoOrder');
         $this->setDbIndex('state');
     }
@@ -2610,7 +2619,15 @@ class planning_Tasks extends core_Master
             }
         }
 
-        self::savePersistentListFilter($data);
+        // Падежът е от заданието - JOIN-ът към него е нужен само при филтър или подредба по падеж
+        if (($data->listFilter->rec->filterDateField ?? null) != 'dueDate') {
+            unset($data->query->fields['dueDate']);
+        }
+
+        // При AJAX обновяване филтърът не се записва - старият таб не бива да презаписва по-нов избор
+        if (!Request::get('ajax_mode')) {
+            self::savePersistentListFilter($data);
+        }
 
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
             $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
@@ -2711,7 +2728,8 @@ JS
      */
     public function prepareListSummary_(&$data)
     {
-        if (empty($data->query) || Mode::is('isReorder') || Mode::is('printing')) {
+        // При AJAX обновяване се връща само таблицата - обобщението не се показва
+        if (empty($data->query) || Mode::is('isReorder') || Mode::is('printing') || Request::get('ajax_mode')) {
             return;
         }
 
@@ -3988,9 +4006,14 @@ JS
                 $row->nextId = $nextArr[key($nextArr)];
             }
 
-            if(!empty($rec->dueDate)){
-                $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y');
-                $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
+            // В листа падежът се JOIN-ва само при филтър по него - иначе е от вече извлечените задания
+            $dueDate = $rec->dueDate ?? null;
+            if (empty($dueDate) && empty($data->masterMvc)) {
+                $dueDate = $jobRecs[$rec->originId]->dueDate ?? null;
+            }
+            if(!empty($dueDate)){
+                $row->dueDate = dt::mysql2verbal($dueDate, 'd.m.y');
+                $row->dueDate = ht::createElement("span", array('data-date' => "{$dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
             }
 
             if(Mode::get('isReorder')){

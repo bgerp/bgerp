@@ -378,12 +378,10 @@ class wtime_Summary extends core_Manager
             // Извличане на логовете за тези потребители след посоченото време
             $lQuery = log_Data::getQuery();
             $lQuery->EXT('ip', 'log_Ips', 'externalName=ip,externalKey=ipId');
-            $lQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=userId');
             $lQuery->EXT('userAgent', 'log_Browsers', 'externalName=userAgent,externalKey=brId');
             $lQuery->where(array("#time >= '[#1#]' AND #type != 'login'", dt::mysql2timestamp($calcFromTime)));
             $lQuery->in('userId', $userIds);
-            $lQuery->show('userId,type,ip,time,userAgent,roles');
-            $lQuery->orderBy('time', 'ASC');
+            $lQuery->show('userId,type,ip,time,userAgent');
             $lRecs = $lQuery->fetchAll();
 
             core_App::setTimeLimit(countR($lRecs) * 0.08, false, 150);

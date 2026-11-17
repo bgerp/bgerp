@@ -78,7 +78,7 @@ function syncDisassemblyNoteTableGroup(tables)
                     var colspan = parseInt(header.attr('colspan'), 10) || 1;
                     var rowspan = parseInt(header.attr('rowspan'), 10) || 1;
                     var widthPerColumn = Math.ceil(measureDisassemblyCell(header) / colspan);
-                    var headerText = $.trim(header.text());
+                    var headerText = header.text().trim();
 
                     // При празна таблица единственият td е съобщението с colspan.
                     // Тогава намираме колоната на артикула от нейното заглавие.

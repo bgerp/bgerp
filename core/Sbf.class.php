@@ -21,6 +21,15 @@ defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
  */
 class core_Sbf extends core_Mvc
 {
+    const CACHE_MAX_AGE = 31536000;
+
+
+    /**
+     * Обработено съдържание само за текущата заявка, когато записът му е невъзможен.
+     */
+    private static $memoryFiles = array();
+
+
     public static function convertUrlToPath($url)
     {
         list($first, $last) = explode('/' . EF_SBF . '/' . EF_APP_NAME . '/', $url);
@@ -33,36 +42,46 @@ class core_Sbf extends core_Mvc
     /**
      * Записва посоченото съдържание на указания път
      * Връща FALSE при грешка или пълния път до новозаписания файл
+     * При $allowMemoryFallback връща пътя и за съдържание, запазено само в паметта.
      */
-    public static function saveFile_($content, $path, $isFullPath = false)
+    public static function saveFile_($content, $path, $isFullPath = false, $allowMemoryFallback = false)
     {
         if (!$isFullPath) {
             $path = EF_SBF_PATH . '/' . $path;
         }
         
-        // Ако директорията не съществува
-        if (!is_dir($dir = dirname($path))) {
-            
-            // Създаваме директория
-            if (!core_Os::forceDir($dir)) {
-                
-                return false;
+        $dir = dirname($path);
+        if (is_dir($dir) || core_Os::forceDir($dir)) {
+            // През временен файл, за да не се сервира/кешира наполовина записан файл при паралелни заявки
+            $tmpPath = $path . '.' . getmypid() . '_' . mt_rand() . '.tmp';
+            if (@file_put_contents($tmpPath, $content) !== false && @rename($tmpPath, $path)) {
+                unset(self::$memoryFiles[$path]);
+                usleep(1000);
+
+                return $path;
             }
+            @unlink($tmpPath);
         }
-        
-        // През временен файл, за да не се сервира/кешира наполовина записан файл при паралелни заявки
-        $tmpPath = $path . '.' . getmypid() . '_' . mt_rand() . '.tmp';
-        if (@file_put_contents($tmpPath, $content) !== false && @rename($tmpPath, $path)) {
-            usleep(1000);
-            
+        if ($allowMemoryFallback) {
+            // BeforeSaveFile плъгините вече са обработили съдържанието.
+            self::$memoryFiles[$path] = $content;
+
             return $path;
         }
-        @unlink($tmpPath);
         
         return false;
     }
     
     
+    /**
+     * Връща обработеното съдържание от паметта по пълния SBF път или null, ако липсва.
+     */
+    public static function getMemoryFileContent($path)
+    {
+        return self::$memoryFiles[$path] ?? null;
+    }
+
+
     /**
      * Връща съответстващия път в sbf на зададен вътрешен път
      */
@@ -132,7 +151,7 @@ class core_Sbf extends core_Mvc
         if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath[0] != '_') {
             
             // Ако файла не съществува в SBF
-            if (!file_exists($sbfPath)) {
+            if (!file_exists($sbfPath) && !isset(self::$memoryFiles[$sbfPath])) {
                 if (getFullPath($rPath)) {
                     $content = getFileContent($rPath);
                     
@@ -165,6 +184,7 @@ class core_Sbf extends core_Mvc
             }
         }
         
+        self::markUsed($sbfPath);
         $rPath = ltrim($rPath, '/');
         
         $res = $qt . core_App::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
@@ -174,94 +194,165 @@ class core_Sbf extends core_Mvc
     
     
     /**
-     * Функция, която проверява и ако се изисква, сервира
-     * браузърно съдържание html, css, img ...
+     * Връща пътя до изходния файл на sbf копие, като маха времевия суфикс от getSbfPathByTime()
      *
-     * @param string $name
+     * @param string $name Път в sbf, напр. img/menu_0829142525.png
+     *
+     * @return string|null Напр. img/menu.png или null, ако името няма времеви суфикс
+     */
+    public static function getSourceName($name)
+    {
+        if (preg_match('~^(.*[^/])_[0-9]{10}(\.[a-z0-9]+)\z~i', (string) $name, $m) ||
+            preg_match('~^(.*[^/])_[0-9]{10}_scssphp[0-9]+_[0-9]+_[0-9]+(\.css)\z~i', (string) $name, $m)) {
+            return $m[1] . $m[2];
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Отчита използването и при noatime, без да променя версията на файла.
+     */
+    public static function markUsed($path)
+    {
+        if (is_string($path) && is_file($path) && @fileatime($path) < time() - 86400) {
+            $mtime = @filemtime($path);
+            if ($mtime !== false) {
+                @touch($path, $mtime, time());
+            }
+        }
+    }
+
+
+    /**
+     * Възстановява само генерирания от приложението адрес и запазва старите налични версии.
+     *
+     * @return array Файл или съдържание с MIME тип, пренасочване или HTTP грешка
+     */
+    public static function resolveStaticFile($name)
+    {
+        $missing = array('status' => 404);
+        if (!is_string($name) || $name === '' || $name[0] === '/' ||
+            preg_match('~[\\\\\x00-\x1f?#%]|(?:^|/)\.\.?(?:/|$)~', $name)) {
+            return $missing;
+        }
+
+        $mimeTypes = array(
+            'css' => 'text/css', 'htm' => 'text/html', 'html' => 'text/html',
+            'svg' => 'image/svg+xml', 'xml' => 'text/xml',
+            'js' => 'application/javascript', 'map' => 'application/javascript',
+            'swf' => 'application/x-shockwave-flash', 'jar' => 'application/x-java-applet',
+            'java' => 'application/x-java-applet', 'png' => 'image/png',
+            'jpe' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'jpg' => 'image/jpeg',
+            'gif' => 'image/gif', 'ico' => 'image/vnd.microsoft.icon',
+            'ttf' => 'application/x-font-ttf', 'eot' => 'application/vnd.ms-fontobject',
+            'woff' => 'application/octet-stream', 'woff2' => 'application/octet-stream',
+        );
+        $ext = str::getFileExt($name);
+        $mime = $mimeTypes[$ext] ?? null;
+        if (!$mime) {
+            return $missing;
+        }
+
+        $file = EF_SBF_PATH . '/' . $name;
+        $sourceName = self::getSourceName($name);
+        $isBundle = preg_match('~^(css|js)/[a-f0-9]{32}\.(css|js)\z~', $name, $bundle) && $bundle[1] === $bundle[2];
+        $immutable = $sourceName !== null || $isBundle;
+        if (!is_file($file)) {
+            if ($isBundle) {
+                $file = core_Packs::isInstalled('compactor') ? compactor_Plugin::restoreFile($name) : false;
+                if (!$file) {
+                    return array('status' => 410);
+                }
+            } else {
+                // Точното име на оригинал има предимство пред разпознаването на суфикс.
+                $original = getFullPath($name);
+                if ($original && is_file($original)) {
+                    $sourceName = $name;
+                    $immutable = false;
+                }
+                if (!$sourceName && $ext === 'css' && getFullPath(substr($name, 0, -4) . '.scss')) {
+                    $sourceName = $name;
+                }
+                if (!$sourceName || $sourceName[0] === '_') {
+                    return $missing;
+                }
+                $original = getFullPath($sourceName);
+                $scss = $ext === 'css' ? getFullPath(substr($sourceName, 0, -4) . '.scss') : false;
+                if ((!$original || !is_file($original)) && (!$scss || !is_file($scss))) {
+                    return $missing;
+                }
+
+                // getUrl() минава през същите SASS и minify плъгини като нормалното рендиране.
+                $url = self::getUrl($sourceName, '');
+                $file = self::convertUrlToPath($url);
+                $hasCopy = is_file($file);
+                if (!$hasCopy && !isset(self::$memoryFiles[$file]) && (!$original || !is_file($original))) {
+                    return $missing;
+                }
+                $currentName = substr($file, strlen(EF_SBF_PATH) + 1);
+                $currentName = preg_replace('~(?:^|/)\./~', '/', $currentName);
+                $currentName = ltrim($currentName, '/');
+                if ($currentName !== $name) {
+                    return array('status' => 302, 'url' => $url);
+                }
+                if (!$hasCopy) {
+                    if (isset(self::$memoryFiles[$file])) {
+                        return array('status' => 200, 'content' => self::$memoryFiles[$file], 'mime' => $mime, 'immutable' => false);
+                    }
+                    // При отказ на запис getUrl() връща оригиналното име; сервираме го без immutable кеш.
+                    return array('status' => 200, 'file' => $original, 'mime' => $mime, 'immutable' => false);
+                }
+                $immutable = self::getSourceName($currentName) !== null;
+            }
+        }
+
+        self::markUsed($file);
+        return array('status' => 200, 'file' => $file, 'mime' => $mime, 'immutable' => $immutable);
+    }
+
+
+    /**
+     * Сервира наличния или възстановен статичен ресурс.
      */
     public static function serveStaticFile($name)
     {
-        $file = getFullPath($name);
-        
-        
-        // Грешка. Файла липсва
-        if (!$file || !($toSave = $content = @file_get_contents($file))) {
-            if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
-                error_log("EF Error: Missing file: {$name}");
-            }
-            
-            header('HTTP/1.1 404 Not Found');
-        } else {
-            
-            // Файла съществува и трябва да бъде сервиран
-            // Определяне на Content-Type на файла
-            $fileExt = str::getFileExt($file);
-            $mimeTypes = array(
-                
-                // Текстови
-                'css' => 'text/css',
-                'htm' => 'text/html',
-                'svg' => 'image/svg+xml',
-                'html' => 'text/html',
-                'xml' => 'text/xml',
-                'js' => 'application/javascript',
-                'map' => 'application/javascript',
-                
-                // Бинарни
-                'swf' => 'application/x-shockwave-flash',
-                'jar' => 'application/x-java-applet',
-                'java' => 'application/x-java-applet',
-                
-                // Графични
-                'png' => 'image/png',
-                'jpe' => 'image/jpeg',
-                'jpeg' => 'image/jpeg',
-                'jpg' => 'image/jpeg',
-                'gif' => 'image/gif',
-                'ico' => 'image/vnd.microsoft.icon',
-                
-                // Икони
-                'ttf' => 'application/x-font-ttf',
-                'eot' => 'application/vnd.ms-fontobject',
-                'woff' => 'application/octet-stream',
-                'woff2' => 'application/octet-stream',
-            );
-            
-            $ctype = $mimeTypes[$fileExt] ?? null;
-            
-            if (!$ctype) {
-                if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
-                    error_log("Warning: Unsuported file extention: {$file}");
-                }
-                header('HTTP/1.1 404 Not Found');
-            } else {
-                header("Content-Type: {$ctype}; charset: utf-8");
-                
-                // Хедъри за управлението на кеша в браузъра
-                header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3153600) . ' GMT');
-                header('Cache-Control: max-age=31536000, immutable');
-                
-                // Поддържа ли се gzip компресиране на съдържанието?
-                $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-                
-                if ($isGzipSupported && (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript')) {
-                    // Компресираме в движение и подаваме правилния хедър
-                    $content = gzencode($content);
-                    header('Content-Encoding: gzip');
-                }
-                
-                // Отпечатваме съдържанието и го изпращаме към браузъра
-                header('Content-Length: ' . strlen($content));
-                echo $content;
-                flush();
-                
-                // Копираме файла за директно сервиране от Apache следващия път
-                self::saveFile_($toSave, $name);
-            }
+        $result = self::resolveStaticFile($name);
+        $status = $result['status'];
+        $content = $status === 200 ? ($result['content'] ?? @file_get_contents($result['file'])) : false;
+        if ($status === 200 && $content === false) {
+            $status = 404;
         }
-        
+        if ($status !== 200) {
+            header('Cache-Control: no-store');
+            if ($status === 302) {
+                header('Location: ' . $result['url'], true, 302);
+            } else {
+                header($status === 410 ? 'HTTP/1.1 410 Gone' : 'HTTP/1.1 404 Not Found');
+            }
+        } else {
+            $ctype = $result['mime'];
+            header('Content-Type: ' . $ctype . '; charset=UTF-8');
+            $maxAge = !empty($result['immutable']) ? self::CACHE_MAX_AGE : 0;
+            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT');
+            header('Cache-Control: ' . ($maxAge ? 'public, max-age=' . $maxAge . ', immutable' : 'no-cache'));
+            header('Vary: Accept-Encoding');
+            $isGzipSupported = in_array('gzip', array_map('trim', explode(',', $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '')), true);
+            if ($isGzipSupported && (substr($ctype, 0, 5) === 'text/' || $ctype === 'application/javascript')) {
+                $content = gzencode($content);
+                header('Content-Encoding: gzip');
+            }
+            header('Content-Length: ' . strlen($content));
+            if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'HEAD') {
+                echo $content;
+            }
+            flush();
+        }
+
         core_App::shutdown(false);
     }
+
 }
 
 

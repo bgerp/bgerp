@@ -932,6 +932,11 @@ abstract class bank_Document extends deals_PaymentDocument
                 $form->setError('valior', 'Вальора трябва след приемането ни в еврозоната|*!');
             }
 
+            // При празен списък in() не слага условие и ще вземе всички документи
+            if(!countR($contableIds)){
+                followRetUrl(null, 'Няма документи, които да контирате групово|*!', 'error');
+            }
+
             $query = $this->getQuery();
             $query->in('id', $contableIds);
             $documentRecs = $query->fetchAll();

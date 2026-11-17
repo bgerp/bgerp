@@ -31,11 +31,9 @@ class plg_ExpandInput extends core_Plugin
         // Име на полето, към предшественика на полето
         setPartIfNot($mvc, 'expandParentFieldName', 'parentId');
         
-        // Скриваме полето
-        $expandField = $mvc->getField($mvc->expandFieldName);
-        $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
-      
+        // Входното поле наследява видимостта преди скриването на разпънатото.
         $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
+        $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
 
         setPartIfNot($mvc, 'forceExpandInputFieldOnExport', true);
         setPartIfNot($mvc, 'useExpandInputTypeOnExport', false);
@@ -48,22 +46,97 @@ class plg_ExpandInput extends core_Plugin
 
 
     /**
+     * Старите групи са достъпни и във формата, преди фоновото попълване на ново входно поле.
+     */
+    public static function on_AfterRead($mvc, &$rec)
+    {
+        $inputName = $mvc->expandInputFieldName ?? 'expandInput';
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        if (property_exists($rec, $inputName) && self::needsLegacyInput($mvc, $rec->{$inputName}, $rec->{$expandName} ?? null)) {
+            $rec->{$inputName} = $rec->{$expandName};
+        }
+    }
+
+
+    /**
+     * Автоматичният списък запазва първоначалното поле без дублиращия вход.
+     */
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        if (isset($data->listFields) || isset($mvc->listFields)) return;
+
+        $fields = self::getDisplayFields($mvc, $mvc->selectFields("#column != 'none'"), 'column');
+        $data->listFields = array();
+        foreach ($fields as $name => $field) {
+            $data->listFields[$name] = $field->caption ?? $name;
+        }
+    }
+
+
+    /**
+     * Запомня автоматичния избор, за да не променя последващ изричен избор на полета.
+     */
+    public static function on_AfterPrepareSingleFields($mvc, &$res, $data)
+    {
+        if (!isset($mvc->singleFields)) {
+            $data->_expandAutomaticSingleFields = $data->singleFields ?? array();
+        }
+    }
+
+
+    /**
+     * Премахва повторението само от автоматичния изглед; вербализираните полета остават за шаблоните.
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$res, $data)
+    {
+        if (isset($mvc->singleFields) || isset($mvc->singleLayoutFile) || isset($mvc->singleLayoutTpl) || isset($data->singleLayout)) return;
+        if (isset($data->_expandAutomaticSingleFields) && ($data->singleFields ?? array()) === $data->_expandAutomaticSingleFields) {
+            $data->singleFields = self::getDisplayFields($mvc, $data->singleFields ?? array(), 'single');
+        }
+    }
+
+
+    /**
+     * Изричните настройки имат предимство пред автоматично избраното поле.
+     */
+    private static function getDisplayFields($mvc, $fields, $param)
+    {
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        $inputName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
+        if (isset($fields[$expandName]) && isset($fields[$inputName])) {
+            $expanded = $mvc->getField($expandName);
+            $input = $mvc->getField($inputName);
+            if (!isset($input->{$param})) {
+                unset($fields[$inputName]);
+            } elseif (!isset($expanded->{$param})) {
+                unset($fields[$expandName]);
+            }
+        }
+
+        return $fields;
+    }
+
+
+    /**
      * След като е готово вербалното представяне
      */
     public static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
     {
-        if ($mvc->forceExpandInputFieldOnExport) {
-            if (isset($fieldset->fields[$mvc->expandFieldName]) && !isset($fieldset->fields[$mvc->expandInputFieldName])) {
-                $fNameCaption = $fieldset->fields[$mvc->expandFieldName]->caption;
-                if (!$mvc->useExpandInputTypeOnExport) {
-                    $fieldset->fields[$mvc->expandInputFieldName] = $fieldset->fields[$mvc->expandFieldName];
+        unset($fieldset->fields[$mvc->getExpandFieldName36()]);
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        $inputName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
+        if ($mvc->forceExpandInputFieldOnExport ?? true) {
+            if (isset($fieldset->fields[$expandName]) && !isset($fieldset->fields[$inputName])) {
+                $fNameCaption = $fieldset->fields[$expandName]->caption ?? '';
+                if (empty($mvc->useExpandInputTypeOnExport)) {
+                    $fieldset->fields[$inputName] = $fieldset->fields[$expandName];
                 } else {
-                    $fieldset->fields[$mvc->expandInputFieldName] = $mvc->getField($mvc->expandInputFieldName, false);
+                    $fieldset->fields[$inputName] = $mvc->getField($inputName, false);
                 }
 
-                unset($fieldset->fields[$mvc->expandFieldName]);
-                if (isset($fieldset->fields[$mvc->expandInputFieldName])) {
-                    $fieldset->fields[$mvc->expandInputFieldName]->caption = $fNameCaption;
+                unset($fieldset->fields[$expandName]);
+                if (isset($fieldset->fields[$inputName])) {
+                    $fieldset->fields[$inputName]->caption = $fNameCaption;
                 }
             }
         }
@@ -76,25 +149,38 @@ class plg_ExpandInput extends core_Plugin
     public static function on_AfterSetExpandInputField($mvc, $plugin, &$fieldset, $inputFieldName, $originalFieldName)
     {  
         // Създаваме ново инпут поле
-        if (!$fieldset->getField($inputFieldName, false)) { 
+        if (!$fieldset->getField($inputFieldName, false)) {
             $expandField = $mvc->getField($originalFieldName);
-            $pMvc = $expandField->type->params['mvc'] ?? '';
-            $select = $expandField->type->params['select'] ?? '';
-            $caption = 'caption=' . ($expandField->caption ?? '');
+            $sourceField = $mvc->getField($inputFieldName, false) ?: $expandField;
+            $pMvc = $sourceField->type->params['mvc'] ?? '';
+            $select = $sourceField->type->params['select'] ?? '';
+            $caption = 'caption=' . ($sourceField->caption ?? '');
             
             // Ако полето е мандатори
-            if ($expandField->mandatory ?? null) {
+            if ($sourceField->mandatory ?? null) {
                 $caption .= ',mandatory';
             }
             
             $parentId = $mvc->expandParentFieldName ?? 'parentId';
-            $fieldset->FLD($inputFieldName, "keylist(mvc={$pMvc}, select={$select}, parentId={$parentId})", $caption);
+            $type = $sourceField === $expandField ? "keylist(mvc={$pMvc}, select={$select}, parentId={$parentId})" : clone $sourceField->type;
+            $fieldset->FLD($inputFieldName, $type, $caption);
+            $fieldset->setFieldTypeParams($inputFieldName, $sourceField->type->params ?? array());
 
-            $expand36Name = $mvc->getExpandFieldName36();
-            $fieldset->FLD($expand36Name, "text", 'input=none');
-         
-            $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params ?? array());
+            // При отделна форма се използва вече описаното входно поле на модела.
+            foreach (array('input', 'single', 'column', 'readOnly') as $param) {
+                if (isset($sourceField->{$param})) {
+                    // Видимостта на оригинала не е изрично искане за второ поле в изгледа.
+                    if ($sourceField === $expandField && in_array($param, array('single', 'column')) && $sourceField->{$param} !== 'none') continue;
+                    $fieldset->setParams($inputFieldName, array($param => $sourceField->{$param}));
+                }
+            }
+        }
 
+        $expand36Name = $mvc->getExpandFieldName36();
+        if (!$fieldset->getField($expand36Name, false)) {
+            $fieldset->FLD($expand36Name, 'text', 'input=none,column=none,single=none');
+        } else {
+            $fieldset->setParams($expand36Name, array('input' => 'none', 'column' => 'none', 'single' => 'none'));
         }
     }
     
@@ -110,29 +196,34 @@ class plg_ExpandInput extends core_Plugin
     public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
         $mustSave = true;
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        $inputFieldName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
         $expand36Name = $mvc->getExpandFieldName36();
         // Ако е подадено да се записва само едното поле, записваме и двете
         if (isset($fields)) {
             $fieldsArr = arr::make($fields, true);
             $mustSave = false;
-            if (($fieldsArr[$mvc->expandFieldName] ?? null) || ($fieldsArr[$mvc->expandInputFieldName] ?? null)) {
-                $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
-                $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
+            if (!empty($fieldsArr[$expandName]) || !empty($fieldsArr[$inputFieldName])) {
+                $fieldsArr[$expandName] = $expandName;
+                $fieldsArr[$inputFieldName] = $inputFieldName;
                 $fieldsArr[$expand36Name] = $expand36Name;
-                $fields = implode(',', $fieldsArr);
+                $fields = implode(',', array_keys($fieldsArr));
                 $mustSave = true;
             }
         }
         
         if($mustSave) {
-            $inputFieldName = $mvc->expandInputFieldName;
-
             // При програмни записи input полето може да не е заредено
             if (!property_exists($rec, $inputFieldName)) {
                 if (!empty($rec->id)) {
                     $rec->{$inputFieldName} = $mvc->fetchField($rec->id, $inputFieldName, false);
+                    // Новодобавеното входно поле може още да чака фоновото попълване.
+                    if (empty($rec->{$inputFieldName}) && ($mvc->fixExpandFieldOnSetup ?? true) !== false) {
+                        $expanded = $rec->{$expandName} ?? $mvc->fetchField($rec->id, $expandName, false);
+                        if (self::needsLegacyInput($mvc, $rec->{$inputFieldName}, $expanded)) $rec->{$inputFieldName} = $expanded;
+                    }
                 } else {
-                    $rec->{$inputFieldName} = $rec->{$mvc->expandFieldName} ?? null;
+                    $rec->{$inputFieldName} = $rec->{$expandName} ?? null;
                 }
             }
 
@@ -143,10 +234,52 @@ class plg_ExpandInput extends core_Plugin
             $resArr = $mvc->expandInput($inputArr);
             
             // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
-            $expandField = $mvc->getField($mvc->expandFieldName);
-            $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
+            $expandField = $mvc->getField($expandName);
+            $rec->{$expandName} = $expandField->type->fromArray($resArr);
             $rec->{$expand36Name} = $expandField->type->fromArray36($resArr);
             
+        }
+    }
+
+
+    /**
+     * Синхронизира индекса след всички BeforeSave обработчици и при директен save_().
+     */
+    public static function on_BeforeSaveFields($mvc, &$rec, &$fields)
+    {
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        if (!isset($fields[$expandName])) {
+            return;
+        }
+
+        $expand36Name = $mvc->getExpandFieldName36();
+        $field = $mvc->getField($expandName);
+        $expanded = $rec->{$expandName} ?? null;
+        // toMysql заменя NULL с default при NOT NULL поле.
+        if ($expanded === null && !empty($field->notNull)) $expanded = $field->value ?? '';
+        $rec->{$expand36Name} = $expanded === null ? null : $field->type->fromArray36(type_Keylist::toArray($expanded));
+        $fields[$expand36Name] = $expand36Name;
+    }
+
+
+    /**
+     * Масовият запис запазва същата зависимост, без да изпълнява бизнес Save обработчици.
+     */
+    public static function on_BeforeSaveArrayFields($mvc, &$recs, &$fields)
+    {
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        if (countR($fields) && empty($fields[$expandName])) {
+            return;
+        }
+
+        $allFields = !countR($fields);
+        foreach ($recs as $rec) {
+            $recFields = array($expandName => $expandName);
+            self::on_BeforeSaveFields($mvc, $rec, $recFields);
+        }
+        if (!$allFields) {
+            $expand36Name = $mvc->getExpandFieldName36();
+            $fields[$expand36Name] = $expand36Name;
         }
     }
 
@@ -213,38 +346,62 @@ class plg_ExpandInput extends core_Plugin
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if (isset($mvc->fixExpandFieldOnSetup) && $mvc->fixExpandFieldOnSetup === false) {
+        if (self::scheduleRebuild($mvc)) {
+            $res .= '<li>Планирано фоново попълване на разширените полета';
+        }
+    }
 
-            return ;
+
+    /**
+     * Състоянието е отделно за всеки модел и набор полета, включително новодобавени.
+     */
+    private static function getSetupKey($mvc)
+    {
+        return 'ExpandInput1|' . $mvc->className . '|' . ($mvc->dbTableName ?? '') . '|' .
+            ($mvc->expandInputFieldName ?? '') . '|' . ($mvc->expandFieldName ?? '') . '|' . $mvc->getExpandFieldName36();
+    }
+
+
+    /**
+     * Проверява готовността веднъж за модела в текущата заявка.
+     */
+    private static function isIndexReady($mvc)
+    {
+        if (!isset($mvc->_expandInput36Ready)) {
+            $mvc->_expandInput36Ready = core_Permanent::get(self::getSetupKey($mvc)) === 'done';
         }
 
-        $query = $mvc->getQuery();
-        $query->where(array("#{$mvc->expandFieldName} IS NOT NULL"));
-        $query->where(array("#{$mvc->expandFieldName} != ''"));
+        return $mvc->_expandInput36Ready;
+    }
 
-        $query->where(array("#{$mvc->expandInputFieldName} IS NULL"));
-        $query->orWhere(array("#{$mvc->expandInputFieldName} = ''"));
 
-        $cnt = 0;
-        while ($rec = $query->fetch()) {
-            $rec->{$mvc->expandInputFieldName} = $rec->{$mvc->expandFieldName};
+    /**
+     * Ново NOT NULL входно поле може да има празен низ вместо NULL при старите записи.
+     */
+    private static function needsLegacyInput($mvc, $input, $expanded)
+    {
+        if (($mvc->fixExpandFieldOnSetup ?? true) === false || empty($expanded)) return false;
 
-            try {
-                $mvc->save($rec, "{$mvc->expandInputFieldName}, {$mvc->expandFieldName}");
+        return $input === null || ($input === '' && !self::isIndexReady($mvc));
+    }
 
-                $mvc->logNotice('Поправка на полетата групите', $rec->id);
 
-                $cnt++;
-            } catch (core_exception_Redirect $e) {
-                throw $e;
-            } catch (Exception $e) {
-                reportException($e);
-            }
+    /**
+     * Инициализацията не обхожда таблицата; незавършена обработка продължава от последния id.
+     */
+    public static function scheduleRebuild($mvc)
+    {
+        $mvc = cls::get($mvc);
+        $setupKey = self::getSetupKey($mvc);
+        $state = core_Permanent::get($setupKey);
+        if ($state === 'done') {
+            return false;
         }
 
-        if ($cnt) {
-            $res .= '<li>Мигрирани данни: ' . $cnt;
-        }
+        $data = (object) array('mvc' => $mvc->className, 'lastId' => (int) $state, 'setupKey' => $setupKey);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $data, dt::addSecs(60));
+
+        return true;
     }
 
 
@@ -262,33 +419,42 @@ class plg_ExpandInput extends core_Plugin
             core_Debug::startTimer('recalcExpandedInputs');
 
             // За кои записи
+            $expandName = $mvc->expandFieldName ?? 'expand';
+            $inputName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
+            $expand36Name = $mvc->getExpandFieldName36();
             $query = $mvc->getQuery();
-            $query->show("id,{$mvc->expandInputFieldName},{$mvc->expandFieldName}");
+            $query->show("id,{$inputName},{$expandName},{$expand36Name}");
             if(isset($id)){
-                $query->where("#id = {$id}");
+                $query->where(array("#id = '[#1#]'", $id));
             }
 
             $count = 0;
-            $updateRecs = array();
-            while($rec = $query->fetch()){
+            $updates = array();
+            while($rec = $query->fetch(null, true)){
                 $count++;
 
                 // За всеки запис се гледа има ли промени при разпънатите полета
-                $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
-                $resArr = $mvc->expandInput($inputArr);
-                $expandField = $mvc->getField($mvc->expandFieldName);
-                $oldVal = $rec->{$mvc->expandFieldName};
+                $oldVal = $rec->{$expandName} ?? null;
+                $oldInput = $input = $rec->{$inputName} ?? null;
+                if (self::needsLegacyInput($mvc, $input, $oldVal)) $input = $oldVal;
+                $inputArr = type_Keylist::toArray($input);
+                $resArr = $mvc->expandInput($inputArr, $rec);
+                $expandField = $mvc->getField($expandName);
                 $newVal = $expandField->type->fromArray($resArr);
-                if($oldVal != $newVal){
-                    $rec->{$mvc->expandFieldName} = $newVal;
-                    $updateRecs[] = $rec;
+                $newVal36 = $expandField->type->fromArray36($resArr);
+                if($oldVal != $newVal || $oldInput !== $input || ($rec->{$expand36Name} ?? null) !== $newVal36){
+                    $values = array($oldVal, $oldInput, $newVal, $input, $newVal36, true);
+                    $key = serialize($values);
+                    if (!isset($updates[$key])) $updates[$key] = array('values' => $values, 'ids' => array());
+                    $updates[$key]['ids'][] = (int) ($rec->id ?? 0);
+                }
+                if ($count % 50000 === 0) {
+                    self::saveRebuiltFields($mvc, $updates);
+                    $updates = array();
                 }
             }
 
-            // Ако има промени само те ще се запишат
-            if(countR($updateRecs)){
-                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}");
-            }
+            self::saveRebuiltFields($mvc, $updates);
             core_Debug::stopTimer('recalcExpandedInputs');
             core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime ?? 0, 2));
         }
@@ -317,42 +483,98 @@ class plg_ExpandInput extends core_Plugin
      */
     public static function callback_recalcExpand36Input($data)
     {
-        $res = array();
-        $mvc = cls::get($data->mvc);
+        $mvc = cls::get($data->mvc ?? null);
+        $expandName = $mvc->expandFieldName ?? 'expand';
+        $inputName = $mvc->expandInputFieldName ?? ($expandName . 'Input');
         $expand36Name = $mvc->getExpandFieldName36();
-        core_App::setTimeLimit('300');
+        $setupKey = $data->setupKey ?? null;
+        $lastId = (int) ($data->lastId ?? 0);
+        if ($setupKey) {
+            // Останала задача за предишно поле не трябва да обработва новото.
+            if ($setupKey !== self::getSetupKey($mvc)) return;
+            $state = core_Permanent::get($setupKey);
+            if ($state === 'done' || (int) $state > $lastId) return;
+        }
+        core_App::setTimeLimit(300);
 
         $query = $mvc->getQuery();
-        $query->where("#{$mvc->expandFieldName} IS NOT NULL");
+        $query->show("id,{$expandName},{$inputName},{$expand36Name}");
         $query->orderBy('id', 'ASC');
-        $query->limit('50000');
-        if(isset($data->lastId)){
-            $query->where("#id > {$data->lastId}");
+        $query->limit(50000);
+        $query->where(array("#id > '[#1#]'", $lastId));
+
+        // Съвместимост със задачите от по-стари миграции.
+        if(!empty($data->onlyEmpty)){
+            $query->where("#{$expandName} != '' AND (#{$expand36Name} IS NULL OR #{$expand36Name} = '')");
         }
 
-        $count = $query->count();
-        if(empty($count)){
-            $mvc->logDebug('Приключи миграцията на разширените полета за двоично търсене');
+        $updates = array();
+        $nextId = null;
+        $expandType = $mvc->getFieldType($expandName);
+        // За условния запис са нужни действителните стойности, без AfterRead заместване.
+        while($rec = $query->fetch(null, true)){
+            $nextId = (int) ($rec->id ?? 0);
+            $oldExpanded = $expanded = $rec->{$expandName} ?? null;
+            $oldInput = $input = $rec->{$inputName} ?? null;
+            $initialize = $setupKey && ($mvc->fixExpandFieldOnSetup ?? true) !== false && empty($input) && !empty($expanded);
+            if ($initialize) {
+                $input = $expanded;
+                $expanded = $expandType->fromArray($mvc->expandInput(type_Keylist::toArray($input), $rec));
+            }
+            $encoded = $expanded === null ? null : $expandType->fromArray36(type_Keylist::toArray($expanded));
+            if (($rec->{$expand36Name} ?? null) === $encoded && !$initialize) continue;
+
+            $values = array($oldExpanded, $oldInput, $expanded, $input, $encoded, (bool) $initialize);
+            $key = serialize($values);
+            if (!isset($updates[$key])) {
+                $updates[$key] = array('values' => $values, 'ids' => array());
+            }
+            $updates[$key]['ids'][] = $nextId;
+        }
+
+        self::saveRebuiltFields($mvc, $updates);
+
+        if ($nextId === null) {
+            if ($setupKey) {
+                core_Permanent::set($setupKey, 'done', core_Permanent::FOREVER_VALUE);
+                $mvc->_expandInput36Ready = true;
+            }
+            $mvc->logDebug('Приключи попълването на разширените полета');
             return;
         }
 
-        $lastId = null;
-        $expandType = $mvc->getFieldType($mvc->expandFieldName);
-        while($rec = $query->fetch()){
-            $inputArr = type_Keylist::toArray($rec->{$mvc->expandFieldName});
-            $rec->{$expand36Name} = $expandType->fromArray36($inputArr);
-            $res[$rec->id] = (object)array('id' => $rec->id, $expand36Name => $rec->{$expand36Name});
-            $lastId = $rec->id;
-        }
+        $newData = clone $data;
+        $newData->lastId = $nextId;
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, dt::addSecs(60));
+        if ($setupKey) core_Permanent::set($setupKey, $nextId, core_Permanent::FOREVER_VALUE);
+    }
 
-        if(countR($res)){
-            $mvc->saveArray($res, "id,{$expand36Name}");
-        }
 
-        if(!empty($lastId)){
-            $callOn = dt::addSecs(60);
-            $newData = (object)array('mvc' => $data->mvc, 'lastId' => $lastId);
-            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    /**
+     * Условният UPDATE пази паралелните редакции и не възстановява изтрити записи.
+     */
+    private static function saveRebuiltFields($mvc, $updates)
+    {
+        $expandName = str::phpToMysqlName($mvc->expandFieldName ?? 'expand');
+        $inputName = str::phpToMysqlName($mvc->expandInputFieldName ?? 'expandInput');
+        $field36 = str::phpToMysqlName($mvc->getExpandFieldName36());
+        $db = $mvc->db;
+        $quote = function ($value) use ($db) {
+            return $value === null ? 'NULL' : "'" . $db->escape($value) . "'";
+        };
+        foreach ($updates as $update) {
+            list($oldExpanded, $oldInput, $expanded, $input, $encoded, $updateSource) = $update['values'];
+            $set = "`{$field36}` = " . $quote($encoded);
+            $where = "`{$expandName}` <=> " . $quote($oldExpanded);
+            if ($updateSource) {
+                $set .= ", `{$expandName}` = " . $quote($expanded) . ", `{$inputName}` = " . $quote($input);
+                $where .= " AND `{$inputName}` <=> " . $quote($oldInput);
+            }
+            foreach (array_chunk($update['ids'], 1000) as $ids) {
+                $idList = implode(',', $ids);
+                expect($db->query("UPDATE `{$mvc->dbTableName}` SET {$set} WHERE `id` IN ({$idList}) AND {$where}", false, $mvc->doReplication ?? null));
+                $mvc->dbTableUpdated();
+            }
         }
     }
 
@@ -375,19 +597,26 @@ class plg_ExpandInput extends core_Plugin
         // Обръщане на стойностите в масив
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
         $useFullTextSearch = bgerp_Setup::get('USE_FULLTEXT_GROUP_SEARCH');
+        $indexReady = $useFullTextSearch != 'no' && self::isIndexReady($mvc);
 
         // Ако е избрано обикновенното търсене, то става с LOCATE в полето $mvc->expandFieldName
-        if($useFullTextSearch == 'no'){
+        // Празният MATCH има постоянен резултат и не зависи от попълването на индекса.
+        if($useFullTextSearch == 'no' || (!$indexReady && countR($valueArr))){
+            $expandName = $mvc->expandFieldName ?? 'expand';
 
             // Ако в заявката го няма полето, то се очаква да има външен ключ и се добавя към заявката
-            if(!isset($query->fields[$mvc->expandFieldName])){
+            if(!isset($query->fields[$expandName])){
                 expect($externalKey);
-                $query->EXT($mvc->expandFieldName, $mvc->className, "externalName={$mvc->expandFieldName},externalKey={$externalKey}");
+                $query->EXT($expandName, $mvc->className, "externalName={$expandName},externalKey={$externalKey}");
             }
 
             // Избор на ф-я за търсене взависимост дали се търси положителна или отрицателна заявка
             $functionName = ($not) ? 'notLikeKeylist' : 'likeKeylist';
-            $query->{$functionName}($mvc->expandFieldName, keylist::fromArray($valueArr));
+            $query->{$functionName}($expandName, keylist::fromArray(array_fill_keys($valueArr, true)));
+            // NOT MATCH включва и записите с NULL; временният LOCATE трябва да прави същото.
+            if ($not && $useFullTextSearch != 'no' && countR($valueArr)) {
+                $query->orWhere("#{$expandName} IS NULL");
+            }
             return;
         }
 

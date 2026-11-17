@@ -390,8 +390,7 @@ select {
  *    `input` and others.
  */
 
-button,
-html input[type="button"], /* 1 */
+/* Запазва досегашната специфичност; button има отделно правило по-долу. */
 input[type="reset"],
 input[type="submit"] {
     cursor: pointer; /* 3 */
@@ -585,7 +584,8 @@ select {
 
 
 /*reseting webkit differences*/
-@media screen and (-webkit-min-device-pixel-ratio:0), @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {  
+// Невалидният клон с повторен @media е бил неактивен и не се включва тук.
+@media screen and (-webkit-min-device-pixel-ratio:0), (-ms-high-contrast: none) {
     select::-ms-expand {
         display: none;
         
@@ -758,9 +758,9 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	background: $gray3;
 	border: solid 1px #aaa;
 	min-width: 100px;
-	select& {
-		max-width: 36em;
-	}
+}
+select.readonly {
+	max-width: 36em;
 }
 
 .calendar, .calendar table {
@@ -2289,11 +2289,12 @@ td.formElement {
 
 .flashElem {
 	background-color: #fffa99;
-	transition: background-color linear 500ms;
-	&input.combo, &input[type="checkbox"],
-	&input[type="radio"], label, small& {
-		background: none;
-	}
+	// Запазва моментното маркиране; PHPSass е излъчвал невалидна transition стойност.
+}
+// &input е добавяло суфикс към класа, а не type селектор за input.
+.flashEleminput.combo, .flashEleminput[type="checkbox"],
+.flashEleminput[type="radio"], .flashElem label, small.flashElem {
+	background: none;
 }
 
 .flashElem.select2 > .selection > .select2-selection {
@@ -2880,7 +2881,7 @@ div.alphabet.twoRows {
 	.trip-type {
 		margin-bottom: 4px;
 		font-size: 0.95em;
-		letter-spacing: 0.5px;
+		letter-spacing: 0; // Запазва досегашното закръгляне от PHPSass.
 	}
 	h3 {
 		margin: 16px 0 6px;
@@ -4113,9 +4114,9 @@ td.leftColImportant {
 /**
  * Стилизиран модал за потвърждение (efConfirm) - виж js/efCommon.js
  */
-$warningColor = #b75b00;
-$errorColor = #a30000;
-$noticeColor = #1976D2;
+$warningColor: #b75b00;
+$errorColor: #a30000;
+$noticeColor: #1976D2;
 
 .ef-confirm-overlay {
 	position: fixed;

@@ -34,6 +34,20 @@ $images['webp'] = 'data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAABwAwCdASooAB
 $normal = '<h2>Име: Иван Тестов</h2><table><tr><td style="color:blue">12,50 EUR &amp; 4</td></tr></table>'
     . '<a href="https://example.test/a?x=1&amp;y=2">Link</a><img src="/ordinary.png" alt="Ordinary">';
 $cases = array('normal' => $normal);
+$cases['wwwLinks'] = '<a href="www.example.test">Plain</a>'
+    . '<A HREF=\'WWW.example.test/path?x=1&amp;y=2#part\'>Uppercase</A>'
+    . '<a href=www.example.test/unquoted>Unquoted</a>'
+    . '<a href="  www.example.test:8443/path  ">Port</a>'
+    . '<a href="www&#46;example.test/entities">Entities</a>'
+    . '<map name="links"><area href="www.example.test/map" alt="Map"></map>';
+$cases['unchangedLinks'] = '<a href="http://www.example.test">HTTP</a>'
+    . '<a href="https://www.example.test">HTTPS</a><a href="//www.example.test">Scheme relative</a>'
+    . '<a href="mailto:info@example.test">Email</a><a href="#www.part">Anchor</a>'
+    . '<a href="/www.example.test">Root relative</a><a href="../www.example.test">Parent relative</a>'
+    . '<a href="./www.example.test">Relative</a><a href="document.html">Document</a>'
+    . '<a href="?url=www.example.test">Query</a><a>No URL</a><a href="">Empty</a>'
+    . '<img src="www.example.test/image.png"><form action="www.example.test/submit"></form>'
+    . '<div title="www.example.test" style="background-image:url(www.example.test/bg.png)">www.example.test</div>';
 foreach ($images as $format => $uri) {
     $cases[$format] = $normal . '<img src="' . $uri . '" alt="' . $format . '" width="40" height="20" onload="qaUnsafe()">';
 }

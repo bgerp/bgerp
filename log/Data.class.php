@@ -118,7 +118,7 @@ class log_Data extends core_Manager
         
         $this->setDbIndex('ipId');
         $this->setDbIndex('brId');
-        $this->setDbIndex('userId');
+        $this->setDbIndex('userId,time');
         $this->setDbIndex('time');
         //$this->setDbIndex('type');
         $this->setDbIndex('actionCrc');

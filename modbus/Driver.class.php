@@ -32,8 +32,26 @@ class modbus_Driver extends core_BaseClass
      * id на устройството
      */
     public $id;
-    
-    
+
+
+    /**
+     * Unit id на устройството в Modbus заявката
+     */
+    public $unit = 0;
+
+
+    /**
+     * Тип на данните: words, float или double
+     */
+    public $type;
+
+
+    /**
+     * Режим на комуникатора: debug, simulation или празно
+     */
+    public $mode;
+
+
     /**
      * Чете от посочения адрес определен брой данни
      */
@@ -70,7 +88,7 @@ class modbus_Driver extends core_BaseClass
         
         $Plc = new ModbusTcp;
         
-        if ($this->ip[0] == 's') {
+        if (substr((string) $this->ip, 0, 1) == 's') {
             $Plc->SetSimulation();
         }
         

@@ -48,7 +48,7 @@ class deals_InvoicesToDocuments extends core_Manager
     /**
      * Допустима разлика от закръгляне на сконтото при доставчика
      */
-    public static $cashDiscountTolerance = 0.02;
+    public static $cashDiscountTolerance = 0.01;
 
 
     /**
@@ -91,6 +91,7 @@ class deals_InvoicesToDocuments extends core_Manager
 
         // Ако има сконто фактурите ще се показват като списък
         if($ctx->mode == 'list'){
+            $form->info = "<div class='richtext-info-no-image'>{$form->info}<hr>" . tr("Ако не искате разпределение по сконто: изчистете разпределението и махнете отстъпката от РБД-то") . "</div>";
             $form->FLD('invoicesList', "keylist(mvc=doc_Containers,select=id)", "caption=Документи");
             $form->setSuggestions('invoicesList', array('' => '') + $invoices);
             $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
