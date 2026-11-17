@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -413,11 +413,11 @@ class cal_Holidays extends core_Master
         
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
-        
+
+        // Изтриването е преди проверката - изтрит празник също обновява календара
+        $deleted = static::deleteMissingFromCsv($mvc, $file);
+
         if ($force || $cntObj->created || $cntObj->updated || $deleted > 0) {
-            
-            $deleted = static::deleteMissingFromCsv($mvc, $file);
-            
             $res .= "<li>Изтрити {$deleted} празника, които липсват в CSV файла</li>";
             // Обновяваме празниците в календара
             $res .= '<li> ' . static::updateCalendarHolidays() . '</li>';
