@@ -21,6 +21,7 @@
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
         surfaceNear: function () { return null; },
+        heat: function () {},
         visible: function () { return false; },
         sky: function () { return null; },
         /** Uses the forecast snapshot loaded with the page, without background requests. */
@@ -538,6 +539,17 @@
             /** Share the position and phase already used to draw the visible sky. */
             window.funnyWeather.visible = function () { return !!layer && active() && forecast() === weather; };
             window.funnyWeather.sky = function () { return window.funnyWeather.visible() ? skyState : null; };
+            /** Local heat melts only our accumulated snow/water, using cached edges without layout reads. */
+            window.funnyWeather.heat = function (x, y, radius, power) {
+                if (!layer || !active() || !/rain|snow/.test(weather)) return;
+                banks.forEach(function (bank) {
+                    var px = Math.max(bank.left, Math.min(bank.right, x));
+                    if (Math.hypot(px-x,bank.top-y) >= radius || bank.amount <= 0) return;
+                    bank.amount = Math.max(0,bank.amount-Math.min(1,Math.max(0,power))*0.3);
+                    bank.node.style.height = bank.amount+'px';
+                    if (bank.ice && bank.amount < 0.8) { bank.ice.remove(); bank.ice = null; }
+                });
+            };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
                 if (!layer || !active() || ['snow','frost','water'].indexOf(kind) < 0) return null;

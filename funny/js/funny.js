@@ -35,6 +35,7 @@
             var remaining = nextDelay();
             var audio = null, printing = false, focused = document.hasFocus();
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
+            var pointerSeen = false, pointerHeat = null, lastHeat = -Infinity;
             var counter = document.getElementById('nCntLink');
             var lastCount = counter ? parseInt(counter.textContent, 10) || 0 : null;
             var lastNotifyTime = null;
@@ -117,6 +118,7 @@
                     if (pool.indexOf('spiders') < 0) pool.push('spiders');
                     if (pool.indexOf('wolf') < 0) pool.push('wolf');
                     pool.push('mouse');
+                    ['imp','muncher'].forEach(function (name) { if (pool.indexOf(name) < 0) pool.push(name); });
                     var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
                     // At most 2% of holiday groups can contain a present, including manual summons.
                     if ((month === 12 || (month === 1 && now.getDate() <= 7)) &&
@@ -137,7 +139,7 @@
                         if (mosquitoSeason) seasonalPool.push('mosquito');
                     }
                     // Occasional guests must stay rare even when every eligible character fits in a group.
-                    return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < 0.2; });
+                    return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < (name === 'imp' || name === 'muncher' ? 0.04 : 0.15); });
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
                     return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse'].indexOf(name) !== -1 && pool.indexOf(name) === index;
@@ -160,7 +162,7 @@
                 if (month === 3) return ['martenitsa', 'stork'];
                 if (month <= 5) return ['stork', 'butterfly', 'chick'];
                 if (month <= 8) return ['butterfly', 'firefly'];
-                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher', 'imp'];
+                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat'];
             }
 
             /** Seasonal actors lead the group; manual choices stay uniform and groups remain unique. */
@@ -169,6 +171,7 @@
                 var weights = pool.map(function (name) {
                     if (options.mode !== 'auto') return 1;
                     var weight = seasonalPool.indexOf(name) >= 0 ? 6 : 1;
+                    if (weight === 1 && (name === 'imp' || name === 'muncher')) weight *= 0.25;
                     if (name === 'fly') weight *= hour >= 8 && hour < 18 ? 3 : 0.5;
                     if (name === 'mosquito') weight *= hour >= 18 && hour < 23 ? 3 : 1;
                     return weight * (recentCharacters.indexOf(name) >= 0 ? 0.3 : 1);
@@ -189,7 +192,7 @@
 
             /** Counts focused idle time and keeps automatic appearances out of manual groups. */
             function schedule() {
-                if (!automatic || timer || visitors.length || portals.length || peeker || !active()) return;
+                if (!automatic || timer || visitors.length || portals.length || peeker || pointerHeat || !active()) return;
                 timer = window.setTimeout(function () {
                     timer = 0;
                     remaining = 1000;
@@ -206,10 +209,88 @@
                     lastActivityPointer = {x: event.clientX, y: event.clientY};
                     if (unchanged) return;
                 }
+                coolPointerHeat();
                 appearances = 0;
                 remaining = nextDelay();
                 window.clearTimeout(timer); timer = 0;
                 schedule();
+            }
+
+            /** A rare idle lottery shares the normal scheduler; touch and unknown cursor positions never heat up. */
+            function startPointerHeat() {
+                var now = performance.now();
+                if (!automatic || pointerHeat || !pointerSeen || !document.elementFromPoint || coarsePointer.matches || !active() ||
+                    pointer.x < 0 || pointer.y < 0 || pointer.x >= window.innerWidth || pointer.y >= window.innerHeight ||
+                    now - lastTouch < 10000 || now - lastHeat < 600000 || Math.random() >= 0.03) return;
+                var node = document.createElement('div'); node.className = 'funny-pointer-heat'; node.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(node);
+                pointerHeat = {node:node,born:now,power:0,traceAt:0,steamAt:0,until:now+random(20000,30000),coolAt:0,coolingBonus:0,moveAt:now};
+                lastHeat = now;
+            }
+
+            /** Movement starts one bounded cooldown; subsequent events cannot keep the cursor glowing. */
+            function coolPointerHeat() {
+                if (!pointerHeat || pointerHeat.coolAt) return;
+                pointerHeat.coolAt = performance.now(); pointerHeat.coolDuration = random(15000,25000); pointerHeat.coolPower = pointerHeat.power;
+                pointerHeat.node.setAttribute('data-cooling', 'true');
+            }
+
+            /** All decoration is disposable; application content, styles and hit testing stay intact. */
+            function clearPointerHeat() {
+                if (pointerHeat) pointerHeat.node.remove();
+                pointerHeat = null;
+            }
+
+            /** Sample only the visible hit surface, clipping each small scorch to its current rectangle. */
+            function scorchPointer(power) {
+                var offsets = gentle ? [[0,0]] : [[0,0],[-32,0],[32,0],[0,-32],[0,32]];
+                offsets.forEach(function (offset) {
+                    var x = pointer.x+offset[0], y = pointer.y+offset[1], el = document.elementFromPoint(x,y);
+                    if (!el || el === document.body || /^(HTML|IFRAME|CANVAS|VIDEO)$/.test(el.tagName) || el.closest('[aria-hidden="true"],.funny-controls,.funny-stats') ||
+                        (el === document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) || el.closest('[contenteditable]:not([contenteditable="false"])')) return;
+                    var r = el.getBoundingClientRect();
+                    if (r.width < 4 || r.height < 4) return;
+                    var prior = marks.filter(function (mark) { return mark.contact && mark.contact.kind === 'scorch' && mark.target === el && Math.hypot(mark.contact.x-x,mark.contact.y-y) < 28; })[0];
+                    if (prior) { prior.node.style.setProperty('--funny-burn', String(Math.max(prior.power, power))); prior.power = Math.max(prior.power, power); return; }
+                    var scorches = marks.filter(function (mark) { return mark.contact && mark.contact.kind === 'scorch'; });
+                    if (scorches.length >= (gentle ? 4 : 10)) removeMark(scorches[0]);
+                    var node = document.createElement('div'), size = 88, half = size/2;
+                    node.className = 'funny-heat-scorch'; node.style.left = x-half+'px'; node.style.top = y-half+'px';
+                    node.style.clipPath = 'inset('+Math.max(0,r.top-y+half)+'px '+Math.max(0,x+half-r.right)+'px '+Math.max(0,y+half-r.bottom)+'px '+Math.max(0,r.left-x+half)+'px)';
+                    node.style.setProperty('--funny-burn', String(power));
+                    var mark = addMark(node, 10000, {kind:'scorch',x:x,y:y}); mark.target = el; mark.power = power;
+                });
+            }
+
+            /** Heat and cooling use the existing RAF; rain and snow quench it and release a little steam. */
+            function animatePointerHeat(now) {
+                var heat = pointerHeat;
+                if (!heat) return;
+                if (now >= heat.until && !heat.coolAt) coolPointerHeat();
+                var sky = climate(), wet = sky.rain || sky.snow;
+                var cooling = heat.coolAt ? (now-heat.coolAt+heat.coolingBonus)/heat.coolDuration : 0;
+                heat.power = heat.coolAt ? heat.coolPower * Math.max(0,1-cooling) : Math.min(1,(now-heat.born)/2200) * (sky.snow ? 0.5 : sky.rain ? 0.65 : 1);
+                if (cooling >= 1) { clearPointerHeat(); schedule(); return; }
+                heat.node.style.transform = 'translate('+pointer.x+'px,'+pointer.y+'px)';
+                heat.node.style.setProperty('--funny-heat', heat.power.toFixed(3));
+                heat.node.setAttribute('data-wet', sky.snow ? 'snow' : sky.rain ? 'rain' : '');
+                if (heat.power > 0.12 && now >= heat.traceAt) {
+                    heat.traceAt = now + 250;
+                    scorchPointer(heat.power);
+                    if (window.funnyWeather && window.funnyWeather.heat) window.funnyWeather.heat(pointer.x,pointer.y,90,heat.power);
+                }
+                if (wet && heat.power > 0.15 && now >= heat.steamAt) {
+                    heat.steamAt = now + 1000;
+                    interactionEffect('heat-steam',pointer.x,pointer.y,[{x:pointer.x-12,y:pointer.y-30},{x:pointer.x+15,y:pointer.y-45}],1400);
+                }
+                if (heat.power <= 0.12) return;
+                visitors.forEach(function (v) {
+                    if (v.heatFlee || v.launched || v.leaving || v.character === 'present') return;
+                    if (v.pursuit) { var other = v.pursuit.other; other.pursuit = null; encounterState(other,''); v.pursuit = null; }
+                    interruptTrick(v); releaseThread(v); takeOff(v,now); v.fleeUntil = 0; v.fear = null;
+                    v.heatFlee = true; v.node.setAttribute('data-heat-flee','true'); encounterState(v,'');
+                    if (v.character !== 'mouse') v.exiting = true;
+                });
             }
 
             /** Silence scheduled foreground notes without closing the unlocked audio context. */
@@ -506,6 +587,7 @@
             }
 
             function clearVisitors(depart) {
+                clearPointerHeat();
                 window.cancelAnimationFrame(frame);
                 frame = 0;
                 departures.slice().forEach(clearDeparture);
@@ -606,6 +688,7 @@
                 // Gremlins and presents need an explicit click; hovering must not undo the last split.
                 if ((v.character === 'imp' || v.character === 'present') && !force) return;
                 v.leaving = performance.now();
+                if (v.heatFlee) v.node.setAttribute('data-heat-flee', '');
                 releaseThread(v);
                 caughtCount++;
                 updateStats();
@@ -847,11 +930,12 @@
             function mouseExit(v, now, delta) {
                 // A blocked or crowded route must still finish through a hole before the hard cleanup.
                 if (now - v.born >= v.lifetime + 7000) { openMouseHole(v, now); return true; }
-                var digging = now - v.born >= v.lifetime - 2500;
+                var digging = v.heatFlee || now - v.born >= v.lifetime - 2500;
                 if (now < v.fleeUntil && !digging) return false;
                 var hole = null, nearest = Infinity;
                 marks.forEach(function (mark) {
                     if (!mark.contact || mark.contact.kind !== 'hole') return;
+                    if (pointerHeat && Math.hypot(mark.contact.x-pointer.x,mark.contact.y-pointer.y) < 140) return;
                     var distance = Math.hypot(v.x - mark.contact.x, v.y - mark.contact.y);
                     if (mark.expires - now < distance / 165 * 1000 + 800) return;
                     if (distance < nearest) { nearest = distance; hole = mark; }
@@ -862,6 +946,13 @@
                     v.node.setAttribute('data-hole-running', '');
                     if (!digging) return false;
                     if (v.perch) takeOff(v, now);
+                    // Reach a cool patch before digging; mice still never escape through a screen edge.
+                    var hotX = v.x-pointer.x, hotY = v.y-pointer.y, hotGap = Math.hypot(hotX,hotY);
+                    if (pointerHeat && v.heatFlee && hotGap < 145) {
+                        v.x = clamp(v.x+(hotX || 1)/(hotGap || 1)*180*delta,v.width/2,window.innerWidth-v.width/2);
+                        v.y = clamp(v.y+hotY/(hotGap || 1)*180*delta,v.height/2,window.innerHeight-v.height/2);
+                        return true;
+                    }
                     if (!v.digStarted) { v.digStarted = now; v.node.setAttribute('data-insect', 'gnawing'); }
                     if (now - v.digStarted >= 1100) openMouseHole(v, now);
                     return true;
@@ -1806,13 +1897,14 @@
                     visitors.forEach(dress);
                     decorateMarks(now);
                 }
+                animatePointerHeat(now);
                 updateHuddles(now);
                 updatePursuits(now);
                 visitors.slice().forEach(function (v) { animateVisitor(v, now); });
                 repelVisitors();
                 greetVisitors(now);
                 visitors.forEach(function (v) { positionVisitor(v, now); });
-                if (visitors.length && !frame) frame = window.requestAnimationFrame(animate);
+                if ((visitors.length || pointerHeat) && !frame) frame = window.requestAnimationFrame(animate);
             }
 
             /** Keeps free visitors apart; launched ones must first clear their shared portal. */
@@ -1895,7 +1987,7 @@
 
             /** Encounters never override escape, departure or the pointer's personal space. */
             function availableForEncounter(v, now, clearance) {
-                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.heatFlee && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
                     now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > (clearance === undefined ? 120 : clearance);
             }
 
@@ -2969,6 +3061,14 @@
             }
 
             function movePointer(event) {
+                pointerSeen = typeof event.clientX === 'number' && typeof event.clientY === 'number';
+                if (pointerHeat && pointerSeen) {
+                    // Fast travel sheds heat; normalize by the viewport so resolution does not change the gesture.
+                    var now = performance.now(), travel = Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)/Math.hypot(window.innerWidth,window.innerHeight);
+                    var speed = travel*1000/clamp(now-pointerHeat.moveAt,16,100);
+                    pointerHeat.coolingBonus += travel*10000*clamp((speed-0.25)/1.5,0,1);
+                    pointerHeat.moveAt = now;
+                }
                 touchMarks(event.clientX, event.clientY, pointer.x, pointer.y);
                 visitors.forEach(function (visitor) {
                     if (visitor.launched || visitor.leaving) return;
@@ -3039,6 +3139,7 @@
                         if (window.funnyWeather) window.funnyWeather.trigger(reason);
                         appearances++;
                         lastAppearance = summonedAt;
+                        if (reason === 'random') startPointerHeat();
                         if (count === 1 && character === 'spiders') return true;
                         portal = createPortal(origin);
                     } else {
@@ -3119,7 +3220,7 @@
                 hidePeek();
                 retreatMunchers(event);
                 if (event.pointerType !== 'touch') splitImp(event);
-                if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
+                if (event.pointerType === 'touch') { clearPointerHeat(); pointerSeen = false; touchStart = {x: event.clientX, y: event.clientY, time: performance.now()}; }
                 else movePointer(event);
                 unlockSound();
             }, {passive: true});
@@ -3131,6 +3232,7 @@
             });
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
+                clearPointerHeat();
                 visitors.forEach(endWeatherAct);
                 marks.slice().forEach(removeMark);
                 removePeek(); retreatMunchers(); visitors.forEach(function (v) { if (v.swallowed) v.remainsCancelled = true; releaseThread(v); takeOff(v, performance.now()); });

@@ -530,3 +530,16 @@
 .funny-visitor[data-weather-act="drip-dodge"] > svg:first-child { animation: funny-wet-jump .4s ease-out; }
 .funny-visitor[data-weather-act="wind-ghost"] > svg:first-child { transform-origin: 50% 40%; transform: rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-stretch,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad))); }
 .funny-deep-runner i { width: 22px; height: 2px; border-radius: 50%; background: #6f90a288; box-shadow: 0 6px #6f90a288,0 -2px 1px white,0 4px 1px white; animation: funny-hoof-fill 4s ease-out forwards; }
+
+/* A local metal glow and clipped scorch marks never participate in hit testing or page layout. */
+.funny-pointer-heat { position: fixed; z-index: 10003; left: 0; top: 0; width: 150px; height: 150px; margin: -75px; pointer-events: none !important; user-select: none; opacity: var(--funny-heat,0); border-radius: 50%; background: radial-gradient(circle, #fff6c9 0, #ffc167 3%, #eb642888 8%, #57261944 22%, #17141022 40%, transparent 65%); }
+.funny-pointer-heat::before { content: ''; position: absolute; inset: 45px; border-radius: 50%; box-shadow: 0 0 12px #ff943b88,inset 0 0 8px #bf3a2255; animation: funny-heat-glow 1.7s ease-in-out infinite alternate; }
+.funny-pointer-heat[data-cooling="true"]::before { animation-play-state: paused; }
+.funny-pointer-heat[data-wet="rain"], .funny-pointer-heat[data-wet="snow"] { filter: saturate(.7); }
+@keyframes funny-heat-glow { to { transform: scale(1.15); opacity: .55; } }
+.funny-heat-scorch { position: fixed; z-index: 9998; width: 88px; height: 88px; pointer-events: none !important; user-select: none; background: radial-gradient(ellipse, #16100bd9 0, #2d1c10b3 17%, #cc59285c 38%, #ff9f3533 55%, transparent 70%); animation: funny-scorch-fade 10s ease-out both; }
+@keyframes funny-scorch-fade { 0% { opacity: 0; } 12%,45% { opacity: calc(var(--funny-burn,.5) * .8); } to { opacity: 0; } }
+.funny-heat-steam i { width: 18px; height: 13px; border-radius: 50%; background: #e8edf3bb; box-shadow: 0 0 6px #a8bac077; animation: funny-heat-steam 1.4s ease-out both; }
+@keyframes funny-heat-steam { from { opacity: 0; transform: scale(.3); } 25% { opacity: .7; } to { opacity: 0; transform: translate(var(--x),var(--y)) scale(1.9); } }
+.funny-visitor[data-heat-flee="true"]:not(.funny-leaving) > svg:first-child { animation: funny-follow-step .2s ease-in-out infinite alternate; }
+@media print, (prefers-reduced-motion: reduce) { .funny-pointer-heat, .funny-heat-scorch { display: none !important; } }

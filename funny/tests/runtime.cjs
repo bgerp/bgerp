@@ -57,6 +57,7 @@ function environment(settings = {}, config = {}) {
     const block = new Element();
     block.isConnected=true;
     Object.assign(document, {visibilityState:config.visibilityState || 'visible', focused:config.focused !== false, body:new Element(), hasFocus() {return this.focused;}, querySelectorAll:()=>Array.isArray(config.blocks)?config.blocks:config.blocks?[block]:[], getElementById() {return {textContent:'5'};}, createElement() {return new Element();}, createElementNS() {return new Element();}});
+    if(config.heat) document.elementFromPoint=(x,y)=>{const r=block.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom?block:null;};
     document.body.querySelectorAll = () => config.meals ? [block] : [];
     Object.assign(window, {innerWidth:config.width || 1000, innerHeight:config.height || 800, AudioContext,
         getComputedStyle:el=>Object.assign({visibility:'visible',opacity:'1'},el.computedStyle),
@@ -68,7 +69,7 @@ function environment(settings = {}, config = {}) {
     window.top = window.self = window;
     const traces=[], weatherTriggers=[];
     if(config.weather) window.funnyWeather={current:()=>config.weather,trace:(...args)=>traces.push(args),trigger:reason=>weatherTriggers.push(reason),wind:()=>config.wind || {x:0,y:0,speed:0}};
-    const math = Object.create(Math); math.random = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
+    const math = Object.create(Math); math.random = config.random || (() => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646);
     class ClockDate extends Date { constructor() {super(config.date || '2026-10-30T12:00:00');} }
     vm.runInNewContext((config.scene ? sceneSource : '') + (config.realWeather ? weatherSource : '') + source, {window,document,Element,performance:{now:()=>now},Math:math,Date:ClockDate});
     if (config.realWeather) window.funnyWeather.init({mode:'on',icon:'cloudy',expires:Infinity,standalone:settings.mode==='off',frequency:'normal'});
@@ -379,6 +380,7 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
         const e=environment({trigger:'notification'},{date:date+'T12:00:00'}), seen=new Set();
         if(!pool.includes('wolf')) pool.push('wolf');
         if(!pool.includes('mouse')) pool.push('mouse');
+        for(const guest of ['imp','muncher'])if(!pool.includes(guest))pool.push(guest);
         for(let i=0;i<40;i++) {
             e.document.emit('keydown',{key:'Escape'});e.click();e.tick(2000);
             const group=e.visitors().map(v=>v.className.split(' ')[1].replace('funny-',''));
@@ -386,7 +388,7 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
         // Rare year-round guests need not appear in every finite seasonal sample.
-        pool.filter(name=>!['wolf','spiders','mouse','present'].includes(name)).forEach(name=>assert(seen.has(name),date+': '+name));
+        pool.filter(name=>!['wolf','spiders','mouse','present'].includes(name) && (pool===halloween || !['imp','muncher'].includes(name))).forEach(name=>assert(seen.has(name),date+': '+name));
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
@@ -1757,8 +1759,8 @@ check('seasonal actors dominate whole groups, guests remain possible and manual 
         ['2026-12-15',['sleigh','elf','snowmaiden','deer','snowman','present']]];
     for(const [date,seasonal] of fixtures) {
         const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00'});
-        let primary=0, guests=0, first=0;
-        for(let i=0;i<120;i++) {
+        let primary=0, guests=0, first=0;const samples=480;
+        for(let i=0;i<samples;i++) {
             e.document.emit('keydown',{key:'Escape'});e.click();
             if(seasonal.includes(e.visitors()[0].className.split(' ')[1].slice(6))) first++;
             const actors=watchVisitors(e,1500).map(v=>v.className.split(' ')[1].slice(6));
@@ -1766,7 +1768,7 @@ check('seasonal actors dominate whole groups, guests remain possible and manual 
             actors.forEach(name=>{if(seasonal.includes(name)) primary++;else guests++;});
         }
         assert(primary>guests*3,date+' prioritizes the season throughout the group');
-        assert(guests>0,date+' still permits year-round guests');assert(first>100,date+' normally starts with its seasonal theme');
+        assert(guests>0,date+' still permits year-round guests');assert(first>samples*5/6,date+' normally starts with its seasonal theme');
     }
     const pool=['snowman','casper','wolf','spiders'], e=environment({mode:'selected',characters:pool,trigger:'manual',strength:'gentle',sound:'no'},{date:'2026-01-20T12:00:00'});
     const counts=Object.fromEntries(pool.map(name=>[name,0]));
@@ -1797,9 +1799,9 @@ check('gremlin clicks add one copy with a cooldown, preserve notification silenc
         e.window.emit('blur');e.tick(500);assert.equal(e.visitors().length,0);assert.equal(e.timers.size,0);assert.equal(e.raf.size,0);
     }
 });
-/** A seeded holiday group reaches the real seasonal lottery, without a production preview bypass. */
+/** Seed a lone holiday gift so unrelated arrival sounds do not occupy the shared cue slot. */
 function presentFixture(config={}, settings={}) {
-    const e=environment({trigger:'manual',sound:'no',...settings},{date:'2026-12-25T12:00:00',seed:settings.strength==='gentle'?251:403,...config});
+    const e=environment({trigger:'manual',sound:'no',...settings},{date:'2026-12-25T12:00:00',seed:settings.trigger==='notification'?175:settings.strength==='gentle'?327:1703,...config});
     if(settings.trigger==='notification') {e.document.emit('pointerdown',e.event());e.window.render_notificationsCnt({id:'nCntLink',cnt:6,notifyTime:1});}
     else e.click({clientX:e.window.innerWidth/2,clientY:e.window.innerHeight/2});
     e.tick(2100);
@@ -1809,7 +1811,7 @@ function presentFixture(config={}, settings={}) {
 }
 check('presents are rare Christmas and New Year surprises, never manual selections or winter guests',()=>{
     for(const date of ['2026-11-30','2026-12-01','2026-12-31','2027-01-07','2027-01-08','2026-02-01','2026-07-01']) {
-        const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00',seed:403});e.click();e.tick(2000);
+        const e=environment({trigger:'manual',sound:'no'},{date:date+'T12:00:00',seed:175});e.click();e.tick(2000);
         assert.equal(e.visitors().some(v=>v.className.includes('funny-present')),['2026-12-01','2026-12-31','2027-01-07'].includes(date),date);
     }
     const manual=environment({mode:'selected',characters:['present'],trigger:'manual'},{date:'2026-12-25T12:00:00'});manual.click();assert.equal(manual.visitors().length,0);
@@ -1832,7 +1834,7 @@ check('a present keeps its appearance, ignores hovering and expires without scor
 });
 check('automatic holiday presents fit narrow screens with the pointer inside the viewport',()=>{
     for(const [width,height] of [[320,568],[390,844],[844,390]]) {
-        const e=environment({sound:'no'},{width,height,date:'2026-12-25T12:00:00',seed:403});
+        const e=environment({sound:'no'},{width,height,date:'2026-12-25T12:00:00',seed:175});
         e.tick([...e.timers.values()][0].at+2100,100);
         const gift=e.visitors().find(v=>v.className.includes('funny-present'));assert(gift,width+'x'+height);
         const p=e.center(gift),w=parseFloat(gift.style.width),h=parseFloat(gift.style.height);
@@ -1919,7 +1921,8 @@ check('delayed present contents stop on blur, hidden page, Escape, resize, reduc
 check('present opening uses one short shared cue and notification gifts keep all contents silent',()=>{
     for(const notification of [false,true]) {
         const {e,present}=presentFixture({scene:true},{sound:'yes',trigger:notification?'notification':'manual'});e.tick(2500);const p=e.center(present);
-        const before=e.sounds.length;e.click({clientX:p.x,clientY:p.y});e.tick(2000);
+        // Measure the opening before released visitors can make their own later catch sounds.
+        const before=e.sounds.length;e.click({clientX:p.x,clientY:p.y});e.tick(100);
         assert.equal(e.sounds.length-before,notification?0:3);
         if(notification){e.tick(15000);assert.equal(e.sounds.length,0);}
     }
@@ -1931,7 +1934,7 @@ check('paper crumpling sounds once at collapse, respects settings and never queu
         const box=e.document.body.children.find(n=>n.className==='funny-present-open');assert(box);
         if(state==='blur')e.window.emit('blur');
         if(state==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
-        if(state==='busy'){e.tick(1800);assert(e.window.funnyScene.cue(1,20000,()=>{},'busy'));}
+        if(state==='busy'){e.tick(1600);assert(e.window.funnyScene.cue(1,20000,()=>{},'busy'));}
         if(state==='late')e.tick(20000,20000);
         for(let t=0;t<16000;t+=20) {
             if(!box.className.includes('funny-portal-closing'))assert(!e.sounds.some(s=>s.type==='noise'),'paper starts only with the collapse');
@@ -2720,6 +2723,113 @@ check('weather tricks: dry weather, calm wind and missing shelter cannot start t
         assert(watchVisitors(e,12000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&/^(wet-shake|sneeze|dry-wings|wind-ghost)$/.test(x))));
     }
     const {e,config}=trickFixture('butterfly');config.blocks=[];assert(watchVisitors(e,12000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&x==='dry-wings')));
+});
+
+/** A fixed lottery tests the public idle path; production has no forced-heat switch. */
+function heatFixture(settings={},config={}) {
+    const e=environment({trigger:'both',frequency:'frequent',mode:'selected',characters:['cat'],sound:'no',...settings},{heat:true,random:()=>.01,...config});
+    e.block.tagName='DIV';e.block.textContent='Original content';e.block.style.filter='contrast(1.1)';
+    e.block.rect={left:0,right:e.window.innerWidth,top:0,bottom:e.window.innerHeight,width:e.window.innerWidth,height:e.window.innerHeight};
+    e.document.emit('pointermove',e.event({clientX:400,clientY:300}));
+    const heat=()=>e.document.body.children.find(n=>n.className==='funny-pointer-heat');
+    return {e,heat};
+}
+check('pointer heat: full idle delay, gradual warmup and one 15-25 second cooldown after movement',()=>{
+    const {e,heat}=heatFixture();e.tick(9000);assert(!heat());e.document.emit('keydown',{key:'a'});e.tick(9000);assert(!heat());
+    e.tick(1200);assert(heat());const node=heat();e.tick(1800);assert(Number(node.style['--funny-heat'])>.5);
+    e.document.emit('pointermove',e.event({clientX:402,clientY:300}));assert.equal(node.attrs['data-cooling'],'true');const power=Number(node.style['--funny-heat']);
+    e.tick(14900);assert(heat());assert(Number(node.style['--funny-heat'])<power);
+    e.document.emit('pointermove',e.event({clientX:404,clientY:300}));e.tick(500);assert(!heat(),'later moves never restart cooldown');
+    assert.equal(e.block.textContent,'Original content');assert.equal(e.block.style.filter,'contrast(1.1)');
+});
+check('pointer heat: fast shaking cools sooner than slow movement and never extends the original fade',()=>{
+    for(const width of [800,1600]) {
+        const slow=heatFixture({}, {width,height:800}),fast=heatFixture({}, {width,height:800});slow.e.tick(13000);fast.e.tick(13000);
+        for(let i=0;i<40;i++) {
+            slow.e.document.emit('pointermove',slow.e.event({clientX:400+i*.1,clientY:300}));slow.e.tick(50);
+            fast.e.document.emit('pointermove',fast.e.event({clientX:width*(i%2?.6:.4),clientY:300}));fast.e.tick(50);
+        }
+        assert(slow.heat(),'slow travel keeps the gradual cooldown');assert(!fast.heat(),'quick back-and-forth dissipates the heat');
+        slow.e.tick(24000);assert(!slow.heat());
+    }
+});
+check('pointer heat: normal idle timing and background activation never inherit elapsed background time',()=>{
+    const normal=heatFixture({frequency:'normal'});normal.e.tick(60000);assert(!normal.heat());normal.e.tick(1000);assert(normal.heat());
+    const {e,heat}=heatFixture({}, {focused:false,visibilityState:'hidden'});
+    e.tick(3600000,3600000);assert(!heat());assert.equal(e.timers.size,0);
+    e.document.visibilityState='visible';e.document.emit('visibilitychange');e.tick(20000);assert(!heat());
+    e.document.focused=true;e.window.emit('focus');e.tick(9000);assert(!heat());e.tick(1500);assert(heat());
+    e.window.emit('blur');assert(!heat());assert.equal(e.raf.size,0);
+});
+check('pointer heat: losing the rare lottery leaves ordinary automatic visitors unchanged',()=>{
+    const {e,heat}=heatFixture({}, {random:()=>.5});const actors=watchVisitors(e,20000);
+    assert(actors.length);assert(!heat());assert(actors.every(v=>!v.attrs['data-heat-flee']));
+    assert(!e.document.body.children.some(n=>n.className==='funny-heat-scorch'));
+});
+check('pointer heat: moving burns other visible patches with bounded temporary click-through decoration',()=>{
+    const {e,heat}=heatFixture();e.tick(13000);const first=e.document.body.children.filter(n=>n.className==='funny-heat-scorch');assert(first.length>0&&first.length<=10);
+    e.document.emit('pointermove',e.event({clientX:700,clientY:500}));e.tick(300);const marks=e.document.body.children.filter(n=>n.className==='funny-heat-scorch');
+    assert(marks.some(n=>parseFloat(n.style.left)>600));assert(marks.length<=10);assert(marks.every(n=>n.attrs['aria-hidden']==='true'&&n.style.clipPath.startsWith('inset(')));
+    e.tick(50000);assert(!heat());assert(!e.document.body.children.some(n=>n.className==='funny-heat-scorch'));assert.equal(e.block.className,'');
+});
+check('pointer heat: rain and snow quench the glow, create steam and request only local deposit melting',()=>{
+    const values=[];
+    for(const weather of ['sun','rain','snow']) {
+        const {e,heat}=heatFixture({}, {weather});let melts=0;e.window.funnyWeather.heat=(x,y,r,p)=>{assert(p>0&&p<=1&&r===90);melts++;};
+        e.tick(13000);assert(heat());values.push(Number(heat().style['--funny-heat']));
+        assert.equal(e.document.body.children.some(n=>n.className.includes('funny-heat-steam')),weather!=='sun');assert(melts>0);
+        e.window.emit('blur');assert(!heat());assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+    }
+    assert(values[0]>values[1]&&values[1]>values[2]);
+});
+check('pointer heat: every living character retreats, later arrivals react and mice use a hole',()=>{
+    const names=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse'];
+    for(const name of names){
+        const choices=[name],{e,heat}=heatFixture({characters:choices});const actors=watchVisitors(e,13000);assert(heat());
+        assert(actors.length>0,name);assert(actors.every(v=>v.attrs['data-heat-flee']==='true'),name);
+        e.click({clientX:400,clientY:300});const later=watchVisitors(e,1500).filter(v=>!actors.includes(v));
+        assert(later.length>0,name+' late arrival');assert(later.every(v=>v.attrs['data-heat-flee']==='true'),name+' late retreat');
+        e.tick(12000);if(name==='mouse')assert(actors.every(v=>v.className.includes('funny-burrowing')));else assert(actors.every(v=>!e.visitors().includes(v)),name);
+    }
+});
+check('pointer heat: catching a fleeing animal preserves its ordinary burst, melting or splat',()=>{
+    for(const name of ['cat','snowman','fly']){
+        const {e,heat}=heatFixture({characters:[name]});e.tick(11000);assert(heat());const v=e.visitors()[0];assert(v,name);
+        assert.equal(v.attrs['data-heat-flee'],'true');const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));
+        assert.equal(v.attrs['data-heat-flee'],'');assert(v.className.includes({cat:'funny-leaving',snowman:'funny-melting',fly:'funny-squashed'}[name]));
+        e.tick(4000);assert(!e.visitors().includes(v));
+    }
+});
+check('pointer heat: controls, focus loss, scrolling, touch and motion preferences restore all effects',()=>{
+    for(const exit of ['blur','hidden','escape','scroll','resize','print','touch','reduced']){
+        const {e,heat}=heatFixture();e.tick(13000);assert(heat());
+        if(exit==='blur')e.window.emit('blur');if(exit==='hidden'){e.document.visibilityState='hidden';e.document.emit('visibilitychange');}
+        if(exit==='escape')e.document.emit('keydown',{key:'Escape'});if(exit==='scroll')e.document.emit('scroll');if(exit==='resize')e.window.emit('resize');
+        if(exit==='print')e.window.emit('beforeprint');if(exit==='touch')e.document.emit('pointerdown',e.event({pointerType:'touch'}));
+        if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}assert(!heat(),exit);
+        e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);assert.equal(e.block.textContent,'Original content');
+    }
+});
+check('pointer heat: manual, notification, disabled, touch-only and unknown-pointer pages never start it',()=>{
+    for(const settings of [{trigger:'manual'},{trigger:'notification'},{mode:'off'},{frequency:'off'}]) {
+        const {e,heat}=heatFixture(settings);for(let i=0;i<3;i++){e.click();e.tick(15000);}assert(!heat());
+    }
+    const mobile=heatFixture({}, {coarse:true});mobile.e.tick(15000);assert(!mobile.heat());
+    const e=environment({mode:'selected',frequency:'frequent',trigger:'random',characters:['cat']},{heat:true,random:()=>.01});e.tick(15000);assert(!e.document.body.children.some(n=>n.className==='funny-pointer-heat'));
+});
+check('pointer heat: it expires without input and cannot recur for ten minutes despite repeated idle resets',()=>{
+    const {e,heat}=heatFixture();e.tick(13000);assert(heat());e.tick(50000);assert(!heat());
+    for(let i=0;i<6;i++){e.document.emit('keydown',{key:'Escape'});e.tick(13000);assert(!heat());}
+});
+check('seasonal priority: gremlins and monsters are rare guests outside Halloween while seasonal groups still lead',()=>{
+    for(const date of ['2026-09-20T12:00:00','2026-11-17T12:00:00','2026-12-20T12:00:00']){
+        const e=environment({trigger:'manual',mode:'auto',sound:'no'},{date,seed:997});let rare=0,total=0;
+        for(let i=0;i<180;i++){e.document.emit('keydown',{key:'Escape'});e.click();watchVisitors(e,1500).forEach(v=>{total++;if(/funny-(imp|muncher)( |$)/.test(v.className))rare++;});}
+        assert(rare>0&&rare<total*.05,date+' rare guests '+rare+'/'+total);
+    }
+    const e=environment({trigger:'manual',mode:'auto',sound:'no'},{date:'2026-10-30T12:00:00',seed:997});const seen=new Set();
+    for(let i=0;i<40;i++){e.document.emit('keydown',{key:'Escape'});e.click();watchVisitors(e,1500).forEach(v=>seen.add(v.className));}
+    assert(seen.has('funny-visitor funny-imp'));assert(seen.has('funny-visitor funny-muncher'));
 });
 
 process.once('beforeExit',()=>console.log(`${checks} behavioral checks passed`));

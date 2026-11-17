@@ -618,4 +618,19 @@ check('a resting leaf can be reserved once, moved without timers and never outli
     }
 });
 
+check('cursor heat melts only nearby rain/snow deposits and preserves page elements',()=>{
+    for(const icon of ['rain','snow']) {
+        const e=environment({icon,temperature:icon==='snow'?-5:12,standalone:false}),w=e.window.funnyWeather;
+        const far=new e.Element();far.rect={left:650,right:950,top:100,bottom:300,width:300,height:200};e.setBlocks([e.block,far]);
+        e.block.style.filter='contrast(1.1)';w.trigger('manual');e.tick(30000);
+        const banks=e.layer().children.filter(n=>n.className==='funny-weather-bank');assert.equal(banks.length,2);
+        const before=banks.map(n=>parseFloat(n.style.height));assert(before.every(n=>n>0));
+        w.heat(100,100,90,1);assert(parseFloat(banks[0].style.height)<before[0]);assert.equal(parseFloat(banks[1].style.height),before[1]);
+        for(let n=0;n<100;n++)w.heat(100,100,90,1);assert.equal(parseFloat(banks[0].style.height),0);
+        assert.equal(e.block.style.filter,'contrast(1.1)');assert.equal(e.block.className,'');
+        e.window.emit('blur');const saved=banks[1].style.height;w.heat(700,100,90,1);assert.equal(banks[1].style.height,saved);
+        assert.equal(e.frames.size,0);
+    }
+});
+
 console.log(checks+' weather behavior checks passed');
