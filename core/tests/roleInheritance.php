@@ -21,10 +21,12 @@ function countR($value) { return is_array($value) ? count($value) : 0; }
 function expect($ok) { if (!$ok) throw new RuntimeException('Expectation failed'); }
 function check($ok, $message) { global $checks; if (!$ok) throw new RuntimeException($message); $checks++; }
 define('EF_SALT', 'synthetic-role-test');
-class core_Type {}
+class core_Type { public $suggestions; }
 class arr
 {
     public static function make($value) { return is_array($value) ? $value : explode(',', $value); }
+    public static function combine($first, $second) { return $first + $second; }
+    public static function makeIds($value) { return array_values($value); }
 }
 class core_Manager
 {
@@ -61,12 +63,23 @@ class core_Manager
         return isset(self::$records[$condition]) ? clone self::$records[$condition] : false;
     }
     public static function count() { return count(self::$records); }
+    public static function delete($id) { unset(self::$records[$id]); }
+    public static function logWrite($message, $id) {}
     public static function getQuery()
     {
         return new RoleFixtureQuery(get_called_class() === 'core_Users' ? array(clone self::$user) : array_values(self::$records));
     }
     public static function save($rec, $fields = null)
     {
+        if (get_called_class() === 'core_Roles') {
+            $rec->id = $rec->id ?? (max(array_keys(self::$records)) + 1);
+            $stored = self::$records[$rec->id] ?? new stdClass();
+            foreach ((array) $rec as $field => $value) {
+                if ($fields === null || in_array($field, arr::make($fields))) $stored->{$field} = $value;
+            }
+            self::$records[$rec->id] = clone $stored;
+            return $rec->id;
+        }
         expect(get_called_class() === 'core_Users');
         $id = null;
         core_Users::on_BeforeSave(cls::get('core_Users'), $id, $rec, $fields);
@@ -77,8 +90,19 @@ class core_Manager
 class RoleFixtureQuery
 {
     private $records;
+    private $filters = array();
     public function __construct($records) { $this->records = $records; }
-    public function fetch() { return array_shift($this->records); }
+    public function likeKeylist($field, $roles, $or = false) { $this->filters[$field] = keylist::toArray($roles); }
+    public function fetch()
+    {
+        while ($rec = array_shift($this->records)) {
+            if (!$this->filters) return $rec;
+            foreach ($this->filters as $field => $roles) {
+                if (array_intersect_key(keylist::toArray($rec->{$field} ?? ''), $roles)) return $rec;
+            }
+        }
+        return false;
+    }
 }
 class cls
 {
@@ -135,6 +159,69 @@ function recalculateUser($input, $oldRoles)
     core_Users::on_BeforeSave(cls::get('core_Users'), $id, $rec, 'roles');
     return $rec;
 }
+
+class RoleFixtureForm
+{
+    public $rec;
+    public $errors = array();
+    public $submitted = true;
+    public $inheritType;
+    public function __construct($rec, $suggestions)
+    {
+        $this->rec = $rec;
+        $this->inheritType = new type_Keylist();
+        $this->inheritType->suggestions = $suggestions;
+    }
+    public function isSubmitted() { return $this->submitted && !$this->errors; }
+    public function getFieldType($name)
+    {
+        check($name === 'inheritInput', 'Only the editable inheritance field supplies suggestions');
+        return $this->inheritType;
+    }
+    public function setError($field, $message) { $this->errors[$field] = $message; }
+}
+function editRoleFixture($id, $input, $suggestions)
+{
+    $rec = clone core_Manager::$records[$id];
+    $rec->inheritInput = $input;
+    $form = new RoleFixtureForm($rec, $suggestions);
+    core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+    return $form;
+}
+
+resetRoles();
+$visibleRoles = array(2 => 'powerUser', 13 => 'ai', 14 => 'aiMaster', 15 => 'demo');
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check(!$form->errors && $form->rec->inheritInput === '|2|3|13|', 'Adding ai to officer preserves hidden executive');
+check($form->rec->inherit === '|2|3|13|', 'Calculated inheritance includes the preserved rank immediately');
+core_Manager::$records[4] = clone $form->rec;
+check(recalculateUser('|4|9|', '|1|2|3|4|9|')->roles === '|1|2|3|4|9|13|', 'Officer user receives ai without losing inherited roles or setup');
+check(keylist::isIn(13, recalculateUser('|6|9|', '')->roles), 'CEO receives ai through officer without setup');
+$form = editRoleFixture(4, '|2|', $visibleRoles);
+check($form->rec->inheritInput === '|2|3|' && $form->rec->inherit === '|2|3|', 'Removing visible ai preserves the hidden rank');
+core_Manager::$records[4] = clone $form->rec;
+check(recalculateUser('|4|9|', '|1|2|3|4|9|13|')->roles === '|1|2|3|4|9|', 'Removing ai revokes only that inherited access');
+$form = editRoleFixture(4, null, $visibleRoles);
+check($form->rec->inheritInput === '|3|' && $form->rec->inherit === '|2|3|', 'Clearing all visible choices retains only hidden direct inheritance');
+core_Manager::$records[4]->inheritInput = '|2|3|9|15|';
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check($form->rec->inheritInput === '|2|3|9|13|', 'Hidden team is preserved while unchecked visible demo is removed');
+$form = editRoleFixture(4, '|13|', array(13 => 'ai'));
+check($form->rec->inheritInput === '|2|3|9|13|15|', 'Preservation follows the actual form suggestions');
+core_Manager::$records[3]->inheritInput = '|4|';
+$form = editRoleFixture(4, '|2|13|', $visibleRoles);
+check(!empty($form->errors), 'Cycle validation includes restored hidden inheritance');
+resetRoles();
+$form = editRoleFixture(14, null, $visibleRoles);
+check($form->rec->inheritInput === '' && $form->rec->inherit === '', 'A role without hidden links can remove all inheritance');
+$form = new RoleFixtureForm((object) array('role' => 'newRole', 'inheritInput' => '|13|'), $visibleRoles);
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check(!$form->errors && $form->rec->inheritInput === '|13|', 'New role does not acquire inherited links from another record');
+$form = new RoleFixtureForm((object) array('id' => 4, 'role' => 'officer', 'inheritInput' => '|13|'), $visibleRoles);
+$form->submitted = false;
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check($form->rec->inheritInput === '|13|', 'Opening or refreshing the form does not process a save');
+echo "PASS: role form preserves hidden inheritance, removals and cycle checks\n";
 
 resetRoles();
 foreach (array(null, '', array()) as $empty) check(expanded($empty) === '', 'Empty input must stay empty');
@@ -233,6 +320,132 @@ core_Manager::$roleListener = null;
 core_Users::rebuildRoles();
 check(core_Manager::$user->roles === '|1|2|3|9|13|14|15|', 'Without a listener the original role graph is unchanged');
 echo "PASS: neutral user-role event, inherited filtering, partial records and rebuild\n";
+
+resetRoles();
+core_Manager::$records[4]->createdBy = core_Users::SYSTEM_USER;
+core_Manager::$records[4]->type = 'rang';
+core_Manager::$records[4]->state = 'active';
+$rec = clone core_Manager::$records[4];
+$rec->role = 'tampered';
+$rec->type = 'job';
+$rec->state = 'closed';
+$rec->createdBy = 123;
+$rec->inheritInput = '|15|';
+$rec->inheritAdd = '|13|';
+$rec->inheritRemove = '|2|';
+$form = new RoleFixtureForm($rec, $visibleRoles);
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check(!$form->errors, 'Admin override form is valid');
+foreach (array('role', 'type', 'state', 'createdBy', 'inheritInput') as $field) {
+    check($rec->{$field} === core_Manager::$records[4]->{$field}, 'System form protects ' . $field);
+}
+check($rec->inherit === '|3|13|', 'System form computes additions and transitive exclusions');
+core_Manager::$records[4] = clone $rec;
+check(recalculateUser('|4|9|', '')->roles === '|1|3|4|9|13|', 'Officer receives addition but not excluded ancestor');
+check(recalculateUser('|2|4|9|', '')->roles === '|1|2|3|4|9|13|', 'Direct assignment survives exclusion through officer');
+check(recalculateUser('|5|9|', '')->roles === '|1|2|3|4|5|9|13|', 'Manager independent powerUser path survives');
+core_Manager::$records[2]->inheritInput = '|15|';
+check(expanded('|4|') === '|3|4|13|', 'Excluded role does not leak its descendants');
+check(expanded('|4|15|') === '|3|4|13|15|', 'Independent descendant assignment survives');
+foreach (array(array(2, 4), array(4, 2)) as $roots) {
+    check(expanded($roots) === '|2|3|4|13|15|', 'Result does not depend on traversal order');
+}
+core_Manager::$records[4]->inheritRemove = '|13|';
+check(expanded('|4|') === '|2|3|4|15|', 'Exclusion wins over explicit addition');
+check(expanded('|4|14|') === '|2|3|4|13|14|15|', 'Another role grants the excluded addition independently');
+core_Manager::$records[4]->inheritAdd = '|14|';
+check(expanded('|4|') === '|2|3|4|14|15|', 'Ancestor exclusion applies inside an added role');
+core_Manager::$records[14]->inheritAdd = '|13|';
+check(expanded('|4|') === '|2|3|4|14|15|', 'Descendant addition cannot override ancestor exclusion');
+
+// A shared intermediate node must be visited with both sets of exclusions.
+core_Manager::$records[10]->inheritInput = '|14|';
+core_Manager::$records[10]->inheritRemove = '|15|';
+core_Manager::$records[14]->inheritInput = '|13|15|';
+foreach (array(array(4, 10), array(10, 4)) as $roots) {
+    check(expanded($roots) === '|2|3|4|10|13|14|15|', 'Shared node preserves independent branch grants');
+}
+core_Roles::rebuildRoles();
+check(core_Manager::$records[4]->inherit === '|2|3|14|15|', 'Rebuild applies overrides on the role itself');
+$before = serialize(core_Manager::$records);
+core_Roles::rebuildRoles();
+check(serialize(core_Manager::$records) === $before, 'Override rebuild is idempotent');
+
+// Simulate the system-link reset, then use the real installer method twice.
+core_Manager::$records[4]->inheritInput = '';
+core_Manager::$records[4]->inherit = '';
+core_Roles::addOnce('officer', 'powerUser,executive', 'rang');
+core_Roles::addOnce('officer', 'powerUser,executive', 'rang');
+check(core_Manager::$records[4]->inheritAdd === '|14|' && core_Manager::$records[4]->inheritRemove === '|13|', 'Repeated package declarations preserve both override fields');
+core_Roles::rebuildRoles();
+check(core_Manager::$records[4]->inherit === '|2|3|14|15|', 'Reinstallation applies persistent overrides');
+core_Manager::$records[4]->inheritInput = '';
+core_Roles::addOnce('officer', 'executive', 'rang');
+check(core_Manager::$records[4]->inheritInput === '|3|', 'Removed code link is not kept as a manual addition');
+
+resetRoles();
+core_Manager::$records[4]->createdBy = core_Users::SYSTEM_USER;
+foreach (array('inheritAdd', 'inheritRemove') as $field) {
+    $rec = clone core_Manager::$records[4];
+    $rec->{$field} = '|4|';
+    $form = new RoleFixtureForm($rec, $visibleRoles);
+    core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+    check(!empty($form->errors), 'Override rejects self-reference in ' . $field);
+}
+core_Manager::$records[13]->inheritAdd = '|4|';
+$rec = clone core_Manager::$records[4];
+$rec->inheritAdd = '|13|';
+$form = new RoleFixtureForm($rec, $visibleRoles);
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check(!empty($form->errors), 'Override rejects a cycle through additions');
+core_Manager::$records[4]->inheritAdd = '|13|';
+core_Manager::$records[13]->inheritRemove = '|2|';
+check(expanded('|4|') === '|2|3|4|13|', 'Legacy cycle with different exclusions terminates');
+resetRoles();
+$rec = clone core_Manager::$records[4];
+$rec->inheritAdd = '|13|';
+$rec->inheritRemove = '|2|';
+$form = new RoleFixtureForm($rec, $visibleRoles);
+core_Roles::on_AfterInputEditForm(cls::get('core_Roles'), $form);
+check($rec->inheritAdd === '' && $rec->inheritRemove === '', 'Ordinary role form cannot submit hidden overrides');
+echo "PASS: local overrides, independent paths, system field protection and repeated installation\n";
+
+resetRoles();
+$required = 'admin';
+core_Roles::on_AfterGetRequiredRoles(null, $required, 'changestate', (object) array('createdBy' => -1));
+check($required === 'no_one', 'Override editing does not permit closing a system role');
+$required = 'admin';
+core_Roles::on_AfterGetRequiredRoles(null, $required, 'changestate', (object) array('createdBy' => 123));
+check($required === 'admin', 'Ordinary role state permissions are unchanged');
+
+core_Manager::$user = recalculateUser('|4|9|13|', '');
+core_Manager::$records[4]->inheritAdd = '|13|';
+core_Manager::$records[5]->inheritRemove = '|13|';
+core_Manager::$records[15]->inheritRemove = '|13|';
+core_Roles::replaceRole('ai', 'demo');
+check(core_Manager::$records[4]->inheritAdd === '|15|', 'Role replacement updates manual additions');
+check(core_Manager::$records[5]->inheritRemove === '|15|', 'Role replacement updates exclusions');
+check(core_Manager::$records[15]->inheritRemove === '', 'Replacement cannot exclude the role itself');
+check(core_Manager::$user->rolesInput === '|4|9|15|', 'Replacement updates direct user roles');
+core_Roles::removeRoles(array(15));
+check(core_Manager::$records[4]->inheritAdd === '' && core_Manager::$records[5]->inheritRemove === '', 'Role removal clears both override references');
+check(!isset(core_Manager::$records[15]), 'Removed role is absent');
+core_Roles::rebuildRoles();
+check(!keylist::isIn(15, core_Manager::$records[4]->inherit), 'Rebuild does not resurrect a removed override role');
+echo "PASS: system state protection and override references during replacement/removal\n";
+
+resetRoles();
+$snapshot = array_map(function ($rec) { return clone $rec; }, core_Manager::$records);
+$snapshot[4]->inheritAdd = '|13|';
+$snapshot[4]->inheritRemove = '|2|';
+$projected = array();
+core_Roles::expand(array('officer'), $projected, array(), $snapshot);
+check(keylist::fromArray($projected) === '|3|4|13|', 'Proposed graph uses its own additions and exclusions');
+check(expanded('|4|') === '|2|3|4|', 'Projection does not modify stored roles');
+unset($snapshot[13]);
+$projected = array();
+core_Roles::expand('|4|', $projected, array(), $snapshot);
+check(!isset($projected[13]), 'Missing projected role cannot be loaded from the old database graph');
 
 // Compare with an independent iterative reachability oracle, including cycles and missing nodes.
 mt_srand(20261023);

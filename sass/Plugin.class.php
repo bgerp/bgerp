@@ -49,8 +49,8 @@ class sass_Plugin extends core_Plugin
                     $cssCode = sass_Converter::convert($scssFile, true);
                     $cssWritable = !$newCompiler && (file_exists($cssPath) ? is_writable($cssPath) : is_writable(dirname($cssPath)));
                     if (!($cssWritable && file_put_contents($cssPath, $cssCode))) {
-                        // Ако не успеем да запишем в проекта файла, записваме го директно в sbf
-                        if (core_Sbf::saveFile($cssCode, $sbfPath, true)) {
+                        // При отказ и на SBF записа запазваме готовия CSS в паметта за текущата заявка.
+                        if (core_Sbf::saveFile($cssCode, $sbfPath, true, true)) {
                             $res = $sbfPath;
                             
                             return false;

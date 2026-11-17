@@ -40,6 +40,12 @@ abstract class cat_ProductDriver extends core_BaseClass
      * Може ли към артикула да се добавят ръчно параметри
      */
     public $allowCustomParams = false;
+
+
+    /**
+     * Дали артикулите наследяват параметрите на групите си
+     */
+    public $inheritGroupParams = true;
     
     
     /**

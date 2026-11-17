@@ -29,7 +29,7 @@
     'use strict';
     var status = document.getElementById('status'), mode = document.getElementById('mode'), voice = document.getElementById('voice');
     var player = document.getElementById('player'), rows = document.getElementById('results'), urls = [], live = null, accepted = 0, skipped = 0;
-    var characters = ['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse','knock','pop','munch','burp','hiccup','startle'];
+    var characters = ['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','present','paper','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse','knock','pop','munch','burp','hiccup','startle'];
     var skies = {rain:'rain clouds',wind:'wind clouds',blizzard:'snow clouds wind',snow:'snow clouds',cloudy:'clouds',fog:'fog',sun:'sun',moon:'moon'};
     var profiles = characters.concat(Object.keys(skies).map(function (name) { return 'weather:' + name; }));
     profiles.forEach(function (name) { var option = document.createElement('option'); option.value = option.textContent = name; voice.appendChild(option); });
@@ -46,7 +46,7 @@
             if (start < 0 || end <= start) throw new Error('Звуковите функции са променени: обновете границите на теста.');
             return source.slice(start, end);
         }
-        var characterFactory = new Function('audio','options','gentle','scene','active','soundEnabled', 'var voices=[];' + section(sources[0], 'function hushVoices()', '/** Finds a destination') + ';return playSound;');
+        var characterFactory = new Function('audio','options','gentle','scene','active','soundEnabled', 'var voices=[];' + section(sources[0], 'function random(', 'function clamp(') + section(sources[0], 'function hushVoices()', '/** Finds a destination') + ';return playSound;');
         var weatherFactory = new Function('audio','weather','strength','scene','active','stopSound', section(sources[1], 'function sound()', '/** Decorations never') + ';return sound;');
         function synthesize(name, context, scene) {
             var gentle = mode.value === 'gentle';

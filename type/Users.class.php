@@ -473,8 +473,8 @@ class type_Users extends type_Keylist
         
         return $this->options[$value]->keylist;
     }
-    
-    
+
+
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */

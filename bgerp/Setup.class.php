@@ -132,7 +132,7 @@ Conto,Реконтиране = K
  * @package   bgerp
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -324,28 +324,25 @@ class bgerp_Setup extends core_ProtoSetup
         if (($isFirstSetup) || (!$Packs->isInstalled('avatar') && !$Packs->isInstalled('imagics') && !$Packs->isInstalled('toast'))) {
             $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce,barcode';
         } else {
-
             try {
                 $Roles = cls::get('core_Roles');
                 $rQuery = $Roles->getQuery();
+                $rQuery->show('id,inheritInput,inherit');
                 $rQuery->where("#createdBy = -1");
                 while ($rRec = $rQuery->fetch()) {
-                    if (!$rRec->inheritInput && !$rRec->inherit) {
+                    if (empty($rRec->inheritInput) && empty($rRec->inherit)) {
                         continue;
                     }
 
+                    // Локалните добавки и изключвания остават отделно от системните връзки.
                     $rRec->inheritInput = '';
                     $rRec->inherit = '';
-
                     $Roles->save_($rRec, 'inheritInput, inherit');
                 }
             } catch (core_exception_Redirect $t) {
                 throw $t;
             } catch (Exception $t) {
-
-            }
-            catch (Throwable $t) {
-
+            } catch (Throwable $t) {
             }
 
             $packs = arr::make($packs, true);

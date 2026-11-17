@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -372,6 +372,21 @@ class cal_Holidays extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
+        $res .= self::importFromCsv();
+    }
+    
+    
+    /**
+     * Импортира празниците от CSV файла и обновява календара
+     *
+     * @param bool $force - импортиране и при непроменен CSV файл
+     *
+     * @return string
+     */
+    public static function importFromCsv($force = false)
+    {
+        $mvc = cls::get('cal_Holidays');
+        
         // Подготвяме пътя до файла с данните
         $file = 'bglocal/data/Holidays.csv';
         
@@ -390,22 +405,29 @@ class cal_Holidays extends core_Master
         
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
+        if ($force) {
+            $cntObj = csv_Lib::import($mvc, $file, $fields);
+        } else {
+            $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
+        }
         
         // Записваме в лога вербалното представяне на резултата от импортирането
-        $res .= $cntObj->html;
+        $res = $cntObj->html;
         
-        if ($cntObj->created || $cntObj->updated) {
+        if ($force || $cntObj->created || $cntObj->updated) {
             // Обновяваме празниците в календара
             $res .= '<li> ' . static::updateCalendarHolidays() . '</li>';
         }
+        
+        return $res;
     }
     
     
     public static function on_BeforeSave($mvc, $res, $rec)
     {
         if (isset($rec->csv_base) && strlen($rec->csv_base) != 0) {
-            if ($rec->csv_base > 0) {
+            // Под PHP 8 'EST' > 0 е вярно, затова проверяваме дали базата е месец
+            if (is_numeric($rec->csv_base) && $rec->csv_base > 0) {
                 $rec->base = str_pad((int) $rec->csv_base, 2, '0', STR_PAD_LEFT);
             } else {
                 $rec->base = $rec->csv_base;

@@ -12,7 +12,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -136,6 +136,13 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
         $pQuery->show('productId');
         $pQuery->groupBy('productId');
         cat_products_ParamIndexState::markDirty(arr::extractValuesFromArray($pQuery->fetchAll(), 'productId'));
+
+        // Незатворените артикули от групите, които имат параметрите
+        $gQuery = cat_GroupParams::getQuery();
+        $gQuery->in('paramId', $paramIds);
+        $gQuery->show('groupId');
+        $gQuery->groupBy('groupId');
+        cat_products_ParamIndexState::markByGroups(arr::extractValuesFromArray($gQuery->fetchAll(), 'groupId'));
 
         // Незатворените артикули, които вече имат индексирани стойности на параметрите
         $iQuery = self::getQuery();

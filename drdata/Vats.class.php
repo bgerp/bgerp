@@ -744,6 +744,7 @@ class drdata_Vats extends core_Manager
      * Връща данните от търговския регистър по зададения БГ ддс номер или ЕИК
      *
      * @param string $eik - ЕИК номер
+     * @param int|null $timeout - таймаут на заявката в секунди
      *
      * @return false|stdClass - обект с данни или false, ако не намери нищо
      *                        o name    - име
@@ -752,16 +753,22 @@ class drdata_Vats extends core_Manager
      *                        o place   - населено място
      *                        o address - адрес
      */
-    public static function getFromBrra($eik)
+    public static function getFromBrra($eik, $timeout = null)
     {
         // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
         if (drdata_Vats::isBulstat($eik)) {
-            $context = stream_context_create([
+            $contextOptions = [
                 "ssl" => [
                         "verify_peer" => false,
                         "verify_peer_name" => false,
                     ]
-            ]);
+            ];
+
+            // Без таймаут заявката чака до default_socket_timeout
+            if (isset($timeout)) {
+                $contextOptions['http'] = array('timeout' => $timeout);
+            }
+            $context = stream_context_create($contextOptions);
             $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}", false, $context);
             $result = json_decode($registryContent);
             
@@ -771,15 +778,22 @@ class drdata_Vats extends core_Manager
                 $data->name = $result->fullName;
                 $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
                 
-                if (is_array($result->sections)) {
-                    foreach ($result->sections as $section) {
-                        if (is_array($section->subDeeds[0]->groups[0]->fields)) {
-                            $foundAddress = array_filter($section->subDeeds[0]->groups[0]->fields, function ($a) {
-                                return $a->nameCode == 'CR_F_5_L';
+                // Отговорът е външен - всяко ниво се проверява, за да не гръмне при непълни данни
+                $sections = $result->sections ?? null;
+                if (is_array($sections)) {
+                    foreach ($sections as $section) {
+                        $subDeeds = is_object($section) ? ($section->subDeeds ?? null) : null;
+                        $subDeed = is_array($subDeeds) ? ($subDeeds[0] ?? null) : null;
+                        $groups = is_object($subDeed) ? ($subDeed->groups ?? null) : null;
+                        $group = is_array($groups) ? ($groups[0] ?? null) : null;
+                        $fields = is_object($group) ? ($group->fields ?? null) : null;
+                        if (is_array($fields)) {
+                            $foundAddress = array_filter($fields, function ($a) {
+                                return is_object($a) && ($a->nameCode ?? null) == 'CR_F_5_L';
                             });
                             if (countR($foundAddress) == 1) {
                                 $foundAddress = array_values($foundAddress);
-                                $addressHtml = $foundAddress[0]->htmlData;
+                                $addressHtml = $foundAddress[0]->htmlData ?? null;
                                 
                                 if (!empty($addressHtml)) {
                                     $addressHtml = str_replace('<br />', ' ', $addressHtml);
@@ -809,8 +823,8 @@ class drdata_Vats extends core_Manager
                                     $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
                                     
                                     $data->pCode = $parsedAddress['п.код'] ?? null;
-                                    $data->address = $parsedAddress['addr'];
-                                    $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
+                                    $data->address = $parsedAddress['addr'] ?? null;
+                                    $data->place = $parsedAddress['гр.'] ?? $parsedAddress['place'] ?? null;
                                 }
                                 
                                 break;

@@ -19,6 +19,14 @@
         
         <!--ET_END type-->
         <fieldset class="detail-info">
+            <legend class="groupTitle">|Място в списъка при показване|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Подреждане|*: </span> [#listOrder#]
+                </li>
+            </ul>
+        </fieldset>
+        <fieldset class="detail-info">
             <legend class="groupTitle">|Авансово плащане|*</legend>
             <ul>
                 <li class="info">

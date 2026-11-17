@@ -17,15 +17,21 @@
 class cond_PaymentMethods extends embed_Manager
 {
     /**
+     * Празните позиции са между номерата за начало и край на списъка
+     */
+    const LIST_ORDER = 'listOrderGroup,listOrder,id';
+
+
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate, plg_PrevAndNext, plg_Select';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sysId, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'title, listOrder, sysId, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -88,6 +94,12 @@ class cond_PaymentMethods extends embed_Manager
      * @see plg_State2
      */
     public $updateExistingStateOnImport = false;
+
+
+    /**
+     * Ръчната подредба важи и за затворените методи в списъка с дефиниции
+     */
+    public $state2PreventOrderingByState = true;
     
     
     /**
@@ -133,6 +145,12 @@ class cond_PaymentMethods extends embed_Manager
     {
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
         $this->FLD('name', 'varchar', 'caption=Наименование');
+        $orderHint = 'От 0 до 99: в началото. Без номер: по средата. От 100 нагоре: в края. Във всяка група по-малките номера са по-напред.';
+        $this->FLD('listOrder', 'int(min=0,max=2147483647)', 'caption=Подреждане,unit=(място в списъка при показване)', array(
+            'hint' => $orderHint,
+            'thAttr' => array('title' => $orderHint),
+        ));
+        $this->XPR('listOrderGroup', 'int', 'CASE WHEN #listOrder IS NULL THEN 1 WHEN #listOrder >= 100 THEN 2 ELSE 0 END', 'input=none,column=none,single=none,dbAutoselectExcluded');
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод,none=Без плащане)', 'caption=Вид плащане');
         $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане->Вид,silent,removeAndRefreshForm');
@@ -147,6 +165,46 @@ class cond_PaymentMethods extends embed_Manager
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('sysId');
+    }
+
+
+    /**
+     * Ограничава действията с избраните методи до редактиране и преглед
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        unset($mvc->doWithSelected['delete']);
+    }
+
+
+    /**
+     * При директна редакция обхожда методите в реда на списъка
+     */
+    public function prepareEditForm_($data)
+    {
+        $data = parent::prepareEditForm_($data);
+        $cmd = $data->form->cmd ?? null;
+        if (empty($data->form->rec->id) || Request::get('Selected') || Request::get('PrevAndNext') || in_array($cmd, array('save_n_next', 'save_n_prev', 'refresh'), true)) {
+            return $data;
+        }
+
+        $ids = array();
+        $query = $this->getQuery();
+        $query->show('id,createdBy');
+        $query->orderBy(self::LIST_ORDER);
+
+        while ($rec = $query->fetch()) {
+            if (isset($rec->id) && $this->haveRightFor('edit', $rec)) {
+                $ids[] = $rec->id;
+            }
+        }
+
+        // Подаваме избора след определянето на текущия запис от плъгина.
+        if ($ids) {
+            Request::push(array('Selected' => implode(',', $ids)), 'paymentMethodEditSelection');
+        }
+
+        return $data;
     }
     
     
@@ -227,6 +285,8 @@ class cond_PaymentMethods extends embed_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        Request::pop('paymentMethodEditSelection');
+
         $form = &$data->form;
         $rec = $form->rec;
 
@@ -412,11 +472,45 @@ class cond_PaymentMethods extends embed_Manager
     
     
     /**
-     * Сортиране по name
+     * Подрежда методите преди разделянето им на страници
      */
     protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('#title');
+        $query = $data->query ?? null;
+        if ($query) {
+            $query->orderBy(self::LIST_ORDER);
+        }
+    }
+
+
+    /**
+     * Прилага подредбата в полетата за избор на един метод
+     */
+    public function makeArray4Select_($fields = null, $where = '', $index = 'id', $orderBy = null)
+    {
+        return parent::makeArray4Select_($fields, $where, $index, $orderBy ?: self::LIST_ORDER);
+    }
+
+
+    /**
+     * Включва реда на методите в ключа за кеширане на опциите
+     */
+    protected static function on_AfterPrepareKeyOptions($mvc, &$options, $type)
+    {
+        if (!empty($type->handler)) {
+            $type->handler = md5($type->handler . '|' . implode(',', array_keys($options)));
+        }
+    }
+
+
+    /**
+     * Прилага подредбата в полетата за избор на няколко метода
+     */
+    protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, $type)
+    {
+        if (empty($type->params['orderBy'])) {
+            $type->params['orderBy'] = self::LIST_ORDER;
+        }
     }
     
     

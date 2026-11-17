@@ -1,38 +1,38 @@
-Дължина,cond_type_Double,см,length,,yes,active,"min=0",yes
-Височина,cond_type_Double,см,height,,yes,active,"min=0",yes
-Тегло,cond_type_Double,кг,weightKg,,no,active,"min=0",yes
-Дебелина,cond_type_Double,см,thickness,,yes,active,,yes
-Обем,cond_type_Double,куб.м,volume,,no,active,"min=0",yes
-Обем,cond_type_Double,л,volumel,,no,active,"min=0",yes
-Плътност,cond_type_Double,кг/м3,density,,no,active,,no
-Цвят,cond_type_Varchar,,color,,yes,active,,yes
-Митнически код,cond_type_Varchar,,customsTariffNumber,,no,active,,no
-Транспортен обем,cond_type_Double,л,transportVolume,,no,active,"min=0",no
-Транспортно тегло,cond_type_Double,кг,transportWeight,,no,active,"min=0",no
-Толеранс,cond_type_Percent,,tolerance,,no,active,,no
-Срок на доставка,cond_type_Time,,term,,no,active,,no
-Широчина,cond_type_Double,см,width,,yes,active,,yes
-Режийни разходи,cond_type_Percent,,expenses,,no,active,,no
-Изглед||Preview,cond_type_Image,,preview,,no,active,,yes
-На етикета||Label text,cond_type_Text,,labelText,,no,active,,yes
-На етикета (EN)||Label text (EN),cond_type_Text,,labelTextEn,,no,active,,yes
-Спецификация,cond_type_Text,,specTpl,,no,active,,no
-Условия към продажба,cond_type_Text,,commonConditionSale,,no,active,,no
-Условия към покупка,cond_type_Text,,commonConditionPur,,no,active,,no
-Условия към продажба (EN),cond_type_Text,,commonConditionSaleEn,,no,active,,no
-Условия към покупка (EN),cond_type_Text,,commonConditionPurEn,,no,active,,no
-Тегло,cond_type_Double,гр,weight,,no,active,"min=0",yes
-Срок на годност,cond_type_Time,,expiryTime,,no,active,,no
-Информация за фактура,cond_type_Varchar,,invoiceInfo,,no,active,,no
-Начало онлайн продажби,cond_type_Date,,startSales,,yes,active,"time=yes",no
-Край онлайн продажби,cond_type_Date,,endSales,,yes,active,"time=yes",no
-Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no
-Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no
-Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes
-Алергени,cond_type_Keylist,,allergens,,yes,active,"class=cond_Allergens,select=titleNum,selectLabel=num",no
-Енергийна стойност,cond_type_Double,kcal,energyKcal,,yes,active,,no
-Тип,cond_type_Enum,,vegetarian,"vegetarian=Вегетарианско,vegan=Веган",yes,active,,no
-Люто,cond_type_Enum,,spicy,"littleSpicy=Малко люто,mediumSpicy=Средно люто,verySpice=Много люто",yes,active,,no
-Отделни редове в POS,cond_type_YesOrNo,,separateInPos,,no,active,,no
-Технологичен брак,cond_type_Percent,,productionScrap,,no,active,,no
-Страна на произход,cond_type_Key,,originCountry,,no,active,"class=drdata_Countries,select=commonName,selectBg=commonNameBg,displayVerbal=letterCode2",no
+Дължина,cond_type_Double,см,length,,yes,active,"min=0",yes,no
+Височина,cond_type_Double,см,height,,yes,active,"min=0",yes,no
+Тегло,cond_type_Double,кг,weightKg,,no,active,"min=0",yes,no
+Дебелина,cond_type_Double,см,thickness,,yes,active,,yes,no
+Обем,cond_type_Double,куб.м,volume,,no,active,"min=0",yes,no
+Обем,cond_type_Double,л,volumel,,no,active,"min=0",yes,no
+Плътност,cond_type_Double,кг/м3,density,,no,active,,no,no
+Цвят,cond_type_Varchar,,color,,yes,active,,yes,no
+Митнически код,cond_type_Varchar,,customsTariffNumber,,no,active,,no,no
+Транспортен обем,cond_type_Double,л,transportVolume,,no,active,"min=0",no,no
+Транспортно тегло,cond_type_Double,кг,transportWeight,,no,active,"min=0",no,no
+Толеранс,cond_type_Percent,,tolerance,,no,active,,no,no
+Срок на доставка,cond_type_Time,,term,,no,active,,no,no
+Широчина,cond_type_Double,см,width,,yes,active,,yes,no
+Режийни разходи,cond_type_Percent,,expenses,,no,active,,no,no
+Изглед||Preview,cond_type_Image,,preview,,no,active,,yes,no
+На етикета||Label text,cond_type_Text,,labelText,,no,active,,yes,no
+На етикета (EN)||Label text (EN),cond_type_Text,,labelTextEn,,no,active,,yes,no
+Спецификация,cond_type_Text,,specTpl,,no,active,,no,no
+Условия към продажба,cond_type_Text,,commonConditionSale,,no,active,,no,yes
+Условия към покупка,cond_type_Text,,commonConditionPur,,no,active,,no,yes
+Условия към продажба (EN),cond_type_Text,,commonConditionSaleEn,,no,active,,no,yes
+Условия към покупка (EN),cond_type_Text,,commonConditionPurEn,,no,active,,no,yes
+Тегло,cond_type_Double,гр,weight,,no,active,"min=0",yes,no
+Срок на годност,cond_type_Time,,expiryTime,,no,active,,no,no
+Информация за фактура,cond_type_Varchar,,invoiceInfo,,no,active,,no,no
+Начало онлайн продажби,cond_type_Date,,startSales,,yes,active,"time=yes",no,no
+Край онлайн продажби,cond_type_Date,,endSales,,yes,active,"time=yes",no,no
+Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no,no
+Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no,no
+Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes,no
+Алергени,cond_type_Keylist,,allergens,,yes,active,"class=cond_Allergens,select=titleNum,selectLabel=num",no,no
+Енергийна стойност,cond_type_Double,kcal,energyKcal,,yes,active,,no,no
+Тип,cond_type_Enum,,vegetarian,"vegetarian=Вегетарианско,vegan=Веган",yes,active,,no,no
+Люто,cond_type_Enum,,spicy,"littleSpicy=Малко люто,mediumSpicy=Средно люто,verySpice=Много люто",yes,active,,no,no
+Отделни редове в POS,cond_type_YesOrNo,,separateInPos,,no,active,,no,no
+Технологичен брак,cond_type_Percent,,productionScrap,,no,active,,no,no
+Страна на произход,cond_type_Key,,originCountry,,no,active,"class=drdata_Countries,select=commonName,selectBg=commonNameBg,displayVerbal=letterCode2",no,no

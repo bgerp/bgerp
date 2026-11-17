@@ -368,7 +368,11 @@ class core_Os
                     continue 2;
                 }
             }
-            $delCnt = self::deleteOldFiles($tempPath, $maxAge, $tempExclude);
+            $pathExclude = $tempExclude;
+            if ($sbfPath !== false && strpos($tempPath, $sbfPath . DIRECTORY_SEPARATOR) === 0) {
+                $pathExclude = $setupMarkerPattern === null ? null : '#^' . $setupMarkerPattern . '#';
+            }
+            $delCnt = self::deleteOldFiles($tempPath, $maxAge, $pathExclude);
             $cleanedPaths[] = $tempPath;
             if ($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . htmlspecialchars($tempPath, ENT_QUOTES, 'UTF-8');
@@ -377,12 +381,14 @@ class core_Os
         
         // Изтриваме всички стари файлове в поддиректории на sbf които не започват със символа '_'
         if ($sbfPath !== false) {
+            // Версиите трябва да живеят поне колкото immutable кеша, независимо от atime.
+            $sbfMaxAge = max($maxAge, core_Sbf::CACHE_MAX_AGE + 86400);
             $setupExclude = $setupMarkerPattern === null ? null : '#^' . $setupMarkerPattern . '#';
             $delCnt = 0;
             if ($handle = @opendir($sbfPath)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != '.' && $entry != '..' && false === strpos($entry, '_') && is_dir($sbfPath . "/{$entry}")) {
-                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $maxAge, $setupExclude);
+                        $delCnt += self::deleteOldFiles($sbfPath . "/{$entry}", $sbfMaxAge, $setupExclude);
                     }
                 }
                 closedir($handle);

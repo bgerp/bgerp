@@ -2923,6 +2923,14 @@ class doc_Threads extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
+        // Модели с малко на брой папки - достъпът се изчислява върху самите папки, без JOIN
+        if (!empty($query->mvc->restrictAccessByUsedFolders) && $query->mvc->className != 'doc_Threads') {
+            if (self::restrictAccessByUsedFolders($query, $userId, $viewAccess)) {
+
+                return;
+            }
+        }
+        
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
         if ($query->mvc->className != 'doc_Threads') {
@@ -2933,6 +2941,97 @@ class doc_Threads extends core_Manager
         }
         
         $query->orWhere("LOCATE('|{$userId}|', #threadShared)");
+    }
+    
+    
+    /**
+     * Ограничава достъпа с изброяване на папките, в които моделът има записи
+     *
+     * Правилата са тези на doc_Folders::restrictAccess(), приложени само към използваните папки.
+     * Така заявката не се JOIN-ва към doc_folders и doc_threads за всеки ред.
+     *
+     * @param core_Query $query
+     * @param int|null   $userId
+     * @param bool       $viewAccess
+     * @param int        $maxFolders - над толкова папки важи стандартното ограничаване
+     *
+     * @return bool - false, ако папките са твърде много и условието не е добавено
+     */
+    public static function restrictAccessByUsedFolders($query, $userId, $viewAccess, $maxFolders = 300)
+    {
+        static $usedByClass = array();
+
+        $mvc = $query->mvc;
+        $className = $mvc->className;
+
+        // Папките с записи - DISTINCT само по индекса на folderId, затова без core_Query, който винаги добавя id
+        if (!isset($usedByClass[$className])) {
+            $folderCol = str::phpToMysqlName('folderId');
+            $used = array();
+            $dbRes = $mvc->db->query("SELECT DISTINCT `{$folderCol}` AS `folderId` FROM `{$mvc->dbTableName}` WHERE `{$folderCol}` IS NOT NULL LIMIT " . ($maxFolders + 1));
+            while ($r = $mvc->db->fetchObject($dbRes)) {
+                $used[(int) $r->folderId] = (int) $r->folderId;
+            }
+            $usedByClass[$className] = $used;
+        }
+        $used = $usedByClass[$className];
+
+        if (countR($used) > $maxFolders) {
+
+            return false;
+        }
+
+        // Съществуващите и достъпните папки - по същите правила като при JOIN
+        $existing = $visible = array();
+        if (countR($used)) {
+            $eQuery = doc_Folders::getQuery();
+            $eQuery->in('id', $used);
+            $eQuery->show('id');
+            while ($fRec = $eQuery->fetch()) {
+                $existing[$fRec->id] = (int) $fRec->id;
+            }
+
+            $vQuery = doc_Folders::getQuery();
+            $vQuery->in('id', $used);
+            doc_Folders::restrictAccess($vQuery, $userId, $viewAccess);
+            $vQuery->show('id');
+            while ($fRec = $vQuery->fetch()) {
+                $visible[$fRec->id] = (int) $fRec->id;
+            }
+        }
+
+        // В недостъпните папки се виждат само нишките, споделени с потребителя
+        $hidden = array_diff_key($existing, $visible);
+
+        $conds = array();
+        if (countR($visible)) {
+            $conds[] = '#folderId IN (' . implode(',', $visible) . ')';
+        }
+        if (countR($hidden)) {
+            $threadsTable = cls::get('doc_Threads')->dbTableName;
+            $sharedCol = str::phpToMysqlName('shared');
+            $threadFolderCol = str::phpToMysqlName('folderId');
+            $userIdInt = (int) $userId;
+            $hiddenList = implode(',', $hidden);
+
+            // Споделените нишки се търсят веднъж по индекса на папката, а не с подзаявка за всеки ред
+            $maxShared = 5000;
+            $sharedThreads = array();
+            $dbRes = $mvc->db->query("SELECT `id` FROM `{$threadsTable}` WHERE `{$threadFolderCol}` IN ({$hiddenList}) AND LOCATE('|{$userIdInt}|', `{$sharedCol}`) > 0 LIMIT " . ($maxShared + 1));
+            while ($r = $mvc->db->fetchObject($dbRes)) {
+                $sharedThreads[(int) $r->id] = (int) $r->id;
+            }
+
+            if (countR($sharedThreads) > $maxShared) {
+                $conds[] = "#folderId IN ({$hiddenList}) AND LOCATE('|{$userIdInt}|', (SELECT `raThread`.`{$sharedCol}` FROM `{$threadsTable}` AS `raThread` WHERE `raThread`.`id` = #threadId)) > 0";
+            } elseif (countR($sharedThreads)) {
+                $conds[] = "#folderId IN ({$hiddenList}) AND #threadId IN (" . implode(',', $sharedThreads) . ')';
+            }
+        }
+
+        $query->where(countR($conds) ? '#threadId IS NOT NULL AND (' . core_Query::buildConditions($conds, 'OR') . ')' : '1=2');
+
+        return true;
     }
     
     

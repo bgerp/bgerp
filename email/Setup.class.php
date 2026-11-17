@@ -322,7 +322,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.2';
+    public $version = '0.1';
     
     
     /**
@@ -522,7 +522,6 @@ class email_Setup extends core_ProtoSetup
         'email_IncomingsShowTypes',
         'email_AutomaticResponse',
         'email_AutomaticResponseLog',
-        'migrate::serviceRules2121',
     );
     
     
@@ -598,8 +597,6 @@ class email_Setup extends core_ProtoSetup
         
         $res .= $this->addOurImgData();
 
-        $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
-        $res .= $this->callMigrate('repairServiceRules2127', 'email');
         $res .= $this->callMigrate('clearClosedRedirects2642', 'email');
 
         return $res;
@@ -688,73 +685,6 @@ class email_Setup extends core_ProtoSetup
 
 
     /**
-     * Поправка на записите за сервизните имейли
-     */
-    public static function serviceRules2121()
-    {
-        $inst = cls::get('email_ServiceRules');
-
-        // Старото поле липсва при таблици, създадени с новия модел.
-        if (!$inst->db->isFieldExists($inst->dbTableName, str::phpToMysqlName('classId'))) {
-            return;
-        }
-
-        $inst->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
-
-        $query = $inst->getQuery();
-        while ($rec = $query->fetch()) {
-            $classId = $rec->classId ?? null;
-            if ($classId && empty($rec->driverClass)) {
-                $rec->driverClass = $classId;
-
-                $inst->save($rec, 'driverClass');
-            }
-        }
-    }
-
-
-
-
-    /**
-     * Прехвърляне на записите от email_Filters към сервизните имейли
-     */
-    public static function filtersToServiceRules21212()
-    {
-        $fInst = cls::get('email_Filters');
-        $fQuery = $fInst->getQuery();
-
-        while ($fRec = $fQuery->fetch()) {
-            $nRec = new stdClass();
-            $nRec->state = $fRec->state;
-            $nRec->email = $fRec->email;
-            $nRec->subject = $fRec->subject;
-            $nRec->body = $fRec->body;
-            $nRec->note = $fRec->note;
-            $nRec->createdOn = $fRec->createdOn;
-            $nRec->createdBy = $fRec->createdBy;
-
-            if ($fRec->action == 'email') {
-                $nRec->driverClass = email_drivers_RouteByFirstEmail::getClassId();
-            } elseif ($fRec->action == 'folder') {
-                $nRec->driverClass = email_drivers_RouteByFolder::getClassId();
-                $nRec->folderId = $fRec->folderId;
-            } else {
-                continue ;
-            }
-
-            expect($nRec->driverClass);
-
-            try {
-                email_ServiceRules::save($nRec, null, 'REPLACE');
-            } catch (core_exception_Expect $e) {
-
-                continue;
-            }
-        }
-    }
-
-
-    /**
      * Премахва останалите пренасочвания от затворени правила.
      */
     public function clearClosedRedirects2642()
@@ -782,45 +712,6 @@ class email_Setup extends core_ProtoSetup
 
             $addressRec->redirection = null;
             email_AddressesInfo::save($addressRec, 'redirection');
-        }
-    }
-
-
-    /**
-     * Поправя лошите записи и премахване на старите класове
-     */
-    public function repairServiceRules2127()
-    {
-        expect(cls::load('email_drivers_CheckEmails'));
-
-        $checkEmailsClsId = email_drivers_CheckEmails::getClassId();
-
-        expect($checkEmailsClsId);
-
-        foreach (array('email_drivers_DeleteEmails', 'email_drivers_RejectEmails') as $clsName) {
-            if (!cls::load($clsName, true)) {
-                continue;
-            }
-
-            $query = email_ServiceRules::getQuery();
-            $query->where(array("#driverClass = '[#1#]'", $clsName::getClassId()));
-
-            while ($rec = $query->fetch()) {
-                $rec->driverClass = $checkEmailsClsId;
-                if ($clsName == 'email_drivers_DeleteEmails') {
-                    $rec->deleteAfter = $rec->keepDays;
-                }
-
-                if ($clsName == 'email_drivers_RejectEmails') {
-                    $rec->rejectAfter = $rec->keepDays;
-                }
-
-                email_ServiceRules::save($rec);
-            }
-
-            core_Classes::delete(array("#name = '[#1#]'", $clsName));
-
-            core_Cron::delete(array("#controller = '[#1#]'", $clsName));
         }
     }
 }

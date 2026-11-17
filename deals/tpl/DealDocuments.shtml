@@ -1,0 +1,58 @@
+<!--
+    Таблица за справката за документи по сделки.
+
+    @category  bgerp
+    @package   deals
+
+    @author    Stefan Arsov <stefan.arsof@gmail.com> with Codex
+    @copyright 2026 Experta EOOD
+    @license   GPL 3
+
+    @since     v 0.1
+-->
+
+<div class="scrolling-holder deal-documents [#directionClass#]" style="padding-bottom:10px">
+    <table class="listTable">
+        <thead>
+            <tr>
+                <th>|Вальор|*</th>
+                <th>|Документ|*</th>
+                <th>|Номер|*</th>
+                <th>|Доставено|*, [#currency#]</th>
+                <th>|Платено|*, [#currency#]</th>
+                <th>|Фактурир.|*, [#currency#]</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--ET_BEGIN DOCUMENT_ROW-->
+            <tr class="[#stateClass#]">
+                <td class="centered nowrap">[#date#]</td>
+                <td class="aleft deal-documents-title">[#title#]</td>
+                <td class="centered nowrap">[#handle#]</td>
+                <td class="aright nowrap deal-documents-delivered">[#delivered#]</td>
+                <td class="aright nowrap deal-documents-settled">[#settled#]</td>
+                <td class="aright nowrap deal-documents-invoiced [#invoiceHintClass#]">[#invoiced#]</td>
+            </tr>
+            <!--ET_END DOCUMENT_ROW-->
+            <!--ET_BEGIN NO_DOCUMENTS-->
+            <tr><td colspan="6" class="aleft quiet">|Няма документи за показване|*.</td></tr>
+            <!--ET_END NO_DOCUMENTS-->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="aright">|Салдо|*</td>
+                <td class="aleft nowrap">
+                    <span class="[#balanceClass#]">[#balance#] [#currency#]</span>
+                    <span class="deal-documents-balance-legend">(<span class="deal-documents-incoming">[#incomingLabel#]</span> - <span class="deal-documents-outgoing">[#outgoingLabel#]</span>)</span>
+                </td>
+                <td class="aright">|Общо|*</td>
+                <td class="aright nowrap deal-documents-delivered">[#deliveredTotal#]</td>
+                <td class="aright nowrap deal-documents-settled">[#settledTotal#]</td>
+                <td class="aright nowrap deal-documents-invoiced">[#invoicedTotal#]</td>
+            </tr>
+        </tfoot>
+    </table>
+    <!--ET_BEGIN PARTIAL-->
+    <div class="quiet">|За част от документите липсват данни или достъп. Салдото и общите суми са по показаните стойности|*.</div>
+    <!--ET_END PARTIAL-->
+</div>

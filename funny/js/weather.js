@@ -20,6 +20,7 @@
         trace: function () {},
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
+        surfaceNear: function () { return null; },
         /** Uses the forecast snapshot loaded with the page, without background requests. */
         init: function (options) {
             if (initialized || ['on', 'sound'].indexOf(options.mode) < 0 || window.self !== window.top) return;
@@ -362,7 +363,7 @@
                 animateDetails(time);
                 if (time - lastLayout >= 1000) {
                     if (forecast() !== weather) { stop(); return; }
-                    if (canvas) updateBanks();
+                    if (canvas || (typeof options.temperature === 'number' && options.temperature < 0)) updateBanks();
                     moveSurfaces();
                     positionSky();
                     layer.style.opacity = (Math.min(1, elapsed / 8000) * strength).toFixed(3);
@@ -530,6 +531,29 @@
                 activity({type: 'focus'});
             }
             window.funnyWeather.current = function () { return active() ? forecast() : ''; };
+            /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
+            window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
+                if (!layer || !active() || (kind !== 'snow' && kind !== 'frost')) return null;
+                if (kind === 'frost' && !(typeof options.temperature === 'number' && options.temperature < 0 && elapsed >= 6000)) return null;
+                if (kind === 'snow' && weather.indexOf('snow') < 0) return null;
+                var best = null, nearest = radius;
+                banks.forEach(function (bank) {
+                    if (kind === 'snow' && bank.amount < 0.25) return;
+                    var px = Math.max(bank.left + 4, Math.min(bank.right - 4, x)), distance = Math.hypot(px - x, bank.top - y);
+                    if (distance < nearest) { nearest = distance; best = {bank:bank,x:px,y:bank.top}; }
+                });
+                if (!best) return null;
+                var bank = best.bank, left = bank.left, right = bank.right, top = bank.top;
+                function valid() {
+                    return !!layer && active() && banks.indexOf(bank) >= 0 && bank.target.isConnected &&
+                        bank.left === left && bank.right === right && bank.top === top && (kind !== 'snow' || bank.amount >= 0.25);
+                }
+                return {x:best.x,y:best.y,valid:valid,collect:function () {
+                    if (kind !== 'snow' || !valid()) return false;
+                    bank.amount = Math.max(0, bank.amount - 0.35); bank.node.style.height = bank.amount + 'px';
+                    return true;
+                }};
+            };
             /** Offer only leaves currently resting; a paw changes their CSS path without new timers. */
             window.funnyWeather.leafNear = function (x, y) {
                 if (!layer || !active()) return null;

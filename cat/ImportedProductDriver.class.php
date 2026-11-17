@@ -135,6 +135,11 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         
         $Embedder = cls::get($data->Embedder);
         $params = $Embedder->getParams($data->rec);
+
+        // В сингъла наследените от групите се виждат само от потребители с роля debug
+        if (($data->isSingle ?? null) === true && ($Embedder instanceof cat_Products) && !haveRole('debug')) {
+            $params = $this->getParams($Embedder->getClassId(), $data->rec->id);
+        }
         $paramsTpl = $this->renderParams($Embedder, $data->rec, $params);
         $tpl->append($paramsTpl, 'PARAMETERS');
         
@@ -234,7 +239,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function getTransportWeight($rec, $quantity)
     {
-        $weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
+        $weight = cat_Products::getParams($rec->id, 'transportWeight', false, $this);
        
         if ($weight) {
             $weight *= $quantity;
@@ -254,7 +259,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function getTransportVolume($rec, $quantity)
     {
-        $volume = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportVolume');
+        $volume = cat_Products::getParams($rec->id, 'transportVolume', false, $this);
         if ($volume) {
             $volume *= $quantity;
             
@@ -280,7 +285,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             return $foundRec->tolerance;
         }
         
-        return $this->getParams(cat_Products::getClassId(), $id, 'tolerance');
+        return cat_Products::getParams($id, 'tolerance', false, $this);
     }
     
     
@@ -301,7 +306,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             return $foundRec->term;
         }
         
-        return $this->getParams(cat_Products::getClassId(), $id, 'term');
+        return cat_Products::getParams($id, 'term', false, $this);
     }
     
     

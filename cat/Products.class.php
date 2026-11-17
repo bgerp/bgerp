@@ -1416,8 +1416,8 @@ class cat_Products extends embed_Manager
                 $result->features += $groupFeatures;
             }
             
-            // Добавяме и свойствата от драйвера, ако има такива
-            $result->features = array_merge($Driver->getFeatures($objectId), $result->features);
+            // Добавяме и свойствата от драйвера и наследените от групите, ако има такива
+            $result->features = array_merge($Driver->getFeatures($objectId), cat_GroupParams::getProductFeatures($objectId, $Driver), $result->features);
         }
         
         return $result;
@@ -1680,6 +1680,24 @@ class cat_Products extends embed_Manager
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
         } elseif (!empty($rec->_isCreated)) {
             $touchedGroups = $groups;
+        }
+
+        // При смяна на групите се сменят и наследените от тях параметри
+        if (!empty($touchedGroups)) {
+            $touchedGroupIds = keylist::toArray($touchedGroups);
+            if (countR(array_intersect_key($touchedGroupIds, cat_GroupParams::getMap()['recs']))) {
+                cat_products_ParamIndex::markDirty($productId);
+
+                // Ключовите думи са сметнати преди записа - още със старите групи
+                if (isset(cat_GroupParams::getKeywordDriverIds()[$rec->innerClass ?? $mvc->fetchField($productId, 'innerClass')])) {
+                    plg_Search::forceUpdateKeywords($mvc, $productId);
+                }
+            }
+
+            // При редакция от формата транспортът се преизчислява по-долу
+            if (empty($rec->_isEditedFromForm) && countR(array_intersect_key($touchedGroupIds, cat_GroupParams::getTransportGroupIds()))) {
+                sales_TransportValues::recalcTransportByProductId($productId);
+            }
         }
 
         // Записване в перманентния кеш докоснатите групи
@@ -2541,22 +2559,29 @@ class cat_Products extends embed_Manager
      * Връща стойността на параметъра с това име, или
      * всички параметри с техните стойностти
      *
-     * @param string $id     - ид на записа
-     * @param string $name   - име на параметъра, или NULL ако искаме всички
-     * @param bool   $verbal - дали да са вербални стойностите
+     * @param string                 $id     - ид на записа
+     * @param string                 $name   - име на параметъра, или NULL ако искаме всички
+     * @param bool                   $verbal - дали да са вербални стойностите
+     * @param cat_ProductDriver|null $Driver - драйверът на артикула, ако вече е наличен
      *
      * @return mixed - стойност или празен масив ако няма параметри
      */
-    public static function getParams($id, $name = null, $verbal = false)
+    public static function getParams($id, $name = null, $verbal = false, $Driver = null)
     {
         $res = (isset($name)) ? null : array();
 
         // Ако има драйвър, питаме него за стойността
-        if ($Driver = static::getDriver($id)) {
+        if (!is_object($Driver)) {
+            $Driver = static::getDriver($id);
+        }
+        if ($Driver) {
             core_Debug::startTimer('GET_PARAMS');
             $res = $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
             core_Debug::stopTimer('GET_PARAMS');
         }
+
+        // Липсващите при артикула параметри се допълват от групите му
+        $res = cat_GroupParams::supplementProductParams($id, $res, $name, $verbal);
 
         // Ако няма връщаме празен масив
         return $res;
