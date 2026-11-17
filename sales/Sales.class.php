@@ -2140,8 +2140,8 @@ class sales_Sales extends deals_DealMaster
     {
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
-            $res['onlinePostal'] = 'Онлайн продажби с ППП за ФЛ';
         }
+        $res['onlinePostal'] = 'Продажби с ППП на ФЛ';
 
         if (core_Packs::isInstalled('voucher')) {
             $res['voucher'] = 'С ваучери';
@@ -2159,7 +2159,7 @@ class sales_Sales extends deals_DealMaster
             $query->where('#cartId IS NOT NULL');
         }
         if ($option == 'onlinePostal') {
-            self::filterOnlinePostalPersonSales($query);
+            self::filterOnlinePostalPersonSales($query, false);
         }
         if ($option == 'voucher') {
             $query->where('#voucherId IS NOT NULL');
