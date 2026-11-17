@@ -276,6 +276,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->setDbIndex('proto');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('sourceClassId,sourceId');
+        $this->setDbIndex('brid,createdOn'); // за рутирането по БРИД (marketing_Router::routeByBrid)
     }
     /**
      *
