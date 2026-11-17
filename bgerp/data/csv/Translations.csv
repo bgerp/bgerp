@@ -4305,7 +4305,7 @@ en,Платено и неотразено,Paid but not recorded
 en,Забрана на фактура на лице по онлайн поръчка без заявена фактура,Block invoices to individuals for online orders without a requested invoice
 en,Не може да се издаде фактура на лице по онлайн поръчка,Cannot issue an invoice to an individual for online order
 en,"Ако все пак се иска фактура, променете ""Фактуриране"" в продажбата на ""Да""","If an invoice is still required, change ""Invoicing"" in the sale to ""Yes"""
-en,Онлайн продажби с ППП за ФЛ,Online sales to individuals with postal money transfer
+en,Продажби с ППП на ФЛ,Sales to individuals with postal money transfer
 en,XML файл,XML file
 en,Не е създаден,Not created
 en,Документ (бон),Document (receipt)

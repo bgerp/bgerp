@@ -2140,8 +2140,8 @@ class sales_Sales extends deals_DealMaster
     {
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
-            $res['onlinePostal'] = 'Онлайн продажби с ППП за ФЛ';
         }
+        $res['onlinePostal'] = 'Продажби с ППП на ФЛ';
 
         if (core_Packs::isInstalled('voucher')) {
             $res['voucher'] = 'С ваучери';
@@ -2159,7 +2159,7 @@ class sales_Sales extends deals_DealMaster
             $query->where('#cartId IS NOT NULL');
         }
         if ($option == 'onlinePostal') {
-            self::filterOnlinePostalPersonSales($query);
+            self::filterOnlinePostalPersonSales($query, false);
         }
         if ($option == 'voucher') {
             $query->where('#voucherId IS NOT NULL');
@@ -2168,12 +2168,13 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
-     * Оставя продажбите в папки на лица от количка, платени с контиран ПБД по сметка за пощенски паричен превод
+     * Оставя продажбите в папки на лица (по избор само от количка), платени с контиран ПБД по сметка за пощенски паричен превод
      *
-     * @param core_Query $query - заявка към продажбите
+     * @param core_Query $query      - заявка към продажбите
+     * @param bool       $onlyOnline - само продажбите от количка
      * @return void
      */
-    public static function filterOnlinePostalPersonSales(core_Query &$query)
+    public static function filterOnlinePostalPersonSales(core_Query &$query, $onlyOnline = true)
     {
         $accounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
         if (!countR($accounts)) {
@@ -2198,8 +2199,10 @@ class sales_Sales extends deals_DealMaster
             return;
         }
 
-        $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
-        $query->where('#cartId IS NOT NULL');
+        if ($onlyOnline) {
+            $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+            $query->where('#cartId IS NOT NULL');
+        }
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
         $query->where(array("#coverClass = '[#1#]'", crm_Persons::getClassId()));
         $query->in('threadId', $threads);

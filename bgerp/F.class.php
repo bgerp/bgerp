@@ -8,7 +8,7 @@
  * @package   bgerp
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -219,7 +219,7 @@ class bgerp_F extends core_Manager
             $linkedImages = $doc->getLinkedImages();
             
             // Очакваме зададения да е във файла
-            expect($linkedImages[$name]);
+            expect(!empty($linkedImages[$name]), 'Няма информация за файла');
         }
         
         // Запис за картинката
