@@ -69,6 +69,14 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Заданията са в малко на брой папки - достъпът се ограничава по тях, без JOIN към папки и нишки
+     *
+     * @see doc_Threads::restrictAccessByUsedFolders()
+     */
+    public $restrictAccessByUsedFolders = true;
+
+
+    /**
      * Полетата, които могат да се променят с change_Plugin
      */
     public $changableFields = 'oldJobId,storeId,dueDate,packQuantity,notes,tolerance,productionScrap,inputStores,sharedUsers,allowSecondMeasure';
