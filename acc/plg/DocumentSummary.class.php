@@ -636,8 +636,8 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function getSummaryShowFields($mvc, $sQuery, $fieldsArr)
     {
-        // Ако заявката вече е ограничена или няма какво да се сумира, не се пипа
-        if (countR($sQuery->show) || !countR($fieldsArr)) {
+        // Ако заявката вече е ограничена, не се пипа; без полета за сумиране обхождането пак брои по състояния
+        if (countR($sQuery->show)) {
 
             return array();
         }
@@ -652,8 +652,8 @@ class acc_plg_DocumentSummary extends core_Plugin
             $fields[$fld->name] = $fld->name;
         }
 
-        // Собствен fillSummaryRec чете от записа - трябва да е обявил от кои полета
-        if (method_exists($mvc, 'fillSummaryRec')) {
+        // Собствен fillSummaryRec или обработвач на модела чете от записа - трябва да е обявил от кои полета
+        if (method_exists($mvc, 'fillSummaryRec') || method_exists($mvc, 'on_BeforeFillSummaryRec') || method_exists($mvc, 'on_AfterFillSummaryRec')) {
             if (empty($mvc->summaryRecFields)) {
 
                 return array();

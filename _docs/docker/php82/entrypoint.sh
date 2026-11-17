@@ -15,7 +15,7 @@ ln -s /var/www/webroot /var/www/ef_root/web
 # so that index.cfg.php with hardcoded host paths works unchanged
 if [ -n "$EF_ROOT" ] && [ "$EF_ROOT" != "/var/www/ef_root" ]; then
     mkdir -p "$(dirname "$EF_ROOT")"
-    ln -sf /var/www/ef_root "$EF_ROOT"
+    ln -sfn /var/www/ef_root "$EF_ROOT"
 fi
 
 # Create PHP debug log directories expected by the app
