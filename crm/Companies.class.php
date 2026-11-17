@@ -704,6 +704,70 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Бележка за модела с другите картони със същия ДДС номер, ЕИК, име или имейл
+     *
+     * @param int $id - ид на фирмата
+     *
+     * @return string - празен низ, ако няма такива
+     */
+    public static function getSimilarLlmNote($id)
+    {
+        // Записът от базата: при превод recToVerbal транслитерира името в подадения обект
+        $rec = self::fetch((int) $id, '*', false);
+        if (!is_object($rec)) {
+
+            return '';
+        }
+
+        // Без ид записът се проверява като нов - иначе непроменените име и номер се пропускат
+        $checkRec = clone $rec;
+        unset($checkRec->id);
+        $similarArr = self::getSimilarRecs($checkRec);
+
+        $uicId = trim($rec->uicId ?? '');
+        if ($uicId !== '') {
+            $uQuery = self::getQuery();
+            self::restrictAccess($uQuery);
+            $uQuery->where(array("#uicId = '[#1#]' OR #vatId = '[#1#]' OR #vatId = 'BG[#1#]'", $uicId));
+            while ($uRec = $uQuery->fetch()) {
+                if (!self::isSimilarRecIgnorable($uRec)) {
+                    $similarArr[$uRec->id] = $uRec;
+                }
+            }
+        }
+
+        $vatDigits = preg_replace('/\D/', '', $rec->vatId ?? '');
+        $similar = array();
+        foreach ($similarArr as $similarRec) {
+            if ($similarRec->id == $rec->id || empty($similarRec->folderId)) continue;
+
+            $sVatDigits = preg_replace('/\D/', '', $similarRec->vatId ?? '');
+            $sUicId = trim($similarRec->uicId ?? '');
+            if ($vatDigits !== '' && $sVatDigits === $vatDigits) {
+                $reason = 'same VAT number';
+            } elseif ($uicId !== '' && ($sUicId === $uicId || $sVatDigits === $uicId)) {
+                $reason = 'same UIC';
+            } else {
+                $reason = 'similar name or same email';
+            }
+
+            $similar[] = "#F{$similarRec->folderId} " . trim(($similarRec->name ?? '') . ', ' . ($similarRec->vatId ?? ''), ' ,')
+                . " ({$reason}" . ($similarRec->state == 'rejected' ? ', rejected' : '') . ')';
+        }
+
+        if (empty($similar)) {
+
+            return '';
+        }
+
+        // Пълнежи като 999999999 събират десетки картони
+        $more = countR($similar) - 10;
+
+        return 'Possible duplicate company cards: ' . implode('; ', array_slice($similar, 0, 10)) . ($more > 0 ? "; and {$more} more" : '');
+    }
+
+
+    /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      *
      * @param stdClass $rec
@@ -1009,6 +1073,22 @@ class crm_Companies extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
+
+        // Валиден номер може да е на друга фирма - моделът го научава от регистъра
+        if (Mode::is('renderForLlm') && !empty($rec->vatId) && isset($row->vatId)) {
+            $vatNote = drdata_VatRegister::getLlmNote($rec->vatId, $rec->name ?? '');
+            if ($vatNote !== '') {
+                $row->vatId .= ' ' . doc_plg_LlmExportable::systemNote($vatNote);
+            }
+        }
+
+        // Дублираните картони само в единичния изглед: в списък заявките са по една на ред
+        if (Mode::is('renderForLlm') && !empty($fields['-single']) && !empty($rec->id)) {
+            $similarNote = self::getSimilarLlmNote($rec->id);
+            if ($similarNote !== '') {
+                $row->name = ($row->name ?? '') . ' ' . doc_plg_LlmExportable::systemNote($similarNote);
+            }
+        }
 
         if (!empty($fields['-single'])) {
             // Fancy ефект за картинката

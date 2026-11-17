@@ -1670,6 +1670,14 @@ abstract class deals_InvoiceMaster extends core_Master
             foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
                 $row->{$fld} = $headerInfo[$fld] ?? null;
             }
+
+            // Фактурата пази собствено копие на номера - то отива в НАП, затова се проверява то
+            if (Mode::is('renderForLlm') && !empty($rec->contragentVatNo) && isset($row->contragentVatNo)) {
+                $vatNote = drdata_VatRegister::getLlmNote($rec->contragentVatNo, $rec->contragentName ?? '', false, $rec->date ?? null);
+                if ($vatNote !== '') {
+                    $row->contragentVatNo .= ' ' . doc_plg_LlmExportable::systemNote($vatNote);
+                }
+            }
             
             if (($rec->paymentType ?? null) == 'factoring') {
                 $row->accountId = mb_strtoupper(tr('факторинг'));

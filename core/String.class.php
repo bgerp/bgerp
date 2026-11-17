@@ -1283,8 +1283,10 @@ class core_String
         $UrlType = core_Type::getByName('url');
         
         return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType) {
-            
-            return $UrlType->toVerbal($matches[0])->getContent();
+            $verbal = $UrlType->toVerbal($matches[0]);
+
+            // В текстов режим type_Url връща низ, а не шаблон с линк
+            return ($verbal instanceof core_ET) ? $verbal->getContent() : (string) $verbal;
         }, $text);
     }
     

@@ -1221,6 +1221,14 @@ abstract class deals_Helper
             $res['inlineContragentName'] = $res['contragentName'];
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
+
+            // Аида чете документа без картона на контрагента - вижда тук, ако номерът е на друга фирма
+            if (Mode::is('renderForLlm') && !empty($cData->vatNo)) {
+                $vatNote = drdata_VatRegister::getLlmNote($cData->vatNo, $cName, false, $dateFromWhichToGetName);
+                if ($vatNote !== '') {
+                    $res['vatNo'] .= ' ' . doc_plg_LlmExportable::systemNote($vatNote);
+                }
+            }
             $res['contragentUicId'] = $cData->uicId;
             if (!empty($cData->uicId)) {
                 $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
