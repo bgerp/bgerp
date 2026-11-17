@@ -30,6 +30,12 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew, plg_Modified';
+
+
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,groupId, paramId, paramValue';
@@ -359,7 +365,7 @@ class cat_GroupParams extends cat_products_ProtoParams
                 $query = static::getParamQuery();
                 $query->EXT('sysId', 'cat_Params', 'externalName=sysId,externalKey=paramId');
                 while ($rec = $query->fetch()) {
-                    $map['recs'][$rec->groupId][$rec->paramId] = (object) array('id' => $rec->id, 'groupId' => $rec->groupId, 'paramId' => $rec->paramId, 'paramValue' => $rec->paramValue, 'group' => $rec->group, 'orderEx' => $rec->orderEx);
+                    $map['recs'][$rec->groupId][$rec->paramId] = (object) array('id' => $rec->id, 'groupId' => $rec->groupId, 'paramId' => $rec->paramId, 'paramValue' => $rec->paramValue, 'group' => $rec->group, 'orderEx' => $rec->orderEx, 'modifiedOn' => $rec->modifiedOn ?? null);
                     $map['paramIds'][$rec->paramId] = $rec->paramId;
                     if (!empty($rec->sysId)) {
                         $map['sysIds'][$rec->sysId] = $rec->paramId;
@@ -536,7 +542,7 @@ class cat_GroupParams extends cat_products_ProtoParams
     /**
      * Наследените от групите параметри
      * При повтарящ се параметър печели по-дълбоката група, а при еднаква дълбочина
-     * и различни стойности параметърът се пропуска
+     * и различни стойности - последно промененият запис
      *
      * @param array $groupIds - ид-та на групи
      *
@@ -555,9 +561,12 @@ class cat_GroupParams extends cat_products_ProtoParams
         foreach ($candidates as $paramId => $byDepth) {
             krsort($byDepth);
             $recs = reset($byDepth);
-            if (countR(arr::extractValuesFromArray($recs, 'paramValue')) == 1) {
-                $res[$paramId] = reset($recs);
-            }
+            uasort($recs, function ($a, $b) {
+                $cmp = strcmp($b->modifiedOn ?? '', $a->modifiedOn ?? '');
+
+                return ($cmp == 0) ? ($b->id <=> $a->id) : $cmp;
+            });
+            $res[$paramId] = reset($recs);
         }
 
         return $res;

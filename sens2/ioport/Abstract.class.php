@@ -9,7 +9,7 @@
  * @package   sens2
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -114,9 +114,9 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
     public function discovery()
     {
         $res = array();
-        if (is_array($this->description)) {
+        if (is_array($this->description ?? null)) {
             foreach ($this->description as $key => $portInfo) {
-                if (is_array($this->driverRec->{$key})) {
+                if (is_array($this->driverRec->{$key} ?? null)) {
                     foreach ($this->driverRec->{$key} as $prop => $val) {
                         $portInfo[$prop] = $val;
                     }
