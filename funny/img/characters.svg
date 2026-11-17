@@ -63,20 +63,24 @@
   </symbol>
   <symbol id="ghost" viewBox="0 0 120 100">
     <path d="M25 85V42a35 35 0 0 1 70 0v43l-12-8-12 10-11-9-12 9-11-10z" fill="#f7f5ff" stroke="#b7afcf" stroke-width="2.5"/>
-    <ellipse cx="47" cy="44" rx="6" ry="9" fill="#423451"/><ellipse cx="74" cy="44" rx="6" ry="9" fill="#423451"/>
-    <circle cx="49" cy="41" r="2" fill="white"/><circle cx="76" cy="41" r="2" fill="white"/>
-    <ellipse cx="60" cy="64" rx="5" ry="7" fill="#665174"/>
-    <ellipse cx="35" cy="58" rx="7" ry="4" fill="#f8b9ce"/><ellipse cx="86" cy="58" rx="7" ry="4" fill="#f8b9ce"/>
+    <g style="transform-origin:60px 40px;transform:rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-face-scale,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad)))">
+      <ellipse cx="47" cy="44" rx="6" ry="9" fill="#423451"/><ellipse cx="74" cy="44" rx="6" ry="9" fill="#423451"/>
+      <circle cx="49" cy="41" r="2" fill="white"/><circle cx="76" cy="41" r="2" fill="white"/>
+      <ellipse cx="60" cy="64" rx="5" ry="7" fill="#665174"/>
+      <ellipse cx="35" cy="58" rx="7" ry="4" fill="#f8b9ce"/><ellipse cx="86" cy="58" rx="7" ry="4" fill="#f8b9ce"/>
+    </g>
   </symbol>
   <symbol id="ghostgirl" viewBox="0 0 120 100">
     <path d="M27 86l3-42a30 30 0 0 1 60 0l3 42-11-7-11 9-11-8-11 8-11-9z" fill="#fff7fb" stroke="#d3b3c8" stroke-width="2.5" stroke-linejoin="round"/>
     <path d="M77 15q-12-12-14 2 2 9 14-2zm0 0q12-12 15 1-2 10-15-1z" fill="#f48fb1" stroke="#d6668f" stroke-width="1.5" stroke-linejoin="round"/>
     <circle cx="77" cy="15" r="3.5" fill="#e0608a"/>
-    <ellipse cx="48" cy="45" rx="5.5" ry="8" fill="#423451"/><ellipse cx="72" cy="45" rx="5.5" ry="8" fill="#423451"/>
-    <circle cx="50" cy="42" r="1.8" fill="white"/><circle cx="74" cy="42" r="1.8" fill="white"/>
-    <path d="M43 39l-4-3m6 1-2-4m24 6 4-3m-6 1 2-4" stroke="#423451" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M55 61q2.5-3 5 0 2.5-3 5 0-2 5-5 5t-5-5z" fill="#e0607e"/>
-    <ellipse cx="38" cy="57" rx="6.5" ry="3.5" fill="#f8b9ce"/><ellipse cx="82" cy="57" rx="6.5" ry="3.5" fill="#f8b9ce"/>
+    <g style="transform-origin:60px 40px;transform:rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-face-scale,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad)))">
+      <ellipse cx="48" cy="45" rx="5.5" ry="8" fill="#423451"/><ellipse cx="72" cy="45" rx="5.5" ry="8" fill="#423451"/>
+      <circle cx="50" cy="42" r="1.8" fill="white"/><circle cx="74" cy="42" r="1.8" fill="white"/>
+      <path d="M43 39l-4-3m6 1-2-4m24 6 4-3m-6 1 2-4" stroke="#423451" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M55 61q2.5-3 5 0 2.5-3 5 0-2 5-5 5t-5-5z" fill="#e0607e"/>
+      <ellipse cx="38" cy="57" rx="6.5" ry="3.5" fill="#f8b9ce"/><ellipse cx="82" cy="57" rx="6.5" ry="3.5" fill="#f8b9ce"/>
+    </g>
   </symbol>
   <symbol id="ghostplay" viewBox="0 0 120 100">
     <g transform="rotate(-8 60 50)">
@@ -84,12 +88,14 @@
       <path d="M34 32Q34 8 60 8q26 0 26 24 0 26-26 27-26-1-26-27z" fill="#fffaf2" stroke="#e2c49a" stroke-width="2"/>
       <path d="M36 20q-12-6-16 4 2 10 14 4m50-8q12-6 16 4-2 10-14 4" fill="#fffaf2" stroke="#e2c49a" stroke-width="2" stroke-linejoin="round"/>
       <path d="M33 21l-5-6 9 0zm0 0-6 5 9 2zm54-1 5-6-9 0zm0 0 6 5-9 2z" fill="#ffb347" stroke="#e08a1e" stroke-width="1.2" stroke-linejoin="round"/>
-      <ellipse cx="51" cy="30" rx="5" ry="7.5" fill="#423451"/><circle cx="53" cy="27.5" r="1.7" fill="white"/>
-      <path d="M46 25l-4-3m6 0-2-4" stroke="#423451" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M64 31q6-6 12 0" fill="none" stroke="#423451" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M51 42q9 10 18 0z" fill="#7a3550"/>
-      <path d="M57 45q3 9 7 0z" fill="#ff7f9e"/>
-      <ellipse cx="42" cy="40" rx="5.5" ry="3" fill="#ffc0cf"/><ellipse cx="79" cy="38" rx="5.5" ry="3" fill="#ffc0cf"/>
+      <g style="transform-origin:60px 40px;transform:rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-face-scale,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad)))">
+        <ellipse cx="51" cy="30" rx="5" ry="7.5" fill="#423451"/><circle cx="53" cy="27.5" r="1.7" fill="white"/>
+        <path d="M46 25l-4-3m6 0-2-4" stroke="#423451" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M64 31q6-6 12 0" fill="none" stroke="#423451" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M51 42q9 10 18 0z" fill="#7a3550"/>
+        <path d="M57 45q3 9 7 0z" fill="#ff7f9e"/>
+        <ellipse cx="42" cy="40" rx="5.5" ry="3" fill="#ffc0cf"/><ellipse cx="79" cy="38" rx="5.5" ry="3" fill="#ffc0cf"/>
+      </g>
       <path d="M87 45q14-14 18-6-3 7-16 10" fill="#fffaf2" stroke="#e2c49a" stroke-width="2" stroke-linejoin="round"/>
     </g>
     <path d="M104 22l2 5 5 1-5 2-2 5-2-5-5-2 5-1z" fill="#ffcf4d"/>
@@ -99,10 +105,12 @@
     <path d="M48 51Q27 53 20 70q13 3 22-7-7 18 3 23 14 9 33-2 12-7 21-1-2-15-22-15l-4-12q14 7 23 0-7-13-23-12z" fill="#f5fbff" stroke="#a7bacf" stroke-width="2" stroke-linejoin="round"/>
     <path d="M34 30Q32 8 56 7q24-7 30 15 9 29-19 35-29 5-33-27z" fill="#f5fbff" stroke="#a7bacf" stroke-width="2"/>
     <path d="M52 8q-2-7 8-6-4 4 3 7" fill="#f5fbff" stroke="#a7bacf" stroke-width="2"/>
-    <ellipse cx="51" cy="30" rx="7" ry="10" fill="white"/><ellipse cx="71" cy="29" rx="7" ry="10" fill="white"/>
-    <ellipse cx="54" cy="32" rx="3.5" ry="6" fill="#40516e"/><ellipse cx="73" cy="31" rx="3.5" ry="6" fill="#40516e"/>
-    <path d="M51 44q12 13 24-3-11 5-24 3z" fill="#737e9b"/>
-    <ellipse cx="42" cy="40" rx="6" ry="3" fill="#f8c6cf"/><ellipse cx="80" cy="38" rx="5" ry="3" fill="#f8c6cf"/>
+    <g style="transform-origin:60px 40px;transform:rotate(var(--funny-ghost-angle,0rad)) scaleX(var(--funny-ghost-face-scale,1)) rotate(calc(-1 * var(--funny-ghost-angle,0rad)))">
+      <ellipse cx="51" cy="30" rx="7" ry="10" fill="white"/><ellipse cx="71" cy="29" rx="7" ry="10" fill="white"/>
+      <ellipse cx="54" cy="32" rx="3.5" ry="6" fill="#40516e"/><ellipse cx="73" cy="31" rx="3.5" ry="6" fill="#40516e"/>
+      <path d="M51 44q12 13 24-3-11 5-24 3z" fill="#737e9b"/>
+      <ellipse cx="42" cy="40" rx="6" ry="3" fill="#f8c6cf"/><ellipse cx="80" cy="38" rx="5" ry="3" fill="#f8c6cf"/>
+    </g>
   </symbol>
   <symbol id="zombie" viewBox="0 0 120 100">
     <path d="M44 76l-5 18m35-18 7 17" stroke="#4f4670" stroke-width="12" stroke-linecap="round"/>

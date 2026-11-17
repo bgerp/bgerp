@@ -2625,4 +2625,101 @@ check('scene turns: nearby actors wait for completion and a quiet interval, whil
     }
 });
 
+/** Weather tricks use ordinary arrivals, real woven props and public weather snapshots. */
+function trickFixture(kind, seed=997, overrides={}) {
+    const choices={wolf:['wolf','cat'],bear:['polarbear','penguin'],butterfly:['butterfly'],ghost:['ghost'],mouse:['mouse']}[kind];
+    const config={seed,width:1400,height:1000,weather:kind==='bear'||kind==='mouse'?'snow':kind==='ghost'?'wind':'rain',wind:{x:1,y:0,speed:kind==='ghost'?28:8},...overrides};
+    const e=environment({trigger:'manual',mode:'selected',characters:choices,sound:overrides.sound || 'no',forecast:{temperature:config.weather==='snow'?-5:18,expires:Infinity}},config);
+    const companion=kind==='wolf'?choices.pop():null;
+    e.click();
+    if(companion){e.tick(3200);choices.splice(0,choices.length,companion);e.click();}
+    if(kind==='butterfly') {
+        e.tick(900);const p=e.center(e.visitors()[0]);config.blocks=[e.block];
+        e.block.rect={left:p.x-100,right:p.x+100,top:p.y-70,bottom:p.y-40,width:200,height:30};
+    }
+    return {e,config,choices};
+}
+check('weather tricks: soaked wolf shakes once, splashes the nearby cat and releases the pair',()=>{
+    const {e}=trickFixture('wolf',7919),wolf=waitWeatherAct(e,'shaking-wet'),cat=e.visitors().find(v=>v.attrs['data-weather-act']==='wet-cat-jump');assert(cat);
+    assert(e.now()>=5000);assert(e.document.body.children.some(n=>n.className.includes('funny-shed-drops')));
+    const start=e.center(cat);e.tick(350);assert(Math.hypot(e.center(cat).x-start.x,e.center(cat).y-start.y)>10);
+    e.tick(3000);assert(!wolf.attrs['data-weather-act']);assert(!cat.attrs['data-weather-act']);
+    assert.equal(wolf.history.filter(([k,v])=>k==='data-weather-act'&&v==='shaking-wet').length,1);
+});
+check('weather tricks: snowflake makes a bear sneeze, penguin skids and optional sound stays bounded',()=>{
+    for(const sound of ['no','yes']){
+        const {e}=trickFixture('bear',10967,{sound,scene:true}),bear=waitWeatherAct(e,'sneeze');
+        e.tick(32);assert(e.document.body.children.some(n=>n.className.includes('funny-nose-flake')));
+        const before=e.sounds.length;waitWeatherAct(e,'sneezing');const penguin=waitWeatherAct(e,'sneeze-skid',2000);
+        const start=e.center(penguin);e.tick(350);assert(Math.hypot(e.center(penguin).x-start.x,e.center(penguin).y-start.y)>15);
+        assert(sound==='no'?e.sounds.length===0:e.sounds.length>before);e.tick(3000);assert(!bear.attrs['data-weather-act']);
+    }
+});
+check('weather tricks: butterfly folds beneath an actual edge, sheds drops and flies away',()=>{
+    const {e}=trickFixture('butterfly'),v=waitWeatherAct(e,'folded-wings');
+    const start=e.center(v);assert(start.y>e.block.rect.bottom);e.tick(900);assert(e.document.body.children.some(n=>n.className.includes('funny-shed-drops')));
+    waitWeatherAct(e,'dry-flight');e.tick(500);assert(Math.hypot(e.center(v).x-start.x,e.center(v).y-start.y)>15);
+    e.tick(7000);assert(!v.attrs['data-weather-act']);
+});
+check('weather tricks: ghosts stretch in either wind, keep their face scale and restore every transform',()=>{
+    for(const direction of [-1,1]){
+        const {e}=trickFixture('ghost',997,{wind:{x:direction,y:0,speed:28}}),v=waitWeatherAct(e,'wind-ghost'),start=e.center(v);e.tick(1600);
+        assert(Number(v.style['--funny-ghost-stretch'])>1.4);assert(Math.abs(Number(v.style['--funny-ghost-stretch'])*Number(v.style['--funny-ghost-face-scale'])-1)<.001);
+        assert((e.center(v).x-start.x)*direction>15);e.tick(2500);assert(!v.attrs['data-weather-act']);assert(!v.style['--funny-ghost-stretch']);assert(!v.style['--funny-ghost-face-scale']);assert(!v.style['--funny-ghost-angle']);
+    }
+});
+check('weather tricks: spiders tug existing wet webs, shed at most three drops and keep the original expiry',()=>{
+    const {e,v,web}=wovenFixture({sound:'no'},{seed:997,weather:'rain',wind:{x:1,y:0,speed:8},width:1400,height:1000});
+    waitWeatherAct(e,'tug-web');assert.equal(web.attrs['data-web-shake'],'true');e.tick(800);
+    const drops=e.document.body.children.find(n=>n.className.includes('funny-shed-drops'));assert(drops);assert(drops.children.length>=1&&drops.children.length<=3);
+    const dew=web.children.find(n=>n.className==='funny-web-dew');assert(dew.children.some(n=>n.style.opacity==='0'));
+    e.tick(5000);assert(!v.attrs['data-weather-act']);assert(!web.attrs['data-web-shake']);e.tick(Math.max(0,web.createdAt+16500-e.now()));assert(!e.document.body.children.includes(web));
+});
+
+/** A later visitor reaches the naturally opened snowy hole, with its original ten-second deadline. */
+function snowyHoleFixture() {
+    const {e,config}=trickFixture('mouse');let hole;
+    for(let t=0;t<50000&&!hole;t+=50){e.tick(50);hole=e.document.body.children.find(n=>n.className==='funny-mouse-hole');}
+    assert(hole);e.tick(1400);e.click();e.tick(700);e.click();
+    const v=waitWeatherAct(e,'snow-hole',7000);return {e,config,hole,v};
+}
+check('weather tricks: one mouse clears snow for followers, tiny steps persist and the hole never renews',()=>{
+    const {e,hole,v}=snowyHoleFixture(),mice=e.visitors().slice();assert.equal(hole.attrs['data-snow-covered'],'true');
+    e.tick(600);assert(Number(hole.style['--funny-hole-snow'])<.7);assert(e.document.body.children.some(n=>n.className.includes('funny-tiny-snow-steps')));
+    e.tick(1500);assert(!hole.attrs['data-snow-covered']);assert(!v.attrs['data-weather-act']);assert(v.className.includes('funny-burrowing'));
+    e.tick(Math.max(0,hole.createdAt+10500-e.now()));assert(!e.document.body.children.includes(hole));
+    assert(mice.filter(a=>a.history.some(([k,x])=>k==='data-weather-act'&&x==='snow-hole')).length===1);
+    e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+});
+check('weather tricks: every new scene releases on pointer, scroll, Escape, focus loss and reduced motion',()=>{
+    for(const kind of ['wolf','bear','butterfly','ghost','spider','mouse'])for(const exit of ['pointer','scroll','escape','blur','reduced']) {
+        let e,v;
+        if(kind==='mouse')({e,v}=snowyHoleFixture());
+        else if(kind==='spider') {({e}=wovenFixture({sound:'no'},{seed:997,weather:'rain',wind:{x:1,y:0,speed:8},width:1400,height:1000}));v=waitWeatherAct(e,'tug-web');}
+        else {({e}=trickFixture(kind,kind==='wolf'?7919:997));v=waitWeatherAct(e,{wolf:'wet-shake',bear:'sneeze',butterfly:'folded-wings',ghost:'wind-ghost'}[kind]);}
+        if(exit==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}
+        if(exit==='scroll')e.document.emit('scroll');if(exit==='escape')e.document.emit('keydown',{key:'Escape'});if(exit==='blur')e.window.emit('blur');
+        if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(80);assert(!v.attrs['data-weather-act'],kind+'/'+exit);e.window.emit('blur');e.tick(500);
+        assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);assert.equal(e.sounds.length,0);
+    }
+});
+check('weather tricks: changed weather and removed props end scenes without stale transforms or reservations',()=>{
+    for(const kind of ['wolf','bear','butterfly','ghost']) {
+        const {e,config}=trickFixture(kind,kind==='wolf'?7919:997),v=waitWeatherAct(e,{wolf:'wet-shake',bear:'sneeze',butterfly:'folded-wings',ghost:'wind-ghost'}[kind]);
+        if(kind==='butterfly')e.block.isConnected=false;else if(kind==='ghost')config.wind={x:0,y:0,speed:0};else config.weather='sun';
+        e.tick(1200);assert(!v.attrs['data-weather-act'],kind);assert(!v.style['--funny-ghost-stretch']);
+    }
+    const {e,v,hole,config}=snowyHoleFixture();config.weather='rain';e.tick(1200);assert(!v.attrs['data-weather-act']);assert(!hole.attrs['data-snow-covered']);
+    const webTrial=wovenFixture({sound:'no'},{seed:997,weather:'rain',wind:{x:1,y:0,speed:8},width:1400,height:1000});
+    const spider=waitWeatherAct(webTrial.e,'tug-web');webTrial.e.document.emit('scroll');webTrial.e.tick(32);assert(!spider.attrs['data-weather-act']);assert(!webTrial.web.attrs['data-web-shake']);
+});
+check('weather tricks: dry weather, calm wind and missing shelter cannot start the wrong scenes',()=>{
+    for(const kind of ['wolf','bear','butterfly','ghost']){
+        const {e}=trickFixture(kind,997,{weather:'sun',wind:{x:1,y:0,speed:5}});
+        assert(watchVisitors(e,12000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&/^(wet-shake|sneeze|dry-wings|wind-ghost)$/.test(x))));
+    }
+    const {e,config}=trickFixture('butterfly');config.blocks=[];assert(watchVisitors(e,12000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&x==='dry-wings')));
+});
+
 process.once('beforeExit',()=>console.log(`${checks} behavioral checks passed`));
