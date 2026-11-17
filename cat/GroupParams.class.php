@@ -84,12 +84,6 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
-     * Типовете параметри, които не се задават за групи - формулите и материалите в рецептите
-     */
-    protected static $notAllowedDrivers = array('cond_type_Formula', 'cond_type_Product');
-
-
-    /**
      * Над колко артикула транспортът в черновите се преизчислява на заден план
      */
     protected static $maxTransportRecalcNow = 20;
@@ -234,28 +228,12 @@ class cat_GroupParams extends cat_products_ProtoParams
         $query->show('paramId');
         $notIn = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
 
-        $driverIds = array();
-        foreach (static::$notAllowedDrivers as $driver) {
-            $driverIds[] = core_Classes::getId($driver);
-        }
-        $where = "#allowInGroups = 'yes' AND #driverClass NOT IN (" . implode(',', $driverIds) . ')';
+        $where = "#allowInGroups = 'yes'";
         if (countR($notIn)) {
             $where .= ' AND #id NOT IN (' . implode(',', $notIn) . ')';
         }
 
         return cat_Params::makeArray4Select(null, $where);
-    }
-
-
-    /**
-     * Изпълнява се след въвеждане на данните от Request
-     */
-    protected static function on_AfterInputEditForm($mvc, $form)
-    {
-        $rec = $form->rec;
-        if (!empty($rec->paramId) && cat_Params::haveDriver($rec->paramId, static::$notAllowedDrivers)) {
-            $form->setError('paramId', 'Параметърът не може да се задава за групи|*!');
-        }
     }
 
 
