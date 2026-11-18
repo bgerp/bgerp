@@ -9993,6 +9993,7 @@ en,Не е валидна цена,Invalid price
 en,Не е валидно ЛНЧ.,Invalid foreigner personal number.
 en,Не е въведена нито една маска на тегловен баркод,No weight barcode mask has been entered
 en,Не е въведено валидно число,No valid number has been entered
+en,Непозната мярка,Unknown unit
 en,Не е въведено количество,Quantity not entered
 en,Не е въведено цяло положително число,No positive integer entered
 en,Не е въведено число,No number entered
