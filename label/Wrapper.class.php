@@ -10,7 +10,7 @@
  * @package   label
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class label_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('label_Prints', 'Отпечатвания', 'label, admin, ceo, seeLabelAll');
         $this->TAB('label_Templates', 'Шаблони', 'label, admin, ceo');
-        $this->TAB('label_Media', 'Медии', 'labelMaster, admin, ceo');
+        $this->TAB('label_Media', 'Медии', 'label, labelMaster, admin, ceo');
         $this->TAB('label_Counters', 'Броячи', 'label, admin, ceo');
     }
 }
