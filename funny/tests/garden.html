@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny - градински сценки</title>
+<link rel="stylesheet" href="../css/funny.css">
+<style>
+body { margin:24px; color:#334155; background:#eef3f7; font:15px/1.5 sans-serif; min-height:130vh; }
+h1 { margin:0; font-size:23px; } p { max-width:700px; } button,select,input { padding:7px; }
+#launch { position:absolute; left:425px; top:360px; width:150px; height:80px; border:2px dashed #8299ad; border-radius:8px; }
+#launch::before { content:'Двоен клик тук'; padding:12px; display:block; pointer-events:none; }
+#status { display:block; margin-top:10px; max-width:900px; }
+#pool { position:fixed; width:140px; height:12px; margin:-6px -70px; border-radius:50%; background:#8eb6cc77; border-top:2px solid #a8cfdf; pointer-events:none; }
+#leaf { position:fixed; width:42px; height:22px; margin:-11px -21px; background:#bc773bcc; border-radius:4% 80% 10% 80%; border:1px solid #98582d; pointer-events:none; z-index:9998; }
+#blockPortal_edge { position:fixed; height:32px; border:1px solid #8ba3b5; background:white; border-radius:5px; }
+#gallery { margin-top:250px; display:flex; gap:30px; } .sample { width:120px; height:100px; position:relative; } .sample svg { width:100%; height:100%; position:absolute; }
+@media(max-width:700px) { #launch { left:40%; top:60vh; width:120px; } #gallery { margin-top:450px; } }
+</style>
+<h1>Нови градински сценки</h1>
+<label>Сцена <select id="scenario"><option value="snail">Охлюв по ръба</option><option value="nudge">Коте и охлюв</option><option value="stash">Катеричка с жълъд</option><option value="groom">Мокри лапички</option><option value="mirror">Вампир без отражение</option><option value="ferry">Щъркел пренася пиленце</option></select></label>
+<label><input type="checkbox" id="sound"> Звук</label> <button id="wind">Силен вятър</button> <button id="mouse">Следва мишка</button>
+<button id="test">Кликове: 0</button> <input aria-label="Писане под ефектите" placeholder="Проверка на писането">
+<p>Реалният контролер на героите с фиксиран жребий. Само тук локвата и падналото листо са тестови натрупвания, за да не се чака дъждът. Двоен клик в рамката извиква избраните герои. Вятърът разкрива жълъда. Escape прекъсва всичко.</p>
+<a href="heat.html?character=snowmaiden">Снежанка охлажда курсора</a>
+<iframe title="Друг екран за проверка на фокус" src="focus.html" style="width:300px;height:34px;border:0;display:block"></iframe>
+<output id="status">Наблюдавани сцени: изчакване</output><div id="launch" aria-label="Празно място за двоен клик"></div>
+<div id="gallery" aria-label="Преглед на новите герои с аксесоари"></div>
+<script src="../js/funny.js"></script>
+<script>
+// Only fixture data is synthetic; movement, sounds, scene interruption and cleanup use production code.
+var params=new URLSearchParams(location.search),kind=params.get('scene')||'snail';
+var seed=Number(params.get('seed'))||({groom:2,nudge:4,ferry:13,stash:14}[kind]||997);
+Math.random=function(){return ((seed=seed*16807%2147483647)-1)/2147483646;};
+var select=document.getElementById('scenario');select.value=kind;
+var sound=document.getElementById('sound');sound.checked=params.get('sound')==='yes';
+function reloadScene(){location.search=new URLSearchParams({scene:select.value,sound:sound.checked?'yes':'no'});}
+select.addEventListener('change',reloadScene);sound.addEventListener('change',reloadScene);
+var choices={snail:['snail'],nudge:['cat','snail'],stash:['squirrel'],groom:['cat'],mirror:['vampire'],ferry:['chick','stork']}[kind];
+var wind={x:1,y:0,speed:8},water=null,leaf=null,valid=true,borrowed=false;
+function prop(id,x,y){var el=document.createElement('div');el.id=id;el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);return el;}
+window.funnyWeather={current:function(){return 'rain';},trigger:function(){},trace:function(){},wind:function(){return wind;},surfaceNear:function(x,y,type,radius){
+    if(!valid||type!=='water'||!['groom','mirror','ferry'].includes(kind))return null;
+    if(!water){water={x:x,y:y,left:x-70,right:x+70,valid:function(){return valid;}};prop('pool',x,y);}
+    return Math.hypot(x-water.x,y-water.y)<radius?water:null;
+},leafNear:function(x,y){
+    if(kind!=='stash'||borrowed||!valid)return null;
+    if(!leaf){leaf={x:x+25,y:y};leaf.node=prop('leaf',leaf.x,leaf.y);}
+    return {x:leaf.x,y:leaf.y,valid:function(){return valid&&leaf.node.isConnected;},reserve:function(){if(borrowed)return false;borrowed=true;return true;},move:function(x,y){leaf.node.style.left=x+'px';leaf.node.style.top=y+'px';},release:function(){leaf.node.remove();}};
+}};
+funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:sound.checked?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{temperature:12,expires:Date.now()+86400000}});
+document.getElementById('wind').addEventListener('click',function(){wind.speed=30;});
+document.getElementById('mouse').addEventListener('click',function(){choices.splice(0,choices.length,'mouse');});
+var clicks=0;document.getElementById('test').addEventListener('click',function(){this.textContent='Кликове: '+(++clicks);});
+var names={stash:'Към листото','bury-acorn':'Скриване на жълъда','acorn-run':'Мишка към жълъда','stolen-acorn':'Откраднат жълъд','acorn-chase':'Катеричката гони мишката','snail-nudge':'Коте към охлюва','snail-paw':'Докосване с лапичка',shell:'Охлюв се прибира','wet-paws':'Мокри отпечатъци','paw-shake':'Изтръскване на лапички','paw-groom':'Почистване на лапички','missing-reflection':'Вампир към локвата','mirror-check':'Две проверки без отражение',ferry:'Щъркел към пиленцето','flying-chick':'Пренасяне над водата',ferried:'Пиленце чака щъркела',carried:'Пиленце в полет'},seen={},edge=false;
+new MutationObserver(function(records){
+    records.forEach(function(r){var value=r.target.getAttribute(r.attributeName);if(names[value])seen[value]=true;if(r.attributeName==='data-perched'&&value==='true')seen.perched=true;});
+    var status='Наблюдавани сцени: '+Object.keys(seen).map(function(n){return names[n]||'Кацане върху елемент';}).join(' / ');
+    if(document.getElementById('status').textContent!==status)document.getElementById('status').textContent=status;
+    var snail=document.querySelector('.funny-snail');
+    if(kind==='snail'&&snail&&!edge){edge=true;setTimeout(function(){var r=snail.getBoundingClientRect(),block=prop('blockPortal_edge',r.x+r.width/2-100,r.y+r.height/2+20);block.style.width='200px';},700);}
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-weather-act','data-perched'],childList:true});
+// Static accessory alignment samples also use the same SVG anchors as the controller.
+['snail','squirrel'].forEach(function(name){['scarf','glasses'].forEach(function(accessory){var box=document.createElement('div');box.className='sample';box.innerHTML='<svg><use href="../img/characters.svg#'+name+'"/></svg>';var a=name==='snail'?(accessory==='scarf'?[90,48,.55]:[92,23,.9]):[77,35,.55];box.innerHTML+='<svg viewBox="0 0 120 100"><g transform="translate('+a[0]+' '+a[1]+') scale('+a[2]+') translate(-60 -32)"><use href="../img/characters.svg#accessory-'+accessory+'"/></g></svg>';document.getElementById('gallery').appendChild(box);});});
+</script>
+</html>

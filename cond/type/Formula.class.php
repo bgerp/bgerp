@@ -306,6 +306,9 @@ class cond_type_Formula extends cond_type_Text
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
+        if ($calced !== cat_BomDetails::CALC_ERROR && isset($this->driverRec->round)) {
+            $calced = round($calced, $this->driverRec->round);
+        }
 
         $verbal = $calced;
         if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
@@ -313,10 +316,6 @@ class cond_type_Formula extends cond_type_Text
             if ($calced === cat_BomDetails::CALC_ERROR) {
                 $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);
             } else {
-                if(isset($this->driverRec->round)){
-                    $calced = round($calced, $this->driverRec->round);
-                }
-
                 if(core_Users::isPowerUser()){
                     $calced = "<span class='blueText'>{$calced}</span>";
                     $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);

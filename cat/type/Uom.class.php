@@ -12,7 +12,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -86,7 +86,13 @@ class cat_type_Uom extends type_Varchar
             
             return $value;
         }
-        
+
+        // Низ "число мярка" (напр. "32 cm") - преди се губеше без грешка
+        if (is_string($value)) {
+
+            return $this->fromVerbalWithUnit($value);
+        }
+
         if (!strlen($value['lP'] ?? '')) {
             
             return;
@@ -122,6 +128,42 @@ class cat_type_Uom extends type_Varchar
     }
     
     
+    /**
+     * Превръща низ "число мярка" в стойност в основната мярка; без мярка числото е в основната
+     */
+    protected function fromVerbalWithUnit($value)
+    {
+        if (!preg_match('/^\s*([0-9]+(?:[.,][0-9]+)?)\s*(.*?)\s*$/u', $value, $matches)) {
+            $this->error = 'Не е въведено валидно число';
+
+            return false;
+        }
+
+        $number = $this->double->fromVerbal($matches[1]);
+        if ($number === false) {
+            $this->error = 'Не е въведено валидно число';
+
+            return false;
+        }
+        if ($matches[2] === '') {
+
+            return $number;
+        }
+
+        // Мярката трябва да е от вида на полето; затворена мярка също се превръща
+        $unitRec = cat_UoM::fetchBySysId($this->params['unit'] ?? '');
+        $uomRec = cat_UoM::fetchBySinonim($matches[2]);
+        $sameType = is_object($unitRec) ? cat_UoM::getSameTypeMeasures($unitRec->id, false, false) : array();
+        if (!is_object($uomRec) || !array_key_exists($uomRec->id, $sameType)) {
+            $this->error = 'Непозната мярка|*: ' . $matches[2];
+
+            return false;
+        }
+
+        return cat_UoM::convertToBaseUnit($number, $uomRec->id);
+    }
+
+
     /**
      * Рендиране на полето
      */

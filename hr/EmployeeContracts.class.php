@@ -381,16 +381,15 @@ class hr_EmployeeContracts extends core_Master
         
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
-        $houres = $houresInSec / 60 / 60;
+        $minutes = (int) round($houresInSec / 60);
+        $houres = intdiv($minutes, 60);
+        $min = $minutes % 60;
         
         $row->shiftRec = new stdClass();
         
-        if ($houres % 2 !== 0) {
-            $min = round(($houres - round($houres)) * 60);
-            
-            $row->shiftRec_weekhours = round($houres) . ' часа' . ' и ' . $min . ' мин.';
+        if ($min) {
+            $row->shiftRec_weekhours = $houres . ' часа' . ' и ' . $min . ' мин.';
         } else {
-            // да добавя и минитуте
             $row->shiftRec_weekhours = $houres . ' часа';
         }
         

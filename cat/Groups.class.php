@@ -823,6 +823,7 @@ class cat_Groups extends core_Master
             if (countR(cat_GroupParams::getMap()['recs'])) {
                 cat_products_ParamIndexState::markByGroups(array($rec->id));
                 cat_GroupParams::scheduleKeywordsUpdate(array($rec->id));
+                cat_GroupParams::scheduleFeaturesSync(array($rec->id));
             }
             if (countR(cat_GroupParams::getTransportGroupIds())) {
                 cat_GroupParams::recalcTransportByGroups(array($rec->id));

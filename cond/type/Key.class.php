@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -152,7 +152,7 @@ class cond_type_Key extends cond_type_abstract_Proto
         $verbal = $Class->getVerbal($value, $select);
 
         // Обръщане в линк, ако може
-        if(!Mode::isReadOnly()){
+        if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
             if($Class instanceof core_Master){
                 $singleUrlArray = $Class->getSingleUrlArray($value);
 

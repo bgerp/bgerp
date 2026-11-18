@@ -3010,14 +3010,15 @@ class doc_Threads extends core_Manager
         if (countR($hidden)) {
             $threadsTable = cls::get('doc_Threads')->dbTableName;
             $sharedCol = str::phpToMysqlName('shared');
-            $threadFolderCol = str::phpToMysqlName('folderId');
+            $mvcFolderCol = str::phpToMysqlName('folderId');
+            $mvcThreadCol = str::phpToMysqlName('threadId');
             $userIdInt = (int) $userId;
             $hiddenList = implode(',', $hidden);
 
-            // Споделените нишки се търсят веднъж по индекса на папката, а не с подзаявка за всеки ред
+            // Споделените нишки се търсят само сред нишките със записи на модела, а не сред всички нишки в папките
             $maxShared = 5000;
             $sharedThreads = array();
-            $dbRes = $mvc->db->query("SELECT `id` FROM `{$threadsTable}` WHERE `{$threadFolderCol}` IN ({$hiddenList}) AND LOCATE('|{$userIdInt}|', `{$sharedCol}`) > 0 LIMIT " . ($maxShared + 1));
+            $dbRes = $mvc->db->query("SELECT DISTINCT `m`.`{$mvcThreadCol}` AS `id` FROM `{$mvc->dbTableName}` AS `m` STRAIGHT_JOIN `{$threadsTable}` AS `t` ON `t`.`id` = `m`.`{$mvcThreadCol}` WHERE `m`.`{$mvcFolderCol}` IN ({$hiddenList}) AND LOCATE('|{$userIdInt}|', `t`.`{$sharedCol}`) > 0 LIMIT " . ($maxShared + 1));
             while ($r = $mvc->db->fetchObject($dbRes)) {
                 $sharedThreads[(int) $r->id] = (int) $r->id;
             }
