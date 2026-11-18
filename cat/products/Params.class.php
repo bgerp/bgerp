@@ -367,7 +367,7 @@ class cat_products_Params extends cat_products_ProtoParams
 
             // Собственият запис е празен - важи наследената стойност, а редакцията е на собствения
             $editUrl = ($isSingle && static::haveRightFor('edit', $rec)) ? array(get_called_class(), 'edit', $rec->id, 'ret_url' => true) : null;
-            $data->params[$key] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $editUrl);
+            $data->params[$key] = static::prepareGroupParamRow($GroupParams, $gRec, $data, $editUrl);
         }
 
         $isPublic = in_array($data->documentType ?? null, array('public', 'invoice'), true);
@@ -376,7 +376,7 @@ class cat_products_Params extends cat_products_ProtoParams
 
             $overrideRec = (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId);
             $overrideUrl = ($isSingle && static::haveRightFor('add', $overrideRec)) ? array(get_called_class(), 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'paramId' => $gRec->paramId, 'ret_url' => true) : null;
-            $data->params["g{$gRec->id}"] = static::prepareGroupParamRow($GroupParams, $gRec, $isSingle, $overrideUrl);
+            $data->params["g{$gRec->id}"] = static::prepareGroupParamRow($GroupParams, $gRec, $data, $overrideUrl);
             $sortRecs["g{$gRec->id}"] = $gRec;
         }
 
@@ -405,15 +405,22 @@ class cat_products_Params extends cat_products_ProtoParams
      *
      * @param cat_GroupParams $GroupParams
      * @param stdClass        $gRec        - запис на параметър на група
-     * @param bool            $isSingle    - дали е за сингъла на артикула
+     * @param stdClass        $data        - данните на детайла
      * @param array|null      $url         - адрес за предефиниране на стойността
      *
      * @return stdClass $row
      */
-    private static function prepareGroupParamRow($GroupParams, $gRec, $isSingle, $url)
+    private static function prepareGroupParamRow($GroupParams, $gRec, $data, $url)
     {
         $row = $GroupParams->prepareInheritedRow($gRec, $url);
-        if (!$isSingle) {
+
+        // Стойността се вербализира в артикула, за да се сметнат формулите от неговите параметри
+        $pRec = (object) array('classId' => $data->masterClassId, 'productId' => $data->masterId, 'paramId' => $gRec->paramId, 'paramValue' => $gRec->paramValue);
+        $row->paramValue = cls::get(get_called_class())->recToVerbal($pRec, 'paramValue')->paramValue;
+        $row->_domainClassId = $pRec->classId;
+        $row->_domainId = $pRec->productId;
+
+        if (empty($data->isSingle)) {
             unset($row->_inheritedHint);
         }
 
