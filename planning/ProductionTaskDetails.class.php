@@ -441,7 +441,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Показване на допълнителна мярка при нужда
         if ($rec->type == 'production') {
-            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId)){
+            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId ?? null)){
                 if ($masterRec->showadditionalUom == 'yes') {
                     $form->setField('weight', 'mandatory');
                 } else {
@@ -500,7 +500,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-        $infoArr = array(tr('К-во') . " (<b>{$quantityVerbal}</b> {$measureVerbal})");
+        $infoArr = array(tr('К-во') => "<b>{$quantityVerbal}</b> {$measureVerbal}");
 
         // Ако е въведено тегло, показват се и теглата, както и разминаването спрямо очакваното нето
         if (isset($lastRec->weight)) {
@@ -508,9 +508,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Мярката е част от вербалната стойност на типа
             $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
 
-            $infoArr[] = tr('Бруто') . " (<b>{$WeightType->toVerbal($lastRec->weight)}</b>)";
-            $netWeightVerbal = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet nowrap'>n/a</span>";
-            $infoArr[] = tr('Нето') . " ({$netWeightVerbal})";
+            $infoArr[tr('Бруто')] = "<b>{$WeightType->toVerbal($lastRec->weight)}</b>";
+            $infoArr[tr('Нето')] = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet'>n/a</span>";
 
             // Ако може да се определи очакваното нето, показва се и разминаването спрямо него
             $deviationRec = static::getNetWeightDeviation($lastRec, $masterRec);
@@ -522,11 +521,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $hintMsg = "|спрямо очакваното|* ({$expectedVerbal}) |нето|*!";
                     $deviationVerbal = ht::createHint($deviationVerbal, $hintMsg, $deviationRec->iconHint, false);
                 }
-                $infoArr[] = tr('Разминаване') . " ({$deviationVerbal})";
+                $infoArr[tr('Разминаване')] = $deviationVerbal;
             }
         }
 
-        return "<div class='richtext-info-no-image'>" . tr('Последно добавено') . ': ' . implode(', ', $infoArr) . '</div>';
+        $items = '';
+        foreach ($infoArr as $caption => $value) {
+            $items .= "<span class='lastProgressInfoItem'><span class='lastProgressInfoCaption'>{$caption}:</span> <span class='lastProgressInfoValue'>{$value}</span></span> ";
+        }
+
+        return "<div class='richtext-info-no-image lastProgressInfo'><div class='lastProgressInfoTitle'>" . tr('Последно добавено') . "</div><div class='lastProgressInfoItems'>{$items}</div></div>";
     }
 
 
@@ -1463,7 +1467,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if(isset($rec->weight)){
                 if(empty($rec->netWeight)){
-                    $row->netWeight = "<span class='quiet nowrap'>n/a</span>";
+                    $row->netWeight = "<span class='quiet'>n/a</span>";
                 }
                 if(isset($rec->netWeight) && $rec->weight <= $rec->netWeight){
                     if($rec->state != 'rejected'){
