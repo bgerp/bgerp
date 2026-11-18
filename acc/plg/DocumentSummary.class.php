@@ -344,6 +344,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,placeholderType=all,input,formOrder=1000");
+            $data->listFilter->setField($mvc->currencyFld, array('attr' => array('data-width' => '17em')));
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
         }
 
@@ -376,6 +377,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
+                    $data->listFilter->setField('fState', array('attr' => array('data-width' => '24em')));
                     $data->listFilter->showFields .= ',fState';
                     $data->listFilter->setDefault('fState', $mvc->defaultListFilterState);
                 }
