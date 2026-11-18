@@ -243,7 +243,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         } else {
             $productRec = cat_Products::fetch($rec->productId, 'canStore');
             if($productRec->canStore == 'yes'){
-                $row->storeId = "<span class='red'>n/a</span>";
+                $row->storeId = "<span class='red nowrap'>n/a</span>";
             }
         }
 

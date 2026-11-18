@@ -258,7 +258,7 @@ class sales_Routes extends core_Manager
         $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
         
         if (!$rec->repeat) {
-            $row->repeat = "<span class='quiet'>" . tr('n/a') . '</span>';
+            $row->repeat = "<span class='quiet nowrap'>" . tr('n/a') . '</span>';
         }
         
         $locationRec = crm_Locations::fetch($rec->locationId);

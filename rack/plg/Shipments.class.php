@@ -10,7 +10,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -495,7 +495,7 @@ class rack_plg_Shipments extends core_Plugin
         $dQuery->where("#{$Detail->masterKey} = {$data->rec->id}");
 
         while($dRec = $dQuery->fetch()){
-            $transUnit = deals_Helper::getTransUnitRow($dRec->productId, $dRec->packagingId, $dRec->quantity, $data->rec->state, $dRec->transUnitId, $dRec->transUnitQuantity);
+            $transUnit = deals_Helper::getTransUnitRow($dRec->productId, $dRec->packagingId, $dRec->quantity, $data->rec->state, $dRec->transUnitId ?? null, $dRec->transUnitQuantity ?? null);
             if(!empty($transUnit)){
                 $details["{$dRec->productId}|{$dRec->packagingId}"][] = $transUnit;
             }

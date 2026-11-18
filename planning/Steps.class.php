@@ -459,7 +459,7 @@ class planning_Steps extends core_Extender
         if($Extended = $mvc->getExtended($rec)){
             $row->planningActions = $row->planningActions ?? '';
             if(empty($rec->planningActions)){
-                $row->planningActions = "<i class='quiet'>n/a</i>";
+                $row->planningActions = "<i class='quiet nowrap'>n/a</i>";
             }
             if(!Mode::is('printing')){
                 if($Extended->haveRightFor('editplanned')){

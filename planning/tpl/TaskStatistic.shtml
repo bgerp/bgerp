@@ -42,36 +42,18 @@
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
+                  <!--ET_BEGIN subProducts-->
+                  <table class="wasteBlockInThread state-active" style="margin-top:4px;width:100%">
+                      <tr><td colspan="2" class="leftCol"><b>|Субпродукти|*</b></td></tr>
+                      [#subProducts#]
+                  </table>
+                  <!--ET_END subProducts-->
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
-           <!--ET_BEGIN ADDITIONAL_BLOCK-->
-           [#ADDITIONAL_BLOCK#]
-           <tr>
-               <td colspan='4' style="padding: 1px 0px 0px 0px;">
-                   <!--ET_BEGIN SUB_PRODUCT_BLOCK-->
-                   [#SUB_PRODUCT_BLOCK#]
-                   <table class="wasteBlockInThread state-active">
-                       <tr class="[#wasteClass#]">
-                           <td colspan="2" class="leftCol"><b>|Субпродукти|*</b></td>
-                       </tr>
-                       [#SUB_BLOCK_TABLE_ROW#]
-                       <!--ET_BEGIN SUB_PRODUCT_BLOCK_ROW-->
-                       [#SUB_PRODUCT_BLOCK_ROW#]
-                       <tr class="[#wasteClass#]">
-                           <td class="leftCol">[#subProductId#]</td>
-                           <td class="rightCol">[#subProductQuantity#]</td>
-                       </tr>
-                       <!--ET_END SUB_PRODUCT_BLOCK_ROW-->
-                   </table>
-
-                   <!--ET_END SUB_PRODUCT_BLOCK-->
-               </td>
-           </tr>
-           <!--ET_END ADDITIONAL_BLOCK-->
        </table>
     </div>
 

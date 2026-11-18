@@ -286,7 +286,7 @@ class acc_CostObjectDetail extends core_Manager
 
         $total = arr::sumValuesArray($data->costItemAmounts, 'blAmount');
         $Double = core_Type::getByName('double(decimals=2)');
-        $totalVerbal = ($total) ? $Double->toVerbal($total) : "<span class='quiet'>n/a</span>";
+        $totalVerbal = ($total) ? $Double->toVerbal($total) : "<span class='quiet nowrap'>n/a</span>";
 
         $tplTable = static::renderCostObjectTable($data);
         $tplTable->append($totalVerbal, 'totalAmount');

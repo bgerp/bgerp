@@ -956,6 +956,11 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
+
+        // Активацията от формата изисква вече обновен контейнер и документни връзки.
+        if (($rec->_isActivated ?? null) === true) {
+            $mvc->invoke('AfterSaveActivatedDocument', array($rec));
+        }
     }
     
     

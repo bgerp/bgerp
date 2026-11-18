@@ -465,13 +465,13 @@ class acc_BalanceHistory extends core_Manager
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
         if(is_null($rec->baseQuantity)){
-            $row->baseQuantity = '<span class="quiet">n/a</span>';
+            $row->baseQuantity = '<span class="quiet nowrap">n/a</span>';
         } else {
             $row->baseQuantity = $DoubleQuantity->toVerbal($rec->baseQuantity);
         }
 
         if(is_null($rec->baseAmount)){
-            $row->baseAmount = '<span class="quiet">n/a</span>';
+            $row->baseAmount = '<span class="quiet nowrap">n/a</span>';
         } else {
             $row->baseAmount = $DoubleAmount->toVerbal($rec->baseAmount);
         }

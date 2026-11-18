@@ -405,7 +405,7 @@ class cat_DisassemblyBoms extends core_Master
     {
         if (!isset($percent)) {
 
-            return ht::createHint("<span class='red'>n/a</span>", $error ?: 'Процентът не може да се определи', 'warning', false);
+            return ht::createHint("<span class='red nowrap'>n/a</span>", $error ?: 'Процентът не може да се определи', 'warning', false);
         }
 
         if ($allocationBy == 'manual') return null;

@@ -3510,12 +3510,39 @@ div.richtext ol ol ol {
 
 .richtext-info-no-image {
 	color: #00529B;
-	border-color: lighten(#00529B, 30%);
-	background-color: #BDE5F8;
-	border: 1px dotted;
+	background-color: #EAF5FC;
+	border: 1px solid #9CCBEB;
+	border-radius: 6px;
 	margin: 0 30px;
-	padding: 7px 10px 5px 10px;
+	padding: 8px 12px;
 	min-height: 20px;
+}
+
+.lastProgressInfo {
+	padding: 8px 14px 10px 14px;
+	.lastProgressInfoTitle {
+		font-size: 0.85em;
+		opacity: 0.75;
+		margin-bottom: 6px;
+	}
+	.lastProgressInfoItems {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 28px;
+	}
+	.lastProgressInfoItem {
+		display: flex;
+		flex-direction: column;
+		white-space: nowrap;
+	}
+	.lastProgressInfoCaption {
+		font-size: 0.85em;
+		opacity: 0.8;
+	}
+	.lastProgressInfoValue {
+		font-size: 1.2em;
+		margin-top: 1px;
+	}
 }
 
 .richtext-tip {

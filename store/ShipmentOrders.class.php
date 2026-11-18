@@ -320,7 +320,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
-                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet'>N/A</b>";
+                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet nowrap'>N/A</b>";
             }
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {

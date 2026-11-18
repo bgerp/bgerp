@@ -34,7 +34,16 @@ class acc_BalanceDetails extends core_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'balanceId';
-    
+
+
+    /**
+     * Без четене на записите преди триене: acc_Balances не обновява нищо при промяна на детайлите, а четенето
+     * се свързва със сметките (EXT accountNum) и обхожда детайлите на всички баланси - 13 млн. реда за порция
+     *
+     * @see core_Detail::on_AfterDelete()
+     */
+    public $fetchFieldsBeforeDelete = false;
+
     
     /**
      * @var acc_Accounts
