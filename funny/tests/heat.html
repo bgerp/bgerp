@@ -21,7 +21,7 @@ h1 { font-size: 24px; } p { max-width: 750px; } button, input, select { padding:
 Презаредете за нов опит. При допир, скрол или загуба на фокус нагряването спира.</p>
 <label>Прогноза <select id="weather"><option value="dry">Сухо</option><option value="rain">Дъжд</option><option value="snow">Сняг</option></select></label>
 <label><input id="sound" type="checkbox"> Звук</label>
-<label>Следващ герой <select id="actor"><option value="cat">Коте</option><option value="wolf">Вълк</option><option value="ghost">Дух</option><option value="muncher">Чудовище</option><option value="mouse">Мишка</option><option value="imp">Гремлин</option><option value="spiders">Паяк</option></select></label>
+<label>Следващ герой <select id="actor"><option value="cat">Коте</option><option value="snowmaiden">Снежанка</option><option value="wolf">Вълк</option><option value="ghost">Дух</option><option value="muncher">Чудовище</option><option value="mouse">Мишка</option><option value="imp">Гремлин</option><option value="spiders">Паяк</option></select></label>
 <button id="test">Кликове: 0</button> <input aria-label="Писане под ефектите" placeholder="Проверка на писането">
 <output id="status" aria-live="polite">Изчакване на бездействие</output>
 <output id="audio-status">Звукът е изключен</output>
@@ -49,7 +49,8 @@ if (NativeAudioContext) window.AudioContext = class extends NativeAudioContext {
     }
 };
 var forecast = {icon:{dry:'clear-day',rain:'rain',snow:'snow'}[kind] || 'clear-day',temperature:kind === 'snow' ? -5 : 18,wind:0,expires:Date.now()+86400000};
-var choices = ['cat'];
+var choices = [params.get('character') === 'snowmaiden' ? 'snowmaiden' : 'cat'];
+document.getElementById('actor').value = choices[0];
 funnyWeather.init(Object.assign({mode:sound ? 'sound' : 'on',standalone:false},forecast));
 funnyEffects.init({mode:'selected',characters:choices,trigger:'both',frequency:'frequent',sound:sound ? 'yes' : 'no',spriteUrl:'../img/characters.svg',forecast:forecast});
 document.getElementById('weather').value = kind;

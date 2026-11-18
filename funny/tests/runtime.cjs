@@ -359,7 +359,7 @@ check('touches on controls, scroll gestures and long presses do not summon chara
 });
 check('every character has a sprite and a distinct, short sound signature', () => {
     const signatures = new Set();
-    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse'];
+    const characters=['ghost','ghostgirl','ghostplay','casper','zombie','sleigh','elf','snowmaiden','deer','pumpkin','vampire','bat','spiderweb','spiders','cat','blackcat','witch','muncher','wolf','imp','snowman','martenitsa','stork','bunny','chick','butterfly','firefly','fly','mosquito','polarbear','penguin','mouse','snail','squirrel'];
     const sprites=fs.readFileSync(require('node:path').join(__dirname,'../img/characters.svg'),'utf8');
     for(const character of characters) {
         const e=environment({mode:'selected',characters:[character],trigger:'notification'});e.click();assert(e.visitors()[0].className.includes('funny-'+character));
@@ -369,10 +369,10 @@ check('every character has a sprite and a distinct, short sound signature', () =
     assert.equal(signatures.size,characters.length);
 });
 check('season boundaries, moving Orthodox Easter and manual choices outside the season', () => {
-    const halloween=['ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
+    const halloween=['squirrel','ghost','ghostgirl','ghostplay','casper','zombie','pumpkin','vampire','bat','spiderweb','spiders','blackcat','witch','muncher','imp'];
     const christmas=['sleigh','elf','snowmaiden','deer','snowman','present','spiders'], winter=['snowman','casper','spiders'];
     const march=['martenitsa','stork','spiders'], easter=['bunny','chick','butterfly','spiders'], spring=['stork','butterfly','chick','spiders'];
-    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp'];
+    const summer=['butterfly','firefly','mosquito','spiders'], normal=['ghost','ghostgirl','ghostplay','casper','cat','muncher','wolf','spiders','imp','squirrel'];
     for(const [date,pool] of [['2026-10-14',normal],['2026-10-15',halloween],['2026-11-02',halloween],['2026-11-03',normal],
         ['2026-12-01',christmas],['2027-01-07',christmas],['2027-01-08',winter],['2026-02-28',winter],
         ['2026-03-01',march],['2026-03-28',march],['2026-03-29',easter],['2026-04-19',easter],['2026-04-20',spring],
@@ -388,7 +388,7 @@ check('season boundaries, moving Orthodox Easter and manual choices outside the 
             group.forEach(c=>{assert(pool.includes(c),date+': '+c);seen.add(c);});
         }
         // Rare year-round guests need not appear in every finite seasonal sample.
-        pool.filter(name=>!['wolf','spiders','mouse','present'].includes(name) && (pool===halloween || !['imp','muncher'].includes(name))).forEach(name=>assert(seen.has(name),date+': '+name));
+        pool.filter(name=>!['wolf','spiders','mouse','present'].includes(name) && !(name==='squirrel' && pool===halloween) && (pool===halloween || !['imp','muncher'].includes(name))).forEach(name=>assert(seen.has(name),date+': '+name));
     }
     const manual=environment({mode:'selected',characters:['sleigh'],trigger:'notification'},{date:'2026-07-01T12:00:00'});
     manual.click();assert(manual.visitors()[0].className.includes('funny-sleigh'));
@@ -2874,3 +2874,98 @@ check('seasonal priority: gremlins and monsters are rare guests outside Hallowee
 });
 
 process.once('beforeExit',()=>console.log(`${checks} behavioral checks passed`));
+
+/** Garden fixtures keep real controller motion and supply only already accumulated weather surfaces. */
+function gardenFixture(kind, seed=997) {
+    const choices={snail:['snail'],nudge:['cat','snail'],stash:['squirrel'],theft:['squirrel'],groom:['cat'],mirror:['vampire'],ferry:['chick','stork']}[kind];
+    const config={seed,width:1400,height:1000,weather:'rain',wind:{x:1,y:0,speed:8}};
+    const e=environment({mode:'selected',trigger:'manual',characters:choices,sound:'no',forecast:{temperature:12,expires:Infinity}},config);
+    let valid=true,reserved=0,released=0,water=null;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>type==='water'&&valid?(water || {x,y,left:x-70,right:x+70,valid:()=>valid}):null;
+    e.window.funnyWeather.leafNear=(x,y)=>['stash','theft'].includes(kind)&&!reserved&&valid?{x:x+25,y,valid:()=>valid,reserve(){reserved++;return true;},release(){released++;},move(){}}:null;
+    if(['snail','nudge','stash','theft'].includes(kind)) e.window.funnyWeather.surfaceNear=()=>null;
+    e.click();
+    if(kind==='snail') {e.tick(700);const p=e.center(e.visitors()[0]);config.blocks=[e.block];e.block.rect={left:p.x-100,right:p.x+100,top:p.y+20,bottom:p.y+50,width:200,height:30};}
+    return {e,config,choices,invalidate(){valid=false;},setWater(value){water=value;},stats:()=>({reserved,released})};
+}
+check('garden: snail crawls an edge, leaves slime and retracts near the pointer without blocking a hit',()=>{
+    const {e}=gardenFixture('snail');
+    let snail=e.visitors()[0];
+    for(let i=0;i<150&&!snail.attrs['data-perched'];i++)e.tick(50);
+    assert.equal(snail.attrs['data-perched'],'true');const p=e.center(snail);e.tick(1800);assert(Math.abs(e.center(snail).x-p.x)>10);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-trail-slime')));
+    const q=e.center(snail);e.document.emit('pointermove',e.event({clientX:q.x+90,clientY:q.y}));e.tick(80);assert.equal(snail.attrs['data-shell'],'true');
+    e.document.emit('pointermove',e.event({clientX:q.x,clientY:q.y}));e.tick(900);assert(!e.visitors().includes(snail));
+});
+check('garden: vampire checks twice without creating a reflection and stops on invalid water',()=>{
+    const {e,invalidate}=gardenFixture('mirror');const vampire=waitWeatherAct(e,'mirror-check');
+    assert(!e.document.body.children.some(n=>n.className==='funny-pool-reflection'));
+    assert.equal(vampire.history.filter(([k,v])=>k==='data-weather-act'&&v==='mirror-check').length,1);
+    invalidate();e.tick(32);assert(!vampire.attrs['data-weather-act']);
+});
+check('garden: wet paws leave water prints, shake and groom once then release on focus loss',()=>{
+    const {e}=gardenFixture('groom',2);const cat=waitWeatherAct(e,'paw-shake');
+    assert(e.document.body.children.some(n=>n.className.includes('funny-trail-wet-paws')));
+    e.tick(800);assert.equal(cat.attrs['data-weather-act'],'paw-groom');
+    e.document.focused=false;e.window.emit('blur');e.tick(1200);assert(!e.visitors().length);
+    assert(!e.document.body.children.some(n=>n.className.includes('funny-trail-wet-paws')));
+});
+check('garden: squirrel hides one acorn under a borrowed leaf and wind uncovers it',()=>{
+    const {e,config,stats}=gardenFixture('stash');waitWeatherAct(e,'bury-acorn');e.tick(800);
+    const acorn=e.document.body.children.find(n=>n.className==='funny-acorn');assert(acorn);assert.equal(stats().reserved,1);assert.equal(stats().released,0);
+    config.wind.speed=30;e.tick(1100);assert.equal(stats().released,1);assert.equal(acorn.attrs['data-uncovered'],'true');
+    e.tick(11000);assert(!e.document.body.children.includes(acorn));assert.equal(stats().released,1);
+});
+check('garden: invalid leaves release before a stash and never leave an acorn',()=>{
+    const {e,invalidate,stats}=gardenFixture('stash');const squirrel=waitWeatherAct(e,'stash');invalidate();e.tick(32);
+    assert(!squirrel.attrs['data-weather-act']);assert.equal(stats().released,1);assert(!e.document.body.children.some(n=>n.className==='funny-acorn'));
+});
+check('garden: snowmaiden cools heat once while retreating at a safe distance',()=>{
+    const {e,heat}=heatFixture({characters:['snowmaiden']});e.tick(11500);
+    const maiden=e.visitors().find(n=>n.className.includes('funny-snowmaiden'));assert(maiden);assert.equal(maiden.attrs['data-heat-help'],'true');assert.equal(maiden.attrs['data-heat-flee'],'true');
+    assert.equal(heat().attrs['data-cooling'],'true');assert(e.document.body.children.some(n=>n.className.includes('funny-cooling-throw')));
+    e.tick(16000);assert(!heat());
+});
+check('garden: dry or freezing snapshots exclude snails and squirrels stay in autumn',()=>{
+    for(const [date,icon,temperature,snail,squirrel] of [['2026-11-18','rain',12,true,true],['2026-07-15','rain',12,true,false],['2026-11-18','clear-day',12,false,true],['2026-01-15','rain',-2,false,false]]) {
+        const e=environment({trigger:'manual',forecast:{icon,temperature,expires:Infinity}},{date:date+'T12:00:00'}),seen=new Set();
+        for(let i=0;i<65;i++){e.document.emit('keydown',{key:'Escape'});e.click();e.tick(2000);e.visitors().forEach(v=>seen.add(v.className.split(' ')[1]));}
+        assert.equal(seen.has('funny-snail'),snail);assert.equal(seen.has('funny-squirrel'),squirrel);
+    }
+});
+check('garden: cat nudges a snail, shell retracts and the cat recoils only once',()=>{
+    const {e}=gardenFixture('nudge',4);const cat=waitWeatherAct(e,'snail-paw'),snail=e.visitors().find(n=>n.className.includes('funny-snail'));
+    assert.equal(snail.attrs['data-shell'],'true');e.tick(750);assert.equal(cat.attrs['data-reaction'],'jump');assert(!cat.attrs['data-weather-act']);assert(!snail.attrs['data-weather-act']);
+});
+check('garden: stork ferries a chick to a dry bank without clipping through the pointer',()=>{
+    const {e}=gardenFixture('ferry',4);const stork=waitWeatherAct(e,'flying-chick'),chick=e.visitors().find(n=>n.className.includes('funny-chick'));
+    assert.equal(chick.attrs['data-weather-act'],'carried');const start=e.center(stork);
+    for(let i=0;i<8;i++){e.tick(150);const s=e.center(stork),c=e.center(chick);assert(Math.abs(s.x-c.x)<2);assert(Math.abs(c.y-s.y-45)<8);assert(Math.hypot(c.x-500,c.y-400)>120);}
+    assert(Math.abs(e.center(stork).x-start.x)>20);e.tick(1800);assert(!stork.attrs['data-weather-act']);assert(!chick.attrs['data-weather-act']);
+});
+check('garden: small puddles cannot start a ferry, and interruption releases both actors',()=>{
+    const missing=gardenFixture('ferry',4);missing.e.window.funnyWeather.surfaceNear=(x,y)=>({x,y,left:x-20,right:x+20,valid:()=>true});
+    assert(!watchVisitors(missing.e,12000).some(n=>n.history?.some(([k,v])=>v==='flying-chick')));
+    const {e,invalidate}=gardenFixture('ferry',4);waitWeatherAct(e,'flying-chick');invalidate();e.tick(32);assert(e.visitors().every(n=>!n.attrs['data-weather-act']));
+});
+check('garden: a mouse steals the stashed acorn, squirrel follows, and the mouse still escapes through a hole',()=>{
+    const {e,choices,stats}=gardenFixture('theft',14);e.tick(6000);assert(e.document.body.children.some(n=>n.className==='funny-acorn'));
+    choices.splice(0,choices.length,'mouse');e.click();const mouse=waitWeatherAct(e,'stolen-acorn');
+    const squirrel=e.visitors().find(n=>n.className.includes('funny-squirrel'));assert.equal(squirrel.attrs['data-weather-act'],'acorn-chase');
+    assert.equal(stats().released,1);assert(!e.document.body.children.some(n=>n.className==='funny-acorn'));
+    const before=e.center(squirrel);e.tick(400);assert(Math.hypot(e.center(squirrel).x-before.x,e.center(squirrel).y-before.y)>5);
+    e.tick(6000);assert(!mouse.attrs['data-weather-act']);assert(!squirrel.attrs['data-weather-act']);assert(!mouse.children.some(n=>n.attrs.class==='funny-held-acorn'));
+    e.tick(55000);assert(mouse.className.includes('funny-burrowing'));assert.equal(e.visitors().length,0);
+});
+check('garden: focus loss releases the stashed leaf once and removes all garden props and timers',()=>{
+    const {e,stats}=gardenFixture('stash');waitWeatherAct(e,'bury-acorn');e.tick(800);assert(e.document.body.children.some(n=>n.className==='funny-acorn'));
+    e.document.focused=false;e.window.emit('blur');e.tick(1500);assert.equal(stats().released,1);assert(!e.visitors().length);assert(!e.timers.size);assert(!e.raf.size);
+    assert(!e.document.body.children.some(n=>n.className==='funny-acorn'));
+});
+check('garden: new accessory anchors keep snail eyes above the scarf and retain independent squirrel placement',()=>{
+    for(const character of ['snail','squirrel'])for(const weather of ['sun','cold']) {
+        const e=environment({mode:'selected',characters:[character],trigger:'manual',sound:'no'},{weather});e.click();const v=e.visitors()[0],accessory=v.children.find(n=>n.attrs.class==='funny-accessory');assert(accessory);
+        const transform=accessory.firstChild.attrs.transform;
+        assert(transform.includes(character==='squirrel'?'translate(77 35)':weather==='sun'?'translate(92 23)':'translate(90 48)'));
+    }
+});
