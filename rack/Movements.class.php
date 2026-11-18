@@ -2109,15 +2109,21 @@ class rack_Movements extends rack_MovementAbstract
             rack_Logs::delete("#createdOn <= '{$createdBefore}'");
         }
 
-        // За всяка зона се гледа дали има останало поне едно движение към нея
+        // Зоните с поне едно останало движение - с едно обхождане, а не с пълно сканиране за всяка зона
+        $usedZoneIds = array();
+        $omQuery = rack_OldMovements::getQuery();
+        $omQuery->where("#zoneList IS NOT NULL AND #zoneList != ''");
+        $omQuery->groupBy('zoneList');
+        $omQuery->show('zoneList');
+        while($omRec = $omQuery->fetch()){
+            $usedZoneIds += keylist::toArray($omRec->zoneList);
+        }
+
         $Zones = cls::get('rack_Zones');
         $saveZones = array();
         $zQuery = $Zones->getQuery();
         while($zRec = $zQuery->fetch()){
-            $zRec->isUsed = 'no';
-            if(rack_OldMovements::fetchField("LOCATE('|{$zRec->id}|', #zoneList)")){
-                $zRec->isUsed = 'yes';
-            }
+            $zRec->isUsed = isset($usedZoneIds[$zRec->id]) ? 'yes' : 'no';
             $saveZones[$zRec->id] = $zRec;
         }
 

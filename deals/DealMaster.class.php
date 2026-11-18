@@ -331,7 +331,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor');
-        $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
+        $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no,hint=Изберете Да само при уговорка за една обща доставка. Без такава уговорка оставете Не – разрешени са частични доставки.');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод,none=Без плащане)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate|currencyManualRate,notChangeableByContractor,silent');

@@ -165,7 +165,7 @@ abstract class cat_products_ProtoParams extends doc_Detail
                     $row->paramValue .= ' ' . tr($suffix);
                 }
             } else {
-                $row->paramValue = "<span class='blueText'>n/a</span>";
+                $row->paramValue = "<span class='blueText nowrap'>n/a</span>";
             }
             if(!empty($rec->type)){
                 $row->paramValue = ht::createHint($row->paramValue, $row->type ?? '', 'notice', false);

@@ -1737,18 +1737,22 @@ class blast_Emails extends core_Master
                 }
                 
                 if (!empty($attachArr['files'])) {
-                    // Прикачените файлове
-                    $attachmentsArr = $mvc->getAttachments($rec);
-                    $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
+                    // The container index reflects the saved email. Validate the body being submitted.
+                    $attachmentsArr = fileman_RichTextPlg::getFiles($rec->body ?? '');
+                    foreach (array_keys($attachmentsArr) as $fh) {
+                        $size = fileman_Files::fetchByFh($fh, 'fileLen');
+                        if (!is_numeric($size)) {
+                            $form->setError('attachments', "Не може да се определи размерът на прикачения файл|* {$fh}.");
+                            break;
+                        }
+                        $filesSizesArr[$fh] = $size;
+                    }
                 }
                 
                 // Проверяваме дали размерът им е над допсутимият
                 $allAttachmentsArr = array_merge((array) $docsSizesArr, (array) $filesSizesArr);
                 
                 if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
-                    
-                    // Вербалният размер на файловете и документите
-                    $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
                     if (!empty($attachArr['documents']) && !empty($attachArr['files'])) {
                         $str = 'файлове и документи';
@@ -1758,9 +1762,13 @@ class blast_Emails extends core_Master
                         $str = 'файлове';
                     }
                     
-                    $FileSize = cls::get('fileman_FileSize');
-                    $allowedSize = $mvc->getMaxAttachFileSizeLimit();
-                    $allowedSize = $FileSize->toVerbal($allowedSize);
+                    Mode::push('text', 'plain');
+                    try {
+                        $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
+                        $allowedSize = cls::get('fileman_FileSize')->toVerbal($mvc->getMaxAttachFileSizeLimit());
+                    } finally {
+                        Mode::pop('text');
+                    }
                     
                     $form->setError('attachments', "Максималният разрешен общ размер на прикачените|* {$str} |е|* {$allowedSize}, |а в това писмо те са|* {$docAndFilesSizeVerbal}.");
                 }

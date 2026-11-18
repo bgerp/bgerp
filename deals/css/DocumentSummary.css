@@ -31,13 +31,17 @@
 
 .deal-documents .deal-documents-outgoing,
 .deal-documents-sale .deal-documents-delivered,
-.deal-documents-purchase .deal-documents-settled {
+.deal-documents-purchase .deal-documents-settled,
+.deal-documents-sale .deal-documents-settled .deal-documents-negative,
+.deal-documents-purchase .deal-documents-delivered .deal-documents-negative {
     color: #b22;
 }
 
 .deal-documents .deal-documents-incoming,
 .deal-documents-sale .deal-documents-settled,
-.deal-documents-purchase .deal-documents-delivered {
+.deal-documents-purchase .deal-documents-delivered,
+.deal-documents-sale .deal-documents-delivered .deal-documents-negative,
+.deal-documents-purchase .deal-documents-settled .deal-documents-negative {
     color: #38761d;
 }
 
@@ -110,7 +114,8 @@
 .deal-documents tr.deal-documents-unposted td,
 .deal-documents .deal-documents-unposted,
 .deal-documents .deal-documents-unposted a,
-.deal-documents .deal-documents-unposted small {
+.deal-documents .deal-documents-unposted small,
+.deal-documents .deal-documents-unposted .deal-documents-negative {
     color: #888;
 }
 

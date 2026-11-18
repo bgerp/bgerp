@@ -338,7 +338,7 @@ class trans_LineDetails extends doc_Detail
             if(isset($transportInfo['weight'])){
                 $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']) . "<i>";
             } else {
-                $logisticArr[] = "<span class='quiet'>N/A</span>";
+                $logisticArr[] = "<span class='quiet nowrap'>N/A</span>";
             }
             $row->logistic = implode('; ', $logisticArr);
         } else {

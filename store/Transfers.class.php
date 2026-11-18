@@ -522,7 +522,7 @@ class store_Transfers extends core_Master
         if ($rec->state != 'pending') {
             unset($row->storeReadiness);
         } elseif (!isset($rec->storeReadiness)) {
-            $row->storeReadiness = "<b class='quiet'>N/A</b>";
+            $row->storeReadiness = "<b class='quiet nowrap'>N/A</b>";
         }
 
         if (Mode::isReadOnly()) {

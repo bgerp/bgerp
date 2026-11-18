@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -235,7 +235,7 @@ class planning_type_ProductionRate extends type_Varchar
             case 'secsPer100':
                 $secs = round(($parseValue['left'] / 100) * $quantity);
                 break;
-            case 'secsPer100':
+            case 'secsPer1000':
                 $secs = round(($parseValue['left'] / 1000) * $quantity);
                 break;
             case 'minPer1':

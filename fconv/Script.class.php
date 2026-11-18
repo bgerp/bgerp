@@ -398,7 +398,8 @@ class fconv_Script
         
         // Възможност за логване на грешките при изпълняване на скрипт
         if ($params['errFilePath'] ?? null) {
-            $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
+            $errPath = self::escapeScriptPath($params['errFilePath']);
+            $cmdLine .= empty($params['logStdout']) ? ' 2> ' . $errPath : ' > ' . $errPath . ' 2>&1';
 
             // Убит процес (OOM, timelimit) не пише в stderr - оставяме поне кода на изход
             if (!stristr(PHP_OS, 'WIN')) {
@@ -436,6 +437,17 @@ class fconv_Script
         }
         
         return $cmdLine;
+    }
+
+
+    protected static function escapeScriptPath($path)
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            // A pipe cannot occur in a Windows path. Preserve percent signs through escapeshellarg() for the batch file.
+            return str_replace('|', '%%', escapeshellarg(str_replace('%', '|', $path)));
+        }
+
+        return escapeshellarg($path);
     }
     
     
@@ -612,7 +624,7 @@ class fconv_Script
             foreach ((array) $foldersArr as $placeHolder => $folderName) {
                 $nFolderPath = $this->tempDir . $folderName;
                 core_Os::requireDir($nFolderPath);
-                $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($nFolderPath), $this->script);
+                $this->script = str_replace("[#{$placeHolder}#]", self::escapeScriptPath($nFolderPath), $this->script);
             }
         }
         
@@ -632,7 +644,7 @@ class fconv_Script
                 
                 if ($newFileName) {
                     $copy = $this->copy($newFileName, $filePath);
-                    $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($this->tempDir . $newFileName), $this->script);
+                    $this->script = str_replace("[#{$placeHolder}#]", self::escapeScriptPath($this->tempDir . $newFileName), $this->script);
                 }
             }
         }

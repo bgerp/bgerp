@@ -602,7 +602,7 @@ class trans_Lines extends core_Master
             $transUnitsTotal = $rec->transUnitsTotal ?? array();
         }
 
-        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
+        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet nowrap'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
     }
 
 
@@ -662,8 +662,8 @@ class trans_Lines extends core_Master
         }
 
         // Показване на сумарната информация
-        $row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
-        $row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
+        $row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet nowrap'>N/A</span>";
+        $row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet nowrap'>N/A</span>";
 
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $row->totalAmountExpected = core_Type::getByName('double(decimals=2)')->toVerbal($amountExpected);
