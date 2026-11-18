@@ -1219,10 +1219,18 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && $rec->state != 'rejected'){
             if(!empty($rec->norm)){
-                $calcedNormHint = planning_Setup::canSeeIndTime() ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
-                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+                $canSeeIndTime = planning_Setup::canSeeIndTime();
+                $calcedNormHint = $canSeeIndTime ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
+
+                // За модела заработката е бележка - обикновеният хинт се губи
+                $aiHint = 'Earned time hidden';
+                if ($canSeeIndTime) {
+                    $normSecs = (int) $mvc->calcNormByRec($rec);
+                    $aiHint = 'Earned ' . (($rec->type == 'scrap') ? '-' : '') . (($normSecs > 60) ? round($normSecs / 60, 2) . ' min' : $normSecs . ' s');
+                }
+                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false, array('aiHint' => $aiHint));
             } else {
-                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false);
+                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false, array('aiHint' => 'No earned time'));
             }
         }
 
