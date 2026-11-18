@@ -1226,7 +1226,18 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $aiHint = 'Earned time hidden';
                 if ($canSeeIndTime) {
                     $normSecs = (int) $mvc->calcNormByRec($rec);
-                    $aiHint = 'Earned ' . (($rec->type == 'scrap') ? '-' : '') . (($normSecs > 60) ? round($normSecs / 60, 2) . ' min' : $normSecs . ' s');
+                    $sign = ($rec->type == 'scrap') ? '-' : '';
+                    $verbalSecs = function ($secs) use ($sign) {
+                        return $sign . (($secs > 60) ? round($secs / 60, 2) . ' min' : round($secs) . ' s');
+                    };
+
+                    // Разпределянето решава дали всеки оператор получава цялото време, или дял от него
+                    $personsCount = countR(keylist::toArray($rec->employees));
+                    if (($taskRec->indTimeAllocation ?? null) == 'common' && $personsCount > 1) {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' in total, ' . $verbalSecs($normSecs / $personsCount) . ' per operator';
+                    } else {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' per operator';
+                    }
                 }
                 $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false, array('aiHint' => $aiHint));
             } else {
