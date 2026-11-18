@@ -505,15 +505,10 @@ class planning_Tasks extends core_Master
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
+        // Субпродуктите са в клетката с информацията, а не в отделен блок
         $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
-        if(countR($subProductArr)){
-            foreach ($subProductArr as $subRow){
-                $cloneTpl = clone $tpl->getBlock('SUB_PRODUCT_BLOCK_ROW');
-                $cloneTpl->replace($subRow->productLink, 'subProductId');
-                $cloneTpl->replace($subRow->quantityVerbal, 'subProductQuantity');
-                $cloneTpl->removeBlocksAndPlaces();
-                $tpl->append($cloneTpl, 'SUB_BLOCK_TABLE_ROW');
-            }
+        foreach ($subProductArr as $subRow) {
+            $tpl->append("<tr><td class='leftCol'>{$subRow->productLink}</td><td class='rightCol'>{$subRow->quantityVerbal}</td></tr>", 'subProducts');
         }
         
         if (!Mode::is('printing')) {
