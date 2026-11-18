@@ -792,6 +792,7 @@
             function dress(v) {
                 if (v.insect || v.leaving || v.character === 'present') return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
+                if ((/rain|fog/.test(weather) && v.outfit === 'glasses' && !v.glassesWiped) || /sun/.test(weather) && /rain/.test(weather) && !v.glassesWiped) kind = 'glasses';
                 if (v.sunHide) kind = '';
                 if (v.outfit === kind) return;
                 if (v.accessory) { v.accessory.remove(); v.accessory = null; }
@@ -913,6 +914,7 @@
                         }
                     }
                     if (mark.cover && (wind.speed >= 24 || !mark.cover.valid())) { mark.cover.release(); mark.cover = null; mark.node.setAttribute('data-uncovered', 'true'); }
+                    if (c.kind === 'hole') mark.node.setAttribute('data-rain-roof', mark.cover && climate().rain ? 'true' : '');
                     if (c.kind !== 'puddle') return;
                     var actor = visitors.filter(function (v) { return !v.launched && !v.leaving && ghostKinds.indexOf(v.character) < 0 && v.character !== 'vampire' && Math.hypot(v.x - c.x, v.y + v.height / 2 - c.y) < 70; })[0];
                     if (mark.reflection && (!actor || mark.reflected !== actor.character)) { mark.reflection.remove(); mark.reflection = null; }
@@ -994,7 +996,7 @@
                     if (distance < nearest) { nearest = distance; hole = mark; }
                 });
                 v.holeTarget = hole;
-                if ((hole || digging) && !(v.weatherAct && v.weatherAct.kind === 'snow-hole' && v.weatherAct.mark === hole)) endWeatherAct(v);
+                if ((hole || digging) && !(v.weatherAct && /^(snow-hole|rain-roof)$/.test(v.weatherAct.kind) && v.weatherAct.mark === hole)) endWeatherAct(v);
                 if (!hole) {
                     v.node.setAttribute('data-hole-running', '');
                     if (!digging) return false;
@@ -1014,7 +1016,7 @@
                 v.digStarted = 0; v.node.setAttribute('data-insect', '');
                 v.node.setAttribute('data-hole-running', 'true');
                 var dx = hole.contact.x - v.x, dy = hole.contact.y - v.y, step = Math.min(nearest, 165 * delta);
-                if (nearest < 45 && clearMouseSnow(v, hole, now)) return true;
+                if (nearest < 45 && (clearMouseSnow(v, hole, now) || coverMouseHole(v, hole, now))) return true;
                 if (nearest < 18) { enterMouseHole(v, hole.contact, now); return true; }
                 var px = v.x - pointer.x, py = v.y - pointer.y, pointerDistance = Math.hypot(px, py);
                 dx /= nearest; dy /= nearest;
@@ -1119,6 +1121,16 @@
                 if (!act) return;
                 releaseScene(act.turn);
                 v.weatherAct = null; v.node.setAttribute('data-weather-act', '');
+                if (act.kind === 'sun-bat') {
+                    v.node.firstChild.firstChild.setAttribute('href', options.spriteUrl + '#vampire');
+                    v.sunHide = 0; v.node.setAttribute('data-sun-hiding', '');
+                    if (v.cloak) { v.cloak.remove(); v.cloak = null; }
+                    dress(v);
+                }
+                if (act.kind === 'balance') { v.node.style.removeProperty('--funny-tail-turn'); v.node.style.removeProperty('--funny-balance'); v.node.style.removeProperty('--funny-carry-acorn'); }
+                if (act.kind === 'wipe-glasses') { v.glassesWiped = true; v.glassesWet = 0; v.node.style.removeProperty('--funny-lens-wet'); v.node.style.removeProperty('--funny-glasses-wipe'); v.node.style.removeProperty('--funny-wipe-x'); dress(v); }
+                if (act.kind === 'rain-roof') act.mark.roofer = null;
+                if (act.kind === 'towel') v.node.style.removeProperty('--funny-towel-side');
                 if (act.kind === 'lantern') v.node.style.setProperty('--funny-lantern', '0');
                 if (act.kind === 'tassels') {
                     ['--funny-thread-stretch','--funny-pizho-x','--funny-penda-x','--funny-pizho-turn','--funny-penda-turn'].forEach(function (key) { v.node.style.removeProperty(key); });
@@ -1168,6 +1180,10 @@
             /** A single nearby snow, ice, web or hat scene yields to normal danger and input handling. */
             function weatherScenes(v, now, delta) {
                 var sky = climate(), act = v.weatherAct;
+                if (v.outfit === 'glasses') {
+                    v.glassesWet = clamp((v.glassesWet || 0) + delta * (/rain|fog/.test(weather) ? 0.2 : -0.5), 0, 1);
+                    v.node.style.setProperty('--funny-lens-wet', v.glassesWet.toFixed(3));
+                }
                 if (sky.rain && (v.character === 'wolf' || v.character === 'butterfly')) v.rainExposure = (v.rainExposure || 0) + delta;
                 else v.rainExposure = 0;
                 var shaded = act && act.kind === 'shade' && act.arrived;
@@ -1193,12 +1209,17 @@
                     (/^(wet-shake|sprayed|dry-wings|web-shake|drip-wait)$/.test(act.kind) && !sky.rain) ||
                     (/^(sneeze|sneeze-slide|snow-hole)$/.test(act.kind) && !sky.snow) ||
                     (act.kind === 'wind-ghost' && wind.speed < 20) ||
+                    (act.kind === 'sun-bat' && !sky.sun) ||
+                    (act.kind === 'balance' && wind.speed < 20) ||
+                    (/^(towel|toweled|rain-roof)$/.test(act.kind) && !sky.rain) ||
+                    (/^(windbreak|lee-chick)$/.test(act.kind) && (!sky.snow || wind.speed < 24)) ||
+                    (act.kind === 'rain-roof' && (marks.indexOf(act.mark) < 0 || act.mark.ending)) ||
                     (/^(web-shake|snow-hole)$/.test(act.kind) && (marks.indexOf(act.mark) < 0 || act.mark.ending)) ||
                     (act.kind === 'mend' && (marks.indexOf(act.mark) < 0 || act.mark.ending)))) {
                     endWeatherAct(v); act = null;
                 }
                 if (!act && !sceneAvailable(v, now)) return;
-                if (!act && !v.weatherDone && availableForEncounter(v, now) && (startGardenAct(v, now, sky) || startWeatherTrick(v, now, sky) || startSeasonAct(v, now, sky) || startNatureAct(v, now, sky))) return;
+                if (!act && !v.weatherDone && availableForEncounter(v, now) && (startShelterAct(v, now, sky) || startGardenAct(v, now, sky) || startWeatherTrick(v, now, sky) || startSeasonAct(v, now, sky) || startNatureAct(v, now, sky))) return;
                 if (act || v.weatherDone || !availableForEncounter(v, now) || ['penguin','snowman','wolf','spiders','elf'].indexOf(v.character) < 0) return;
                 var surfaces = window.funnyWeather && window.funnyWeather.surfaceNear;
                 if (v.character === 'snowman' && (!sky.snow || !surfaces) ||
@@ -1258,6 +1279,142 @@
                     beginWeatherAct(v, 'hat', now, 4800, {mark:mark,x:x,y:y,fromX:v.x,fromY:v.y - v.height * 0.3});
                     v.node.style.setProperty('--funny-elf-hat-opacity', '0');
                 }
+            }
+
+            /** A leaf roof borrows real water and a resting leaf; other mice keep using the entrance. */
+            function coverMouseHole(v, hole, now) {
+                var act = v.weatherAct, api = window.funnyWeather;
+                if (act && act.kind === 'rain-roof') {
+                    var elapsed = now-act.born, p = Math.min(1,elapsed/1500);
+                    act.boat.move(act.x+(hole.contact.x-act.x)*p,act.y+(hole.contact.y-24-act.y)*p);
+                    v.node.setAttribute('data-weather-act','roof-pull');
+                    if (p === 1) {
+                        hole.cover = act.boat; act.boat = null; hole.node.setAttribute('data-rain-roof','true');
+                        endWeatherAct(v); return false;
+                    }
+                    return true;
+                }
+                if (hole.roofTried || hole.cover || hole.roofer || v.weatherDone || !climate().rain || v.pursuit || v.fear ||
+                    !availableForEncounter(v,now) || !sceneAvailable(v,now) || hole.expires-now < 3500 || !api || !api.surfaceNear || !api.leafNear) return false;
+                var water = api.surfaceNear(hole.contact.x,hole.contact.y,'water',80), leaf = api.leafNear(hole.contact.x,hole.contact.y);
+                if (!water || !leaf || !leaf.reserve || !leaf.valid() || !water.valid() ||
+                    segmentDistance(pointer.x,pointer.y,leaf.x,leaf.y,hole.contact.x,hole.contact.y-24) < 130 || !leaf.reserve()) return false;
+                hole.roofTried = true; hole.roofer = v;
+                beginWeatherAct(v,'rain-roof',now,2000,{mark:hole,surface:water,boat:leaf,x:leaf.x,y:leaf.y});
+                return true;
+            }
+
+            /** Short shelter scenes share reservations, existing actors and the page's cached weather. */
+            function startShelterAct(v, now, sky) {
+                if (now-v.born < 2600 || !freeForWeather(v,now)) return false;
+                if (v.outfit === 'glasses' && !v.glassesWiped && v.glassesWet >= 0.65) {
+                    beginWeatherAct(v,'wipe-glasses',now,2000); return true;
+                }
+                if (v.character === 'squirrel' && wind.speed >= 20) {
+                    var x = v.x+wind.x*85, y = v.y+wind.y*40;
+                    if (x < v.width || x > window.innerWidth-v.width || y < v.height || y > window.innerHeight-v.height ||
+                        segmentDistance(pointer.x,pointer.y,v.x,v.y,x,y) < 140) return false;
+                    beginWeatherAct(v,'balance',now,5600,{x:v.x,y:v.y,toX:x,toY:y,drop:Math.random()<0.4}); return true;
+                }
+                if (v.character === 'elf' && sky.rain) {
+                    var imp = natureCompanions(v,['imp'],now,190,1)[0];
+                    if (!imp || now < imp.dryUntil) return false;
+                    var group = [v,imp];
+                    beginWeatherAct(v,'towel',now,5500,{group:group,guest:imp});
+                    beginWeatherAct(imp,'toweled',now,5500,{group:group,leader:v}); return true;
+                }
+                if ((v.character === 'chick' || v.character === 'polarbear') && sky.snow && wind.speed >= 24) {
+                    var other = natureCompanions(v,[v.character === 'chick' ? 'polarbear' : 'chick'],now,230,1)[0];
+                    if (!other) return false;
+                    var bear = v.character === 'polarbear' ? v : other, chick = v.character === 'chick' ? v : other;
+                    var target = leePoint(bear,chick);
+                    if (!safeLee(chick,target)) return false;
+                    var group = [bear,chick];
+                    beginWeatherAct(bear,'windbreak',now,6500,{group:group,guest:chick});
+                    beginWeatherAct(chick,'lee-chick',now,6500,{group:group,leader:bear}); return true;
+                }
+                return false;
+            }
+
+            /** The downwind point keeps enough room for both bodies in every wind direction. */
+            function leePoint(bear, chick) {
+                var gap = Math.max(bear.width+chick.width,bear.height+chick.height)*0.55;
+                return {x:bear.x+wind.x*gap,y:bear.y+wind.y*gap,gap:gap};
+            }
+
+            /** Neither the shelter nor a detour may cover the pointer or cross a screen edge. */
+            function safeLee(chick, point) {
+                return point.x > chick.width && point.x < window.innerWidth-chick.width && point.y > chick.height && point.y < window.innerHeight-chick.height &&
+                    segmentDistance(pointer.x,pointer.y,chick.x,chick.y,point.x,point.y) > 140;
+            }
+
+            /** Props and alternate sprites belong to the same visitor and disappear on interruption. */
+            function shelterMotion(v, act, now) {
+                var elapsed = now-act.born;
+                if (act.kind === 'sun-bat') {
+                    if (elapsed < 700) return {};
+                    if (!act.changed) {
+                        act.changed = true; v.cloak.remove(); v.cloak = null;
+                        v.node.firstChild.firstChild.setAttribute('href',options.spriteUrl+'#bat'); v.node.setAttribute('data-weather-act','shade-flight');
+                    }
+                    var dx = act.surface.x-v.x, dy = act.surface.y-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy)>12) return {dx:dx,dy:dy,speed:150};
+                    if (!act.arrived) {
+                        act.arrived = now; v.node.firstChild.firstChild.setAttribute('href',options.spriteUrl+'#vampire');
+                        v.node.setAttribute('data-weather-act','shade-rest'); v.sunShelter = act.surface;
+                    }
+                    if (now-act.arrived > 1800) endWeatherAct(v);
+                    return {};
+                }
+                if (act.kind === 'balance') {
+                    var lean = Math.sin(elapsed/170)*(gentle?5:10)*(wind.x<0?-1:1);
+                    v.node.style.setProperty('--funny-balance',lean+'deg'); v.node.style.setProperty('--funny-tail-turn',(-lean*2)+'deg');
+                    if (!act.drop) { if (elapsed>2200) endWeatherAct(v); return {}; }
+                    if (elapsed < 700) return {};
+                    if (!act.prop) {
+                        var node = document.createElement('div'); node.className = 'funny-acorn'; node.appendChild(sprite('acorn'));
+                        act.prop = addMark(node,5000,{kind:'wind-acorn',x:act.x,y:act.y+v.height/2}); act.prop.reserved = true;
+                        v.node.style.setProperty('--funny-carry-acorn','0');
+                    }
+                    if (marks.indexOf(act.prop)<0 || act.prop.ending) { endWeatherAct(v); return {}; }
+                    var p = Math.min(1,(elapsed-700)/1200), x = act.x+(act.toX-act.x)*p, y = act.y+(act.toY-act.y)*p;
+                    act.prop.node.style.left=x+'px'; act.prop.node.style.top=(y+v.height/2)+'px'; act.prop.node.style.transform='rotate('+(wind.x<0?-1:1)*p*300+'deg)';
+                    act.prop.contact.x=x; act.prop.contact.y=y+v.height/2;
+                    if (elapsed<1600) return {};
+                    v.node.setAttribute('data-weather-act','acorn-retrieve');
+                    if (p===1 && Math.hypot(x-v.x,y-v.y)<14) { endWeatherAct(v); return {}; }
+                    return {dx:x-v.x,dy:y-v.y,speed:95};
+                }
+                if (act.kind === 'wipe-glasses') {
+                    v.node.style.setProperty('--funny-lens-wet',String(Math.max(0,1-elapsed/1600)));
+                    v.node.style.setProperty('--funny-glasses-wipe','1'); v.node.style.setProperty('--funny-wipe-x',(Math.sin(elapsed/150)*15)+'px'); return {};
+                }
+                if (act.kind === 'toweled' || act.kind === 'windbreak') return {};
+                if (act.kind === 'towel') {
+                    var imp = act.guest, side = v.x<imp.x?-1:1, dx = imp.x+side*(v.width+imp.width)*0.42-v.x, dy=imp.y-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy)>14) return {dx:dx,dy:dy,speed:85};
+                    if (!act.arrived) { act.arrived=now; v.node.style.setProperty('--funny-towel-side',side<0?'78%':'-12%'); v.node.setAttribute('data-weather-act','towel-wipe'); imp.node.setAttribute('data-weather-act','towel-wriggle'); }
+                    if (now-act.arrived>1900) {
+                        imp.dryUntil=now+12000; imp.rainSplitAfter=Math.max(imp.rainSplitAfter,imp.dryUntil);
+                        interactionEffect('shed-drops',imp.x,imp.y,[{x:imp.x-20,y:imp.y+25},{x:imp.x+20,y:imp.y+28}],900);
+                        endWeatherAct(v);
+                    }
+                    return {};
+                }
+                if (act.kind === 'lee-chick') {
+                    var bear=act.leader, target=leePoint(bear,v);
+                    if (!safeLee(v,target)) { endWeatherAct(v); return {}; }
+                    // A short arc also handles vertical gusts and an initially opposite-side chick.
+                    if (segmentDistance(bear.x,bear.y,v.x,v.y,target.x,target.y)<target.gap*0.85) {
+                        var angle=Math.atan2(v.y-bear.y,v.x-bear.x), to=Math.atan2(target.y-bear.y,target.x-bear.x);
+                        var turn=Math.atan2(Math.sin(to-angle),Math.cos(to-angle)); angle+=clamp(turn,-0.45,0.45);
+                        target={x:bear.x+Math.cos(angle)*target.gap,y:bear.y+Math.sin(angle)*target.gap};
+                        if (!safeLee(v,target)) { endWeatherAct(v); return {}; }
+                    }
+                    v.node.setAttribute('data-weather-act','sheltered-chick');
+                    return {dx:target.x-v.x,dy:target.y-v.y,speed:85};
+                }
+                return null;
             }
 
             /** Existing water marks and accumulated rain expose the same small, temporary contact area. */
@@ -1787,6 +1944,8 @@
 
             /** Short water and flight paths use the same collision, lifetime and pointer guards as other scenes. */
             function natureMotion(v, act, now, delta) {
+                var shelter = shelterMotion(v, act, now);
+                if (shelter) return shelter;
                 var garden = gardenMotion(v, act, now);
                 if (garden) return garden;
                 var trick = weatherTrickMotion(v, act, now);
@@ -2231,7 +2390,7 @@
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
                     if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || hunter.pair || !availableForEncounter(hunter, now)) return;
-                    if (hunter.weatherAct && /^(boat-watch|sneeze)$/.test(hunter.weatherAct.kind)) return;
+                    if (hunter.weatherAct && /^(boat-watch|sneeze|windbreak)$/.test(hunter.weatherAct.kind)) return;
                     if ((hunter.character === 'cat' || hunter.character === 'blackcat') && !hunter.weatherAct && !hunter.weatherDone) {
                         var passenger = visitors.filter(function (v) { return v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded && Math.hypot(v.x - hunter.x, v.y - hunter.y) < 240; })[0];
                         if (passenger) { beginWeatherAct(hunter, 'boat-watch', now, Math.min(3000, passenger.weatherAct.until - now), {leader:passenger,turn:passenger.weatherAct.turn}); return; }
@@ -2943,13 +3102,19 @@
             /** Pull up the cloak before escaping; night, cloud and unknown forecasts keep normal feeding. */
             function hideFromSun(v, now) {
                 if (v.character !== 'vampire' || v.leaving || v.exiting) return false;
+                if (v.weatherAct && v.weatherAct.kind === 'sun-bat') return false;
+                if (v.sunShelter && climate().sun && v.sunShelter.valid() && Math.hypot(v.x-v.sunShelter.x,v.y-v.sunShelter.y) < 24) return false;
                 if (!v.sunHide && now - v.born >= 1600 && climate().sun) {
                     var chased = now < v.fleeUntil; takeOff(v, now); if (!chased) v.fleeUntil = 0;
                     v.sunHide = now; v.reactionUntil = 0; v.node.setAttribute('data-reaction', '');
-                    var cloak = sprite('vampire-cloak'); cloak.setAttribute('class', 'funny-vampire-cloak'); v.node.appendChild(cloak);
+                    var cloak = sprite('vampire-cloak'); cloak.setAttribute('class', 'funny-vampire-cloak'); v.node.appendChild(cloak); v.cloak = cloak;
+                    if (!v.sunFlightTried && freeForWeather(v,now) && sceneAvailable(v,now)) {
+                        v.sunFlightTried = true; var edge = shadeSpot(v);
+                        if (edge) beginWeatherAct(v,'sun-bat',now,6200,{surface:edge});
+                    }
                     v.node.setAttribute('data-sun-hiding', 'true'); dress(v);
                 }
-                if (!v.sunHide) return false;
+                if (!v.sunHide || v.weatherAct && v.weatherAct.kind === 'sun-bat') return false;
                 if (now - v.sunHide < 700 && now >= v.fleeUntil) return true;
                 // A pointer chase still takes priority over posing with the cloak.
                 if (now - v.sunHide >= 700) v.exiting = true;
@@ -3014,7 +3179,7 @@
                     // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
                     if (v.character === 'imp' && now >= v.rainSplitAfter) {
                         v.rainSplitAfter = now + random(12000, 18000);
-                        if (climate().rain && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now, true);
+                        if (climate().rain && !v.weatherAct && !(now < v.dryUntil) && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now, true);
                     }
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                     if (hideFromSun(v, now)) return;

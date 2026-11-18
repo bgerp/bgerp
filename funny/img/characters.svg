@@ -60,6 +60,8 @@
     <path d="M36 28h48m-26 3h5" fill="none" stroke="#34374c" stroke-width="3"/>
     <path d="M38 28h19l-2 10q-13 8-16-2zm25 0h19l-1 8q-3 10-16 2z" fill="#40526c" stroke="#303244" stroke-width="2"/>
     <path d="M41 31l7 5m19-5 7 5" stroke="#98c7dc" stroke-width="2"/>
+    <g opacity="var(--funny-lens-wet,0)"><path d="M39 29h16v8q-8 5-15-1zm26 0h16l-1 7q-8 5-14 1z" fill="#d7e4e9" opacity=".65"/><g fill="#bcecff" stroke="#7bb1c9" stroke-width=".5"><ellipse cx="44" cy="32" rx="2" ry="3"/><ellipse cx="51" cy="37" rx="1.5" ry="2"/><ellipse cx="70" cy="34" rx="2" ry="3"/><circle cx="77" cy="31" r="1.5"/></g></g>
+    <path d="M49 25h18v17H49z" fill="#f7e6ba" stroke="#b5a57b" stroke-width="1" opacity="var(--funny-glasses-wipe,0)" style="transform:translateX(var(--funny-wipe-x,0px))"/>
   </symbol>
   <symbol id="ghost" viewBox="0 0 120 100">
     <path d="M25 85V42a35 35 0 0 1 70 0v43l-12-8-12 10-11-9-12 9-11-10z" fill="#f7f5ff" stroke="#b7afcf" stroke-width="2.5"/>
@@ -578,7 +580,7 @@
     <path d="M63 64Q78 40 52 31 25 21 23 49q-2 24 20 24 20 0 19-18-1-18-17-15-13 3-8 14 4 8 11 0" fill="none" stroke="#9d6d41" stroke-width="4" stroke-linecap="round"/>
   </symbol>
   <symbol id="squirrel" viewBox="0 0 120 100">
-    <path d="M52 74C-8 81-1 16 24 9 51 1 58 36 38 39 27 40 22 25 29 21 10 32 20 51 45 47" fill="#c97335" stroke="#85431f" stroke-width="2.5"/>
+    <path style="transform-origin:45px 68px;transform:rotate(var(--funny-tail-turn,0deg))" d="M52 74C-8 81-1 16 24 9 51 1 58 36 38 39 27 40 22 25 29 21 10 32 20 51 45 47" fill="#c97335" stroke="#85431f" stroke-width="2.5"/>
     <ellipse cx="61" cy="67" rx="25" ry="25" fill="#c97335" stroke="#85431f" stroke-width="2.5"/>
     <ellipse cx="69" cy="68" rx="16" ry="19" fill="#f1c68d"/>
     <path d="M61 28 59 6l15 15 18-15-2 25" fill="#c97335" stroke="#85431f" stroke-width="2.5"/>

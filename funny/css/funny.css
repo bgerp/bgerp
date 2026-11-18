@@ -572,3 +572,22 @@
 @media print, (prefers-reduced-motion: reduce) { .funny-acorn { display: none !important; } }
 
 .funny-visitor[data-weather-act="carried"] .funny-accessory { opacity: 0; }
+
+/* Shelter gestures remain decorative and use the actor's existing lifetime. */
+.funny-visitor[data-weather-act="shade-flight"] > svg:first-child { animation: funny-bat-flutter .2s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="shade-rest"] > svg:first-child { animation: funny-garden-groom 1.2s ease-in-out; }
+.funny-visitor[data-weather-act="balance"] > svg:first-child,
+.funny-visitor[data-weather-act="acorn-retrieve"] > svg:first-child { transform-origin: 50% 90%; transform: rotate(var(--funny-balance,0deg)); }
+.funny-visitor[data-weather-act="towel-wipe"]::after { content: ''; position: absolute; left: var(--funny-towel-side,78%); top: 25%; width: 26px; height: 23px; background: repeating-linear-gradient(0deg,#e5dcbf 0 4px,#f8f1d8 4px 8px); border: 1px solid #b7a987; border-radius: 4px; box-shadow: 0 1px 2px #48516144; animation: funny-towel-wipe .35s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="towel-wriggle"] > svg:first-child { animation: funny-garden-shake .2s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="towel-wipe"] > svg:first-child { animation: funny-garden-groom .7s ease-in-out infinite; }
+.funny-visitor[data-weather-act="wipe-glasses"] .funny-accessory { animation: funny-wipe-glasses .4s ease-in-out 4; }
+.funny-visitor[data-weather-act="wipe-glasses"] > svg:first-child { animation: funny-garden-groom .8s ease-in-out 2; }
+.funny-visitor[data-weather-act="windbreak"] > svg:first-child { transform-origin: 50% 90%; transform: rotate(-3deg); }
+.funny-visitor[data-weather-act="sheltered-chick"] > svg:first-child { transform-origin: 50% 90%; animation: funny-lee-shiver .32s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="roof-pull"] > svg:first-child { animation: funny-garden-groom .4s ease-in-out infinite; }
+.funny-mouse-hole[data-rain-roof="true"]::after { content: ''; position: absolute; width: 6px; height: 19px; left: calc(100% + 7px); top: -7px; background: repeating-linear-gradient(180deg,transparent 0 6px,#84bdd6b3 6px 9px,transparent 9px 14px); transform: rotate(-23deg); animation: funny-roof-runoff .65s linear infinite; }
+@keyframes funny-towel-wipe { to { transform: translateY(13px) rotate(12deg); } }
+@keyframes funny-wipe-glasses { 50% { transform: translateY(-2px) rotate(3deg); } }
+@keyframes funny-lee-shiver { to { transform: rotate(1.5deg) scaleY(.97); } }
+@keyframes funny-roof-runoff { to { background-position: 0 14px; } }

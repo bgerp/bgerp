@@ -92,7 +92,7 @@ function environment(settings = {}, config = {}) {
 }
 let checks = 0;
 /** Let completed audio promises release each VM fixture before starting the next check. */
-function check(name, fn) { setImmediate(()=>{ fn(); checks++; console.log('PASS '+name); }); }
+function check(name, fn) { if (process.env.FUNNY_TEST_PATTERN && !new RegExp(process.env.FUNNY_TEST_PATTERN).test(name)) return; setImmediate(()=>{ fn(); checks++; console.log('PASS '+name); }); }
 check('first appearance waits 60-120 seconds and repeat intervals grow to 10-20 minutes', () => {
     const e = environment({sound:false,mode:'selected',characters:['ghost']});
     let delay = [...e.timers.values()][0].at;
@@ -2968,4 +2968,94 @@ check('garden: new accessory anchors keep snail eyes above the scarf and retain 
         const transform=accessory.firstChild.attrs.transform;
         assert(transform.includes(character==='squirrel'?'translate(77 35)':weather==='sun'?'translate(92 23)':'translate(90 48)'));
     }
+});
+
+/** Shelter fixtures supply only forecast and visible surfaces; actors keep production motion. */
+function refugeFixture(kind, seed=4) {
+    const choices={bat:['vampire'],balance:['squirrel'],towel:['elf','imp'],lee:['chick','polarbear'],glasses:['bunny'],roof:['mouse']}[kind];
+    const config={seed,width:1400,height:1000,weather:{bat:'sun',balance:'wind',towel:'rain',lee:'snow',glasses:'sun rain',roof:'rain'}[kind],wind:{x:1,y:0,speed:['balance','lee'].includes(kind)?30:8}};
+    const e=environment({mode:'selected',trigger:'manual',characters:choices,sound:'no',forecast:{temperature:kind==='lee'?-4:12,expires:Infinity}},config);
+    let valid=true,reserved=0,released=0;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>kind==='roof'&&type==='water'&&valid?{x,y,valid:()=>valid}:null;
+    e.window.funnyWeather.leafNear=(x,y)=>kind==='roof'&&!reserved&&valid&&e.document.body.children.some(n=>n.className==='funny-mouse-hole')?{x:x+30,y:y-15,valid:()=>valid,reserve(){reserved++;return true;},move(){},release(){released++;}}:null;
+    e.click();
+    if(kind==='bat') {e.tick(700);const p=e.center(e.visitors()[0]);config.blocks=[e.block];e.block.rect={left:p.x-120,right:p.x+120,top:p.y+25,bottom:p.y+45,width:240,height:20};}
+    return {e,config,choices,invalidate(){valid=false;e.block.isConnected=false;},stats:()=>({reserved,released})};
+}
+check('shelter: a sunlit vampire flies as the same actor and restores its sprite in actual shade',()=>{
+    const {e}=refugeFixture('bat');const v=waitWeatherAct(e,'shade-flight');
+    assert.equal(e.visitors().length,1);assert.equal(v.firstChild.firstChild.attrs.href,'/characters.svg#bat');
+    waitWeatherAct(e,'shade-rest');assert.equal(v.firstChild.firstChild.attrs.href,'/characters.svg#vampire');
+    e.tick(2100);assert(!v.attrs['data-weather-act']);assert(!v.children.some(n=>n.attrs.class==='funny-vampire-cloak'));
+});
+check('shelter: lost shade and focus cancel the bat form without adding another visitor',()=>{
+    for(const end of ['surface','blur','pointer']) {
+        const {e,invalidate}=refugeFixture('bat'),v=waitWeatherAct(e,'shade-flight');
+        if(end==='surface')invalidate();else if(end==='blur')e.window.emit('blur');else {const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x+70,clientY:p.y}));}
+        e.tick(650);assert.equal(v.firstChild.firstChild.attrs.href,'/characters.svg#vampire');assert(!v.attrs['data-weather-act']);
+    }
+});
+check('shelter: wind balances a squirrel tail and dropped acorns are retrieved once',()=>{
+    let dropped=0;
+    for(let seed=1;seed<=12;seed++) {
+        const {e}=refugeFixture('balance',seed),v=waitWeatherAct(e,'balance');e.tick(800);
+        assert(v.style['--funny-tail-turn']);
+        if(e.document.body.children.some(n=>n.className==='funny-acorn')) {dropped++;waitWeatherAct(e,'acorn-retrieve');}
+        e.tick(6000);assert(!v.attrs['data-weather-act']);assert(!v.style['--funny-carry-acorn']);assert(!e.document.body.children.some(n=>n.className==='funny-acorn'));
+    }
+    assert(dropped>0&&dropped<12);
+});
+check('shelter: an elf dries one gremlin, delaying only rain copies and preserving its family deadline',()=>{
+    const {e}=refugeFixture('towel',4),elf=waitWeatherAct(e,'towel-wipe');const imp=e.visitors().find(n=>n.className.includes('funny-imp'));
+    assert.equal(imp.attrs['data-weather-act'],'towel-wriggle');e.tick(2100);assert(!elf.attrs['data-weather-act']);assert(!imp.attrs['data-weather-act']);
+    const count=e.visitors().filter(n=>n.className.includes('funny-imp')).length;e.tick(10000);assert(e.visitors().filter(n=>n.className.includes('funny-imp')).length<=count);
+    e.tick(60000);assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);
+});
+check('shelter: wet glasses build up gradually, wipe once and return to the weather outfit',()=>{
+    const {e}=refugeFixture('glasses');e.tick(1000);const v=e.visitors()[0];assert.equal(v.attrs['data-weather'],'glasses');
+    assert(Number(v.style['--funny-lens-wet'])>0&&Number(v.style['--funny-lens-wet'])<0.65);
+    waitWeatherAct(e,'wipe-glasses');e.tick(2200);assert.equal(v.attrs['data-weather'],'umbrella');assert(!v.style['--funny-lens-wet']);
+    e.tick(5000);assert.equal(v.history.filter(([k,x])=>k==='data-weather-act'&&x==='wipe-glasses').length,1);
+});
+check('shelter: a chick uses the lee side of a bear and walks around it when wind reverses',()=>{
+    const {e,config}=refugeFixture('lee',4),chick=waitWeatherAct(e,'sheltered-chick'),bear=e.visitors().find(n=>n.className.includes('funny-polarbear'));
+    assert.equal(bear.attrs['data-weather-act'],'windbreak');e.tick(1200);assert(e.center(chick).x>e.center(bear).x);
+    config.wind.x=-1;let crossed=false;
+    for(let i=0;i<35;i++){e.tick(100);const a=e.center(chick),b=e.center(bear);if(Math.abs(a.x-b.x)<20){crossed=true;assert(a.y>b.y+35);}}
+    assert(crossed);assert(e.center(chick).x<e.center(bear).x);e.window.emit('blur');e.tick(500);assert.equal(e.raf.size,0);
+});
+check('shelter: a mouse covers a wet shared entrance once, while other mice can still escape',()=>{
+    const {e,stats}=refugeFixture('roof',14);e.tick(14000);
+    // The first mouse digs the shared exit; later arrivals can shelter the entrance.
+    let hole=e.document.body.children.find(n=>n.className==='funny-mouse-hole');
+    for(let i=0;i<200&&!hole;i++){e.tick(250);hole=e.document.body.children.find(n=>n.className==='funny-mouse-hole');}
+    assert(hole);e.click();const mouse=waitWeatherAct(e,'roof-pull',6000);e.tick(1600);
+    assert.equal(hole.attrs['data-rain-roof'],'true');assert.equal(stats().reserved,1);e.tick(400);assert(mouse.className.includes('funny-burrowing'));
+    e.window.emit('blur');e.tick(500);assert.equal(stats().released,1);assert.equal(e.raf.size,0);
+});
+check('shelter: paired scenes release both actors on weather loss, scrolling and focus loss',()=>{
+    for(const kind of ['towel','lee'])for(const ending of ['weather','scroll','blur']) {
+        const {e,config}=refugeFixture(kind,4);waitWeatherAct(e,kind==='towel'?'towel-wipe':'sheltered-chick');
+        if(ending==='weather')config.weather='clouds';else if(ending==='scroll')e.document.emit('scroll');else e.window.emit('blur');
+        e.tick(1200);assert(e.visitors().every(v=>!v.attrs['data-weather-act']),kind+' '+ending);
+    }
+});
+
+check('shelter: fog wets existing glasses and wiping replaces only the accessory',()=>{
+    const {e,config}=refugeFixture('glasses');config.weather='sun';e.tick(1400);const actor=e.visitors()[0];
+    config.weather='fog';const v=waitWeatherAct(e,'wipe-glasses');assert.equal(v,actor);assert.equal(v.attrs['data-weather'],'glasses');
+    e.tick(2200);assert.equal(v.attrs['data-weather'],'');assert.equal(v.firstChild.firstChild.attrs.href,'/characters.svg#bunny');
+});
+check('shelter: dry gremlins accept manual splitting and rain resumes after the towel delay',()=>{
+    const {e}=refugeFixture('towel',4);waitWeatherAct(e,'towel-wipe');e.tick(2100);
+    const imp=e.visitors().find(v=>v.className.includes('funny-imp')),p=e.center(imp),before=e.visitors().length;
+    e.document.emit('pointerdown',e.event({clientX:p.x,clientY:p.y}));assert.equal(e.visitors().length,before+1);
+    const rain=refugeFixture('towel',4).e;waitWeatherAct(rain,'towel-wipe');rain.tick(2100);let copied=false;
+    for(let i=0;i<250;i++){rain.tick(100);if(rain.visitors().filter(v=>v.className.includes('funny-imp')).length>1)copied=true;}
+    assert(copied);
+});
+check('shelter: a chick stays outside the bear body when the wind turns vertically',()=>{
+    const {e,config}=refugeFixture('lee',4),chick=waitWeatherAct(e,'sheltered-chick'),bear=e.visitors().find(n=>n.className.includes('funny-polarbear'));
+    e.tick(900);config.wind.x=0;config.wind.y=1;e.tick(900);config.wind.y=-1;
+    for(let i=0;i<28;i++){e.tick(100);assert(Math.hypot(e.center(chick).x-e.center(bear).x,e.center(chick).y-e.center(bear).y)>48);}
 });
