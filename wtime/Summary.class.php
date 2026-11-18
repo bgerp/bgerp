@@ -377,17 +377,42 @@ class wtime_Summary extends core_Manager
 
             // Извличане на логовете за тези потребители след посоченото време
             $lQuery = log_Data::getQuery();
-            $lQuery->EXT('ip', 'log_Ips', 'externalName=ip,externalKey=ipId');
-            $lQuery->EXT('userAgent', 'log_Browsers', 'externalName=userAgent,externalKey=brId');
             $lQuery->where(array("#time >= '[#1#]' AND #type != 'login'", dt::mysql2timestamp($calcFromTime)));
             $lQuery->in('userId', $userIds);
-            $lQuery->show('userId,type,ip,time,userAgent');
+            $lQuery->show('userId,type,ipId,time,brId');
             $lRecs = $lQuery->fetchAll();
+
+            // IP-тата и браузърите са малко на брой - взимат се веднъж, а не с JOIN за всеки запис
+            $ips = $userAgents = array();
+            $ipIds = array_filter(arr::extractValuesFromArray($lRecs, 'ipId'));
+            if (countR($ipIds)) {
+                $iQuery = log_Ips::getQuery();
+                $iQuery->in('id', $ipIds);
+                $iQuery->show('id,ip');
+                while ($iRec = $iQuery->fetch()) {
+                    $ips[$iRec->id] = $iRec->ip;
+                }
+            }
+            $brIds = array_filter(arr::extractValuesFromArray($lRecs, 'brId'));
+            if (countR($brIds)) {
+                $bQuery = log_Browsers::getQuery();
+                $bQuery->in('id', $brIds);
+                $bQuery->show('id,userAgent');
+                while ($bRec = $bQuery->fetch()) {
+                    $userAgents[$bRec->id] = $bRec->userAgent;
+                }
+            }
 
             core_App::setTimeLimit(countR($lRecs) * 0.08, false, 150);
             foreach ($lRecs as $lRec) {
-                $logArr[$lRec->userId][$lRec->time] = (object)array('time' => $lRec->time, 'type' => $lRec->type, 'ip' => $lRec->ip, 'userId' => $lRec->userId, 'userAgent' => $lRec->userAgent);
+                $ipId = (int) ($lRec->ipId ?? 0);
+                $brId = (int) ($lRec->brId ?? 0);
 
+                // Както при JOIN-а - записите без IP или браузър не се броят
+                if (!array_key_exists($ipId, $ips) || !array_key_exists($brId, $userAgents)) {
+                    continue;
+                }
+                $logArr[$lRec->userId][$lRec->time] = (object)array('time' => $lRec->time, 'type' => $lRec->type, 'ip' => $ips[$ipId], 'userId' => $lRec->userId, 'userAgent' => $userAgents[$brId]);
             }
             core_Debug::stopTimer('USER_LOGS');
 
