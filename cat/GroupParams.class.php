@@ -508,7 +508,7 @@ class cat_GroupParams extends cat_products_ProtoParams
 
             // Вербализира се като собствен параметър, за да е същото свойство
             $pRec = (object) array('productId' => $productId, 'classId' => $productClassId, 'paramId' => $paramId, 'paramValue' => $gRec->paramValue);
-            $row = cat_products_Params::recToVerbal($pRec, 'paramId,paramValue');
+            $row = cat_products_Params::getFeatureRow($pRec);
             $res[$row->paramId] = $row->paramValue;
         }
 
