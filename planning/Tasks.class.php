@@ -3904,14 +3904,16 @@ JS
                 }
             }
 
+            // За модела хендлърът вместо номера - връзката се губи при експорта
+            $titleNum = Mode::is('renderForLlm') ? '#' . $mvc->getHandle($rec->id) : $rec->id;
             if($haveDiffProductIds || isset($data->masterMvc)){
                 $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 44);
                 if (!empty($rec->subTitle)) {
                     $stepTitle .= " - <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
                 }
-                $row->title = "{$rec->id} - {$stepTitle}";
+                $row->title = "{$titleNum} - {$stepTitle}";
             } else {
-                $row->title = $rec->id;
+                $row->title = $titleNum;
                 if(!empty($rec->subTitle)){
                     $row->title .= "|" . $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
                 }
