@@ -9,7 +9,7 @@
  * @package   page
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -34,9 +34,8 @@ class page_Wrapper extends core_BaseClass
         }
         
         // Определяне на темите, в случаите, когато се изисква външната или вътрешната обвивка
-        $coreConf = core_Packs::getConfig('core');
-        if ($tplName == 'core_page_Internal' && $coreConf->CORE_PAGE_WRAPPER) {
-            $tplName = $coreConf->CORE_PAGE_WRAPPER;
+        if ($tplName == 'core_page_Internal') {
+            $tplName = 'core_page_InternalModern';
         } else {
             $cmsConf = core_Packs::getConfig('cms');
             if ($tplName == 'cms_page_External' && $cmsConf->CMS_PAGE_WRAPPER) {

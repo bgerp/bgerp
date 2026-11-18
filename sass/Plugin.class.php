@@ -48,7 +48,8 @@ class sass_Plugin extends core_Plugin
                 if ($newCompiler || !file_exists($cssPath) || $time > filemtime($cssPath)) {
                     $cssCode = sass_Converter::convert($scssFile, true);
                     $cssWritable = !$newCompiler && (file_exists($cssPath) ? is_writable($cssPath) : is_writable(dirname($cssPath)));
-                    if (!($cssWritable && file_put_contents($cssPath, $cssCode))) {
+                    // Междинният CSS също се публикува атомарно, без BeforeSaveFile минификация.
+                    if (!($cssWritable && core_Sbf::saveFile_($cssCode, $cssPath, true))) {
                         // При отказ и на SBF записа запазваме готовия CSS в паметта за текущата заявка.
                         if (core_Sbf::saveFile($cssCode, $sbfPath, true, true)) {
                             $res = $sbfPath;

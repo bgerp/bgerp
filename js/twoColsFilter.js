@@ -423,9 +423,16 @@ function render_setTwoColsFilterWidth() {
 
         function getCopySize($copy, excludeChoices) {
             if (excludeChoices) {
-                // Радиогрупите и чекбоксовете не определят широчината на останалите полета.
+                // Радиогрупите участват само с изрично зададената им широчина.
                 $copy.find('.formElement').has('input[type=radio], input[type=checkbox]')
-                    .empty();
+                    .each(function () {
+                        var width = $(this).find('.allowEmptyRadioHolder[data-width], .notAllowEmptyRadioHolder[data-width]')
+                            .first().attr('data-width');
+                        $(this).empty();
+                        if (width) {
+                            $('<span></span>').css({display: 'inline-block', width: width}).appendTo(this);
+                        }
+                    });
             }
             var captionWidth = Math.ceil($copy.find('.formFieldCaption').first().outerWidth());
             var radioSafety = !excludeChoices && $copy.find('input[type=radio]').length ? 2 : 0;
@@ -545,7 +552,8 @@ function render_setTwoColsFilterWidth() {
             var fitsWidth = filter.twoColsFilterMetrics.twoColumnsMinWidth <=
                 Math.floor(getTwoColsFilterVisibleWidth(filter));
             // Формата има собствена височина, а обвивката се разтяга по статистиката.
-            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight();
+            // Отстъпите и на двата блока определят мястото за резултатите.
+            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight(true);
             var autoExpandMinWidth = fitsHeight ? filter.twoColsFilterMetrics.twoColumnsMinWidth : Infinity;
 
             // Автоматичното разгъване не променя запомнените скрити редове.

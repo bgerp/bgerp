@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny - подслон и малки бели</title>
+<link rel="stylesheet" href="../css/funny.css">
+<style>
+body { margin:24px; color:#334155; background:#eef3f7; font:15px/1.5 sans-serif; min-height:140vh; }
+h1 { margin:0; font-size:23px; } p { max-width:850px; } button,select,input { padding:7px; margin:3px; }
+#launch { position:absolute; left:425px; top:360px; width:150px; height:80px; border:2px dashed #8299ad; border-radius:8px; }
+#launch::before { content:'Двоен клик тук'; padding:12px; display:block; pointer-events:none; }
+#status { display:block; margin-top:10px; max-width:900px; }
+#blockPortal_edge { position:fixed; height:20px; border:1px solid #8ba3b5; background:white; border-radius:5px; }
+#leaf { position:fixed; width:42px; height:22px; margin:-11px -21px; background:#bc773bcc; border-radius:4% 80% 10% 80%; border:1px solid #98582d; pointer-events:none; z-index:9998; }
+#pool { position:fixed; width:90px; height:5px; background:#8eb6cc77; border-radius:50%; pointer-events:none; }
+@media(max-width:700px) { #launch { left:40%; top:70vh; width:120px; } }
+</style>
+<h1>Подслон и малки бели</h1>
+<label>Сцена <select id="scenario"><option value="bat">Вампир бяга от слънцето</option><option value="balance">Катеричка срещу вятъра</option><option value="roof">Козирка за мишките</option><option value="towel">Елф подсушава гремлин</option><option value="glasses">Мокри очила</option><option value="lee">Пиленце зад мечката</option></select></label>
+<button id="reverse">Обърни вятъра</button><button id="weather">Спри времето</button><button id="test">Кликове: 0</button><input aria-label="Проверка на писането" placeholder="Пиши тук">
+<p>Двоен клик в рамката стартира реалните герои с повторим жребий. Само натрупаната вода и листото са тестови. За козирката изчакай първата мишка да направи дупка, после извикай следваща с двоен клик. При пиленцето обърни вятъра, докато се пази зад мечката. Escape прекъсва всичко.</p>
+<iframe title="Друг екран за проверка на фокус" src="focus.html" style="width:300px;height:34px;border:0;display:block"></iframe>
+<output id="status">Наблюдавани сцени: изчакване</output><div id="launch" aria-label="Празно място за двоен клик"></div>
+<script src="../js/scene.js"></script><script src="../js/funny.js"></script>
+<script>
+// Only the fixture fixes the lottery and supplies deposits; production code owns every actor.
+var params=new URLSearchParams(location.search),kind=params.get('scene')||'bat',seed=Number(params.get('seed'))||(kind==='roof'?14:4);
+Math.random=function(){return ((seed=seed*16807%2147483647)-1)/2147483646;};
+var select=document.getElementById('scenario');select.value=kind;select.addEventListener('change',function(){location.search=new URLSearchParams({scene:select.value});});
+var choices={bat:['vampire'],balance:['squirrel'],towel:['elf','imp'],lee:['chick','polarbear'],glasses:['bunny'],roof:['mouse']}[kind];
+var weather={bat:'sun',balance:'wind',towel:'rain',lee:'snow',glasses:'sun rain',roof:'rain'}[kind],wind={x:1,y:0,speed:['balance','lee'].includes(kind)?30:8},valid=true,leaf=null,borrowed=false;
+function prop(id,x,y){var el=document.createElement('div');el.id=id;el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);return el;}
+window.funnyWeather={current:function(){return weather;},trigger:function(){},trace:function(){},wind:function(){return wind;},surfaceNear:function(x,y,type){
+    if(kind!=='roof'||!valid||type!=='water'||!document.querySelector('.funny-mouse-hole'))return null;
+    var pool=document.getElementById('pool');if(!pool)pool=prop('pool',x-45,y);return {x:x,y:y,valid:function(){return valid;}};
+},leafNear:function(x,y){
+    if(kind!=='roof'||borrowed||!valid||!document.querySelector('.funny-mouse-hole'))return null;
+    if(!leaf){leaf={x:x+30,y:y-15};leaf.node=prop('leaf',leaf.x,leaf.y);}
+    return {x:leaf.x,y:leaf.y,valid:function(){return valid&&leaf.node.isConnected;},reserve:function(){if(borrowed)return false;borrowed=true;return true;},move:function(x,y){leaf.node.style.left=x+'px';leaf.node.style.top=y+'px';},release:function(){leaf.node.remove();}};
+}};
+funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:'no',spriteUrl:'../img/characters.svg',forecast:{temperature:kind==='lee'?-4:12,expires:Date.now()+86400000}});
+document.getElementById('reverse').addEventListener('click',function(){wind.x=-wind.x;});
+document.getElementById('weather').addEventListener('click',function(){weather='clouds';valid=false;});
+var clicks=0;document.getElementById('test').addEventListener('click',function(){this.textContent='Кликове: '+(++clicks);});
+var seen={},edge=false,names={'sun-bat':'Пелерина','shade-flight':'Полет като прилеп','shade-rest':'Вампир в сянката',balance:'Баланс с опашката','acorn-retrieve':'Прибира жълъда','rain-roof':'Започва козирка','roof-pull':'Придърпва листо',towel:'Елф към гремлина','towel-wipe':'Подсушаване','towel-wriggle':'Гремлин се дърпа','wipe-glasses':'Избърсване на очила',windbreak:'Мечката спира','sheltered-chick':'Пиленце на завет'};
+new MutationObserver(function(records){
+    records.forEach(function(r){var value=r.target.getAttribute(r.attributeName);if(names[value])seen[value]=true;});
+    if(document.querySelector('.funny-mouse-hole'))seen.hole=true;
+    if(document.querySelector('[data-rain-roof="true"]'))seen.roof=true;
+    var status='Наблюдавани сцени: '+Object.keys(seen).map(function(n){return names[n]||(n==='hole'?'Дупката е отворена - извикай друга мишка':'Козирката пази входа');}).join(' / ');
+    if(document.getElementById('status').textContent!==status)document.getElementById('status').textContent=status;
+    var vampire=document.querySelector('.funny-vampire');
+    if(kind==='bat'&&vampire&&!edge){edge=true;setTimeout(function(){var r=vampire.getBoundingClientRect(),block=prop('blockPortal_edge',r.x+r.width/2-120,r.y+r.height/2+25);block.style.width='240px';},700);}
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-weather-act','data-rain-roof'],childList:true});
+</script>
+</html>

@@ -1636,6 +1636,11 @@ class crm_Profiles extends core_Master
                 continue;
             }
             $clsInst = core_Cls::get($clsName);
+
+            // Пакетите без инсталатор се настройват и без да са активни.
+            if (($rec->state ?? null) != 'active' && empty($clsInst->noInstall)) {
+                continue;
+            }
             
             // Ако няма полета за конфигуриране
             if (!($clsInst->getConfigDescription())) {

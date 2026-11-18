@@ -633,4 +633,21 @@ check('cursor heat melts only nearby rain/snow deposits and preserves page eleme
     }
 });
 
+check('ecology: deer consume water once and ice cracks require actual frozen accumulation',()=>{
+    const e=environment({icon:'rain',temperature:12,standalone:false}),w=e.window.funnyWeather;w.trigger('manual');e.tick(30000);
+    const water=w.surfaceNear(100,100,'water',45);assert(water);const bank=e.layer().children.find(n=>n.className==='funny-weather-bank'),before=parseFloat(bank.style.height);
+    assert(water.drink());assert.equal(water.drink(),false);assert(parseFloat(bank.style.height)<before);assert.equal(water.crack(),false);
+    const dry=environment({icon:'clear-day',temperature:-3,standalone:false});dry.window.funnyWeather.trigger('manual');dry.tick(30000);assert.equal(dry.window.funnyWeather.surfaceNear(100,100,'ice',45),null);
+    const frozen=environment({icon:'snow',temperature:-3,standalone:false});frozen.window.funnyWeather.trigger('manual');frozen.tick(30000);
+    const ice=frozen.window.funnyWeather.surfaceNear(100,100,'ice',45);assert(ice);assert(ice.crack());assert.equal(ice.crack(),false);assert.equal(ice.drink(),false);
+    assert(frozen.layer().children.some(n=>n.className==='funny-weather-ice-crack'));frozen.document.emit('pointermove');assert(!ice.valid());assert.equal(ice.crack(),false);
+});
+check('ecology: cats borrow real runoff drops once without extending their deadline',()=>{
+    const e=environment({icon:'rain',temperature:12,standalone:false}),w=e.window.funnyWeather;w.trigger('manual');let drop,node;
+    for(let i=0;i<400&&!drop;i++){e.tick(100);node=e.layer().children.find(n=>n.className==='funny-weather-runoff');if(node)drop=w.dripNear(parseFloat(node.style.left),parseFloat(node.style.top),160);}
+    assert(drop);const point=drop.position(),timers=e.timers.size;assert(drop.reserve());assert.equal(drop.reserve(),false);assert.equal(w.dripNear(point.x,point.y,160),null);
+    e.tick(200);assert(drop.position().y>point.y);assert(drop.catch());assert(!drop.valid());assert.equal(drop.catch(),false);drop.release();assert.equal(e.timers.size,timers);
+    assert(!e.layer().children.includes(node));e.document.emit('pointermove');assert.equal(w.dripNear(point.x,point.y,160),null);
+});
+
 console.log(checks+' weather behavior checks passed');

@@ -21,6 +21,7 @@
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
         surfaceNear: function () { return null; },
+        dripNear: function () { return null; },
         heat: function () {},
         visible: function () { return false; },
         sky: function () { return null; },
@@ -211,7 +212,9 @@
                     bank.dripAt = elapsed + 6000 + Math.random() * 6000;
                     var drop = detail('runoff', Math.random() < 0.5 ? bank.left + 4 : bank.right - 4, bank.top, 1200);
                     if (drop) {
-                        drop.style.setProperty('--fall', Math.min(height - bank.top + 12, 70 + Math.random() * 70) + 'px');
+                        var fall = Math.min(height - bank.top + 12, 70 + Math.random() * 70);
+                        drop.style.setProperty('--fall', fall + 'px');
+                        details[details.length-1].drip = {x:Number.parseFloat(drop.style.left),y:bank.top,fall:fall,born:time};
                         if (bank.amount >= 4) detail('splash', Number.parseFloat(drop.style.left), bank.top, 850);
                     }
                 });
@@ -552,8 +555,8 @@
             };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
-                if (!layer || !active() || ['snow','frost','water'].indexOf(kind) < 0) return null;
-                if (kind === 'frost' && !(typeof options.temperature === 'number' && options.temperature < 0 && elapsed >= 6000)) return null;
+                if (!layer || !active() || ['snow','frost','ice','water'].indexOf(kind) < 0) return null;
+                if ((kind === 'frost' || kind === 'ice') && !(typeof options.temperature === 'number' && options.temperature < 0 && elapsed >= 6000)) return null;
                 if (kind === 'snow' && weather.indexOf('snow') < 0) return null;
                 if (kind === 'water' && (weather.indexOf('rain') < 0 || weather.indexOf('snow') >= 0 || options.temperature < 0)) return null;
                 var best = null, nearest = radius;
@@ -563,7 +566,7 @@
                     if (distance < nearest) { nearest = distance; best = {bank:bank,x:px,y:bank.top}; }
                 });
                 if (!best) return null;
-                var bank = best.bank, left = bank.left, right = bank.right, top = bank.top;
+                var bank = best.bank, left = bank.left, right = bank.right, top = bank.top, consumed = false, cracked = false;
                 function valid() {
                     return !!layer && active() && banks.indexOf(bank) >= 0 && bank.target.isConnected &&
                         bank.left === left && bank.right === right && bank.top === top && (kind === 'frost' || bank.amount >= 0.25);
@@ -571,11 +574,34 @@
                 return {x:best.x,y:best.y,left:bank.left,right:bank.right,valid:valid,step:function (x) {
                     if (kind !== 'snow' || !valid() || x < bank.left || x > bank.right) return false;
                     detail('footprints', x, bank.top - bank.amount / 2, 3200); return true;
+                },drink:function () {
+                    if (kind !== 'water' || consumed || !valid()) return false;
+                    consumed = true; bank.amount = Math.max(0,bank.amount-0.3); bank.node.style.height = bank.amount+'px';
+                    detail('ripple',best.x,bank.top,1000); return true;
+                },crack:function () {
+                    if (kind !== 'ice' || cracked || !valid()) return false;
+                    var node = detail('ice-crack',best.x,bank.top,2600);
+                    if (!node) return false;
+                    cracked = true; return true;
                 },collect:function () {
                     if (kind !== 'snow' || !valid()) return false;
                     bank.amount = Math.max(0, bank.amount - 0.35); bank.node.style.height = bank.amount + 'px';
                     return true;
                 }};
+            };
+            /** A cat can borrow one actual falling drop without renewing its original deadline. */
+            window.funnyWeather.dripNear = function (x, y, radius) {
+                if (!layer || !active() || weather.indexOf('rain') < 0) return null;
+                var now = performance.now(), item = details.filter(function (d) {
+                    return d.drip && !d.borrowed && d.until-now>250 && Math.hypot(d.drip.x-x,d.drip.y+d.drip.fall*Math.pow(Math.min(1,(now-d.drip.born)/1200),2)-y)<radius;
+                })[0];
+                if (!item) return null;
+                var borrowed = false;
+                function valid() { return !!layer && active() && details.indexOf(item)>=0 && performance.now()<item.until; }
+                return {valid:valid,reserve:function () { if (item.borrowed || !valid()) return false; item.borrowed=borrowed=true; return true; },
+                    position:function () { return {x:item.drip.x,y:item.drip.y+item.drip.fall*Math.pow(Math.min(1,(performance.now()-item.drip.born)/1200),2)}; },
+                    catch:function () { if (!borrowed || !valid()) return false; item.node.remove(); details.splice(details.indexOf(item),1); return true; },
+                    release:function () { item.borrowed=borrowed=false; }};
             };
             /** Resting leaves allow one paw kick or one boat ride without adding timers. */
             window.funnyWeather.leafNear = function (x, y) {

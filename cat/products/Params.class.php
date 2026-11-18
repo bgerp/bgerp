@@ -494,11 +494,36 @@ class cat_products_Params extends cat_products_ProtoParams
         $query->where("#isFeature = 'yes'");
         
         while ($rec = $query->fetch()) {
-            $row = self::recToVerbal($rec, 'paramId,paramValue');
+            $row = self::getFeatureRow($rec);
             $features[$row->paramId] = $row->paramValue;
         }
         
         return $features;
+    }
+
+
+    /**
+     * Вербализира параметъра като свойство на перо - текст без линкове и хинтове
+     *
+     * @param stdClass $rec - запис на параметър
+     *
+     * @return stdClass $row
+     */
+    public static function getFeatureRow($rec)
+    {
+        Mode::push('text', 'plain');
+        try {
+            $row = self::recToVerbal($rec, 'paramId,paramValue');
+        } finally {
+            Mode::pop('text');
+        }
+
+        // Някои типове връщат HTML и в plain режим
+        $value = str_replace('&nbsp;', ' ', (string) $row->paramValue);
+        $row->paramValue = trim(html_entity_decode(strip_tags($value), ENT_QUOTES, 'UTF-8'));
+        $row->paramId = trim(strip_tags((string) $row->paramId));
+
+        return $row;
     }
     
     
