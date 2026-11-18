@@ -42,6 +42,8 @@ defIfNot('OFFICE_CONVERTER_PYTHON', '');
  */
 defIfNot('OFFICE_CONVERTER_UNOCONV', 'unoconv');
 
+defIfNot('OFFICE_PDFTOTEXT_PATH', 'pdftotext');
+
 
 /**
  * Версията на JodConverter'а

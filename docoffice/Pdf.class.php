@@ -50,6 +50,7 @@ class docoffice_Pdf
         }
 
         // Скрипта, който ще конвертира
+        $Script->setProgram('pdftotext', docoffice_Setup::get('OFFICE_PDFTOTEXT_PATH', true));
         $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk' . $passwordArg . ' [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
