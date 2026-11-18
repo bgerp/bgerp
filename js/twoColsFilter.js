@@ -545,7 +545,8 @@ function render_setTwoColsFilterWidth() {
             var fitsWidth = filter.twoColsFilterMetrics.twoColumnsMinWidth <=
                 Math.floor(getTwoColsFilterVisibleWidth(filter));
             // Формата има собствена височина, а обвивката се разтяга по статистиката.
-            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight();
+            // Отстъпите и на двата блока определят мястото за резултатите.
+            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight(true);
             var autoExpandMinWidth = fitsHeight ? filter.twoColsFilterMetrics.twoColumnsMinWidth : Infinity;
 
             // Автоматичното разгъване не променя запомнените скрити редове.
