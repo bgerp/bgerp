@@ -2437,7 +2437,7 @@ function natureFixture(kind, seed=997, overrides={}) {
     let valid=true,steps=0,reserved=0,released=0,moves=[];
     e.window.funnyWeather.visible=()=>valid;
     e.window.funnyWeather.sky=()=>valid?{kind:kind==='howl'?'moon':'sun',phase:.5,x:1000,y:80}:null;
-    e.window.funnyWeather.surfaceNear=(x,y,type)=>valid && (type==='water' ? ['boat','reflection'].includes(kind) : kind==='plow')?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;return true;}}:null;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>valid && (type==='water' ? ['boat','reflection'].includes(kind) : type==='snow' && kind==='plow')?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;return true;}}:null;
     if(kind==='boat')e.window.funnyWeather.leafNear=(x,y)=>reserved?null:({x,y,valid:()=>valid,reserve:()=>{reserved++;return true;},release:()=>{released++;},move:(x,y)=>moves.push({x,y})});
     e.click();return {e,config,choices,invalidate:()=>{valid=false;},stats:()=>({steps,reserved,released,moves})};
 }
@@ -2532,7 +2532,7 @@ function seasonFixture(kind, seed=997, overrides={}) {
     let valid=true,steps=0;
     e.window.funnyWeather.visible=()=>valid;
     e.window.funnyWeather.sky=()=>valid?{kind:'sun',x:700,y:50}:null;
-    e.window.funnyWeather.surfaceNear=(x,y)=>valid?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;}}:null;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>valid && type===(kind==='tow'?'snow':'water')?{x,y,left:x-180,right:x+180,valid:()=>valid,step:()=>{steps++;}}:null;
     e.click();
     if(kind==='shade') {
         e.tick(900);const p=e.center(e.visitors()[0]);config.blocks=[e.block];
@@ -3058,4 +3058,77 @@ check('shelter: a chick stays outside the bear body when the wind turns vertical
     const {e,config}=refugeFixture('lee',4),chick=waitWeatherAct(e,'sheltered-chick'),bear=e.visitors().find(n=>n.className.includes('funny-polarbear'));
     e.tick(900);config.wind.x=0;config.wind.y=1;e.tick(900);config.wind.y=-1;
     for(let i=0;i<28;i++){e.tick(100);assert(Math.hypot(e.center(chick).x-e.center(bear).x,e.center(chick).y-e.center(bear).y)>48);}
+});
+
+/** Ecology fixtures reuse natural actors and provide only nearby weather deposits or a falling drop. */
+function ecologyFixture(kind,seed=4) {
+    const choices={ice:['polarbear','penguin'],drink:['deer'],frozen:['deer'],hunt:['bat','mosquito'],drip:['cat'],hat:['snowman','elf'],wind:['fly']}[kind];
+    const config={seed,width:1400,height:1000,weather:{ice:'snow',drink:'rain',frozen:'snow',hunt:'moon',drip:'rain',hat:'clouds',wind:'wind'}[kind],wind:{x:1,y:0,speed:kind==='wind'?30:8},date:kind==='hunt'?'2026-07-15T22:00:00':'2026-11-18T12:00:00'};
+    const forecast={temperature:['ice','frozen'].includes(kind)?-5:22,expires:Infinity};
+    const e=environment({mode:'selected',trigger:'manual',characters:choices,sound:'no',forecast},config);
+    let valid=true,water=null,drinks=0,cracks=0,caught=0,releases=0,drop=null;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>valid&&(['ice','frozen'].includes(kind)&&['ice','frost'].includes(type)||kind==='drink'&&type==='water')?(water||{x,y,valid:()=>valid,drink(){drinks++;return valid;},crack(){cracks++;return valid;}}):null;
+    e.window.funnyWeather.dripNear=(x,y)=>kind==='drip'&&!drop?(drop={valid:()=>valid&&e.now()<drop.until,until:e.now()+1200,reserve:()=>true,position:()=>({x:x+20,y}),catch(){caught++;valid=false;return true;},release(){releases++;}}):null;
+    e.click();
+    if(kind==='hat'||kind==='wind') {
+        e.tick(1400);const actor=e.visitors().find(n=>n.className.includes(kind==='hat'?'funny-elf':'funny-fly'));
+        if(actor){const p=e.center(actor);config.blocks=[e.block];e.block.rect=kind==='hat'?{left:p.x-120,right:p.x+120,top:p.y+50,bottom:p.y+70,width:240,height:20}:{left:p.x-125,right:p.x+35,top:p.y-15,bottom:p.y+15,width:160,height:30};}
+    }
+    return {e,config,forecast,choices,invalidate(){valid=false;e.block.isConnected=false;},stats:()=>({drinks,cracks,caught,releases}),setWater(value){water=value;}};
+}
+check('ecology: the bear cracks only accumulated ice, retreats and never catches the penguin',()=>{
+    const {e,stats}=ecologyFixture('ice',10967),penguin=waitWeatherAct(e,'slide'),bear=waitWeatherAct(e,'ice-retreat');
+    assert.equal(stats().cracks,1);const before=e.center(bear);e.tick(500);assert(Math.hypot(e.center(bear).x-before.x,e.center(bear).y-before.y)>20);
+    assert(!penguin.className.includes('swallowed'));assert(!penguin.className.includes('burrowing'));e.tick(3500);assert.equal(stats().cracks,1);
+});
+check('ecology: a deer drinks once from water but only taps and refuses a frozen pool',()=>{
+    for(const kind of ['drink','frozen']) {const {e,stats}=ecologyFixture(kind);const v=waitWeatherAct(e,kind==='drink'?'drinking':'hoof-tap');e.tick(1000);
+        assert.equal(stats().drinks,kind==='drink'?1:0);if(kind==='frozen')assert.equal(v.attrs['data-weather-act'],'ice-refusal');e.tick(1600);assert(!v.attrs['data-weather-act']);}
+    const {e,invalidate}=ecologyFixture('drink');invalidate();assert(watchVisitors(e,12000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&x==='drink')));
+});
+check('ecology: a cat catches an existing drop, splashes its nose and releases the borrowed drop',()=>{
+    const {e,stats}=ecologyFixture('drip'),cat=waitWeatherAct(e,'nose-splash');assert.equal(stats().caught,1);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-shed-drops')));e.tick(1000);assert.equal(cat.attrs['data-reaction'],'lick');assert.equal(stats().releases,1);
+});
+check('ecology: a bat catches a mosquito once on a warm night without counting a pointer hit',()=>{
+    const {e}=ecologyFixture('hunt',14);const bat=waitWeatherAct(e,'night-hunt'),mosquito=e.visitors().find(n=>n.className.includes('funny-mosquito'));
+    e.tick(5500);assert(mosquito.className.includes('funny-caught-insect'));assert(!e.visitors().includes(mosquito));assert(!bat.attrs['data-weather-act']);
+    assert(!e.document.body.children.some(n=>n.className==='funny-stats'));
+});
+check('ecology: daytime, cold, rain and strong wind cancel or prevent bat hunting',()=>{
+    for(const change of ['day','cold','rain','wind']) {
+        const {e,config,forecast}=ecologyFixture('hunt',14);if(change==='day')config.date='2026-07-15T12:00:00';if(change==='cold')forecast.temperature=10;if(change==='rain')config.weather='rain';if(change==='wind')config.wind.speed=30;
+        const actors=watchVisitors(e,12000);assert(actors.every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&x==='night-hunt')),change);
+    }
+    const {e,config}=ecologyFixture('hunt',14);waitWeatherAct(e,'night-hunt');config.weather='rain';e.tick(1100);assert(e.visitors().every(v=>!v.attrs['data-weather-act']));
+});
+check('ecology: insects seek a real lee edge, rest their wings and leave when the gust stops',()=>{
+    const {e,config}=ecologyFixture('wind',997),fly=waitWeatherAct(e,'insect-sheltered');assert(!fly.attrs['data-perched']);
+    const spot=e.center(fly);e.tick(3000);assert(Math.hypot(e.center(fly).x-spot.x,e.center(fly).y-spot.y)<15,'a resting insect keeps its lee position');
+    config.wind.speed=8;e.tick(1100);assert(!fly.attrs['data-weather-act']);
+    const missing=ecologyFixture('wind',997);missing.invalidate();assert(watchVisitors(missing.e,10000).every(v=>!v.history.some(([k,x])=>k==='data-weather-act'&&x==='insect-sheltered')));
+});
+check('ecology: a gust interrupts mosquito feeding and preserves the blood already taken',()=>{
+    const {e,v}=landInsect('mosquito',{weather:'clouds',wind:{x:1,y:0,speed:0}});e.tick(900);const blood=v.style['--funny-blood'];
+    e.window.funnyWeather.wind=()=>({x:1,y:0,speed:30});e.tick(1100);assert.notEqual(v.attrs['data-perched'],'true');assert.notEqual(v.attrs['data-insect'],'feeding');
+    assert.equal(v.style['--funny-blood'],blood);
+});
+check('ecology: an elf saves a melting snowman hat on a dry edge without renewing its expiry',()=>{
+    const {e}=ecologyFixture('hat',4),elf=waitWeatherAct(e,'carrying-hat');const hat=e.document.body.children.find(n=>n.className==='funny-snow-hat');assert(hat);
+    const snowman=e.visitors().find(n=>n.className.includes('funny-snowman'));assert.equal(snowman.style['--funny-snow-hat-opacity'],'0');
+    e.tick(5000);assert.equal(hat.attrs['data-saved'],'true');assert(!elf.attrs['data-weather-act']);
+    e.tick(Math.max(0,hat.createdAt+20500-e.now()));assert(!e.document.body.children.includes(hat));assert(!snowman.style['--funny-snow-hat-opacity']);
+});
+check('ecology: new scenes release actors and borrowed props on blur, scroll, pointer and reduced motion',()=>{
+    for(const kind of ['drink','drip','hunt','wind'])for(const exit of ['blur','scroll','pointer','reduced']) {
+        const {e}=ecologyFixture(kind,kind==='wind'?997:kind==='hunt'?14:4),v=waitWeatherAct(e,{drink:'drinking',drip:'nose-splash',hunt:'night-hunt',wind:'insect-sheltered'}[kind]);
+        if(exit==='blur')e.window.emit('blur');if(exit==='scroll')e.document.emit('scroll');if(exit==='pointer'){const p=e.center(v);e.document.emit('pointermove',e.event({clientX:p.x,clientY:p.y}));}if(exit==='reduced'){e.reduced.matches=true;e.reduced.emit('change');}
+        e.tick(600);assert(!v.attrs['data-weather-act'],kind+' '+exit);
+    }
+});
+check('ecology: a cooled snowman retrieves its saved hat if still nearby',()=>{
+    const {e,config,forecast}=ecologyFixture('hat',27);waitWeatherAct(e,'carrying-hat');
+    let hat;for(let i=0;i<100;i++){e.tick(50);hat=e.document.body.children.find(n=>n.className==='funny-snow-hat'&&n.attrs['data-saved']==='true');if(hat)break;}assert(hat);
+    forecast.temperature=-5;config.weather='snow';const snowman=waitWeatherAct(e,'return-hat',10000);e.tick(4000);
+    assert(!e.document.body.children.includes(hat));assert(!snowman.style['--funny-snow-hat-opacity']);
 });

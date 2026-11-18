@@ -591,3 +591,32 @@
 @keyframes funny-wipe-glasses { 50% { transform: translateY(-2px) rotate(3deg); } }
 @keyframes funny-lee-shiver { to { transform: rotate(1.5deg) scaleY(.97); } }
 @keyframes funny-roof-runoff { to { background-position: 0 14px; } }
+
+/* Small weather encounters keep props transparent to clicks and inside the shared cleanup. */
+.funny-visitor[data-weather-act="ice-retreat"] > svg:first-child { transform: rotate(-8deg); }
+.funny-visitor[data-weather-act="drinking"] > svg:first-child { transform-origin: 70% 75%; animation: funny-deer-drink .75s ease-in-out infinite; }
+.funny-visitor[data-weather-act="hoof-tap"] > svg:first-child { transform-origin: 35% 90%; animation: funny-hoof-tap .4s ease-in-out 2; }
+.funny-visitor[data-weather-act="ice-refusal"] > svg:first-child { animation: funny-garden-shake .25s ease-in-out 2; }
+.funny-visitor[data-weather-act="drip-watch"] > svg:first-child { transform: rotate(calc(var(--funny-drop-side,1) * 7deg)); }
+.funny-visitor[data-weather-act="nose-splash"] > svg:first-child { animation: funny-garden-lean .6s ease-out; }
+.funny-visitor[data-weather-act="nose-splash"]::after { content: ''; position:absolute; left:40%; top:44%; width:9px; height:6px; border-radius:50%; background:#b3e4f5c9; animation: funny-nose-drops .85s ease-out both; }
+.funny-visitor[data-weather-act="night-hunt"] > svg:first-child { animation: funny-bat-flutter .15s ease-in-out infinite alternate; }
+.funny-caught-insect { animation: funny-insect-caught .45s ease-in both; }
+.funny-visitor[data-weather-act="headwind"] > svg:first-child { animation: funny-garden-shake .12s ease-in-out infinite alternate; }
+.funny-visitor[data-weather-act="insect-sheltered"] .funny-insect-wings { animation:none; opacity:.3; }
+.funny-visitor[data-weather-act="insect-sheltered"] .funny-insect-hands { animation:none; }
+.funny-snow-hat { position:fixed; width:36px; height:21px; margin:-21px -18px; z-index:9997; pointer-events:none !important; user-select:none; animation:funny-hat-drop .65s ease-out both; }
+.funny-snow-hat svg { width:100%; height:100%; }
+.funny-snow-hat[data-carried="true"], .funny-snow-hat[data-saved="true"] { animation:none; }
+.funny-visitor[data-weather-act="carrying-hat"] > svg:first-child { animation:funny-garden-groom .65s ease-in-out infinite; }
+@keyframes funny-deer-drink { 50% { transform:rotate(15deg) translateY(5px); } }
+@keyframes funny-hoof-tap { 50% { transform:rotate(-8deg) translateY(-3px); } }
+@keyframes funny-insect-caught { to { opacity:0; scale:.1; } }
+@keyframes funny-hat-drop { from { transform:translateY(-50px) rotate(-20deg); } 70% { transform:translateY(2px) rotate(12deg); } to { transform:translateY(0) rotate(0); } }
+@media print, (prefers-reduced-motion:reduce) { .funny-snow-hat { display:none !important; } }
+
+.funny-cat[data-reaction="lick"]::after, .funny-blackcat[data-reaction="lick"]::after { content:''; position:absolute; left:40%; top:48%; width:5px; height:7px; background:#de8c9a; border-radius:2px 2px 80% 80%; transform-origin:top; animation:funny-lick .45s ease-in-out 2; }
+.funny-blackcat[data-reaction="lick"]::after { left:49%; top:45%; }
+@keyframes funny-nose-drops { to { opacity:0; transform:translateY(7px) scale(.4); } }
+
+.funny-blackcat[data-weather-act="nose-splash"]::after { left:49%; top:40%; }
