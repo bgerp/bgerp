@@ -236,10 +236,10 @@ class trans_Waybills extends core_Master
         $this->FLD('currencyId', 'key(mvc=currency_Currencies,select=code)', 'caption=Цена на превоза->Валута');
         $this->FLD('instructions', 'text(rows=3)', 'caption=Допълнително->Инструкции на превозвача');
         $this->FLD('notes', 'text(rows=3)', 'caption=Допълнително->Забележки');
-        $this->FLD('tripSheetId', 'key(mvc=trans_TripSheets,allowEmpty)', 'input=none,caption=Курс->Пътен лист');
-        $this->FLD('vehicleModel', 'varchar(128)', 'caption=Курс->Марка и модел');
-        $this->FLD('vehicleNumber', 'varchar(32)', 'caption=Курс->Регистрационен номер');
-        $this->FLD('driverName', 'varchar(128)', 'caption=Курс->Водач');
+        $this->FLD('tripSheetId', 'key(mvc=trans_TripSheets,allowEmpty)', 'input=none,caption=Курс||Trip->Пътен лист');
+        $this->FLD('vehicleModel', 'varchar(128)', 'caption=Курс||Trip->Марка и модел');
+        $this->FLD('vehicleNumber', 'varchar(32)', 'caption=Курс||Trip->Регистрационен номер');
+        $this->FLD('driverName', 'varchar(128)', 'caption=Курс||Trip->Водач');
         $this->FLD('tripReference', 'varchar(128)', 'input=none');
         $this->FLD('issuedOn', 'datetime', 'input=none');
 

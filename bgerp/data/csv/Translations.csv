@@ -2524,8 +2524,8 @@ en,Срок за доставка,Delivery time
 en,Чакащо плащане,Expected payment
 en,ЧМР,CMR
 en,чмр,cmr
-en,Товарителници,CMR waybills
-en,Товарителница,CMR waybill
+en,Товарителници,Waybills
+en,Товарителница,Waybill
 en,товарителница,cmr waybill
 en,с просрочия,with overdue
 en,Има просрочени сделки,There are overdue deals
@@ -2589,7 +2589,7 @@ en,Кашона,cartons
 en,кашони,cartons
 en,товар,load
 en,товара,loads
-en,Товар,load
+en,Товар,Cargo
 en,Товара,loads
 en,ЛЕ,LU
 en,На посочения от вас имейл ще получите линк за избор на паролата за достъп,"At the email you specify, you will receive a link to select the password"
@@ -13101,12 +13101,12 @@ en,Път до изпълнимия файл на Chrome,Path to Chrome executab
 en,Път до файла,Path to file
 en,Път и ключ,Path and key
 en,Път изпълним файл,Executable file path
-en,Пътен лист,Waybill
+en,Пътен лист,Trip sheet
 en,"Пътен лист - серия, № и дата","Waybill - series, No. and date"
 en,Пъти,Times
 en,Пъти сканиран този файл,Times this file was scanned
 en,Пътища,Paths
-en,Пътни листи,Waybills
+en,Пътни листи,Trip sheets
 en,Пътя до папката,Path to folder
 en,Пътя на изтеглените документи - без потребителя,Path of downloaded documents - without user
 en,Пясъчно,Sand
@@ -14513,7 +14513,7 @@ en,ТЕСТОВИ доставки,TEST deliveries
 en,ТЕСТОВИ складови себестойности,TEST warehouse costs
 en,ТЕСТОВИ цени на артикулите,TEST item prices
 en,ТЕХНИЧЕСКО ОБСЛУЖВАНЕ,TECHNICAL MAINTENANCE
-en,ТОВАРИТЕЛНИЦА,CONSIGNMENT NOTE
+en,ТОВАРИТЕЛНИЦА,WAYBILL
 en,ТРО,R&M
 en,Таб,Tab
 en,Таблицата е изпразнена,The table has been emptied
