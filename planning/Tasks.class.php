@@ -638,7 +638,7 @@ class planning_Tasks extends core_Master
                 // Проверяване на времената
                 foreach (array('expectedTimeStart', 'expectedTimeEnd') as $eTimeField) {
                     $DateTime = core_Type::getByName('datetime(format=smartTime)');
-                    $row->{$eTimeField} = '<span class=quiet>N/A</span>';
+                    $row->{$eTimeField} = '<span class="quiet nowrap">N/A</span>';
                     if (!empty($rec->{$eTimeField})) {
                         $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
                     }
@@ -652,7 +652,7 @@ class planning_Tasks extends core_Master
 
             $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
             $durationUom = ($expectedDuration < 60) ? 'seconds' : (($expectedDuration < 3600) ? 'minutes' : 'hours');
-            $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
+            $row->expectedDuration = empty($expectedDuration) ? '<span class="quiet nowrap">N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
         }
 
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
@@ -697,7 +697,7 @@ class planning_Tasks extends core_Master
             }
             foreach (array('firstProgress', 'actualStart', 'lastProgressProduction', 'lastChangeStateOn', 'lastProgress') as $progressFld){
                 if(empty($rec->{$progressFld})) {
-                    $row->{$progressFld} = "<span class='quiet'>n/a</span>";
+                    $row->{$progressFld} = "<span class='quiet nowrap'>n/a</span>";
                 }
             }
 
@@ -738,8 +738,8 @@ class planning_Tasks extends core_Master
             }
 
             if (empty($rec->labelPackagingId)) {
-                $row->labelPackagingId = "<span class='quiet'>N/A</span>";
-                $row->labelQuantityInPack = "<span class='quiet'>N/A</span>";
+                $row->labelPackagingId = "<span class='quiet nowrap'>N/A</span>";
+                $row->labelQuantityInPack = "<span class='quiet nowrap'>N/A</span>";
             } else {
                 if (empty($rec->labelQuantityInPack)) {
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
@@ -768,7 +768,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $row->labelTemplate = (isset($rec->labelTemplate)) ? ht::createHint(ht::createLink("№{$rec->labelTemplate}", label_Templates::getSingleUrlArray($rec->labelTemplate)), label_Templates::getTitleById($rec->labelTemplate)) : "<span class='quiet'>N/A</span>";
+            $row->labelTemplate = (isset($rec->labelTemplate)) ? ht::createHint(ht::createLink("№{$rec->labelTemplate}", label_Templates::getSingleUrlArray($rec->labelTemplate)), label_Templates::getTitleById($rec->labelTemplate)) : "<span class='quiet nowrap'>N/A</span>";
 
             // Линк към отпечаванията ако има
             if (label_Prints::haveRightFor('list')) {
@@ -858,7 +858,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $row->assetId = "<span class='quiet'>N/A</span>";
+                $row->assetId = "<span class='quiet nowrap'>N/A</span>";
                 $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
             }
 
@@ -946,7 +946,7 @@ class planning_Tasks extends core_Master
         }
 
         if (empty($rec->indTime)) {
-            $row->indTime = "<span class='quiet'>N/A</span>";
+            $row->indTime = "<span class='quiet nowrap'>N/A</span>";
         }
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
         core_Debug::stopTimer('RENDER_VERBAL');
@@ -1162,11 +1162,11 @@ class planning_Tasks extends core_Master
             unset($row->totalNetWeight);
         } else {
             $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}", 'useTareFromParamId,useTareFromPackagings');
-            $row->totalWeight = empty($rec->totalWeight) ? "<span class='quiet'>N/A</span>" : $row->totalWeight;
+            $row->totalWeight = empty($rec->totalWeight) ? "<span class='quiet nowrap'>N/A</span>" : $row->totalWeight;
             if (empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) {
                 unset($row->totalNetWeight);
             } else {
-                $row->totalNetWeight = empty($rec->totalNetWeight) ? "<span class='quiet'>N/A</span>" : $row->totalNetWeight;
+                $row->totalNetWeight = empty($rec->totalNetWeight) ? "<span class='quiet nowrap'>N/A</span>" : $row->totalNetWeight;
             }
         }
 
@@ -3818,7 +3818,7 @@ JS
                     if(!empty($deliveryDate)){
                         $jRec->_saleId .= " [" . dt::mysql2verbal($deliveryDate, 'd.m.y') . "]";
                     } else {
-                        $jRec->_saleId .= " <span class='quiet'>[n/a]</span>";
+                        $jRec->_saleId .= " <span class='quiet nowrap'>[n/a]</span>";
                     }
                 }
             }

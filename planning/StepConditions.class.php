@@ -117,7 +117,7 @@ class planning_StepConditions extends core_Detail
         $row->prevStepId = cat_Products::getHyperlink($rec->prevStepId, true);
         $row->ROW_ATTR['class'] = "state-" . cat_Products::fetchField($rec->prevStepId, 'state');
         if (empty($rec->delay)) {
-            $row->delay = "<span class='quiet'>N/A</span>";
+            $row->delay = "<span class='quiet nowrap'>N/A</span>";
         }
     }
 

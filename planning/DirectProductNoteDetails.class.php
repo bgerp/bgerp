@@ -418,7 +418,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $rec = $data->recs[$id];
             if (empty($rec->storeId)) {
                 if($rec->type == 'subProduct'){
-                    $row->storeId = ht::createHint("<span class='red'>n/a</span>", 'Изберете склад, за да може да се контира документа!', 'error', false);
+                    $row->storeId = ht::createHint("<span class='red nowrap'>n/a</span>", 'Изберете склад, за да може да се контира документа!', 'error', false);
                 } else {
                     $emptyPlaceholder = planning_WorkInProgress::getHyperlink();
                     if(!empty($rec->fromAccId)){

@@ -736,7 +736,7 @@ class sales_TransportValues extends core_Manager
     {
         $vars = array('hiddenTransportCost', 'expectedTransportCost', 'visibleTransportCost');
         if($expectedTransportCost == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT){
-            $row->expectedTransportCost = ht::createHint("<span class='red'>N/A</span>", 'Транспорта не може да бъде изчислен, защото някои от артикулите нямат обемно тегло|*!', 'error', false);
+            $row->expectedTransportCost = ht::createHint("<span class='red nowrap'>N/A</span>", 'Транспорта не може да бъде изчислен, защото някои от артикулите нямат обемно тегло|*!', 'error', false);
             unset($vars[1]);
             $expectedTransportCost = 0;
         }

@@ -1423,7 +1423,7 @@ class cat_products_Packagings extends core_Detail
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
                         if (!isset($policyInfo->price)) {
-                            $price = 'N/A';
+                            $price = "<span class='nowrap'>N/A</span>";
                         } else {
                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
                             $price .= " <span class='cCode'>{$docRec->currencyId}</span>";

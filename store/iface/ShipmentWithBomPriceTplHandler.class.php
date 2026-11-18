@@ -98,7 +98,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                 $cachedRec = self::getCachedCostObject($detail, $rec, $date);
 
                 if(!isset($cachedRec->bomId)){
-                    $row->_amountBom = ht::createHint("<span class='quiet'>N/A</span>", 'Артикулът няма активна рецепта|*!', 'notice', false);
+                    $row->_amountBom = ht::createHint("<span class='quiet nowrap'>N/A</span>", 'Артикулът няма активна рецепта|*!', 'notice', false);
                 } else {
                     $rec->_amountBom = $cachedRec->amount ?? null;
                     $hint = null;
