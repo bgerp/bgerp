@@ -328,7 +328,16 @@ class doc_plg_LlmExportable extends core_Plugin
                 // caption. По-ранни клетки (ако има) са само контекст/квалификатор пред него
                 // (напр. "Ставка" пред "Данъчна основа:").
                 $capIdx = null;
+
+                // Заглавна клетка <th> пред клетки <td> е етикет на реда, а не заглавие на колони
+                if ($columnHeaders === null && strtolower($visibleCells[0]->nodeName) === 'th' && self::llmCellIsSimpleCaption($visibleCells[0])) {
+                    $capIdx = 0;
+                    foreach (array_slice($visibleCells, 1) as $cell) {
+                        if (strtolower($cell->nodeName) !== 'td') $capIdx = null;
+                    }
+                }
                 foreach ($visibleCells as $i => $cell) {
+                    if ($capIdx !== null) break;
                     if (!self::llmCellIsSimpleCaption($cell)) break;
                     $text = trim(preg_replace('/\s+/', ' ', self::llmNodeText($cell)));
                     if ($text !== '' && substr($text, -1) === ':') {

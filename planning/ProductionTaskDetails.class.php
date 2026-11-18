@@ -1219,10 +1219,29 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && $rec->state != 'rejected'){
             if(!empty($rec->norm)){
-                $calcedNormHint = planning_Setup::canSeeIndTime() ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
-                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+                $canSeeIndTime = planning_Setup::canSeeIndTime();
+                $calcedNormHint = $canSeeIndTime ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
+
+                // За модела заработката е бележка - обикновеният хинт се губи
+                $aiHint = 'Earned time hidden';
+                if ($canSeeIndTime) {
+                    $normSecs = (int) $mvc->calcNormByRec($rec);
+                    $sign = ($rec->type == 'scrap') ? '-' : '';
+                    $verbalSecs = function ($secs) use ($sign) {
+                        return $sign . (($secs > 60) ? round($secs / 60, 2) . ' min' : round($secs) . ' s');
+                    };
+
+                    // Разпределянето решава дали всеки оператор получава цялото време, или дял от него
+                    $personsCount = countR(keylist::toArray($rec->employees));
+                    if (($taskRec->indTimeAllocation ?? null) == 'common' && $personsCount > 1) {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' in total, ' . $verbalSecs($normSecs / $personsCount) . ' per operator';
+                    } else {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' per operator';
+                    }
+                }
+                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false, array('aiHint' => $aiHint));
             } else {
-                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false);
+                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false, array('aiHint' => 'No earned time'));
             }
         }
 
