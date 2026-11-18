@@ -509,7 +509,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
 
             $infoArr[tr('Бруто')] = "<b>{$WeightType->toVerbal($lastRec->weight)}</b>";
-            $infoArr[tr('Нето')] = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet'>n/a</span>";
+            $infoArr[tr('Нето')] = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet nowrap'>n/a</span>";
 
             // Ако може да се определи очакваното нето, показва се и разминаването спрямо него
             $deviationRec = static::getNetWeightDeviation($lastRec, $masterRec);
@@ -1467,7 +1467,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if(isset($rec->weight)){
                 if(empty($rec->netWeight)){
-                    $row->netWeight = "<span class='quiet'>n/a</span>";
+                    $row->netWeight = "<span class='quiet nowrap'>n/a</span>";
                 }
                 if(isset($rec->netWeight) && $rec->weight <= $rec->netWeight){
                     if($rec->state != 'rejected'){
