@@ -602,21 +602,34 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
-        while ($rec = $sQuery->fetch()) {
-            $totalCount++;
-            if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
-                if($rec->{$mvc->valiorFld} < $eurozoneDate){
-                    $data->hasDocumentBeforeEu = true;
-                }
+        $aggregate = self::fetchDealSummary($mvc, $sQuery, $fieldsArr, $baseCurrency, $eurozoneDate);
+        if ($aggregate !== null) {
+            $totalCount = (int) ($aggregate->totalCount ?? 0);
+            $draftCount = (int) ($aggregate->draftCount ?? 0);
+            $pendingCount = (int) ($aggregate->pendingCount ?? 0);
+            $activeCount = (int) ($aggregate->activeCount ?? 0);
+            $data->hasDocumentBeforeEu = !empty($aggregate->hasDocumentBeforeEu);
+            if ($totalCount) {
+                self::prepareSummary($mvc, $fieldsArr, $aggregate, $data->listSummary->summary, $baseCurrency, true);
             }
-            $mvc->fillSummaryRec($rec, $fieldsArr);
-            self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
-            if($rec->state == 'draft'){
-                $draftCount++;
-            } elseif($rec->state == 'pending'){
-                $pendingCount++;
-            } elseif(in_array($rec->state, array('closed', 'active'))){
-                $activeCount++;
+        } else {
+            while ($rec = $sQuery->fetch()) {
+                $totalCount++;
+                if(!empty($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
+                    if($rec->{$mvc->valiorFld} < $eurozoneDate){
+                        $data->hasDocumentBeforeEu = true;
+                    }
+                }
+                $mvc->fillSummaryRec($rec, $fieldsArr);
+                self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+                $state = $rec->state ?? null;
+                if($state == 'draft'){
+                    $draftCount++;
+                } elseif($state == 'pending'){
+                    $pendingCount++;
+                } elseif(in_array($state, array('closed', 'active'))){
+                    $activeCount++;
+                }
             }
         }
 
@@ -630,6 +643,95 @@ class acc_plg_DocumentSummary extends core_Plugin
             core_Pager::setKnownCount($data->query, $sQuery, $totalCount);
         }
         core_Debug::stopTimer('RENDER_SUMMARY');
+    }
+
+
+    /**
+     * Сумира SQL полетата на сделките, без да прехвърля всеки документ към PHP
+     */
+    private static function fetchDealSummary($mvc, $sQuery, $fieldsArr, $baseCurrency, $eurozoneDate)
+    {
+        if (!($mvc instanceof deals_DealMaster) || !empty($mvc->amountIsInNotInBaseCurrency) || !countR($fieldsArr)) {
+
+            return null;
+        }
+
+        // Собствените изчисления и обработката след четене изискват отделните записи
+        foreach (array_merge(array($mvc), $mvc->getPlugins()) as $handler) {
+            if (get_class($handler) === __CLASS__) continue;
+            foreach (array('fillSummaryRec', 'fillSummaryRec_', 'on_BeforeFillSummaryRec', 'on_AfterFillSummaryRec', 'on_AfterRead', 'on_BeforeSelect') as $method) {
+                if (method_exists($handler, $method)) {
+
+                    return null;
+                }
+            }
+        }
+
+        $valiorFld = $mvc->valiorFld ?? '';
+        foreach (array('state', 'createdOn', $valiorFld) as $name) {
+            if (($sQuery->fields[$name]->kind ?? null) !== 'FLD') {
+
+                return null;
+            }
+        }
+        foreach ($sQuery->show as $name => $unused) {
+            if (($sQuery->fields[$name]->kind ?? null) === 'FNC') {
+
+                return null;
+            }
+        }
+
+        $oldCurrency = acc_Setup::getDefaultCurrencyCode(dt::addDays(-1, $eurozoneDate, false));
+        $newCurrency = acc_Setup::getDefaultCurrencyCode($eurozoneDate);
+        $convertBgn = $oldCurrency === 'BGN' && $newCurrency === 'EUR' && $baseCurrency === 'EUR';
+        if (!$convertBgn && ($oldCurrency !== $baseCurrency || $newCurrency !== $baseCurrency)) {
+
+            return null;
+        }
+
+        $db = $sQuery->mvc->db;
+        $dateSql = "'" . $db->escape($eurozoneDate) . "'";
+        $valiorSql = '`' . str_replace('`', '``', $valiorFld) . '`';
+        $amountDateSql = "COALESCE({$valiorSql}, DATE(`createdOn`))";
+        $columns = array(
+            'COUNT(*) AS `totalCount`',
+            "COALESCE(SUM(`state` = 'draft'), 0) AS `draftCount`",
+            "COALESCE(SUM(`state` = 'pending'), 0) AS `pendingCount`",
+            "COALESCE(SUM(`state` IN ('active', 'closed')), 0) AS `activeCount`",
+            "COALESCE(MAX({$valiorSql} < {$dateSql}), 0) AS `hasDocumentBeforeEu`",
+        );
+        $query = clone $sQuery;
+        $query->show("state,createdOn,{$valiorFld}");
+        foreach ($fieldsArr as $fld) {
+            $name = $fld->name ?? '';
+            $summary = $fld->summary ?? null;
+            if (!in_array($summary, array('amount', 'quantity')) || !in_array($query->fields[$name]->kind ?? null, array('FLD', 'XPR'))) {
+
+                return null;
+            }
+            $query->show($name);
+            $column = '`' . str_replace('`', '``', $name) . '`';
+            $amount = $column;
+            if ($summary === 'amount' && $convertBgn) {
+                // getSmartBaseCurrency закръгля всеки документ до 6 знака, преди сумирането
+                $amount = "CASE WHEN {$amountDateSql} < {$dateSql} AND ROUND(COALESCE({$column}, 0), 5) != 0 THEN ROUND({$column} / 1.95583, 6) ELSE {$column} END";
+            }
+            $columns[] = "COALESCE(SUM({$amount}), 0) AS {$column}";
+        }
+
+        // Подзаявката запазва филтрите, JOIN, HAVING и UNION, включително SQL изразите за ДДС
+        $sql = 'SELECT ' . implode(",\n", $columns) . " FROM (" . $query->buildQuery() . ') AS `summaryRows`';
+        $fetch = function () use ($db, $sql) {
+            $dbRes = $db->query($sql);
+            try {
+
+                return $db->fetchObject($dbRes);
+            } finally {
+                $db->freeResult($dbRes);
+            }
+        };
+
+        return $sQuery->onReplica ? $sQuery->mvc->callOnReplica($fetch) : $fetch();
     }
 
 
@@ -719,8 +821,9 @@ class acc_plg_DocumentSummary extends core_Plugin
      * @param stdClass $rec          - Запис от модела
      * @param array    $res          - Масив в който ще върнем резултатите
      * @param string   $currencyCode - основната валута за периода
+     * @param bool     $converted    - сумите вече са преизчислени в основната валута
      */
-    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
+    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode, $converted = false)
     {
         if (countR($fieldsArr) == 0) return;
 
@@ -735,14 +838,14 @@ class acc_plg_DocumentSummary extends core_Plugin
             switch ($fld->summary) {
                 case 'amount':
                     $baseAmount = $rec->{$fld->name};
-                    if ($mvc->amountIsInNotInBaseCurrency === true) {
+                    if (!$converted && ($mvc->amountIsInNotInBaseCurrency ?? false) === true) {
                         if(isset($rec->rate)){
                             $baseAmount *= $rec->rate;
                         }
                     }
 
-                    if(isset($mvc->valiorFld)){
-                        if($mvc->amountIsInNotInBaseCurrency){
+                    if(!$converted && isset($mvc->valiorFld)){
+                        if(!empty($mvc->amountIsInNotInBaseCurrency)){
                             $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                         } else {
                             $valior = $rec->{$mvc->valiorFld} ?? dt::verbal2mysql($rec->createdOn, false);
