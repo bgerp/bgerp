@@ -76,9 +76,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     $doc = doc_Containers::getDocument($rec->originId);
                     $dRec = $doc->fetch();
                         
-                    // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
+                    // Споделен по подразбиране само в отговор на документ от партньор; видимостта на източника не се наследява
                     if (empty($rec->id)) {
-                        if (core_Users::haveRole('partner', $dRec->createdBy ?? null) || $doc->isVisibleForPartners()) {
+                        if (core_Users::haveRole('partner', $dRec->createdBy ?? null)) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }
