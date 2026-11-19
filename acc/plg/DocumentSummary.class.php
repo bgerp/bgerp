@@ -653,7 +653,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Изчислимите полета може да зависят от произволни полета на записа
         $fields = array();
         foreach ($fieldsArr as $fld) {
-            if (($fld->kind ?? null) != 'FLD') {
+            // Функционално поле става колона, ако заявката го смята като израз (напр. сумите на сделките)
+            $queryKind = $sQuery->fields[$fld->name]->kind ?? null;
+            if (($fld->kind ?? null) != 'FLD' && !in_array($queryKind, array('FLD', 'XPR'))) {
 
                 return array();
             }
