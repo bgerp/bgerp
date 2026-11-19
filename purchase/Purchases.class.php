@@ -307,6 +307,61 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * И записът на СР, и преминаването към еднократно получаване се сериализират по нишка.
+     * Заключването е на връзката към основната БД и се освобождава и при изключение.
+     */
+    public static function withReceiptLock($threadId, $callback)
+    {
+        return core_Manager::callWithoutReplica(function () use ($threadId, $callback) {
+            $db = cls::get('purchase_Purchases')->db;
+            $key = 'purchaseReceipt:' . sha1($db->dbName . ':' . EF_DB_TABLE_PREFIX . ':' . (int) $threadId);
+            $lock = $db->fetchObject($db->query("SELECT GET_LOCK('{$key}', 10) AS acquired"));
+            if ((int) ($lock->acquired ?? 0) !== 1) {
+                redirect(array('doc_Containers', 'list', 'threadId' => $threadId), false,
+                    tr('В момента се записва доставка по покупката. Опитайте отново.'), 'error');
+            }
+            try {
+                return $callback();
+            } finally {
+                $db->query("SELECT RELEASE_LOCK('{$key}')");
+            }
+        });
+    }
+
+
+    /** Защита и при промяна след отваряне на формата или директен запис. */
+    public function save_(&$rec, $fields = null, $mode = null)
+    {
+        if (empty($rec->id) || ($rec->oneTimeDelivery ?? null) !== 'yes'
+            || ($fields && !isset(arr::make($fields, true)['oneTimeDelivery']))) {
+            return parent::save_($rec, $fields, $mode);
+        }
+
+        $threadId = $rec->threadId ?? static::fetchField($rec->id, 'threadId', false);
+
+        return static::withReceiptLock($threadId, function () use (&$rec, $fields, $mode, $threadId) {
+            if ($message = store_Receipts::getSingleDeliveryError($threadId, null, true)) {
+                redirect(array($this, 'single', $rec->id), false, $message, 'error');
+            }
+
+            return parent::save_($rec, $fields, $mode);
+        });
+    }
+
+
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if ($form->isSubmitted() && !empty($rec->id) && ($rec->oneTimeDelivery ?? null) === 'yes') {
+            $threadId = $rec->threadId ?? static::fetchField($rec->id, 'threadId');
+            if ($message = store_Receipts::getSingleDeliveryError($threadId, null, true)) {
+                $form->setError('oneTimeDelivery', $message);
+            }
+        }
+    }
+
+
+    /**
      * Връща заглавието на покупката със сумата за фактуриране
      *
      * @param int  $id

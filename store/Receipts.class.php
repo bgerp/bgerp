@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -238,6 +238,103 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Обхваща и BeforeSave, защото документният плъгин създава контейнера преди INSERT на СР.
+     */
+    public function __call($method, $args)
+    {
+        if (strcasecmp($method, 'save') !== 0) return parent::__call($method, $args);
+
+        $rec = $args[0];
+        $fields = $args[1] ?? null;
+        if (($rec->state ?? null) === 'rejected') return parent::__call($method, $args);
+
+        $threadId = $rec->threadId ?? null;
+        if (!empty($rec->id)) {
+            // Само възстановяването може да добави съществуваща СР към броя на доставките.
+            if (!isset($rec->state) || ($fields && !isset(arr::make($fields, true)['state']))) {
+                return parent::__call($method, $args);
+            }
+            $stored = static::fetch($rec->id, 'state,threadId', false);
+            if (($stored->state ?? null) !== 'rejected') return parent::__call($method, $args);
+            $threadId = $stored->threadId;
+        } elseif (!$threadId && ($source = $rec->containerId ?? $rec->originId ?? null)) {
+            $threadId = doc_Containers::fetchField($source, 'threadId');
+        }
+
+        $first = $threadId ? doc_Threads::getFirstDocument($threadId) : null;
+        if (!$first || !$first->isInstanceOf('purchase_Purchases')) return parent::__call($method, $args);
+
+        return purchase_Purchases::withReceiptLock($threadId, function () use ($threadId, $rec, $method, $args) {
+            if ($message = static::getSingleDeliveryError($threadId, $rec->containerId ?? null)) {
+                redirect(array('doc_Containers', 'list', 'threadId' => $threadId), false, $message, 'error');
+            }
+
+            return parent::__call($method, $args);
+        });
+    }
+
+
+    /**
+     * Обща причина за отказа във формата, единичния изглед и инструментите на Аида.
+     */
+    public static function getSingleDeliveryError($threadId, $ignoreContainerId = null, $enabling = false)
+    {
+        $purchase = $threadId ? doc_Threads::getFirstDocument($threadId) : null;
+        if (!$purchase || !$purchase->isInstanceOf('purchase_Purchases')) return null;
+        $blockers = deals_Helper::getSingleDeliveryBlockers($purchase, $ignoreContainerId, false, $enabling);
+        if (!$blockers) return null;
+
+        $handles = array();
+        foreach ($blockers as $container) {
+            // Другата заявка може още да попълва новия контейнер. Вземаме номера след нейния запис.
+            if (empty($container->docId) && $container->docClass == static::getClassId()) {
+                $container->docId = purchase_Purchases::withReceiptLock($threadId, function () use ($container) {
+                    return static::fetchField(array('#containerId = [#1#]', (int) $container->id), 'id', false);
+                });
+            }
+            if (empty($container->docId)) continue;
+            $doc = doc_Containers::getDocument($container);
+            if ($doc->haveRightFor('single')) $handles[] = '#' . $doc->getHandle();
+        }
+        $message = $enabling ? tr('По покупка [#1#] вече има няколко доставки. Еднократно получаване не може да се включи.')
+                             : tr('По покупка [#1#] е избрано еднократно получаване.');
+        $text = new ET($message, '#' . $purchase->getHandle());
+        if ($handles) {
+            $text->append(' ' . new ET(tr('Документи по получаването: [#1#].'), implode(', ', $handles)));
+        }
+        $text->append(' ' . tr('За отделни разписки изберете „Не“ в „Промяна → Доставка → Еднократно“ на покупката.'));
+
+        return $text->getContent();
+    }
+
+
+    /**
+     * При изпращане на по-рано отворена форма ограничението може вече да е в сила.
+     */
+    public static function requireRightFor($action, $rec = null, $userId = null, $retUrl = null)
+    {
+        if (strtolower($action) === 'add' && !empty($rec->threadId)
+            && doc_Threads::haveRightFor('single', $rec->threadId, $userId) && static::haveRightFor('add', null, $userId)
+            && ($message = static::getSingleDeliveryError($rec->threadId))) {
+            redirect($retUrl ?: array('doc_Containers', 'list', 'threadId' => $rec->threadId), false, $message, 'error');
+        }
+
+        return parent::requireRightFor($action, $rec, $userId, $retUrl);
+    }
+
+
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+        $rec = $data->rec;
+        if (in_array($rec->state ?? null, array('draft', 'pending'), true) && (!Mode::isReadOnly() || Mode::is('renderForLlm')) && !core_Users::isContractor()) {
+            if ($message = static::getSingleDeliveryError($rec->threadId ?? null, $rec->containerId ?? null)) {
+                $tpl->append(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), 'STOPPED_INFO');
+            }
+        }
+    }
+
+
+    /**
      * След изпращане на формата
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
@@ -395,7 +492,8 @@ class store_Receipts extends store_DocumentMaster
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
+        if ((in_array($action, array('add', 'pending', 'conto', 'clonerec'), true)
+            || ($action === 'restore' && ($rec->state ?? null) === 'rejected')) && !empty($rec->threadId) && $requiredRoles != 'no_one') {
 
             // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);

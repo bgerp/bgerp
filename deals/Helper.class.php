@@ -3767,30 +3767,41 @@ abstract class deals_Helper
     public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null, $ignoreDrafts = false)
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
-        $firstDocRec = $firstDocument->fetch('oneTimeDelivery,contoActions');
-        if($firstDocRec->oneTimeDelivery != 'yes') return true;
 
-        $contoActions = type_Set::toArray($firstDocRec->contoActions);
-        if(isset($contoActions['ship'])) {
-            if($firstDocument->hasStorableProducts()) return false;
+        return $firstDocument && !self::getSingleDeliveryBlockers($firstDocument, $ignoreContainerId, $ignoreDrafts);
+    }
+
+
+    /**
+     * Контейнери, които изчерпват еднократната доставка. При включване на условието
+     * една вече въведена доставка е допустима. Директното получаване също е доставка.
+     */
+    public static function getSingleDeliveryBlockers($firstDocument, $ignoreContainerId = null, $ignoreDrafts = false, $enabling = false)
+    {
+        $deal = $firstDocument->fetch('id,threadId,oneTimeDelivery,contoActions', false);
+        $singleDelivery = ($deal->oneTimeDelivery ?? null) === 'yes';
+        // При редакция проверяваме само прехода от „Не“ към „Да“.
+        if ($enabling ? $singleDelivery : !$singleDelivery) return array();
+
+        $deliveries = array();
+        $actions = type_Set::toArray($deal->contoActions ?? null);
+        if (isset($actions['ship']) && $firstDocument->hasStorableProducts()) {
+            $deliveries[] = (object) array('docId' => $deal->id, 'docClass' => $firstDocument->getInstance()->getClassId());
         }
 
-        // Всички документи касаещи експедиции в нишката
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->in("docClass", array(store_Receipts::getClassId(), store_ShipmentOrders::getClassId()));
-        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
-        if(isset($ignoreContainerId)){
-            $cQuery->where("#id != {$ignoreContainerId}");
+        $query = doc_Containers::getQuery();
+        $query->in('docClass', array(store_Receipts::getClassId(), store_ShipmentOrders::getClassId()));
+        $query->where(array("#threadId = [#1#] AND #state != 'rejected'", (int) $deal->threadId));
+        if ($ignoreContainerId) $query->where(array('#id != [#1#]', (int) $ignoreContainerId));
+        if ($ignoreDrafts) $query->where("#state != 'draft'");
+        $query->show('id,docId,docClass');
+        $query->orderBy('id');
+        $query->limit(5);
+        while ($rec = $query->fetch()) {
+            $deliveries[] = $rec;
         }
 
-        if($ignoreDrafts){
-            $cQuery->where("#state != 'draft'");
-        }
-
-        $cQuery->show('id');
-        $count = $cQuery->count();
-
-        return empty($count);
+        return count($deliveries) > ($enabling ? 1 : 0) ? $deliveries : array();
     }
 
 
