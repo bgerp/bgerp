@@ -598,11 +598,12 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
-        $draftCount = $activeCount = $pendingCount = 0;
+        $draftCount = $activeCount = $pendingCount = $totalCount = 0;
 
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
+            $totalCount++;
             if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
                 if($rec->{$mvc->valiorFld} < $eurozoneDate){
                     $data->hasDocumentBeforeEu = true;
@@ -623,6 +624,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+
+        // Документите вече са преброени - страницирането няма да ги брои втори път със SQL_CALC_FOUND_ROWS
+        if (!empty($data->query)) {
+            core_Pager::setKnownCount($data->query, $sQuery, $totalCount);
+        }
         core_Debug::stopTimer('RENDER_SUMMARY');
     }
 

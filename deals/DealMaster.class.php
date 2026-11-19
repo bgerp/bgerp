@@ -837,7 +837,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $mvc->filterListFilterByOption($filter->type, $data->query);
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
-                    $data->query->orderBy('activatedOn', 'DESC');
+                    // След подредба по датата от филтъра второто поле не променя реда, а изключва индекса ѝ
+                    if (!countR($data->query->orderBy)) {
+                        $data->query->orderBy('activatedOn', 'DESC');
+                    }
                     arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активиран'), null, 'createdBy');
                 }
             }
