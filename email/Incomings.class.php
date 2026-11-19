@@ -296,6 +296,9 @@ class email_Incomings extends core_Master
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
         
+        // Покриващ индекс за scanForPublicDomains() - без него се чете цялата таблица
+        $this->setDbIndex('folderId,fromEml');
+        
         $this->setDbIndex('modifiedOn');
     }
     
@@ -2415,7 +2418,7 @@ class email_Incomings extends core_Master
         $rec->offset = rand(120, 180); // от 2 до 3h
         $rec->isRandOffset = true;
         $rec->delay = 0;
-        $rec->timeLimit = 100;
+        $rec->timeLimit = 300;
         $res .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
@@ -3399,22 +3402,37 @@ class email_Incomings extends core_Master
         $crmCompaniesClassId = core_Classes::getId('crm_Companies');
         $crmPersonsClassId = core_Classes::getId('crm_Persons');
         
-        // Построяваме заявка, извличаща всички писма, които са във фирмена папка.
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-        $query->where("#coverClass = {$crmCompaniesClassId}");
-        $query->orWhere("#coverClass = {$crmPersonsClassId}");
-        $query->show('fromEml, folderId, coverClass');
+        // Корицата на папките на фирми и лица
+        $covers = array();
+        $fQuery = doc_Folders::getQuery();
+        $fQuery->in('coverClass', array($crmCompaniesClassId, $crmPersonsClassId));
+        $fQuery->show('coverClass');
+        while ($fRec = $fQuery->fetch()) {
+            $covers[$fRec->id] = $fRec->coverClass;
+        }
         
         $domains = array();
         $results = array();
         $allEmails = array();
 
+        // Различните двойки папка-имейл се четат само от индекса: core_Query винаги добавя id, а с него
+        // MyISAM чете и редовете на всички писма
+        $me = cls::get(get_called_class());
+        $folderCol = str::phpToMysqlName('folderId');
+        $fromCol = str::phpToMysqlName('fromEml');
+        $dbRes = $me->db->query("SELECT `{$folderCol}` AS `folderId`, `{$fromCol}` AS `fromEml` FROM `{$me->dbTableName}` GROUP BY `{$folderCol}`, `{$fromCol}`");
+
         // Групираме имейлите по ковър и имейл
-        while ($rec = $query->fetch()) {
-            $allEmails[$rec->coverClass][$rec->fromEml][$rec->folderId] = $rec->folderId;
+        while ($rec = $me->db->fetchObject($dbRes)) {
+            $folderId = $rec->folderId ?? null;
+            if (!isset($folderId) || !isset($covers[$folderId])) {
+                continue;
+            }
+            // Базата групира имейлите без оглед на регистъра
+            $fromEml = mb_strtolower($rec->fromEml ?? '');
+            $allEmails[$covers[$folderId]][$fromEml][$folderId] = $folderId;
         }
+        $me->db->freeResult($dbRes);
 
         // Премахваме повтарящите се имейли от фирмите
         // Останалите ги групираме по ковър и домейн
