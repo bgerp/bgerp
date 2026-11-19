@@ -589,18 +589,6 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Клонираното от партньор запитване е създадено през сайта и получава таговете на е-магазина
-     */
-    protected static function on_AfterSaveCloneRec($mvc, $rec, &$nRec)
-    {
-        if (!core_Users::isContractor() || !core_Packs::isInstalled('eshop')) return;
-
-        eshop_Setup::addDocumentTags($nRec->containerId ?? null);
-        doc_Threads::doUpdateThread($nRec->threadId ?? null);
-    }
-    
-    
-    /**
      * Изпълнява се след създаване на нов запис
      */
     protected static function on_AfterCreate($mvc, $rec)
@@ -619,6 +607,8 @@ class marketing_Inquiries2 extends embed_Manager
             
             $Cover->forceGroup($groupId, false);
         }
+
+        eshop_Setup::addPartnerDocumentTags($rec);
     }
     
     

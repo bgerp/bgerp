@@ -2486,6 +2486,15 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * Продажба, създадена от партньор в споделената му папка, получава таговете на е-магазина
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        eshop_Setup::addPartnerDocumentTags($rec);
+    }
+
+
+    /**
      * След клониране на записа
      *
      * @param core_Mvc $mvc
