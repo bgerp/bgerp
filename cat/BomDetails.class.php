@@ -284,7 +284,7 @@ class cat_BomDetails extends doc_Detail
         if($rec->type == 'stage'){
             $form->setField('subTitle', 'input');
             if($data->masterRec->state == 'active' && isset($rec->id)){
-                foreach (array('subTitle', 'propQuantity', 'position', 'packagingId', 'description', 'parentId') as $fld){
+                foreach (array('propQuantity', 'position', 'packagingId', 'parentId') as $fld){
                     $form->setField($fld, 'input=hidden');
                 }
             }

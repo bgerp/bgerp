@@ -607,6 +607,8 @@ class marketing_Inquiries2 extends embed_Manager
             
             $Cover->forceGroup($groupId, false);
         }
+
+        eshop_Setup::addPartnerDocumentTags($rec);
     }
     
     

@@ -309,6 +309,37 @@ class eshop_CardPayments extends core_Manager
 
 
     /**
+     * Известие на общия адрес - методът е този, чийто драйвер приеме подписа и при който е опитът
+     *
+     * @return array [ид на метода, нормализиран отговор], [null, false] за събитие без плащане или [null, null]
+     */
+    protected static function readFixedNotification()
+    {
+        $res = array(null, null);
+        $query = cond_PaymentMethods::getQuery();
+        $query->where('#onlinePaymentDriver IS NOT NULL');
+        $query->show('id');
+        while ($mRec = $query->fetch()) {
+            $Driver = self::getDriver($mRec->id);
+            if (!$Driver || !$Driver->hasFixedNotifyUrl()) {
+                continue;
+            }
+
+            $result = $Driver->readNotification(cond_PaymentMethods::fetch($mRec->id));
+            if (is_array($result)) {
+
+                return array($mRec->id, $result);
+            }
+            if ($result === false) {
+                $res = array(null, false);
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Известие от сървъра на шлюза (webhook) - отговорът е само HTTP кодът
      */
     public function act_Notify()
@@ -318,8 +349,13 @@ class eshop_CardPayments extends core_Manager
         $paymentId = Request::get('pm', 'int');
         Request::removeProtected('pm');
 
-        $Driver = !empty($paymentId) ? self::getDriver($paymentId) : null;
-        $result = is_object($Driver) ? $Driver->readNotification(cond_PaymentMethods::fetch($paymentId)) : null;
+        // На общия адрес методът не се подава - познава се по подписаното известие
+        if (empty($paymentId)) {
+            list($paymentId, $result) = self::readFixedNotification();
+        } else {
+            $Driver = self::getDriver($paymentId);
+            $result = is_object($Driver) ? $Driver->readNotification(cond_PaymentMethods::fetch($paymentId)) : null;
+        }
         if ($result === null) {
             $this->logWarning('Известие от шлюза с невалиден подпис');
         }

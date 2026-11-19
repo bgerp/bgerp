@@ -60,6 +60,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Вече известен брой на резултатите: обект с cnt и signature (виж core_Pager::setKnownCount())
+     */
+    public $knownCount;
+    
+    
+    /**
      *
      */
     public $addId;

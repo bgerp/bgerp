@@ -558,6 +558,14 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        // Еднократна доставка не може да се включи, ако вече има няколко доставки
+        if (!empty($rec->id) && ($rec->oneTimeDelivery ?? null) == 'yes') {
+            $threadId = $rec->threadId ?? $mvc->fetchField($rec->id, 'threadId', false);
+            if ($error = deals_Helper::getSingleDeliveryError($threadId, null, true)) {
+                $form->setError('oneTimeDelivery', '|*' . $error);
+            }
+        }
+
         if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
             $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от|* 1|*!");
         }
@@ -829,7 +837,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 $mvc->filterListFilterByOption($filter->type, $data->query);
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
-                    $data->query->orderBy('activatedOn', 'DESC');
+                    // След подредба по createdOn второто поле не променя реда, а изключва индекса ѝ
+                    $firstOrder = reset($data->query->orderBy);
+                    if (!is_object($firstOrder) || ltrim($firstOrder->field ?? '', '#') != 'createdOn') {
+                        $data->query->orderBy('activatedOn', 'DESC');
+                    }
                     arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активиран'), null, 'createdBy');
                 }
             }
