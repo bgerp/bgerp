@@ -558,6 +558,14 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        // Еднократна доставка не може да се включи, ако вече има няколко доставки
+        if (!empty($rec->id) && ($rec->oneTimeDelivery ?? null) == 'yes') {
+            $threadId = $rec->threadId ?? $mvc->fetchField($rec->id, 'threadId', false);
+            if ($error = deals_Helper::getSingleDeliveryError($threadId, null, true)) {
+                $form->setError('oneTimeDelivery', '|*' . $error);
+            }
+        }
+
         if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
             $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от|* 1|*!");
         }

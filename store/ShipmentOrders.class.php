@@ -557,18 +557,6 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
 
-        if (in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one') {
-
-            // Ако има финална доставка и ЕН не е коригираща - не може да се пускат нови
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if ($firstDoc->isInstanceOf('sales_Sales')) {
-                $ignoreContainerId = ($action != 'clonerec') ? ($rec->containerId ?? null) : null;
-                if (!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)) {
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
-
         // Обратна ЕН ако не е към документ да може да се създава от потребители с по-високи права
         if($action == 'add' && isset($rec->threadId)){
             $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));

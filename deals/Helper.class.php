@@ -3806,6 +3806,79 @@ abstract class deals_Helper
 
 
     /**
+     * Сделката, чиято еднократна доставка ограничава документа: СР - покупката, ЕН - продажбата
+     *
+     * @param int         $threadId      - ид на нишката
+     * @param string|null $deliveryClass - store_Receipts или store_ShipmentOrders; null - всеки
+     * @return core_ObjectReference|null - сделката или null, ако не се ограничава
+     */
+    public static function getSingleDeliveryDeal($threadId, $deliveryClass = null)
+    {
+        $deal = $threadId ? doc_Threads::getFirstDocument($threadId) : null;
+        if (!$deal) return null;
+
+        $isSale = $deal->isInstanceOf('sales_Sales');
+        if (!$isSale && !$deal->isInstanceOf('purchase_Purchases')) return null;
+
+        // Обратните документи (ЕН към покупка, СР към продажба) не се ограничават
+        if (isset($deliveryClass) && $isSale !== ($deliveryClass == 'store_ShipmentOrders')) return null;
+
+        return $deal;
+    }
+
+
+    /**
+     * Причина, поради която по сделката не може още доставка (или включване на еднократната)
+     *
+     * @param int         $threadId          - ид на нишката на сделката
+     * @param int|null    $ignoreContainerId - контейнер, който не се брои
+     * @param bool        $enabling          - проверка при включване на еднократната доставка
+     * @param string|null $deliveryClass     - store_Receipts или store_ShipmentOrders; null - всеки
+     * @return string|null                   - текст на причината или null, ако няма ограничение
+     */
+    public static function getSingleDeliveryError($threadId, $ignoreContainerId = null, $enabling = false, $deliveryClass = null)
+    {
+        $deal = self::getSingleDeliveryDeal($threadId, $deliveryClass);
+        if (!$deal) return null;
+        $isSale = $deal->isInstanceOf('sales_Sales');
+
+        $blockers = self::getSingleDeliveryBlockers($deal, $ignoreContainerId, false, $enabling);
+        if (!$blockers) return null;
+
+        $handles = array();
+        foreach ($blockers as $container) {
+            if (empty($container->docId)) continue;
+            $Doc = doc_Containers::getDocument($container);
+            if ($Doc->haveRightFor('single')) {
+                $handles[] = '#' . $Doc->getHandle();
+            }
+        }
+
+        if ($isSale) {
+            $message = $enabling ? tr('По продажба [#1#] вече има няколко експедиции. Еднократна експедиция не може да се включи.')
+                                 : tr('По продажба [#1#] е избрана еднократна експедиция.');
+            $docsMessage = tr('Документи по експедицията: [#1#].');
+            $hint = tr('За отделни експедиционни нареждания изберете "Не" в "Промяна → Доставка → Еднократно" на продажбата.');
+        } else {
+            $message = $enabling ? tr('По покупка [#1#] вече има няколко доставки. Еднократно получаване не може да се включи.')
+                                 : tr('По покупка [#1#] е избрано еднократно получаване.');
+            $docsMessage = tr('Документи по получаването: [#1#].');
+            $hint = tr('За отделни разписки изберете "Не" в "Промяна → Доставка → Еднократно" на покупката.');
+        }
+
+        $text = new ET($message, '#' . $deal->getHandle());
+        if (countR($handles)) {
+            $text->append(' ' . new ET($docsMessage, implode(', ', $handles)));
+        }
+        if (!$enabling) {
+            $text->append(' ' . $hint);
+        }
+
+        return $text->getContent();
+    }
+
+
+    /**
      * Сумира артикулите с техните количества в модела
      *
      * @param mixed $detail           - детайл
