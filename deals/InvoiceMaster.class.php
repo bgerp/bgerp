@@ -270,6 +270,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
+            $whereCnt = countR($data->query->where);
             if (!empty($rec->invType)) {
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
@@ -298,7 +299,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $data->query->in('contragentCountryId', $groupCountries);
             }
 
-            $data->query->orWhere("#state = 'rejected'");
+            // Оттеглените се добавят само към условие на филтъра - иначе orWhere() би разширил предходното условие (достъпа)
+            if (countR($data->query->where) > $whereCnt) {
+                $data->query->orWhere("#state = 'rejected'");
+            }
         }
 
         // След подредба по createdOn номерът не променя реда, а изключва индекса ѝ
