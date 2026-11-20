@@ -211,7 +211,9 @@ function sourceFilterList($class, $filter, &$form = null) {
     $form = new SourceFilterForm((object) $filter);
     $form->FLD('type', 'varchar');
     $form->FLD('selectPeriod', 'varchar');
+    $form->FLD('filterDateField', 'varchar');
     $form->FLD('productId', 'int');
+    $form->FNC('search', 'varchar');
     if ($class == 'planning_Jobs') {
         $form->FLD('saleId', 'key', 'input=hidden');
         $form->FLD('purchaseId', 'key', 'input=hidden');
@@ -262,7 +264,7 @@ foreach (array('sales_Sales' => 'saleId', 'purchase_Purchases' => 'purchaseId') 
     sourceFilterCheck(planning_Jobs::getListSourceOptions($params, null, '', array()) === array(), $field . ': празно сечение');
 
     $jobIds = $field == 'saleId' ? array(11, 16) : array(21, 26);
-    $filter = array($field => 1, 'state' => 'all', 'isFinalSelect' => 'all');
+    $filter = array($field => 1, 'view' => 'all', 'state' => 'all', 'isFinalSelect' => 'all');
     $jobs = sourceFilterList('planning_Jobs', $filter);
     sourceFilterCheck(array_keys($jobs->fetchAll()) === $jobIds, $field . ': заданията са само по избрания договор');
     $tasks = sourceFilterList('planning_Tasks', $filter);
@@ -385,4 +387,30 @@ foreach (array(
     $expectedIds = array_slice(array(1000, 1001, 1002), 0, count($expectedStates));
     sourceFilterCheck(array_keys($query->fetchAll()) === $expectedIds, $state . ': комбинира се с филтрите за операция, вид и продажба');
 }
+
+Request::$values = Mode::$values = core_Settings::$values = array();
+SourceFilterFixture::$rows['planning_Jobs'] = array();
+foreach (array('draft', 'pending', 'active', 'waiting', 'wakeup', 'stopped', 'closed', 'rejected', 'template') as $index => $state) {
+    foreach (array(array(1, 'manifacture'), array(2, 'manifacture'), array(1, 'disassembly')) as $variant => $fields) {
+        $id = 2000 + $index + $variant * 100;
+        SourceFilterFixture::$rows['planning_Jobs'][$id] = (object) array(
+            'id' => $id, 'state' => $state, 'saleId' => $fields[0], 'type' => $fields[1],
+        );
+    }
+}
+$jobsForm = null;
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture'), $jobsForm);
+sourceFilterCheck(($jobsForm->getField('view')->caption ?? null) === 'Състояние', 'Задания: полето Изглед е преименувано на Състояние');
+sourceFilterCheck(($jobsForm->getField('view')->formOrder ?? PHP_INT_MAX) < ($jobsForm->getField('search')->formOrder ?? 1), 'Задания: Състояние се подрежда преди Търсене');
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'activeAndWakeupAndStopped', 'Задания: комбинираното състояние е изборът по подразбиране');
+sourceFilterCheck(($jobsForm->getFieldType('view')->params['activeAndWakeupAndStopped'] ?? null) === 'Активни+Събудени+Спрени', 'Задания: комбинираната опция е налична с правилния надпис');
+sourceFilterCheck(array_values(arr::extractValuesFromArray($query->fetchAll(), 'state')) === array('active', 'wakeup', 'stopped'), 'Задания: по подразбиране се показват точно активни, събудени и спрени');
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture', 'view' => 'activeAndWakeupAndStopped', 'saleId' => 1));
+sourceFilterCheck(array_keys($query->fetchAll()) === array(2002, 2004, 2005), 'Задания: комбинираното състояние се прилага заедно с вида и продажбата');
+$query = sourceFilterList('planning_Jobs', array('type' => 'disassembly', 'saleId' => 1));
+sourceFilterCheck(array_keys($query->fetchAll()) === array(2202, 2204, 2205), 'Задания: комбинираното състояние е по подразбиране и за разпада');
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture', 'view' => 'all'), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'all' && count($query->fetchAll()) === 18, 'Задания: изрично избраното Всички има предимство пред дефолта');
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture', 'view' => 'active'));
+sourceFilterCheck(array_keys($query->fetchAll()) === array(2002, 2102), 'Задания: единичното състояние продължава да филтрира самостоятелно');
 echo $checks . ' проверки преминаха успешно.' . PHP_EOL;
