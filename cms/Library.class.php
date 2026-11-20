@@ -100,7 +100,7 @@ class cms_Library extends embed_Manager
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
 
         $this->FLD('accessClassId', 'class', 'caption=Източник->Модел,input=none,column=none,single=none');
-        $this->FLD('accessObjectId', 'int(min=1)', 'caption=Източник->Обект,input=none,column=none,single=none,oldFieldName=sourceDialogId');
+        $this->FLD('accessObjectId', 'int(min=1)', 'caption=Източник->Обект,input=none,column=none,single=none');
 
         $this->setDbUnique('name');
         $this->setDbIndex('accessClassId,accessObjectId');
@@ -221,7 +221,7 @@ class cms_Library extends embed_Manager
     }
 
 
-    /** Полетата за единичен файл пазят handle, а за няколко файла — keylist от id. */
+    /** Полетата за единичен файл пазят handle, а за няколко файла - keylist от id. */
     private static function getDriverFileErrors($rec, $userId = null, $checkBuckets = false)
     {
         $driver = $rec ? self::getDriver($rec) : null;

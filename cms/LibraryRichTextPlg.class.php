@@ -65,7 +65,7 @@ class cms_LibraryRichTextPlg extends core_Plugin
             // Дори при споделен кеш тук остава само адресът. Проверката е при всяко зареждане.
             $tpl = ht::createElement('iframe', array(
                 'src' => toUrl(array('cms_Library', 'embedded', 'elm' => $title)),
-                'title' => 'Мултимедиен обект',
+                'title' => tr('Мултимедиен обект||Multimedia object'),
                 'style' => 'display:block;width:100%;max-width:700px;height:340px;border:0',
                 'allowfullscreen' => 'allowfullscreen',
             ), '');

@@ -6,7 +6,7 @@
  *
  * @category  bgerp
  * @package   mejs
- * @author    Mustafov1 <mmustafov3@icloud.com>
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
