@@ -21,8 +21,18 @@ class FixtureQuery {
     private $rows;
     private $index = 0;
     public function __construct($rows) { $this->rows = $rows; }
-    public function in($field, $values) {}
-    public function where($condition) {}
+    public function in($field, $values) {
+        $this->rows = array_filter($this->rows, function ($row) use ($field, $values) {
+            return in_array($row->{$field} ?? null, $values);
+        });
+    }
+    public function where($condition) {
+        if ($condition === "#state IN ('active', 'stopped', 'wakeup', 'pending')") {
+            $this->rows = array_filter($this->rows, function ($row) {
+                return in_array($row->state, array('active', 'stopped', 'wakeup', 'pending'));
+            });
+        }
+    }
     public function show($fields) {}
     public function EXT($name, $class, $params) {}
     public function groupBy($field) {}
@@ -125,6 +135,7 @@ function expect($condition, ...$values) { if (!$condition) throw new RuntimeExce
 function getRetUrl() { return array(); }
 function toUrl($url) { return '/'; }
 require dirname(__DIR__, 2) . '/core/Intervals.class.php';
+require dirname(__DIR__) . '/TaskOrder.class.php';
 require dirname(__DIR__) . '/TargetTimes.class.php';
 require dirname(__DIR__) . '/TargetTimeApproval.class.php';
 require dirname(__DIR__) . '/TaskManualOrderPerAssets.class.php';
@@ -329,6 +340,18 @@ planning_Tasks::$records[1]->state = 'closed';
 planning_Tasks::$records[1]->timeClosed = '2026-10-08 11:00:00';
 planning_TargetTimes::addJobPredecessors($tasks, $previous);
 check($tasks[2]->_targetReadyAfter == '2026-10-08 13:00:00', 'Closed predecessor uses actual end and technological wait');
+
+// В прегледа точните начала използват същия ред, който ще бъде записан при създаване.
+$virtual = task(-1, 3600, '2026-10-08 08:00:00');
+$virtual->originId = 1;
+$virtual->_previewJobOrder = array(-1 => 0, 1 => 1, 2 => 2);
+$tasks = array(-1 => $virtual, 2 => clone $pin);
+$tasks[2]->saoOrder = 3;
+$previous = array();
+planning_TargetTimes::addJobPredecessors($tasks, $previous);
+check(empty($tasks[-1]->_targetReadyAfter) && empty($previous[-1]), 'A closed row shifted behind the new first operation cannot block its target');
+check(isset($previous[2][-1]), 'An existing pinned successor sees the unsaved operation in the projected order');
+check(planning_Tasks::$records[1]->saoOrder == 1, 'Projecting closed neighbors does not change the stored order');
 
 // Пробният час не е проверено предложение и остава само във входа за търсене.
 $diagnostic = array('requested' => '2026-11-12 09:00:00',
