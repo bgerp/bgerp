@@ -239,6 +239,12 @@
                <td>[#inputCardBtn#]</td>
             </tr>
             <!--ET_END inputCardBtn-->
+            <!--ET_BEGIN orderFailureText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Съобщение за грешка|*:</td>
+               <td>[#orderFailureText#]</td>
+            </tr>
+            <!--ET_END orderFailureText-->
             <!--ET_BEGIN locationIsMandatory-->
             <tr>
                <td class="title-style" style='width:150px'>|Локация на партньор|*:</td>
