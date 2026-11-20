@@ -1545,30 +1545,36 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterCreate($mvc, &$rec)
     {
+        $originId = $rec->originId ?? null;
+        $isClone = ($rec->_isClone ?? false) === true;
+        $originRec = isset($originId) && !$isClone ? doc_Containers::getDocument($originId)->fetch() : null;
+        $defaultTasks = $originRec && isset($rec->systemId) ? cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity ?? 1) : array();
+        $defaultTask = $defaultTasks[$rec->systemId ?? ''] ?? null;
+        if (isset($originId)) {
+            if (!empty($defaultTask->_dId) && ($defaultTask->productId ?? null) == ($rec->productId ?? null)) {
+                $mvc->insertTaskInRecipeOrder($rec, $defaultTasks);
+            } else {
+                $mvc->reorderTasksByJobIds[$originId] = $originId;
+                $mvc->setLastInJobQueue($rec);
+            }
+        }
+
         if (!empty($rec->assetId) && in_array($rec->state ?? null, array('active', 'pending', 'wakeup', 'stopped'))) {
             $mvc->requestAssetOptimization($rec->assetId);
         }
-        $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
-        $mvc->setLastInJobQueue($rec);
 
         // Ако записа е създаден с клониране не се прави нищо
-        if (($rec->_isClone ?? false) === true) return;
+        if ($isClone) return;
 
         $saveProducts = array();
-        if (isset($rec->originId)) {
-            $originDoc = doc_Containers::getDocument($rec->originId);
-            $originRec = $originDoc->fetch();
-
+        if ($originRec) {
             // Ако е по източник
             if (isset($rec->systemId)) {
-                $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
-                if (isset($tasks[$rec->systemId])) {
-                    $def = $tasks[$rec->systemId];
-
+                if (isset($defaultTask)) {
                     // Намираме на коя дефолтна операция отговаря и се извличат продуктите от нея
                     foreach (array('production' => 'production', 'input' => 'input', 'waste' => 'waste') as $var => $type) {
-                        if (is_array($def->products[$var] ?? null)) {
-                            foreach ($def->products[$var] as $p) {
+                        if (is_array($defaultTask->products[$var] ?? null)) {
+                            foreach ($defaultTask->products[$var] as $p) {
                                 $p = (object)$p;
                                 $nRec = new stdClass();
                                 $nRec->taskId = $rec->id;
@@ -3386,8 +3392,8 @@ JS
             }
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
-            $selected = Request::get('selected', 'varchar');
-            $selectedArr = empty($selected) ? array() : explode('|', $selected);
+            $selected = Request::get('selected', 'varchar') ?? '';
+            $selectedArr = $selected === '' ? array() : explode('|', $selected);
             if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции
@@ -5993,6 +5999,63 @@ JS
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Вмъква операция до най-близкия създаден етап от рецептата.
+     */
+    private function insertTaskInRecipeOrder($rec, $defaultTasks)
+    {
+        $taskId = $rec->id ?? null;
+        $originId = $rec->originId ?? null;
+        $systemId = $rec->systemId ?? null;
+        $recipePositions = array_flip(array_keys($defaultTasks));
+        expect(isset($taskId, $originId, $systemId, $recipePositions[$systemId]));
+        $recipePosition = $recipePositions[$systemId];
+
+        $lockKey = "planning_RecipeTaskOrder_{$originId}";
+        expect(core_Locks::obtain($lockKey));
+        try {
+            $query = $this->getQuery();
+            $query->where(array("#originId = '[#1#]' AND #id != '[#2#]' AND #state != 'rejected'", $originId, $taskId));
+            $query->orderBy('saoOrder,id', 'ASC');
+            $query->show('id,saoOrder,systemId,productId');
+            $jobTasks = array_values($query->fetchAll());
+            $previousPosition = -1;
+            $nextPosition = count($recipePositions);
+            $insertAfter = $insertBefore = null;
+
+            foreach ($jobTasks as $offset => $task) {
+                $taskSystemId = $task->systemId ?? null;
+                $template = $defaultTasks[$taskSystemId] ?? null;
+                if (!isset($taskSystemId) || empty($template->_dId) || ($template->productId ?? null) != ($task->productId ?? null)) continue;
+
+                $candidatePosition = $recipePositions[$taskSystemId];
+                if ($candidatePosition < $recipePosition && $candidatePosition >= $previousPosition) {
+                    $previousPosition = $candidatePosition;
+                    $insertAfter = $offset + 1;
+                } elseif ($candidatePosition > $recipePosition && $candidatePosition < $nextPosition) {
+                    $nextPosition = $candidatePosition;
+                    $insertBefore = $offset;
+                }
+            }
+
+            $insertAt = $insertAfter ?? $insertBefore ?? count($jobTasks);
+            array_splice($jobTasks, $insertAt, 0, array($rec));
+            $updates = array();
+            foreach ($jobTasks as $offset => $task) {
+                $order = $offset + 1;
+                if (($task->saoOrder ?? null) != $order) {
+                    $updates[] = (object)array('id' => $task->id ?? null, 'saoOrder' => $order);
+                }
+            }
+
+            expect($this->saveArray($updates, 'id,saoOrder'));
+            $rec->saoOrder = $insertAt + 1;
+        } finally {
+            core_Locks::release($lockKey);
+        }
     }
 
 

@@ -37,7 +37,7 @@ class eshopn18_plg_CardPayments extends core_Plugin
         }
 
         $caption = tr('Документ за регистриране на продажбата') . ' №' . eshopn18_SaleRegDocs::formatNumber($docRec->number);
-        $tpl->append(ht::createLink($caption, eshopn18_SaleRegDocs::getPublicUrl($docRec), false, array('ef_icon' => 'img/16/page_white_text.png', 'target' => '_blank')), 'LINKS');
+        $tpl->append(ht::createLink($caption, eshopn18_SaleRegDocs::getPublicUrl($docRec), false, array('target' => '_blank')), 'LINKS');
     }
 
 

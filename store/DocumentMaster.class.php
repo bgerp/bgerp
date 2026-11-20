@@ -170,6 +170,69 @@ abstract class store_DocumentMaster extends core_Master
             $requiredRoles = 'no_one';
         }
     }
+
+
+    /**
+     * Причината, ако еднократната доставка по сделката вече е изчерпана от друг документ.
+     * Бутоните не се крият, за да види потребителят защо действието не може.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec - документът (threadId, containerId)
+     * @return string|null
+     */
+    protected static function getSingleDeliveryErrorFor($mvc, $rec)
+    {
+        if (empty($rec->threadId)) return null;
+
+        return deals_Helper::getSingleDeliveryError($rec->threadId, $rec->containerId ?? null, false, $mvc->className);
+    }
+
+
+    /**
+     * Преди нова СР/ЕН: пренасочване с причината, ако доставката вече е изчерпана
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+        if (strtolower($action) != 'add') return;
+
+        $threadId = Request::get('threadId', 'int');
+        if (empty($threadId) && ($originId = Request::get('originId', 'int'))) {
+            $threadId = doc_Containers::fetchField($originId, 'threadId');
+        }
+
+        if ($error = self::getSingleDeliveryErrorFor($mvc, (object) array('threadId' => $threadId))) {
+            $res = new Redirect(getRetUrl() ?: array('doc_Containers', 'list', 'threadId' => $threadId), $error, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Преди контиране: еднократна доставка, която вече е изчерпана от друг документ
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        if ($error = self::getSingleDeliveryErrorFor($mvc, $mvc->fetchRec($id))) {
+            core_Statuses::newStatus($error, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Преди възстановяване: еднократна доставка, която вече е изчерпана от друг документ
+     */
+    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (($rec->state ?? null) == 'rejected' && ($error = self::getSingleDeliveryErrorFor($mvc, $rec))) {
+            core_Statuses::newStatus($error, 'error');
+
+            return false;
+        }
+    }
     
     
     /**
@@ -902,6 +965,27 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
+        // Нов документ (и паралелен запис): контейнерът вече е създаден от doc_DocumentPlg,
+        // затова от два едновременни записа поне единият вижда другия и не минават и двата.
+        if (empty($rec->id) && ($rec->state ?? null) != 'rejected' && !empty($rec->threadId)) {
+            if ($error = deals_Helper::getSingleDeliveryError($rec->threadId, $rec->containerId ?? null, false, $mvc->className)) {
+                if (!empty($rec->containerId) && !doc_Containers::fetchField($rec->containerId, 'docId', false)) {
+                    doc_Containers::delete($rec->containerId);
+                }
+                redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId), false, $error, 'error');
+            }
+        }
+
+        // "Заявка" от чернова: остава чернова, а редакциите от формата се записват
+        if (!empty($rec->id) && ($rec->state ?? null) == 'pending') {
+            $oldRec = $mvc->fetch($rec->id, 'state,threadId,containerId', false);
+            if (($oldRec->state ?? null) == 'draft' && ($error = self::getSingleDeliveryErrorFor($mvc, $oldRec))) {
+                $rec->state = 'draft';
+                $rec->pendingSaved = false;
+                core_Statuses::newStatus($error, 'error');
+            }
+        }
+
         if (empty($rec->originId)) {
             $rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
         }

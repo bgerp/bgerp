@@ -336,8 +336,9 @@ class eshopn18_SaleRegDocs extends core_Master
             }
 
             if (!empty($discountTotal)) {
-                $tpl->replace($Double->toVerbal($grossTotal), 'grossTotal');
-                $tpl->replace($Double->toVerbal($discountTotal), 'discountTotal');
+                $currency = ' ' . ($row->currencyId ?? '');
+                $tpl->replace($Double->toVerbal($grossTotal) . $currency, 'grossTotal');
+                $tpl->replace($Double->toVerbal($discountTotal) . $currency, 'discountTotal');
             }
             $tpl->push('eshopn18/tpl/SaleRegDoc.css', 'CSS');
         } finally {

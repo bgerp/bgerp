@@ -438,6 +438,24 @@ class eshop_Setup extends core_ProtoSetup
 
 
     /**
+     * Документ, създаден от партньор във външната част, получава таговете на онлайн магазина
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function addPartnerDocumentTags($rec)
+    {
+        $createdBy = $rec->createdBy ?? null;
+        if (empty($createdBy) || !core_Packs::isInstalled('eshop') || !core_Users::isContractor($createdBy)) {
+            return;
+        }
+
+        self::addDocumentTags($rec->containerId ?? null);
+        doc_Threads::doUpdateThread($rec->threadId ?? null);
+    }
+
+
+    /**
      * Поставя на документа таговете от настройките на онлайн магазина
      *
      * @param int $containerId

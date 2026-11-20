@@ -478,6 +478,11 @@ class sales_Sales extends deals_DealMaster
                     $defaultBankAccountId = $lastSelectedBankAccountId;
                 }
             }
+
+            // Последно избраната може да е на друга "Наша фирма"
+            if (!empty($defaultBankAccountId) && !array_key_exists($defaultBankAccountId, $options)) {
+                $defaultBankAccountId = null;
+            }
         }
 
         if(!array_key_exists($rec->bankAccountId ?? null, $options)){
@@ -580,7 +585,7 @@ class sales_Sales extends deals_DealMaster
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 if (!empty($cData->countryId)) {
                     $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
-                    if ($defBankId) {
+                    if ($defBankId && array_key_exists($defBankId, $options)) {
                         $form->setDefault('bankAccountId', $defBankId);
                     }
                 }
@@ -2477,6 +2482,15 @@ class sales_Sales extends deals_DealMaster
     public static function canAddDocumentToOriginAsLink_($rec)
     {
         return true;
+    }
+
+
+    /**
+     * Продажба, създадена от партньор в споделената му папка, получава таговете на е-магазина
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        eshop_Setup::addPartnerDocumentTags($rec);
     }
 
 

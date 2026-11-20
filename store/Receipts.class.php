@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -395,18 +395,6 @@ class store_Receipts extends store_DocumentMaster
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
-
-            // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if($firstDoc->isInstanceOf('purchase_Purchases')){
-                $ignoreContainerId =  ($action != 'clonerec') ? ($rec->containerId ?? null) : null;
-                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
-
         // Обратна СР ако не е към документ да може да се създава от потребители с по-високи права
         if($action == 'add' && isset($rec->threadId)){
             $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));
