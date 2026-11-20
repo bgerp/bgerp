@@ -15,14 +15,21 @@ body.commerce-theme .commerce-account-bar a {
     display: inline-flex;
     align-items: center;
     min-height: 2.5em;
-    padding: 0 0.4em 0 1.6em;
-    background-position: left center;
+    padding: 0 0.65em 0 2em;
+    background-position: 0.4em center;
     color: var(--c-accent-deep);
     text-decoration: none;
     border-radius: 0.4em;
 }
 body.commerce-theme .commerce-account-bar a:hover { color: var(--c-accent); text-decoration: underline; }
-body.commerce-theme .commerce-account-bar a.selected-external-tab { border: 0; box-shadow: none; }
+body.commerce-theme .commerce-account-bar a.selected-external-tab {
+    border: 0 !important;
+    background-color: var(--c-accent-soft-2);
+    color: var(--c-accent-deep);
+    box-shadow: inset 0 0 0 1px var(--c-line-strong);
+    font-weight: 600;
+    text-decoration: none;
+}
 body.commerce-theme .commerce-account-bar a:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 body.commerce-theme .contractorExtHolder { padding: 1em 0; min-width: 0; font-family: Arial, Helvetica, sans-serif; }
 body.commerce-theme .contractorExtHolder > .foldertabs { padding: 0; max-width: 100%; }
@@ -91,9 +98,9 @@ body.commerce-theme .contractorExtHolder .colab_Folders .listTable .state-opened
 body.commerce-theme .contractorExtHolder .folderListTitle a { color: var(--c-accent); font-weight: 600; }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button) {
     display: inline-flex; align-items: center; box-sizing: border-box;
-    height: auto; min-height: 2.75rem; padding: 0.55em 1em;
+    height: auto; min-height: 1.875rem; padding: 0.25rem 0.6rem;
     border: 1px solid var(--c-line-strong); border-radius: 0.5em !important;
-    background-color: #fff; color: var(--c-accent); font: inherit; font-weight: 600;
+    background-color: #fff; color: var(--c-accent); font: 0.875rem/1.25 Arial, Helvetica, sans-serif; font-weight: 600;
     text-shadow: none; box-shadow: none; text-decoration: none;
 }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button).linkWithIcon {
