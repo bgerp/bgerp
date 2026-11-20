@@ -408,12 +408,14 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Изборите, направени от името на потребителя (напр. от Аида), не се запомнят като негови
             $saveChoices = !Mode::is('preserveUserChoices');
 
-            // Записваме в кеша последно избраните потребители
-            if ($saveChoices && $data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
+            // Избраните потребители важат винаги, а в кеша се записват само собствените избори
+            if ($data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
-                core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
+                if ($saveChoices) {
+                    core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
+                }
             }
             
             if ($saveChoices && ($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
