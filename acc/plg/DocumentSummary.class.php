@@ -582,6 +582,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Ще се преброяват всички неоттеглени документи
         core_Debug::startTimer('RENDER_SUMMARY');
         $sQuery = clone $data->listSummary->query;
+        if ($sQuery->addId) {
+            plg_Search::includeId($sQuery);
+        }
         $sQuery->where("#state != 'rejected' OR #state IS NULL");
 
         // Сумирането не зависи от подредбата, а сортирането на всички документи е скъпо
@@ -604,7 +607,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->hasDocumentBeforeEu = false;
 
         // Базата връща готови суми по валутен период, вместо всички документи да се обхождат тук
-        $groups = self::fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate);
+        $groups = self::fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate, $baseCurrency);
         if (is_array($groups)) {
             foreach ($groups as $group) {
                 $totalCount += $group->count;
@@ -614,7 +617,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if ($group->beforeEu) {
                     $data->hasDocumentBeforeEu = true;
                 }
-                self::prepareSummary($mvc, $fieldsArr, $group->rec, $data->listSummary->summary, $baseCurrency);
+                self::prepareSummary($mvc, $fieldsArr, $group->rec, $data->listSummary->summary, $baseCurrency, true);
             }
         } else {
             while ($rec = $sQuery->fetch()) {
@@ -653,16 +656,17 @@ class acc_plg_DocumentSummary extends core_Plugin
      * Сумира документите от обобщението в базата - по един ред за периода на всяка основна валута
      *
      * Заявката на обобщението влиза непроменена като подзаявка, затова участват точно документите,
-     * които обхождането би прочело. Сумата на период се преизчислява наведнъж, а не документ по документ.
+     * които обхождането би прочело. Валутното закръгляване се прави преди сумирането.
      *
      * @param core_Mvc   $mvc          - класа към който е прикачен плъгина
      * @param core_Query $sQuery       - заявката за обобщението
      * @param array      $fieldsArr    - полетата с атрибут "summary"
      * @param string     $eurozoneDate - от коя дата основната валута е новата
+     * @param string     $baseCurrency - валутата на обобщението
      *
      * @return array|null - групи с броячи и запис със сумите; null, ако документите трябва да се обходят един по един
      */
-    private static function fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate)
+    private static function fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate, $baseCurrency)
     {
         if (!empty($mvc->amountIsInNotInBaseCurrency) || $sQuery->hasExecuted() || self::hasSummaryRecHandlers($mvc, $sQuery->mvc)) {
 
@@ -693,7 +697,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $numRows = null;
         if ($sQuery->mvc->invoke('BeforeSelect', array(&$numRows, &$sQuery)) === false) {
 
-            return null;
+            return array();
         }
         $iQuery = clone $sQuery;
         $iQuery->show(implode(',', $columns));
@@ -709,6 +713,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             "SUM(`state` IN ('active', 'closed')) AS `dsActive`",
         );
         $groupBy = '';
+        $conversion = null;
         if ($valiorFld) {
             // Датата, по която се определя валутата на документа - както в prepareSummary()
             $date = 'COALESCE(' . $quote($valiorFld) . ", DATE(`createdOn`), DATE('" . dt::today() . "'))";
@@ -718,11 +723,32 @@ class acc_plg_DocumentSummary extends core_Plugin
             $select[] = "MAX({$date}) AS `dsMaxDate`";
             $select[] = 'MAX(' . $quote($valiorFld) . " < {$border}) AS `dsBeforeEu`";
             $groupBy = ' GROUP BY `dsOldCurrency`';
+
+            $todayBeforeEu = dt::today() < $eurozoneDate;
+            $otherDate = $todayBeforeEu ? $eurozoneDate : dt::addDays(-1, $eurozoneDate, false);
+            $otherCurrency = acc_Periods::getBaseCurrencyCode($otherDate);
+            if ($otherCurrency != $baseCurrency && in_array('amount', array_column($fieldsArr, 'summary'), true)) {
+                $when = $date . ($todayBeforeEu ? ' >= ' : ' < ') . $border;
+                // Същите правила като deals_Helper::getSmartBaseCurrency() за всеки документ.
+                if ($otherCurrency == 'BGN' && $baseCurrency == 'EUR') {
+                    $conversion = 'ROUND(CAST(%s AS DECIMAL(40,16)) / 1.95583, 6)';
+                } elseif ($otherCurrency == 'EUR' && $baseCurrency == 'BGN') {
+                    $conversion = 'ROUND(CAST(%s AS DECIMAL(40,16)) * 1.95583, 5)';
+                } else {
+                    $conversion = '%s * ' . sprintf('%.17F', currency_CurrencyRates::convertAmount(1, null, $otherCurrency, $baseCurrency));
+                }
+            }
         }
         $sumNames = array();
         foreach ($fieldsArr as $fld) {
-            $sumNames[$fld->name] = 'dsSum' . countR($sumNames);
-            $select[] = 'SUM(' . $quote($fld->name) . ') AS `' . $sumNames[$fld->name] . '`';
+            $name = $fld->name;
+            $sumNames[$name] = 'dsSum' . countR($sumNames);
+            $column = $quote($name);
+            if ($conversion !== null && ($fld->summary ?? null) == 'amount') {
+                $converted = sprintf($conversion, $column);
+                $column = "CASE WHEN {$when} AND ABS({$column}) >= 0.000005 THEN {$converted} ELSE {$column} END";
+            }
+            $select[] = 'SUM(' . $column . ') AS `' . $sumNames[$name] . '`';
         }
         $sql = 'SELECT ' . implode(', ', $select) . ' FROM (' . $iQuery->buildQuery() . ') AS `dsRows`' . $groupBy;
 
@@ -754,16 +780,16 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $groups = array();
         foreach ($rows as $row) {
-            if (!(int) $row->dsCount) continue;
+            if (empty($row->dsCount)) continue;
 
             $rec = new stdClass();
             if ($valiorFld) {
-                // Сумата се преизчислява наведнъж само ако всички документи в групата са в една валута
-                if (acc_Periods::getBaseCurrencyCode($row->dsMinDate) != acc_Periods::getBaseCurrencyCode($row->dsMaxDate)) {
+                $expectedCurrency = (!empty($row->dsOldCurrency) == $todayBeforeEu) ? $baseCurrency : $otherCurrency;
+                if (acc_Periods::getBaseCurrencyCode($row->dsMinDate ?? null) != $expectedCurrency ||
+                    acc_Periods::getBaseCurrencyCode($row->dsMaxDate ?? null) != $expectedCurrency) {
 
                     return null;
                 }
-                $rec->{$valiorFld} = $row->dsMinDate;
             }
             foreach ($sumNames as $name => $alias) {
                 $rec->{$name} = $row->{$alias};
@@ -900,8 +926,9 @@ class acc_plg_DocumentSummary extends core_Plugin
      * @param stdClass $rec          - Запис от модела
      * @param array    $res          - Масив в който ще върнем резултатите
      * @param string   $currencyCode - основната валута за периода
+     * @param bool     $inBaseCurrency - сумите вече са превалутирани
      */
-    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
+    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode, $inBaseCurrency = false)
     {
         if (countR($fieldsArr) == 0) return;
 
@@ -922,7 +949,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                         }
                     }
 
-                    if(isset($mvc->valiorFld)){
+                    if(!$inBaseCurrency && isset($mvc->valiorFld)){
                         if($mvc->amountIsInNotInBaseCurrency){
                             $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                         } else {
