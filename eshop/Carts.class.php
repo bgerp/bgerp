@@ -804,6 +804,7 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
 
         try{
+            $settings = cms_Domains::getSettings($rec->domainId ?? null);
             $saleRec = self::forceSale($rec);
         } catch(core_exception_Expect $e){
             reportException($e);
@@ -814,7 +815,10 @@ class eshop_Carts extends core_Master
 
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
-            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            $errorMs = trim($settings->orderFailureText ?? '');
+            // Статусите интерпретират HTML и "|" като разделител за превод.
+            $errorMs = $errorMs === '' ? '|' . eshop_Settings::DEFAULT_ORDER_FAILURE_TEXT
+                : nl2br(str_replace('|', '&#124;', htmlspecialchars($errorMs, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));
             
             if(countR($retUrl)){
                 

@@ -457,6 +457,35 @@ class plg_Search extends core_Plugin
 
 
     /**
+     * Включва точния номер в търсенето по думи, като запазва отделните филтри на списъка.
+     */
+    public static function includeId($query, $orderFirst = false)
+    {
+        $id = filter_var($query->addId, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+        if (!$id) return;
+
+        $table = $query->mvc->dbTableName;
+        foreach ($query->where as $i => $condition) {
+            if (!isset($query->searchConditions[$condition])) continue;
+
+            $withId = "({$condition}) OR (#id = {$id})";
+            // MATCH OR id изключва FULLTEXT индекса. При търсене по PRIMARY наборът вече е ограничен.
+            if (empty($query->indexes[$table]['PRIMARY']) && preg_match('/^MATCH\(#(\w+)\) AGAINST\(/i', $condition, $m)
+                && ($query->fields[$m[1]]->kind ?? null) === 'FLD' && ($query->fields['id']->kind ?? null) === 'FLD') {
+                $withId = "#id IN (SELECT hits.id FROM (SELECT id FROM `{$table}` WHERE {$condition} UNION ALL SELECT {$id}) AS hits)";
+            }
+            $query->where[$i] = $withId;
+            $query->searchConditions[$condition] = $withId;
+        }
+
+        if ($orderFirst) {
+            $query->XPR('searchIdMatch', 'int', "#id = {$id}");
+            $query->orderBy('searchIdMatch', 'DESC', PHP_INT_MAX);
+        }
+    }
+
+
+    /**
      * Evaluate text using primary-key lookups within a small, complete set of documents.
      * Returns false without changing the query when its scope is too large or unsupported.
      */
@@ -492,7 +521,7 @@ class plg_Search extends core_Plugin
         }
         $probe->getShowFields();
 
-        $probe->where = array_values(array_diff($probe->where, array_keys($query->searchConditions)));
+        $probe->where = array_values(array_diff($probe->where, $query->searchConditions));
         $probe->show = $probe->exprShow = $probe->orderBy = $probe->groupBy = array();
         $probe->start = null;
         $probe->limit = $limit + 1;

@@ -63,8 +63,15 @@ class core_Pager extends core_BaseClass
      *
      */
     public $approx;
-    
-    
+
+
+    /**
+     * Без COUNT(*) на цялата селекция при simplePaging (без useCacheForPager): itemsCount остава PHP_INT_MAX,
+     * страницата не се ограничава до последната и извикващият разпознава края по празната страница
+     */
+    public $skipItemsCount = false;
+
+
     /**
      * На колко страници отстояние от първата и последната да оставя по една междинна
      */
@@ -232,7 +239,7 @@ class core_Pager extends core_BaseClass
     protected static function getKnownCount($query)
     {
         $known = $query->knownCount ?? null;
-        if (!is_object($known) || !empty($query->addId)) {
+        if (!is_object($known)) {
 
             return null;
         }
@@ -278,6 +285,10 @@ class core_Pager extends core_BaseClass
             }
         }
         
+        if ($query->addId) {
+            plg_Search::includeId($query, true);
+        }
+
         // Приоритетна заявка
         $query->highPriority = true;
         
@@ -298,7 +309,7 @@ class core_Pager extends core_BaseClass
             if ($knownCnt === null) {
                 $query->addOption('SQL_CALC_FOUND_ROWS');
             }
-        } else {
+        } elseif ($useCache || !$this->skipItemsCount) {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
             if ($resCntCache !== false) {
                 $this->itemsCount = $resCntCache;
@@ -326,13 +337,7 @@ class core_Pager extends core_BaseClass
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
 
-        // Проверява се преди заявката за id-тата, за да не измести нейния FOUND_ROWS()
-        $addIdAllowed = self::isAddIdAllowed($qWork);
-
         $ids = array();
-        if($addIdAllowed && $query->start == 0) {
-            $ids[] = $query->addId;
-        }
         while ($rec = $query->fetch()) {
             $ids[] = $rec->id;
         }
@@ -349,7 +354,7 @@ class core_Pager extends core_BaseClass
                     // Тази страница е след страниците с резултати
                     // Налага се да преброим резултатите и отново да извлечем последната страница
                     $resCnt = $qCnt->count();
-                    core_QueryCnts::set($q, $resCnt);
+                    core_QueryCnts::set($qCnt, $resCnt);
                     $this->itemsCount = $resCnt;
                     $this->calc();
                     $q->startFrom($this->rangeStart);
@@ -392,9 +397,6 @@ class core_Pager extends core_BaseClass
             };
             $cntArr = (!empty($qCnt->onReplica) && ($qCnt->mvc instanceof core_Manager)) ? $qCnt->mvc->callOnReplica($foundRows) : $foundRows();
             $resCnt = array_shift($cntArr);
-            if($addIdAllowed) {
-                $resCnt++;   
-            }
         }
         
         // До тук задължително трябва да сме изчислили колко резултата имаме
@@ -412,9 +414,6 @@ class core_Pager extends core_BaseClass
             $rQuery->limit($this->rangeEnd - $this->rangeStart);
             $rQuery->startFrom($this->rangeStart);
             $ids = array();  
-            if($addIdAllowed) {
-                $ids[] =$query->addId;  
-            }
             while ($rec = $rQuery->fetch()) {
                 $ids[] = $rec->id;
             }
@@ -427,11 +426,7 @@ class core_Pager extends core_BaseClass
             $ids = implode(',', $ids);
             $query->where("#id IN ({$ids})");
              
-            foreach ($query->where as $i => $cond) {
-                if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) {
-                    unset($query->where[$i]);
-                }
-            }
+            $query->where = array_values(array_diff($query->where, $query->searchConditions));
 
         } else {
             $this->calc();
@@ -449,34 +444,6 @@ class core_Pager extends core_BaseClass
     }
     
     
-    /**
-     * Дали записът, търсен по номер, минава условията на заявката без търсенето по думи
-     *
-     * Записът се добавя към резултатите, без да е върнат от заявката, затова достъпът
-     * и останалите филтри се проверяват отделно за него.
-     *
-     * @param core_Query $query
-     *
-     * @return bool
-     */
-    protected static function isAddIdAllowed($query)
-    {
-        if (empty($query->addId)) {
-
-            return false;
-        }
-
-        $aQuery = clone $query;
-        $aQuery->where = array_values(array_diff($aQuery->where, array_keys((array) ($aQuery->searchConditions ?? array()))));
-        $aQuery->where(array('#id = [#1#]', $aQuery->addId));
-        $aQuery->orderBy = array();
-        $aQuery->show('id');
-        $aQuery->limit(1);
-
-        return (bool) $aQuery->fetch();
-    }
-
-
     /**
      * Връща линкове за предишна и следваща страница, спрямо текущата
      */
