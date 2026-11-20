@@ -20,7 +20,7 @@ class mejs_Adapter
      *
      * @param mixed  $source   - Стринг или масив от файлове за плейване
      * @param array  $params   - Параметри
-     * @param string $fileType - Типа на сорса - handler, url, path
+     * @param string $fileType - Типа на сорса - handler, url, path или stream (адрес и MIME)
      *
      * @return core_Et $mTpl - Шаблон, който трябва да се добави към родителския шаблон
      */
@@ -51,7 +51,7 @@ class mejs_Adapter
      * @param mixed  $source   - Стринг или масив от файлове за плейване
      * @param string $type     - Типа на документа - video или audio
      * @param array  $params   - Параметри
-     * @param string $fileType - Типа на сорса - handler, url, path
+     * @param string $fileType - Типа на сорса - handler, url, path или stream (видео)
      *
      * @return core_Et $mTpl - Шаблон, който трябва да се добави към родителския шаблон
      */
@@ -61,7 +61,7 @@ class mejs_Adapter
         expect(($type == 'video' || $type == 'audio'));
         
         // Очакваме типа на файла да е в позволените
-        expect(in_array($fileType, array('url', 'path', 'handler')));
+        expect(in_array($fileType, array('url', 'path', 'handler')) || ($type === 'video' && $fileType === 'stream'));
         
         // Ако не е масив
         if (!is_array($source)) {
@@ -90,6 +90,12 @@ class mejs_Adapter
         
         // Обхождаме всички линкове
         foreach ($source as $src) {
+            // Динамичният адрес за защитен файл няма разширение за определяне на MIME.
+            if ($fileType === 'stream') {
+                if (empty($src['url']) || empty($src['type'])) continue;
+                $mTpl->append(ht::createElement('source', array('src' => $src['url'], 'type' => $src['type'])), 'SOURCE');
+                continue;
+            }
             
             // Вземаме URL' то за сваляне
             $src = fileman_Download::getDownloadUrl($src, 1, $fileType);
@@ -105,8 +111,8 @@ class mejs_Adapter
         $mTpl->replace($params['width'] ?? null, 'WIDTH');
         $mTpl->replace($params['height'] ?? null, 'HEIGHT');
         $mTpl->replace($type, 'TYPE');
-        if(!empty($params['title'])) {
-           $mTpl->replace($params['title'], 'MEDIA_TITLE');
+        if (!empty($params['title']) || ($fileType === 'stream' && ($params['title'] ?? null) === '0')) {
+            $mTpl->replace($params['title'], 'MEDIA_TITLE');
         }
 
         // Премахваме празните плейсхолдери

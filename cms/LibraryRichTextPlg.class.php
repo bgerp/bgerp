@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'cms_LibraryRichTextPlg' - замества [lib=#...] в type_Richtext
+ * Клас 'cms_LibraryRichTextPlg' - замества [elm=...] в type_Richtext
  *
  *
  * @category  bgerp
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,28 +47,29 @@ class cms_LibraryRichTextPlg extends core_Plugin
     {
         $title = $match['title'];
         
-        $dPos = strrpos($title, '-');
+        $elmRec = cms_Library::findEmbedded($title);
 
-        $tag = substr($title, $dPos+1);
-
-        $name = substr($title, 0, $dPos);
-
-        $elmRec = cms_Library::fetch(array("#name = '[#1#]' AND #tag = '[#2#]'", $name, $tag));
-        
         if (!$elmRec) {
             
             return $match[0];
         }
 
-        //Ако принтираме или пращаме документа
-        $absolute = false;
-        if ((Mode::is('text', 'xhtml')) || (Mode::is('text', 'plain'))) {
-
-            // Добавяме атрибута за да използваме абсолютни линкове
-            $absolute = true;
+        $absolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $interactive = !$absolute && !Mode::is('printing') && !Mode::is('pdf');
+        $chatMedia = $interactive && !empty($this->mvc->params['libraryMediaFrames']);
+        if (!cms_Library::hasAccessContext($elmRec) && !$chatMedia) {
+            $tpl = cms_Library::render(cms_Library::fetch($elmRec->id), 2400, $absolute);
+        } elseif (!$interactive) {
+            $tpl = '';
+        } else {
+            // Дори при споделен кеш тук остава само адресът. Проверката е при всяко зареждане.
+            $tpl = ht::createElement('iframe', array(
+                'src' => toUrl(array('cms_Library', 'embedded', 'elm' => $title)),
+                'title' => 'Мултимедиен обект',
+                'style' => 'display:block;width:100%;max-width:700px;height:340px;border:0',
+                'allowfullscreen' => 'allowfullscreen',
+            ), '');
         }
-
-        $tpl = cms_Library::render($elmRec, 2400, $absolute);
         
         $place = $this->mvc->getPlace();
         
