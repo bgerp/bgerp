@@ -228,11 +228,26 @@ class planning_TaskConstraints extends core_Master
     {
         core_Debug::startTimer('SYNC_TASK_CONSTRAINTS');
 
+        $reorderJobs = empty($tasks) ? array() : null;
         $tasks = self::getDefaultArr($tasks);
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
-        $res = static::calculateTaskConstraints($tasks);
+        $res = static::calculateTaskConstraints($tasks, $reorderJobs);
+        $changed = array();
+        foreach ($reorderJobs ?? array() as $originId) {
+            $order = cls::get('planning_Tasks')->reorderTasksInJob($originId, false);
+            foreach ($order['updated'] as $row) {
+                if (isset($tasks[$row->id])) $tasks[$row->id]->saoOrder = $row->saoOrder;
+                $changed[$originId] = true;
+            }
+        }
+        if ($changed) {
+            $affected = array_filter($tasks, function ($row) use ($changed) { return isset($changed[$row->originId]); });
+            $res = array_filter($res, function ($row) use ($affected) { return !isset($affected[$row->taskId]); });
+            $res += static::calculateTaskConstraints($affected);
+        }
+
         return static::saveTaskConstraints($tasks, $res);
     }
 
@@ -240,7 +255,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Виртуалните операции участват в същите зависимости, без запис при прегледа.
      */
-    public static function calculateTaskConstraints($tasks)
+    public static function calculateTaskConstraints($tasks, &$reorderJobs = null)
     {
 
         $res = $prevSteps = $tasksByJobs = $previousTaskByJobOrder = $stepIds = $jobIds = $folderIds = $folderLocations = array();
@@ -284,10 +299,10 @@ class planning_TaskConstraints extends core_Master
         } else {
             $tQuery->where("1=2");
         }
-        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId,jobOrderMode,previousTask,isFinal');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter, 'saoOrder' => $tRec->saoOrder, 'assetId' => $tRec->assetId);
+            $tasksByJobs[$tRec->originId][$tRec->id] = $tRec;
             if (!isset($folderLocations[$tRec->folderId])) {
                 $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
             }
@@ -301,9 +316,13 @@ class planning_TaskConstraints extends core_Master
                 'id' => $id, 'originId' => $originId, 'productId' => $task->productId ?? null,
                 'folderId' => $task->folderId ?? null, 'offsetAfter' => $task->offsetAfter ?? 0,
                 'saoOrder' => $task->saoOrder ?? PHP_INT_MAX, 'assetId' => $task->assetId ?? null,
+                'jobOrderMode' => $task->jobOrderMode ?? ($tasksByJobs[$originId][$id]->jobOrderMode ?? null),
+                'previousTask' => property_exists($task, 'previousTask') ? $task->previousTask : ($tasksByJobs[$originId][$id]->previousTask ?? null),
+                'isFinal' => $task->isFinal ?? ($tasksByJobs[$originId][$id]->isFinal ?? null),
             );
         }
 
+        $fixedJobOrder = array();
         // Редът в заданието е технологичен ред, а не само ред за визуализация.
         foreach ($tasksByJobs as $originId => &$tasksInJob) {
             uasort($tasksInJob, function($a, $b) {
@@ -316,6 +335,7 @@ class planning_TaskConstraints extends core_Master
 
             $previousTaskId = null;
             foreach ($tasksInJob as $taskInJob) {
+                if (!isset($fixedJobOrder[$originId]) && planning_TaskOrder::isFixed($taskInJob)) $fixedJobOrder[$originId] = true;
                 if (isset($previousTaskId)) {
                     $previousTaskByJobOrder[$originId][$taskInJob->id] = $previousTaskId;
                 }
@@ -359,10 +379,20 @@ class planning_TaskConstraints extends core_Master
                 $prevTaskProductId = $tasksByJobs[$taskRec->originId][$taskRec->previousTask]->productId;
                 $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
             } else {
-                $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
-                foreach ($tasksByJobs[$taskRec->originId] ?? array() as $a) {
-                    if (array_key_exists($a->productId, $prevStepsArr)) {
-                        $prevTaskIds[$a->id] = $prevStepsArr[$a->productId];
+                $prevStepsArr = $prevSteps[$taskRec->productId] ?? array();
+                if ($prevStepsArr) {
+                    $originId = $taskRec->originId;
+                    $fixedOrder = isset($fixedJobOrder[$originId]);
+                    $later = false;
+                    foreach ($tasksByJobs[$originId] ?? array() as $previousTask) {
+                        if ($previousTask->id == $taskRec->id) {
+                            $later = true;
+                            if ($fixedOrder && ($reorderJobs === null || planning_TaskOrder::isFixed($taskRec))) break;
+                            continue;
+                        }
+                        if (!isset($prevStepsArr[$previousTask->productId])) continue;
+                        if ($later && is_array($reorderJobs) && ($taskRec->jobOrderMode ?? null) === 'auto') $reorderJobs[$originId] = $originId;
+                        if (!$later || !$fixedOrder) $prevTaskIds[$previousTask->id] = $prevStepsArr[$previousTask->productId];
                     }
                 }
 
@@ -395,6 +425,13 @@ class planning_TaskConstraints extends core_Master
                     $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'intersect' => $intersect, 'updatedOn' => $now);
                 }
             }
+        }
+
+        // Само при действително поправима обратна зависимост кронът записва подредба.
+        foreach ($reorderJobs ?? array() as $originId) {
+            $rows = $tasksByJobs[$originId];
+            $order = planning_TaskOrder::order($rows, $prevSteps);
+            if (!planning_TaskOrder::improvesOrder($rows, $order, $prevSteps)) unset($reorderJobs[$originId]);
         }
 
         return $res;
