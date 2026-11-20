@@ -7715,6 +7715,20 @@ function copyPlaceholderAsValOnClick() {
 
 
 /**
+ * Допълнителните полета могат да се скрият, когато не ограничават филтъра.
+ */
+function getHideableListFilterRows($rows) {
+    return $rows.filter(function () {
+        return !$(this).find('.select2-src, select, input[type="text"], input:checked').is(function () {
+            if (this.type === 'checkbox') return true;
+            var value = $(this).val();
+            if (this.type === 'text') return value.trim() !== '';
+            return value && value !== 'all' && value.length > 0;
+        });
+    });
+}
+
+/**
  * Скриване/показване на допълнителните полета в лист изгледа
  */
 function toggleListFilter() {
@@ -7740,49 +7754,36 @@ function toggleListFilter() {
             });
         }
 
-        function canHideRow($row) {
-            var shouldHide = true;
-            $row.find('.select2-src, select').each(function () {
-                var value = $(this).val();
-                if (value && value !== 'all' && value.length > 0) {
-                    shouldHide = false;
-                }
-            });
-            $row.find('input[type="text"]').each(function () {
-                if ($(this).val().trim() !== '') {
-                    shouldHide = false;
-                }
-            });
-            $row.find('input[type="checkbox"], input[type="radio"]').each(function () {
-                if ($(this).prop('checked')) {
-                    shouldHide = false;
-                }
-            });
-            return shouldHide;
-        }
-
-        function updateButton(hasHiddenRows) {
-            $button.css('background-image', 'url(' + $button.data(hasHiddenRows ? 'plus' : 'minus') + ')')
+        function updateButton($hideableRows, hasHiddenRows) {
+            $button.toggle($hideableRows.length > 0)
+                .css('background-image', 'url(' + $button.data(hasHiddenRows ? 'plus' : 'minus') + ')')
                 .val($button.data(hasHiddenRows ? 'open' : 'close'));
         }
 
-        var hasHiddenRows = false;
-        $rows.each(function () {
-            var shouldHide = canHideRow($(this)) &&
-                (hiddenItems === null || hiddenItems.indexOf(getRowId(this)) !== -1);
-            $(this).css('display', shouldHide ? 'none' : '');
-            hasHiddenRows = hasHiddenRows || shouldHide;
-        });
-        updateButton(hasHiddenRows);
+        function applyVisibility() {
+            var $hideableRows = getHideableListFilterRows($rows);
+            var hasHiddenRows = false;
+            $rows.each(function () {
+                var shouldHide = $hideableRows.is(this) &&
+                    (hiddenItems === null || hiddenItems.indexOf(getRowId(this)) !== -1);
+                $(this).css('display', shouldHide ? 'none' : '');
+                hasHiddenRows = hasHiddenRows || shouldHide;
+            });
+            updateButton($hideableRows, hasHiddenRows);
+        }
+
+        applyVisibility();
+        $rows.off('change.toggleListFilter').on('change.toggleListFilter', applyVisibility);
 
         $button.off('click.toggleListFilter').on('click.toggleListFilter', function () {
             $rows.stop(true, true);
+            var $hideableRows = getHideableListFilterRows($rows);
             var expand = $rows.filter(function () { return $(this).css('display') === 'none'; }).length > 0;
             hiddenItems = [];
 
             $rows.each(function () {
                 var $row = $(this);
-                if (!expand && canHideRow($row)) {
+                if (!expand && $hideableRows.is(this)) {
                     hiddenItems.push(getRowId(this));
                     $row.fadeOut('slow');
                 } else {
@@ -7799,7 +7800,7 @@ function toggleListFilter() {
                     });
                 }
             });
-            updateButton(hiddenItems.length > 0);
+            updateButton($hideableRows, hiddenItems.length > 0);
 
             // Записваме веднага, защото формата може да се изпрати преди края на анимацията.
             try {

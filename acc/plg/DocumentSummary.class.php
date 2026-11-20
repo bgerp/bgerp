@@ -342,9 +342,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Ако има поле по валута да се филтрира по нея
         if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
-            $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
+            currency_Currencies::prepareFilterField($data->listFilter, $mvc->currencyFld);
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,placeholderType=all,input,formOrder=1000");
-            $data->listFilter->setField($mvc->currencyFld, array('attr' => array('data-width' => '17em')));
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
         }
 
