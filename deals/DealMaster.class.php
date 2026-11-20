@@ -677,6 +677,8 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function filterListFilterByOption_($option, &$query)
     {
+        $whereCnt = countR($query->where);
+
         switch ($option) {
             case 'clAndAct':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -740,6 +742,7 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
+                break;
             case 'overdueAndClosed':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'closed'");
@@ -785,7 +788,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
         }
 
-        if(!Request::get('export')){
+        // Оттеглените се добавят само към условие на опцията - иначе orWhere() би разширил предходното условие (достъпа)
+        if(!Request::get('export') && countR($query->where) > $whereCnt){
             $query->orWhere("#state = 'rejected'");
         }
     }
@@ -869,7 +873,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 $clone = clone $summaryQuery;
                 $clone->where = array();
                 foreach ($whereArr as $cond){
-                    if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) continue;
+                    // Отпадат само условията от търсенето по думи - достъпът и филтрите важат и за записа по номер
+                    if (isset($summaryQuery->searchConditions[$cond])) continue;
                     $clone->where($cond);
                 }
 

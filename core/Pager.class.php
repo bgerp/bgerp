@@ -326,8 +326,11 @@ class core_Pager extends core_BaseClass
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
 
+        // Проверява се преди заявката за id-тата, за да не измести нейния FOUND_ROWS()
+        $addIdAllowed = self::isAddIdAllowed($qWork);
+
         $ids = array();
-        if($query->addId && $query->start == 0) {
+        if($addIdAllowed && $query->start == 0) {
             $ids[] = $query->addId;
         }
         while ($rec = $query->fetch()) {
@@ -389,7 +392,7 @@ class core_Pager extends core_BaseClass
             };
             $cntArr = (!empty($qCnt->onReplica) && ($qCnt->mvc instanceof core_Manager)) ? $qCnt->mvc->callOnReplica($foundRows) : $foundRows();
             $resCnt = array_shift($cntArr);
-            if($query->addId) {
+            if($addIdAllowed) {
                 $resCnt++;   
             }
         }
@@ -409,7 +412,7 @@ class core_Pager extends core_BaseClass
             $rQuery->limit($this->rangeEnd - $this->rangeStart);
             $rQuery->startFrom($this->rangeStart);
             $ids = array();  
-            if($query->addId) {
+            if($addIdAllowed) {
                 $ids[] =$query->addId;  
             }
             while ($rec = $rQuery->fetch()) {
@@ -446,6 +449,34 @@ class core_Pager extends core_BaseClass
     }
     
     
+    /**
+     * Дали записът, търсен по номер, минава условията на заявката без търсенето по думи
+     *
+     * Записът се добавя към резултатите, без да е върнат от заявката, затова достъпът
+     * и останалите филтри се проверяват отделно за него.
+     *
+     * @param core_Query $query
+     *
+     * @return bool
+     */
+    protected static function isAddIdAllowed($query)
+    {
+        if (empty($query->addId)) {
+
+            return false;
+        }
+
+        $aQuery = clone $query;
+        $aQuery->where = array_values(array_diff($aQuery->where, array_keys((array) ($aQuery->searchConditions ?? array()))));
+        $aQuery->where(array('#id = [#1#]', $aQuery->addId));
+        $aQuery->orderBy = array();
+        $aQuery->show('id');
+        $aQuery->limit(1);
+
+        return (bool) $aQuery->fetch();
+    }
+
+
     /**
      * Връща линкове за предишна и следваща страница, спрямо текущата
      */
