@@ -2544,7 +2544,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Активни+Събудени+Заявки+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С бездействие/престой', true);
+        $stateOptions = arr::make('activeAndPending=Активни+Събудени+Заявки+Спрени,draft=Чернова,draftAndPending=Чернова+Заявка,draftAndPendingAndActive=Чернова+Заявка+Активни,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С бездействие/престой', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -2564,6 +2564,12 @@ class planning_Tasks extends core_Master
 
                 if (in_array($filter->state, array('activeAndPending', 'manualOrder'))) {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
+                } elseif (($filter->state ?? null) == 'draftAndPending') {
+                    $listQuery = $data->query ?? null;
+                    $listQuery->in('state', array('draft', 'pending'));
+                } elseif (($filter->state ?? null) == 'draftAndPendingAndActive') {
+                    $listQuery = $data->query ?? null;
+                    $listQuery->in('state', array('draft', 'pending', 'active'));
                 } elseif($filter->state == 'haveGaps'){
                     $data->query->where("#gapData != '' AND #state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($filter->state == 'planningError') {
