@@ -63,8 +63,15 @@ class core_Pager extends core_BaseClass
      *
      */
     public $approx;
-    
-    
+
+
+    /**
+     * Без COUNT(*) на цялата селекция при simplePaging (без useCacheForPager): itemsCount остава PHP_INT_MAX,
+     * страницата не се ограничава до последната и извикващият разпознава края по празната страница
+     */
+    public $skipItemsCount = false;
+
+
     /**
      * На колко страници отстояние от първата и последната да оставя по една междинна
      */
@@ -298,7 +305,7 @@ class core_Pager extends core_BaseClass
             if ($knownCnt === null) {
                 $query->addOption('SQL_CALC_FOUND_ROWS');
             }
-        } else {
+        } elseif ($useCache || !$this->skipItemsCount) {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
             if ($resCntCache !== false) {
                 $this->itemsCount = $resCntCache;

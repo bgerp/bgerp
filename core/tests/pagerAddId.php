@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Записът, добавян към списъка при търсене по номер, минава през достъпа и филтрите на заявката
+ * Пейджърът с истинския core_Query и MariaDB:
+ * - записът, добавян към списъка при търсене по номер, минава през достъпа и филтрите на заявката;
+ * - simplePaging брои резултатите, освен при skipItemsCount
  *
  * BGERP_SUMMARY_TEST_SOCKET=/path/my.sock php core/tests/pagerAddId.php
  * Иска изолирана MariaDB с празна база test; ползва само временни таблици, без конфигурацията на инсталацията.
@@ -53,6 +55,12 @@ class core_Debug
 class_alias('core_Debug', 'DEBUG');
 class Mode { public static function is($name) { return false; } }
 class Request { public static function get($name) { return null; } }
+// Кешът на броя винаги пропуска - като при празен core_Cache (getFromChache връща null)
+class core_QueryCnts
+{
+    public static $lookups = 0;
+    public static function getFromChache($query) { self::$lookups++; return null; }
+}
 class cls
 {
     public static $models = array();
@@ -67,9 +75,11 @@ class PagerUnderTest extends core_Pager
 class PagerTestDb
 {
     public $connection;
+    public $log = array();
     public function __construct($socket) { $this->connection = new mysqli('localhost', 'root', '', 'test', 0, $socket); }
     public function query($sql)
     {
+        $this->log[] = $sql;
         $result = $this->connection->query($sql);
         if ($result === false) throw new RuntimeException($this->connection->error . "\n" . $sql);
         return $result;
@@ -164,5 +174,49 @@ list($ids, $count) = pagerFixture(102, 9);
 checkPager(!in_array(102, $ids) && $count === 14, 'След преизчисляване на страницата недостъпният документ пак не се показва');
 list($ids, $count) = pagerFixture(2, 9);
 checkPager(in_array(2, $ids) && $count === 15, 'След преизчисляване на страницата достъпният документ остава');
+
+// simplePaging: активните документи по id, страници по 10; връща id-тата, pager-а и броя изпълнени COUNT заявки
+function simplePagingFixture($skipItemsCount, $page)
+{
+    global $db;
+    $mvc = new core_Mvc();
+    $mvc->db = $db;
+    $mvc->simplePaging = true;
+    foreach (array('id', 'state', 'folderId', 'searchKeywords') as $name) {
+        $mvc->FLD($name, 'varchar');
+    }
+    $query = new core_Query(array('mvc' => $mvc));
+    $query->where("#state = 'active'");
+    $query->orderBy('id', 'ASC');
+
+    $pager = new PagerUnderTest();
+    $pager->itemsPerPage = 10;
+    $pager->pageVar = 'P';
+    $pager->exactPaging = true;
+    $pager->page = $page;
+    $pager->skipItemsCount = $skipItemsCount;
+    core_QueryCnts::$lookups = 0;
+    $db->log = array();
+    $pager->setLimit($query);
+    $ids = array();
+    while ($rec = $query->fetch()) {
+        $ids[] = (int) $rec->id;
+    }
+
+    return array($ids, $pager, countR(preg_grep('/count\(\*\)/i', $db->log)));
+}
+
+// 30 активни документа (1-28, 101, 102). Без skipItemsCount се брои и страницата след края става последната
+list($ids, $pager, $counts) = simplePagingFixture(false, 5);
+checkPager($counts === 1 && (int) $pager->itemsCount === 30 && $pager->page == 3 && $ids === array_merge(range(21, 28), array(101, 102)), 'simplePaging брои и ограничава страницата');
+
+// Със skipItemsCount: без COUNT(*) и без кеша; половин страница отгоре показва, че има още
+list($ids, $pager, $counts) = simplePagingFixture(true, 2);
+checkPager($counts === 0 && core_QueryCnts::$lookups === 0 && $pager->itemsCount === PHP_INT_MAX, 'skipItemsCount не брои');
+checkPager($pager->page == 2 && $ids === range(11, 25), 'skipItemsCount връща поисканата страница с допълнителните редове');
+
+// Страница след края не се сменя с последната - идва празна и извикващият я разпознава
+list($ids, $pager, $counts) = simplePagingFixture(true, 5);
+checkPager($counts === 0 && $pager->page == 5 && $ids === array(), 'skipItemsCount оставя страницата след края празна');
 
 echo "OK: {$checks} pager checks with the real Query builder, core_Pager and MariaDB.\n";
