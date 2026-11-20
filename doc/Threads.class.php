@@ -906,6 +906,10 @@ class doc_Threads extends core_Manager
                 }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
                 $query->where("#containerFolderId = {$filter->folderId}");
+
+                // Документите са в папката на нишката си: с папката и на нишката базата тръгва от индекса ѝ,
+                // а не от всички документи на папката или всички оттеглени нишки (15 s за пробата на коша)
+                $query->where("#folderId = {$filter->folderId}");
             }
         }
         

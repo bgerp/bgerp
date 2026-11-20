@@ -57,12 +57,6 @@ class core_Debug
 class_alias('core_Debug', 'DEBUG');
 class Mode { public static function is($name) { return false; } }
 class Request { public static function get($name) { return null; } }
-// Кешът на броя винаги пропуска - като при празен core_Cache (getFromChache връща null)
-class core_QueryCnts
-{
-    public static $lookups = 0;
-    public static function getFromChache($query) { self::$lookups++; return null; }
-}
 class cls
 {
     public static $models = array();
@@ -75,9 +69,12 @@ class PagerUnderTest extends core_Pager
     public $exactPaging = false;
 }
 // Както при core_QueryCnts, изчисляването на ключа премахва подредбата на заявката за броене.
+// $cached: какво връща кешът; празният core_Cache дава null
 class core_QueryCnts
 {
-    public static function getFromChache($query) { return false; }
+    public static $lookups = 0;
+    public static $cached = false;
+    public static function getFromChache($query) { self::$lookups++; return self::$cached; }
     public static function set($query, $count) { $query->orderBy = array(); }
 }
 class doc_Setup { public static function get($name) { return 0; } }
@@ -229,6 +226,7 @@ function simplePagingFixture($skipItemsCount, $page)
     $pager->page = $page;
     $pager->skipItemsCount = $skipItemsCount;
     core_QueryCnts::$lookups = 0;
+    core_QueryCnts::$cached = null;
     $db->log = array();
     $pager->setLimit($query);
     $ids = array();

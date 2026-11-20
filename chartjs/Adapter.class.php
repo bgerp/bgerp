@@ -47,11 +47,11 @@ class chartjs_Adapter extends core_Mvc
         $chart = ht::createElement('canvas', array('class' => 'diagramCanvas', 'width' => '700', 'height' => '570', 'data-data' => $data, 'data-type' => $chartType), $tpl);
         $tpl->append("<div class='chartHolder chart-{$chartType}'>" . $chart . '</div>');
         
-        $tpl->push('chartjs/lib/preparechart.js', 'JS');
         $version = chartjs_Setup::get('VERSION');
         $script = $version === '4.6.1' ? 'chart.umd.min.js' : 'Chart.min.js';
-        $tpl->push('chartjs/' . $version . '/' . $script, 'JS');
-        $tpl->push('chartjs/lib/Chart.css', 'CSS');
+        $tpl->push('chartjs/' . $version . '/' . $script, 'JS', true);
+        $tpl->push('chartjs/lib/preparechart.js', 'JS', true);
+        $tpl->push('chartjs/lib/Chart.css', 'CSS', true);
         
         
         $animation = true;
