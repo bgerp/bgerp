@@ -39,6 +39,9 @@ class chartjs_Setup extends core_ProtoSetup
     public $managers = array(
         'chartjs_Adapter'
     );
+
+
+    public $defClasses = 'chartjs_ChartDriver';
     
     
     /**

@@ -34,9 +34,9 @@ function prepareChart(animation) {
         if (charType == 'pie') {
             var value = [];
             var label = [];
-            jQuery.each(chartData.info, function (key, val) {
+            Object.keys(chartData.info || {}).forEach(function (key) {
                 label.push(key);
-                value.push(val);
+                value.push(chartData.info[key]);
             });
             config = {
                 type: 'pie',
@@ -51,11 +51,11 @@ function prepareChart(animation) {
             else config.options.legend = legend;
         } else if (charType == 'bar' || charType == 'line') {
             var res = {labels: chartData.labels, datasets: []};
-            jQuery.each(chartData.values, function (key, value) {
+            Object.keys(chartData.values || {}).forEach(function (key) {
                 var i = res.datasets.length % colors.length;
                 var dataset = {
                     label: key,
-                    data: value,
+                    data: chartData.values[key],
                     borderColor: colors[i],
                     backgroundColor: fillColor[i],
                     borderWidth: 1
