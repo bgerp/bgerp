@@ -76,8 +76,9 @@ class planning_TargetTimes extends core_BaseClass
      */
     public static function addJobPredecessors(&$tasks, &$previousTasks)
     {
-        $origins = array();
+        $origins = $previewOrder = array();
         foreach ($tasks as $task) {
+            if (isset($task->_previewJobOrder)) $previewOrder[$task->originId] = $task->_previewJobOrder;
             if (!empty($task->timeStart) && !empty($task->originId)) $origins[$task->originId] = $task->originId;
         }
         if (!$origins) return;
@@ -86,6 +87,14 @@ class planning_TargetTimes extends core_BaseClass
         $query->where("#state != 'rejected'");
         $query->show('id,originId,saoOrder,state,timeClosed,offsetAfter');
         $jobTasks = $query->fetchAll();
+        foreach ($previewOrder as $positions) {
+            foreach ($positions as $id => $position) {
+                $previous = $jobTasks[$id] ?? ($tasks[$id] ?? null);
+                if (!$previous) continue;
+                $jobTasks[$id] = clone $previous;
+                $jobTasks[$id]->saoOrder = $position + 1;
+            }
+        }
         foreach ($tasks as $task) {
             if (empty($task->timeStart)) continue;
             foreach ($jobTasks as $previous) {
@@ -242,13 +251,24 @@ class planning_TargetTimes extends core_BaseClass
             $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $task->originId ?? 0));
             $task->dueDate = $job->dueDate ?? null;
             $task->jobProductId = $job->productId ?? null;
-            if (empty($task->saoOrder)) {
+            if (empty($rec->id) && $job) {
+                $templates = cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1);
+                $task->jobOrderMode = planning_TaskOrder::matchRecipe($templates, array($task)) ? 'recipe' : 'auto';
+                $jobTasks = planning_Tasks::getJobOrderTasks($task->originId);
+                $steps = arr::extractValuesFromArray($jobTasks + array($id => $task), 'productId');
+                $conditions = planning_StepConditions::getConditionalArr($steps);
+                $order = planning_TaskOrder::insert($jobTasks, $task, $templates, $conditions);
+                $task->_previewJobOrder = array_flip($order);
+                foreach ($order as $index => $orderedId) {
+                    if ($orderedId == $id) $task->saoOrder = $index + 1;
+                    if (isset($tasks[$orderedId])) $tasks[$orderedId]->saoOrder = $index + 1;
+                }
+            } elseif (empty($task->saoOrder)) {
                 $query = planning_Tasks::getQuery();
                 $query->where(array("#originId = '[#1#]'", $task->originId ?? 0));
                 $query->XPR('lastOrder', 'int', 'MAX(#saoOrder)');
                 $query->show('lastOrder');
-                $order = $query->fetch()->lastOrder ?? 0;
-                $task->saoOrder = $order + 1;
+                $task->saoOrder = ($query->fetch()->lastOrder ?? 0) + 1;
             }
             $task->progress = $task->progress ?? 0;
             $old = !empty($rec->id) ? planning_Tasks::fetch($rec->id) : null;
