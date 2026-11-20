@@ -2466,8 +2466,13 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if(in_array($rec->state, array('active', 'pending'))){
-            sales_DeliveryData::sync($rec->containerId);
+        if (!empty($rec->_addPartnerDocumentTags)) {
+            unset($rec->_addPartnerDocumentTags);
+            eshop_Setup::addPartnerDocumentTags($rec);
+        }
+
+        if(in_array($rec->state ?? null, array('active', 'pending'))){
+            sales_DeliveryData::sync($rec->containerId ?? null);
         }
     }
 
@@ -2486,11 +2491,11 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
-     * Продажба, създадена от партньор в споделената му папка, получава таговете на е-магазина
+     * Таговете се поставят в AfterSave, когато контейнерът вече е свързан с продажбата
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        eshop_Setup::addPartnerDocumentTags($rec);
+        $rec->_addPartnerDocumentTags = true;
     }
 
 

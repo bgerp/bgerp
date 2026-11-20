@@ -608,7 +608,19 @@ class marketing_Inquiries2 extends embed_Manager
             $Cover->forceGroup($groupId, false);
         }
 
-        eshop_Setup::addPartnerDocumentTags($rec);
+        $rec->_addPartnerDocumentTags = true;
+    }
+
+
+    /**
+     * Поставя таговете след свързването на контейнера с новото запитване
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if (!empty($rec->_addPartnerDocumentTags)) {
+            unset($rec->_addPartnerDocumentTags);
+            eshop_Setup::addPartnerDocumentTags($rec);
+        }
     }
     
     
