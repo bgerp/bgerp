@@ -13,6 +13,7 @@ error_reporting(E_ALL);
 set_error_handler(function ($severity, $message, $file, $line) {
     if (error_reporting() & $severity) throw new ErrorException($message, 0, $severity, $file, $line);
 });
+function defIfNot($key, $val) { if (!defined($key)) define($key, $val); }
 function countR($value) { return is_array($value) ? count($value) : 0; }
 function expect($value) { if (!$value) throw new RuntimeException('Expectation failed'); }
 function error($message) { throw new RuntimeException($message); }
@@ -24,6 +25,7 @@ $root = dirname(__DIR__, 2);
 foreach (array('BaseClass', 'FieldSet', 'Query', 'Plugin', 'Pager', 'Array', 'String') as $class) {
     require $root . '/core/' . $class . '.class.php';
 }
+require $root . '/plg/Search.class.php';
 class_alias('core_Array', 'arr');
 class_alias('core_String', 'str');
 class core_Type
@@ -76,11 +78,16 @@ class acc_Periods
 }
 class currency_CurrencyRates
 {
-    public static function convertAmount($amount, $date, $from, $to) { return $amount * 0.9; }
+    public static function convertAmount($amount, $date, $from, $to)
+    {
+        return $from === 'EUR' && $to === 'BGN' ? round($amount * 1.95583, 5) : $amount * 0.9;
+    }
 }
 class dt
 {
-    public static function today() { return '2026-11-19'; }
+    public static $today = '2026-11-19';
+    public static function today() { return self::$today; }
+    public static function addDays($days, $date, $withTime) { return date('Y-m-d', strtotime("{$days} days", strtotime($date))); }
     public static function verbal2mysql($date, $time = true) { return substr($date ?? self::today(), 0, 10); }
 }
 class cls
@@ -119,8 +126,10 @@ class SummaryReadPlugin extends core_Plugin
 class SummarySelectPlugin extends core_Plugin
 {
     public static $cancel = false;
+    public static $calls = 0;
     public static function on_BeforeSelect($mvc, &$res, $query)
     {
+        self::$calls++;
         if (self::$cancel) return false;
         if (!in_array('#id <= 100', $query->where)) $query->where('#id <= 100');
     }
@@ -234,12 +243,17 @@ function summaryFixture($class, $filter = null, $replica = false, $variant = nul
         $query->useUnionAll = $variant === 'unionAll';
     } elseif ($variant === 'addId') {
         $query->addId = 5;
-    } elseif ($variant === 'addIdVisible' || $variant === 'addIdHidden') {
+    } elseif (in_array($variant, array('addIdVisible', 'addIdHidden', 'addIdInvoiced'), true)) {
+        if ($variant === 'addIdInvoiced') {
+            $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
+            $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
+            $mvc->filterListFilterByOption('invoiced', $query);
+        }
         // Търсене по номер: думите не намират нищо; документ 8 е достъпен, документ 5 е в недостъпна папка и нишка
         $search = "LOCATE(' nothing', #chargeVat)";
         $query->where($search);
         $query->searchConditions[$search] = $search;
-        $query->addId = $variant === 'addIdVisible' ? 8 : 5;
+        $query->addId = $variant === 'addIdHidden' ? 5 : 8;
     }
     $query->onReplica = $replica;
     $data = (object) array('query' => $query);
@@ -272,9 +286,9 @@ function compareSummaries($class, $rowClass, $filter = null, $variant = null, $p
         checkSummary(($actual[$name]->quantity ?? null) === ($field->quantity ?? null), 'Еднакви бройки: ' . $name);
         checkSummary(($actual[$name]->measure ?? null) === ($field->measure ?? null), 'Еднаква мярка: ' . $name);
         checkSummary(isset($actual[$name]->amount) === isset($field->amount), 'Еднакво наличие на сума: ' . $name);
-        // Обхождането закръгля всеки документ до 6 знака, а тук се закръгля сумата на периода
+        // Допуска се единствено численият шум от реда на събиране на DOUBLE стойностите.
         $diff = abs(($actual[$name]->amount ?? 0) - ($field->amount ?? 0));
-        checkSummary($diff <= $count * 0.0000005 + 0.000001, "Сумите се различават само в закръглянето: {$name} ({$diff})");
+        checkSummary($diff <= max(0.0000001, abs($field->amount ?? 0) * 1e-13), "Еднаква сума след превалутиране: {$name} ({$diff})");
         $maxDiff = max($maxDiff, $diff);
     }
     checkSummary($data->query->knownCount->cnt === $count, 'Пълният брой е запазен за страницирането');
@@ -303,6 +317,27 @@ checkSummary($count === 1, 'Достъпният документ, намере�
 list($count) = compareSummaries('SummaryDeal', 'SummaryRowDeal', null, 'addIdHidden');
 checkSummary($count === 0, 'Документ от недостъпна папка не влиза в обобщението по номер');
 
+// Списъкът и обобщението при търсене по номер спазват един и същ HAVING за „Фактурирани“.
+foreach (array(0, 1) as $expectedCount) {
+    $invoiced = $expectedCount ? 10 : 0;
+    $db->query("UPDATE sales_sales SET state='active', amount_invoiced={$invoiced} WHERE id=8");
+    list(, $filtered) = summaryFixture('SummaryDeal', null, false, 'addIdInvoiced');
+    $pager = new core_Pager(array('page' => 1, 'pageVar' => 'P', 'exactPaging' => true));
+    $pager->setLimit($filtered->query);
+    checkSummary($filtered->query->knownCount->cnt === $expectedCount && (int) $pager->itemsCount === $expectedCount, 'Броят при търсене по номер съвпада');
+    $record = $filtered->query->fetch();
+    checkSummary((int) ($record->id ?? 0) === ($expectedCount ? 8 : 0) && !$filtered->query->fetch(), 'Номерът се вижда веднъж само когато отговаря на филтъра');
+}
+
+// 31 х 0,10 лв. различават закръгляването на документа от закръгляването на групата.
+$centRows = array();
+for ($id = 22001; $id <= 22031; $id++) {
+    $centRows[] = "({$id}, 'active', '2025-01-15', '2025-01-15', 1, 1, 'no', 0.10, 0, 0.10, 0, 0.10, 0)";
+}
+$db->query('INSERT INTO sales_sales VALUES ' . implode(',', $centRows));
+list(, $cents, $aggregates) = summaryFixture('SummaryDeal', '#id >= 22001');
+checkSummary($aggregates === 1 && round($cents->listSummary->summary['amountDealCalc']->amount, 2) === 1.58, 'Сумата на документите е 1,58 EUR');
+
 // Модел без вальор: един ред, без преизчисляване по валути
 compareSummaries('SummaryNoValiorDeal', 'SummaryNoValiorRowDeal');
 list(, $data) = summaryFixture('SummaryNoValiorDeal');
@@ -313,8 +348,9 @@ list($count) = compareSummaries('SummaryDeal', 'SummaryRowDeal', null, null, arr
 checkSummary($count > 0 && $count <= 100, 'Условието от събитието преди четене стеснява и сумите');
 // Отказано четене: няма заявка към базата и обобщението е празно и по двата начина
 SummarySelectPlugin::$cancel = true;
+SummarySelectPlugin::$calls = 0;
 list($count) = compareSummaries('SummaryDeal', 'SummaryRowDeal', null, null, array(new SummarySelectPlugin()), false, 0);
-checkSummary($count === 0, 'Отказаното четене не връща документи');
+checkSummary($count === 0 && SummarySelectPlugin::$calls === 2, 'Едно извикване за SQL обобщението и едно за еталона при отказ');
 SummarySelectPlugin::$cancel = false;
 
 // Обработка на отделните документи в PHP оставя обхождането
@@ -327,6 +363,9 @@ foreach (array('EUR', 'USD') as $oldCurrency) {
     compareSummaries('SummaryDeal', 'SummaryRowDeal');
 }
 acc_Setup::$oldCurrency = 'BGN';
+dt::$today = '2025-12-31';
+compareSummaries('SummaryDeal', 'SummaryRowDeal');
+dt::$today = '2026-11-19';
 
 // Група с документи в две валути не се преизчислява наведнъж: сумите се отхвърлят и документите се обхождат
 acc_Periods::$border = '2025-09-01';
@@ -348,4 +387,4 @@ checkSummary($filterWhere('overdueAndAct') === array('#folderId = 1', "#paymentS
 
 checkSummary(empty($GLOBALS['reported']), 'Няма докладвани грешки от базата');
 echo "OK: {$checks} checks against per-document summaries, real Query builder and MariaDB.\n";
-echo 'Largest difference from per-document rounding: ' . number_format($maxDiff, 6) . " over up to {$maxCount} documents.\n";
+echo 'Largest numerical difference from per-document totals: ' . number_format($maxDiff, 6) . " over up to {$maxCount} documents.\n";

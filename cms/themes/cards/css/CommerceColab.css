@@ -31,9 +31,9 @@ body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .row-holder { pa
 body.commerce-theme .contractorExtHolder #head-packWrapper { display: flex; flex-wrap: wrap; gap: 0.4em; white-space: normal; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab { float: none; margin: 0 !important; border: 0 !important; background: none; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > .tab-title {
-    display: flex; align-items: center; float: none; min-height: 2.75em; box-sizing: border-box;
-    padding: 0.55em 1em; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
-    background: #fff; color: var(--c-accent-deep); font-size: 0.95em; font-weight: 600; box-shadow: none; text-shadow: none;
+    display: flex; align-items: center; float: none; min-height: 2rem; box-sizing: border-box;
+    padding: 0.3rem 0.65rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
+    background: #fff; color: var(--c-accent-deep); font-size: 0.875rem; font-weight: 600; box-shadow: none; text-shadow: none;
 }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > .tab-title::after { display: none; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab.selected > .tab-title { background: var(--c-accent) !important; border-color: var(--c-accent); color: #fff; }
@@ -106,8 +106,8 @@ body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-ro
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .row-holder > div { display: flex; flex-wrap: wrap; gap: 0.35em; }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab { float: none; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none; }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title {
-    display: inline-flex; align-items: center; float: none; box-sizing: border-box; min-height: 2.25rem;
-    padding: 0.35rem 0.85rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
+    display: inline-flex; align-items: center; float: none; box-sizing: border-box; min-height: 1.875rem;
+    padding: 0.25rem 0.65rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
     background: #fff; color: var(--c-accent-deep); font-size: 0.875rem; font-weight: 600; text-decoration: none; box-shadow: none; text-shadow: none;
 }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title::after { display: none; }
@@ -133,8 +133,8 @@ body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable
     border-collapse: separate; border-spacing: 0; background: #fff;
 }
 body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable > thead > tr > th {
-    background: var(--c-surface-2); color: var(--c-accent-deep); padding: 0.7em 0.9em;
-    border: 0; border-bottom: 1px solid var(--c-line-3); text-align: left; font-size: 0.95em;
+    background: var(--c-surface-2); color: var(--c-accent-deep); padding: 0.4rem 0.65rem;
+    border: 0; border-bottom: 1px solid var(--c-line-3); text-align: left; font-size: 0.875rem;
 }
 body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable > tbody > tr > td {
     padding: 1em; border: 0; border-bottom: 1px solid var(--c-line-3); background: #fff; vertical-align: top;
@@ -149,13 +149,13 @@ body.commerce-theme .contractorExtHolder .single-thread .date-box { color: #6277
 body.commerce-theme .contractorExtHolder .single-thread .gravatar-box { text-align: center; }
 body.commerce-theme .contractorExtHolder .single-thread .gravatar-box img { display: block; min-height: 0 !important; border-radius: 50%; object-fit: cover; margin: 0.65em auto 0; }
 body.commerce-theme .contractorExtHolder .single-thread .document { padding: 0.85em; box-sizing: border-box; border: 1px solid var(--c-line-6); border-radius: 0.6em; background: #fff; box-shadow: none; }
-body.commerce-theme .contractorExtHolder .single-thread .document > .header { background: var(--c-surface-2); color: var(--c-accent-deep); border: 0; border-bottom: 1px solid var(--c-line-6); border-radius: 0.6em 0.6em 0 0; padding: 0.65em; line-height: 1.5; }
+body.commerce-theme .contractorExtHolder .single-thread .document > .header { background: var(--c-surface-2); color: var(--c-accent-deep); border: 0; border-bottom: 1px solid var(--c-line-6); border-radius: 0.6em 0.6em 0 0; padding: 0.35rem 0.6rem; font-size: 0.875rem; line-height: 1.4; }
 body.commerce-theme .contractorExtHolder .single-thread .document > .header.state-active { border-left: 3px solid #71a88e; }
 body.commerce-theme .contractorExtHolder .single-thread .document > .header.state-rejected { background: #fff0f0; border-left: 3px solid #bd6666; }
 body.commerce-theme .contractorExtHolder .single-thread .document .detail-info { border: 1px solid var(--c-line-6); border-radius: 0.5em; margin: 1em 0; padding: 0.75em 1em; }
 body.commerce-theme .contractorExtHolder .single-thread .document .groupTitle { color: var(--c-accent-deep); font-size: 1em; padding: 0 0.4em; }
 body.commerce-theme .contractorExtHolder .single-thread .toolbar { display: flex; flex-wrap: wrap; gap: 0.4em; }
-body.commerce-theme .contractorExtHolder .single-thread .toolbar .button { float: none; margin: 0; font-size: 0.9em; }
+body.commerce-theme .contractorExtHolder .single-thread .toolbar .button { float: none; margin: 0; min-height: 1.875rem; padding: 0.25rem 0.6rem; font-size: 0.875rem; line-height: 1.25; }
 body.commerce-theme #barcodeForm {
     padding: 1em; margin: 0 0 1.25em; border: 1px solid var(--c-line-3);
     border-radius: 0.75em; background: var(--c-bg); box-sizing: border-box;

@@ -235,14 +235,14 @@ body.commerce-theme #login-form > p { margin: 12px 0 0; font-size: 0.875rem; }
 body.commerce-theme #login-form .login-links { color: var(--c-accent); text-decoration: none; }
 body.commerce-theme #login-form .login-links:hover { text-decoration: underline; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle a { color: var(--c-accent) !important; }
-body.commerce-theme #newEnquiryForm:has(> .eprod-form) { max-width: 1120px; }
-body.commerce-theme .eprod-form { display: flex; align-items: flex-start; gap: 24px; width: 100%; }
-body.commerce-theme .eprod-form > .vertical { display: block; flex: 1; min-width: 0; width: auto; }
+body.commerce-theme :is(#newEnquiryForm, form:has(.formTable)):has(> .eprod-form) { max-width: 1120px; }
+body.commerce-theme .eprod-form { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; width: 100%; }
+body.commerce-theme .eprod-form > .vertical { display: block; flex: 1 1 600px; min-width: 0; width: auto; }
 body.commerce-theme .eprod-form > .drawing { display: block; flex: 0 0 280px; width: 280px; padding: 24px 0; }
 body.commerce-theme .eprod-form > .drawing img { width: 100%; max-width: 100%; height: auto; }
 @media (max-width: 900px) {
     body.commerce-theme .eprod-form { flex-direction: column; }
-    body.commerce-theme .eprod-form > .vertical { width: 100%; }
+    body.commerce-theme .eprod-form > .vertical { flex: none; width: 100%; }
     body.commerce-theme .eprod-form > .drawing { order: 1; flex: none; width: 240px; max-width: 100%; margin: 0 auto; padding: 0; }
 }
 
