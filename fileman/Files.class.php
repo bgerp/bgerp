@@ -20,6 +20,12 @@ class fileman_Files extends core_Master
 
 
     /**
+     * Опити за запис на нов файл, когато паралелен процес заеме името му
+     */
+    const CREATE_FILE_TRIES = 10;
+
+
+    /**
      * Кой може да променя файла
      */
     public $canEditfile = 'user';
@@ -1865,20 +1871,31 @@ class fileman_Files extends core_Master
      * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
      * @param fileman_Data    $dataId   - Данните за файла
      *
-     * @return string $rec->fileHnd - Манипуалатор на файла
+     * @return string|null $rec->fileHnd - Манипуалатор на файла; null, ако записът не е създаден
      */
     protected static function createFile($name, $bucketId, $dataId)
     {
-        // Създаваме записите
-        $rec = new stdClass();
-        $rec->name = fileman_Files::getPossibleName($name, $bucketId);
-        $rec->bucketId = $bucketId;
-        $rec->state = 'active';
-        $rec->dataId = $dataId;
-        
-        // Записваме
-        fileman_Files::save($rec, null, 'IGNORE');
-        
+        // Паралелен процес може да заеме името между проверката и записа - тогава се търси следващото свободно
+        for ($try = 0; $try < self::CREATE_FILE_TRIES; $try++) {
+            $rec = new stdClass();
+            $rec->name = fileman_Files::getPossibleName($name, $bucketId);
+            $rec->bucketId = $bucketId;
+            $rec->state = 'active';
+            $rec->dataId = $dataId;
+
+            fileman_Files::save($rec, null, 'IGNORE');
+            if (!empty($rec->id)) {
+                break;
+            }
+        }
+
+        // Без запис манипулаторът не сочи към файл
+        if (empty($rec->id)) {
+            fileman_Files::logErr("Не може да бъде създаден запис за файла|* : '{$name}'");
+
+            return null;
+        }
+
         // Увеличаваме с единица броя на файловете за които отговаря файла
         fileman_Data::increaseLinks($dataId);
         
