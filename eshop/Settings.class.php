@@ -116,6 +116,12 @@ class eshop_Settings extends core_Master
      * Дефолтен шаблон за текст за добавяне към количката на en
      */
     const DEFAULT_ADD_TO_CART_TEXT_EN = 'There are [#packQuantity#] [#packagingId#] of [#productName#] in the cart';
+
+
+    /**
+     * Съобщение при неуспешно създаване на продажба от количка
+     */
+    const DEFAULT_ORDER_FAILURE_TEXT = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
     
     
     /**
@@ -317,6 +323,7 @@ class eshop_Settings extends core_Master
 
         $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми (задължително фактуриране),both=Фирми и лица (опционално фактуриране))', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
         $this->FLD('inputCardBtn', 'enum(yes=Включено,no=Изключено)', 'caption=Онлайн поръчки->Въвеждане на карта/ваучер,notNull,value=no');
+        $this->FLD('orderFailureText', 'text(rows=3)', 'caption=Онлайн поръчки->Съобщение за грешка');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕИК');
@@ -564,6 +571,7 @@ class eshop_Settings extends core_Master
         $res['cartName'] = eshop_Setup::get('CART_EXTERNAL_NAME');
         $res['notInStockText'] = eshop_Setup::get('NOT_IN_STOCK_TEXT');
         $res['addToCartBtn'] = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+        $res['orderFailureText'] = tr(self::DEFAULT_ORDER_FAILURE_TEXT, 0, $lang);
         $res['stoppedOptionName'] = ($lang == 'bg') ? self::DEFAULT_STOPPED_OPTION_NAME_BG : self::DEFAULT_STOPPED_OPTION_NAME_EN;
         $res['expectedDeliveryText'] = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
         $res['favouriteProductBtnCaption'] = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
