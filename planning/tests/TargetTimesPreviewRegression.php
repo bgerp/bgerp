@@ -97,6 +97,66 @@ foreach (array('delay' => 1800, 'intersect' => 'yes') as $field => $value) {
         . implode(' ', $accepted->errors ?? array()) . ' ' . implode(' ', $accepted->_targetTimesReport['approvalChanges'] ?? array()));
 }
 
+// Повтореният етап запазва условието си само след действително предходната операция.
+clockContext();
+$rows = array(
+    1 => task(1),
+    3 => task(3, 3600, null, 3),
+    2 => task(2, 3600, null, 2),
+    4 => task(4, 3600, null, 4),
+);
+foreach ($rows as $id => $row) {
+    $row->originId = 100;
+    $row->saoOrder = $id;
+    $row->folderId = 1;
+    $row->offsetAfter = 0;
+}
+$rows[3]->productId = $rows[1]->productId;
+$rows[1]->jobOrderMode = 'recipe';
+planning_Tasks::$records = $rows;
+planning_StepConditions::$rows = array((object)array('stepId' => 1, 'prevStepId' => 2, 'delay' => 900, 'intersect' => 'yes'));
+$previous = array();
+foreach (planning_TaskConstraints::calculateTaskConstraints($rows) as $constraint) {
+    $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
+}
+$plan = graph($rows, array(), $previous);
+startAt($plan, 1, '08:00:00');
+check($plan[2]->expectedTimeStart === $plan[1]->expectedTimeEnd, 'The next operation follows job order');
+check($plan[3]->expectedTimeStart === dt::addSecs(900, $plan[2]->expectedTimeStart)
+    && $plan[3]->expectedTimeStart < $plan[2]->expectedTimeEnd, 'The repeated operation can overlap after fifteen minutes');
+check($plan[4]->expectedTimeStart === $plan[3]->expectedTimeEnd
+    && $plan[4]->expectedTimeEnd < planning_TaskConstraints::NOT_FOUND_DATE, 'The downstream operation has calculated times');
+check(empty($previous[1]) && ($previous[3][2]->intersect ?? null) === 'yes'
+    && ($previous[3][2]->waitingTime ?? null) === 900,
+    'The stage condition only applies once its predecessor occurs in job order, retaining overlap and delay');
+$rows[4]->previousTask = 2;
+$constraints = planning_TaskConstraints::calculateTaskConstraints($rows);
+check(isset($constraints['prev|4|2']) && !isset($constraints['prev|4|3']), 'The operator can still choose a specific predecessor');
+
+// След събуждане фиксираната операция продължава да пази реда си.
+$rows[1]->jobOrderMode = 'fixed';
+$constraints = planning_TaskConstraints::calculateTaskConstraints($rows);
+check(!isset($constraints['prev|1|2']), 'Reopened fixed operations keep their order');
+// Свободните операции продължават да ползват технологичните предходни.
+$rows[1]->jobOrderMode = 'auto';
+$rows[4]->saoOrder = 0;
+unset($rows[4]->previousTask);
+$rows[2]->previousTask = 4;
+$constraints = planning_TaskConstraints::calculateTaskConstraints($rows);
+check(($constraints['prev|1|2']->waitingTime ?? null) === 900, 'Manual operations retain the stage condition');
+
+$rows[3]->jobOrderMode = 'recipe';
+$reorderJobs = array();
+planning_TaskConstraints::calculateTaskConstraints($rows, $reorderJobs);
+check(isset($reorderJobs[100]), 'Full recalculation requests repositioning for a movable operation with a later predecessor');
+$rows[1]->saoOrder = 3;
+$rows[3]->saoOrder = 4;
+$reorderJobs = array();
+$constraints = planning_TaskConstraints::calculateTaskConstraints($rows, $reorderJobs);
+check(!$reorderJobs && isset($constraints['prev|1|2']), 'A compatible mixed job uses its stored order and keeps the technological wait');
+
+planning_StepConditions::$rows = array();
+
 clockContext();
 $preview = clockPreview();
 dt::$now = '2026-10-08 08:00:01';

@@ -490,6 +490,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetScheduleBreaks',
         'migrate::forceBackfillUsedInTask2628',
         'migrate::normalizeHrCodes2639',
+        'migrate::backfillTaskOrder2647',
     );
 
 
@@ -632,6 +633,66 @@ class planning_Setup extends core_ProtoSetup
     public function forceBackfillUsedInTask2628()
     {
         core_CallOnTime::setCall('planning_AssetResources', 'BackfillUsedInTask', null, dt::addSecs(120));
+    }
+
+
+    /** Попълва режима на подредба, без да мести заварените операции. */
+    public function backfillTaskOrder2647()
+    {
+        $tasks = cls::get('planning_Tasks');
+        $lastId = 0;
+        do {
+            $query = $tasks->getQuery();
+            $query->where(array("#id > [#1#] AND #jobOrderMode IS NULL", $lastId));
+            $query->orderBy('id', 'ASC');
+            $query->limit(1000);
+            $query->show('id,originId,productId,state,brState,previousTask');
+            $rows = $query->fetchAll();
+            if (!$rows) break;
+            $jobs = planning_Jobs::getQuery();
+            $jobs->in('containerId', arr::extractValuesFromArray($rows, 'originId'));
+            $jobs->show('id,containerId,state,brState');
+            $byJob = $stageProducts = $updates = $predecessors = array();
+            while ($job = $jobs->fetch()) $byJob[$job->containerId] = $job;
+            $previousIds = array_filter(arr::extractValuesFromArray($rows, 'previousTask'));
+            if ($previousIds) {
+                $previous = $tasks->getQuery();
+                $previous->in('id', $previousIds);
+                $previous->show('id,originId');
+                $predecessors = $previous->fetchAll();
+            }
+
+            foreach ($rows as $id => $row) {
+                $job = $byJob[$row->originId ?? 0] ?? null;
+                $mode = 'fixed';
+                if ($job && $job->state !== 'closed' && !($job->state === 'rejected' && ($job->brState ?? null) === 'closed')
+                    && ($row->state ?? null) !== 'closed'
+                    && ($row->brState ?? null) !== 'closed'
+                    && ($predecessors[$row->previousTask ?? 0]->originId ?? null) != $row->originId) {
+                    $originId = $row->originId;
+                    if (!isset($stageProducts[$originId])) {
+                        $stageProducts[$originId] = array();
+                        // Само отворените задания изискват пълен запис за драйвера на артикула.
+                        $source = planning_Jobs::fetch($job->id, '*', false);
+                        foreach (cat_Products::getDefaultProductionTasks($source, $source->quantity ?? 1) as $stage) {
+                            if (!empty($stage->_dId) && isset($stage->productId)) $stageProducts[$originId][$stage->productId] = true;
+                        }
+                    }
+                    $mode = isset($stageProducts[$originId][$row->productId]) ? 'recipe' : 'auto';
+                }
+                $updates[$mode][] = (int)$id;
+                $lastId = (int)$id;
+            }
+
+            // Условният запис запазва избора или приключването от паралелна заявка.
+            $field = str::phpToMysqlName('jobOrderMode');
+            foreach ($updates as $mode => $ids) {
+                $list = implode(',', $ids);
+                $tasks->db->query("UPDATE `{$tasks->dbTableName}` SET `{$field}` = '{$mode}' WHERE `id` IN ({$list}) AND `{$field}` IS NULL");
+            }
+            $tasks->dbTableUpdated();
+            core_App::setTimeLimit(120);
+        } while (count($rows) == 1000);
     }
 
 

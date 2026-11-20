@@ -1905,6 +1905,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $updateFields = array('history');
+        if ($action === 'closed') planning_Tasks::freezeJobOrder($rec->containerId);
         if(($rec->_updateProductParams ?? 'no') == 'yes'){
             $rec->productViewCacheDate = dt::now();
             static::updateBomSnapshot($rec);
@@ -2067,6 +2068,7 @@ class planning_Jobs extends core_Master
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
+            $existingByTemplate = planning_TaskOrder::existingByTemplate($defaultTasks, planning_Tasks::getJobOrderTasks($jobRec->containerId));
             // Показване на наличните дефолтни операции
             foreach ($defaultTasks as $sysId => $defTask){
                 $title = $defTask->title;
@@ -2076,12 +2078,9 @@ class planning_Jobs extends core_Master
 
                 $warning = false;
                 $exLinkArray = array();
-                $exQuery = planning_Tasks::getQuery();
-                $exQuery->where(array("#originId = '[#1#]' AND (#systemId = '[#2#]' OR (#productId = '[#3#]' AND #subTitle = '[#4#]'))AND #state != 'rejected'", $jobRec->containerId ?? null, $sysId, $defTask->productId ?? null, $defTask->subTitle ?? null));
-                $exQuery->show('id');
-                while($exRec = $exQuery->fetch()) {
-                    if (planning_Tasks::haveRightFor('single', $exRec->id)) {
-                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($exRec->id), false, "title=Към операция|* #" . planning_Tasks::getHandle($exRec->id));
+                foreach ($existingByTemplate[$sysId] ?? array() as $taskId) {
+                    if (planning_Tasks::haveRightFor('single', $taskId)) {
+                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($taskId), false, "title=Към операция|* #" . planning_Tasks::getHandle($taskId));
                     }
                 }
                 if(countR($exLinkArray)){

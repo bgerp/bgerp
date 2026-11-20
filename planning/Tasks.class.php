@@ -260,7 +260,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,jobOrderMode,previousTask,saoOrder,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
 
 
     /**
@@ -323,6 +323,12 @@ class planning_Tasks extends core_Master
      * Опашка за ПО-та, които трябва да се преподредят в рамките на заданието
      */
     protected $reorderTasksByJobIds = array();
+
+    /** @var array Задания с променени съседи за синхронизиране на времената. */
+    private $syncTaskOrderJobs = array();
+
+    /** @var array Променени технологични етапи по задания. */
+    private $changedOrderSteps = array();
 
 
     /**
@@ -394,6 +400,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
+        $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран)', 'caption=Подредба в заданието,input=none,column=none');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
@@ -1475,11 +1482,8 @@ class planning_Tasks extends core_Master
                         if (!$defaultTaskCount) {
                             $requiredRoles = 'no_one';
                         } else {
-                            $tQuery = planning_Tasks::getQuery();
-                            $tQuery->where("#originId = {$jobRec->containerId} AND #systemId IS NOT NULL AND #state != 'rejected'");
-                            $tQuery->show('systemId');
-                            $exSystemIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'systemId');
-                            $remainingSystemTasks = array_diff_key($defaultTasks, $exSystemIds);
+                            $existing = planning_TaskOrder::existingByTemplate($defaultTasks, static::getJobOrderTasks($jobRec->containerId));
+                            $remainingSystemTasks = array_diff_key($defaultTasks, $existing);
                             if (!countR($remainingSystemTasks) || $defaultTaskCount == 1) {
                                 $requiredRoles = 'no_one';
                             }
@@ -1547,16 +1551,11 @@ class planning_Tasks extends core_Master
     {
         $originId = $rec->originId ?? null;
         $isClone = ($rec->_isClone ?? false) === true;
-        $originRec = isset($originId) && !$isClone ? doc_Containers::getDocument($originId)->fetch() : null;
-        $defaultTasks = $originRec && isset($rec->systemId) ? cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity ?? 1) : array();
+        $originRec = $rec->_orderJob ?? null;
+        $defaultTasks = $rec->_orderTemplates ?? array();
         $defaultTask = $defaultTasks[$rec->systemId ?? ''] ?? null;
-        if (isset($originId)) {
-            if (!empty($defaultTask->_dId) && ($defaultTask->productId ?? null) == ($rec->productId ?? null)) {
-                $mvc->insertTaskInRecipeOrder($rec, $defaultTasks);
-            } else {
-                $mvc->reorderTasksByJobIds[$originId] = $originId;
-                $mvc->setLastInJobQueue($rec);
-            }
+        if ($originRec && isset($originId) && ($rec->state ?? null) !== 'rejected') {
+            $mvc->positionNewTask($rec, $defaultTasks);
         }
 
         if (!empty($rec->assetId) && in_array($rec->state ?? null, array('active', 'pending', 'wakeup', 'stopped'))) {
@@ -3323,6 +3322,7 @@ JS
                 $tasksToClone = array_intersect_key($oldTasks, $selectedArr);
             }
 
+            $orderTemplates = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity ?? 1);
             foreach ($tasksToClone as $taskRec){
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
@@ -3333,6 +3333,8 @@ JS
                 $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
 
                 $newTask->_isClone = true;
+                $newTask->_orderJob = $jobRec;
+                $newTask->_orderTemplates = $orderTemplates;
                 $newTask->originId = $jobRec->containerId;
                 $newTask->state = 'draft';
                 $newTask->clonedFromId = $newTask->id;
@@ -3406,8 +3408,10 @@ JS
             foreach ($defaultTasks as $sysId => $defaultTask) {
                 if(!in_array($sysId, $selectedArr)) continue;
                 try {
-                    unset($defaultTask->products);
                     $newTask = clone $defaultTask;
+                    unset($newTask->products);
+                    $newTask->_orderJob = $jobRec;
+                    $newTask->_orderTemplates = $defaultTasks;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
 
@@ -4272,10 +4276,8 @@ JS
             }
         }
 
-        if($rec->state == 'rejected'){
+        if (($rec->state ?? null) === 'rejected') {
             $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
-            $rec->saoOrder = null;
-            $mvc->save_($rec, 'saoOrder');
         }
 
 
@@ -4304,8 +4306,19 @@ JS
     protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        if (isset($rec->saoOrder)) {
+            $mvc->updateJobOrder($rec->originId, function ($tasks) use ($rec) {
+                if (!isset($tasks[$rec->id])) return null;
+                unset($tasks[$rec->id]);
+                $ids = array_keys($tasks);
+                array_splice($ids, max(0, (int)$rec->saoOrder - 1), 0, array($rec->id));
+                return $ids;
+            });
+        } else {
+            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
+            if ($job) $mvc->positionNewTask($rec, cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1));
+        }
         $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
-        $mvc->setLastInJobQueue($rec);
     }
 
 
@@ -4358,10 +4371,19 @@ JS
         if (countR($mvc->reorderTasksByJobIds)) {
             core_Debug::startTimer('REORDER_BY_JOB');
             foreach ($mvc->reorderTasksByJobIds as $originId) {
-                $mvc->reorderTasksInJob($originId);
+                $mvc->reorderTasksInJob($originId, true, $mvc->changedOrderSteps[$originId] ?? array());
                 core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
             core_Debug::stopTimer('REORDER_BY_JOB');
+        }
+
+        if ($mvc->syncTaskOrderJobs) {
+            $query = $mvc->getQuery();
+            $query->in('originId', $mvc->syncTaskOrderJobs);
+            $query->in('state', array('active', 'stopped', 'wakeup', 'pending'));
+            $query->show('id');
+            $ids = array_keys($query->fetchAll());
+            if ($ids) planning_TaskConstraints::sync($ids);
         }
 
         if (countR($mvc->cacheAssetDataOnShutdown ?? null)) {
@@ -5609,6 +5631,27 @@ JS
     /**
      * Преди запис
      */
+    protected static function on_BeforeSaveFields($mvc, &$rec, &$fields)
+    {
+        if (empty($rec->id) && !empty($rec->originId)) {
+            $rec->_orderJob = $rec->_orderJob ?? planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
+            $rec->_orderTemplates = $rec->_orderTemplates ?? ($rec->_orderJob ? cat_Products::getDefaultProductionTasks($rec->_orderJob, $rec->_orderJob->quantity ?? 1) : array());
+            $match = planning_TaskOrder::matchRecipe($rec->_orderTemplates, array($rec));
+            $rec->jobOrderMode = $match ? 'recipe' : 'auto';
+            $fields['jobOrderMode'] = 'jobOrderMode';
+            // Преди INSERT, за да не вижда друга заявка все още непозициониран ред.
+            if ($rec->_orderJob && ($rec->state ?? null) !== 'rejected') {
+                self::lockJobOrder($rec->originId);
+                if (planning_Jobs::fetchField($rec->_orderJob->id, 'state', false) === 'closed') $rec->jobOrderMode = 'fixed';
+            }
+        }
+        if (isset($fields['state']) && ($rec->state ?? null) === 'closed') {
+            $rec->jobOrderMode = 'fixed';
+            $fields['jobOrderMode'] = 'jobOrderMode';
+        }
+    }
+
+
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if (property_exists($rec, 'timeStart') && ($fields === null || isset(arr::make($fields, true)['timeStart']))) {
@@ -5858,70 +5901,82 @@ JS
      * @param int $containerId
      * @return null|array
      */
-    public function reorderTasksInJob($containerId)
+    public function reorderTasksInJob($containerId, $sync = true, $changedSteps = array())
     {
-        // Кои са неоттеглените ПО към заданието
-        $debugRes = array();
-        $jobRec = planning_Jobs::fetch("#containerId = {$containerId}");
-        if (!$jobRec) return;
+        $debug = array();
+        $result = $this->updateJobOrder($containerId, function ($tasks, $conditions) use (&$debug, $changedSteps, $sync) {
+            $order = planning_TaskOrder::order($tasks, $conditions, $debug, $changedSteps);
+            // Кронът проверява резултата и с непланируемите съседи, докато държи заключването.
+            if (!$sync && !planning_TaskOrder::improvesOrder($tasks, $order, $conditions)) return null;
 
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
-        $tQuery->orderBy('saoOrder', "ASC");
-        $allTasks = $tQuery->fetchAll();
+            return $order;
+        }, $sync);
+        $result['debug'] = $debug;
 
-        if(!countR($allTasks)) return;
+        return $result;
+    }
 
-        // Извличане на предходните етапи от етапите на операциите
-        $productionStepIds = arr::extractValuesFromArray($allTasks, 'productId');
-        $conditions = planning_StepConditions::getConditionalArr($productionStepIds);
 
-        $res = array();
-        foreach ($allTasks as $tRec){
-            $debugRes[$tRec->id] = array('previousTask' => $tRec->previousTask);
+    /** Операциите в текущия им ред, включително приключените съседи. */
+    public static function getJobOrderTasks($originId)
+    {
+        $query = static::getQuery();
+        $query->where(array("#originId = '[#1#]' AND #state != 'rejected'", $originId));
+        $query->orderBy('saoOrder,id', 'ASC');
+        $query->show('id,saoOrder,systemId,productId,subTitle,previousTask,state,isFinal,jobOrderMode');
 
-            // За всяка операция се търсят от останалите операции, които са за нейни предходни етапи
-            $cProductId = $tRec->productId;
+        return $query->fetchAll();
+    }
 
-            $prevTaskArr = array();
-            if($tRec->isFinal == 'yes'){
-                $prevTaskArr = array_filter($allTasks, function($a) use ($tRec){
-                    return $a->saoOrder < $tRec->saoOrder && $a->id != $tRec->id;
-                });
-            }
 
-            $foundArr = array_filter($allTasks, function($a) use (&$conditions, $cProductId){
-                if(is_array($conditions[$cProductId] ?? null)){
-                    return array_key_exists($a->productId, $conditions[$cProductId]);
+    private static function lockJobOrder($originId)
+    {
+        $key = "planning_RecipeTaskOrder_{$originId}";
+        expect(core_Locks::obtain($key));
+
+        return $key;
+    }
+
+
+    /** Приключеното задание запазва и местата на свободните и оттеглените си операции. */
+    public static function freezeJobOrder($originId)
+    {
+        $mvc = cls::get(get_called_class());
+        $key = self::lockJobOrder($originId);
+        try {
+            $field = str::phpToMysqlName('jobOrderMode');
+            $origin = str::phpToMysqlName('originId');
+            $originId = (int)$originId;
+            $mvc->db->query("UPDATE `{$mvc->dbTableName}` SET `{$field}` = 'fixed' WHERE `{$origin}` = {$originId} AND (`{$field}` IS NULL OR `{$field}` != 'fixed')");
+            $mvc->dbTableUpdated();
+        } finally {
+            core_Locks::release($key);
+        }
+    }
+
+
+    /** Прочитането и записът на подредбата се сериализират за едно задание. */
+    private function updateJobOrder($originId, $arrange, $sync = true)
+    {
+        $lockKey = self::lockJobOrder($originId);
+        try {
+            $tasks = static::getJobOrderTasks($originId);
+            $conditions = $tasks ? planning_StepConditions::getConditionalArr(arr::extractValuesFromArray($tasks, 'productId')) : array();
+            $order = $arrange($tasks, $conditions);
+            if ($order === null) return array('order' => array_keys($tasks), 'updated' => array());
+            $updated = array();
+            foreach ($order as $offset => $id) {
+                if (($tasks[$id]->saoOrder ?? null) != $offset + 1) {
+                    $updated[] = (object)array('id' => $id, 'saoOrder' => $offset + 1);
                 }
-                return false;
-            });
+            }
+            if ($updated) expect($this->saveArray($updated, 'id,saoOrder'));
+            if ($sync) $this->syncTaskOrderJobs[$originId] = $originId;
 
-            $previousTasks = $prevTaskArr + $foundArr;
-            $prevTaskArr = arr::extractValuesFromArray($previousTasks, 'id');
-            $prevTaskCalc = isset($tRec->previousTask) ? array($tRec->previousTask => $tRec->previousTask) : $prevTaskArr;
-            $res[$tRec->id] = $prevTaskCalc;
-
-            $debugRes[$tRec->id]['previousTasks'] = $prevTaskArr;
-            $debugRes[$tRec->id]['isFinal'] = $tRec->isFinal;
-            $debugRes[$tRec->id]['useOrderFields'] = $prevTaskCalc;
+            return array('order' => $order, 'updated' => $updated);
+        } finally {
+            core_Locks::release($lockKey);
         }
-
-        $orderStrategyClassId = planning_Setup::get('SORT_TASKS_IN_JOB_STRATEGY');
-        $SortInterface = cls::getInterface('planning_OrderTasksInJobStrategyIntf', $orderStrategyClassId);
-        $sortedArr = $SortInterface->order($res);
-
-        $num = 1;
-        $updateArr = array();
-        foreach ($sortedArr as $taskId){
-            $updateArr[] = (object)array('id' => $taskId, 'saoOrder' => $num);
-            $num++;
-        }
-
-        // Обновяване на преизчислената подредба
-        cls::get('planning_Tasks')->saveArray($updateArr, 'id,saoOrder');
-
-        return array('debug' => $debugRes, 'updated' => $updateArr);
     }
 
 
@@ -5957,41 +6012,56 @@ JS
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
 
-            // Проверка дали избрания предходен етап случайно не е предшестващ този е текущата ПО
-            if(!empty($fRec->previousTask)){
-                $previousStepId = planning_Tasks::fetchField($fRec->previousTask, 'productId');
-                $previousSteps = planning_StepConditions::getConditionalArr($previousStepId);
-                if(countR($previousSteps)){
-                    if(in_array($rec->productId, $previousSteps[$previousStepId])){
-                        $form->setError('previousTask', 'Не може за предходна операция да изберете такава с етап, на който е посочен, че текущия етап е предходен!');
+            $previous = $fRec->previousTask ?? null;
+            if (!$form->gotErrors()) {
+                $error = null;
+                $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($id, $previous, &$error) {
+                    $order = array_keys($tasks);
+                    if (!isset($tasks[$id]) || (isset($previous) && (!isset($tasks[$previous]) || $id == $previous))) {
+                        $error = 'Избраната операция вече не е налична в заданието';
+                        return null;
                     }
-                }
-            }
-
-            if(!$form->gotErrors()){
-                $msg = null;
-
-                $syncIds = array($rec->id);
-                if(isset($fRec->previousTask)){
-                    $syncIds[] = $fRec->previousTask;
-                }
-                if (empty($fRec->previousTask) || ($fRec->previousTask != $rec->previousTask && $autoPreviousTaskId != $fRec->previousTask)) {
-                    if(empty($fRec->previousTask)){
-                        $sRec = (object) array('id' => $id, 'saoOrder' => 0.5, 'previousTask' => null);
-                        $this->save_($sRec, 'saoOrder,previousTask');
-                    } else {
-                        $sRec = (object) array('id' => $id, 'previousTask' => $fRec->previousTask);
-                        $this->save_($sRec, 'previousTask');
+                    $seen = array($id => true);
+                    $ancestor = $previous;
+                    while (isset($tasks[$ancestor])) {
+                        if (isset($seen[$ancestor])) {
+                            $error = 'Изборът създава цикъл между ръчно посочени предходни операции';
+                            return null;
+                        }
+                        $seen[$ancestor] = true;
+                        $ancestor = $tasks[$ancestor]->previousTask ?? null;
                     }
-
+                    $others = $tasks;
+                    unset($others[$id]);
+                    $ids = array_keys($others);
+                    $at = isset($previous) ? array_search($previous, $ids) + 1 : 0;
+                    array_splice($ids, $at, 0, array($id));
+                    $positions = array_flip($ids);
+                    $oldPositions = array_flip($order);
+                    foreach ($others as $otherId => $other) {
+                        $prev = $other->previousTask ?? null;
+                        if (isset($positions[$prev]) && $positions[$prev] >= $positions[$otherId] && $oldPositions[$prev] < $oldPositions[$otherId]) {
+                            $error = 'Преместването противоречи на ръчно избрана предходна операция';
+                            return null;
+                        }
+                    }
+                    $sRec = (object)array('id' => $id, 'previousTask' => $previous, 'jobOrderMode' => 'fixed');
+                    expect($this->save_($sRec, 'previousTask,jobOrderMode'));
+                    $tasks[$id]->previousTask = $previous;
+                    $tasks[$id]->jobOrderMode = 'fixed';
+                    $sorted = array();
+                    foreach ($ids as $i => $taskId) {
+                        $sorted[$taskId] = clone $tasks[$taskId];
+                        $sorted[$taskId]->saoOrder = $i + 1;
+                    }
+                    return planning_TaskOrder::order($sorted, $conditions);
+                });
+                if ($error) {
+                    $form->setError('previousTask', $error);
+                } else {
                     $this->logInAct('Ръчно избиране на предходна операция', $rec);
-                    $this->reorderTasksInJob($rec->originId);
-                    $msg = 'Предходната операция е избрана успешно|*!';
-
-                    planning_TaskConstraints::sync($syncIds);
+                    return followRetUrl(null, 'Подредбата на операцията е записана');
                 }
-
-                return followRetUrl(null, $msg);
             }
         }
 
@@ -6002,77 +6072,29 @@ JS
     }
 
 
-    /**
-     * Вмъква операция до най-близкия създаден етап от рецептата.
-     */
-    private function insertTaskInRecipeOrder($rec, $defaultTasks)
+    /** Единичното добавяне, клонирането и груповото създаване ползват едни и същи съседи. */
+    private function positionNewTask($rec, $templates)
     {
-        $taskId = $rec->id ?? null;
-        $originId = $rec->originId ?? null;
-        $systemId = $rec->systemId ?? null;
-        $recipePositions = array_flip(array_keys($defaultTasks));
-        expect(isset($taskId, $originId, $systemId, $recipePositions[$systemId]));
-        $recipePosition = $recipePositions[$systemId];
-
-        $lockKey = "planning_RecipeTaskOrder_{$originId}";
-        expect(core_Locks::obtain($lockKey));
-        try {
-            $query = $this->getQuery();
-            $query->where(array("#originId = '[#1#]' AND #id != '[#2#]' AND #state != 'rejected'", $originId, $taskId));
-            $query->orderBy('saoOrder,id', 'ASC');
-            $query->show('id,saoOrder,systemId,productId');
-            $jobTasks = array_values($query->fetchAll());
-            $previousPosition = -1;
-            $nextPosition = count($recipePositions);
-            $insertAfter = $insertBefore = null;
-
-            foreach ($jobTasks as $offset => $task) {
-                $taskSystemId = $task->systemId ?? null;
-                $template = $defaultTasks[$taskSystemId] ?? null;
-                if (!isset($taskSystemId) || empty($template->_dId) || ($template->productId ?? null) != ($task->productId ?? null)) continue;
-
-                $candidatePosition = $recipePositions[$taskSystemId];
-                if ($candidatePosition < $recipePosition && $candidatePosition >= $previousPosition) {
-                    $previousPosition = $candidatePosition;
-                    $insertAfter = $offset + 1;
-                } elseif ($candidatePosition > $recipePosition && $candidatePosition < $nextPosition) {
-                    $nextPosition = $candidatePosition;
-                    $insertBefore = $offset;
-                }
-            }
-
-            $insertAt = $insertAfter ?? $insertBefore ?? count($jobTasks);
-            array_splice($jobTasks, $insertAt, 0, array($rec));
-            $updates = array();
-            foreach ($jobTasks as $offset => $task) {
-                $order = $offset + 1;
-                if (($task->saoOrder ?? null) != $order) {
-                    $updates[] = (object)array('id' => $task->id ?? null, 'saoOrder' => $order);
-                }
-            }
-
-            expect($this->saveArray($updates, 'id,saoOrder'));
-            $rec->saoOrder = $insertAt + 1;
-        } finally {
-            core_Locks::release($lockKey);
-        }
+        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates) {
+            unset($tasks[$rec->id]);
+            return planning_TaskOrder::insert($tasks, $rec, $templates, $conditions);
+        });
+        $rec->saoOrder = array_search($rec->id, $result['order']) + 1;
     }
 
 
-    /**
-     * Добавяне на операция на края на заданието
-     *
-     * @param stdClass $rec
-     */
-    private function setLastInJobQueue($rec)
+    /** При промяна на предходните се засягат само задания със свободна операция от този етап. */
+    public static function reorderJobsForStep($stepId)
     {
-        $query = $this->getQuery();
-        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
-        $query->XPR('maxSaoOrder', 'double', 'MAX(#saoOrder)');
-        $maxSaoOrder = $query->fetch()->maxSaoOrder ?? 0;
-        $maxSaoOrder = isset($maxSaoOrder) ? $maxSaoOrder : 0;
-        $rec->saoOrder = $maxSaoOrder + 0.5;
-        $this->save_($rec, 'saoOrder');
+        $mvc = cls::get(get_called_class());
+        $query = $mvc->getQuery();
+        $query->where(array("#productId = '[#1#]' AND #state NOT IN ('closed','rejected') AND #jobOrderMode = 'auto'", $stepId));
+        $query->groupBy('originId');
+        $query->show('originId');
+        while ($row = $query->fetch()) {
+            $mvc->reorderTasksByJobIds[$row->originId] = $row->originId;
+            $mvc->changedOrderSteps[$row->originId][$stepId] = $stepId;
+        }
     }
 
 
