@@ -216,6 +216,17 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
 
 
     /**
+     * Дали известията за всички методи с драйвера идват на един общ адрес (един акаунт в шлюза)
+     *
+     * @return bool
+     */
+    public function hasFixedNotifyUrl()
+    {
+        return false;
+    }
+
+
+    /**
      * Адрес за известията от сървъра на шлюза (webhook) - въвежда се в профила на търговеца
      *
      * @param int $paymentId
@@ -224,6 +235,11 @@ abstract class cond_ProtoCardPaymentDriver extends core_BaseClass
      */
     public function getNotifyUrl($paymentId)
     {
+        if ($this->hasFixedNotifyUrl()) {
+
+            return toUrl(array('eshop_CardPayments', 'notify'), 'absolute');
+        }
+
         Request::setProtected('pm');
         $url = toUrl(array('eshop_CardPayments', 'notify', 'pm' => $paymentId), 'absolute');
         Request::removeProtected('pm');

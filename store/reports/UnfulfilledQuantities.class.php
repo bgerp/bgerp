@@ -99,18 +99,17 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $form->setDefault('saleState', 'closed');
         $form->setDefault('storable', 'storable');
 
-        $salesQuery = sales_Sales::getQuery();
+        $suggestions = array();
 
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        // Папките с продажби: проверката е по индекса на folderId, без join и групиране върху всички продажби
+        $Sales = cls::get('sales_Sales');
+        $folderCol = str::phpToMysqlName('folderId');
+        $folderQuery = doc_Folders::getQuery();
+        $folderQuery->where("EXISTS (SELECT 1 FROM `{$Sales->dbTableName}` WHERE `{$Sales->dbTableName}`.`{$folderCol}` = #id)");
+        $folderQuery->show('title');
 
-        $salesQuery->groupBy('folderId');
-
-        $salesQuery->show('folderId, contragentId, folderTitle');
-
-        while ($contragent = $salesQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle;
-            }
+        while ($folderRec = $folderQuery->fetch()) {
+            $suggestions[$folderRec->id] = $folderRec->title;
         }
 
         asort($suggestions);

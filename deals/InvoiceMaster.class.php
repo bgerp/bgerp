@@ -301,7 +301,11 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->query->orWhere("#state = 'rejected'");
         }
 
-        $data->query->orderBy('#number', 'DESC');
+        // След подредба по createdOn номерът не променя реда, а изключва индекса ѝ
+        $firstOrder = reset($data->query->orderBy);
+        if (!is_object($firstOrder) || ltrim($firstOrder->field ?? '', '#') != 'createdOn') {
+            $data->query->orderBy('#number', 'DESC');
+        }
     }
     
     
