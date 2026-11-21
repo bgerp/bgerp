@@ -945,10 +945,11 @@ class planning_Jobs extends core_Master
 
 
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
-            $data->listFilter->input('view', 'silent');
-            $data->listFilter->setDefault('view', 'all');
-            $data->listFilter->showFields .= ',view';
+            $listFilter = $data->listFilter ?? null;
+            $listFilter->FNC('view', 'enum(activeAndWakeupAndStopped=Активни+Събудени+Спрени,all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Състояние,input,silent,formOrder=0.5');
+            $listFilter->input('view', 'silent');
+            $listFilter->setDefault('view', 'activeAndWakeupAndStopped');
+            $listFilter->showFields .= ',view';
         }
         
         // type вече е реално поле в модела - само разширяваме опциите му с "Всички"
@@ -956,7 +957,9 @@ class planning_Jobs extends core_Master
         $data->listFilter->input('type', 'silent');
         $data->listFilter->showFields .= ',type';
 
-        $data->listFilter->setField('selectPeriod', 'caption=Период');
+        $listFilter = $data->listFilter ?? null;
+        $listFilter->setField('selectPeriod', 'caption=Период');
+        $listFilter->setField('filterDateField', 'caption=Период на||Period of');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
         self::prepareListSourceFilter($data->listFilter ?? null, 'contragentFolderId');
         $data->listFilter->input('contragentFolderId', 'silent');
@@ -1034,9 +1037,13 @@ class planning_Jobs extends core_Master
                 }
             }
 
-            // Филтър по изглед
+            // Филтър по състояние
             if (isset($filter->view)) {
                 switch ($filter->view) {
+                    case 'activeAndWakeupAndStopped':
+                        $listQuery = $data->query ?? null;
+                        $listQuery->in('state', array('active', 'wakeup', 'stopped'));
+                        break;
                     case 'draft':
                     case 'active':
                     case 'stopped':

@@ -307,6 +307,12 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
     column-gap: 1em;
     row-gap: 0.2em;
 }
+// Първият ред на радиогрупата следва горния отстъп на заглавието.
+.wide .twoColsFilter .formElement:has(> .allowEmptyRadioHolder),
+.wide .twoColsFilter .formElement:has(> .notAllowEmptyRadioHolder) {
+    vertical-align: top;
+    padding-top: 0.4em;
+}
 .wide .twoColsFilter .allowEmptyRadioHolder .keylist,
 .wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
 .wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,

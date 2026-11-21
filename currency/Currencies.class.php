@@ -146,6 +146,22 @@ class currency_Currencies extends core_Master
 
 
     /**
+     * Единно представяне на поле за валута в листов филтър
+     *
+     * @param core_Form $form
+     * @param string $fieldName
+     */
+    public static function prepareFilterField($form, $fieldName)
+    {
+        $form->getField($fieldName)->type = clone $form->getFieldType($fieldName);
+        $form->setFieldTypeParams($fieldName, array('allowEmpty' => 'allowEmpty', 'maxRadio' => 4, 'columns' => 4, 'select2MinItems' => 4));
+        // Обновяването на курса е само за редакция на документи, не за филтриране.
+        $form->setField($fieldName, 'placeholderType=all,removeAndRefreshForm=unsetValue,refreshForm=unsetValue');
+        $form->setFieldAttr($fieldName, array('data-width' => '17em'));
+    }
+
+
+    /**
      * Връща id-то на валутата с посочения трибуквен ISO код
      *
      * @param string $code трибуквен ISO код

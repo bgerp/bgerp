@@ -168,6 +168,12 @@ class core_Db
      * Глобална константа за всички линкове
      */
     public static $links = array();
+
+
+    /**
+     * Сесийните настройки на процеса (име => SET заявка): получава ги и всяка връзка, отворена след тях
+     */
+    protected static $sessionVariables = array();
     
     
     /**
@@ -280,9 +286,53 @@ class core_Db
                 $dump = array('mysqlErrCode' => $link->error_list[0]['errno'], 'mysqlErrMsg' => $link->error_list[0]['error'], 'dbName' => $this->dbName, 'dbLink' => $link);
                 throw new core_exception_Db('500 @Грешка при избиране на база', 'DB Грешка', $dump);
             }
+
+            // Настройките на процеса важат и за новата връзка (напр. репликата); неподдържаната се пропуска
+            foreach (self::$sessionVariables as $sql) {
+                $link->query($sql);
+            }
         }
         
         return $link;
+    }
+
+
+    /**
+     * Задава сесийна настройка на текущата връзка и на всяка друга връзка на процеса - и на отворените,
+     * и на отворените след това: core_Manager::forceReplica() пренасочва заявките към отделна връзка
+     *
+     * @param string     $name  Име на системната променлива
+     * @param int|string $value Стойност
+     *
+     * @return bool Дали текущата връзка я е приела; неприетата не се прилага и към другите
+     */
+    public function setSessionVariable($name, $value)
+    {
+        expect(preg_match('/^[a-z_]+$/i', $name), $name);
+        $sql = "SET SESSION {$name} = " . (is_numeric($value) ? $value : "'" . $this->escape($value) . "'");
+        if ($this->query($sql, true) === false) {
+
+            return false;
+        }
+        self::$sessionVariables[$name] = $sql;
+
+        $current = self::$links[$this->dbHost][$this->dbUser][$this->dbName] ?? null;
+        foreach (self::$links as $users) {
+            foreach ($users as $dbs) {
+                foreach ($dbs as $link) {
+                    if (!$link || $link === $current) {
+                        continue;
+                    }
+                    try {
+                        $link->query($sql);
+                    } catch (Throwable $e) {
+                        // Прекъсната връзка ще получи настройката при новото свързване
+                    }
+                }
+            }
+        }
+
+        return true;
     }
     
     
