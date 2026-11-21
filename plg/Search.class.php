@@ -428,14 +428,15 @@ class plg_Search extends core_Plugin
             }
 
             // В общ boolean MATCH MyISAM търси по индекса само последния prefix термин, а другите проверява ред по ред.
-            // Затова фразите и целите думи остават в MATCH (или най-дългият prefix, ако няма такива), а другите
+            // Затова фразите и целите думи остават в MATCH (или най-рядкият prefix, ако няма такива), а другите
             // prefix термини са LOCATE - еквивалентно на +w*, защото ключовите думи започват с интервал
             if ($prefixTerms && !$ftsTerms) {
                 usort($prefixTerms, function ($a, $b) {
                     return $b['len'] - $a['len'];
                 });
-                $first = array_shift($prefixTerms);
-                $ftsTerms[] = $first['fts'];
+                $first = self::getRarestPrefixTerm($query, $field, $prefixTerms);
+                $ftsTerms[] = $prefixTerms[$first]['fts'];
+                unset($prefixTerms[$first]);
             }
             if ($ftsTerms) {
                 $query->where("MATCH(#{$field}) AGAINST('" . implode(' ', $ftsTerms) . "' IN BOOLEAN MODE)");
@@ -453,6 +454,105 @@ class plg_Search extends core_Plugin
         foreach (array_slice($query->where, $firstCondition) as $condition) {
             $query->searchConditions[$condition] = $condition;
         }
+    }
+
+
+    /**
+     * Кой prefix термин да води FULLTEXT индекса: MyISAM чете всеки ред с него, затова в голяма таблица
+     * съвпаденията се преброяват (на репликата) и води най-рядкият. Иначе - най-дългият, както досега.
+     * Всеки се брои до $limit; при точен брой друг го сменя само ако е поне 4 пъти по-рядък,
+     * а под $enough съвпадения броенето спира - заявката е бърза и така
+     *
+     * @param core_Query $query
+     * @param string     $field
+     * @param array      $terms  Подредени от най-дългия; всеки с 'fts' => '+дума*'
+     * @param int        $limit
+     * @param int        $enough
+     *
+     * @return int Ключът на термина в $terms
+     */
+    protected static function getRarestPrefixTerm($query, $field, $terms, $limit = 10000, $enough = 1000)
+    {
+        $keys = array_keys($terms);
+        $mvc = $query->mvc ?? null;
+        if (countR($keys) < 2 || ($query->fields[$field]->kind ?? null) !== 'FLD' || empty($mvc->dbTableName)
+            || !is_object($mvc->db ?? null) || !self::hasFullTextIndex($mvc, $field) || !self::isBigTable($query)) {
+
+            return $keys[0];
+        }
+
+        // С индекс-подсказка MyISAM не ползва FULLTEXT индекса и водещият термин е без значение
+        $hinted = !empty($query->indexes[$mvc->dbTableName]) && !(defined('CORE_QUERY_USE_INDEXES') && CORE_QUERY_USE_INDEXES === 'no');
+        if ($hinted || !self::isMyIsam($mvc)) {
+
+            return $keys[0];
+        }
+
+        $column = str::phpToMysqlName($field);
+        $pick = function () use ($mvc, $column, $terms, $limit, $enough) {
+            $best = null;
+            $bestCount = null;
+            foreach ($terms as $key => $term) {
+                $max = $bestCount === null || $bestCount > $limit ? $limit + 1 : intdiv($bestCount, 4);
+                $dbRes = $mvc->db->query("SELECT COUNT(*) AS `cnt` FROM (SELECT 1 FROM `{$mvc->dbTableName}` WHERE MATCH(`{$column}`) AGAINST('"
+                    . $mvc->db->escape($term['fts']) . "' IN BOOLEAN MODE) LIMIT {$max}) AS `fts_probe`");
+                $row = $mvc->db->fetchArray($dbRes);
+                $mvc->db->freeResult($dbRes);
+                $count = (int) ($row['cnt'] ?? 0);
+                if ($bestCount === null || $count < $max) {
+                    $best = $key;
+                    $bestCount = $count;
+                }
+                if ($bestCount <= $enough) break;
+            }
+
+            return $best;
+        };
+
+        return $mvc instanceof core_Manager ? $mvc->callOnReplica($pick) : $pick();
+    }
+
+
+    /**
+     * Дали таблицата е MyISAM: там LIMIT спира FULLTEXT търсенето, а InnoDB изчислява всички съвпадения
+     *
+     * @param core_Mvc $mvc
+     *
+     * @return bool
+     */
+    protected static function isMyIsam($mvc)
+    {
+        $key = 'tableEngine|' . $mvc->className;
+        $engine = core_Permanent::get($key);
+        if (!is_string($engine) || $engine === '') {
+            $engine = strtoupper((string) $mvc->db->getTableInfo($mvc->dbTableName, 'ENGINE'));
+            core_Permanent::set($key, $engine, 1000);
+        }
+
+        return $engine === 'MYISAM';
+    }
+
+
+    /**
+     * Дали полето има собствен FULLTEXT индекс - без него преброяването на термин обхожда таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param string   $field
+     *
+     * @return bool
+     */
+    protected static function hasFullTextIndex($mvc, $field)
+    {
+        foreach ((array) ($mvc->dbIndexes ?? array()) as $index) {
+            $fields = $index->fields ?? '';
+            $fields = array_map('trim', is_array($fields) ? $fields : explode(',', (string) $fields));
+            if (strtoupper((string) ($index->type ?? '')) === 'FULLTEXT' && $fields === array($field)) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
