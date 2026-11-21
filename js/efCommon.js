@@ -2624,6 +2624,40 @@ function selectInnerText(text) {
     }
 }
 
+/** Copy the rendered block as plain text, including its line breaks and indentation. */
+async function copyRichtextCode(button) {
+    var block = button.nextElementSibling;
+    var text = block.textContent;
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (error) {
+        // HTTP pages and browsers with clipboard restrictions can still support a native copy.
+        var field = document.createElement('textarea');
+        field.value = text;
+        field.readOnly = true;
+        field.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+        document.body.appendChild(field);
+        field.select();
+        var copied;
+        try {
+            copied = document.execCommand('copy');
+        } catch (copyError) {
+            copied = false;
+        }
+        field.remove();
+        button.focus();
+        if (!copied) {
+            window.getSelection().selectAllChildren(block);
+            return;
+        }
+    }
+    button.classList.add('is-copied');
+    clearTimeout(button.copyFeedbackTimer);
+    button.copyFeedbackTimer = setTimeout(function () {
+        button.classList.remove('is-copied');
+    }, 1500);
+}
+
 /**
  * Записва избрания текст в сесията и текущото време
  *
