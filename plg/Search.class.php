@@ -474,31 +474,19 @@ class plg_Search extends core_Plugin
     protected static function getRarestPrefixTerm($query, $field, $terms, $limit = 10000, $enough = 1000)
     {
         $keys = array_keys($terms);
-        $mvc = $query->mvc ?? null;
-        if (countR($keys) < 2 || ($query->fields[$field]->kind ?? null) !== 'FLD' || empty($mvc->dbTableName)
-            || !is_object($mvc->db ?? null) || !self::hasFullTextIndex($mvc, $field) || !self::isBigTable($query)) {
+        if (countR($keys) < 2 || !self::canCountFullText($query, $field)) {
 
             return $keys[0];
         }
 
-        // С индекс-подсказка MyISAM не ползва FULLTEXT индекса и водещият термин е без значение
-        $hinted = !empty($query->indexes[$mvc->dbTableName]) && !(defined('CORE_QUERY_USE_INDEXES') && CORE_QUERY_USE_INDEXES === 'no');
-        if ($hinted || !self::isMyIsam($mvc)) {
-
-            return $keys[0];
-        }
-
+        $mvc = $query->mvc;
         $column = str::phpToMysqlName($field);
         $pick = function () use ($mvc, $column, $terms, $limit, $enough) {
             $best = null;
             $bestCount = null;
             foreach ($terms as $key => $term) {
                 $max = $bestCount === null || $bestCount > $limit ? $limit + 1 : intdiv($bestCount, 4);
-                $dbRes = $mvc->db->query("SELECT COUNT(*) AS `cnt` FROM (SELECT 1 FROM `{$mvc->dbTableName}` WHERE MATCH(`{$column}`) AGAINST('"
-                    . $mvc->db->escape($term['fts']) . "' IN BOOLEAN MODE) LIMIT {$max}) AS `fts_probe`");
-                $row = $mvc->db->fetchArray($dbRes);
-                $mvc->db->freeResult($dbRes);
-                $count = (int) ($row['cnt'] ?? 0);
+                $count = self::countFullText($mvc, $column, $term['fts'], $max);
                 if ($bestCount === null || $count < $max) {
                     $best = $key;
                     $bestCount = $count;
@@ -510,6 +498,50 @@ class plg_Search extends core_Plugin
         };
 
         return $mvc instanceof core_Manager ? $mvc->callOnReplica($pick) : $pick();
+    }
+
+
+    /**
+     * Дали FULLTEXT съвпаденията по полето си струва да се броят: голяма MyISAM таблица с FULLTEXT индекс
+     * по полето и без индекс-подсказка - с нея MyISAM не ползва FULLTEXT индекса
+     *
+     * @param core_Query $query
+     * @param string     $field
+     *
+     * @return bool
+     */
+    protected static function canCountFullText($query, $field)
+    {
+        $mvc = $query->mvc ?? null;
+        if (($query->fields[$field]->kind ?? null) !== 'FLD' || empty($mvc->dbTableName) || !is_object($mvc->db ?? null)
+            || !self::hasFullTextIndex($mvc, $field) || !self::isBigTable($query)) {
+
+            return false;
+        }
+        $hinted = !empty($query->indexes[$mvc->dbTableName]) && !(defined('CORE_QUERY_USE_INDEXES') && CORE_QUERY_USE_INDEXES === 'no');
+
+        return !$hinted && self::isMyIsam($mvc);
+    }
+
+
+    /**
+     * Броят съвпадения на FULLTEXT израз, до $max - на текущата връзка
+     *
+     * @param core_Mvc $mvc
+     * @param string   $column
+     * @param string   $against Изразът за BOOLEAN MODE
+     * @param int      $max
+     *
+     * @return int
+     */
+    protected static function countFullText($mvc, $column, $against, $max)
+    {
+        $dbRes = $mvc->db->query("SELECT COUNT(*) AS `cnt` FROM (SELECT 1 FROM `{$mvc->dbTableName}` WHERE MATCH(`{$column}`) AGAINST('"
+            . $mvc->db->escape($against) . "' IN BOOLEAN MODE) LIMIT " . (int) $max . ') AS `fts_probe`');
+        $row = $mvc->db->fetchArray($dbRes);
+        $mvc->db->freeResult($dbRes);
+
+        return (int) ($row['cnt'] ?? 0);
     }
 
 
@@ -587,7 +619,8 @@ class plg_Search extends core_Plugin
 
     /**
      * Evaluate text using primary-key lookups within a small, complete set of documents.
-     * Returns false without changing the query when its scope is too large or unsupported.
+     * Returns false without changing the query when its scope is too large or unsupported,
+     * or when the full-text condition itself matches no more than $limit rows.
      */
     public static function restrictToScope($query, $idField = 'id', $limit = 5000)
     {
@@ -603,6 +636,23 @@ class plg_Search extends core_Plugin
         foreach ($query->searchConditions as $condition) {
             // An enclosing OR added by another hook cannot safely be split here.
             if (!in_array($condition, $query->where, true)) {
+                return false;
+            }
+        }
+
+        // До $limit съвпадения на FULLTEXT израза: индексът и така води по толкова редове, а четенето на обхвата
+        // може да е много по-скъпо (bags: 3.9 млн. реда, за да се окаже, че документите от вид и период са над 5000)
+        foreach ($query->searchConditions as $condition) {
+            if (!preg_match("/^MATCH\\(#(\\w+)\\) AGAINST\\('(.*)' IN BOOLEAN MODE\\)$/s", $condition, $m)
+                || !self::canCountFullText($query, $m[1])) {
+                continue;
+            }
+            $mvc = $query->mvc;
+            $count = function () use ($mvc, $m, $limit) {
+
+                return self::countFullText($mvc, str::phpToMysqlName($m[1]), $m[2], $limit + 1);
+            };
+            if (($mvc instanceof core_Manager ? $mvc->callOnReplica($count) : $count()) <= $limit) {
                 return false;
             }
         }

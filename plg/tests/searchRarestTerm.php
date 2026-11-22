@@ -6,7 +6,8 @@
  * - над тавана води коя да е дума под него, при точен брой - само поне 4 пъти по-рядка; под 1000 съвпадения
  *   броенето спира;
  * - броенето е на репликата; малка таблица, InnoDB, индекс-подсказка, поле без собствен FULLTEXT индекс,
- *   един термин и фраза не се броят - води най-дългият
+ *   един термин и фраза не се броят - води най-дългият;
+ * - restrictToScope() не чете обхвата, ако FULLTEXT условието има до 5000 съвпадения
  *
  * BGERP_SUMMARY_TEST_SOCKET=/path/my.sock php plg/tests/searchRarestTerm.php
  * Иска изолирана MariaDB с празна база test; ползва само временни таблици, без конфигурацията на инсталацията.
@@ -210,4 +211,58 @@ checkTerm($where === array($longest) && $limits === array() && count($ids) === 1
 list($where, $ids, $limits) = searchFixture('"plik hartia" kartonena');
 checkTerm(in_array("MATCH(#searchKeywords) AGAINST('+\"plik hartia\"' IN BOOLEAN MODE)", $where, true) && $limits === array(), 'Фраза води без броене');
 
-echo "OK: {$checks} rarest-term checks with the real Query builder, plg_Search and MariaDB.\n";
+// Търсене в обхват (id до $maxId) през restrictToScope(): приложен ли е, колко пъти е четен обхватът,
+// таваните на FULLTEXT преброяванията и намерените id-та
+function scopeFixture($search, $maxId, $hint = null)
+{
+    global $db;
+    $mvc = new core_Manager();
+    $mvc->db = $db;
+    foreach (array('id', 'searchKeywords') as $name) {
+        $mvc->FLD($name, 'varchar');
+    }
+    $mvc->dbIndexes['search_keywords'] = (object) array('fields' => 'searchKeywords', 'type' => 'FULLTEXT');
+    $query = new core_Query(array('mvc' => $mvc));
+    $query->where("#id <= {$maxId}");
+    if ($hint) $query->useIndex($hint);
+    plg_Search::applySearch($search, $query);
+    $db->log = array();
+    $restricted = plg_Search::restrictToScope($query);
+    $scopeReads = 0;
+    $limits = array();
+    foreach ($db->log as $entry) {
+        if (strpos($entry[0], 'SELECT DISTINCT') !== false) $scopeReads++;
+        if (!preg_match('/LIMIT (\d+)\) AS `fts_probe`/', $entry[0], $m)) continue;
+        checkTerm($entry[1] === 'replica', 'Броенето преди обхвата е на репликата');
+        $limits[] = (int) $m[1];
+    }
+    $ids = array();
+    while ($rec = $query->fetch()) {
+        $ids[] = (int) $rec->id;
+    }
+    sort($ids);
+
+    return array($restricted, $scopeReads, $limits, $ids);
+}
+$upTo = function ($ids, $maxId) { return array_values(array_filter($ids, function ($id) use ($maxId) { return $id <= $maxId; })); };
+
+// Рядка дума: FULLTEXT индексът и така води по малко редове - обхватът не се чете
+list($restricted, $scopeReads, $limits, $ids) = scopeFixture('hartia', 3000);
+checkTerm($restricted === false && $scopeReads === 0 && $limits === array(5001), 'При до 5000 съвпадения на думата обхватът не се чете');
+checkTerm($ids === $upTo($every(30), 3000), 'Без обхвата намереното е същото');
+
+// Честа дума: обхватът се чете и при до 5000 документа ограничава търсенето
+list($restricted, $scopeReads, $limits, $ids) = scopeFixture('kartonena', 3000);
+checkTerm($restricted === true && $scopeReads === 1 && $limits === array(5001) && $ids === range(1, 3000), 'Честа дума в малък обхват - търси се в обхвата');
+list($restricted, $scopeReads, $limits, $ids) = scopeFixture('kartonena', 6000);
+checkTerm($restricted === false && $scopeReads === 1 && $ids === range(1, 6000), 'Честа дума в голям обхват - както досега');
+
+// Без преброяване - обхватът се чете както досега
+list($restricted, $scopeReads, $limits, $ids) = scopeFixture('hartia', 3000, 'PRIMARY');
+checkTerm($restricted === true && $scopeReads === 1 && $limits === array(), 'С индекс-подсказка FULLTEXT не води - не се брои');
+core_Permanent::$rows = 1000000;
+list($restricted, $scopeReads, $limits, $ids) = scopeFixture('hartia', 3000);
+checkTerm($restricted === true && $scopeReads === 1 && $limits === array() && $ids === $upTo($every(30), 3000), 'Малка таблица не се брои');
+core_Permanent::$rows = 2000000;
+
+echo "OK: {$checks} rarest-term and scope checks with the real Query builder, plg_Search and MariaDB.\n";
