@@ -848,7 +848,7 @@ class type_Richtext extends type_Blob
         
         $code = str_replace("\r\n", "\n", $code);
         
-        if ($code[0] == "\n") {
+        if (($code[0] ?? '') == "\n") {
             $code = substr($code, 1);
         }
         
@@ -856,7 +856,7 @@ class type_Richtext extends type_Blob
             $code = substr($code, 0, strlen($code) - 1);
         }
         
-        if (!trim($code)) {
+        if (trim($code) === '') {
             
             return '';
         }
@@ -868,10 +868,21 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $res = "<pre class='rich-text code{$classLg} no-spell-check'><code>[#{$place}#]</code></pre>" . $end;
+            $res = "<pre class='rich-text code{$classLg} no-spell-check'><code>[#{$place}#]</code></pre>";
         } else {
-            // $code = str_replace("\n", "<br>", $code);
-            $res = "<pre class='rich-text no-spell-check'>[#{$place}#]</pre>" . $end;
+            $res = "<pre class='rich-text no-spell-check'>[#{$place}#]</pre>";
+        }
+
+        if (!Mode::isReadOnly() && !Mode::is('text', 'plain')) {
+            $copy = tr('Копиране в клипборда||Copy to clipboard');
+            $button = ht::createElement('button', array(
+                'type' => 'button',
+                'class' => 'richtext-code-copy',
+                'title' => $copy,
+                'aria-label' => $copy,
+                'onclick' => 'copyRichtextCode(this)',
+            ), '', true, false);
+            $res = "<div class='richtext-code-block'>{$button}{$res}</div>";
         }
         
         $this->_htmlBoard[$place] = rtrim($code);
@@ -879,7 +890,7 @@ class type_Richtext extends type_Blob
         // Инвокваме кода за highlight
         $this->invoke('AfterHighLightCode');
         
-        return $res;
+        return $res . $end;
     }
     
     

@@ -281,7 +281,8 @@ function render_setTwoColsFilterWidth() {
         $(document).on('change.twoColsFilter',
             '.twoColsFilter .listFilter select, ' +
             '.twoColsFilter .listFilter input[type=radio], ' +
-            '.twoColsFilter .listFilter input[type=checkbox]', function () {
+            '.twoColsFilter .listFilter input[type=checkbox], ' +
+            '.twoColsFilter .listFilter tr.toggable input[type=text]', function () {
                 var $rows = $(this).closest('.twoColsFilter')
                     .find('.vFormField > tbody > tr');
 
@@ -313,12 +314,16 @@ function render_setTwoColsFilterWidth() {
             if ($(this).css('display') != 'none') {
                 visibleRowIndexes.push(index);
                 rowIndexes.push(index);
-            } else if ($summary.length && $(this).hasClass('toggable')) {
+            } else if ($(this).hasClass('toggable')) {
                 rowIndexes.push(index);
             }
         });
 
-        var tryExpanded = $summary.length && $allRows.filter('.toggable').length && rowIndexes.length > 5;
+        var $toggableRows = $allRows.filter('.toggable');
+        var collapsedFieldCount = rowIndexes.length - getHideableListFilterRows($toggableRows).length;
+        // В две колони допълнителното поле може да заеме свободното място на последния ред.
+        var sameRowCount = Math.ceil(rowIndexes.length / 2) === Math.ceil(collapsedFieldCount / 2);
+        var tryExpanded = $toggableRows.length && rowIndexes.length > 5 && (sameRowCount || $summary.length);
         if (!tryExpanded) {
             rowIndexes = visibleRowIndexes;
         }
@@ -553,7 +558,8 @@ function render_setTwoColsFilterWidth() {
                 Math.floor(getTwoColsFilterVisibleWidth(filter));
             // Формата има собствена височина, а обвивката се разтяга по статистиката.
             // Отстъпите и на двата блока определят мястото за резултатите.
-            var fitsHeight = $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight(true);
+            var fitsHeight = sameRowCount ||
+                $filter.find('.listFilter form').first().outerHeight(true) <= $summary.outerHeight(true);
             var autoExpandMinWidth = fitsHeight ? filter.twoColsFilterMetrics.twoColumnsMinWidth : Infinity;
 
             // Автоматичното разгъване не променя запомнените скрити редове.

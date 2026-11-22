@@ -36,6 +36,12 @@ class gs1_TypeEan extends type_Varchar
      * Кеш на рейнджа
      */
     private $autoRange = array();
+
+
+    /**
+     * Дали може да се генерира автоматичен номер
+     */
+    private $autoEnabled = false;
     
     
     /**
@@ -56,10 +62,19 @@ class gs1_TypeEan extends type_Varchar
             expect(cls::get($mvcName));
             expect($this->params['field']);
             expect(method_exists($mvcName, 'getEanRange'));
-            $range = $mvcName::getEanRange();
             
-            if (countR($range)) {
-                $this->autoRange = $range;
+            // Моделът може да дава номерата сам (от свои диапазони), иначе - от настроения рейндж
+            if (method_exists($mvcName, 'haveAutoEan') && $mvcName::haveAutoEan()) {
+                $this->autoEnabled = true;
+            } else {
+                $range = $mvcName::getEanRange();
+                if (countR($range)) {
+                    $this->autoRange = $range;
+                    $this->autoEnabled = true;
+                }
+            }
+            
+            if ($this->autoEnabled) {
                 $this->suggestions = array('' => '', self::AUTO_GENERETE_STRING => tr('Автоматично'));
             }
         }
@@ -72,11 +87,16 @@ class gs1_TypeEan extends type_Varchar
     public function fromVerbal_($value)
     {
         // Ако има рейндж за генерирания баркод
-        if (countR($this->autoRange)) {
+        if ($this->autoEnabled) {
             
             // И е въведена специалната стойност, замества се с автоматичния баркод
             if ($value == self::AUTO_GENERETE_STRING) {
                 $value = $this->getAutoNumber($this->params['mvc'], $this->params['field']);
+                if (empty($value)) {
+                    $this->error = 'Няма свободен номер в диапазоните';
+                    
+                    return false;
+                }
             }
         }
         
@@ -93,6 +113,11 @@ class gs1_TypeEan extends type_Varchar
      */
     protected function getAutoNumber($mvc, $field)
     {
+        if (method_exists($mvc, 'haveAutoEan') && $mvc::haveAutoEan()) {
+            
+            return $mvc::getAutoEan();
+        }
+        
         expect($range = $mvc::getEanRange());
         expect(countR($range));
         
@@ -228,7 +253,7 @@ class gs1_TypeEan extends type_Varchar
         if(substr($value, 0, 1) == '#'){
             return array();
         }
-        if (countR($this->autoRange)) {
+        if ($this->autoEnabled) {
             if ($value == self::AUTO_GENERETE_STRING) {
                 
                 return array('value' => $value);
