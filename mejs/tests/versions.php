@@ -33,6 +33,7 @@ class core_ProtoSetup
 class ht
 {
     private static $count = 0;
+    public static function createElement($tag, $attributes) { return array($tag, $attributes); }
     /** Детерминистични уникални идентификатори. */
     public static function getUniqId($prefix) { return $prefix . ++self::$count; }
 }
@@ -64,6 +65,13 @@ require dirname(__DIR__, 2) . '/core/App.class.php';
 require dirname(__DIR__) . '/Setup.class.php';
 require $argv[1] ?? dirname(__DIR__) . '/Adapter.class.php';
 check(MEJS_VERSION === '2.11.0.0', 'Default preserved');
+$version = MEJS_VERSION;
+$zeroTitle = mejs_Adapter::createAudio('recording.mp3', array('title' => '0'), 'url');
+check(!isset($zeroTitle->parts['MEDIA_TITLE']), 'Legacy audio title handling');
+$stream = array('url' => '/protected/1', 'type' => 'video/mp4');
+$protected = mejs_Adapter::createVideo(array($stream), array('title' => '0'), 'stream');
+check($protected->parts['MEDIA_TITLE'] === '0', 'Scoped video title');
+check($protected->parts['SOURCE'][0] === array('source', array('src' => $stream['url'], 'type' => $stream['type'])), 'Typed video source');
 foreach (array('2.11.0.0','2.20.0','4.2.9','7.1.0') as $version) {
     $params = array('startVolume'=>0,'loop'=>true,'pauseOtherPlayers'=>false,'features'=>array('playpause'));
     $actual = json_decode(mejs_Adapter::prepareParams($params), true);

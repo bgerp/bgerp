@@ -379,6 +379,7 @@ class acc_RatesDifferences extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'placeholderType=all,caption=Валута');
+        currency_Currencies::prepareFilterField($data->listFilter, 'currencyCode');
         $data->listFilter->FLD('dealState', 'enum(all=Всички сделки,active=Активни сделки,closed=Затворени сделки)', 'caption=Сделки');
         $data->listFilter->showFields .= ',currencyCode,dealState';
         $data->listFilter->setDefault('dealState', 'active');

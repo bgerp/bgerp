@@ -3013,6 +3013,37 @@ pre.rich-text {
   margin-right: -10px;
   padding-bottom: 5px; }
 
+.richtext-code-copy {
+  display: none; }
+
+@media screen {
+  .richtext-code-block {
+    position: relative; }
+  .richtext-code-block > pre.rich-text {
+    padding-right: 38px; }
+  .narrow .richtext-code-block {
+    margin: 0 -10px; }
+    .narrow .richtext-code-block > pre.rich-text {
+      margin: 0; }
+  .richtext-code-copy {
+    display: block;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent url('../img/16/page_copy.png') center no-repeat;
+    cursor: pointer; }
+    .richtext-code-copy:hover, .richtext-code-copy:focus {
+      background-color: white;
+      border-color: #bbbbbb; }
+    .richtext-code-copy.is-copied {
+      background-image: url('../img/16/accept.png'); } }
+
 .narrow pre.rich-text code::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
