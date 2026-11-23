@@ -510,7 +510,8 @@ class planning_Tasks extends core_Master
             $tpl->append($assetTpl, 'ASSET_PARAMS');
             Mode::pop('text');
         }
-        $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+        $tpl->append('no-border taskHeaderInfo', 'LETTER_HEAD_TABLE_CLASS');
+        $tpl->push('planning/tpl/TaskHeader.css', 'CSS');
 
         // Субпродуктите са в клетката с информацията, а не в отделен блок
         $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
@@ -792,9 +793,6 @@ class planning_Tasks extends core_Master
 
             if (isset($rec->wasteProductId)) {
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
-                $row->wasteStart = $row->wasteStart ?? 'n/a';
-                $row->wastePercent = $row->wastePercent ?? 'n/a';
-                $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
 
             if (!empty($rec->employees)) {
@@ -1186,7 +1184,6 @@ class planning_Tasks extends core_Master
             }
         }
 
-        // Отпадъкът е до теглото, с което се сравнява процентът му
         // След активиране избраният отпадък вече е в планираните артикули
         $showWasteProduct = isset($rec->wasteProductId) && !in_array($rec->state, array('active', 'wakeup', 'stopped', 'closed'));
         if (!$showWasteProduct) {
@@ -1201,20 +1198,25 @@ class planning_Tasks extends core_Master
                     $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}:</td><td>{$wasteRow->quantityVerbal}</td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
             }
+            $wasteStart = $row->wasteStart ?? 'n/a';
+            $wastePercent = $row->wastePercent ?? 'n/a';
+            $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
             $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td style='font-weight:normal'>|Артикул|*:</td><td>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+        }
+
+        $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
+        if (!empty($row->printCount)) {
+            $labelPrintRow = "<tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#],&nbsp;&nbsp;<span class='nowrap'><span style='font-weight:normal'>|Шаблон|*:</span> [#labelTemplate#]</span></td></tr>";
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
-                <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
-                <!--ET_BEGIN printCount-->
-                <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
-                <!--ET_END printCount-->
+                {$labelPrintRow}
                 </table>"));
 
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
@@ -1251,10 +1253,14 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
-        if (Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
+        $waste = $headerArr['waste'] ?? null;
+        unset($headerArr['waste']);
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
+
+        if ($isNarrow) {
             $res = new ET("<table class='subInfo'>");
             foreach ((array)$headerArr as $value) {
-                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
+                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
                 $res->append('<tr>');
                 $res->append($name);
@@ -1262,6 +1268,25 @@ class planning_Tasks extends core_Master
                 $res->append($val);
                 $res->append('</tr>');
             }
+        } elseif (isset($waste)) {
+            // Отпадъкът не участва в разпределянето на ширината на горните колони.
+            $res = $mvc->prepareHeaderLines($headerArr);
+        }
+
+        if (isset($waste)) {
+            $colspan = $isNarrow ? 1 : countR($headerArr);
+            $wasteName = $waste['name'] ?? '';
+            $wasteValue = $waste['val'] ?? '';
+            $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
+                <div class='taskWasteDivider'></div>
+                <table style='width:100%;'><tr>
+                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
+                    <td style='vertical-align:top;'>{$wasteValue}</td>
+                </tr></table>
+                </td></tr>"));
+        }
+
+        if ($isNarrow) {
             $res->append("</table>");
         }
     }
