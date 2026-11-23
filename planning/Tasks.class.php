@@ -704,6 +704,10 @@ class planning_Tasks extends core_Master
                 }
             }
 
+            $actualStart = $rec->actualStart ?? null;
+            $actualStartDate = $actualStart ? dt::mysql2verbal($actualStart, 'd.m.Y H:i:s (l)', null, false, false) : 'n/a';
+            $row->actualStartHint = ht::escapeAttr(tr('Фактическо / Реално начало') . ': ' . $actualStartDate);
+
             $eFields = static::getExpectedDeviations($rec, true);
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
