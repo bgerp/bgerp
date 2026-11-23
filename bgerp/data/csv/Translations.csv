@@ -16678,3 +16678,6 @@ en,"По продажба [#1#] вече има няколко експедиц�
 en,"По продажба [#1#] е избрана еднократна експедиция.","One-time shipment is enabled on sale [#1#]."
 en,"Документи по експедицията: [#1#].","Shipping documents: [#1#]."
 en,"За отделни експедиционни нареждания изберете ""Не"" в ""Промяна → Доставка → Еднократно"" на продажбата.","For separate shipment orders, open Change on the sale and set Delivery → One-time to No."
+en,"Наименование в е-магазина","Name in the e-shop"
+en,"Името за е-магазина съвпада с друг метод","The e-shop name matches another method"
+en,"Наименованието съвпада с името за е-магазина на друг метод","The name matches the e-shop name of another method"
