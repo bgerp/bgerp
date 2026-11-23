@@ -103,6 +103,12 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Полета, които се извличат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,productId,packagingId,eanCode';
+
+
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
@@ -184,6 +190,35 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Дали автоматичните баркодове се дават от нашите диапазони (cat_EanPrefixes)
+     *
+     * @return bool
+     */
+    public static function haveAutoEan()
+    {
+        // Преди инициализацията на пакета таблицата на диапазоните още я няма
+        try {
+
+            return cat_EanPrefixes::haveActive();
+        } catch (Throwable $e) {
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Следващият свободен номер от нашите диапазони
+     *
+     * @return string|null
+     */
+    public static function getAutoEan()
+    {
+        return cat_EanPrefixes::getNextFreeCode();
+    }
+
+
+    /**
      * Изпълнява се след въвеждане на данните от Request
      */
     protected static function on_AfterInputEditForm($mvc, $form)
@@ -237,6 +272,17 @@ class cat_products_Packagings extends core_Detail
                     $checkProductLink = cat_Products::getHyperlink($check->productId, true);
                     $form->setError('eanCode', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
+
+                // Нашите номера минават през регистъра - само при нов номер в опаковката
+                $oldEan = isset($rec->id) ? $mvc->fetchField($rec->id, 'eanCode') : null;
+                if (!$form->gotErrors('eanCode') && $rec->eanCode != $oldEan) {
+                    $eanWarning = null;
+                    if ($eanError = cat_EanPrefixes::checkProductCode($rec->eanCode, $rec->productId, $rec->packagingId, $eanWarning)) {
+                        $form->setError('eanCode', $eanError);
+                    } elseif ($eanWarning) {
+                        $form->setWarning('eanCode', $eanWarning);
+                    }
+                }
             }
 
             if (self::allowWeightQuantityCheck($rec->productId, $rec->packagingId, $rec->id)) {
@@ -272,8 +318,14 @@ class cat_products_Packagings extends core_Detail
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    protected static function on_BeforeSave($mvc, $id, $rec)
+    protected static function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
+        // Старият баркод - ако е наш и се маха, остава зает в регистъра
+        $fieldsArr = arr::make($fields, true);
+        if (!empty($rec->id) && (!countR($fieldsArr) || isset($fieldsArr['eanCode']))) {
+            $rec->_oldEanCode = $mvc->fetchField($rec->id, 'eanCode');
+        }
+
         // Ако за този продукт има друга втора мярка, тя става не основна
         if (($rec->isSecondMeasure ?? null) == 'yes') {
             $query = static::getQuery();
@@ -836,6 +888,30 @@ class cat_products_Packagings extends core_Detail
         if (($rec->state ?? null) == 'closed' && ($rec->isBase ?? null) == 'yes') {
             $rec->isBase = 'no';
             $mvc->save_($rec, 'isBase');
+        }
+
+        $newEan = $rec->eanCode ?? null;
+        $oldEan = $rec->_oldEanCode ?? null;
+        if (!empty($oldEan) && $oldEan != $newEan) {
+            $productId = $rec->productId ?? $mvc->fetchField($rec->id, 'productId');
+            $packagingId = $rec->packagingId ?? $mvc->fetchField($rec->id, 'packagingId');
+            cat_EanCodes::retire($oldEan, $productId, $packagingId, 'Сменен в опаковката с ' . ($newEan ? $newEan : '-'));
+        }
+        if (!empty($newEan) && $oldEan != $newEan) {
+            cat_EanCodes::releaseToPackaging($newEan);
+        }
+    }
+
+
+    /**
+     * След изтриване - нашите баркодове остават заети в регистъра
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            if (!empty($rec->eanCode)) {
+                cat_EanCodes::retire($rec->eanCode, $rec->productId, $rec->packagingId, 'Изтрита опаковка');
+            }
         }
     }
 
@@ -1423,7 +1499,7 @@ class cat_products_Packagings extends core_Detail
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
                         if (!isset($policyInfo->price)) {
-                            $price = 'N/A';
+                            $price = "<span class='nowrap'>N/A</span>";
                         } else {
                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
                             $price .= " <span class='cCode'>{$docRec->currencyId}</span>";

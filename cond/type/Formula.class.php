@@ -97,6 +97,15 @@ class cond_type_Formula extends cond_type_Text
 
 
     /**
+     * Дали домейнът е група артикули - формулата се смята чак в артикулите ѝ
+     */
+    private static function isGroupDomain($domainClass)
+    {
+        return isset($domainClass) && cls::get($domainClass) instanceof cat_Groups;
+    }
+
+
+    /**
      * Връща наличните параметри според домейна
      *
      * @param mixed $domainClass
@@ -215,7 +224,7 @@ class cond_type_Formula extends cond_type_Text
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
-        $params = static::getParamsFromDomain($domainClass, $domainId);
+        $params = static::isGroupDomain($domainClass) ? array() : static::getParamsFromDomain($domainClass, $domainId);
         if(!countR($params)){
             $params = static::getGlobalParamIds();
         }
@@ -252,9 +261,14 @@ class cond_type_Formula extends cond_type_Text
 
                 // Търси се има ли нова версия на формулата в артикула от заданието/етапа от операцията
                 $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
-                $defaultValue = cat_products_Params::fetchField("#classId = {$productClassId} AND #productId = {$jobProductId} AND #paramId = {$rec->id}", 'paramValue');
-                if(!isset($defaultValue)){
-                    $defaultValue = cat_products_Params::fetchField("#classId = {$productClassId} AND #productId = {$taskRec->productId} AND #paramId = {$rec->id}", 'paramValue');
+                foreach (array($jobProductId, $taskRec->productId) as $productId) {
+                    $defaultValue = cat_products_Params::fetchField("#classId = {$productClassId} AND #productId = {$productId} AND #paramId = {$rec->id}", 'paramValue');
+
+                    // Без собствена стойност формулата може да е наследена от групите на артикула
+                    if (!isset($defaultValue)) {
+                        $defaultValue = cat_GroupParams::supplementProductParams($productId, null, $rec->id);
+                    }
+                    if (isset($defaultValue)) break;
                 }
                 $res = isset($defaultValue) ? $defaultValue : $res;
             }
@@ -276,6 +290,15 @@ class cond_type_Formula extends cond_type_Text
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
+        // В групата няма артикул, от чиито параметри да се сметне - показва се самата формула
+        if (static::isGroupDomain($domainClass)) {
+            $exprDisplay = preg_replace_callback('/#(\d+)#/', function ($m) {
+                return '$' . cat_Params::getNormalizedName($m[1]);
+            }, $value ?? '');
+
+            return Mode::is('text', 'plain') ? $exprDisplay : ht::createHint(type_Varchar::escape($exprDisplay), 'Изчислява се за всеки артикул от групата', 'notice', false);
+        }
+
         core_Debug::startTimer("RENDER_FORMULA_{$rec->id}");
         core_Debug::log("START RENDER_FORMULA_{$rec->id}");
 
@@ -283,6 +306,9 @@ class cond_type_Formula extends cond_type_Text
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
+        if ($calced !== cat_BomDetails::CALC_ERROR && isset($this->driverRec->round)) {
+            $calced = round($calced, $this->driverRec->round);
+        }
 
         $verbal = $calced;
         if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
@@ -290,10 +316,6 @@ class cond_type_Formula extends cond_type_Text
             if ($calced === cat_BomDetails::CALC_ERROR) {
                 $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);
             } else {
-                if(isset($this->driverRec->round)){
-                    $calced = round($calced, $this->driverRec->round);
-                }
-
                 if(core_Users::isPowerUser()){
                     $calced = "<span class='blueText'>{$calced}</span>";
                     $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);

@@ -84,12 +84,6 @@ class cat_GroupParams extends cat_products_ProtoParams
 
 
     /**
-     * Типовете параметри, които не се задават за групи - формулите и материалите в рецептите
-     */
-    protected static $notAllowedDrivers = array('cond_type_Formula', 'cond_type_Product');
-
-
-    /**
      * Над колко артикула транспортът в черновите се преизчислява на заден план
      */
     protected static $maxTransportRecalcNow = 20;
@@ -105,6 +99,18 @@ class cat_GroupParams extends cat_products_ProtoParams
      * Колко артикула да се обработят наведнъж при обновяване на ключовите думи
      */
     protected static $keywordsBatch = 2000;
+
+
+    /**
+     * Ключ на опашката с групите, на чиито артикули да се синхронизират свойствата на перата
+     */
+    protected static $featuresQueueKey = 'cat_GroupParams|featuresQueue';
+
+
+    /**
+     * Колко пера да се синхронизират наведнъж
+     */
+    protected static $featuresBatch = 500;
 
 
     /**
@@ -234,28 +240,12 @@ class cat_GroupParams extends cat_products_ProtoParams
         $query->show('paramId');
         $notIn = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
 
-        $driverIds = array();
-        foreach (static::$notAllowedDrivers as $driver) {
-            $driverIds[] = core_Classes::getId($driver);
-        }
-        $where = "#allowInGroups = 'yes' AND #driverClass NOT IN (" . implode(',', $driverIds) . ')';
+        $where = "#allowInGroups = 'yes'";
         if (countR($notIn)) {
             $where .= ' AND #id NOT IN (' . implode(',', $notIn) . ')';
         }
 
         return cat_Params::makeArray4Select(null, $where);
-    }
-
-
-    /**
-     * Изпълнява се след въвеждане на данните от Request
-     */
-    protected static function on_AfterInputEditForm($mvc, $form)
-    {
-        $rec = $form->rec;
-        if (!empty($rec->paramId) && cat_Params::haveDriver($rec->paramId, static::$notAllowedDrivers)) {
-            $form->setError('paramId', 'Параметърът не може да се задава за групи|*!');
-        }
     }
 
 
@@ -518,7 +508,7 @@ class cat_GroupParams extends cat_products_ProtoParams
 
             // Вербализира се като собствен параметър, за да е същото свойство
             $pRec = (object) array('productId' => $productId, 'classId' => $productClassId, 'paramId' => $paramId, 'paramValue' => $gRec->paramValue);
-            $row = cat_products_Params::recToVerbal($pRec, 'paramId,paramValue');
+            $row = cat_products_Params::getFeatureRow($pRec);
             $res[$row->paramId] = $row->paramValue;
         }
 
@@ -653,6 +643,27 @@ class cat_GroupParams extends cat_products_ProtoParams
         static::recalcTransportByGroups($transportGroupIds);
 
         static::scheduleKeywordsUpdate(array_keys($changed));
+
+        // Наследените счетоводни свойства са и свойства на перата на артикулите
+        $paramIds = array();
+        foreach ($changed as $ids) {
+            $paramIds += $ids;
+        }
+        $featureIds = array();
+        $pQuery = cat_Params::getQuery();
+        $pQuery->in('id', $paramIds);
+        $pQuery->where("#isFeature = 'yes'");
+        $pQuery->show('id');
+        while ($pRec = $pQuery->fetch()) {
+            $featureIds[$pRec->id] = $pRec->id;
+        }
+        $featureGroupIds = array();
+        foreach ($changed as $groupId => $ids) {
+            if (countR(array_intersect_key($ids, $featureIds))) {
+                $featureGroupIds[] = $groupId;
+            }
+        }
+        static::scheduleFeaturesSync($featureGroupIds);
     }
 
 
@@ -683,7 +694,35 @@ class cat_GroupParams extends cat_products_ProtoParams
      */
     public static function scheduleKeywordsUpdate($groupIds)
     {
-        $queue = core_Permanent::get(static::$keywordsQueueKey);
+        static::addToQueue(static::$keywordsQueueKey, 'updateKeywords', $groupIds);
+    }
+
+
+    /**
+     * Нарежда по разписание синхронизиране на свойствата на перата на артикулите от групите и подгрупите им
+     *
+     * @param array $groupIds - ид-та на групи
+     *
+     * @return void
+     */
+    public static function scheduleFeaturesSync($groupIds)
+    {
+        static::addToQueue(static::$featuresQueueKey, 'syncFeatures', $groupIds);
+    }
+
+
+    /**
+     * Добавя групите в опашка, обработвана на порции по разписание
+     *
+     * @param string $key      - ключ на опашката
+     * @param string $callback - метод callback_* на класа
+     * @param array  $groupIds - ид-та на групи
+     *
+     * @return void
+     */
+    protected static function addToQueue($key, $callback, $groupIds)
+    {
+        $queue = core_Permanent::get($key);
         $queue = is_array($queue) ? $queue : array('groups' => array(), 'lastId' => 0);
         $added = false;
         foreach ($groupIds as $groupId) {
@@ -695,10 +734,100 @@ class cat_GroupParams extends cat_products_ProtoParams
         }
         if (!$added) return;
 
-        // С нови групи артикулите се обхождат отначало
+        // С нови групи записите се обхождат отначало
         $queue['lastId'] = 0;
-        core_Permanent::set(static::$keywordsQueueKey, $queue, 7 * 24 * 60);
-        core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(60));
+        core_Permanent::set($key, $queue, 7 * 24 * 60);
+        core_CallOnTime::setOnce(get_called_class(), $callback, null, dt::addSecs(60));
+    }
+
+
+    /**
+     * Условие за артикулите от групите в опашката
+     *
+     * @param array  $queue - опашка
+     * @param string $field - поле с групите на артикула
+     *
+     * @return string
+     */
+    protected static function getQueueGroupsCond($queue, $field)
+    {
+        $conds = array();
+        foreach ($queue['groups'] as $groupId) {
+            $conds[] = "#{$field} LIKE '%|" . (int) $groupId . "|%'";
+        }
+
+        return '(' . implode(' OR ', $conds) . ')';
+    }
+
+
+    /**
+     * Приключва порция от опашката - маха я или я пуска отново от последния обработен запис
+     *
+     * @param string $key      - ключ на опашката
+     * @param string $callback - метод callback_* на класа
+     * @param array  $queue    - обработената опашка
+     * @param int    $lastId   - последният обработен запис
+     * @param bool   $done     - дали всички записи са обработени
+     *
+     * @return bool - дали опашката е приключила
+     */
+    protected static function continueQueue($key, $callback, $queue, $lastId, $done)
+    {
+        // Ако междувременно са добавени групи, опашката вече е с тях и започва отначало
+        $current = core_Permanent::get($key);
+        if (is_array($current) && countR(array_diff_key($current['groups'] ?? array(), $queue['groups']))) {
+            core_CallOnTime::setOnce(get_called_class(), $callback, null, dt::addSecs(60));
+
+            return false;
+        }
+
+        if ($done) {
+            core_Permanent::remove($key);
+
+            return true;
+        }
+
+        $queue['lastId'] = $lastId;
+        core_Permanent::set($key, $queue, 7 * 24 * 60);
+        core_CallOnTime::setOnce(get_called_class(), $callback, null, dt::addSecs(30));
+
+        return false;
+    }
+
+
+    /**
+     * Синхронизира на порции свойствата на перата на артикулите от групите в опашката
+     *
+     * @return void
+     */
+    public static function callback_syncFeatures()
+    {
+        $queue = core_Permanent::get(static::$featuresQueueKey);
+        if (!is_array($queue) || !countR($queue['groups'] ?? null)) return;
+
+        $lastId = (int) ($queue['lastId'] ?? 0);
+        $query = acc_Items::getQuery();
+        $query->EXT('productGroups', 'cat_Products', 'externalName=groups,externalKey=objectId');
+        $query->where('#classId = ' . cat_Products::getClassId());
+        $query->where("#id > {$lastId}");
+        $query->where(static::getQueueGroupsCond($queue, 'productGroups'));
+        $query->orderBy('id', 'ASC');
+        $query->limit(static::$featuresBatch);
+        $query->show('id');
+
+        $maxTime = dt::addSecs(40);
+        $cnt = 0;
+        while ($rec = $query->fetch()) {
+            if (dt::now() >= $maxTime) break;
+            $cnt++;
+            $lastId = $rec->id;
+            acc_Features::syncItem($rec->id);
+        }
+        $done = ($cnt < static::$featuresBatch) && (dt::now() < $maxTime);
+
+        if (static::continueQueue(static::$featuresQueueKey, 'syncFeatures', $queue, $lastId, $done)) {
+            cls::get('acc_Items')->logDebug('Синхронизирани свойства на перата след промяна в параметрите на групите');
+        }
     }
 
 
@@ -713,10 +842,6 @@ class cat_GroupParams extends cat_products_ProtoParams
         if (!is_array($queue) || !countR($queue['groups'] ?? null)) return;
 
         $driverIds = static::getKeywordDriverIds();
-        $conds = array();
-        foreach ($queue['groups'] as $groupId) {
-            $conds[] = "#groups LIKE '%|" . (int) $groupId . "|%'";
-        }
         $lastId = (int) ($queue['lastId'] ?? 0);
 
         $Products = cls::get('cat_Products');
@@ -727,7 +852,7 @@ class cat_GroupParams extends cat_products_ProtoParams
             $query = cat_Products::getQuery();
             $query->in('innerClass', $driverIds);
             $query->where("#id > {$lastId}");
-            $query->where('(' . implode(' OR ', $conds) . ')');
+            $query->where(static::getQueueGroupsCond($queue, 'groups'));
             $query->orderBy('id', 'ASC');
             $query->limit(static::$keywordsBatch);
 
@@ -756,24 +881,9 @@ class cat_GroupParams extends cat_products_ProtoParams
             $done = ($cnt < static::$keywordsBatch) && (dt::now() < $maxTime);
         }
 
-        // Ако междувременно са добавени групи, опашката вече е с тях и започва отначало
-        $current = core_Permanent::get(static::$keywordsQueueKey);
-        if (is_array($current) && countR(array_diff_key($current['groups'] ?? array(), $queue['groups']))) {
-            core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(60));
-
-            return;
-        }
-
-        if ($done) {
-            core_Permanent::remove(static::$keywordsQueueKey);
+        if (static::continueQueue(static::$keywordsQueueKey, 'updateKeywords', $queue, $lastId, $done)) {
             $Products->logDebug('Обновени ключови думи след промяна в параметрите на групите');
-
-            return;
         }
-
-        $queue['lastId'] = $lastId;
-        core_Permanent::set(static::$keywordsQueueKey, $queue, 7 * 24 * 60);
-        core_CallOnTime::setOnce(get_called_class(), 'updateKeywords', null, dt::addSecs(30));
     }
 
 

@@ -58,8 +58,24 @@ class planning_Jobs extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, cat_plg_LogPackUsage, doc_DocumentPlg, doc_plg_Tabs, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew, bgerp_plg_Blank';
-    
-    
+
+
+    /**
+     * Полетата, които on_AfterFillSummaryRec чете - статистиката извлича само тях
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $summaryRecFields = 'packagingId,quantity,quantityInPack';
+
+
+    /**
+     * Заданията са в малко на брой папки - достъпът се ограничава по тях, без JOIN към папки и нишки
+     *
+     * @see doc_Threads::restrictAccessByUsedFolders()
+     */
+    public $restrictAccessByUsedFolders = true;
+
+
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
@@ -929,10 +945,11 @@ class planning_Jobs extends core_Master
 
 
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
-            $data->listFilter->input('view', 'silent');
-            $data->listFilter->setDefault('view', 'all');
-            $data->listFilter->showFields .= ',view';
+            $listFilter = $data->listFilter ?? null;
+            $listFilter->FNC('view', 'enum(activeAndWakeupAndStopped=Активни+Събудени+Спрени,all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Състояние,input,silent,formOrder=0.5');
+            $listFilter->input('view', 'silent');
+            $listFilter->setDefault('view', 'activeAndWakeupAndStopped');
+            $listFilter->showFields .= ',view';
         }
         
         // type вече е реално поле в модела - само разширяваме опциите му с "Всички"
@@ -940,7 +957,9 @@ class planning_Jobs extends core_Master
         $data->listFilter->input('type', 'silent');
         $data->listFilter->showFields .= ',type';
 
-        $data->listFilter->setField('selectPeriod', 'caption=Период');
+        $listFilter = $data->listFilter ?? null;
+        $listFilter->setField('selectPeriod', 'caption=Период');
+        $listFilter->setField('filterDateField', 'caption=Период на||Period of');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
         self::prepareListSourceFilter($data->listFilter ?? null, 'contragentFolderId');
         $data->listFilter->input('contragentFolderId', 'silent');
@@ -1018,9 +1037,13 @@ class planning_Jobs extends core_Master
                 }
             }
 
-            // Филтър по изглед
+            // Филтър по състояние
             if (isset($filter->view)) {
                 switch ($filter->view) {
+                    case 'activeAndWakeupAndStopped':
+                        $listQuery = $data->query ?? null;
+                        $listQuery->in('state', array('active', 'wakeup', 'stopped'));
+                        break;
                     case 'draft':
                     case 'active':
                     case 'stopped':
@@ -1092,6 +1115,9 @@ class planning_Jobs extends core_Master
         }
 
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
+        if (Mode::is('renderForLlm') && $packagingTpl instanceof core_ET) {
+            $packagingTpl->append(doc_plg_LlmExportable::systemNote('Packagings of the product, not events of this job'));
+        }
         $tpl->replace($packagingTpl, 'PACKAGINGS');
         
         if (!empty($data->components)) {
@@ -1886,6 +1912,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $updateFields = array('history');
+        if ($action === 'closed') planning_Tasks::freezeJobOrder($rec->containerId);
         if(($rec->_updateProductParams ?? 'no') == 'yes'){
             $rec->productViewCacheDate = dt::now();
             static::updateBomSnapshot($rec);
@@ -2048,6 +2075,7 @@ class planning_Jobs extends core_Master
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
+            $existingByTemplate = planning_TaskOrder::existingByTemplate($defaultTasks, planning_Tasks::getJobOrderTasks($jobRec->containerId));
             // Показване на наличните дефолтни операции
             foreach ($defaultTasks as $sysId => $defTask){
                 $title = $defTask->title;
@@ -2057,12 +2085,9 @@ class planning_Jobs extends core_Master
 
                 $warning = false;
                 $exLinkArray = array();
-                $exQuery = planning_Tasks::getQuery();
-                $exQuery->where(array("#originId = '[#1#]' AND (#systemId = '[#2#]' OR (#productId = '[#3#]' AND #subTitle = '[#4#]'))AND #state != 'rejected'", $jobRec->containerId ?? null, $sysId, $defTask->productId ?? null, $defTask->subTitle ?? null));
-                $exQuery->show('id');
-                while($exRec = $exQuery->fetch()) {
-                    if (planning_Tasks::haveRightFor('single', $exRec->id)) {
-                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($exRec->id), false, "title=Към операция|* #" . planning_Tasks::getHandle($exRec->id));
+                foreach ($existingByTemplate[$sysId] ?? array() as $taskId) {
+                    if (planning_Tasks::haveRightFor('single', $taskId)) {
+                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($taskId), false, "title=Към операция|* #" . planning_Tasks::getHandle($taskId));
                     }
                 }
                 if(countR($exLinkArray)){

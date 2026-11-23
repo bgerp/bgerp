@@ -441,7 +441,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Показване на допълнителна мярка при нужда
         if ($rec->type == 'production') {
-            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId)){
+            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId ?? null)){
                 if ($masterRec->showadditionalUom == 'yes') {
                     $form->setField('weight', 'mandatory');
                 } else {
@@ -500,7 +500,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-        $infoArr = array(tr('К-во') . " (<b>{$quantityVerbal}</b> {$measureVerbal})");
+        $infoArr = array(tr('К-во') => "<b>{$quantityVerbal}</b> {$measureVerbal}");
 
         // Ако е въведено тегло, показват се и теглата, както и разминаването спрямо очакваното нето
         if (isset($lastRec->weight)) {
@@ -508,9 +508,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Мярката е част от вербалната стойност на типа
             $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
 
-            $infoArr[] = tr('Бруто') . " (<b>{$WeightType->toVerbal($lastRec->weight)}</b>)";
-            $netWeightVerbal = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet'>n/a</span>";
-            $infoArr[] = tr('Нето') . " ({$netWeightVerbal})";
+            $infoArr[tr('Бруто')] = "<b>{$WeightType->toVerbal($lastRec->weight)}</b>";
+            $infoArr[tr('Нето')] = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet nowrap'>n/a</span>";
 
             // Ако може да се определи очакваното нето, показва се и разминаването спрямо него
             $deviationRec = static::getNetWeightDeviation($lastRec, $masterRec);
@@ -522,11 +521,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $hintMsg = "|спрямо очакваното|* ({$expectedVerbal}) |нето|*!";
                     $deviationVerbal = ht::createHint($deviationVerbal, $hintMsg, $deviationRec->iconHint, false);
                 }
-                $infoArr[] = tr('Разминаване') . " ({$deviationVerbal})";
+                $infoArr[tr('Разминаване')] = $deviationVerbal;
             }
         }
 
-        return "<div class='richtext-info-no-image'>" . tr('Последно добавено') . ': ' . implode(', ', $infoArr) . '</div>';
+        $items = '';
+        foreach ($infoArr as $caption => $value) {
+            $items .= "<span class='lastProgressInfoItem'><span class='lastProgressInfoCaption'>{$caption}:</span> <span class='lastProgressInfoValue'>{$value}</span></span> ";
+        }
+
+        return "<div class='richtext-info-no-image lastProgressInfo'><div class='lastProgressInfoTitle'>" . tr('Последно добавено') . "</div><div class='lastProgressInfoItems'>{$items}</div></div>";
     }
 
 
@@ -1215,10 +1219,29 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && $rec->state != 'rejected'){
             if(!empty($rec->norm)){
-                $calcedNormHint = planning_Setup::canSeeIndTime() ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
-                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+                $canSeeIndTime = planning_Setup::canSeeIndTime();
+                $calcedNormHint = $canSeeIndTime ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
+
+                // За модела заработката е бележка - обикновеният хинт се губи
+                $aiHint = 'Earned time hidden';
+                if ($canSeeIndTime) {
+                    $normSecs = (int) $mvc->calcNormByRec($rec);
+                    $sign = ($rec->type == 'scrap') ? '-' : '';
+                    $verbalSecs = function ($secs) use ($sign) {
+                        return $sign . (($secs > 60) ? round($secs / 60, 2) . ' min' : round($secs) . ' s');
+                    };
+
+                    // Разпределянето решава дали всеки оператор получава цялото време, или дял от него
+                    $personsCount = countR(keylist::toArray($rec->employees));
+                    if (($taskRec->indTimeAllocation ?? null) == 'common' && $personsCount > 1) {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' in total, ' . $verbalSecs($normSecs / $personsCount) . ' per operator';
+                    } else {
+                        $aiHint = 'Earned ' . $verbalSecs($normSecs) . ' per operator';
+                    }
+                }
+                $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false, array('aiHint' => $aiHint));
             } else {
-                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false);
+                $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false, array('aiHint' => 'No earned time'));
             }
         }
 
@@ -1463,7 +1486,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if(isset($rec->weight)){
                 if(empty($rec->netWeight)){
-                    $row->netWeight = "<span class='quiet'>n/a</span>";
+                    $row->netWeight = "<span class='quiet nowrap'>n/a</span>";
                 }
                 if(isset($rec->netWeight) && $rec->weight <= $rec->netWeight){
                     if($rec->state != 'rejected'){
@@ -1489,7 +1512,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                             if(haveRole('debug')){
                                 $msg .= "<br>debug info:<br>{$deviationRec->debugInfo}";
                             }
-                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true));
+                            // За LLM - кратка бележка с нивото на отклонението, без debug информацията
+                            $aiLevel = ($iconHint == 'img/16/red-warning.png') ? 'critical' : (($iconHint == 'warning') ? 'significant' : 'minor');
+                            $aiHint = sprintf('Net %+.2f%% vs expected %s kg (%s)', $deviationRec->deviation * 100, round($deviationRec->expectedNetWeight, 3), $aiLevel);
+                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true, 'aiHint' => $aiHint));
                         }
                     } else {
                         $row->netWeight = ht::createHint($row->netWeight, 'Няма информация за очакваното нето тегло', 'notice', false);

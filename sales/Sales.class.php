@@ -478,6 +478,11 @@ class sales_Sales extends deals_DealMaster
                     $defaultBankAccountId = $lastSelectedBankAccountId;
                 }
             }
+
+            // Последно избраната може да е на друга "Наша фирма"
+            if (!empty($defaultBankAccountId) && !array_key_exists($defaultBankAccountId, $options)) {
+                $defaultBankAccountId = null;
+            }
         }
         
         if(!array_key_exists($rec->bankAccountId ?? null, $options)){
@@ -580,7 +585,7 @@ class sales_Sales extends deals_DealMaster
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 if (!empty($cData->countryId)) {
                     $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
-                    if ($defBankId) {
+                    if ($defBankId && array_key_exists($defBankId, $options)) {
                         $form->setDefault('bankAccountId', $defBankId);
                     }
                 }
@@ -2140,9 +2145,9 @@ class sales_Sales extends deals_DealMaster
     {
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
-            $res['onlinePostal'] = 'Онлайн продажби с ППП за ФЛ';
         }
-        
+        $res['onlinePostal'] = 'Продажби с ППП на ФЛ';
+
         if (core_Packs::isInstalled('voucher')) {
             $res['voucher'] = 'С ваучери';
         }
@@ -2159,7 +2164,7 @@ class sales_Sales extends deals_DealMaster
             $query->where('#cartId IS NOT NULL');
         }
         if ($option == 'onlinePostal') {
-            self::filterOnlinePostalPersonSales($query);
+            self::filterOnlinePostalPersonSales($query, false);
         }
         if ($option == 'voucher') {
             $query->where('#voucherId IS NOT NULL');
@@ -2168,12 +2173,13 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
-     * Оставя продажбите в папки на лица от количка, платени с контиран ПБД по сметка за пощенски паричен превод
+     * Оставя продажбите в папки на лица (по избор само от количка), платени с контиран ПБД по сметка за пощенски паричен превод
      *
-     * @param core_Query $query - заявка към продажбите
+     * @param core_Query $query      - заявка към продажбите
+     * @param bool       $onlyOnline - само продажбите от количка
      * @return void
      */
-    public static function filterOnlinePostalPersonSales(core_Query &$query)
+    public static function filterOnlinePostalPersonSales(core_Query &$query, $onlyOnline = true)
     {
         $accounts = keylist::toArray(bank_Setup::get('POSTAL_TRANSFER_ACCOUNTS'));
         if (!countR($accounts)) {
@@ -2198,8 +2204,10 @@ class sales_Sales extends deals_DealMaster
             return;
         }
 
-        $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
-        $query->where('#cartId IS NOT NULL');
+        if ($onlyOnline) {
+            $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+            $query->where('#cartId IS NOT NULL');
+        }
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
         $query->where(array("#coverClass = '[#1#]'", crm_Persons::getClassId()));
         $query->in('threadId', $threads);
@@ -2458,8 +2466,13 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if(in_array($rec->state, array('active', 'pending'))){
-            sales_DeliveryData::sync($rec->containerId);
+        if (!empty($rec->_addPartnerDocumentTags)) {
+            unset($rec->_addPartnerDocumentTags);
+            eshop_Setup::addPartnerDocumentTags($rec);
+        }
+
+        if(in_array($rec->state ?? null, array('active', 'pending'))){
+            sales_DeliveryData::sync($rec->containerId ?? null);
         }
     }
     
@@ -2474,6 +2487,15 @@ class sales_Sales extends deals_DealMaster
     public static function canAddDocumentToOriginAsLink_($rec)
     {
         return true;
+    }
+
+
+    /**
+     * Таговете се поставят в AfterSave, когато контейнерът вече е свързан с продажбата
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        $rec->_addPartnerDocumentTags = true;
     }
 
 

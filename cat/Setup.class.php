@@ -239,6 +239,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_products_ParamIndex',
         'cat_products_ParamIndexState',
         'cat_products_EshopParamIndex',
+        'cat_EanPrefixes',
+        'cat_EanCodes',
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',

@@ -20,7 +20,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -562,6 +562,8 @@ class planning_plg_StateManager extends core_Plugin
             if ($form->cmd == 'active') {
                 $msg = null;
                 $rec->state = ($mvc->activateNow($rec, $msg)) ? 'active' : 'waiting';
+                $rec->lastChangeStateOn = dt::now();
+                $rec->lastChangeStateBy = core_Users::getCurrent();
                 if($rec->state == 'active'){
                     $mvc->invoke('BeforeActivation', array($rec));
                     $form->rec->_isActivated = true;
@@ -583,14 +585,17 @@ class planning_plg_StateManager extends core_Plugin
     
     
     /**
-     * Извиква се след успешен запис в модела
+     * След запис на активирания документ и обновяване на контейнера му
      */
-    public static function on_AfterSave($mvc, &$id, $rec)
+    public static function on_AfterSaveActivatedDocument($mvc, $rec)
     {
         if (($rec->_isActivated ?? null) === true) {
             unset($rec->_isActivated);
+
+            // Както при changeState(), за да се отрази и в историята
+            $mvc->invoke('AfterChangeState', array(&$rec, $rec->state ?? null));
             $mvc->invoke('AfterActivation', array($rec));
-            $mvc->logWrite('Активиране', $rec->id);
+            $mvc->logWrite('Активиране', $rec->id ?? null);
         }
     }
 

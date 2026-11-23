@@ -117,7 +117,7 @@ class planning_StepConditions extends core_Detail
         $row->prevStepId = cat_Products::getHyperlink($rec->prevStepId, true);
         $row->ROW_ATTR['class'] = "state-" . cat_Products::fetchField($rec->prevStepId, 'state');
         if (empty($rec->delay)) {
-            $row->delay = "<span class='quiet'>N/A</span>";
+            $row->delay = "<span class='quiet nowrap'>N/A</span>";
         }
     }
 
@@ -181,6 +181,31 @@ class planning_StepConditions extends core_Detail
         }
 
         return $res;
+    }
+
+
+    protected static function on_BeforeSave($mvc, &$id, $rec)
+    {
+        $rec->_oldCondition = !empty($rec->id) ? $mvc->fetch($rec->id, 'stepId,prevStepId', false) : null;
+    }
+
+
+    protected static function on_AfterSave($mvc, &$id, $rec)
+    {
+        $old = $rec->_oldCondition ?? null;
+        $step = $rec->stepId ?? ($old->stepId ?? null);
+        $previous = $rec->prevStepId ?? ($old->prevStepId ?? null);
+        if (!$step || ($step == ($old->stepId ?? null) && $previous == ($old->prevStepId ?? null))) return;
+        planning_Tasks::reorderJobsForStep($step);
+        if (isset($old->stepId) && $old->stepId != $step) planning_Tasks::reorderJobsForStep($old->stepId);
+    }
+
+
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            if (isset($rec->stepId)) planning_Tasks::reorderJobsForStep($rec->stepId);
+        }
     }
 
 

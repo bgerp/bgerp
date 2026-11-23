@@ -212,18 +212,18 @@ class trans_TripSheets extends core_Master
         $this->FLD('companyNumber', 'varchar(32)', 'caption=Предприятие->ЕИК,mandatory');
         $this->FLD('companyAddress', 'varchar(255)', 'caption=Предприятие->Адрес,mandatory');
         $this->FLD('companyPhone', 'varchar(128)', 'caption=Предприятие->Телефон');
-        $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name)', 'caption=Курс->МПС,mandatory');
-        $this->FLD('vehicleModel', 'varchar(128)', 'caption=Курс->Марка и модел,mandatory');
+        $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name)', 'caption=Курс||Trip->МПС,mandatory');
+        $this->FLD('vehicleModel', 'varchar(128)', 'caption=Курс||Trip->Марка и модел,mandatory');
         $this->FLD('vehicleNumber', 'varchar(32)', 'caption=Рег. номер,input=none');
-        $this->FLD('driverId', 'key(mvc=crm_Persons,select=name)', 'caption=Курс->Водач,mandatory');
+        $this->FLD('driverId', 'key(mvc=crm_Persons,select=name)', 'caption=Курс||Trip->Водач,mandatory');
         $this->FLD('driverName', 'varchar(128)', 'caption=Водач,input=none');
-        $this->FLD('secondDriver', 'varchar(128)', 'caption=Курс->Втори водач');
-        $this->FLD('companions', 'varchar(255)', 'caption=Курс->Придружители');
-        $this->FLD('departure', 'datetime(requireTime)', 'caption=Курс->Тръгване,mandatory');
-        $this->FLD('expectedReturn', 'datetime(requireTime)', 'caption=Курс->Връщане');
-        $this->FLD('route', 'text(rows=4)', 'caption=Курс->Маршрут,mandatory');
-        $this->FLD('cargo', 'text(rows=2)', 'caption=Курс->Вид на товара,mandatory,hint=Кратко общо описание. Например: опаковки и консумативи. Посочете опасността само след проверка');
-        $this->FLD('transportDocuments', 'text(rows=3)', 'caption=Курс->Документи за товара,mandatory');
+        $this->FLD('secondDriver', 'varchar(128)', 'caption=Курс||Trip->Втори водач');
+        $this->FLD('companions', 'varchar(255)', 'caption=Курс||Trip->Придружители');
+        $this->FLD('departure', 'datetime(requireTime)', 'caption=Курс||Trip->Тръгване,mandatory');
+        $this->FLD('expectedReturn', 'datetime(requireTime)', 'caption=Курс||Trip->Връщане');
+        $this->FLD('route', 'text(rows=4)', 'caption=Курс||Trip->Маршрут,mandatory');
+        $this->FLD('cargo', 'text(rows=2)', 'caption=Курс||Trip->Вид на товара,mandatory,hint=Кратко общо описание. Например: опаковки и консумативи. Посочете опасността само след проверка');
+        $this->FLD('transportDocuments', 'text(rows=3)', 'caption=Курс||Trip->Документи за товара,mandatory');
         $this->FLD('cargoManifest', 'text(rows=10)', 'caption=От транспортната линия->Маршрут и товари');
         $this->FLD('lineNotes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Бележки');
         $this->FLD('sourceData', 'blob(serialize,compress)', 'input=none');
@@ -875,7 +875,7 @@ class trans_TripSheets extends core_Master
 
         // Кратки надписи по групи, за да не се разтяга колоната с надписите
         $captions = array('odometerStart' => 'Километраж->Начален', 'odometerEnd' => 'Километраж->Краен',
-            'departedOn' => 'Курс->Тръгване', 'returnedOn' => 'Курс->Връщане', 'reportNotes' => 'Бележки->Отклонения');
+            'departedOn' => 'Курс||Trip->Тръгване', 'returnedOn' => 'Курс||Trip->Връщане', 'reportNotes' => 'Бележки->Отклонения');
         foreach ($reportFields as $field) {
             $definition = $this->getField($field);
             $type = $definition->type ?? null;

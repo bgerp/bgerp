@@ -331,7 +331,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor');
-        $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
+        $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no,hint=Изберете Да само при уговорка за една обща доставка. Без такава уговорка оставете Не – разрешени са частични доставки.');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод,none=Без плащане)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate|currencyManualRate,notChangeableByContractor,silent');
@@ -558,6 +558,14 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        // Еднократна доставка не може да се включи, ако вече има няколко доставки
+        if (!empty($rec->id) && ($rec->oneTimeDelivery ?? null) == 'yes') {
+            $threadId = $rec->threadId ?? $mvc->fetchField($rec->id, 'threadId', false);
+            if ($error = deals_Helper::getSingleDeliveryError($threadId, null, true)) {
+                $form->setError('oneTimeDelivery', '|*' . $error);
+            }
+        }
+
         if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
             $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от|* 1|*!");
         }
@@ -669,6 +677,8 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function filterListFilterByOption_($option, &$query)
     {
+        $whereCnt = countR($query->where);
+
         switch ($option) {
             case 'clAndAct':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -732,6 +742,7 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
+                break;
             case 'overdueAndClosed':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'closed'");
@@ -777,7 +788,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
         }
 
-        if(!Request::get('export')){
+        // Оттеглените се добавят само към условие на опцията - иначе orWhere() би разширил предходното условие (достъпа)
+        if(!Request::get('export') && countR($query->where) > $whereCnt){
             $query->orWhere("#state = 'rejected'");
         }
     }
@@ -829,7 +841,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 $mvc->filterListFilterByOption($filter->type, $data->query);
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
-                    $data->query->orderBy('activatedOn', 'DESC');
+                    // След подредба по createdOn второто поле не променя реда, а изключва индекса ѝ
+                    $firstOrder = reset($data->query->orderBy);
+                    if (!is_object($firstOrder) || ltrim($firstOrder->field ?? '', '#') != 'createdOn') {
+                        $data->query->orderBy('activatedOn', 'DESC');
+                    }
                     arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активиран'), null, 'createdBy');
                 }
             }
@@ -850,22 +866,6 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!Request::get('Rejected')){
             $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
-
-            // Да излиза в съмърито и винаги конкретно искания запис
-            if($summaryQuery->addId){
-                $whereArr = $summaryQuery->where;
-                $clone = clone $summaryQuery;
-                $clone->where = array();
-                foreach ($whereArr as $cond){
-                    if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) continue;
-                    $clone->where($cond);
-                }
-
-                $w = $summaryQuery->getWhereAndHaving(true)->w;
-                $w1 = $clone->getWhereAndHaving(true)->w;
-                $summaryQuery->where = array();
-                $summaryQuery->where("({$w}) OR (#id = {$summaryQuery->addId} AND ({$w1}))");
-            }
 
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
@@ -2565,9 +2565,10 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if($me instanceof sales_Sales){
-            if(isset($fields['deliveryTermId'])){
-                if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+            // Условието може да е дошло и от дефолтите, не само от $fields
+            if(!empty($rec->deliveryTermId)){
+                if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                 }
             }
         }

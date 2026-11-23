@@ -638,33 +638,31 @@ class crm_Profiles extends core_Master
     
     
     /**
-     * Връща вербална инфирмация за отсъствието
+     * Връща вербална информация за отсъствието
      *
      * @param string $type - вид на отсъствието
      * @param string $from - начална дата
      * @param string $to   - крайна дата
+     * @param string|null $alternatePersons
+     * @param string $dateFormat
      *
-     * @return string;
+     * @return string
      */
-    public static function getVerbalStatus($type, $from, $to, $alternatePersons)
+    public static function getVerbalStatus($type, $from, $to, $alternatePersons, $dateFormat = 'smartDate')
     {
-        $Date = cls::get('type_Date');
-        
-        list($dateFrom, $hoursFrom) = explode(' ', $from);
-        list($dateTo, $hoursTo) = explode(' ', $to);
-        
-        list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
-        list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
-        list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
-
+        $dateFrom = explode(' ', $from ?? '')[0];
+        $dateTo = explode(' ', $to ?? '')[0];
         $status = tr(static::$map[$type] ?? $type) . ' ';
         
-        if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
-            $status .= dt::mysql2verbal($from, 'smartDate');
-        } elseif ($dateFrom == $dateTo) {
-            $status .= tr('на') . ' ' . dt::mysql2verbal($from, 'smartDate');
+        if ($dateFrom == $dateTo) {
+            $relativeDay = $dateFormat == 'smartDate'
+                && in_array($dateFrom, array(dt::addDays(-1, null, false), dt::today(), dt::addDays(1, null, false)));
+            if (!$relativeDay) {
+                $status .= tr('на') . ' ';
+            }
+            $status .= dt::mysql2verbal($from, $dateFormat);
         } else {
-            $status .= tr('от') . ' ' . dt::mysql2verbal($from, 'smartDate') . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, 'smartDate');
+            $status .= tr('от') . ' ' . dt::mysql2verbal($from, $dateFormat) . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, $dateFormat);
         }
 
         if (isset($alternatePersons)) {
@@ -1185,7 +1183,7 @@ class crm_Profiles extends core_Master
         
         $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
         
-        $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr);
+        $key = core_Users::getCurrent() . '|' . core_Lg::getCurrent() . "|{$userId}|{$title}|{$warning}|{$isOut}|" . serialize($attr);
 
         if (empty($cacheArr[$key])) {
             $userRec = core_Users::fetch($userId);
@@ -1210,16 +1208,24 @@ class crm_Profiles extends core_Master
             $attr['class'] .= ' profile';
 
             $e = '';
-            if ($profRec && !empty($profRec->stateDateFrom)) {
-                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo ?? null, (boolean) (($profRec->stateAnswerSystem ?? null) != 'no'));
-                $e = hr_Leaves::getEmoji($profRec->stateEmoji ?? null, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo ?? null);
+            $absenceClass = '';
+            $from = $profRec->stateDateFrom ?? null;
+            $to = $profRec->stateDateTo ?? null;
+            if ($from) {
+                $absenceClass = self::getAbsenceClass($from, $to ?? '', (boolean) (($profRec->stateAnswerSystem ?? null) != 'no'));
+                $attr['class'] .= ' ' . $absenceClass;
+                $e = hr_Leaves::getEmoji($profRec->stateEmoji ?? null, 'statusIcon', $from, $to);
             }
 
             $profileId = self::getProfileId($userId);
             
             if ($profileId) {
+                $attr['title'] = '|*' . ($userRec->names ?? '');
                 if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
                     $url = static::getUrl($userId);
+                    if ($absenceClass && !empty($profRec->stateInfo) && !isset($attr['external'])) {
+                        $attr['title'] .= "\n" . self::getVerbalStatus($profRec->stateInfo, $from, $to, null, 'd.m.Y');
+                    }
                 }
                 
                 if (isset($attr['external'])) {
@@ -1256,8 +1262,6 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= ' state-' . $userRec->state;
                 }
 
-                $attr['title'] = '|*' . ($userRec->names ?? '');
-                
                 $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
                 $attr['style'] = ($attr['style'] ?? '') . ';color:#999 !important;';
@@ -1636,6 +1640,11 @@ class crm_Profiles extends core_Master
                 continue;
             }
             $clsInst = core_Cls::get($clsName);
+
+            // Пакетите без инсталатор се настройват и без да са активни.
+            if (($rec->state ?? null) != 'active' && empty($clsInst->noInstall)) {
+                continue;
+            }
             
             // Ако няма полета за конфигуриране
             if (!($clsInst->getConfigDescription())) {

@@ -411,8 +411,8 @@ class eshop_CartDetails extends core_Detail
                 $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
                 $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId, true);
             } else {
-                $row->finalPrice = "<span class='red'>N/A</span>";
-                $row->amount = "<span class='red'>N/A</span>";
+                $row->finalPrice = "<span class='red nowrap'>N/A</span>";
+                $row->amount = "<span class='red nowrap'>N/A</span>";
                 $row->ROW_ATTR['class'] = 'cartErrorRow';
             }
             

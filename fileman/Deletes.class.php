@@ -174,23 +174,32 @@ class fileman_Deletes extends core_Manager
         $lastId = (int) core_Permanent::get($lastIdKey);
         $addCnt = 0;
 
+        $mQuery = fileman_Data::getQuery();
+        $mQuery->orderBy('id', 'DESC');
+        $mQuery->limit(1);
+        $mQuery->show('id');
+        $maxId = (int) ($mQuery->fetch()->id ?? 0);
+
         do {
+            // Порциите са по интервал от id, а не по брой намерени, за да е кратко заключването на MyISAM таблицата
+            $toId = $lastId + 10000;
             $dQuery = fileman_Data::getQuery();
-            $dQuery->where(array("#lastUse < '[#1#]' AND #id > '[#2#]'", $before, $lastId));
-            $dQuery->orderBy('id', 'ASC');
-            $dQuery->limit(1000);
+            $dQuery->where(array("#id > [#1#] AND #id <= [#2#] AND #lastUse < '[#3#]'", $lastId, $toId, $before));
             $dQuery->show('id, lastUse');
 
             $dataArr = array();
             while ($dRec = $dQuery->fetch()) {
                 $dataArr[$dRec->id] = $dRec->lastUse;
-                $lastId = $dRec->id;
             }
+            $lastId = $toId;
 
             // Обходът е завършен - следващия път започва отначало, за да хване новоостарелите
-            if (empty($dataArr)) {
+            if ($lastId >= $maxId) {
                 $lastId = 0;
-                break;
+            }
+
+            if (empty($dataArr)) {
+                continue;
             }
 
             // Вече добавените не се обновяват
@@ -225,7 +234,7 @@ class fileman_Deletes extends core_Manager
 
             $this->saveArray($recs, 'dataId, lastUse, isUsing');
             $addCnt += countR($recs);
-        } while (time() < $deadline);
+        } while ($lastId && time() < $deadline);
 
         core_Permanent::set($lastIdKey, $lastId, core_Permanent::FOREVER_VALUE);
 

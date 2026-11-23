@@ -2524,8 +2524,8 @@ en,Срок за доставка,Delivery time
 en,Чакащо плащане,Expected payment
 en,ЧМР,CMR
 en,чмр,cmr
-en,Товарителници,CMR waybills
-en,Товарителница,CMR waybill
+en,Товарителници,Waybills
+en,Товарителница,Waybill
 en,товарителница,cmr waybill
 en,с просрочия,with overdue
 en,Има просрочени сделки,There are overdue deals
@@ -2589,7 +2589,7 @@ en,Кашона,cartons
 en,кашони,cartons
 en,товар,load
 en,товара,loads
-en,Товар,load
+en,Товар,Cargo
 en,Товара,loads
 en,ЛЕ,LU
 en,На посочения от вас имейл ще получите линк за избор на паролата за достъп,"At the email you specify, you will receive a link to select the password"
@@ -4305,7 +4305,7 @@ en,Платено и неотразено,Paid but not recorded
 en,Забрана на фактура на лице по онлайн поръчка без заявена фактура,Block invoices to individuals for online orders without a requested invoice
 en,Не може да се издаде фактура на лице по онлайн поръчка,Cannot issue an invoice to an individual for online order
 en,"Ако все пак се иска фактура, променете ""Фактуриране"" в продажбата на ""Да""","If an invoice is still required, change ""Invoicing"" in the sale to ""Yes"""
-en,Онлайн продажби с ППП за ФЛ,Online sales to individuals with postal money transfer
+en,Продажби с ППП на ФЛ,Sales to individuals with postal money transfer
 en,XML файл,XML file
 en,Не е създаден,Not created
 en,Документ (бон),Document (receipt)
@@ -9993,6 +9993,7 @@ en,Не е валидна цена,Invalid price
 en,Не е валидно ЛНЧ.,Invalid foreigner personal number.
 en,Не е въведена нито една маска на тегловен баркод,No weight barcode mask has been entered
 en,Не е въведено валидно число,No valid number has been entered
+en,Непозната мярка,Unknown unit
 en,Не е въведено количество,Quantity not entered
 en,Не е въведено цяло положително число,No positive integer entered
 en,Не е въведено число,No number entered
@@ -10250,7 +10251,7 @@ en,Невалидно потребителско име и/или парола,I
 en,Невалидно разширение на домейн,Invalid domain extension
 en,Невалидно устройство,Invalid device
 en,Невалидно число,Invalid number
-en,Невл.,Invalid
+en,Невл.,Not incl.
 en,Невложено от предходни операции,Not included from previous operations
 en,Невъзможна стойност на датите,Impossible date value
 en,Невъзможни стойности на оборотите,Impossible turnover values
@@ -13100,12 +13101,12 @@ en,Път до изпълнимия файл на Chrome,Path to Chrome executab
 en,Път до файла,Path to file
 en,Път и ключ,Path and key
 en,Път изпълним файл,Executable file path
-en,Пътен лист,Waybill
+en,Пътен лист,Trip sheet
 en,"Пътен лист - серия, № и дата","Waybill - series, No. and date"
 en,Пъти,Times
 en,Пъти сканиран този файл,Times this file was scanned
 en,Пътища,Paths
-en,Пътни листи,Waybills
+en,Пътни листи,Trip sheets
 en,Пътя до папката,Path to folder
 en,Пътя на изтеглените документи - без потребителя,Path of downloaded documents - without user
 en,Пясъчно,Sand
@@ -14512,7 +14513,7 @@ en,ТЕСТОВИ доставки,TEST deliveries
 en,ТЕСТОВИ складови себестойности,TEST warehouse costs
 en,ТЕСТОВИ цени на артикулите,TEST item prices
 en,ТЕХНИЧЕСКО ОБСЛУЖВАНЕ,TECHNICAL MAINTENANCE
-en,ТОВАРИТЕЛНИЦА,CONSIGNMENT NOTE
+en,ТОВАРИТЕЛНИЦА,WAYBILL
 en,ТРО,R&M
 en,Таб,Tab
 en,Таблицата е изпразнена,The table has been emptied
@@ -16660,7 +16661,6 @@ en,"Условия към покупка (EN)","Purchase conditions (EN)"
 en,"Параметри на групи","Group parameters"
 en,"Предефиниране","Override"
 en,"Предефиниране на стойността","Override the value"
-en,"Параметърът не може да се задава за групи","The parameter cannot be set for groups"
 en,"Регистрирани по ЗДДС лица","VAT registered persons"
 en,"Регистрирано по ЗДДС лице","VAT registered person"
 en,"Регистриран","Registered"
@@ -16669,3 +16669,12 @@ en,"Дата на дерегистрация","Deregistration date"
 en,"Регистър ЗДДС","VAT register"
 en,"Синхронизиране на регистрираните по ЗДДС лица с бюлетина на НАП","Synchronize VAT registered persons with the NRA bulletin"
 en,"Задаване на параметъра","Setting the parameter"
+en,"Изчислява се за всеки артикул от групата","Calculated for each item in the group"
+en,"По покупка [#1#] вече има няколко доставки. Еднократно получаване не може да се включи.","Purchase [#1#] already has multiple deliveries. One-time receipt cannot be enabled."
+en,"По покупка [#1#] е избрано еднократно получаване.","One-time receipt is enabled on purchase [#1#]."
+en,"Документи по получаването: [#1#].","Receiving documents: [#1#]."
+en,"За отделни разписки изберете ""Не"" в ""Промяна → Доставка → Еднократно"" на покупката.","For separate receipts, open Change on the purchase and set Delivery → One-time to No."
+en,"По продажба [#1#] вече има няколко експедиции. Еднократна експедиция не може да се включи.","Sale [#1#] already has multiple shipments. One-time shipment cannot be enabled."
+en,"По продажба [#1#] е избрана еднократна експедиция.","One-time shipment is enabled on sale [#1#]."
+en,"Документи по експедицията: [#1#].","Shipping documents: [#1#]."
+en,"За отделни експедиционни нареждания изберете ""Не"" в ""Промяна → Доставка → Еднократно"" на продажбата.","For separate shipment orders, open Change on the sale and set Delivery → One-time to No."

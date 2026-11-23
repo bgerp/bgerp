@@ -538,7 +538,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             if (!isset($rec->{$mvc->totalWeightFieldName})) {
-                $row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
+                $row->{$mvc->totalWeightFieldName} = "<span class='quiet nowrap'>N/A</span>";
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
                 if($weightIsLive && !Mode::isReadOnly()){
@@ -561,7 +561,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $rec->{$mvc->totalNetWeightFieldName} = ($rec->netWeightInput) ? $rec->netWeightInput : $rec->{$mvc->totalNetWeightFieldName};
 
             if (!isset($rec->{$mvc->totalNetWeightFieldName})) {
-                $row->{$mvc->totalNetWeightFieldName} = "<span class='quiet'>N/A</span>";
+                $row->{$mvc->totalNetWeightFieldName} = "<span class='quiet nowrap'>N/A</span>";
             } else {
                 $row->{$mvc->totalNetWeightFieldName} = $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->{$mvc->totalNetWeightFieldName});
                 if($netWeightIsLive && !Mode::isReadOnly()){
@@ -580,7 +580,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $rec->{$mvc->totalTareWeightFieldName} = ($rec->tareWeightInput) ? $rec->tareWeightInput : $rec->{$mvc->totalTareWeightFieldName};
 
             if (!isset($rec->{$mvc->totalTareWeightFieldName})) {
-                $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet'>N/A</span>";
+                $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet nowrap'>N/A</span>";
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
                 if($tareWeightIsLive && !Mode::isReadOnly()){
@@ -608,7 +608,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             $hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
             if (!isset($rec->{$mvc->totalVolumeFieldName})) {
-                $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
+                $row->{$mvc->totalVolumeFieldName} = "<span class='quiet nowrap'>N/A</span>";
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
                 if($volumeIsLive && !Mode::isReadOnly()){

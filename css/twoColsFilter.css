@@ -212,6 +212,11 @@
   column-gap: 1em;
   row-gap: 0.2em; }
 
+.wide .twoColsFilter .formElement:has(> .allowEmptyRadioHolder),
+.wide .twoColsFilter .formElement:has(> .notAllowEmptyRadioHolder) {
+  vertical-align: top;
+  padding-top: 0.4em; }
+
 .wide .twoColsFilter .allowEmptyRadioHolder .keylist,
 .wide .twoColsFilter .notAllowEmptyRadioHolder .keylist,
 .wide .twoColsFilter .allowEmptyRadioHolder .keylist > tbody,

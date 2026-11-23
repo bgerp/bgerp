@@ -63,8 +63,15 @@ class core_Pager extends core_BaseClass
      *
      */
     public $approx;
-    
-    
+
+
+    /**
+     * Без COUNT(*) на цялата селекция при simplePaging (без useCacheForPager): itemsCount остава PHP_INT_MAX,
+     * страницата не се ограничава до последната и извикващият разпознава края по празната страница
+     */
+    public $skipItemsCount = false;
+
+
     /**
      * На колко страници отстояние от първата и последната да оставя по една междинна
      */
@@ -208,6 +215,62 @@ class core_Pager extends core_BaseClass
     
     
     /**
+     * Записва в заявката на списъка вече известния брой на резултатите ѝ
+     *
+     * @param core_Query $query        - заявката, която ще се страницира
+     * @param core_Query $countedQuery - изпълнената заявка, чиито редове са преброени
+     * @param int        $cnt          - броят на редовете
+     *
+     * @return void
+     */
+    public static function setKnownCount($query, $countedQuery, $cnt)
+    {
+        $query->knownCount = (object) array('cnt' => (int) $cnt, 'signature' => self::getCountSignature($countedQuery));
+    }
+
+
+    /**
+     * Известният брой на резултатите, ако е преброен за същите таблици и условия
+     *
+     * @param core_Query $query
+     *
+     * @return int|null
+     */
+    protected static function getKnownCount($query)
+    {
+        $known = $query->knownCount ?? null;
+        if (!is_object($known)) {
+
+            return null;
+        }
+
+        return (($known->signature ?? null) === self::getCountSignature($query)) ? (int) ($known->cnt ?? 0) : null;
+    }
+
+
+    /**
+     * Отпечатък на таблиците и условията на заявката - без подредба, лимит и показвани полета
+     *
+     * @param core_Query $query
+     *
+     * @return string
+     */
+    protected static function getCountSignature($query)
+    {
+        $q = clone $query;
+        $q->orderBy = array();
+        $q->show = array('id' => true);
+        $q->exprShow = array();
+        $q->where = array_values(array_unique($q->where));
+        $q->highPriority = false;
+        $q->startFrom(null);
+        $q->limit(null);
+
+        return md5($q->buildQuery());
+    }
+
+
+    /**
      * @todo Чака за документация...
      */
     public function setLimit(&$query)
@@ -222,6 +285,10 @@ class core_Pager extends core_BaseClass
             }
         }
         
+        if ($query->addId) {
+            plg_Search::includeId($query, true);
+        }
+
         // Приоритетна заявка
         $query->highPriority = true;
         
@@ -235,9 +302,14 @@ class core_Pager extends core_BaseClass
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
 
+        // Броят може вече да е известен от обобщението на списъка - тогава не се брои повторно
+        $knownCnt = self::getKnownCount($query);
+
         if (!$useCache && !($query->mvc->simplePaging ?? false)) {
-            $query->addOption('SQL_CALC_FOUND_ROWS');
-        } else {
+            if ($knownCnt === null) {
+                $query->addOption('SQL_CALC_FOUND_ROWS');
+            }
+        } elseif ($useCache || !$this->skipItemsCount) {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
             if ($resCntCache !== false) {
                 $this->itemsCount = $resCntCache;
@@ -266,9 +338,6 @@ class core_Pager extends core_BaseClass
         $query->startFrom($this->rangeStart);
 
         $ids = array();
-        if($query->addId && $query->start == 0) {
-            $ids[] = $query->addId;
-        }
         while ($rec = $query->fetch()) {
             $ids[] = $rec->id;
         }
@@ -285,7 +354,7 @@ class core_Pager extends core_BaseClass
                     // Тази страница е след страниците с резултати
                     // Налага се да преброим резултатите и отново да извлечем последната страница
                     $resCnt = $qCnt->count();
-                    core_QueryCnts::set($q, $resCnt);
+                    core_QueryCnts::set($qCnt, $resCnt);
                     $this->itemsCount = $resCnt;
                     $this->calc();
                     $q->startFrom($this->rangeStart);
@@ -317,6 +386,8 @@ class core_Pager extends core_BaseClass
                 }
                 core_QueryCnts::delayCount($qCnt);
             }
+        } elseif ($knownCnt !== null) {
+            $resCnt = $knownCnt;
         } else {
             // FOUND_ROWS() се чете от връзката, на която е изпълнена заявката за id-тата
             $foundRows = function () use ($qCnt) {
@@ -326,9 +397,6 @@ class core_Pager extends core_BaseClass
             };
             $cntArr = (!empty($qCnt->onReplica) && ($qCnt->mvc instanceof core_Manager)) ? $qCnt->mvc->callOnReplica($foundRows) : $foundRows();
             $resCnt = array_shift($cntArr);
-            if($query->addId) {
-                $resCnt++;   
-            }
         }
         
         // До тук задължително трябва да сме изчислили колко резултата имаме
@@ -346,9 +414,6 @@ class core_Pager extends core_BaseClass
             $rQuery->limit($this->rangeEnd - $this->rangeStart);
             $rQuery->startFrom($this->rangeStart);
             $ids = array();  
-            if($query->addId) {
-                $ids[] =$query->addId;  
-            }
             while ($rec = $rQuery->fetch()) {
                 $ids[] = $rec->id;
             }
@@ -361,11 +426,7 @@ class core_Pager extends core_BaseClass
             $ids = implode(',', $ids);
             $query->where("#id IN ({$ids})");
              
-            foreach ($query->where as $i => $cond) {
-                if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) {
-                    unset($query->where[$i]);
-                }
-            }
+            $query->where = array_values(array_diff($query->where, $query->searchConditions));
 
         } else {
             $this->calc();

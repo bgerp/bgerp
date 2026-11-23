@@ -2694,7 +2694,7 @@ class pos_Terminal extends peripheral_Terminal
             $obj->stock = $stock ?? 0;
 
             if (empty($priceRes->price)){
-                $res[$id]->price = "<b class='red'>n/a</b>";
+                $res[$id]->price = "<b class='red nowrap'>n/a</b>";
             } else {
                 if(!empty($priceRes->discount)){
                     $priceRes->price *= (1 - $priceRes->discount);

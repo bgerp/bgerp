@@ -15,14 +15,21 @@ body.commerce-theme .commerce-account-bar a {
     display: inline-flex;
     align-items: center;
     min-height: 2.5em;
-    padding: 0 0.4em 0 1.6em;
-    background-position: left center;
+    padding: 0 0.65em 0 2em;
+    background-position: 0.4em center;
     color: var(--c-accent-deep);
     text-decoration: none;
     border-radius: 0.4em;
 }
 body.commerce-theme .commerce-account-bar a:hover { color: var(--c-accent); text-decoration: underline; }
-body.commerce-theme .commerce-account-bar a.selected-external-tab { border: 0; box-shadow: none; }
+body.commerce-theme .commerce-account-bar a.selected-external-tab {
+    border: 0 !important;
+    background-color: var(--c-accent-soft-2);
+    color: var(--c-accent-deep);
+    box-shadow: inset 0 0 0 1px var(--c-line-strong);
+    font-weight: 600;
+    text-decoration: none;
+}
 body.commerce-theme .commerce-account-bar a:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 body.commerce-theme .contractorExtHolder { padding: 1em 0; min-width: 0; font-family: Arial, Helvetica, sans-serif; }
 body.commerce-theme .contractorExtHolder > .foldertabs { padding: 0; max-width: 100%; }
@@ -31,9 +38,9 @@ body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .row-holder { pa
 body.commerce-theme .contractorExtHolder #head-packWrapper { display: flex; flex-wrap: wrap; gap: 0.4em; white-space: normal; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab { float: none; margin: 0 !important; border: 0 !important; background: none; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > .tab-title {
-    display: flex; align-items: center; float: none; min-height: 2.75em; box-sizing: border-box;
-    padding: 0.55em 1em; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
-    background: #fff; color: var(--c-accent-deep); font-size: 0.95em; font-weight: 600; box-shadow: none; text-shadow: none;
+    display: flex; align-items: center; float: none; min-height: 2rem; box-sizing: border-box;
+    padding: 0.3rem 0.65rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
+    background: #fff; color: var(--c-accent-deep); font-size: 0.875rem; font-weight: 600; box-shadow: none; text-shadow: none;
 }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab > .tab-title::after { display: none; }
 body.commerce-theme .contractorExtHolder .foldertabs > .tab-row .tab.selected > .tab-title { background: var(--c-accent) !important; border-color: var(--c-accent); color: #fff; }
@@ -91,9 +98,9 @@ body.commerce-theme .contractorExtHolder .colab_Folders .listTable .state-opened
 body.commerce-theme .contractorExtHolder .folderListTitle a { color: var(--c-accent); font-weight: 600; }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button) {
     display: inline-flex; align-items: center; box-sizing: border-box;
-    height: auto; min-height: 2.75rem; padding: 0.55em 1em;
+    height: auto; min-height: 1.875rem; padding: 0.25rem 0.6rem;
     border: 1px solid var(--c-line-strong); border-radius: 0.5em !important;
-    background-color: #fff; color: var(--c-accent); font: inherit; font-weight: 600;
+    background-color: #fff; color: var(--c-accent); font: 0.875rem/1.25 Arial, Helvetica, sans-serif; font-weight: 600;
     text-shadow: none; box-shadow: none; text-decoration: none;
 }
 body.commerce-theme .contractorExtHolder .toolbar :is(a.button, input[type=button], button).linkWithIcon {
@@ -106,8 +113,8 @@ body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-ro
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .row-holder > div { display: flex; flex-wrap: wrap; gap: 0.35em; }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab { float: none; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none; }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title {
-    display: inline-flex; align-items: center; float: none; box-sizing: border-box; min-height: 2.25rem;
-    padding: 0.35rem 0.85rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
+    display: inline-flex; align-items: center; float: none; box-sizing: border-box; min-height: 1.875rem;
+    padding: 0.25rem 0.65rem; margin: 0; border: 1px solid var(--c-line-3); border-radius: 0.5em;
     background: #fff; color: var(--c-accent-deep); font-size: 0.875rem; font-weight: 600; text-decoration: none; box-shadow: none; text-shadow: none;
 }
 body.commerce-theme .contractorExtHolder .tab-control:not(.foldertabs) > .tab-row .tab > .tab-title::after { display: none; }
@@ -133,8 +140,8 @@ body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable
     border-collapse: separate; border-spacing: 0; background: #fff;
 }
 body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable > thead > tr > th {
-    background: var(--c-surface-2); color: var(--c-accent-deep); padding: 0.7em 0.9em;
-    border: 0; border-bottom: 1px solid var(--c-line-3); text-align: left; font-size: 0.95em;
+    background: var(--c-surface-2); color: var(--c-accent-deep); padding: 0.4rem 0.65rem;
+    border: 0; border-bottom: 1px solid var(--c-line-3); text-align: left; font-size: 0.875rem;
 }
 body.commerce-theme .contractorExtHolder .single-thread > .listRows > .listTable > tbody > tr > td {
     padding: 1em; border: 0; border-bottom: 1px solid var(--c-line-3); background: #fff; vertical-align: top;
@@ -149,13 +156,13 @@ body.commerce-theme .contractorExtHolder .single-thread .date-box { color: #6277
 body.commerce-theme .contractorExtHolder .single-thread .gravatar-box { text-align: center; }
 body.commerce-theme .contractorExtHolder .single-thread .gravatar-box img { display: block; min-height: 0 !important; border-radius: 50%; object-fit: cover; margin: 0.65em auto 0; }
 body.commerce-theme .contractorExtHolder .single-thread .document { padding: 0.85em; box-sizing: border-box; border: 1px solid var(--c-line-6); border-radius: 0.6em; background: #fff; box-shadow: none; }
-body.commerce-theme .contractorExtHolder .single-thread .document > .header { background: var(--c-surface-2); color: var(--c-accent-deep); border: 0; border-bottom: 1px solid var(--c-line-6); border-radius: 0.6em 0.6em 0 0; padding: 0.65em; line-height: 1.5; }
+body.commerce-theme .contractorExtHolder .single-thread .document > .header { background: var(--c-surface-2); color: var(--c-accent-deep); border: 0; border-bottom: 1px solid var(--c-line-6); border-radius: 0.6em 0.6em 0 0; padding: 0.35rem 0.6rem; font-size: 0.875rem; line-height: 1.4; }
 body.commerce-theme .contractorExtHolder .single-thread .document > .header.state-active { border-left: 3px solid #71a88e; }
 body.commerce-theme .contractorExtHolder .single-thread .document > .header.state-rejected { background: #fff0f0; border-left: 3px solid #bd6666; }
 body.commerce-theme .contractorExtHolder .single-thread .document .detail-info { border: 1px solid var(--c-line-6); border-radius: 0.5em; margin: 1em 0; padding: 0.75em 1em; }
 body.commerce-theme .contractorExtHolder .single-thread .document .groupTitle { color: var(--c-accent-deep); font-size: 1em; padding: 0 0.4em; }
 body.commerce-theme .contractorExtHolder .single-thread .toolbar { display: flex; flex-wrap: wrap; gap: 0.4em; }
-body.commerce-theme .contractorExtHolder .single-thread .toolbar .button { float: none; margin: 0; font-size: 0.9em; }
+body.commerce-theme .contractorExtHolder .single-thread .toolbar .button { float: none; margin: 0; min-height: 1.875rem; padding: 0.25rem 0.6rem; font-size: 0.875rem; line-height: 1.25; }
 body.commerce-theme #barcodeForm {
     padding: 1em; margin: 0 0 1.25em; border: 1px solid var(--c-line-3);
     border-radius: 0.75em; background: var(--c-bg); box-sizing: border-box;

@@ -276,6 +276,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->setDbIndex('proto');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('sourceClassId,sourceId');
+        $this->setDbIndex('brid,createdOn'); // за рутирането по БРИД (marketing_Router::routeByBrid)
     }
     /**
      *
@@ -605,6 +606,20 @@ class marketing_Inquiries2 extends embed_Manager
             $groupId = crm_Groups::forceGroup($groupRec);
             
             $Cover->forceGroup($groupId, false);
+        }
+
+        $rec->_addPartnerDocumentTags = true;
+    }
+
+
+    /**
+     * Поставя таговете след свързването на контейнера с новото запитване
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if (!empty($rec->_addPartnerDocumentTags)) {
+            unset($rec->_addPartnerDocumentTags);
+            eshop_Setup::addPartnerDocumentTags($rec);
         }
     }
     

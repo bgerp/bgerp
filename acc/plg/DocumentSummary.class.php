@@ -342,7 +342,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Ако има поле по валута да се филтрира по нея
         if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
-            $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
+            currency_Currencies::prepareFilterField($data->listFilter, $mvc->currencyFld);
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,placeholderType=all,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
         }
@@ -376,6 +376,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
+                    $data->listFilter->setField('fState', array('attr' => array('data-width' => '24em')));
                     $data->listFilter->showFields .= ',fState';
                     $data->listFilter->setDefault('fState', $mvc->defaultListFilterState);
                 }
@@ -406,12 +407,14 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Изборите, направени от името на потребителя (напр. от Аида), не се запомнят като негови
             $saveChoices = !Mode::is('preserveUserChoices');
 
-            // Записваме в кеша последно избраните потребители
-            if ($saveChoices && $data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
+            // Избраните потребители важат винаги, а в кеша се записват само собствените избори
+            if ($data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
-                core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
+                if ($saveChoices) {
+                    core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
+                }
             }
             
             if ($saveChoices && ($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
@@ -580,6 +583,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Ще се преброяват всички неоттеглени документи
         core_Debug::startTimer('RENDER_SUMMARY');
         $sQuery = clone $data->listSummary->query;
+        if ($sQuery->addId) {
+            plg_Search::includeId($sQuery);
+        }
         $sQuery->where("#state != 'rejected' OR #state IS NULL");
 
         // Сумирането не зависи от подредбата, а сортирането на всички документи е скъпо
@@ -596,24 +602,41 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
-        $draftCount = $activeCount = $pendingCount = 0;
+        $draftCount = $activeCount = $pendingCount = $totalCount = 0;
 
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
-        while ($rec = $sQuery->fetch()) {
-            if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
-                if($rec->{$mvc->valiorFld} < $eurozoneDate){
+
+        // Базата връща готови суми по валутен период, вместо всички документи да се обхождат тук
+        $groups = self::fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate, $baseCurrency);
+        if (is_array($groups)) {
+            foreach ($groups as $group) {
+                $totalCount += $group->count;
+                $draftCount += $group->draftCount;
+                $pendingCount += $group->pendingCount;
+                $activeCount += $group->activeCount;
+                if ($group->beforeEu) {
                     $data->hasDocumentBeforeEu = true;
                 }
+                self::prepareSummary($mvc, $fieldsArr, $group->rec, $data->listSummary->summary, $baseCurrency, true);
             }
-            $mvc->fillSummaryRec($rec, $fieldsArr);
-            self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
-            if($rec->state == 'draft'){
-                $draftCount++;
-            } elseif($rec->state == 'pending'){
-                $pendingCount++;
-            } elseif(in_array($rec->state, array('closed', 'active'))){
-                $activeCount++;
+        } else {
+            while ($rec = $sQuery->fetch()) {
+                $totalCount++;
+                if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
+                    if($rec->{$mvc->valiorFld} < $eurozoneDate){
+                        $data->hasDocumentBeforeEu = true;
+                    }
+                }
+                $mvc->fillSummaryRec($rec, $fieldsArr);
+                self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+                if($rec->state == 'draft'){
+                    $draftCount++;
+                } elseif($rec->state == 'pending'){
+                    $pendingCount++;
+                } elseif(in_array($rec->state, array('closed', 'active'))){
+                    $activeCount++;
+                }
             }
         }
 
@@ -621,7 +644,200 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+
+        // Документите вече са преброени - страницирането няма да ги брои втори път със SQL_CALC_FOUND_ROWS
+        if (!empty($data->query)) {
+            core_Pager::setKnownCount($data->query, $sQuery, $totalCount);
+        }
         core_Debug::stopTimer('RENDER_SUMMARY');
+    }
+
+
+    /**
+     * Сумира документите от обобщението в базата - по един ред за периода на всяка основна валута
+     *
+     * Заявката на обобщението влиза непроменена като подзаявка, затова участват точно документите,
+     * които обхождането би прочело. Валутното закръгляване се прави преди сумирането.
+     *
+     * @param core_Mvc   $mvc          - класа към който е прикачен плъгина
+     * @param core_Query $sQuery       - заявката за обобщението
+     * @param array      $fieldsArr    - полетата с атрибут "summary"
+     * @param string     $eurozoneDate - от коя дата основната валута е новата
+     * @param string     $baseCurrency - валутата на обобщението
+     *
+     * @return array|null - групи с броячи и запис със сумите; null, ако документите трябва да се обходят един по един
+     */
+    private static function fetchSummaryGroups($mvc, $sQuery, $fieldsArr, $eurozoneDate, $baseCurrency)
+    {
+        if (!empty($mvc->amountIsInNotInBaseCurrency) || $sQuery->hasExecuted() || self::hasSummaryRecHandlers($mvc, $sQuery->mvc)) {
+
+            return null;
+        }
+
+        // Сумират се само колони на заявката
+        $valiorFld = isset($mvc->valiorFld) ? $mvc->valiorFld : null;
+        $columns = arr::make('state,createdOn', true);
+        if ($valiorFld) {
+            $columns[$valiorFld] = $valiorFld;
+        }
+        foreach ($fieldsArr as $fld) {
+            if (!in_array($fld->summary ?? null, array('amount', 'quantity'))) {
+
+                return null;
+            }
+            $columns[$fld->name] = $fld->name;
+        }
+        foreach ($columns as $name) {
+            if (!in_array($sQuery->fields[$name]->kind ?? null, array('FLD', 'XPR', 'EXT'))) {
+
+                return null;
+            }
+        }
+
+        // Събитието преди четене променя заявката на обобщението, както при обхождането
+        $numRows = null;
+        if ($sQuery->mvc->invoke('BeforeSelect', array(&$numRows, &$sQuery)) === false) {
+
+            return array();
+        }
+        $iQuery = clone $sQuery;
+        $iQuery->show(implode(',', $columns));
+
+        $quote = function ($name) {
+
+            return '`' . str_replace('`', '``', $name) . '`';
+        };
+        $select = array(
+            'COUNT(*) AS `dsCount`',
+            "SUM(`state` = 'draft') AS `dsDraft`",
+            "SUM(`state` = 'pending') AS `dsPending`",
+            "SUM(`state` IN ('active', 'closed')) AS `dsActive`",
+        );
+        $groupBy = '';
+        $conversion = null;
+        if ($valiorFld) {
+            // Датата, по която се определя валутата на документа - както в prepareSummary()
+            $date = 'COALESCE(' . $quote($valiorFld) . ", DATE(`createdOn`), DATE('" . dt::today() . "'))";
+            $border = "'" . $iQuery->mvc->db->escape($eurozoneDate) . "'";
+            $select[] = "({$date} < {$border}) AS `dsOldCurrency`";
+            $select[] = "MIN({$date}) AS `dsMinDate`";
+            $select[] = "MAX({$date}) AS `dsMaxDate`";
+            $select[] = 'MAX(' . $quote($valiorFld) . " < {$border}) AS `dsBeforeEu`";
+            $groupBy = ' GROUP BY `dsOldCurrency`';
+
+            $todayBeforeEu = dt::today() < $eurozoneDate;
+            $otherDate = $todayBeforeEu ? $eurozoneDate : dt::addDays(-1, $eurozoneDate, false);
+            $otherCurrency = acc_Periods::getBaseCurrencyCode($otherDate);
+            if ($otherCurrency != $baseCurrency && in_array('amount', array_column($fieldsArr, 'summary'), true)) {
+                $when = $date . ($todayBeforeEu ? ' >= ' : ' < ') . $border;
+                // Същите правила като deals_Helper::getSmartBaseCurrency() за всеки документ.
+                if ($otherCurrency == 'BGN' && $baseCurrency == 'EUR') {
+                    $conversion = 'ROUND(CAST(%s AS DECIMAL(40,16)) / 1.95583, 6)';
+                } elseif ($otherCurrency == 'EUR' && $baseCurrency == 'BGN') {
+                    $conversion = 'ROUND(CAST(%s AS DECIMAL(40,16)) * 1.95583, 5)';
+                } else {
+                    $conversion = '%s * ' . sprintf('%.17F', currency_CurrencyRates::convertAmount(1, null, $otherCurrency, $baseCurrency));
+                }
+            }
+        }
+        $sumNames = array();
+        foreach ($fieldsArr as $fld) {
+            $name = $fld->name;
+            $sumNames[$name] = 'dsSum' . countR($sumNames);
+            $column = $quote($name);
+            if ($conversion !== null && ($fld->summary ?? null) == 'amount') {
+                $converted = sprintf($conversion, $column);
+                $column = "CASE WHEN {$when} AND ABS({$column}) >= 0.000005 THEN {$converted} ELSE {$column} END";
+            }
+            $select[] = 'SUM(' . $column . ') AS `' . $sumNames[$name] . '`';
+        }
+        $sql = 'SELECT ' . implode(', ', $select) . ' FROM (' . $iQuery->buildQuery() . ') AS `dsRows`' . $groupBy;
+
+        $qMvc = $iQuery->mvc;
+        $fetch = function () use ($qMvc, $sql) {
+            $rows = array();
+            $dbRes = $qMvc->db->query($sql);
+            expect(is_object($dbRes), $sql);
+            while ($row = $qMvc->db->fetchObject($dbRes)) {
+                $rows[] = $row;
+            }
+            $qMvc->db->freeResult($dbRes);
+
+            return $rows;
+        };
+
+        try {
+            $rows = (!empty($iQuery->onReplica) && ($qMvc instanceof core_Manager)) ? $qMvc->callOnReplica($fetch) : $fetch();
+        } catch (core_exception_Db $e) {
+            // Само ако базата не приема заявката като подзаявка; при друга грешка обхождането би повторило същата тежка заявка
+            $dump = $e->getDump();
+            if (!in_array($dump['mysqlErrCode'] ?? null, array(1054, 1060, 1064, 1221, 1234))) {
+                throw $e;
+            }
+            reportException($e);
+
+            return null;
+        }
+
+        $groups = array();
+        foreach ($rows as $row) {
+            if (empty($row->dsCount)) continue;
+
+            $rec = new stdClass();
+            if ($valiorFld) {
+                $expectedCurrency = (!empty($row->dsOldCurrency) == $todayBeforeEu) ? $baseCurrency : $otherCurrency;
+                if (acc_Periods::getBaseCurrencyCode($row->dsMinDate ?? null) != $expectedCurrency ||
+                    acc_Periods::getBaseCurrencyCode($row->dsMaxDate ?? null) != $expectedCurrency) {
+
+                    return null;
+                }
+            }
+            foreach ($sumNames as $name => $alias) {
+                $rec->{$name} = $row->{$alias};
+            }
+
+            $groups[] = (object) array(
+                'count' => (int) $row->dsCount,
+                'draftCount' => (int) $row->dsDraft,
+                'pendingCount' => (int) $row->dsPending,
+                'activeCount' => (int) $row->dsActive,
+                'beforeEu' => $valiorFld && !empty($row->dsBeforeEu),
+                'rec' => $rec,
+            );
+        }
+
+        return $groups;
+    }
+
+
+    /**
+     * Дали документите от обобщението се обработват един по един в PHP
+     *
+     * @param core_Mvc $mvc      - класа към който е прикачен плъгина
+     * @param core_Mvc $queryMvc - класа на заявката
+     *
+     * @return bool
+     */
+    private static function hasSummaryRecHandlers($mvc, $queryMvc)
+    {
+        $handlers = array(
+            array($mvc, array('fillSummaryRec', 'fillSummaryRec_', 'on_BeforeFillSummaryRec', 'on_AfterFillSummaryRec')),
+            array($queryMvc, array('on_AfterRead')),
+        );
+        foreach ($handlers as $handler) {
+            list($object, $methods) = $handler;
+            foreach (array_merge(array($object), (array) $object->getPlugins()) as $subject) {
+                if ($subject instanceof self) continue;
+                foreach ($methods as $method) {
+                    if (method_exists($subject, $method)) {
+
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 
@@ -636,8 +852,8 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function getSummaryShowFields($mvc, $sQuery, $fieldsArr)
     {
-        // Ако заявката вече е ограничена или няма какво да се сумира, не се пипа
-        if (countR($sQuery->show) || !countR($fieldsArr)) {
+        // Ако заявката вече е ограничена, не се пипа; без полета за сумиране обхождането пак брои по състояния
+        if (countR($sQuery->show)) {
 
             return array();
         }
@@ -645,15 +861,17 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Изчислимите полета може да зависят от произволни полета на записа
         $fields = array();
         foreach ($fieldsArr as $fld) {
-            if (($fld->kind ?? null) != 'FLD') {
+            // Функционално поле става колона, ако заявката го смята като израз (напр. сумите на сделките)
+            $queryKind = $sQuery->fields[$fld->name]->kind ?? null;
+            if (($fld->kind ?? null) != 'FLD' && !in_array($queryKind, array('FLD', 'XPR'))) {
 
                 return array();
             }
             $fields[$fld->name] = $fld->name;
         }
 
-        // Собствен fillSummaryRec чете от записа - трябва да е обявил от кои полета
-        if (method_exists($mvc, 'fillSummaryRec')) {
+        // Собствен fillSummaryRec или обработвач на модела чете от записа - трябва да е обявил от кои полета
+        if (method_exists($mvc, 'fillSummaryRec') || method_exists($mvc, 'on_BeforeFillSummaryRec') || method_exists($mvc, 'on_AfterFillSummaryRec')) {
             if (empty($mvc->summaryRecFields)) {
 
                 return array();
@@ -709,8 +927,9 @@ class acc_plg_DocumentSummary extends core_Plugin
      * @param stdClass $rec          - Запис от модела
      * @param array    $res          - Масив в който ще върнем резултатите
      * @param string   $currencyCode - основната валута за периода
+     * @param bool     $inBaseCurrency - сумите вече са превалутирани
      */
-    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
+    private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode, $inBaseCurrency = false)
     {
         if (countR($fieldsArr) == 0) return;
 
@@ -731,7 +950,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                         }
                     }
 
-                    if(isset($mvc->valiorFld)){
+                    if(!$inBaseCurrency && isset($mvc->valiorFld)){
                         if($mvc->amountIsInNotInBaseCurrency){
                             $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                         } else {

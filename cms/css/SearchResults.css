@@ -1,0 +1,117 @@
+/* Shared public search layout, independent of the surrounding theme. */
+#maincontent .cms-search {
+    --search-ink: var(--c-ink, #243342);
+    --search-muted: var(--c-muted, #596775);
+    --search-accent: var(--c-accent, #245b79);
+    --search-line: var(--c-line, #dce2e7);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 1.5rem;
+    padding: 28px;
+    border: 1px solid var(--search-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--search-ink);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+#maincontent .cms-search h1.cms-search-title {
+    margin: 0 0 1.5rem;
+    padding: 0;
+    border: 0;
+    background: none !important;
+    color: var(--search-ink);
+    font-size: 1.5rem !important;
+    font-weight: 500;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: normal;
+}
+#maincontent .cms-search .cms-search-query { color: var(--search-accent); font-weight: 700; }
+#maincontent .cms-search .cms-search-group { margin: 0 0 1.75rem; }
+#maincontent .cms-search h2.cms-search-group-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25em 0.5em;
+    margin: 0;
+    padding: 0 0 0.3rem;
+    border: 0;
+    background: none !important;
+    color: var(--search-accent);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: normal;
+}
+#maincontent .cms-search .cms-search-domain { color: var(--search-muted); font-size: 0.875rem; font-weight: 400; }
+#maincontent .cms-search .cms-search-list { margin: 0; padding: 0; list-style: none; }
+#maincontent .cms-search .cms-search-list > .cms-search-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.375rem 0.75rem;
+    border: 0;
+    border-bottom: 1px solid var(--search-line);
+    background: #fff;
+    color: var(--search-ink);
+    font-size: 1rem;
+    line-height: 1.6;
+    list-style: none;
+}
+#maincontent .cms-search .cms-search-list > .cms-search-item:not(:has(.cms-search-image)) {
+    align-items: flex-start;
+    gap: 0.375rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+#maincontent .cms-search .cms-search-item:not(:has(.cms-search-image))::before {
+    content: "\203A";
+    flex: 0 0 0.6rem;
+    color: var(--search-accent);
+    font-size: 1.25rem;
+    line-height: 1.275;
+}
+#maincontent .cms-search .cms-search-item:first-child { border-radius: 8px 8px 0 0; }
+#maincontent .cms-search .cms-search-item:last-child { border-radius: 0 0 8px 8px; }
+#maincontent .cms-search .cms-search-item:only-child { border-radius: 8px; }
+#maincontent .cms-search .cms-search-item:hover,
+#maincontent .cms-search .cms-search-item:focus-within { background: var(--c-accent-soft, #f1f6f9); }
+#maincontent .cms-search .cms-search-text { flex: 1; min-width: 0; }
+#maincontent .cms-search a.cms-search-link {
+    color: var(--search-ink);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+}
+#maincontent .cms-search a.cms-search-link:hover { color: var(--search-accent); text-decoration: underline; text-underline-offset: 3px; }
+#maincontent .cms-search a:focus-visible { outline: 2px solid var(--search-accent); outline-offset: 4px; border-radius: 2px; }
+#maincontent .cms-search .cms-search-info { margin-top: 0.35rem; color: var(--search-muted); font-size: 0.9375rem; line-height: 1.6; }
+#maincontent .cms-search .cms-search-image { display: flex; flex: 0 0 64px; align-items: center; justify-content: center; width: 64px; height: 64px; }
+#maincontent .cms-search .cms-search-image img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 6px; }
+#maincontent .cms-search .highlight { padding: 0 0.1em; background: #fff0b3; color: #423300; border-radius: 2px; }
+/* Only the shared panel owns the frame; section wrappers must not add a second one. */
+#maincontent .searchContent:has(.cms-search),
+#maincontent .commerce-blog-search-results:has(> .cms-search) {
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+@media (max-width: 800px) {
+    #maincontent .cms-search { padding: 18px; }
+}
+@media (max-width: 600px) {
+    #maincontent .cms-search h1.cms-search-title { font-size: 1.25rem !important; }
+    #maincontent .cms-search .cms-search-list > .cms-search-item { gap: 0.75rem; padding: 0.375rem 0.5rem; }
+    #maincontent .cms-search .cms-search-image { flex-basis: 48px; width: 48px; height: 48px; }
+}

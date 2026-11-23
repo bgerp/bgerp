@@ -3013,6 +3013,37 @@ pre.rich-text {
   margin-right: -10px;
   padding-bottom: 5px; }
 
+.richtext-code-copy {
+  display: none; }
+
+@media screen {
+  .richtext-code-block {
+    position: relative; }
+  .richtext-code-block > pre.rich-text {
+    padding-right: 38px; }
+  .narrow .richtext-code-block {
+    margin: 0 -10px; }
+    .narrow .richtext-code-block > pre.rich-text {
+      margin: 0; }
+  .richtext-code-copy {
+    display: block;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent url('../img/16/page_copy.png') center no-repeat;
+    cursor: pointer; }
+    .richtext-code-copy:hover, .richtext-code-copy:focus {
+      background-color: white;
+      border-color: #bbbbbb; }
+    .richtext-code-copy.is-copied {
+      background-image: url('../img/16/accept.png'); } }
+
 .narrow pre.rich-text code::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
@@ -3193,12 +3224,33 @@ div.richtext ol ol ol {
 
 .richtext-info-no-image {
   color: #00529b;
-  border-color: #35a0ff;
-  background-color: #bde5f8;
-  border: 1px dotted;
+  background-color: #eaf5fc;
+  border: 1px solid #9ccbeb;
+  border-radius: 6px;
   margin: 0 30px;
-  padding: 7px 10px 5px 10px;
+  padding: 8px 12px;
   min-height: 20px; }
+
+.lastProgressInfo {
+  padding: 8px 14px 10px 14px; }
+  .lastProgressInfo .lastProgressInfoTitle {
+    font-size: 0.85em;
+    opacity: 0.75;
+    margin-bottom: 6px; }
+  .lastProgressInfo .lastProgressInfoItems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px; }
+  .lastProgressInfo .lastProgressInfoItem {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap; }
+  .lastProgressInfo .lastProgressInfoCaption {
+    font-size: 0.85em;
+    opacity: 0.8; }
+  .lastProgressInfo .lastProgressInfoValue {
+    font-size: 1.2em;
+    margin-top: 1px; }
 
 .richtext-tip {
   color: #b05410;

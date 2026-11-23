@@ -15,11 +15,11 @@
 
             var scene = window.funnyScene;
             if (scene) scene.init(options.labels);
-            var recentCharacters = [], recentTricks = [], voices = [];
+            var recentCharacters = [], recentTricks = [], voices = [], sceneTurns = [];
             var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow',polarbear:'paws',penguin:'slide',mouse:'paws'};
+            var trailKinds = {ghost:'mist',ghostgirl:'mist',ghostplay:'mist',casper:'mist',zombie:'dust',sleigh:'runners',elf:'boots',snowmaiden:'magic',deer:'hooves',pumpkin:'seeds',bat:'echo',spiderweb:'web',cat:'paws',blackcat:'paws',wolf:'paws',imp:'paws',witch:'magic',snowman:'snow',martenitsa:'thread',stork:'feather',bunny:'paws',chick:'bird',butterfly:'pollen',firefly:'glow',polarbear:'paws',penguin:'slide',mouse:'paws',squirrel:'paws',snail:'slime'};
             var pursuitPartners = {polarbear:['penguin'],cat:['mouse','fly','spiders','butterfly'],blackcat:['mouse','fly','spiders','butterfly'],bunny:['butterfly'],imp:['butterfly','firefly'],stork:['mosquito'],ghost:['ghostgirl'],casper:['ghostgirl']};
-            var faceAnchors = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4],polarbear:[72,31,.85],penguin:[60,30,.6],mouse:[73,45,.5]};
+            var faceAnchors = {ghost:[60,44,1.1],ghostgirl:[60,45,1],ghostplay:[60,32,.85],casper:[63,31,.9],zombie:[61,34,1],sleigh:[33,29,.55],elf:[60,33,.8],snowmaiden:[60,29,.7],deer:[92,27,.5],pumpkin:[60,48,1.2],vampire:[60,31,.8],bat:[60,45,.6],spiderweb:[61,59,.45],spiders:[60,50,.5],cat:[50,41,.7],blackcat:[60,37,.75],witch:[62,39,.55],muncher:[60,34,.75],wolf:[60,30,.85],imp:[60,35,.9],snowman:[60,34,.7],martenitsa:[39,35,.5],stork:[85,19,.45],bunny:[60,47,.85],chick:[60,49,.8],butterfly:[60,34,.35],firefly:[60,32,.4],polarbear:[72,31,.85],penguin:[60,30,.6],mouse:[73,45,.5],snail:[92,23,.9],squirrel:[77,35,.55]};
             var ghostKinds = ['ghost', 'ghostgirl', 'ghostplay', 'casper'];
             var seasonalPool = [], christmasCharacters = ['sleigh', 'elf', 'snowmaiden', 'deer', 'snowman'];
             var coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)');
@@ -31,10 +31,11 @@
             var IMP_LIMIT = 50;
             var labels = options.labels || {caught: 'Уцелени', escaped: 'Избягали'};
             var frequent = options.frequency === 'frequent';
-            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity;
+            var appearances = 0, lastAppearance = -Infinity, lastActivityPointer = null, lastKnock = -Infinity, lastHowl = -Infinity;
             var remaining = nextDelay();
             var audio = null, printing = false, focused = document.hasFocus();
             var touchStart = null, lastTap = null, lastTouch = -Infinity, lastFrame = 0;
+            var pointerSeen = false, pointerHeat = null, lastHeat = -Infinity;
             var counter = document.getElementById('nCntLink');
             var lastCount = counter ? parseInt(counter.textContent, 10) || 0 : null;
             var lastNotifyTime = null;
@@ -43,6 +44,26 @@
 
             function random(min, max) { return min + Math.random() * (max - min); }
             function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+            /** Nearby actors take turns; distant groups may play independently without a global queue. */
+            function sceneAvailable(v, now) {
+                sceneTurns = sceneTurns.filter(function (turn) { return now < turn.until + 2500; });
+                return !sceneTurns.some(function (turn) {
+                    return turn.actors.some(function (actor) { return actor === v || Math.hypot(actor.x - v.x, actor.y - v.y) < 240; });
+                });
+            }
+
+            /** A shared reservation covers companions as well as their leader until the same deadline. */
+            function reserveScene(actors, now, duration) {
+                var turn = {actors:actors,until:now + duration};
+                sceneTurns.push(turn);
+                return turn;
+            }
+
+            /** Interrupted scenes also leave a short quiet interval, without keeping any timers alive. */
+            function releaseScene(turn) {
+                if (turn) turn.until = Math.min(turn.until, performance.now());
+            }
 
             /** Bound crowding by visible area, including manual groups and rain-born copies. */
             function visitorLimit() {
@@ -77,7 +98,7 @@
             function weatherTrace(node, material, lifetime) {
                 var sky = climate(), effect = sky.snow && ['paws','blood','cloth','feather','fur','meal-remains'].indexOf(material) >= 0 ? 'cover' :
                     sky.rain && ['dust','crumbs','blood','paws'].indexOf(material) >= 0 ? 'wash' :
-                    material === 'puddle' && sky.sun && !sky.rain ? 'dry' : material === 'snow' && sky.warm ? 'thaw' : '';
+                    (material === 'puddle' || material === 'slime') && sky.sun && !sky.rain ? 'dry' : material === 'snow' && sky.warm ? 'thaw' : '';
                 if (!effect) return lifetime;
                 var duration = effect === 'wash' ? 6000 : effect === 'dry' ? 7000 : 12000;
                 node.setAttribute('data-weathering', effect);
@@ -97,6 +118,7 @@
                     if (pool.indexOf('spiders') < 0) pool.push('spiders');
                     if (pool.indexOf('wolf') < 0) pool.push('wolf');
                     pool.push('mouse');
+                    ['imp','muncher'].forEach(function (name) { if (pool.indexOf(name) < 0) pool.push(name); });
                     var month = now.getMonth() + 1, flySeason = month >= 4 && month <= 10, mosquitoSeason = month >= 6 && month <= 8;
                     // At most 2% of holiday groups can contain a present, including manual summons.
                     if ((month === 12 || (month === 1 && now.getDate() <= 7)) &&
@@ -105,6 +127,8 @@
                     }
                     var fresh = forecast.expires > now.getTime() && typeof forecast.temperature === 'number';
                     var warm = fresh && forecast.temperature > 10;
+                    if (fresh && forecast.temperature > 0 && /^(rain|showers|thunder)/.test(forecast.icon || '')) pool.push('snail');
+                    if (month >= 9 && month <= 11 && pool.indexOf('squirrel') < 0) pool.push('squirrel');
                     if (fresh && forecast.temperature < 0) { pool.push('polarbear', 'penguin'); seasonalPool.push('polarbear', 'penguin'); }
                     // Gate rare out-of-season visitors before sampling, regardless of group size.
                     if (fresh && forecast.temperature > 9 && ['clear-day', 'partly-cloudy-day'].indexOf(forecast.icon) !== -1 &&
@@ -117,10 +141,10 @@
                         if (mosquitoSeason) seasonalPool.push('mosquito');
                     }
                     // Occasional guests must stay rare even when every eligible character fits in a group.
-                    return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < 0.2; });
+                    return pool.filter(function (name) { return seasonalPool.indexOf(name) >= 0 || Math.random() < (name === 'imp' || name === 'muncher' ? 0.04 : 0.15); });
                 }
                 return (options.characters || []).filter(function (name, index, pool) {
-                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse'].indexOf(name) !== -1 && pool.indexOf(name) === index;
+                    return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'zombie', 'sleigh', 'elf', 'snowmaiden', 'deer', 'pumpkin', 'vampire', 'bat', 'spiderweb', 'spiders', 'cat', 'blackcat', 'witch', 'muncher', 'wolf', 'imp', 'snowman', 'martenitsa', 'stork', 'bunny', 'chick', 'butterfly', 'firefly', 'fly', 'mosquito', 'polarbear', 'penguin', 'mouse', 'snail', 'squirrel'].indexOf(name) !== -1 && pool.indexOf(name) === index;
                 });
             }
 
@@ -140,7 +164,7 @@
                 if (month === 3) return ['martenitsa', 'stork'];
                 if (month <= 5) return ['stork', 'butterfly', 'chick'];
                 if (month <= 8) return ['butterfly', 'firefly'];
-                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'muncher', 'imp'];
+                return ['ghost', 'ghostgirl', 'ghostplay', 'casper', 'cat', 'squirrel'];
             }
 
             /** Seasonal actors lead the group; manual choices stay uniform and groups remain unique. */
@@ -149,6 +173,7 @@
                 var weights = pool.map(function (name) {
                     if (options.mode !== 'auto') return 1;
                     var weight = seasonalPool.indexOf(name) >= 0 ? 6 : 1;
+                    if (weight === 1 && (name === 'imp' || name === 'muncher')) weight *= 0.25;
                     if (name === 'fly') weight *= hour >= 8 && hour < 18 ? 3 : 0.5;
                     if (name === 'mosquito') weight *= hour >= 18 && hour < 23 ? 3 : 1;
                     return weight * (recentCharacters.indexOf(name) >= 0 ? 0.3 : 1);
@@ -169,7 +194,7 @@
 
             /** Counts focused idle time and keeps automatic appearances out of manual groups. */
             function schedule() {
-                if (!automatic || timer || visitors.length || portals.length || peeker || !active()) return;
+                if (!automatic || timer || visitors.length || portals.length || peeker || pointerHeat || !active()) return;
                 timer = window.setTimeout(function () {
                     timer = 0;
                     remaining = 1000;
@@ -186,10 +211,106 @@
                     lastActivityPointer = {x: event.clientX, y: event.clientY};
                     if (unchanged) return;
                 }
+                coolPointerHeat();
                 appearances = 0;
                 remaining = nextDelay();
                 window.clearTimeout(timer); timer = 0;
                 schedule();
+            }
+
+            /** A rare idle lottery shares the normal scheduler; touch and unknown cursor positions never heat up. */
+            function startPointerHeat() {
+                var now = performance.now();
+                if (!automatic || pointerHeat || !pointerSeen || !document.elementFromPoint || coarsePointer.matches || !active() ||
+                    pointer.x < 0 || pointer.y < 0 || pointer.x >= window.innerWidth || pointer.y >= window.innerHeight ||
+                    now - lastTouch < 10000 || now - lastHeat < 600000 || Math.random() >= 0.03) return;
+                var node = document.createElement('div'); node.className = 'funny-pointer-heat'; node.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(node);
+                pointerHeat = {node:node,born:now,power:0,traceAt:0,steamAt:0,until:now+random(20000,30000),coolAt:0,coolingBonus:0,moveAt:now};
+                lastHeat = now;
+            }
+
+            /** Movement starts one bounded cooldown; subsequent events cannot keep the cursor glowing. */
+            function coolPointerHeat() {
+                if (!pointerHeat || pointerHeat.coolAt) return;
+                pointerHeat.coolAt = performance.now(); pointerHeat.coolDuration = random(15000,25000); pointerHeat.coolPower = pointerHeat.power;
+                pointerHeat.node.setAttribute('data-cooling', 'true');
+            }
+
+            /** All decoration is disposable; application content, styles and hit testing stay intact. */
+            function clearPointerHeat() {
+                if (pointerHeat) {
+                    pointerHeat.node.remove();
+                    if (pointerHeat.soundGain && audio) {
+                        if (scene) scene.fade(pointerHeat.soundGain.gain, audio.currentTime);
+                        else { pointerHeat.soundGain.gain.cancelScheduledValues(audio.currentTime); pointerHeat.soundGain.gain.setValueAtTime(0, audio.currentTime); }
+                    }
+                }
+                pointerHeat = null;
+            }
+
+            /** Sample only the visible hit surface, clipping each small scorch to its current rectangle. */
+            function scorchPointer(power) {
+                var offsets = gentle ? [[0,0]] : [[0,0],[-32,0],[32,0],[0,-32],[0,32]];
+                offsets.forEach(function (offset) {
+                    var x = pointer.x+offset[0], y = pointer.y+offset[1], el = document.elementFromPoint(x,y);
+                    if (!el || el === document.body || /^(HTML|IFRAME|CANVAS|VIDEO)$/.test(el.tagName) || el.closest('[aria-hidden="true"],.funny-controls,.funny-stats') ||
+                        (el === document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) || el.closest('[contenteditable]:not([contenteditable="false"])')) return;
+                    var r = el.getBoundingClientRect();
+                    if (r.width < 4 || r.height < 4) return;
+                    var prior = marks.filter(function (mark) { return mark.contact && mark.contact.kind === 'scorch' && mark.target === el && Math.hypot(mark.contact.x-x,mark.contact.y-y) < 28; })[0];
+                    if (prior) { prior.node.style.setProperty('--funny-burn', String(Math.max(prior.power, power))); prior.power = Math.max(prior.power, power); return; }
+                    var scorches = marks.filter(function (mark) { return mark.contact && mark.contact.kind === 'scorch'; });
+                    if (scorches.length >= (gentle ? 4 : 10)) removeMark(scorches[0]);
+                    var node = document.createElement('div'), size = 88, half = size/2;
+                    node.className = 'funny-heat-scorch'; node.style.left = x-half+'px'; node.style.top = y-half+'px';
+                    node.style.clipPath = 'inset('+Math.max(0,r.top-y+half)+'px '+Math.max(0,x+half-r.right)+'px '+Math.max(0,y+half-r.bottom)+'px '+Math.max(0,r.left-x+half)+'px)';
+                    node.style.setProperty('--funny-burn', String(power));
+                    var mark = addMark(node, 10000, {kind:'scorch',x:x,y:y}); mark.target = el; mark.power = power;
+                });
+            }
+
+            /** Heat and cooling use the existing RAF; rain and snow quench it and release a little steam. */
+            function animatePointerHeat(now) {
+                var heat = pointerHeat;
+                if (!heat) return;
+                if (now >= heat.until && !heat.coolAt) coolPointerHeat();
+                var sky = climate(), wet = sky.rain || sky.snow;
+                var cooling = heat.coolAt ? (now-heat.coolAt+heat.coolingBonus)/heat.coolDuration : 0;
+                heat.power = heat.coolAt ? heat.coolPower * Math.max(0,1-cooling) : Math.min(1,(now-heat.born)/2200) * (sky.snow ? 0.5 : sky.rain ? 0.65 : 1);
+                if (cooling >= 1) { clearPointerHeat(); schedule(); return; }
+                heat.node.style.transform = 'translate('+pointer.x+'px,'+pointer.y+'px)';
+                heat.node.style.setProperty('--funny-heat', heat.power.toFixed(3));
+                heat.node.setAttribute('data-wet', sky.snow ? 'snow' : sky.rain ? 'rain' : '');
+                // Leave room for the arrival cue; a rejected sound is never queued or retried.
+                if (!heat.heatSound && heat.power > 0.15 && now-heat.born >= 1900) {
+                    heat.heatSound = true; playSound('heat');
+                }
+                if (heat.power > 0.12 && now >= heat.traceAt) {
+                    heat.traceAt = now + 250;
+                    scorchPointer(heat.power);
+                    if (window.funnyWeather && window.funnyWeather.heat) window.funnyWeather.heat(pointer.x,pointer.y,90,heat.power);
+                }
+                if (wet && heat.power > 0.15 && now >= heat.steamAt) {
+                    heat.steamAt = now + 1000;
+                    interactionEffect('heat-steam',pointer.x,pointer.y,[{x:pointer.x-12,y:pointer.y-30},{x:pointer.x+15,y:pointer.y-45}],1400);
+                    if (!heat.hissSound && now-heat.born >= 4200) { heat.hissSound = true; playSound('heat-hiss'); }
+                }
+                if (heat.power <= 0.12) return;
+                visitors.forEach(function (v) {
+                    if (v.heatFlee || v.launched || v.leaving || v.character === 'present') return;
+                    if (v.pursuit) { var other = v.pursuit.other; other.pursuit = null; encounterState(other,''); v.pursuit = null; }
+                    interruptTrick(v); releaseThread(v); takeOff(v,now); v.fleeUntil = 0; v.fear = null;
+                    v.heatFlee = true; v.node.setAttribute('data-heat-flee','true'); encounterState(v,'');
+                    var distance = Math.hypot(v.x-pointer.x,v.y-pointer.y);
+                    if (!heat.helped && v.character === 'snowmaiden' && distance >= 150 && distance <= 420 && sceneAvailable(v,now)) {
+                        heat.helped = true; reserveScene([v],now,1200); coolPointerHeat(); heat.coolingBonus += heat.coolDuration * 0.24;
+                        v.node.setAttribute('data-heat-help','true');
+                        interactionEffect('cooling-throw',v.x,v.y,[{x:pointer.x-10,y:pointer.y},{x:pointer.x+9,y:pointer.y-9},{x:pointer.x,y:pointer.y+8}],1100);
+                        interactionEffect('heat-steam',pointer.x,pointer.y,[{x:pointer.x,y:pointer.y-35}],1400);
+                    }
+                    if (v.character !== 'mouse') v.exiting = true;
+                });
             }
 
             /** Silence scheduled foreground notes without closing the unlocked audio context. */
@@ -270,12 +391,41 @@
                 };
             }
 
+            /** Filtered noise suggests warm crackling or cooling steam without a sustained hiss. */
+            function playHeatSound(hiss) {
+                var duration = hiss ? 0.8 : 0.65, start = audio.currentTime + 0.025;
+                var buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate*duration), audio.sampleRate), data = buffer.getChannelData(0);
+                // A local noise stream does not consume thousands of character-lottery draws.
+                var seed = Math.floor(Math.random()*2147483646)+1, low = 0;
+                for (var i = 0; i < data.length; i++) {
+                    seed = seed*16807%2147483647;
+                    var white = (seed-1)/1073741823-1;
+                    low = (low+white*0.12)/1.12;
+                    data[i] = hiss ? white*0.65 : low*2.3*(0.65+0.35*Math.sin(i/audio.sampleRate*55));
+                }
+                var source = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+                source.buffer = buffer; filter.type = hiss ? 'bandpass' : 'lowpass'; filter.frequency.value = hiss ? 1800 : 800; filter.Q.value = 0.6;
+                voices.push(gain); gain.gain.value = 0;
+                if (pointerHeat) pointerHeat.soundGain = gain;
+                gain.gain.setValueAtTime(0, start);
+                gain.gain.linearRampToValueAtTime((gentle ? 0.5 : 1)*(hiss ? 0.028 : 0.035), start+(hiss ? 0.015 : 0.04));
+                gain.gain.exponentialRampToValueAtTime(0.0001, start+duration);
+                source.connect(filter); filter.connect(gain); gain.connect(audio.destination);
+                source.start(start); source.stop(start+duration);
+                source.onended = function () {
+                    source.disconnect(); filter.disconnect(); gain.disconnect();
+                    voices = voices.filter(function (item) { return item !== gain; });
+                    if (pointerHeat && pointerHeat.soundGain === gain) pointerHeat.soundGain = null;
+                };
+            }
+
             /** Plays one short character cue; the caller suppresses notification and group duplicates. */
             function playSound(character) {
                 if (!soundEnabled || !active() || !audio || audio.state !== 'running') return;
                 if (scene && !scene.cue(character === 'knock' ? 3 : /^(pop|munch|startle)$/.test(character) ? 2 : 1, 1000, hushVoices, character)) return;
                 if (character === 'knock') { playGlassKnock(); return; }
                 if (character === 'paper') { playPaperCrumple(); return; }
+                if (character === 'heat' || character === 'heat-hiss') { playHeatSound(character === 'heat-hiss'); return; }
                 var sounds = {
                     ghost: {notes: [330], duration: 0.75, spacing: 0, pitch: 0.55, wave: 'triangle', vibrato: true},
                     casper: {notes: [660, 880], duration: 0.22, spacing: 0.18, pitch: 1.15, wave: 'sine'},
@@ -296,6 +446,7 @@
                     witch: {notes: [700, 880, 700, 880, 1047], duration: 0.09, spacing: 0.1, pitch: 1.2, wave: 'triangle', vibrato: true, volume: 0.65},
                     muncher: {notes: [196, 262, 196], duration: 0.16, spacing: 0.15, pitch: 0.8, wave: 'square', low: true},
                     munch: {notes: [150, 120, 150], duration: 0.06, spacing: 0.08, pitch: 0.5, wave: 'square', low: true},
+                    howl: {notes:[220,290],duration:0.5,spacing:0.35,pitch:0.8,wave:'sine',volume:0.35,vibrato:true,voice:true},
                     wolf: {notes: [220, 330, 294], duration: 0.34, spacing: 0.3, pitch: 0.6, wave: 'sawtooth', voice: true, vibrato: true},
                     startle: {notes: [740, 440], duration: 0.1, spacing: 0.08, pitch: 0.6, wave: 'sine', volume: 0.35},
                     hiccup: {notes: [180], duration: 0.16, spacing: 0, pitch: 1.8, wave: 'triangle', volume: 0.35},
@@ -312,8 +463,11 @@
                     fly: {notes: [185], duration: 0.55, spacing: 0, pitch: 1.15, wave: 'sawtooth', vibrato: true, low: true, volume: 0.3},
                     mosquito: {notes: [620], duration: 0.65, spacing: 0, pitch: 0.85, wave: 'sine', vibrato: true, volume: 0.25},
                     polarbear: {notes: [145, 110], duration: 0.22, spacing: 0.25, pitch: 0.8, wave: 'triangle'},
+                    snail: {notes:[440,550],duration:0.1,spacing:0.14,pitch:0.9,wave:'sine',volume:0.25},
+                    squirrel: {notes:[1100,1350,1050],duration:0.055,spacing:0.09,pitch:0.85,wave:'sine',volume:0.35},
                     mouse: {notes: [1250, 1550], duration: 0.07, spacing: 0.11, pitch: 0.85, wave: 'sine', volume: 0.4},
                     penguin: {notes: [740, 520], duration: 0.10, spacing: 0.15, pitch: 1.1, wave: 'sine'},
+                    sneeze: {notes: [210, 480], duration: 0.16, spacing: 0.14, pitch: 0.32, wave: 'triangle', voice: true, volume: 0.35},
                     pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
@@ -484,6 +638,7 @@
             }
 
             function clearVisitors(depart) {
+                clearPointerHeat();
                 window.cancelAnimationFrame(frame);
                 frame = 0;
                 departures.slice().forEach(clearDeparture);
@@ -494,6 +649,7 @@
                 surfaceEffects.slice().forEach(clearSurface);
                 portals.slice().forEach(removePortal);
                 visitors.slice().forEach(function (v) { removeVisitor(v, false, depart === true); });
+                sceneTurns = [];
             }
 
             function clearDeparture(departure) {
@@ -583,6 +739,7 @@
                 // Gremlins and presents need an explicit click; hovering must not undo the last split.
                 if ((v.character === 'imp' || v.character === 'present') && !force) return;
                 v.leaving = performance.now();
+                if (v.heatFlee) v.node.setAttribute('data-heat-flee', '');
                 releaseThread(v);
                 caughtCount++;
                 updateStats();
@@ -635,6 +792,7 @@
             function dress(v) {
                 if (v.insect || v.leaving || v.character === 'present') return;
                 var kind = weather.indexOf('rain') !== -1 ? 'umbrella' : /snow|cold|wind/.test(weather) ? 'scarf' : weather.indexOf('sun') !== -1 ? 'glasses' : '';
+                if ((/rain|fog/.test(weather) && v.outfit === 'glasses' && !v.glassesWiped) || /sun/.test(weather) && /rain/.test(weather) && !v.glassesWiped) kind = 'glasses';
                 if (v.sunHide) kind = '';
                 if (v.outfit === kind) return;
                 if (v.accessory) { v.accessory.remove(); v.accessory = null; }
@@ -648,6 +806,7 @@
                     var face = faceAnchors[v.character];
                     // The round monster's neck is below its wide mouth, rather than just below its eyes.
                     if (v.character === 'muncher') face = kind === 'scarf' ? [60,64,.65] : [60,31,1.1];
+                    if (v.character === 'snail' && kind === 'scarf') face = [90,48,.55];
                     if (v.character === 'blackcat' && kind === 'glasses') face = [60,33,.75];
                     accessory.firstChild.setAttribute('transform', 'translate(' + face[0] + ' ' + face[1] + ') scale(' + face[2] + ') translate(-60 -32)');
                 }
@@ -663,17 +822,18 @@
 
             /** Shared props reserve two free actors; neither participant can prolong the other's lifetime. */
             function startPairOrLeaf(v, now) {
-                if (v.weatherAct || v.perch || v.pair || v.fear || v.pursuit) return false;
+                if (v.weatherAct || v.perch || v.pair || v.fear || v.pursuit || !sceneAvailable(v, now)) return false;
                 var sky = climate(), kind = v.character === 'elf' && sky.rain ? 'share' : v.character === 'snowmaiden' && sky.snow ? 'snowball' : '';
                 if (kind) {
                     var other = visitors.filter(function (actor) {
                         return (kind === 'share' ? ['bunny','chick'].indexOf(actor.character) >= 0 : actor.character === 'snowman') &&
                             !actor.weatherAct && !actor.pair && !actor.trickDone && !actor.pursuit && !actor.fear && !actor.perch && !actor.reactionUntil &&
-                            availableForEncounter(actor, now) && Math.hypot(actor.x - v.x, actor.y - v.y) < 210 &&
+                            availableForEncounter(actor, now) && sceneAvailable(actor, now) && Math.hypot(actor.x - v.x, actor.y - v.y) < 210 &&
                             segmentDistance(pointer.x, pointer.y, v.x, v.y, actor.x, actor.y) > 120;
                     })[0];
                     if (!other) return false;
                     var pair = {host:v,guest:other,kind:kind,born:now,until:now + (kind === 'share' ? 4500 : 2100)};
+                    pair.turn = reserveScene([v, other], now, pair.until - now);
                     v.pair = other.pair = pair; other.trickDone = true;
                     v.node.setAttribute('data-pair', kind); other.node.setAttribute('data-pair', kind === 'share' ? 'guest' : 'snowball');
                     if (kind === 'snowball') {
@@ -686,7 +846,7 @@
                 if ((v.character === 'cat' || v.character === 'blackcat') && window.funnyWeather && window.funnyWeather.leafNear) {
                     var leaf = window.funnyWeather.leafNear(v.x, v.y);
                     if (leaf && segmentDistance(pointer.x, pointer.y, v.x, v.y, leaf.x, leaf.y) > 120) {
-                        v.leaf = leaf; v.leafUntil = now + 2600; v.node.setAttribute('data-leaf-play', 'stalking'); return true;
+                        v.leaf = leaf; v.leafUntil = now + 2600; v.leafTurn = reserveScene([v], now, 2600); v.node.setAttribute('data-leaf-play', 'stalking'); return true;
                     }
                 }
                 return false;
@@ -699,6 +859,7 @@
             function endPair(v) {
                 var pair = v.pair;
                 if (!pair) return;
+                releaseScene(pair.turn);
                 [pair.host, pair.guest].forEach(function (actor) { actor.pair = null; actor.node.setAttribute('data-pair', ''); });
             }
 
@@ -722,7 +883,7 @@
             function leafMotion(v, now, delta) {
                 var leaf = v.leaf;
                 if (v.pursuit || v.fear || !availableForEncounter(v, now) || now >= v.leafUntil || (!v.leafKicked && !leaf.valid())) {
-                    v.leaf = null; v.node.setAttribute('data-leaf-play', ''); return false;
+                    releaseScene(v.leafTurn); v.leaf = null; v.node.setAttribute('data-leaf-play', ''); return false;
                 }
                 var dx = leaf.x - v.x, dy = leaf.y - v.y - v.height * 0.3, distance = Math.hypot(dx, dy) || 1;
                 if (distance < 35 && !v.leafKicked) {
@@ -752,8 +913,11 @@
                             mark.node.firstChild.firstChild.setAttribute('href', options.spriteUrl + '#spider-thread-broken');
                         }
                     }
+                    if (mark.cover && (wind.speed >= 24 || !mark.cover.valid())) { mark.cover.release(); mark.cover = null; mark.node.setAttribute('data-uncovered', 'true'); }
+                    if (c.kind === 'hole') mark.node.setAttribute('data-rain-roof', mark.cover && climate().rain ? 'true' : '');
+                    if (c.kind==='snow-hat' && mark.edge && !mark.edge.valid()) { removeMark(mark); return; }
                     if (c.kind !== 'puddle') return;
-                    var actor = visitors.filter(function (v) { return !v.launched && !v.leaving && ghostKinds.indexOf(v.character) < 0 && Math.hypot(v.x - c.x, v.y + v.height / 2 - c.y) < 70; })[0];
+                    var actor = visitors.filter(function (v) { return !v.launched && !v.leaving && ghostKinds.indexOf(v.character) < 0 && v.character !== 'vampire' && Math.hypot(v.x - c.x, v.y + v.height / 2 - c.y) < 70; })[0];
                     if (mark.reflection && (!actor || mark.reflected !== actor.character)) { mark.reflection.remove(); mark.reflection = null; }
                     if (actor && !mark.reflection) {
                         var reflection = sprite(actor.character); reflection.setAttribute('class', 'funny-reflection');
@@ -807,7 +971,8 @@
             function openMouseHole(v, now) {
                 var x = v.x + v.contact.x, y = v.y + v.contact.y;
                 var hole = document.createElement('div'); hole.className = 'funny-mouse-hole'; hole.style.left = x + 'px'; hole.style.top = y + 'px';
-                addMark(hole, 10000, {kind:'hole',x:x,y:y});
+                var mark = addMark(hole, 10000, {kind:'hole',x:x,y:y});
+                if (climate().snow) { mark.snowCovered = true; hole.setAttribute('data-snow-covered', 'true'); }
                 enterMouseHole(v, {x:x,y:y}, now);
             }
 
@@ -821,20 +986,29 @@
             function mouseExit(v, now, delta) {
                 // A blocked or crowded route must still finish through a hole before the hard cleanup.
                 if (now - v.born >= v.lifetime + 7000) { openMouseHole(v, now); return true; }
-                var digging = now - v.born >= v.lifetime - 2500;
+                var digging = v.heatFlee || now - v.born >= v.lifetime - 2500;
                 if (now < v.fleeUntil && !digging) return false;
                 var hole = null, nearest = Infinity;
                 marks.forEach(function (mark) {
                     if (!mark.contact || mark.contact.kind !== 'hole') return;
+                    if (pointerHeat && Math.hypot(mark.contact.x-pointer.x,mark.contact.y-pointer.y) < 140) return;
                     var distance = Math.hypot(v.x - mark.contact.x, v.y - mark.contact.y);
                     if (mark.expires - now < distance / 165 * 1000 + 800) return;
                     if (distance < nearest) { nearest = distance; hole = mark; }
                 });
                 v.holeTarget = hole;
+                if ((hole || digging) && !(v.weatherAct && /^(snow-hole|rain-roof)$/.test(v.weatherAct.kind) && v.weatherAct.mark === hole)) endWeatherAct(v);
                 if (!hole) {
                     v.node.setAttribute('data-hole-running', '');
                     if (!digging) return false;
                     if (v.perch) takeOff(v, now);
+                    // Reach a cool patch before digging; mice still never escape through a screen edge.
+                    var hotX = v.x-pointer.x, hotY = v.y-pointer.y, hotGap = Math.hypot(hotX,hotY);
+                    if (pointerHeat && v.heatFlee && hotGap < 145) {
+                        v.x = clamp(v.x+(hotX || 1)/(hotGap || 1)*180*delta,v.width/2,window.innerWidth-v.width/2);
+                        v.y = clamp(v.y+hotY/(hotGap || 1)*180*delta,v.height/2,window.innerHeight-v.height/2);
+                        return true;
+                    }
                     if (!v.digStarted) { v.digStarted = now; v.node.setAttribute('data-insect', 'gnawing'); }
                     if (now - v.digStarted >= 1100) openMouseHole(v, now);
                     return true;
@@ -843,6 +1017,7 @@
                 v.digStarted = 0; v.node.setAttribute('data-insect', '');
                 v.node.setAttribute('data-hole-running', 'true');
                 var dx = hole.contact.x - v.x, dy = hole.contact.y - v.y, step = Math.min(nearest, 165 * delta);
+                if (nearest < 45 && (clearMouseSnow(v, hole, now) || coverMouseHole(v, hole, now))) return true;
                 if (nearest < 18) { enterMouseHole(v, hole.contact, now); return true; }
                 var px = v.x - pointer.x, py = v.y - pointer.y, pointerDistance = Math.hypot(px, py);
                 dx /= nearest; dy /= nearest;
@@ -852,6 +1027,30 @@
                 }
                 var length = Math.hypot(dx, dy) || 1;
                 v.x += dx / length * step; v.y += dy / length * step;
+                return true;
+            }
+
+            /** One mouse clears the entrance for everyone; danger and the original expiry always win. */
+            function clearMouseSnow(v, hole, now) {
+                if (!hole.snowCovered || now - hole.born < 1200) return false;
+                if (!climate().snow || v.pursuit || !availableForEncounter(v, now) || hole.expires - now < 2200 || (!hole.clearer && !sceneAvailable(v, now))) {
+                    hole.snowCovered = false; hole.node.setAttribute('data-snow-covered', '');
+                    if (hole.clearer) endWeatherAct(hole.clearer);
+                    return false;
+                }
+                if (hole.clearer && hole.clearer !== v) return true;
+                if (!v.weatherAct) {
+                    hole.clearer = v; hole.reserved = true;
+                    beginWeatherAct(v, 'snow-hole', now, 1600, {mark:hole});
+                }
+                var act = v.weatherAct, elapsed = now - act.born;
+                hole.node.style.setProperty('--funny-hole-snow', String(Math.max(0, 1 - elapsed / 1200)));
+                if (!act.sprayed && elapsed >= 450) {
+                    act.sprayed = true;
+                    interactionEffect('snow-clearing', hole.contact.x, hole.contact.y, [{x:hole.contact.x-14,y:hole.contact.y-10},{x:hole.contact.x+13,y:hole.contact.y-8}], 1800);
+                    interactionEffect('tiny-snow-steps', v.x, v.y + v.height / 2, [{x:v.x-4,y:v.y+v.height/2},{x:v.x+4,y:v.y+v.height/2-3}], 2500);
+                }
+                if (elapsed >= 1200) { hole.snowCovered = false; hole.node.setAttribute('data-snow-covered', ''); endWeatherAct(v); return false; }
                 return true;
             }
 
@@ -875,7 +1074,7 @@
                     v.umbrellaInverted = false;
                 }
                 if (v.launched || v.leaving || v.exiting) return;
-                var free = !v.weatherAct && !v.pair && !v.pursuit && !v.fear && !v.perch && !v.eating && !v.munchTarget && !v.reactionUntil && availableForEncounter(v, now);
+                var free = !v.weatherAct && !v.pair && !v.pursuit && !v.fear && !v.perch && !v.eating && !v.munchTarget && !v.reactionUntil && availableForEncounter(v, now) && sceneAvailable(v, now);
                 if (v.outfit === 'umbrella' && wind.speed >= 20 && !v.gustDone) {
                     if (!v.gustAfter) v.gustAfter = now + random(7000, 12000);
                     if (free && now >= v.gustAfter) {
@@ -883,6 +1082,7 @@
                         v.accessory.firstChild.setAttribute('href', options.spriteUrl + '#accessory-umbrella-flipped');
                         v.node.style.setProperty('--funny-gust-angle', (wind.x * (gentle ? 8 : 15)) + 'deg');
                         react(v, 'umbrella', now);
+                        reserveScene([v], now, v.reactionUntil - now);
                     }
                 } else v.gustAfter = 0;
                 if (v.insect || !faceAnchors[v.character]) return;
@@ -899,6 +1099,7 @@
                 if (snowing && v.snowAmount >= 0.8 && !v.snowShaken && free && !v.reactionUntil) {
                     v.snowShaken = true; v.snowAmount = 0.08;
                     react(v, 'snowshake', now);
+                    reserveScene([v], now, v.reactionUntil - now);
                     interactionEffect('snow-shower', v.x, v.y + v.height * 0.4,
                         [{x:v.x - 16,y:v.y + v.height * 0.8},{x:v.x + 3,y:v.y + v.height},{x:v.x + 18,y:v.y + v.height * 0.7}], 2400);
                 }
@@ -910,6 +1111,8 @@
             function beginWeatherAct(v, kind, now, duration, props) {
                 v.weatherDone = true;
                 v.weatherAct = Object.assign({kind:kind,born:now,until:now + duration}, props || {});
+                var members = v.weatherAct.group || [v], shared = members.filter(function (actor) { return actor.weatherAct && actor.weatherAct.turn; })[0];
+                v.weatherAct.turn = v.weatherAct.turn || (shared ? shared.weatherAct.turn : reserveScene(members, now, duration));
                 v.node.setAttribute('data-weather-act', kind);
             }
 
@@ -917,19 +1120,46 @@
             function endWeatherAct(v) {
                 var act = v.weatherAct;
                 if (!act) return;
+                releaseScene(act.turn);
                 v.weatherAct = null; v.node.setAttribute('data-weather-act', '');
+                if (act.kind === 'sun-bat') {
+                    v.node.firstChild.firstChild.setAttribute('href', options.spriteUrl + '#vampire');
+                    v.sunHide = 0; v.node.setAttribute('data-sun-hiding', '');
+                    if (v.cloak) { v.cloak.remove(); v.cloak = null; }
+                    dress(v);
+                }
+                if (act.kind === 'balance') { v.node.style.removeProperty('--funny-tail-turn'); v.node.style.removeProperty('--funny-balance'); v.node.style.removeProperty('--funny-carry-acorn'); }
+                if (act.kind === 'wipe-glasses') { v.glassesWiped = true; v.glassesWet = 0; v.node.style.removeProperty('--funny-lens-wet'); v.node.style.removeProperty('--funny-glasses-wipe'); v.node.style.removeProperty('--funny-wipe-x'); dress(v); }
+                if (act.kind === 'rain-roof') act.mark.roofer = null;
+                if (act.kind === 'drip-watch') { act.drop.release(); v.node.style.removeProperty('--funny-drop-side'); v.node.style.removeProperty('--funny-cat-blink'); }
+                if (act.kind === 'wind-rest') { v.windRestAfter=performance.now()+6000; v.perchAfter=performance.now()+1800; }
+                if (act.kind === 'save-hat') act.mark.node.setAttribute('data-carried','');
+                if (act.kind === 'towel') v.node.style.removeProperty('--funny-towel-side');
+                if (act.kind === 'lantern') v.node.style.setProperty('--funny-lantern', '0');
+                if (act.kind === 'tassels') {
+                    ['--funny-thread-stretch','--funny-pizho-x','--funny-penda-x','--funny-pizho-turn','--funny-penda-turn'].forEach(function (key) { v.node.style.removeProperty(key); });
+                }
+                if (act.kind === 'shade') v.node.setAttribute('data-shade', '');
+                if (act.kind === 'wind-ghost') ['--funny-ghost-stretch','--funny-ghost-face-scale','--funny-ghost-angle'].forEach(function (key) { v.node.style.removeProperty(key); });
+                if (act.kind === 'dry-wings') v.perchAfter = performance.now() + 2500;
                 if (act.mark) {
                     act.mark.reserved = false;
+                    if (act.kind === 'snow-hole') { act.mark.clearer = null; act.mark.node.style.removeProperty('--funny-hole-snow'); }
+                    if (act.kind === 'web-shake') act.mark.node.setAttribute('data-web-shake', '');
                     if (act.kind === 'hat' && marks.indexOf(act.mark) >= 0) removeMark(act.mark);
                     if (act.kind === 'mend' && !act.mark.ending) act.mark.node.setAttribute('data-web-repair', act.mark.repaired ? 'done' : 'broken');
                 }
+                if (act.boat) act.boat.release();
+                if (act.kind === 'shell' || act.kind === 'snail-nudge') v.node.setAttribute('data-shell', '');
+                if (act.wings) act.wings.remove();
+                if (act.prop && marks.indexOf(act.prop) >= 0) removeMark(act.prop);
                 if (act.kind === 'hat') v.node.style.setProperty('--funny-elf-hat-opacity', '1');
                 if (act.group) act.group.forEach(function (actor) { if (actor.weatherAct && actor.weatherAct.group === act.group) endWeatherAct(actor); });
             }
 
             /** Optional scenes cannot take over an existing encounter, perch or gesture. */
             function freeForWeather(v, now) {
-                return availableForEncounter(v, now) && !v.pair && !v.leaf && !v.pursuit && !v.fear && !v.perch && !v.reactionUntil;
+                return availableForEncounter(v, now) && !v.pair && !v.leaf && !v.pursuit && !v.fear && !v.perch && !v.holeTarget && !v.reactionUntil;
             }
 
             /** Huddles disperse before a bear chooses its target, so friends flee in distinct directions. */
@@ -954,19 +1184,52 @@
             /** A single nearby snow, ice, web or hat scene yields to normal danger and input handling. */
             function weatherScenes(v, now, delta) {
                 var sky = climate(), act = v.weatherAct;
+                if (v.character === 'snowman' && sky.warm && v.repairAmount === undefined && v.shadeMelt === undefined) v.shadeMelt = 0;
+                if (v.outfit === 'glasses') {
+                    v.glassesWet = clamp((v.glassesWet || 0) + delta * (/rain|fog/.test(weather) ? 0.2 : -0.5), 0, 1);
+                    v.node.style.setProperty('--funny-lens-wet', v.glassesWet.toFixed(3));
+                }
+                if (sky.rain && (v.character === 'wolf' || v.character === 'butterfly')) v.rainExposure = (v.rainExposure || 0) + delta;
+                else v.rainExposure = 0;
+                var shaded = act && act.kind === 'shade' && act.arrived;
+                if (v.shadeMelt !== undefined) v.shadeMelt = clamp(v.shadeMelt + delta * (sky.warm ? (now < v.cooledUntil ? 0 : shaded ? 0.0007 : 0.004) : -0.01), 0, 0.1);
                 if (v.repairAmount !== undefined) {
-                    if (sky.warm && !(now < v.cooledUntil)) v.repairAmount = Math.max(0, v.repairAmount - delta / 8);
-                    v.node.style.setProperty('--funny-snow-body', (0.88 + v.repairAmount * 0.12).toFixed(3));
+                    if (sky.warm && !(now < v.cooledUntil)) v.repairAmount = Math.max(0, v.repairAmount - delta / 8 * (shaded ? 0.2 : 1));
                     v.repairPatch.style.opacity = v.repairAmount.toFixed(3);
                 }
+                if (v.repairAmount !== undefined || v.shadeMelt !== undefined) v.node.style.setProperty('--funny-snow-body', ((v.repairAmount === undefined ? 1 : 0.88 + v.repairAmount * 0.12) * (1 - (v.shadeMelt || 0))).toFixed(3));
                 if (act && (now >= act.until || !availableForEncounter(v, now) || v.fear || v.pair ||
-                    (v.pursuit && !/^(slide|brake)$/.test(act.kind)) ||
+                    (v.pursuit && !/^(slide|brake|ice-wary)$/.test(act.kind)) ||
                     (act.surface && !act.collected && !act.surface.valid()) ||
-                    (act.kind === 'gather' && !sky.snow) ||
+                    ((act.kind === 'gather' || act.kind === 'plow' || act.kind === 'snow-follow' || act.kind === 'stuck' || act.kind === 'tow') && !sky.snow) ||
+                    (act.boat && ((act.kind === 'boat' && !sky.rain) || !act.boat.valid())) ||
+                    (act.group && act.kind !== 'huddle' && act.group.some(function (actor) { return !freeForWeather(actor, now); })) ||
+                    (/^(guide|guided)$/.test(act.kind) && (weather.indexOf('fog') < 0 || !window.funnyWeather.visible())) ||
+                    (act.kind === 'thermal' && (!sky.sun || sky.temperature < 15 || !window.funnyWeather.sky())) ||
+                    (act.kind === 'howl' && (!window.funnyWeather || !window.funnyWeather.sky || !window.funnyWeather.sky() || window.funnyWeather.sky().kind !== 'moon')) ||
                     (act.kind === 'hat' && wind.speed < 24) ||
+                    (/^(broom|tassels)$/.test(act.kind) && wind.speed < 18) ||
+                    (act.kind === 'shade' && (!sky.sun || !sky.warm || !window.funnyWeather.sky())) ||
+                    (/^(lantern|lantern-fly)$/.test(act.kind) && !lanternWeather()) ||
+                    (/^(wet-shake|sprayed|dry-wings|web-shake|drip-wait)$/.test(act.kind) && !sky.rain) ||
+                    (/^(sneeze|sneeze-slide|snow-hole)$/.test(act.kind) && !sky.snow) ||
+                    (act.kind === 'wind-ghost' && wind.speed < 20) ||
+                    (act.kind === 'sun-bat' && !sky.sun) ||
+                    (act.kind === 'balance' && wind.speed < 20) ||
+                    (/^(towel|toweled|rain-roof)$/.test(act.kind) && !sky.rain) ||
+                    (/^(windbreak|lee-chick)$/.test(act.kind) && (!sky.snow || wind.speed < 24)) ||
+                    (act.kind === 'rain-roof' && (marks.indexOf(act.mark) < 0 || act.mark.ending)) ||
+                    (/^(web-shake|snow-hole)$/.test(act.kind) && (marks.indexOf(act.mark) < 0 || act.mark.ending)) ||
+                    (/^(save-hat|return-hat)$/.test(act.kind) && (marks.indexOf(act.mark)<0 || act.mark.ending)) ||
+                    (/^(night-hunt|night-prey)$/.test(act.kind) && !nightHunting()) ||
+                    (act.kind === 'drip-watch' && !act.splashed && (!sky.rain || !act.drop.valid())) ||
+                    (act.kind === 'wind-rest' && (wind.speed<24 || wind.x*act.wind.x+wind.y*act.wind.y<0.6)) ||
                     (act.kind === 'mend' && (marks.indexOf(act.mark) < 0 || act.mark.ending)))) {
                     endWeatherAct(v); act = null;
                 }
+                updateSnowHat(v,now,sky); act=v.weatherAct;
+                if (!act && !sceneAvailable(v, now)) return;
+                if (!act && !v.weatherDone && availableForEncounter(v, now) && (startCycleAct(v,now,sky) || startShelterAct(v, now, sky) || startGardenAct(v, now, sky) || startWeatherTrick(v, now, sky) || startSeasonAct(v, now, sky) || startNatureAct(v, now, sky))) return;
                 if (act || v.weatherDone || !availableForEncounter(v, now) || ['penguin','snowman','wolf','spiders','elf'].indexOf(v.character) < 0) return;
                 var surfaces = window.funnyWeather && window.funnyWeather.surfaceNear;
                 if (v.character === 'snowman' && (!sky.snow || !surfaces) ||
@@ -978,7 +1241,7 @@
                 var free = freeForWeather(v, now), surface;
                 if (v.character === 'penguin' && free && sky.snow && wind.speed >= 24) {
                     var group = [v].concat(visitors.filter(function (other) {
-                        return other !== v && other.character === 'penguin' && !other.weatherDone && !other.weatherAct && freeForWeather(other, now) &&
+                        return other !== v && other.character === 'penguin' && !other.weatherDone && !other.weatherAct && freeForWeather(other, now) && sceneAvailable(other, now) &&
                             Math.hypot(other.x - v.x, other.y - v.y) < 230 && segmentDistance(pointer.x, pointer.y, v.x, v.y, other.x, other.y) > 130;
                     }).slice(0, 2));
                     if (group.length > 1 && !visitors.some(function (other) { return other.character === 'polarbear' && Math.hypot(other.x - v.x, other.y - v.y) < 260; })) {
@@ -996,7 +1259,10 @@
                         var direction = hunter ? Math.atan2(v.y - hunter.y, v.x - hunter.x) : Math.atan2(v.y - pointer.y, v.x - pointer.x);
                         beginWeatherAct(v, 'slide', now, 1500, {surface:surface,dx:Math.cos(direction),dy:Math.sin(direction)});
                         v.node.style.setProperty('--funny-slide-angle', Math.cos(direction) < 0 ? '65deg' : '-65deg');
-                        if (hunter && hunter.character === 'polarbear' && !hunter.weatherDone) beginWeatherAct(hunter, 'brake', now, 1100);
+                        if (hunter && hunter.character === 'polarbear' && !hunter.weatherDone) {
+                            var ice=window.funnyWeather.surfaceNear(v.x,v.y+v.height/2,'ice',50);
+                            beginWeatherAct(hunter,ice && ice.crack ? 'ice-wary' : 'brake',now,ice && ice.crack ? 3200 : 1100,{turn:v.weatherAct.turn,surface:ice && ice.crack ? ice : null});
+                        }
                         return;
                     }
                 }
@@ -1028,6 +1294,894 @@
                 }
             }
 
+            /** Only ordinary bats hunt on warm, calm nights; the vampire keeps its own identity. */
+            function nightHunting() {
+                var sky=climate(), hour=new Date().getHours();
+                return (hour<6 || hour>=18) && sky.temperature!==null && sky.temperature>10 && !sky.rain && !sky.snow && wind.speed<24;
+            }
+
+            /** New encounters require existing deposits, drops or companions and borrow their deadlines. */
+            function startCycleAct(v,now,sky) {
+                if (now-v.born<2600 || !freeForWeather(v,now)) return false;
+                var api=window.funnyWeather, kind=v.character;
+                if (kind==='deer' && api && api.surfaceNear) {
+                    var surface=api.surfaceNear(v.x,v.y+v.height/2,sky.temperature!==null && sky.temperature<0?'ice':'water',120);
+                    if (!surface || !surface.valid() || segmentDistance(pointer.x,pointer.y,v.x,v.y,surface.x,surface.y-v.height/2)<140) return false;
+                    beginWeatherAct(v,'drink',now,4800,{surface:surface,frozen:sky.temperature!==null && sky.temperature<0}); return true;
+                }
+                if ((kind==='cat' || kind==='blackcat') && sky.rain && api && api.dripNear) {
+                    var drop=api.dripNear(v.x,v.y-v.height*0.1,85);
+                    if (!drop || !drop.valid()) return false;
+                    var point=drop.position();
+                    if (segmentDistance(pointer.x,pointer.y,v.x,v.y,point.x,point.y)<140 || !drop.reserve()) return false;
+                    beginWeatherAct(v,'drip-watch',now,2600,{drop:drop}); return true;
+                }
+                if (kind==='bat' && nightHunting()) {
+                    var mosquito=visitors.filter(function (other) {
+                        return other.character==='mosquito' && !other.weatherAct && !other.weatherDone && !other.pursuit && !other.fear && !other.reactionUntil &&
+                            availableForEncounter(other,now) && sceneAvailable(other,now) && Math.hypot(other.x-v.x,other.y-v.y)<220 &&
+                            segmentDistance(pointer.x,pointer.y,v.x,v.y,other.x,other.y)>140;
+                    })[0];
+                    if (!mosquito) return false;
+                    takeOff(mosquito,now); mosquito.fleeUntil=0;
+                    var group=[v,mosquito];
+                    beginWeatherAct(v,'night-hunt',now,5500,{group:group,guest:mosquito});
+                    beginWeatherAct(mosquito,'night-prey',now,5500,{group:group,leader:v}); return true;
+                }
+                if (kind==='elf') {
+                    var hat=marks.filter(function (mark) { return mark.contact && mark.contact.kind==='snow-hat' && !mark.saved && !mark.reserved && !mark.ending && mark.expires-now>5500 &&
+                        Math.hypot(mark.contact.x-v.x,mark.contact.y-v.y)<220 && segmentDistance(pointer.x,pointer.y,v.x,v.y,mark.contact.x,mark.contact.y)>140; })[0];
+                    if (!hat) return false;
+                    var edge=shadeSpot(v,'top');
+                    if (!edge || api && api.surfaceNear && api.surfaceNear(edge.x,edge.y+v.height/2,'water',25)) return false;
+                    hat.reserved=true; beginWeatherAct(v,'save-hat',now,5500,{mark:hat,surface:edge}); return true;
+                }
+                return false;
+            }
+
+            /** Strong gusts end feeding; a real edge offers one bounded rest on its downwind side. */
+            function startWindRest(v,now) {
+                if (!freeForWeather(v,now)) return false;
+                var edge=shadeSpot(v,'wind');
+                v.windRestAfter=now+1500;
+                if (!edge) return false;
+                beginWeatherAct(v,'wind-rest',now,8500,{surface:edge,wind:{x:wind.x,y:wind.y}}); return true;
+            }
+
+            /** A melting snowman drops one recoverable hat; cooling can return it without renewing the mark. */
+            function updateSnowHat(v,now,sky) {
+                if (v.character!=='snowman' || !freeForWeather(v,now) || v.weatherAct || !sceneAvailable(v,now)) return;
+                if (!v.hatDropped && sky.warm && (v.shadeMelt>=0.03 || v.repairAmount!==undefined && v.repairAmount<0.7)) {
+                    var node=document.createElement('div'); node.className='funny-snow-hat';
+                    var hat=sprite('snowman-hat'); hat.setAttribute('viewBox','32 0 56 30'); hat.firstChild.setAttribute('width','120'); hat.firstChild.setAttribute('height','100'); node.appendChild(hat);
+                    var x=v.x+24,y=v.y+v.height/2;
+                    node.style.left=x+'px'; node.style.top=y+'px';
+                    var mark=addMark(node,20000,{kind:'snow-hat',x:x,y:y}); mark.owner=v;
+                    v.hatDropped=true; v.node.style.setProperty('--funny-snow-hat-opacity','0');
+                }
+                if (v.hatDropped && (!sky.warm || now<v.cooledUntil || v.repairAmount>=0.95)) {
+                    var saved=marks.filter(function (mark) { return mark.owner===v && mark.saved && !mark.reserved && !mark.ending && mark.expires-now>2000 &&
+                        Math.hypot(mark.contact.x-v.x,mark.contact.y-v.y)<180 && segmentDistance(pointer.x,pointer.y,v.x,v.y,mark.contact.x,mark.contact.y)>140; })[0];
+                    if (saved) { saved.reserved=true; beginWeatherAct(v,'return-hat',now,4000,{mark:saved}); }
+                }
+            }
+
+            /** All paths yield to shared danger, focus, pointer and lifetime checks. */
+            function cycleMotion(v,act,now) {
+                if (act.kind==='ice-wary') {
+                    var x=act.surface.x,y=act.surface.y-v.height/2;
+                    if (!act.cracked) {
+                        if (Math.hypot(x-v.x,y-v.y)>45) return {dx:x-v.x,dy:y-v.y,speed:110};
+                        if (!act.surface.crack()) { endWeatherAct(v); return {}; }
+                        act.cracked=now; act.dx=v.x-x || -1; act.dy=v.y-y;
+                        if (v.pursuit) { var prey=v.pursuit.other; prey.pursuit=null; prey.chaseAfter=now+4500; encounterState(prey,''); v.pursuit=null; }
+                        v.chaseAfter=now+4500; encounterState(v,''); v.node.setAttribute('data-weather-act','ice-retreat');
+                    }
+                    if (now-act.cracked<1100) return {dx:act.dx,dy:act.dy,speed:100,cruise:true};
+                    endWeatherAct(v); return {};
+                }
+                if (act.kind==='drink') {
+                    var dx=act.surface.x-v.x,dy=act.surface.y-v.height/2-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy)>18) return {dx:dx,dy:dy,speed:65};
+                    if (!act.arrived) { act.arrived=now; v.node.setAttribute('data-weather-act',act.frozen?'hoof-tap':'drinking'); }
+                    if (!act.sipped && now-act.arrived>800) {
+                        act.sipped=true;
+                        if (!act.frozen && act.surface.drink) { act.collected=act.surface.drink(); }
+                        if (act.frozen) v.node.setAttribute('data-weather-act','ice-refusal');
+                    }
+                    if (now-act.arrived>2000) endWeatherAct(v);
+                    return {};
+                }
+                if (act.kind==='drip-watch') {
+                    if (act.splashed) { v.node.style.setProperty('--funny-cat-blink',now-act.splashed<300?'0.12':'1'); if (now-act.splashed>900) { endWeatherAct(v); react(v,'lick',now); } return {}; }
+                    var point=act.drop.position(), dx=point.x-v.x,dy=point.y-(v.y-v.height*0.1);
+                    v.node.style.setProperty('--funny-drop-side',dx<0?'-1':'1');
+                    if (Math.hypot(dx,dy)>32) return {dx:dx,dy:dy,speed:105};
+                    if (!act.drop.catch()) { endWeatherAct(v); return {}; }
+                    act.splashed=now; v.node.setAttribute('data-weather-act','nose-splash');
+                    interactionEffect('shed-drops',v.x,v.y,[{x:v.x-12,y:v.y+10},{x:v.x+11,y:v.y+17}],850); return {};
+                }
+                if (act.kind==='night-hunt' || act.kind==='night-prey') {
+                    var chasing=act.kind==='night-hunt', other=chasing?act.guest:act.leader;
+                    var dx=(other.x-v.x)*(chasing?1:-1),dy=(other.y-v.y)*(chasing?1:-1),distance=Math.hypot(dx,dy);
+                    if (chasing && distance<24) {
+                        endWeatherAct(v); other.leaving=now; other.leaveDuration=450; other.node.classList.add('funny-caught-insect');
+                        react(v,'gulp',now); if (!v.silent && !other.silent) playSound('munch'); return {};
+                    }
+                    if (!chasing) {
+                        var length=distance || 1; dx/=length; dy/=length;
+                        if (v.x<90 || v.x>window.innerWidth-90) dx+=(window.innerWidth/2-v.x)/200;
+                        if (v.y<90 || v.y>window.innerHeight-90) dy+=(window.innerHeight/2-v.y)/200;
+                        dy+=Math.sin((now-act.born)/230)*0.22;
+                    }
+                    return {dx:dx || 1,dy:dy,speed:chasing?195:140,cruise:!chasing};
+                }
+                if (act.kind==='wind-rest') {
+                    if (now-act.born<700) { v.node.setAttribute('data-weather-act','headwind'); return {dx:-act.wind.x,dy:-act.wind.y,speed:12,cruise:true}; }
+                    var dx=act.surface.x-v.x,dy=act.surface.y-v.y;
+                    if (Math.hypot(dx,dy)>10) return {dx:dx,dy:dy,speed:90};
+                    act.arrived=true; v.node.setAttribute('data-weather-act','insect-sheltered'); return {};
+                }
+                if (act.kind==='save-hat' || act.kind==='return-hat') {
+                    var hat=act.mark,c=hat.contact, carrying=act.kind==='save-hat' && act.carried;
+                    var x=carrying?act.surface.x:c.x,y=carrying?act.surface.y:c.y-v.height/2;
+                    if (carrying) { c.x=v.x; c.y=v.y-v.height*0.1; hat.node.style.left=c.x+'px'; hat.node.style.top=c.y+'px'; }
+                    if (Math.hypot(x-v.x,y-v.y)>16) return {dx:x-v.x,dy:y-v.y,speed:80};
+                    if (act.kind==='return-hat') { removeMark(hat); endWeatherAct(v); return {}; }
+                    if (!act.carried) { act.carried=true; hat.node.setAttribute('data-carried','true'); v.node.setAttribute('data-weather-act','carrying-hat'); return {}; }
+                    c.x=x; c.y=y+v.height/2; hat.node.style.left=c.x+'px'; hat.node.style.top=c.y+'px'; hat.saved=true; hat.edge=act.surface;
+                    hat.node.setAttribute('data-saved','true'); endWeatherAct(v); return {};
+                }
+                return null;
+            }
+
+            /** A leaf roof borrows real water and a resting leaf; other mice keep using the entrance. */
+            function coverMouseHole(v, hole, now) {
+                var act = v.weatherAct, api = window.funnyWeather;
+                if (act && act.kind === 'rain-roof') {
+                    var elapsed = now-act.born, p = Math.min(1,elapsed/1500);
+                    act.boat.move(act.x+(hole.contact.x-act.x)*p,act.y+(hole.contact.y-24-act.y)*p);
+                    v.node.setAttribute('data-weather-act','roof-pull');
+                    if (p === 1) {
+                        hole.cover = act.boat; act.boat = null; hole.node.setAttribute('data-rain-roof','true');
+                        endWeatherAct(v); return false;
+                    }
+                    return true;
+                }
+                if (hole.roofTried || hole.cover || hole.roofer || v.weatherDone || !climate().rain || v.pursuit || v.fear ||
+                    !availableForEncounter(v,now) || !sceneAvailable(v,now) || hole.expires-now < 3500 || !api || !api.surfaceNear || !api.leafNear) return false;
+                var water = api.surfaceNear(hole.contact.x,hole.contact.y,'water',80), leaf = api.leafNear(hole.contact.x,hole.contact.y);
+                if (!water || !leaf || !leaf.reserve || !leaf.valid() || !water.valid() ||
+                    segmentDistance(pointer.x,pointer.y,leaf.x,leaf.y,hole.contact.x,hole.contact.y-24) < 130 || !leaf.reserve()) return false;
+                hole.roofTried = true; hole.roofer = v;
+                beginWeatherAct(v,'rain-roof',now,2000,{mark:hole,surface:water,boat:leaf,x:leaf.x,y:leaf.y});
+                return true;
+            }
+
+            /** Short shelter scenes share reservations, existing actors and the page's cached weather. */
+            function startShelterAct(v, now, sky) {
+                if (now-v.born < 2600 || !freeForWeather(v,now)) return false;
+                if (v.outfit === 'glasses' && !v.glassesWiped && v.glassesWet >= 0.65) {
+                    beginWeatherAct(v,'wipe-glasses',now,2000); return true;
+                }
+                if (v.character === 'squirrel' && wind.speed >= 20) {
+                    var x = v.x+wind.x*85, y = v.y+wind.y*40;
+                    if (x < v.width || x > window.innerWidth-v.width || y < v.height || y > window.innerHeight-v.height ||
+                        segmentDistance(pointer.x,pointer.y,v.x,v.y,x,y) < 140) return false;
+                    beginWeatherAct(v,'balance',now,5600,{x:v.x,y:v.y,toX:x,toY:y,drop:Math.random()<0.4}); return true;
+                }
+                if (v.character === 'elf' && sky.rain) {
+                    var imp = natureCompanions(v,['imp'],now,190,1)[0];
+                    if (!imp || now < imp.dryUntil) return false;
+                    var group = [v,imp];
+                    beginWeatherAct(v,'towel',now,5500,{group:group,guest:imp});
+                    beginWeatherAct(imp,'toweled',now,5500,{group:group,leader:v}); return true;
+                }
+                if ((v.character === 'chick' || v.character === 'polarbear') && sky.snow && wind.speed >= 24) {
+                    var other = natureCompanions(v,[v.character === 'chick' ? 'polarbear' : 'chick'],now,230,1)[0];
+                    if (!other) return false;
+                    var bear = v.character === 'polarbear' ? v : other, chick = v.character === 'chick' ? v : other;
+                    var target = leePoint(bear,chick);
+                    if (!safeLee(chick,target)) return false;
+                    var group = [bear,chick];
+                    beginWeatherAct(bear,'windbreak',now,6500,{group:group,guest:chick});
+                    beginWeatherAct(chick,'lee-chick',now,6500,{group:group,leader:bear}); return true;
+                }
+                return false;
+            }
+
+            /** The downwind point keeps enough room for both bodies in every wind direction. */
+            function leePoint(bear, chick) {
+                var gap = Math.max(bear.width+chick.width,bear.height+chick.height)*0.55;
+                return {x:bear.x+wind.x*gap,y:bear.y+wind.y*gap,gap:gap};
+            }
+
+            /** Neither the shelter nor a detour may cover the pointer or cross a screen edge. */
+            function safeLee(chick, point) {
+                return point.x > chick.width && point.x < window.innerWidth-chick.width && point.y > chick.height && point.y < window.innerHeight-chick.height &&
+                    segmentDistance(pointer.x,pointer.y,chick.x,chick.y,point.x,point.y) > 140;
+            }
+
+            /** Props and alternate sprites belong to the same visitor and disappear on interruption. */
+            function shelterMotion(v, act, now) {
+                var elapsed = now-act.born;
+                if (act.kind === 'sun-bat') {
+                    if (elapsed < 700) return {};
+                    if (!act.changed) {
+                        act.changed = true; v.cloak.remove(); v.cloak = null;
+                        v.node.firstChild.firstChild.setAttribute('href',options.spriteUrl+'#bat'); v.node.setAttribute('data-weather-act','shade-flight');
+                    }
+                    var dx = act.surface.x-v.x, dy = act.surface.y-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy)>12) return {dx:dx,dy:dy,speed:150};
+                    if (!act.arrived) {
+                        act.arrived = now; v.node.firstChild.firstChild.setAttribute('href',options.spriteUrl+'#vampire');
+                        v.node.setAttribute('data-weather-act','shade-rest'); v.sunShelter = act.surface;
+                    }
+                    if (now-act.arrived > 1800) endWeatherAct(v);
+                    return {};
+                }
+                if (act.kind === 'balance') {
+                    var lean = Math.sin(elapsed/170)*(gentle?5:10)*(wind.x<0?-1:1);
+                    v.node.style.setProperty('--funny-balance',lean+'deg'); v.node.style.setProperty('--funny-tail-turn',(-lean*2)+'deg');
+                    if (!act.drop) { if (elapsed>2200) endWeatherAct(v); return {}; }
+                    if (elapsed < 700) return {};
+                    if (!act.prop) {
+                        var node = document.createElement('div'); node.className = 'funny-acorn'; node.appendChild(sprite('acorn'));
+                        act.prop = addMark(node,5000,{kind:'wind-acorn',x:act.x,y:act.y+v.height/2}); act.prop.reserved = true;
+                        v.node.style.setProperty('--funny-carry-acorn','0');
+                    }
+                    if (marks.indexOf(act.prop)<0 || act.prop.ending) { endWeatherAct(v); return {}; }
+                    var p = Math.min(1,(elapsed-700)/1200), x = act.x+(act.toX-act.x)*p, y = act.y+(act.toY-act.y)*p;
+                    act.prop.node.style.left=x+'px'; act.prop.node.style.top=(y+v.height/2)+'px'; act.prop.node.style.transform='rotate('+(wind.x<0?-1:1)*p*300+'deg)';
+                    act.prop.contact.x=x; act.prop.contact.y=y+v.height/2;
+                    if (elapsed<1600) return {};
+                    v.node.setAttribute('data-weather-act','acorn-retrieve');
+                    if (p===1 && Math.hypot(x-v.x,y-v.y)<14) { endWeatherAct(v); return {}; }
+                    return {dx:x-v.x,dy:y-v.y,speed:95};
+                }
+                if (act.kind === 'wipe-glasses') {
+                    v.node.style.setProperty('--funny-lens-wet',String(Math.max(0,1-elapsed/1600)));
+                    v.node.style.setProperty('--funny-glasses-wipe','1'); v.node.style.setProperty('--funny-wipe-x',(Math.sin(elapsed/150)*15)+'px'); return {};
+                }
+                if (act.kind === 'toweled' || act.kind === 'windbreak') return {};
+                if (act.kind === 'towel') {
+                    var imp = act.guest, side = v.x<imp.x?-1:1, dx = imp.x+side*(v.width+imp.width)*0.42-v.x, dy=imp.y-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy)>14) return {dx:dx,dy:dy,speed:85};
+                    if (!act.arrived) { act.arrived=now; v.node.style.setProperty('--funny-towel-side',side<0?'78%':'-12%'); v.node.setAttribute('data-weather-act','towel-wipe'); imp.node.setAttribute('data-weather-act','towel-wriggle'); }
+                    if (now-act.arrived>1900) {
+                        imp.dryUntil=now+12000; imp.rainSplitAfter=Math.max(imp.rainSplitAfter,imp.dryUntil);
+                        interactionEffect('shed-drops',imp.x,imp.y,[{x:imp.x-20,y:imp.y+25},{x:imp.x+20,y:imp.y+28}],900);
+                        endWeatherAct(v);
+                    }
+                    return {};
+                }
+                if (act.kind === 'lee-chick') {
+                    var bear=act.leader, target=leePoint(bear,v);
+                    if (!safeLee(v,target)) { endWeatherAct(v); return {}; }
+                    // A short arc also handles vertical gusts and an initially opposite-side chick.
+                    if (segmentDistance(bear.x,bear.y,v.x,v.y,target.x,target.y)<target.gap*0.85) {
+                        var angle=Math.atan2(v.y-bear.y,v.x-bear.x), to=Math.atan2(target.y-bear.y,target.x-bear.x);
+                        var turn=Math.atan2(Math.sin(to-angle),Math.cos(to-angle)); angle+=clamp(turn,-0.45,0.45);
+                        target={x:bear.x+Math.cos(angle)*target.gap,y:bear.y+Math.sin(angle)*target.gap};
+                        if (!safeLee(v,target)) { endWeatherAct(v); return {}; }
+                    }
+                    v.node.setAttribute('data-weather-act','sheltered-chick');
+                    return {dx:target.x-v.x,dy:target.y-v.y,speed:85};
+                }
+                return null;
+            }
+
+            /** Existing water marks and accumulated rain expose the same small, temporary contact area. */
+            function wetSpot(v, now) {
+                var mark = marks.filter(function (item) {
+                    return item.contact && item.contact.kind === 'puddle' && !item.ending && !item.reserved && item.expires > now + 4500 &&
+                        distanceToMark(item.contact, v.x, v.y + v.height / 2) < 130;
+                })[0];
+                if (mark) return {x:mark.contact.x,y:mark.contact.y,mark:mark,valid:function () { return marks.indexOf(mark) >= 0 && !mark.ending && mark.contact.kind === 'puddle'; }};
+                return window.funnyWeather && window.funnyWeather.surfaceNear ? window.funnyWeather.surfaceNear(v.x, v.y + v.height / 2, 'water', 130) : null;
+            }
+
+            /** Small garden scenes require visible water, leaves or a nearby companion, never invented weather. */
+            function startGardenAct(v, now, sky) {
+                if (now - v.born < 2400) return false;
+                var kind = v.character, api = window.funnyWeather, cat = kind === 'cat' || kind === 'blackcat';
+                var perched = v.perch && v.perch.arrived && (kind === 'snail' || kind === 'vampire');
+                if (!(freeForWeather(v,now) || perched && !v.pursuit && !v.fear && !v.pair && !v.reactionUntil)) return false;
+                if (cat) {
+                    var snail = visitors.filter(function (other) {
+                        return other.character === 'snail' && !other.weatherDone && !other.weatherAct && !other.shellTried &&
+                            availableForEncounter(other,now) && !other.pursuit && !other.reactionUntil && sceneAvailable(other,now) &&
+                            Math.hypot(other.x-v.x,other.y-v.y) < 170 && segmentDistance(pointer.x,pointer.y,v.x,v.y,other.x,other.y) > 140;
+                    })[0];
+                    if (snail) {
+                        takeOff(snail,now); snail.fleeUntil = 0; snail.perchAfter = now + 4000;
+                        var pair = [v,snail];
+                        beginWeatherAct(v,'snail-nudge',now,3400,{group:pair,guest:snail,side:v.x < snail.x ? -1 : 1});
+                        beginWeatherAct(snail,'shell',now,3400,{group:pair,leader:v});
+                        return true;
+                    }
+                }
+                if (cat || kind === 'vampire' || kind === 'chick') {
+                    var spot = wetSpot(v,now);
+                    if (!spot || segmentDistance(pointer.x,pointer.y,v.x,v.y,spot.x,spot.y-v.height/2) < 140) return false;
+                    if (cat) {
+                        if (Math.hypot(spot.x-v.x,spot.y-v.y-v.height/2) > 18 || v.gardenChecked) return false;
+                        v.gardenChecked = true;
+                        if (Math.random() >= 0.5) return false;
+                        var direction = v.x < pointer.x ? -1 : 1, toX = v.x + direction * 48;
+                        if (toX < v.width || toX > window.innerWidth-v.width) return false;
+                        v.wetPawsUntil = now + 6500;
+                        beginWeatherAct(v,'wet-paws',now,4400,{x:v.x,y:v.y,toX:toX});
+                    } else if (kind === 'vampire') {
+                        if (sky.sun) return false;
+                        if (v.perch) { takeOff(v,now); v.fleeUntil = 0; }
+                        beginWeatherAct(v,'missing-reflection',now,5200,{surface:spot,mark:spot.mark});
+                    } else {
+                        if (!(spot.right-spot.left >= 100)) return false;
+                        var stork = natureCompanions(v,['stork'],now,230,1)[0];
+                        if (!stork) return false;
+                        var toX = Math.abs(v.x-spot.left) < Math.abs(v.x-spot.right) ? spot.left-30 : spot.right+30;
+                        var toY = spot.y-v.height/2;
+                        if (toX < stork.width || toX > window.innerWidth-stork.width || toY < 100 ||
+                            segmentDistance(pointer.x,pointer.y,stork.x,stork.y,v.x,v.y-45) < 140 ||
+                            segmentDistance(pointer.x,pointer.y,v.x,v.y-45,toX,toY-45) < 140) return false;
+                        var pair = [stork,v];
+                        beginWeatherAct(stork,'ferry',now,6200,{group:pair,guest:v,surface:spot,toX:toX,toY:toY-45});
+                        beginWeatherAct(v,'ferried',now,6200,{group:pair,leader:stork});
+                    }
+                    if (spot.mark && v.weatherAct.mark) spot.mark.reserved = true;
+                    return true;
+                }
+                if (kind === 'squirrel' && api && api.leafNear) {
+                    var leaf = api.leafNear(v.x,v.y+v.height/2);
+                    if (!leaf || !leaf.reserve || !leaf.valid() || leaf.y < v.height || leaf.x < v.width || leaf.x > window.innerWidth-v.width ||
+                        segmentDistance(pointer.x,pointer.y,v.x,v.y,leaf.x,leaf.y-v.height/2) < 140 || !leaf.reserve()) return false;
+                    beginWeatherAct(v,'stash',now,4200,{boat:leaf,x:leaf.x,y:leaf.y-v.height/2});
+                    return true;
+                }
+                if (kind === 'mouse') {
+                    var acorn = marks.filter(function (mark) {
+                        return mark.contact && mark.contact.kind === 'acorn' && !mark.reserved && !mark.ending && mark.expires-now > 4200 &&
+                            Math.hypot(mark.contact.x-v.x,mark.contact.y-v.y-v.height/2) < 180 &&
+                            segmentDistance(pointer.x,pointer.y,v.x,v.y,mark.contact.x,mark.contact.y-v.height/2) > 140;
+                    })[0];
+                    if (!acorn) return false;
+                    var owner = acorn.owner, group = [v];
+                    if (owner && freeForWeather(owner,now) && !owner.weatherAct && sceneAvailable(owner,now) && Math.hypot(owner.x-v.x,owner.y-v.y) < 240) group.push(owner);
+                    acorn.reserved = true;
+                    beginWeatherAct(v,'acorn-run',now,4800,{group:group,mark:acorn,x:acorn.contact.x,y:acorn.contact.y-v.height/2});
+                    if (group.length === 2) beginWeatherAct(owner,'acorn-chase',now,4800,{group:group,leader:v});
+                    return true;
+                }
+                return false;
+            }
+
+            /** Props, handoffs and pauses share the normal scene deadline and pointer-safe motion. */
+            function gardenMotion(v, act, now) {
+                if (act.kind === 'snail-nudge') {
+                    var snail = act.guest, dx = snail.x+act.side*48-v.x, dy = snail.y-v.y;
+                    if (!act.touched && Math.hypot(dx,dy) > 10) return {dx:dx,dy:dy,speed:65};
+                    if (!act.touched) { act.touched = now; snail.node.setAttribute('data-shell','true'); v.node.setAttribute('data-weather-act','snail-paw'); }
+                    if (now-act.touched >= 650) { var guest = act.guest; endWeatherAct(v); guest.shellTried = true; react(v,'jump',now); }
+                    return {};
+                }
+                if (act.kind === 'shell') return {};
+                if (act.kind === 'wet-paws') {
+                    if (!act.arrived && Math.abs(act.toX-v.x) > 3) return {dx:act.toX-v.x,dy:act.y-v.y,speed:48};
+                    if (!act.arrived) { act.arrived = now; v.node.setAttribute('data-weather-act','paw-shake');
+                        interactionEffect('shed-drops',v.x,v.y,[{x:v.x-18,y:v.y+30},{x:v.x+18,y:v.y+25}],900); }
+                    if (now-act.arrived >= 750) v.node.setAttribute('data-weather-act','paw-groom');
+                    return {};
+                }
+                if (act.kind === 'missing-reflection') {
+                    var dx = act.surface.x-v.x, dy = act.surface.y-v.height/2-v.y;
+                    if (!act.arrived && Math.hypot(dx,dy) > 18) return {dx:dx,dy:dy,speed:65};
+                    if (!act.arrived) { act.arrived = now; v.node.setAttribute('data-weather-act','mirror-check'); }
+                    if (now-act.arrived > 2100) endWeatherAct(v);
+                    return {};
+                }
+                if (act.kind === 'stash') {
+                    if (!act.arrived && Math.hypot(act.x-v.x,act.y-v.y) > 12) return {dx:act.x-v.x,dy:act.y-v.y,speed:65};
+                    if (!act.arrived) { act.arrived = now; v.node.setAttribute('data-weather-act','bury-acorn'); }
+                    if (now-act.arrived >= 700) {
+                        var node = document.createElement('div'); node.className = 'funny-acorn'; node.appendChild(sprite('acorn'));
+                        node.style.left = act.x+'px'; node.style.top = (act.y+v.height/2)+'px';
+                        var mark = addMark(node,10000,{kind:'acorn',x:act.x,y:act.y+v.height/2}); mark.owner = v;
+                        mark.cover = act.boat; mark.cover.move(act.x,act.y+v.height/2-5); act.boat = null;
+                        v.node.style.setProperty('--funny-carry-acorn','0'); endWeatherAct(v);
+                    }
+                    return {};
+                }
+                if (act.kind === 'acorn-run') {
+                    if (!act.stolen) {
+                        if (marks.indexOf(act.mark) < 0 || act.mark.ending) { endWeatherAct(v); return {}; }
+                        if (Math.hypot(act.x-v.x,act.y-v.y) > 14) return {dx:act.x-v.x,dy:act.y-v.y,speed:90};
+                        act.stolen = now; removeMark(act.mark); v.node.setAttribute('data-weather-act','stolen-acorn');
+                        var prop = sprite('acorn'); prop.setAttribute('class','funny-held-acorn'); v.node.appendChild(prop); act.wings = prop;
+                    }
+                    var leader = act.group[1], dx = leader ? v.x-leader.x : v.x-pointer.x, dy = leader ? v.y-leader.y : v.y-pointer.y;
+                    // Do not send mice through an edge; their ordinary hole logic resumes afterwards.
+                    if (v.x < 65 || v.x > window.innerWidth-65) dx = window.innerWidth/2-v.x;
+                    if (v.y < 65 || v.y > window.innerHeight-65) dy = window.innerHeight/2-v.y;
+                    return {dx:dx || 1,dy:dy,speed:75,cruise:true};
+                }
+                if (act.kind === 'acorn-chase') {
+                    var mouse = act.leader, theft = mouse.weatherAct;
+                    if (!theft || !theft.stolen || Math.hypot(mouse.x-v.x,mouse.y-v.y) < 65) return {};
+                    return {dx:mouse.x-v.x,dy:mouse.y-v.y,speed:70};
+                }
+                if (act.kind === 'ferry') {
+                    var chick = act.guest;
+                    if (!act.boarded) {
+                        var dx = chick.x-v.x, dy = chick.y-45-v.y;
+                        if (Math.hypot(dx,dy) > 10) return {dx:dx,dy:dy,speed:100};
+                        act.boarded = now; act.fromX = v.x; act.fromY = v.y; v.node.setAttribute('data-weather-act','flying-chick'); chick.node.setAttribute('data-weather-act','carried');
+                    }
+                    var p = Math.min(1,(now-act.boarded)/2300);
+                    var x = act.fromX+(act.toX-act.fromX)*p, y = act.fromY+(act.toY-act.fromY)*p-Math.sin(p*Math.PI)*24;
+                    if (segmentDistance(pointer.x,pointer.y,v.x,v.y,x,y) < 120 || segmentDistance(pointer.x,pointer.y,chick.x,chick.y,x,y+45) < 120) { endWeatherAct(v); return {}; }
+                    v.x = x; v.y = y; chick.x = x; chick.y = y+45;
+                    if (p === 1) { chick.perchAfter = v.perchAfter = now+1800; endWeatherAct(v); }
+                    return {};
+                }
+                if (act.kind === 'ferried') return {};
+                return null;
+            }
+
+            /** Reserve nearby free companions once; a shared deadline prevents chains of followers. */
+            function natureCompanions(v, kinds, now, radius, count) {
+                return visitors.filter(function (other) {
+                    return other !== v && kinds.indexOf(other.character) >= 0 && !other.weatherAct && !other.weatherDone && freeForWeather(other, now) &&
+                        sceneAvailable(other, now) && Math.hypot(other.x - v.x, other.y - v.y) < radius && segmentDistance(pointer.x, pointer.y, v.x, v.y, other.x, other.y) > 130;
+                }).slice(0, count);
+            }
+
+            /** Small weather mishaps borrow existing companions and props without renewing their lifetimes. */
+            function startWeatherTrick(v, now, sky) {
+                var wolf = v.character === 'wolf' && sky.rain && v.rainExposure >= 5 && !v.lostPrey && !(now < v.chaseAfter);
+                var bear = v.character === 'polarbear' && sky.snow && now - v.born >= 2500;
+                var butterfly = v.character === 'butterfly' && sky.rain && v.rainExposure >= 3;
+                var spider = v.character === 'spiders' && sky.rain && wind.speed < 24;
+                var ghost = ghostKinds.indexOf(v.character) >= 0 && wind.speed >= 20 && now - v.born >= 5000;
+                if (!(wolf || bear || butterfly || spider || ghost)) return false;
+                // A penguin already standing on ice keeps its established slide-and-brake scene.
+                if (bear && window.funnyWeather && window.funnyWeather.surfaceNear && visitors.some(function (other) {
+                    return other.character === 'penguin' && !other.weatherDone && !other.leaving && Math.hypot(other.x-v.x,other.y-v.y) < 320 &&
+                        window.funnyWeather.surfaceNear(other.x,other.y+other.height/2,'frost',45);
+                })) return false;
+                var chase = (wolf || bear) && v.pursuit && v.pursuit.chasing && (wolf ? ['cat','blackcat'] : ['penguin']).indexOf(v.pursuit.other.character) >= 0 &&
+                    !v.fear && !v.reactionUntil && availableForEncounter(v.pursuit.other, now) && !v.pursuit.other.fear;
+                var perched = (butterfly || spider) && v.perch && !v.fear && !v.pursuit && !v.pair && !v.reactionUntil;
+                if (!(freeForWeather(v, now) || chase || perched)) return false;
+                var guest, group;
+                if (wolf || bear) {
+                    guest = chase ? v.pursuit.other : natureCompanions(v, wolf ? ['cat','blackcat'] : ['penguin'], now, wolf ? 200 : 320, 1)[0];
+                    if (chase && Math.hypot(guest.x - v.x, guest.y - v.y) > 200) return false;
+                    if (chase) [v,guest].forEach(function (actor) { actor.pursuit = null; actor.chaseAfter = now + 4500; encounterState(actor, ''); });
+                    group = guest ? [v,guest] : [v];
+                    beginWeatherAct(v, wolf ? 'wet-shake' : 'sneeze', now, 2800, {group:group,guest:guest});
+                    if (guest) {
+                        var angle = Math.atan2(guest.y - v.y, guest.x - v.x);
+                        beginWeatherAct(guest, wolf ? 'sprayed' : 'sneeze-slide', now, 2800, {group:group,leader:v,dx:Math.cos(angle),dy:Math.sin(angle)});
+                    }
+                } else if (butterfly) {
+                    if (now < v.wingShelterAfter) return false;
+                    v.wingShelterAfter = now + 750;
+                    var edge = shadeSpot(v);
+                    if (!edge) return false;
+                    if (v.perch) { takeOff(v, now); v.fleeUntil = 0; }
+                    v.perchAfter = now + 7000;
+                    beginWeatherAct(v, 'dry-wings', now, 6200, {surface:edge});
+                } else if (spider) {
+                    var web = marks.filter(function (mark) {
+                        return mark.owner === v && mark.woven && mark.dew && !mark.broken && !mark.reserved && !mark.ending &&
+                            now - mark.born >= 1800 && mark.expires - now > 4200 && distanceToMark(mark.contact, v.x, v.y) < 180;
+                    })[0];
+                    if (!web) return false;
+                    var x = (web.contact.x + web.contact.toX) / 2, y = (web.contact.y + web.contact.toY) / 2;
+                    if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 130) return false;
+                    guest = natureCompanions(v, ['elf','bunny','chick','ghost','casper'], now, 200, visitors.length).filter(function (actor) {
+                        return actor.y > y + 15 && Math.hypot(actor.x-x, actor.y-y) < 160;
+                    })[0];
+                    if (v.perch) { takeOff(v, now); v.fleeUntil = 0; }
+                    web.reserved = true; group = guest ? [v,guest] : [v];
+                    beginWeatherAct(v, 'web-shake', now, 4200, {group:group,mark:web,x:x,y:y,guest:guest});
+                    if (guest) beginWeatherAct(guest, 'drip-wait', now, 4200, {group:group,leader:v});
+                } else if (ghost) {
+                    v.node.style.setProperty('--funny-ghost-angle', Math.atan2(wind.y, wind.x) + 'rad');
+                    beginWeatherAct(v, 'wind-ghost', now, 3400);
+                }
+                return true;
+            }
+
+            /** Gestures, droplets and short retreats run on the existing RAF and share the trace cap. */
+            function weatherTrickMotion(v, act, now) {
+                var elapsed = now - act.born;
+                if (act.kind === 'wet-shake' || act.kind === 'sneeze') {
+                    var sneeze = act.kind === 'sneeze', at = sneeze ? 1100 : 650;
+                    if (sneeze && !act.flake) {
+                        act.flake = true;
+                        interactionEffect('nose-flake', v.x + v.width / 3, v.y - v.height * 0.06, [{x:v.x+v.width/3,y:v.y-v.height*0.06}], 1100);
+                    }
+                    if (!act.sprayed && elapsed >= at) {
+                        act.sprayed = now; v.node.setAttribute('data-weather-act', sneeze ? 'sneezing' : 'shaking-wet');
+                        var points = [], count = gentle ? 3 : 5;
+                        for (var i = 0; i < count; i++) points.push({x:v.x + (i - 2) * 17,y:v.y + 20 + (i % 2) * 15});
+                        if (act.guest) points[0] = {x:act.guest.x,y:act.guest.y - act.guest.height / 3};
+                        interactionEffect(sneeze ? 'sneeze-flurry' : 'shed-drops', v.x, v.y, points, 1000);
+                        if (sneeze && !v.silent) playSound('sneeze');
+                    }
+                    return {};
+                }
+                if (act.kind === 'sprayed' || act.kind === 'sneeze-slide') {
+                    var source = act.leader.weatherAct;
+                    if (!source || !source.sprayed) return {};
+                    if (!act.reacted) { act.reacted = true; v.node.setAttribute('data-weather-act', act.kind === 'sprayed' ? 'wet-cat-jump' : 'sneeze-skid'); }
+                    return now - source.sprayed < 550 ? {dx:act.dx,dy:act.dy,speed:act.kind === 'sprayed' ? 80 : 110,cruise:true} : {};
+                }
+                if (act.kind === 'dry-wings') {
+                    var dx = act.surface.x - v.x, dy = act.surface.y - v.y;
+                    if (!act.arrived) {
+                        if (Math.hypot(dx,dy) > 12) return {dx:dx,dy:dy,speed:85};
+                        act.arrived = now; v.node.setAttribute('data-weather-act','folded-wings');
+                    }
+                    if (!act.sprayed && now - act.arrived >= 800) {
+                        act.sprayed = true;
+                        interactionEffect('shed-drops', v.x, v.y, [{x:v.x-15,y:v.y+28},{x:v.x+16,y:v.y+24}], 900);
+                    }
+                    if (now - act.arrived >= 1900) {
+                        if (!act.flying) { act.flying = true; v.node.setAttribute('data-weather-act','dry-flight'); }
+                        return {dx:v.x-pointer.x,dy:v.y-pointer.y-30,speed:65,cruise:true};
+                    }
+                    return {};
+                }
+                if (act.kind === 'web-shake') {
+                    if (!act.arrived) {
+                        if (Math.hypot(act.x-v.x,act.y-v.y) > 20) return {dx:act.x-v.x,dy:act.y-v.y,speed:80};
+                        act.arrived = now; act.mark.node.setAttribute('data-web-shake','true'); v.node.setAttribute('data-weather-act','tug-web');
+                    }
+                    if (!act.sprayed && now - act.arrived >= 700) {
+                        act.sprayed = now;
+                        var count = Math.floor(random(1,4)), points = [];
+                        for (var i = 0; i < count; i++) {
+                            points.push({x:act.guest ? act.guest.x + i * 6 : act.x + (i - 1) * 12,y:act.guest ? act.guest.y - act.guest.height / 3 : act.y + 65});
+                            if (act.mark.dew.children[i]) { act.mark.dew.children[i].style.animation = 'none'; act.mark.dew.children[i].style.opacity = '0'; }
+                        }
+                        interactionEffect('shed-drops',act.x,act.y,points,1100);
+                    }
+                    return {};
+                }
+                if (act.kind === 'drip-wait') {
+                    var source = act.leader.weatherAct;
+                    if (!source || !source.sprayed) return {};
+                    if (!act.reacted) { act.reacted = true; v.node.setAttribute('data-weather-act',v.outfit === 'umbrella' ? 'raise-umbrella' : 'drip-dodge'); }
+                    return v.outfit !== 'umbrella' && now - source.sprayed < 400 ? {dx:v.x-source.x || 1,dy:0,speed:65,cruise:true} : {};
+                }
+                if (act.kind === 'wind-ghost') {
+                    var strength = Math.sin(Math.min(1,elapsed/3400)*Math.PI) * clamp(wind.speed/35,0,1);
+                    v.node.style.setProperty('--funny-ghost-stretch', String(1 + strength * 0.7));
+                    v.node.style.setProperty('--funny-ghost-face-scale', String(1 / (1 + strength * 0.7)));
+                    return {dx:wind.x,dy:wind.y,speed:18,cruise:true};
+                }
+                return null;
+            }
+
+            /** A lantern needs visible fog or a night sky, rather than an inactive forecast alone. */
+            function lanternWeather() {
+                var api = window.funnyWeather, hour = new Date().getHours();
+                return api && api.visible && api.visible() && (weather.indexOf('fog') >= 0 || hour >= 18 || hour < 6);
+            }
+
+            /** Shade borrows a visible edge; scrolling, removal or a changed rectangle invalidates it. */
+            function shadeSpot(v, side) {
+                var found = null, nearest = 180;
+                Array.prototype.slice.call(document.querySelectorAll('button,[id^="blockPortal_"],.listTable'), 0, 180).forEach(function (block) {
+                    if (block.closest('.funny-eaten,.funny-controls,[aria-hidden="true"],details:not([open]),[hidden]')) return;
+                    var r = block.getBoundingClientRect(), style = window.getComputedStyle(block);
+                    if (r.width < v.width + 20 || r.height < 8 || r.top < 0 || r.bottom + v.height > window.innerHeight || r.left < 0 || r.right > window.innerWidth ||
+                        style.visibility !== 'visible' || Number(style.opacity) === 0) return;
+                    var x = clamp(v.x, r.left + v.width / 2, r.right - v.width / 2), y = r.bottom + v.height / 2 - 4;
+                    if (side === 'top') y=r.top-v.height/2-5;
+                    if (side === 'wind') {
+                        if (Math.abs(wind.x)>=Math.abs(wind.y)) { x=wind.x>0?r.right+v.width/2+6:r.left-v.width/2-6; y=(r.top+r.bottom)/2; }
+                        else y=wind.y>0?r.bottom+v.height/2+6:r.top-v.height/2-6;
+                    }
+                    if (side && (x<v.width || x>window.innerWidth-v.width || y<v.height || y>window.innerHeight-v.height)) return;
+                    var distance = Math.hypot(x - v.x, y - v.y);
+                    if (distance >= nearest || segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 140) return;
+                    nearest = distance;
+                    var checkAt = 0, valid = true;
+                    found = {x:x,y:y,valid:function () {
+                        if (!block.isConnected || block.closest('details:not([open]),[hidden]')) return false;
+                        if (performance.now() < checkAt) return valid;
+                        checkAt = performance.now() + 500;
+                        var rect = block.getBoundingClientRect(), current = window.getComputedStyle(block);
+                        valid = current.visibility === 'visible' && Number(current.opacity) > 0 && rect.bottom === r.bottom && rect.left === r.left && rect.right === r.right;
+                        return valid;
+                    }};
+                });
+                return found;
+            }
+
+            /** Six short encounters share the ordinary deadlines, scene turns and cached weather. */
+            function startSeasonAct(v, now, sky) {
+                var api = window.funnyWeather, kind = v.character, light = api && api.sky && api.sky();
+                var wet = kind === 'bunny' || kind === 'chick', windy = (kind === 'witch' || kind === 'martenitsa') && wind.speed >= 18;
+                var shade = kind === 'snowman' && sky.sun && sky.warm && light && light.kind === 'sun';
+                var lantern = (kind === 'pumpkin' || kind === 'firefly') && lanternWeather();
+                var snowy = (kind === 'sleigh' || kind === 'deer') && sky.snow && api && api.surfaceNear;
+                var wading = wet && v.perch && v.perch.shelter && !v.perch.arrived && !v.pair && !v.leaf && !v.pursuit && !v.fear && !v.reactionUntil && availableForEncounter(v, now);
+                if (!(wet || windy || shade || lantern || snowy) || !(freeForWeather(v, now) || wading)) return false;
+                var spot = wet ? wetSpot(v, now) : null;
+                if (wet && !spot) return false;
+                var companion = lantern || snowy ? natureCompanions(v, [lantern ? (kind === 'pumpkin' ? 'firefly' : 'pumpkin') : (kind === 'sleigh' ? 'deer' : 'sleigh')], now, lantern ? 190 : 220, 1)[0] : null;
+                if ((lantern || snowy) && !companion) return false;
+                // Passing companions need only the arrival delay, not another wait after meeting.
+                if (!v.seasonAfter) v.seasonAfter = companion ? v.born + 3000 : now + random(2000, 3400);
+                if (now < v.seasonAfter) return false;
+                v.seasonAfter = now + 500;
+                if (wet) {
+                    var side = v.x > spot.x ? -1 : 1, x = spot.x - side * 45, y = spot.y - v.height / 2;
+                    var toX = spot.x + side * 55, detour = kind === 'chick' ? 34 : 45;
+                    if (Math.min(x, toX) < v.width || Math.max(x, toX) > window.innerWidth - v.width || y < v.height + detour ||
+                        segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 140 || segmentDistance(pointer.x, pointer.y, x, y - detour, toX, y) < 150) return false;
+                    // A puddle may interrupt the approach to shelter, but never an animal already resting there.
+                    if (wading) { takeOff(v, now); v.fleeUntil = 0; v.perchAfter = now + 6000; }
+                    if (spot.mark) spot.mark.reserved = true;
+                    beginWeatherAct(v, kind === 'bunny' ? 'puddle-hop' : 'puddle-around', now, 5200, {surface:spot,mark:spot.mark,x:x,y:y,toX:toX});
+                } else if (windy) {
+                    if (kind === 'martenitsa') beginWeatherAct(v, 'tassels', now, 4200);
+                    else {
+                        var direction = wind.x < 0 ? -1 : 1, toX = clamp(v.x + wind.x * 95, v.width, window.innerWidth - v.width);
+                        var toY = clamp(v.y + wind.y * 55, v.height, window.innerHeight - v.height);
+                        if (v.y + v.height + 25 > window.innerHeight || segmentDistance(pointer.x, pointer.y, v.x, v.y + 25, toX, toY) < 150) return false;
+                        beginWeatherAct(v, 'broom', now, 4000, {x:v.x,y:v.y,toX:toX,toY:toY,dx:direction});
+                    }
+                } else if (shade) {
+                    var edge = shadeSpot(v);
+                    if (!edge) return false;
+                    v.shadeMelt = v.shadeMelt || 0;
+                    beginWeatherAct(v, 'shade', now, 5600, {surface:edge});
+                } else if (lantern) {
+                    var pumpkin = kind === 'pumpkin' ? v : companion, fly = kind === 'firefly' ? v : companion, group = [pumpkin, fly];
+                    beginWeatherAct(pumpkin, 'lantern', now, 4300, {group:group,leader:fly});
+                    beginWeatherAct(fly, 'lantern-fly', now, 4300, {group:group,leader:pumpkin,side:fly.x < pumpkin.x ? -1 : 1});
+                } else if (snowy) {
+                    var sleigh = kind === 'sleigh' ? v : companion, deer = kind === 'deer' ? v : companion;
+                    var snow = api.surfaceNear(sleigh.x, sleigh.y + sleigh.height * 0.26, 'snow', 110);
+                    if (!snow || snow.right - snow.left < 150) return false;
+                    var direction = snow.x < pointer.x ? -1 : 1;
+                    var toX = clamp(snow.x + direction * 65, snow.left + 35, snow.right - 35), y = snow.y - sleigh.height * 0.26;
+                    if (Math.abs(toX - snow.x) < 40 || toX + direction * 85 < deer.width || toX + direction * 85 > window.innerWidth - deer.width ||
+                        segmentDistance(pointer.x, pointer.y, sleigh.x, sleigh.y, toX, y) < 140 ||
+                        segmentDistance(pointer.x, pointer.y, deer.x, deer.y, toX + direction * 85, snow.y - deer.height * 0.39) < 140) return false;
+                    var group = [sleigh, deer];
+                    beginWeatherAct(sleigh, 'stuck', now, 6200, {group:group,surface:snow,x:snow.x,y:y,toX:toX,dx:direction,helper:deer});
+                    beginWeatherAct(deer, 'tow', now, 6200, {group:group,leader:sleigh,dx:direction});
+                    deer.node.style.setProperty('--funny-tow-face', direction);
+                } else return false;
+                return true;
+            }
+
+            /** One shared frame advances each scene; temporary poses never transform application elements. */
+            function seasonMotion(v, act, now) {
+                if (act.kind === 'puddle-hop' || act.kind === 'puddle-around') {
+                    if (!act.arrived) {
+                        if (Math.hypot(act.x - v.x, act.y - v.y) > 12) return {dx:act.x-v.x,dy:act.y-v.y,speed:100};
+                        act.arrived = now;
+                    }
+                    var hop = act.kind === 'puddle-hop', p = clamp((now - act.arrived - (hop ? 250 : 650)) / (hop ? 1000 : 2500), 0, 1);
+                    v.node.setAttribute('data-weather-act', hop ? 'hopping' : 'going-around');
+                    var x = act.x + (act.toX - act.x) * p, y = act.y - Math.sin(p * Math.PI) * (hop ? 45 : 34);
+                    if (p === 1) {
+                        if (hop) interactionEffect('pool-drops', v.x, act.surface.y, [{x:v.x-12,y:act.surface.y-14},{x:v.x+10,y:act.surface.y-19}], 850);
+                        endWeatherAct(v);
+                    }
+                    return {dx:x-v.x,dy:y-v.y,speed:hop ? 200 : 100};
+                }
+                if (act.kind === 'broom') {
+                    var p = clamp((now - act.born) / 3900, 0, 1), recover = clamp((p - 0.35) / 0.65, 0, 1);
+                    v.node.style.setProperty('--funny-broom-turn', (Math.sin(p * Math.PI * 2) * act.dx * Math.min(20, wind.speed / 2)) + 'deg');
+                    return {dx:act.x - wind.x * 14 * Math.sin(p * Math.PI) + (act.toX-act.x)*recover-v.x,dy:act.y + (act.toY-act.y)*recover + Math.sin(p*Math.PI)*22-v.y,speed:90};
+                }
+                if (act.kind === 'tassels') {
+                    var p = clamp((now - act.born) / 4200, 0, 1), amount = Math.sin(p * Math.PI) * clamp(wind.speed / 35, 0, 1), side = wind.x < 0 ? -1 : 1;
+                    v.node.style.setProperty('--funny-thread-stretch', (1 + amount * 0.22).toFixed(3));
+                    v.node.style.setProperty('--funny-pizho-x', (-amount * 5 + side * amount * 3) + 'px');
+                    v.node.style.setProperty('--funny-penda-x', (amount * 5 + side * amount * 3) + 'px');
+                    v.node.style.setProperty('--funny-pizho-turn', (side * amount * 10 + Math.sin(p * 27) * amount * 7) + 'deg');
+                    v.node.style.setProperty('--funny-penda-turn', (side * amount * 14 + Math.sin(p * 21 + 1) * amount * 8) + 'deg');
+                    return {};
+                }
+                if (act.kind === 'shade') {
+                    var dx = act.surface.x-v.x, dy = act.surface.y-v.y;
+                    if (Math.hypot(dx,dy) < 12 && !act.arrived) { act.arrived = now; v.node.setAttribute('data-shade','true'); }
+                    return {dx:dx,dy:dy,speed:65};
+                }
+                if (act.kind === 'lantern') {
+                    var distance = Math.hypot(act.leader.x-v.x,act.leader.y-v.y), edge = Math.min(1,(now-act.born)/500,(act.until-now)/700);
+                    var glow = clamp(1-distance/160,0,1)*edge*(0.65+Math.sin((now-act.born)/280)*0.25);
+                    v.node.style.setProperty('--funny-lantern',glow.toFixed(3)); return {};
+                }
+                if (act.kind === 'lantern-fly') {
+                    var p = (now-act.born)/4300;
+                    return {dx:act.leader.x + act.side*(60+Math.sin(p*Math.PI)*10)-v.x,dy:act.leader.y-15+Math.sin(p*Math.PI*3)*12-v.y,speed:70};
+                }
+                if (act.kind === 'stuck') {
+                    if (!act.arrived) {
+                        if (Math.hypot(act.x-v.x,act.y-v.y) > 12) return {dx:act.x-v.x,dy:act.y-v.y,speed:85};
+                        act.arrived = now;
+                    }
+                    var targetX = v.x + act.dx * 85, targetY = act.surface.y-act.helper.height*0.39;
+                    if (!act.pulling && now-act.arrived >= 900 && Math.hypot(act.helper.x-targetX,act.helper.y-targetY) < 22) {
+                        act.pulling = now; v.node.setAttribute('data-weather-act','unstuck');
+                        interactionEffect('snow-shower',v.x,act.surface.y,[{x:v.x-20,y:act.surface.y-12},{x:v.x+8,y:act.surface.y-20},{x:v.x+25,y:act.surface.y-8}],1800);
+                    }
+                    if (act.pulling && (!act.lastPrint || Math.abs(v.x-act.lastPrint) >= 16)) {
+                        act.lastPrint = v.x; if (act.surface.step) act.surface.step(v.x);
+                        interactionEffect('deep-runner',v.x,act.surface.y,[{x:v.x,y:act.surface.y}],4000);
+                    }
+                    if (act.pulling && Math.abs(v.x-act.toX) < 5) { endWeatherAct(v); return {}; }
+                    return {dx:act.pulling ? act.toX-v.x : 0,dy:act.y-v.y,speed:38};
+                }
+                if (act.kind === 'tow') {
+                    var lead = act.leader, pull = lead.weatherAct;
+                    if (!pull) return {};
+                    return {dx:lead.x+act.dx*85-v.x,dy:pull.surface.y-v.height*0.39-v.y,speed:100};
+                }
+                return null;
+            }
+
+            /** New scenes reuse the visible weather, the actor's single scene allowance and shared prop cap. */
+            function startNatureAct(v, now, sky) {
+                var api = window.funnyWeather, light = api && api.sky ? api.sky() : null;
+                var cat = v.character === 'cat' || v.character === 'blackcat';
+                var howling = v.character === 'wolf' && light && light.kind === 'moon' && Math.abs(light.phase - 0.5) <= 0.04 &&
+                    (new Date().getHours() >= 18 || new Date().getHours() < 6) && now - lastHowl >= 60000 && !v.sated;
+                var eligible = cat || v.character === 'mouse' && sky.rain && api && api.leafNear && api.surfaceNear ||
+                    v.character === 'firefly' && weather.indexOf('fog') >= 0 && api && api.visible && api.visible() || v.character === 'deer' && sky.snow && api && api.surfaceNear ||
+                    v.character === 'stork' && sky.sun && sky.temperature >= 15 && light && light.kind === 'sun' || howling;
+                var batChase = howling && v.pursuit && v.pursuit.other.character === 'bat' && !v.fear && !v.pair && !v.reactionUntil;
+                var boarding = v.character === 'mouse' && v.perch && !v.pursuit && !v.fear && !v.pair && !v.holeTarget && !v.reactionUntil;
+                if (!eligible || !(freeForWeather(v, now) || (batChase || boarding) && availableForEncounter(v, now))) return false;
+                // Cats keep their old lottery until there is actual water to investigate.
+                var spot = cat ? wetSpot(v, now) : null;
+                if (cat && !spot) return false;
+                if (!v.natureAfter) v.natureAfter = howling ? Math.max(now, v.born + 1800) : now + random(3200, 5500);
+                if (now < v.natureAfter) return false;
+                v.natureAfter = now + 500;
+                if (cat) {
+                    if (segmentDistance(pointer.x, pointer.y, v.x, v.y, spot.x, spot.y - v.height / 2) < 130) return false;
+                    if (spot.mark) spot.mark.reserved = true;
+                    beginWeatherAct(v, 'reflection', now, 5200, {surface:spot,mark:spot.mark});
+                } else if (v.character === 'mouse') {
+                    var leaf = api.leafNear(v.x, v.y + v.height / 2);
+                    if (!leaf || !leaf.reserve || Math.hypot(leaf.x - v.x, leaf.y - v.y - v.height / 2) > 150) return false;
+                    var water = api.surfaceNear(leaf.x, leaf.y + 13, 'water', 30);
+                    if (!water || water.right - water.left < 80) return false;
+                    var direction = wind.x < 0 ? -1 : 1;
+                    var toX = clamp(water.x + direction * 90, water.left + 18, water.right - 18);
+                    var fromX = clamp(water.x, water.left + 18, water.right - 18), y = water.y - v.height / 2;
+                    if (Math.abs(toX - fromX) < 35 || segmentDistance(pointer.x, pointer.y, v.x, v.y, fromX, y) < 130 ||
+                        segmentDistance(pointer.x, pointer.y, fromX, y, toX, y) < 130 || !leaf.reserve()) return false;
+                    takeOff(v, now); v.fleeUntil = 0; v.perchAfter = now + 5300;
+                    beginWeatherAct(v, 'boat', now, 4300, {surface:water,boat:leaf,x:fromX,y:y,toX:toX});
+                    leaf.move(fromX, water.y);
+                } else if (v.character === 'firefly') {
+                    var followers = natureCompanions(v, ['bunny','chick','mouse'], now, 210, 2);
+                    if (!followers.length) return false;
+                    var angle = Math.atan2(v.y - pointer.y, v.x - pointer.x), group = [v].concat(followers);
+                    group.forEach(function (actor, i) { beginWeatherAct(actor, i ? 'guided' : 'guide', now, 4200, {group:group,leader:v,slot:i,dx:Math.cos(angle),dy:Math.sin(angle)}); });
+                } else if (v.character === 'stork') {
+                    var to = clamp(v.x + (light.x < v.x ? -90 : 90), v.width, window.innerWidth - v.width);
+                    if (v.y < v.height + 55 || segmentDistance(pointer.x, pointer.y, v.x, v.y - 45, to, v.y) < 140) return false;
+                    var wings = sprite('accessory-stork-wings'); wings.setAttribute('class', 'funny-soaring-wings'); v.node.appendChild(wings);
+                    beginWeatherAct(v, 'thermal', now, 3800, {x:v.x,y:v.y,toX:to,wings:wings});
+                } else if (v.character === 'deer') {
+                    var snow = api.surfaceNear(v.x, v.y + v.height / 2, 'snow', 130);
+                    if (!snow || snow.right - snow.left < 100) return false;
+                    var side = snow.right - snow.x > snow.x - snow.left ? 1 : -1;
+                    var endX = clamp(snow.x + side * 110, snow.left + 15, snow.right - 15), endY = snow.y - v.height / 2;
+                    if (Math.abs(endX - snow.x) < 55 || segmentDistance(pointer.x, pointer.y, v.x, v.y, snow.x, endY) < 130 ||
+                        segmentDistance(pointer.x, pointer.y, snow.x, endY, endX, endY) < 130) return false;
+                    var elves = natureCompanions(v, ['elf'], now, 210, 1), party = [v].concat(elves);
+                    beginWeatherAct(v, 'plow', now, 5500, {group:party,surface:snow,x:snow.x,y:endY,toX:endX,dx:side});
+                    elves.forEach(function (elf) { beginWeatherAct(elf, 'snow-follow', now, 5500, {group:party,leader:v,dx:side}); });
+                } else if (howling) {
+                    // The moon may briefly distract a wolf chasing a bat; all other hunts keep priority.
+                    if (batChase) [v, v.pursuit.other].forEach(function (actor) { actor.pursuit = null; actor.chaseAfter = now + 3000; encounterState(actor, ''); });
+                    var bats = natureCompanions(v, ['bat'], now, 240, gentle ? 1 : 3);
+                    lastHowl = now; beginWeatherAct(v, 'howl', now, 1600);
+                    v.node.style.setProperty('--funny-howl-turn', light.x < v.x ? '-10deg' : '10deg');
+                    bats.forEach(function (bat) {
+                        var angle = Math.atan2(bat.y - v.y, bat.x - v.x);
+                        beginWeatherAct(bat, 'flutter', now, 1200, {dx:Math.cos(angle),dy:Math.sin(angle),turn:v.weatherAct.turn});
+                    });
+                    if (!v.silent) playSound('howl');
+                } else return false;
+                return true;
+            }
+
+            /** Short water and flight paths use the same collision, lifetime and pointer guards as other scenes. */
+            function natureMotion(v, act, now, delta) {
+                var cycle = cycleMotion(v,act,now);
+                if (cycle) return cycle;
+                var shelter = shelterMotion(v, act, now);
+                if (shelter) return shelter;
+                var garden = gardenMotion(v, act, now);
+                if (garden) return garden;
+                var trick = weatherTrickMotion(v, act, now);
+                if (trick) return trick;
+                var seasonal = seasonMotion(v, act, now);
+                if (seasonal) return seasonal;
+                if (act.kind === 'reflection') {
+                    var dx = act.surface.x - v.x, dy = act.surface.y - v.height / 2 - v.y, distance = Math.hypot(dx, dy);
+                    if (distance > 24 && !act.touched) return {dx:dx,dy:dy,speed:75};
+                    if (!act.touched) {
+                        act.touched = now;
+                        var node = document.createElement('div'); node.className = 'funny-pool-reflection'; node.appendChild(sprite(v.character));
+                        node.style.left = act.surface.x + 'px'; node.style.top = act.surface.y + 'px';
+                        act.prop = addMark(node, Math.max(1, act.until - now), {kind:'reflection',x:act.surface.x,y:act.surface.y}); act.prop.reserved = true;
+                        v.node.setAttribute('data-weather-act', 'reflection-look');
+                    }
+                    if (!act.paw && now - act.touched >= 550) {
+                        act.paw = true; v.node.setAttribute('data-weather-act', 'reflection-paw');
+                        v.node.style.setProperty('--paw-x', dx + 'px'); v.node.style.setProperty('--paw-y', (act.surface.y - v.y) + 'px');
+                        interactionEffect('pool-ripple', act.surface.x, act.surface.y, [{x:act.surface.x,y:act.surface.y}], 1000);
+                    }
+                    if (now - act.touched >= 1250) {
+                        interactionEffect('pool-drops', act.surface.x, act.surface.y, [{x:act.surface.x-12,y:act.surface.y-18},{x:act.surface.x+8,y:act.surface.y-25},{x:act.surface.x+18,y:act.surface.y-10}], 850);
+                        endWeatherAct(v); react(v, 'jump', now);
+                    }
+                    return {};
+                }
+                if (act.kind === 'boat') {
+                    if (!act.boarded) {
+                        var dx = act.x - v.x, dy = act.y - v.y;
+                        if (Math.hypot(dx, dy) > 18) return {dx:dx,dy:dy,speed:110};
+                        act.boarded = now; v.node.setAttribute('data-weather-act', 'sailing');
+                    }
+                    var progress = Math.min(1, (now - act.boarded) / 2300);
+                    var x = act.x + (act.toX - act.x) * progress;
+                    v.x = x; v.y = act.y; act.boat.move(x, act.surface.y);
+                    if (progress === 1) { v.perchAfter = now + 1000; endWeatherAct(v); }
+                    return {};
+                }
+                if (act.kind === 'boat-watch') {
+                    var boat = act.leader.weatherAct;
+                    if (!boat || boat.kind !== 'boat') { endWeatherAct(v); return {}; }
+                    v.node.style.setProperty('--funny-watch-turn', act.leader.x < v.x ? '-8deg' : '8deg'); return {};
+                }
+                if (act.kind === 'guide') return {dx:act.dx,dy:act.dy,speed:28,cruise:true};
+                if (act.kind === 'guided') {
+                    var spacing = 60 + (act.slot - 1) * 42;
+                    return {dx:act.leader.x - act.dx * spacing - v.x,dy:act.leader.y - act.dy * spacing + 18 - v.y,speed:85};
+                }
+                if (act.kind === 'thermal') {
+                    var p = clamp((now - act.born) / 3500, 0, 1), gust = clamp(wind.x * wind.speed / 4, -10, 10);
+                    v.node.style.setProperty('--funny-glide-turn', (Math.cos(p * Math.PI) * 9 + gust * Math.sin(p * Math.PI)) + 'deg');
+                    return {dx:act.x + (act.toX - act.x) * p + Math.sin(p * Math.PI) * gust - v.x,dy:act.y - Math.sin(p * Math.PI) * 45 - v.y,speed:105};
+                }
+                if (act.kind === 'plow') {
+                    if (!act.walking && Math.hypot(act.x - v.x, act.y - v.y) < 16) { act.walking = true; v.node.setAttribute('data-weather-act', 'snow-path'); }
+                    if (act.walking && (!act.lastPrint || Math.abs(v.x - act.lastPrint) >= 20)) {
+                        act.lastPrint = v.x;
+                        if (act.surface.step) act.surface.step(v.x);
+                        interactionEffect('deep-hoof', v.x, act.surface.y, [{x:v.x,y:act.surface.y}], 4000);
+                    }
+                    if (act.walking && Math.abs(v.x - act.toX) < 5) { endWeatherAct(v); return {}; }
+                    return {dx:(act.walking ? act.toX : act.x) - v.x,dy:act.y - v.y,speed:act.walking ? 42 : 80};
+                }
+                if (act.kind === 'snow-follow') {
+                    var leader = act.leader, path = leader.weatherAct;
+                    if (!path || !path.walking) return {};
+                    return {dx:leader.x - act.dx * 65 - v.x,dy:leader.y + (leader.height - v.height) / 2 - v.y,speed:80};
+                }
+                if (act.kind === 'flutter') return {dx:act.dx,dy:act.dy,speed:145,cruise:true};
+                if (act.kind === 'howl') return {};
+                return null;
+            }
+
             /** Scent belongs to the lost prey, not to the wolf or an unrelated visitor. */
             function scentNear(v, prey, previous, now) {
                 return marks.filter(function (mark) {
@@ -1040,7 +2194,8 @@
             function weatherMotion(v, now, delta) {
                 var act = v.weatherAct;
                 if (!act || /^(slide|brake)$/.test(act.kind) && v.pursuit) return false;
-                var dx = 0, dy = 0, speed = 0;
+                var nature = natureMotion(v, act, now, delta);
+                var dx = nature ? nature.dx || 0 : 0, dy = nature ? nature.dy || 0 : 0, speed = nature ? nature.speed || 0 : 0;
                 if (act.kind === 'slide' || act.kind === 'scatter') { dx = act.dx; dy = act.dy; speed = act.kind === 'slide' ? 190 : 245; }
                 if (act.kind === 'huddle') { dx = act.x + (act.slot - (act.group.length - 1) / 2) * 46 - v.x; dy = act.y + (act.slot % 2) * 7 - v.y; speed = 60; }
                 if (act.kind === 'gather') {
@@ -1094,7 +2249,7 @@
                     var remaining = Math.hypot(dx, dy), direction = avoidKnownGhosts(v, dx, dy);
                     dx = direction.x; dy = direction.y;
                     var distance = Math.hypot(dx, dy) || 1, step = speed * delta;
-                    if (!/^(slide|scatter)$/.test(act.kind)) step = Math.min(step, remaining);
+                    if (!(nature && nature.cruise) && !/^(slide|scatter)$/.test(act.kind)) step = Math.min(step, remaining);
                     var x = v.x + dx / distance * step, y = v.y + dy / distance * step;
                     if (segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 120) { endWeatherAct(v); return false; }
                     v.x = x; v.y = y;
@@ -1180,8 +2335,8 @@
                 if (character === 'present' && visitors.some(function (v) { return v.character === 'present'; })) return false;
                 var insect = character === 'fly' || character === 'mosquito';
                 var feeds = character === 'mosquito' || character === 'vampire';
-                var visitsElements = insect || feeds || character === 'spiders' || character === 'mouse';
-                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'present' ? Math.min(200, Math.min(window.innerWidth, window.innerHeight) * 0.25) : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
+                var visitsElements = insect || feeds || character === 'spiders' || character === 'mouse' || character === 'snail';
+                var width = character === 'sleigh' ? 120 : character === 'muncher' ? 96 : character === 'polarbear' ? 100 : character === 'mouse' || character === 'snail' ? 58 : character === 'penguin' ? 64 : character === 'wolf' ? 86 : character === 'present' ? Math.min(200, Math.min(window.innerWidth, window.innerHeight) * 0.25) : character === 'imp' ? 64 : insect ? 58 : 76, height = width * 5 / 6;
                 // A split copy jumps right beside its original, which is under the pointer that clicked it
                 // Visitors from a present scatter from the lid, with a short delay between arrivals.
                 var destination = reason === 'present' ? {x: random(width / 2 + 20, window.innerWidth - width / 2 - 20), y: random(height / 2 + 20, window.innerHeight - height / 2 - 20)} :
@@ -1266,13 +2421,14 @@
                     visitors.forEach(dress);
                     decorateMarks(now);
                 }
+                animatePointerHeat(now);
                 updateHuddles(now);
                 updatePursuits(now);
                 visitors.slice().forEach(function (v) { animateVisitor(v, now); });
                 repelVisitors();
                 greetVisitors(now);
                 visitors.forEach(function (v) { positionVisitor(v, now); });
-                if (visitors.length && !frame) frame = window.requestAnimationFrame(animate);
+                if ((visitors.length || pointerHeat) && !frame) frame = window.requestAnimationFrame(animate);
             }
 
             /** Keeps free visitors apart; launched ones must first clear their shared portal. */
@@ -1290,7 +2446,10 @@
                                 Math.hypot(b.x - b.holeTarget.contact.x, b.y - b.holeTarget.contact.y) < 75) continue;
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
-                            if (a.weatherAct && a.weatherAct.group && b.weatherAct && a.weatherAct.group === b.weatherAct.group) spacing = 44;
+                            if (a.weatherAct && a.weatherAct.group && b.weatherAct && a.weatherAct.group === b.weatherAct.group) {
+                                if (/^(ferry|ferried)$/.test(a.weatherAct.kind) && (a.weatherAct.boarded || b.weatherAct.boarded)) continue;
+                                spacing = /^(night-hunt|night-prey)$/.test(a.weatherAct.kind) ? 20 : 44;
+                            }
                             if (a.pair && a.pair === b.pair && a.pair.kind === 'share') spacing *= 0.65;
                             if (distance >= spacing) continue;
                             var nx = distance ? dx / distance : Math.cos(i + j);
@@ -1325,7 +2484,9 @@
                     // Even a dripping snowman sheds snow that gradually turns into water.
                     kind = 'snow';
                 }
-                var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : 0.5) + bob;
+                if (v.character === 'snail' && !(v.perch && v.perch.arrived)) kind = '';
+                if ((v.character === 'cat' || v.character === 'blackcat') && now < v.wetPawsUntil) kind = 'wet-paws';
+                var footY = v.y + v.height * (v.character === 'sleigh' ? 0.26 : v.character === 'deer' ? 0.39 : v.character === 'snail' ? 0.3 : 0.5) + bob;
                 var escaping = v.exiting || now < v.fleeUntil || now - v.born >= v.lifetime || !!v.pursuit || !!v.fear || !!v.holeTarget;
                 var trailDelay = (kind ? (kind === 'feather' ? 1200 : 500) * (gentle ? 1.8 : 1) : 350) * (escaping ? 2.2 : 1) / (scene ? scene.quality() : 1);
                 if (v.trail && !v.launched && !v.descending && !v.leaving && now - v.trail.time >= trailDelay && Math.hypot(v.x - v.trail.x, footY - v.trail.y) >= (kind ? 14 : 8)) {
@@ -1349,13 +2510,13 @@
                 node.style.left = from.x + 'px'; node.style.top = from.y + 'px';
                 node.style.transform = 'rotate(' + Math.atan2(dy, dx) + 'rad)';
                 node.style.setProperty('--funny-track-opacity', gentle ? '0.4' : '0.7');
-                if (kind === 'runners' || kind === 'thread') node.style.width = distance + 'px';
+                if (kind === 'runners' || kind === 'thread' || kind === 'slime') node.style.width = distance + 'px';
                 addMark(node, 12000, {kind:kind === 'water' ? 'puddle' : kind,x:from.x,y:from.y,toX:v.x,toY:footY}).owner = v;
             }
 
             /** Encounters never override escape, departure or the pointer's personal space. */
             function availableForEncounter(v, now, clearance) {
-                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
+                return visitors.indexOf(v) >= 0 && v.character !== 'present' && !v.heatFlee && !v.launched && !v.descending && !v.leaving && !v.exiting && now >= v.fleeUntil &&
                     now - v.born < v.lifetime - 2000 && Math.hypot(v.x - pointer.x, v.y - pointer.y) > (clearance === undefined ? 120 : clearance);
             }
 
@@ -1374,7 +2535,7 @@
                 });
                 // Wolves hunt free visitors, but remember ghosts after the first close encounter.
                 visitors.forEach(function (wolf) {
-                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || !availableForEncounter(wolf, now)) return;
+                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && /^(howl|wet-shake)$/.test(wolf.weatherAct.kind)) || !availableForEncounter(wolf, now)) return;
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
@@ -1391,8 +2552,13 @@
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
                     if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || hunter.pair || !availableForEncounter(hunter, now)) return;
+                    if (hunter.weatherAct && /^(boat-watch|sneeze|windbreak)$/.test(hunter.weatherAct.kind)) return;
+                    if ((hunter.character === 'cat' || hunter.character === 'blackcat') && !hunter.weatherAct && !hunter.weatherDone) {
+                        var passenger = visitors.filter(function (v) { return v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded && Math.hypot(v.x - hunter.x, v.y - hunter.y) < 240; })[0];
+                        if (passenger) { beginWeatherAct(hunter, 'boat-watch', now, Math.min(3000, passenger.weatherAct.until - now), {leader:passenger,turn:passenger.weatherAct.turn}); return; }
+                    }
                     var prey = visitors.filter(function (v) {
-                        return choices.indexOf(v.character) >= 0 && !v.pair && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
+                        return !(v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded) && choices.indexOf(v.character) >= 0 && !v.pair && !v.pursuit && !(now < v.chaseAfter) && availableForEncounter(v, now) &&
                             Math.hypot(hunter.x - v.x, hunter.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, hunter.x, hunter.y, v.x, v.y) > 100;
                     })[0];
                     if (!prey) return;
@@ -1717,7 +2883,7 @@
 
             /** Each visitor gets at most one nearby trick; input, pursuits and departure keep priority. */
             function friendlyInteraction(v, now) {
-                if (v.trickDone || now < v.trickAfter || now - v.born < 3000 || !availableForEncounter(v, now, 65)) return false;
+                if (v.trickDone || now < v.trickAfter || now - v.born < 3000 || !availableForEncounter(v, now, 65) || !sceneAvailable(v, now)) return false;
                 v.trickAfter = now + 500;
                 if (!v.trickChecked) { v.trickChecked = true; if (recentTricks.indexOf(v.character) >= 0 && Math.random() < 0.7) v.trickDone = true; }
                 if (v.trickDone) return false;
@@ -1752,7 +2918,7 @@
                 } else if (v.character === 'snowmaiden' && climate().warm) {
                     var snowman = visitors.filter(function (other) {
                         return other.character === 'snowman' && other.thawing === 'water' && !(now < other.cooledUntil) &&
-                            !other.reactionUntil && availableForEncounter(other, now, 65) && Math.hypot(other.x - v.x, other.y - v.y) < 180;
+                            !other.reactionUntil && !other.weatherAct && sceneAvailable(other, now) && availableForEncounter(other, now, 65) && Math.hypot(other.x - v.x, other.y - v.y) < 180;
                     })[0];
                     if (!snowman) return false;
                     var points = [];
@@ -1764,6 +2930,7 @@
                     react(snowman, 'thanks', now); react(v, 'cool', now);
                 } else return false;
                 rememberTrick(v);
+                reserveScene([v], now, Math.max(1500, (v.reactionUntil || now) - now));
                 return true;
             }
 
@@ -1852,6 +3019,7 @@
 
             /** Visitors rest on elements or briefly shelter below them without changing page content. */
             function findPerch(v) {
+                if (v.insect && wind.speed>=24) return;
                 var onElement = v.visitsElements;
                 var shelter = ['cat','blackcat','bunny','chick'].indexOf(v.character) >= 0 && climate().rain;
                 if (v.perch || v.fed || performance.now() < v.perchAfter || (!onElement && (v.perchTried || (!shelter && ['butterfly', 'stork'].indexOf(v.character) < 0)))) return;
@@ -1869,7 +3037,7 @@
                     var style = window.getComputedStyle(block);
                     if (style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return;
                     var x = onElement ? (v.character === 'mouse' ? random(r.left + 12, r.right - 12) : clamp(v.x, r.left + 12, r.right - 12)) - v.contact.x : clamp(v.x, r.left + v.width / 2 + 8, r.right - v.width / 2 - 8);
-                    var y = onElement ? r.top + Math.min(r.height / 2, 18) - v.contact.y : r.top - v.height / 2 + 5;
+                    var y = onElement ? r.top + (v.character === 'snail' ? 0 : Math.min(r.height / 2, 18)) - v.contact.y : r.top - v.height / 2 + 5;
                     if (shelter) {
                         y = r.bottom + v.height / 2 - 5;
                         if (y + v.height / 2 > window.innerHeight - 20 || segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 130) return;
@@ -1912,11 +3080,11 @@
                     takeOff(v, now); return false;
                 }
                 if (v.visitsElements && p.arrived) { restOnElement(v, now, delta); return true; }
-                var dx = p.x - v.x, dy = p.y - v.y, distance = Math.hypot(dx, dy), step = (v.fed ? 55 : 90) * delta;
+                var dx = p.x - v.x, dy = p.y - v.y, distance = Math.hypot(dx, dy), step = (v.character === 'snail' ? 35 : v.fed ? 55 : 90) * delta;
                 if (distance <= Math.max(1, step)) {
                     v.x = p.x; v.y = p.y;
                     if (!p.arrived) {
-                        p.arrived = now; p.until = now + (p.shelter ? 4000 : v.visitsElements ? 3600 : 2200); p.direction = Math.random() < 0.5 ? -1 : 1;
+                        p.arrived = now; p.until = now + (v.character === 'snail' ? 8500 : p.shelter ? 4000 : v.visitsElements ? 3600 : 2200); p.direction = Math.random() < 0.5 ? -1 : 1;
                         p.startBlood = v.blood || 0;
                         p.surfaceBlood = p.startBlood;
                         v.node.setAttribute('data-perched', 'true');
@@ -1928,6 +3096,8 @@
             }
 
             function removeMark(mark) {
+                if (mark.contact && mark.contact.kind==='snow-hat' && mark.owner) mark.owner.node.style.removeProperty('--funny-snow-hat-opacity');
+                if (mark.cover) { mark.cover.release(); mark.cover = null; }
                 window.clearTimeout(mark.timer); mark.node.remove();
                 marks.splice(marks.indexOf(mark), 1);
             }
@@ -1937,7 +3107,7 @@
                 // Keep interactive props longer than expendable footprints, within the same total cap.
                 var limit = clamp(Math.floor(window.innerWidth * window.innerHeight / 33000 * (scene ? scene.quality() : 1)), 6, gentle ? 12 : 24);
                 if (marks.length >= limit) removeMark(marks.filter(function (mark) {
-                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'hole', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains'].indexOf(mark.contact.kind) < 0);
+                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'hole', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains', 'snow-hat'].indexOf(mark.contact.kind) < 0);
                 })[0] || marks[0]);
                 node.setAttribute('aria-hidden', 'true');
                 document.body.appendChild(node);
@@ -2038,6 +3208,11 @@
             function restOnElement(v, now, delta) {
                 var p = v.perch, elapsed = now - p.arrived;
                 if (v.character === 'mouse') { gnaw(v, now, elapsed); return; }
+                if (v.character === 'snail') {
+                    v.x = clamp(v.x + p.direction * 11 * delta, p.left + 12, p.right - 12);
+                    if (v.x <= p.left + 12 || v.x >= p.right - 12) p.direction *= -1;
+                    return;
+                }
                 if (v.character === 'spiders') {
                     if (!v.webTried && elapsed >= 500) { v.webTried = true; weaveWeb(v); }
                     return;
@@ -2075,7 +3250,9 @@
                 }
                 var dx = v.flight.x - v.x, dy = v.flight.y - v.y, distance = Math.hypot(dx, dy);
                 if (distance < 2) return;
-                var step = Math.min(distance, (v.fed ? 42 : v.character === 'fly' ? 85 : 65) * delta);
+                var speed=v.fed ? 42 : v.character === 'fly' ? 85 : 65;
+                if (wind.speed>=24) speed*=clamp(1+Math.min(0,(dx*wind.x+dy*wind.y)/distance)*wind.speed/50,0.25,1);
+                var step = Math.min(distance, speed * delta);
                 var sway = Math.sin((now - v.born) / 220) * step * 0.35;
                 v.x += (dx * step - dy * sway) / distance;
                 v.y += (dy * step + dx * sway) / distance;
@@ -2091,13 +3268,19 @@
             /** Pull up the cloak before escaping; night, cloud and unknown forecasts keep normal feeding. */
             function hideFromSun(v, now) {
                 if (v.character !== 'vampire' || v.leaving || v.exiting) return false;
+                if (v.weatherAct && v.weatherAct.kind === 'sun-bat') return false;
+                if (v.sunShelter && climate().sun && v.sunShelter.valid() && Math.hypot(v.x-v.sunShelter.x,v.y-v.sunShelter.y) < 24) return false;
                 if (!v.sunHide && now - v.born >= 1600 && climate().sun) {
                     var chased = now < v.fleeUntil; takeOff(v, now); if (!chased) v.fleeUntil = 0;
                     v.sunHide = now; v.reactionUntil = 0; v.node.setAttribute('data-reaction', '');
-                    var cloak = sprite('vampire-cloak'); cloak.setAttribute('class', 'funny-vampire-cloak'); v.node.appendChild(cloak);
+                    var cloak = sprite('vampire-cloak'); cloak.setAttribute('class', 'funny-vampire-cloak'); v.node.appendChild(cloak); v.cloak = cloak;
+                    if (!v.sunFlightTried && freeForWeather(v,now) && sceneAvailable(v,now)) {
+                        v.sunFlightTried = true; var edge = shadeSpot(v);
+                        if (edge) beginWeatherAct(v,'sun-bat',now,6200,{surface:edge});
+                    }
                     v.node.setAttribute('data-sun-hiding', 'true'); dress(v);
                 }
-                if (!v.sunHide) return false;
+                if (!v.sunHide || v.weatherAct && v.weatherAct.kind === 'sun-bat') return false;
                 if (now - v.sunHide < 700 && now >= v.fleeUntil) return true;
                 // A pointer chase still takes priority over posing with the cloak.
                 if (now - v.sunHide >= 700) v.exiting = true;
@@ -2129,8 +3312,18 @@
                     if (v.swallowed && !v.remainsCancelled) leaveMealRemains(v);
                     removeVisitor(v, !v.leaving || v.holeEscaped); return;
                 }
+                if (v.insect && wind.speed>=24 && v.perch && !v.pursuit) takeOff(v,now);
                 weatherScenes(v, now, delta);
+                if (v.insect && !v.weatherAct && wind.speed>=24 && now>=(v.windRestAfter || 0) && sceneAvailable(v,now)) startWindRest(v,now);
                 weatherProps(v, now, delta);
+                if (v.character === 'snail' && !v.launched && !v.leaving && !v.exiting && !v.heatFlee) {
+                    var near = Math.hypot(v.x-pointer.x,v.y-pointer.y);
+                    if (!v.shellTried && near >= 30 && near < 130) {
+                        v.shellTried = true; v.shellUntil = now + 1800; endWeatherAct(v); v.node.setAttribute('data-shell','true');
+                    }
+                    if (now < v.shellUntil && near >= 30 && elapsed < v.lifetime) return;
+                    if (v.shellUntil) { v.shellUntil = 0; v.node.setAttribute('data-shell',''); }
+                }
                 skyProps(v, now);
                 if (v.descending && !v.leaving) {
                     if (now < v.fleeUntil || elapsed >= 1800) releaseThread(v);
@@ -2154,7 +3347,7 @@
                     // A wet gremlin splits slowly; a new copy waits a full interval and cannot renew the family.
                     if (v.character === 'imp' && now >= v.rainSplitAfter) {
                         v.rainSplitAfter = now + random(12000, 18000);
-                        if (climate().rain && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now, true);
+                        if (climate().rain && !v.weatherAct && !(now < v.dryUntil) && !v.pursuit && !v.reactionUntil && availableForEncounter(v, now)) multiplyImp(v, now, true);
                     }
                     var dx = v.x - pointer.x, dy = v.y - pointer.y, distance = Math.hypot(dx, dy);
                     if (hideFromSun(v, now)) return;
@@ -2423,6 +3616,14 @@
             }
 
             function movePointer(event) {
+                pointerSeen = typeof event.clientX === 'number' && typeof event.clientY === 'number';
+                if (pointerHeat && pointerSeen) {
+                    // Fast travel sheds heat; normalize by the viewport so resolution does not change the gesture.
+                    var now = performance.now(), travel = Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)/Math.hypot(window.innerWidth,window.innerHeight);
+                    var speed = travel*1000/clamp(now-pointerHeat.moveAt,16,100);
+                    pointerHeat.coolingBonus += travel*10000*clamp((speed-0.25)/1.5,0,1);
+                    pointerHeat.moveAt = now;
+                }
                 touchMarks(event.clientX, event.clientY, pointer.x, pointer.y);
                 visitors.forEach(function (visitor) {
                     if (visitor.launched || visitor.leaving) return;
@@ -2493,6 +3694,7 @@
                         if (window.funnyWeather) window.funnyWeather.trigger(reason);
                         appearances++;
                         lastAppearance = summonedAt;
+                        if (reason === 'random') startPointerHeat();
                         if (count === 1 && character === 'spiders') return true;
                         portal = createPortal(origin);
                     } else {
@@ -2573,7 +3775,7 @@
                 hidePeek();
                 retreatMunchers(event);
                 if (event.pointerType !== 'touch') splitImp(event);
-                if (event.pointerType === 'touch') touchStart = {x: event.clientX, y: event.clientY, time: performance.now()};
+                if (event.pointerType === 'touch') { clearPointerHeat(); pointerSeen = false; touchStart = {x: event.clientX, y: event.clientY, time: performance.now()}; }
                 else movePointer(event);
                 unlockSound();
             }, {passive: true});
@@ -2585,6 +3787,7 @@
             });
             document.addEventListener('dblclick', blankDoubleClick);
             document.addEventListener('scroll', function () {
+                clearPointerHeat();
                 visitors.forEach(endWeatherAct);
                 marks.slice().forEach(removeMark);
                 removePeek(); retreatMunchers(); visitors.forEach(function (v) { if (v.swallowed) v.remainsCancelled = true; releaseThread(v); takeOff(v, performance.now()); });

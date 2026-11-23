@@ -439,7 +439,6 @@ class rack_MovementGenerator3 extends core_Manager
 
 
 		// ===================== ЕТАП A (ЦЕЛИ ПАЛЕТИ) =====================
-		Mode::push('pickupStoreId', $storeId);
 
 		// 4.1 Подготовка
 		if (!empty($zones) && $qInPallet > 0) {
@@ -541,12 +540,10 @@ class rack_MovementGenerator3 extends core_Manager
 			}
 		}
 
-		// Финална обработка и връщане на резултатите
-		Mode::pop('pickupStoreId');
-
-		// 🔹 Финална проверка и обединяване на движенията
+		// 🔹 Финална проверка и обединяване на движенията (evaluateMoves още чете склада от Mode)
 		self::evaluateMoves($res, $packArr, $pallets, $qInPallet);
 		$res = self::consolidateMoves($res);
+		Mode::pop('pickupStoreId');
 
 		return $res;
 

@@ -585,4 +585,69 @@ check('actors use only accumulated nearby frost and snow, with invalidation on l
     }
 });
 
+check('visible sky shares the drawn local position and phase and is unavailable before display or after blur',()=>{
+    for(const [date,icon,kind] of [['2026-11-24T23:00:00','clear-night','moon'],['2026-10-30T12:00:00','clear-day','sun']]){
+        const e=environment({date,icon,standalone:false}),w=e.window.funnyWeather;assert.equal(w.sky(),null);assert(!w.visible());
+        w.trigger('manual');e.tick(100);const sky=w.sky(),node=e.layer().children.find(n=>n.className==='funny-weather-'+kind);assert(sky);assert.equal(sky.kind,kind);assert(w.visible());
+        assert(Math.abs(sky.x-parseFloat(node.style.left)-(kind==='moon'?26:45))<.01);
+        if(kind==='moon'){assert(Math.abs(sky.phase-.5)<.04);assert(Math.abs(sky.phase-Number(node.attrs['data-moon-phase']))<.0001);}
+        e.window.emit('blur');assert.equal(w.sky(),null);assert(!w.visible());
+    }
+});
+check('water routes require actual rain accumulation and snow footsteps share the detail cap without consuming snow',()=>{
+    for(const [icon,temperature] of [['rain',12],['snow',-5],['cloudy',12],['rain',-5]]){
+        const e=environment({icon,temperature,standalone:false}),w=e.window.funnyWeather;w.trigger('manual');assert.equal(w.surfaceNear(100,100,'water',45),null);e.tick(30000);
+        const water=w.surfaceNear(100,100,'water',45);assert.equal(!!water,icon==='rain'&&temperature>0);
+        if(water){assert.equal(water.left,10);assert.equal(water.right,510);assert(!water.collect());assert(!water.step(100));e.document.emit('scroll');assert(!water.valid());}
+        const snow=w.surfaceNear(100,100,'snow',45);
+        if(snow){const bank=e.layer().children.find(n=>n.className==='funny-weather-bank'),before=bank.style.height;
+            assert(!snow.step(600));for(let n=0;n<100;n++)snow.step(100+n);assert.equal(bank.style.height,before);
+            assert(e.layer().children.filter(n=>n.className==='funny-weather-footprints').length<=24);e.tick(3300);assert(!e.layer().children.some(n=>n.className==='funny-weather-footprints'));
+        }
+    }
+});
+check('a resting leaf can be reserved once, moved without timers and never outlive its original expiry',()=>{
+    for(const ending of ['release','expiry','blur']){
+        const e=environment({icon:'rain',wind:8,windDirection:270,date:'2026-10-30T12:00:00',standalone:false}),w=e.window.funnyWeather;w.trigger('manual');
+        let leaf=null;
+        for(let t=0;t<120000;t+=100){e.tick(100);const next=w.leafNear(260,100);if(next&&next.reserve()){leaf=next;break;}}
+        assert(leaf);assert(!leaf.reserve());const piece=e.layer().children.find(n=>n.className.includes('funny-weather-borrowed'));assert(piece);
+        assert.equal(w.leafNear(leaf.x,leaf.y),null);const timers=e.timers.size;assert(leaf.move(300,100));assert.equal(piece.style.left,'276px');assert.equal(e.timers.size,timers);assert(!leaf.kick());
+        if(ending==='release')leaf.release();if(ending==='expiry')e.tick(26000);if(ending==='blur')e.window.emit('blur');
+        assert(!leaf.valid());assert(!leaf.move(350,100));leaf.release();assert(!e.layer()||!e.layer().children.includes(piece));
+    }
+});
+
+check('cursor heat melts only nearby rain/snow deposits and preserves page elements',()=>{
+    for(const icon of ['rain','snow']) {
+        const e=environment({icon,temperature:icon==='snow'?-5:12,standalone:false}),w=e.window.funnyWeather;
+        const far=new e.Element();far.rect={left:650,right:950,top:100,bottom:300,width:300,height:200};e.setBlocks([e.block,far]);
+        e.block.style.filter='contrast(1.1)';w.trigger('manual');e.tick(30000);
+        const banks=e.layer().children.filter(n=>n.className==='funny-weather-bank');assert.equal(banks.length,2);
+        const before=banks.map(n=>parseFloat(n.style.height));assert(before.every(n=>n>0));
+        w.heat(100,100,90,1);assert(parseFloat(banks[0].style.height)<before[0]);assert.equal(parseFloat(banks[1].style.height),before[1]);
+        for(let n=0;n<100;n++)w.heat(100,100,90,1);assert.equal(parseFloat(banks[0].style.height),0);
+        assert.equal(e.block.style.filter,'contrast(1.1)');assert.equal(e.block.className,'');
+        e.window.emit('blur');const saved=banks[1].style.height;w.heat(700,100,90,1);assert.equal(banks[1].style.height,saved);
+        assert.equal(e.frames.size,0);
+    }
+});
+
+check('ecology: deer consume water once and ice cracks require actual frozen accumulation',()=>{
+    const e=environment({icon:'rain',temperature:12,standalone:false}),w=e.window.funnyWeather;w.trigger('manual');e.tick(30000);
+    const water=w.surfaceNear(100,100,'water',45);assert(water);const bank=e.layer().children.find(n=>n.className==='funny-weather-bank'),before=parseFloat(bank.style.height);
+    assert(water.drink());assert.equal(water.drink(),false);assert(parseFloat(bank.style.height)<before);assert.equal(water.crack(),false);
+    const dry=environment({icon:'clear-day',temperature:-3,standalone:false});dry.window.funnyWeather.trigger('manual');dry.tick(30000);assert.equal(dry.window.funnyWeather.surfaceNear(100,100,'ice',45),null);
+    const frozen=environment({icon:'snow',temperature:-3,standalone:false});frozen.window.funnyWeather.trigger('manual');frozen.tick(30000);
+    const ice=frozen.window.funnyWeather.surfaceNear(100,100,'ice',45);assert(ice);assert(ice.crack());assert.equal(ice.crack(),false);assert.equal(ice.drink(),false);
+    assert(frozen.layer().children.some(n=>n.className==='funny-weather-ice-crack'));frozen.document.emit('pointermove');assert(!ice.valid());assert.equal(ice.crack(),false);
+});
+check('ecology: cats borrow real runoff drops once without extending their deadline',()=>{
+    const e=environment({icon:'rain',temperature:12,standalone:false}),w=e.window.funnyWeather;w.trigger('manual');let drop,node;
+    for(let i=0;i<400&&!drop;i++){e.tick(100);node=e.layer().children.find(n=>n.className==='funny-weather-runoff');if(node)drop=w.dripNear(parseFloat(node.style.left),parseFloat(node.style.top),160);}
+    assert(drop);const point=drop.position(),timers=e.timers.size;assert(drop.reserve());assert.equal(drop.reserve(),false);assert.equal(w.dripNear(point.x,point.y,160),null);
+    e.tick(200);assert(drop.position().y>point.y);assert(drop.catch());assert(!drop.valid());assert.equal(drop.catch(),false);drop.release();assert.equal(e.timers.size,timers);
+    assert(!e.layer().children.includes(node));e.document.emit('pointermove');assert.equal(w.dripNear(point.x,point.y,160),null);
+});
+
 console.log(checks+' weather behavior checks passed');

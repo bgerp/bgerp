@@ -320,7 +320,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
-                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet'>N/A</b>";
+                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet nowrap'>N/A</b>";
             }
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
@@ -554,18 +554,6 @@ class store_ShipmentOrders extends store_DocumentMaster
         if (($action == 'asclient') && $rec) {
             if (!trim((string) ($rec->company ?? '')) && !trim((string) ($rec->person ?? '')) && !($rec->country ?? null)) {
                 $requiredRoles = 'no_one';
-            }
-        }
-
-        if (in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one') {
-
-            // Ако има финална доставка и ЕН не е коригираща - не може да се пускат нови
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if ($firstDoc->isInstanceOf('sales_Sales')) {
-                $ignoreContainerId = ($action != 'clonerec') ? ($rec->containerId ?? null) : null;
-                if (!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)) {
-                    $requiredRoles = 'no_one';
-                }
             }
         }
 

@@ -143,32 +143,32 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
      */
     public function addTimeValues($p, $pRec)
     {
-        $p->portIdent = $pRec->portIdent;
+        $p->portIdent = $pRec->portIdent ?? null;
         
-        if ($pRec->periods) {
+        if (!empty($pRec->periods)) {
             $periods = json_decode($pRec->periods);
             
-            if (is_array($periods->param)) {
+            if (is_array($periods->param ?? null)) {
                 foreach ($periods->param as $i => $param) {
-                    list($name, ) = explode(' ', $param);
-                    if ($p->lName == $name) {
-                        if ($periods->readPeriod[$i]) {
+                    list($name, ) = explode(' ', $param ?? '');
+                    if (($p->lName ?? null) == $name) {
+                        if (!empty($periods->readPeriod[$i])) {
                             $p->readPeriod = floor($periods->readPeriod[$i]) * 60;
                         }
-                        if ($periods->logPeriod[$i]) {
+                        if (!empty($periods->logPeriod[$i])) {
                             $p->logPeriod = floor($periods->logPeriod[$i]) * 60;
                         }
                     }
                 }
             }
         } else {
-            if ($pRec->readPeriod) {
+            if (!empty($pRec->readPeriod)) {
                 $p->readPeriod = $pRec->readPeriod;
             }
-            if ($pRec->logPeriod) {
+            if (!empty($pRec->logPeriod)) {
                 $p->logPeriod = $pRec->logPeriod;
             }
-            if ($pRec->uom) {
+            if (!empty($pRec->uom)) {
                 $p->uom = $pRec->uom;
             }
         }

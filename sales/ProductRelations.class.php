@@ -126,6 +126,8 @@ class sales_ProductRelations extends core_Manager
         $sdQuery = sales_SalesDetails::getQuery();
         $sdQuery->orderBy("#saleId,#id", 'DESC');
         $sdQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        // Нужни са само продажбата и артикулът - без това се четат и сортират всички полета на всички редове
+        $sdQuery->show('saleId,productId');
         $relations = array();
         while($sdRec = $sdQuery->fetch("#state = 'active' OR #state = 'closed'")) {
             if(isset($pArr[$sdRec->productId])) {  

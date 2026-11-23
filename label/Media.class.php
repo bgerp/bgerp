@@ -7,7 +7,7 @@
  * @package   label
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,13 +47,19 @@ class label_Media extends core_Manager
     /**
      * Кой има право да го види?
      */
-    public $canView = 'labelMaster, admin, ceo';
+    public $canView = 'label, labelMaster, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'labelMaster, admin, ceo';
+    public $canList = 'label, labelMaster, admin, ceo';
+
+
+    /**
+     * Кой може да разглежда сингъла?
+     */
+    public $canSingle = 'label, labelMaster, admin, ceo';
     
     
     /**

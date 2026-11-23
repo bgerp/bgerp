@@ -25,7 +25,7 @@ class cond_PaymentMethods extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate, plg_PrevAndNext, plg_Select';
+    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Translate, plg_PrevAndNext, plg_Select, plg_Sorting';
     
     
     /**
@@ -97,7 +97,7 @@ class cond_PaymentMethods extends embed_Manager
 
 
     /**
-     * Ръчната подредба важи и за затворените методи в списъка с дефиниции
+     * Подредбата по състояние е в on_BeforePrepareListFilter - преди ръчната подредба
      */
     public $state2PreventOrderingByState = true;
     
@@ -472,13 +472,36 @@ class cond_PaymentMethods extends embed_Manager
     
     
     /**
-     * Подрежда методите преди разделянето им на страници
+     * Подрежда методите преди разделянето им на страници - затворените са най-отдолу
      */
     protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $query = $data->query ?? null;
         if ($query) {
+            $query->orderBy('#state');
             $query->orderBy(self::LIST_ORDER);
+        }
+    }
+
+
+    /**
+     * Филтър по вид плащане и онлайн плащане
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->setField('type', 'placeholderType=all');
+        $data->listFilter->setField('onlinePaymentDriver', 'placeholderType=all');
+        $data->listFilter->showFields = 'type,onlinePaymentDriver';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input('type,onlinePaymentDriver');
+
+        $filter = $data->listFilter->rec;
+        if (!empty($filter->type)) {
+            $data->query->where(array("#type = '[#1#]'", $filter->type));
+        }
+        if (!empty($filter->onlinePaymentDriver)) {
+            $data->query->where(array('#onlinePaymentDriver = [#1#]', (int) $filter->onlinePaymentDriver));
         }
     }
 

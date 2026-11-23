@@ -333,7 +333,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->row = new stdClass();
         }
         
-        $data->row->HEADER_STATE = $data->row->state;
+        $data->row->HEADER_STATE = $data->row->state ?? null;
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
         
@@ -956,6 +956,11 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
+
+        // Активацията от формата изисква вече обновен контейнер и документни връзки.
+        if (($rec->_isActivated ?? null) === true) {
+            $mvc->invoke('AfterSaveActivatedDocument', array($rec));
+        }
     }
     
     

@@ -804,6 +804,7 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
 
         try{
+            $settings = cms_Domains::getSettings($rec->domainId ?? null);
             $saleRec = self::forceSale($rec);
         } catch(core_exception_Expect $e){
             reportException($e);
@@ -814,7 +815,10 @@ class eshop_Carts extends core_Master
 
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
-            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            $errorMs = trim($settings->orderFailureText ?? '');
+            // Статусите интерпретират HTML и "|" като разделител за превод.
+            $errorMs = $errorMs === '' ? '|' . eshop_Settings::DEFAULT_ORDER_FAILURE_TEXT
+                : nl2br(str_replace('|', '&#124;', htmlspecialchars($errorMs, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));
             
             if(countR($retUrl)){
                 
@@ -3148,15 +3152,25 @@ class eshop_Carts extends core_Master
             return false;
         }
         
+        // Отговорът от шлюза идва от анонимен клиент, а контирането изисква потребител
+        $forceSystemUser = empty(core_Users::getCurrent());
+        if ($forceSystemUser) {
+            core_Users::forceSystemUser();
+        }
+
         try {
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
-            self::$autoContoIncomeDocumentId = $bankRec->id;
-            try {
-                bank_IncomeDocuments::conto($bankRec->id);
-            } finally {
-                self::$autoContoIncomeDocumentId = null;
+
+            // При повторен опит ПБД-то може вече да е контирано
+            if ($bankRec->state != 'active') {
+                self::$autoContoIncomeDocumentId = $bankRec->id;
+                try {
+                    bank_IncomeDocuments::conto($bankRec->id);
+                } finally {
+                    self::$autoContoIncomeDocumentId = null;
+                }
+                bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
             }
-            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
             
             if (isset($linkedContainerId)) {
                 doc_Linked::add($linkedContainerId, $bankRec->containerId, 'doc', 'doc', 'Получено плащане от ePay.bg');
@@ -3165,6 +3179,10 @@ class eshop_Carts extends core_Master
             reportException($e);
 
             return false;
+        } finally {
+            if ($forceSystemUser) {
+                core_Users::cancelSystemUser();
+            }
         }
 
         return true;
