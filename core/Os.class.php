@@ -707,10 +707,10 @@ class core_Os
         
         if ($percent) {
             
-            return $pathSpaceArr[4];
+            return $pathSpaceArr[4] ?? null;
         }
         
-        return $pathSpaceArr[3];
+        return $pathSpaceArr[3] ?? null;
     }
     
     
@@ -722,11 +722,12 @@ class core_Os
      */
     protected static function getPathSpace($path)
     {
+        $pathSpaceArr = array();
         if (!self::isWindows()) {
             $df = shell_exec('df ' . escapeshellarg($path));
-            $df = (string) trim($df);
+            $df = trim((string) $df);
             $dfArr = explode("\n", $df);
-            $pathSpaceArr = explode(' ', $dfArr[1]);
+            $pathSpaceArr = explode(' ', $dfArr[1] ?? '');
             $pathSpaceArr = array_filter($pathSpaceArr);
             $pathSpaceArr = array_merge($pathSpaceArr);
         }
