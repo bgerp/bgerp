@@ -400,7 +400,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
-        $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран)', 'caption=Подредба в заданието,input=none,column=none');
+        $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран,fixedFinal=Фиксирана финална извън рецепта)', 'caption=Подредба в заданието,input=none,column=none');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
@@ -5681,8 +5681,22 @@ JS
             }
         }
         if (isset($fields['state']) && ($rec->state ?? null) === 'closed') {
-            $rec->jobOrderMode = 'fixed';
+            if (!empty($rec->id)) {
+                $originId = $rec->originId ?? $mvc->fetchField($rec->id, 'originId');
+                if ($originId) $rec->_closeOrderLock = self::lockJobOrder($originId);
+            }
+            $source = empty($rec->id) ? $rec : $mvc->fetch($rec->id, 'isFinal,jobOrderMode', false);
+            $rec->jobOrderMode = planning_TaskOrder::isFinalOutsideRecipe($source) ? 'fixedFinal' : 'fixed';
             $fields['jobOrderMode'] = 'jobOrderMode';
+        }
+    }
+
+
+    protected static function on_AfterUpdate($mvc, $rec)
+    {
+        if (isset($rec->_closeOrderLock)) {
+            core_Locks::release($rec->_closeOrderLock);
+            unset($rec->_closeOrderLock);
         }
     }
 
@@ -5940,9 +5954,9 @@ JS
     {
         $debug = array();
         $result = $this->updateJobOrder($containerId, function ($tasks, $conditions) use (&$debug, $changedSteps, $sync) {
-            $order = planning_TaskOrder::order($tasks, $conditions, $debug, $changedSteps);
+            $order = planning_TaskOrder::order($tasks, $conditions, $debug, $changedSteps, $finalsChanged);
             // Кронът проверява резултата и с непланируемите съседи, докато държи заключването.
-            if (!$sync && !planning_TaskOrder::improvesOrder($tasks, $order, $conditions)) return null;
+            if (!$sync && !$finalsChanged && !planning_TaskOrder::improvesOrder($tasks, $order, $conditions)) return null;
 
             return $order;
         }, $sync);
@@ -5958,7 +5972,8 @@ JS
         $query = static::getQuery();
         $query->where(array("#originId = '[#1#]' AND #state != 'rejected'", $originId));
         $query->orderBy('saoOrder,id', 'ASC');
-        $query->show('id,saoOrder,systemId,productId,subTitle,previousTask,state,isFinal,jobOrderMode');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->show('id,saoOrder,systemId,clonedFromId,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
 
         return $query->fetchAll();
     }
@@ -5984,6 +5999,34 @@ JS
             $originId = (int)$originId;
             $mvc->db->query("UPDATE `{$mvc->dbTableName}` SET `{$field}` = 'fixed' WHERE `{$origin}` = {$originId} AND (`{$field}` IS NULL OR `{$field}` != 'fixed')");
             $mvc->dbTableUpdated();
+        } finally {
+            core_Locks::release($key);
+        }
+    }
+
+
+    /** Класифицира само старите финални с нееднозначен режим, под същото заключване като ръчното подреждане. */
+    public static function backfillFixedFinalOrder($originId)
+    {
+        $key = self::lockJobOrder($originId);
+        try {
+            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $originId), '*', false);
+            if (!$job || ($job->state ?? null) === 'closed' || (($job->state ?? null) === 'rejected' && ($job->brState ?? null) === 'closed')) return;
+            $query = static::getQuery();
+            $query->where(array("#originId = '[#1#]' AND #isFinal = 'yes' AND #jobOrderMode = 'fixed'", $originId));
+            // Предишно приключване е замразило и операциите, които тогава са били оттеглени.
+            foreach ($job->history ?? array() as $event) {
+                if (($event['engaction'] ?? null) === 'closed' && isset($event['date'])) {
+                    $query->where(array("#createdOn > '[#1#]'", $event['date']));
+                }
+            }
+            $query->show('id,productId,subTitle,systemId');
+            $rows = $query->fetchAll();
+            if (!$rows) return;
+            $templates = cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1);
+            $updates = array_diff_key($rows, planning_TaskOrder::matchRecipe($templates, $rows));
+            foreach ($updates as $row) $row->jobOrderMode = 'fixedFinal';
+            if ($updates) expect(static::saveArray($updates, 'id,jobOrderMode'));
         } finally {
             core_Locks::release($key);
         }
@@ -6080,15 +6123,23 @@ JS
                             return null;
                         }
                     }
-                    $sRec = (object)array('id' => $id, 'previousTask' => $previous, 'jobOrderMode' => 'fixed');
-                    expect($this->save_($sRec, 'previousTask,jobOrderMode'));
-                    $tasks[$id]->previousTask = $previous;
-                    $tasks[$id]->jobOrderMode = 'fixed';
                     $sorted = array();
                     foreach ($ids as $i => $taskId) {
                         $sorted[$taskId] = clone $tasks[$taskId];
                         $sorted[$taskId]->saoOrder = $i + 1;
                     }
+                    if (isset($previous) && ($sorted[$previous]->isFinal ?? null) === 'yes') {
+                        $finals = planning_TaskOrder::getFinalOrder($sorted, $conditions);
+                        if (planning_TaskOrder::conflictsWithFinalOrder($finals, $id, $previous)) {
+                            $error = 'Избраната предходна операция противоречи на реда на финалните етапи';
+                            return null;
+                        }
+                    }
+                    $mode = planning_TaskOrder::isFinalOutsideRecipe($sorted[$id]) ? 'fixedFinal' : 'fixed';
+                    $sRec = (object)array('id' => $id, 'previousTask' => $previous, 'jobOrderMode' => $mode);
+                    expect($this->save_($sRec, 'previousTask,jobOrderMode'));
+                    $sorted[$id]->previousTask = $previous;
+                    $sorted[$id]->jobOrderMode = $mode;
                     return planning_TaskOrder::order($sorted, $conditions);
                 });
                 if ($error) {
@@ -6111,6 +6162,7 @@ JS
     private function positionNewTask($rec, $templates)
     {
         $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates) {
+            $rec->canStore = $tasks[$rec->id]->canStore ?? null;
             unset($tasks[$rec->id]);
             return planning_TaskOrder::insert($tasks, $rec, $templates, $conditions);
         });
@@ -6123,7 +6175,7 @@ JS
     {
         $mvc = cls::get(get_called_class());
         $query = $mvc->getQuery();
-        $query->where(array("#productId = '[#1#]' AND #state NOT IN ('closed','rejected') AND #jobOrderMode = 'auto'", $stepId));
+        $query->where(array("#productId = '[#1#]' AND #state != 'rejected' AND ((#jobOrderMode = 'auto' AND #state != 'closed') OR #jobOrderMode = 'fixedFinal')", $stepId));
         $query->groupBy('originId');
         $query->show('originId');
         while ($row = $query->fetch()) {
