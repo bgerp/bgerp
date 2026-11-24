@@ -2,6 +2,9 @@
     [#SingleToolbar#]
     <div class="info-table">
         <h2 style="line-height:30px" class=" [#STATE_CLASS#]">[#SingleTitle#]</h2>
+        <!--ET_BEGIN eshopName-->
+        <div>|Наименование в е-магазина|*: <b>[#eshopName#]</b></div>
+        <!--ET_END eshopName-->
         <!--ET_BEGIN type-->
         <div>|Вид|*: <b>[#type#]</b></div>
         <!--ET_BEGIN onlinePaymentText-->

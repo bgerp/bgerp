@@ -110,8 +110,8 @@
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Първи|*</span>: [#firstProgress#]</td>
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен|*</span>: [#lastProgress#]</td>
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен Произв.|*</span>: [#lastProgressProduction#]</td>
-                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Фактическо начало|*</span>: [#actualStart#]</td>
-                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]</td>
+                <td class='vtop' style='font-size:0.8em;text-align:left;background:linear-gradient(225deg,#080 50%,transparent 50%) right top / 5px 5px no-repeat' title='[#actualStartHint#]'><span style='font-weight:normal'>|Начало|*</span>: <span style='pointer-events:none'>[#actualStart#]</span></td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Промяна съст-ние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]</td>
             </tr>
 		</table>
     </div>

@@ -30,7 +30,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -364,10 +364,14 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromClientData(core_Mvc $mvc, $rec, $name)
     {
-        if (!isset($mvc->_cachedContragentData)) {
+        // Кешът е по папка: в един процес (напр. AI агент) се подготвят форми за различни контрагенти
+        $folderId = $rec->folderId ?? null;
+        if (!isset($mvc->_cachedContragentData) || ($mvc->_cachedContragentDataFolderId ?? null) !== $folderId) {
+            $mvc->_cachedContragentData = null;
+            $mvc->_cachedContragentDataFolderId = $folderId;
             
             // Ако документа няма такъв метод, се взимат контрагент данните от корицата
-            $data = self::getCoverMethod($rec->folderId ?? null, 'getContragentData');
+            $data = self::getCoverMethod($folderId, 'getContragentData');
             if (empty($data)) {
                 
                 return;

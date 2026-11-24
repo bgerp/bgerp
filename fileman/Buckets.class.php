@@ -118,7 +118,7 @@ class fileman_Buckets extends core_Manager
             return $rec;
         }
         
-        return $rec->{$part};
+        return $rec->{$part} ?? null;
     }
     
     
