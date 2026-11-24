@@ -908,6 +908,11 @@ class doc_Threads extends core_Manager
                     $allThreadsCnt = doc_Folders::fetchField($filter->folderId, 'allThreadsCnt');
                     if ($allThreadsCnt > 5000) {
                         $query->dontUseFts = false;
+                        $getEngine = function () use ($query) {
+                            return core_Query::getTableEngine($query->mvc->db, doc_Containers::getDbTableName());
+                        };
+                        $engine = $query->onReplica ? $query->mvc->callOnReplica($getEngine) : $getEngine();
+                        $query->searchPrefixesInScope = $engine === 'MYISAM';
                     }
                 }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');

@@ -118,6 +118,10 @@ class core_Query extends core_FieldSet
      * Оригинални текстови условия, използвани за ограничаване на претърсвания набор
      */
     public $searchConditions = array();
+
+
+    /** Папката ограничава документите, в които се проверява началото на дума. */
+    public $searchPrefixesInScope = false;
     
     
     /**
@@ -1632,6 +1636,18 @@ class core_Query extends core_FieldSet
     }
     
     
+    /** Двигателят на физическата таблица на текущата връзка. */
+    public static function getTableEngine($db, $tableName)
+    {
+        $key = serialize(array($db->dbHost ?? '', $db->dbUser ?? '', $db->dbName ?? '', $tableName));
+        if (!isset(self::$indexTableEngines[$key])) {
+            self::$indexTableEngines[$key] = strtoupper((string) $db->getTableInfo($tableName, 'ENGINE'));
+        }
+
+        return self::$indexTableEngines[$key];
+    }
+
+
     /**
      * Добавя индекс, който се форсира за използване
      */
@@ -1677,16 +1693,9 @@ class core_Query extends core_FieldSet
                 }
 
                 $db = $this->mvc->db ?? null;
-                if ($fullTextIndexes && $db) {
-                    $key = serialize(array($db->dbHost ?? '', $db->dbUser ?? '', $db->dbName ?? '', $tableName));
-                    if (!isset(self::$indexTableEngines[$key])) {
-                        self::$indexTableEngines[$key] = strtoupper((string) $db->getTableInfo($tableName, 'ENGINE'));
-                    }
-
-                    // InnoDB изисква FULLTEXT индекс; MyISAM запазва бързия PRIMARY план.
-                    if (self::$indexTableEngines[$key] === 'INNODB') {
-                        $indexes += $fullTextIndexes;
-                    }
+                // InnoDB изисква FULLTEXT индекс; MyISAM запазва бързия PRIMARY план.
+                if ($fullTextIndexes && $db && self::getTableEngine($db, $tableName) === 'INNODB') {
+                    $indexes += $fullTextIndexes;
                 }
             }
 
