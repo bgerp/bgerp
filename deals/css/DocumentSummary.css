@@ -11,11 +11,27 @@
  * @since     v 0.1
  */
 
-.deal-documents .listTable > tfoot > tr > td {
+.deal-documents .listTable > tfoot > tr > td,
+.deal-documents .listTable > tbody > tr > td.deal-documents-running-balance {
     background-color: #f5f5f5;
+}
+
+.deal-documents .listTable > tfoot > tr > td {
     border: 1px solid #bbb;
+    border-top: 4px double #bbb;
+    background-clip: padding-box;
     padding: 4px 3px 3px;
     font-weight: bold;
+}
+
+.deal-documents .listTable > tfoot > tr > td.deal-documents-balance-total,
+.deal-documents .listTable > thead > tr > th.deal-documents-balance-total {
+    background-color: #d5d5d5;
+}
+
+.deal-documents .deal-documents-currency,
+.deal-documents .listTable > tfoot > tr > td.deal-documents-today {
+    font-weight: normal;
 }
 
 /* Общият стил за клетки в документ също налага отстъпа с !important. */
@@ -51,12 +67,21 @@
     font-weight: normal;
 }
 
+.deal-documents .deal-documents-neutral {
+    color: #000;
+}
+
 .deal-documents-balance-legend .deal-documents-incoming {
     color: #4e7935;
 }
 
-.deal-documents-balance-legend .deal-documents-outgoing {
+.deal-documents-balance-legend .deal-documents-outgoing,
+.deal-documents .deal-documents-invoice-mismatch {
     color: #9b5858;
+}
+
+.deal-documents-balance-legend .deal-documents-neutral {
+    color: #aaa;
 }
 
 .deal-documents .deal-documents-icon {
@@ -71,7 +96,8 @@
     opacity: 0.5;
 }
 
-.deal-documents td.deal-documents-invoiced {
+.deal-documents td.deal-documents-invoiced,
+.deal-documents td.deal-documents-today {
     color: #666;
 }
 
@@ -88,6 +114,21 @@
 
 .deal-documents .deal-documents-note {
     font-size: 85%;
+}
+
+.deal-documents .deal-documents-running-value {
+    font-size: 85%;
+    opacity: 0.55;
+}
+
+.deal-documents .deal-documents-running-repeated {
+    opacity: 0.12;
+}
+
+/* Височината съвпада с редовете на известията в останалите колони. */
+.deal-documents .deal-documents-running-balance .deal-documents-note {
+    font-size: 100%;
+    line-height: 1.53;
 }
 
 .deal-documents .deal-documents-title .deal-documents-note {
