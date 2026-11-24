@@ -146,8 +146,8 @@ class cond_PaymentMethods extends embed_Manager
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
         $this->FLD('name', 'varchar', 'caption=Наименование');
         $this->FLD('eshopName', 'varchar', 'caption=Наименование в е-магазина');
-        $orderHint = 'От 0 до 99: в началото. Без номер: по средата. От 100 нагоре: в края. Във всяка група по-малките номера са по-напред.';
-        $this->FLD('listOrder', 'int(min=0,max=2147483647)', 'caption=Подреждане,unit=(място в списъка при показване)', array(
+        $orderHint = 'От 0 до 99: в началото. Без номер: по средата. От 100 до 999: в края. Във всяка група по-малките номера са по-напред.';
+        $this->FLD('listOrder', 'int(min=0,max=999)', 'caption=Подреждане,unit=(място в списъка при показване),smartCenter', array(
             'hint' => $orderHint,
             'thAttr' => array('title' => $orderHint),
         ));
