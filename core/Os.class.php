@@ -694,7 +694,6 @@ class core_Os
     
     /**
      * Връща информация за диска в който се намира подадения път
-     * За сега работи само под Linux
      *
      * @param string $path
      * @param bool   $percent
@@ -703,6 +702,20 @@ class core_Os
      */
     public static function getFreePathSpace($path, $percent = false)
     {
+        if (self::isWindows()) {
+            $free = @disk_free_space($path);
+            if ($free === false) {
+                return null;
+            }
+            if (!$percent) {
+                return (string) floor($free / 1024);
+            }
+            // Match the used percentage reported by df on Unix.
+            $total = @disk_total_space($path);
+
+            return $total ? ceil(100 * ($total - $free) / $total) . '%' : null;
+        }
+
         $pathSpaceArr = self::getPathSpace($path);
         
         if ($percent) {

@@ -84,7 +84,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         //Период
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none,mandatory');
-        $fieldset->FLD('duration', 'time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
+        $fieldset->FLD('duration', 'time(min=1,suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
 
         //Сравнение
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,removeAndRefreshForm,single=none,silent');
@@ -169,7 +169,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         $form->setDefault('articleType', 'all');
 
-        $form->setDefault('duration', '1 месец');
+        $form->setDefault('duration', dt::SECONDS_IN_MONTH);
 
         $form->setDefault('compare', 'no');
 
@@ -195,6 +195,39 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         asort($suggestions);
 
         $form->setSuggestions('contragent', $suggestions);
+    }
+
+
+    /** Inclusive end of the report and optional boundaries of its comparison period. */
+    protected static function getPeriodBounds($rec)
+    {
+        $duration = (int) ($rec->duration ?? 0);
+        expect(is_numeric($rec->duration ?? null) && $duration > 0 && !empty($rec->from), 'Необходими са начална дата и положителна продължителност');
+
+        // type_Time encodes calendar months separately from whole days. Valior has day precision.
+        $months = 0;
+        $remainingSeconds = $duration % dt::SECONDS_IN_MONTH;
+        if ($duration % 86400 != 0 && $remainingSeconds % 86400 == 0) {
+            $months = intdiv($duration, dt::SECONDS_IN_MONTH);
+        }
+        $days = (int) ceil(($duration - $months * dt::SECONDS_IN_MONTH) / 86400);
+        $dateEnd = dt::addDays($days - 1, dt::addMonths($months, $rec->from, false), false);
+        $compareFrom = $compareTo = null;
+
+        if ($rec->compare == 'year') {
+            $compareFrom = dt::addMonths(-12, $rec->from, false);
+            $compareTo = dt::addMonths(-12, $dateEnd, false);
+        } elseif ($rec->compare == 'previous' || $rec->compare == 'checked') {
+            if ($rec->compare == 'previous') {
+                $compareFrom = dt::addMonths(-$months, dt::addDays(-$days, $rec->from, false), false);
+            } else {
+                expect(!empty($rec->compareStart), 'Липсва начална дата на избрания период за сравнение');
+                $compareFrom = $rec->compareStart;
+            }
+            $compareTo = dt::addDays($days - 1, dt::addMonths($months, $compareFrom, false), false);
+        }
+
+        return array($dateEnd, $compareFrom, $compareTo);
     }
 
 
@@ -324,115 +357,21 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         // $purchasesServicesDetQuery->EXT('storeId', 'purchase_Services', 'externalName=storeId,externalKey=shipmentId');
 
-        //Продължителност на периода за показване
-        $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
-
-        list($periodCount, $periodType) = explode(' ', $durationStr);
-
-        //Край на избрания период за показване $dateEnd
-        core_Lg::push('bg');
-
-        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена') {
-            $dateEnd = dt::addDays($periodCount - 1, $rec->from, false);
-        }
-
-        if ($periodType == 'мес.') {
-            $dateEnd = dt::addMonths($periodCount, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-
-        if ($periodType == 'год.') {
-            $monts = 12 * $periodCount;
-            $dateEnd = dt::addMonths($monts, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-
+        list($dateEnd, $compareFrom, $compareTo) = self::getPeriodBounds($rec);
         $rec->to = $dateEnd;
-
-        //Когато е БЕЗ СРАВНЕНИЕ
-        if (($rec->compare) == 'no') {
-            $receiptsDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
-
-            $fastPurchasesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
-
-            $shipmentOrdersDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
-
-            $purchasesServicesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+        if ($rec->compare == 'checked') {
+            $rec->toChecked = $compareTo;
         }
 
-        // сравнение с ПРЕДХОДЕН ПЕРИОД
-        if (($rec->compare == 'previous')) {
-            if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена') {
-                $fromPreviuos = dt::addDays(-$periodCount, $rec->from, false);
-                $toPreviuos = dt::addDays(-$periodCount, $dateEnd, false);
-            }
-
-            if ($periodType == 'мес.') {
-                $fromPreviuos = dt::addMonths(-$periodCount, $rec->from, false);
-
-                $toPreviuos = dt::addMonths($periodCount, $fromPreviuos, false);
-                $toPreviuos = dt::addDays(-1, $toPreviuos, false);
-            }
-
-            if ($periodType == 'год.') {
-                $monts = 12 * $periodCount;
-                $fromPreviuos = dt::addMonths(-$monts, $rec->from, false);
-                $toPreviuos = dt::addMonths($monts, $fromPreviuos, false);
-                $toPreviuos = dt::addDays(-1, $toPreviuos, false);
-            }
-
-            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-
-            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-
-            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-
-            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+        $dateFilter = array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from, $dateEnd);
+        if ($compareFrom !== null) {
+            $dateFilter[0] = "(" . $dateFilter[0] . ") OR (#valior >= '[#3#]' AND #valior <= '[#4#]')";
+            $dateFilter[] = $compareFrom;
+            $dateFilter[] = $compareTo;
         }
-
-        // сравнение с ПРЕДХОДНА ГОДИНА
-        if (($rec->compare) == 'year') {
-            $fromLastYear = dt::addMonths(-12, $rec->from);
-            $toLastYear = dt::addMonths(-12, $dateEnd);
-
-            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-
-            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-
-            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-
-            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+        foreach (array($receiptsDetQuery, $fastPurchasesDetQuery, $shipmentOrdersDetQuery, $purchasesServicesDetQuery) as $periodQuery) {
+            $periodQuery->where($dateFilter);
         }
-
-        // сравнение с ИЗБРАН ПЕРИОД
-        if (($rec->compare == 'checked')) {
-            if ($periodType == 'дни') {
-                $toChecked = dt::addDays($periodCount - 1, $rec->compareStart, false);
-            }
-
-            if ($periodType == 'мес.') {
-                $toChecked = dt::addMonths($periodCount, $rec->compareStart, false);
-                $toChecked = dt::addDays(-1, $toChecked, false);
-            }
-
-            if ($periodType == 'год.') {
-                $monts = 12 * $periodCount;
-                $toChecked = dt::addMonths($monts, $rec->compareStart, false);
-                $toChecked = dt::addDays(-1, $toChecked, false);
-            }
-
-            $rec->toChecked = $toChecked;
-
-            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-
-            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-
-            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-
-            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-        }
-
-        core_Lg::pop();
 
         $receiptsDetQuery->where("#state != 'rejected, pending'");
 
@@ -637,7 +576,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 //Данни за ПРЕДХОДЕН ПЕРИОД
                 if ($rec->compare == 'previous') {
-                    if ($detRec->valior >= $fromPreviuos && $detRec->valior <= $toPreviuos) {
+                    if ($detRec->valior >= $compareFrom && $detRec->valior <= $compareTo) {
                         $quantityPrevious = $detRec->quantity * $revCoef;
                         $amountPrevious = $detRec->amount * $revCoef;
                     }
@@ -645,7 +584,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 //Данни за ПРЕДХОДНА ГОДИНА
                 if ($rec->compare == 'year') {
-                    if ($detRec->valior >= $fromLastYear && $detRec->valior <= $toLastYear) {
+                    if ($detRec->valior >= $compareFrom && $detRec->valior <= $compareTo) {
                         $quantityLastYear = $detRec->quantity * $revCoef;
                         $amountLastYear = $detRec->amount * $revCoef;
                     }
@@ -653,7 +592,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 //Данни за ИЗБРАН ПЕРИОД
                 if ($rec->compare == 'checked') {
-                    if ($detRec->valior >= $rec->compareStart && $detRec->valior <= $toChecked) {
+                    if ($detRec->valior >= $compareFrom && $detRec->valior <= $compareTo) {
                         $quantityCheckedPeriod = $detRec->quantity * $revCoef;
                         $amountCheckedPeriod = $detRec->amount * $revCoef;
                     }
