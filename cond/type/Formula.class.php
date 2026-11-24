@@ -314,7 +314,7 @@ class cond_type_Formula extends cond_type_Text
         if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
             $exprDisplay = strtr($value, $idToNameArr);
             if ($calced === cat_BomDetails::CALC_ERROR) {
-                $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);
+                $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false, array('aiHint' => 'Formula cannot be calculated: ' . type_Varchar::escape($exprDisplay)));
             } else {
                 if(core_Users::isPowerUser()){
                     $calced = "<span class='blueText'>{$calced}</span>";

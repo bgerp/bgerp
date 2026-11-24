@@ -695,8 +695,28 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $doc->encoding = 'windows-1251';
 
         $fileName = "N18_{$settings->n18ShopNumber}_" . dt::mysql2verbal($periodRec->end, 'Y_m') . '.xml';
+        $xml = $doc->saveXML();
 
-        return fileman::absorbStr($doc->saveXML(), 'exportFiles', $fileName);
+        // Всяка справка има един XML файл: обновяването го подменя, дори след грешка или смяна на месеца
+        $key = !empty($rec->id) ? "eshopn18_N18Audit_xml_{$rec->id}" : null;
+        $fh = $key ? core_Permanent::get($key) : null;
+        if (empty($fh) && is_object($rec->data ?? null)) {
+            $fh = $rec->data->n18FileHnd ?? null;
+        }
+        $oldName = !empty($fh) ? (string) fileman_Files::fetchByFh($fh, 'name') : '';
+        if ($oldName !== '') {
+            if (!preg_match('/^' . preg_quote(substr($fileName, 0, -4), '/') . '(_\d+)?\.xml$/', $oldName)) {
+                fileman::rename($fh, $fileName);
+            }
+            fileman::addVersionStr($fh, $xml);
+        } else {
+            $fh = fileman::absorbStr($xml, 'exportFiles', $fileName);
+        }
+        if ($key) {
+            core_Permanent::set($key, $fh, core_Permanent::FOREVER_VALUE);
+        }
+
+        return $fh;
     }
 
 
@@ -868,8 +888,12 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
                     }
                     $hint .= '<br>' . tr('Трансакция') . ': ' . $transaction;
                 }
+                if (!empty($dRec->procId)) {
+                    $hint .= '<br>' . tr('Доставчик на платежни услуги') . ': ' . core_Type::escape($dRec->procId);
+                }
                 $row->docNum = ht::createHint($row->docNum, new core_ET($hint), 'notice', false,
-                    array('isHtml' => true, 'aiHint' => 'Art. 52o card payment document' . (!empty($dRec->transactionRef) ? ", transaction {$dRec->transactionRef}" : '')));
+                    array('isHtml' => true, 'aiHint' => 'Art. 52o card payment document' . (!empty($dRec->transactionRef) ? ", transaction {$dRec->transactionRef}" : '')
+                        . (!empty($dRec->procId) ? ", proc_id {$dRec->procId}" : '')));
             } elseif (($dRec->paym ?? null) == 6) {
                 if ($canLink && bgfisc_PrintedReceipts::haveRightFor('list')) {
                     $row->docNum = ht::createLink($row->docNum, array('bgfisc_PrintedReceipts', 'list', 'selectPeriod' => 'gr0', 'search' => $dRec->docNum));
@@ -992,6 +1016,50 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
 
 
     /**
+     * Има ли доставка по онлайн поръчка на магазина за месеца, контирана след последното обновяване
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    protected function hasNewDeliveries($rec)
+    {
+        $periodRec = acc_Periods::fetch($rec->periodId ?? null);
+        if (!is_object($periodRec) || empty($rec->domainId)) return false;
+
+        // Същите документи за доставка като в prepareOrders(), но само контираните след обновяването
+        $threads = array();
+        foreach (array_keys(static::$deliveryDocs) as $masterClass) {
+            $dQuery = $masterClass::getQuery();
+            $dQuery->where(array("#state = 'active' AND #isReverse = 'no' AND #valior >= '[#1#]' AND #valior <= '[#2#]' AND #activatedOn > '[#3#]'",
+                $periodRec->start, $periodRec->end, $rec->lastRefreshed));
+            $dQuery->show('threadId');
+            while ($dRec = $dQuery->fetch()) {
+                $threads[$dRec->threadId] = $dRec->threadId;
+            }
+        }
+        $sQuery = sales_Sales::getQuery();
+        $sQuery->where(array("#state IN ('active', 'closed') AND #valior >= '[#1#]' AND #valior <= '[#2#]' AND #activatedOn > '[#3#]'",
+            $periodRec->start, $periodRec->end, $rec->lastRefreshed));
+        $sQuery->like('contoActions', 'ship');
+        $sQuery->show('threadId');
+        while ($sRec = $sQuery->fetch()) {
+            $threads[$sRec->threadId] = $sRec->threadId;
+        }
+        if (!countR($threads)) return false;
+
+        // Само ако нишката е на онлайн поръчка от магазина
+        $cQuery = eshop_Carts::getQuery();
+        $cQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+        $cQuery->where(array("#domainId = '[#1#]' AND #saleId IS NOT NULL AND #activatedOn <= '[#2#]'", $rec->domainId, $periodRec->end . ' 23:59:59'));
+        $cQuery->in('threadId', $threads);
+        $cQuery->limit(1);
+
+        return $cQuery->count() > 0;
+    }
+
+
+    /**
      * Печат, PDF или текстов режим - без балончета и линкове
      *
      * @return bool
@@ -1069,6 +1137,7 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
 
         // Броят на поръчките по начин на плащане - тези с грешка отделно като n/a
         $counts = array();
+        $ordersCount = null;
         $recs = is_object($reportData) && is_array($reportData->recs ?? null) ? $reportData->recs : array();
         foreach ($recs as $dRec) {
             if (($dRec->kind ?? null) == 'order') {
@@ -1087,8 +1156,17 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
             if (!empty($counts['n/a'])) {
                 $lines[] = '<div>' . tr('С грешка') . ": <b>{$Int->toVerbal($counts['n/a'])}</b></div>";
             }
-            $fieldTpl->replace($Int->toVerbal(array_sum($counts)), 'ordersCount');
+            $ordersCount = $Int->toVerbal(array_sum($counts));
             $fieldTpl->replace(implode('', $lines), 'ordersSummary');
+        }
+
+        // Нова продажба след обновяването - при обновяване ще влезе в справката
+        if (!$isPlain && !empty($rec->lastRefreshed) && $Driver->hasNewDeliveries($rec)) {
+            $ordersCount = ht::createHint('', 'След обновяването има нови продажби за месеца - обновете справката', 'warning', false,
+                array('aiHint' => 'Outdated: new sales for the month since the last refresh')) . ' ' . ($ordersCount ?? 0);
+        }
+        if (isset($ordersCount)) {
+            $fieldTpl->replace($ordersCount, 'ordersCount');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

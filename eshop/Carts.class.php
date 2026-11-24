@@ -1361,7 +1361,7 @@ class eshop_Carts extends core_Master
         
         // Ако има избран метод на плащане, добавя се и текста, който трябва да се добави до имейла
         if (isset($rec->paymentId)) {
-            $paymentMethod = tr(cond_PaymentMethods::getTitleById($rec->paymentId));
+            $paymentMethod = cond_PaymentMethods::getEshopName($rec->paymentId);
             $body->append($paymentMethod, 'PAYMENT_NAME');
             
             if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
@@ -2297,8 +2297,8 @@ class eshop_Carts extends core_Master
             $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
         }
         
-        if (isset($rec->paymentId) && !isset($fields['-external'])) {
-            $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
+        if (isset($rec->paymentId)) {
+            $row->paymentId = isset($fields['-external']) ? cond_PaymentMethods::getEshopName($rec->paymentId) : cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
 
         if(isset($rec->voucherId)){
@@ -2620,7 +2620,7 @@ class eshop_Carts extends core_Master
         $settings = cms_Domains::getSettings();
         
         $deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
-        $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+        $paymentMethods = eshop_Settings::getEshopPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         
         if ($cu) {
             $options = array();
@@ -2680,7 +2680,7 @@ class eshop_Carts extends core_Master
             $defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
             $form->setDefault('paymentId', $defaultPaymentId);
             if ($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)) {
-                $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($defaultPaymentId, 'name'));
+                $paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getEshopName($defaultPaymentId);
             }
         } else {
             $form->setDefault('paymentId', $settings->defaultMethodId);

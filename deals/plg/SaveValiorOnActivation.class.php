@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,7 +48,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     {
         $hint = $mvc->hasPlugin('acc_plg_Contable') ? 'Вальорът ще бъде записан при контиране|*!' : 'Вальорът ще бъде записан при активиране|*!';
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? ($row->{$mvc->valiorFld} ?? null) : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span class='blueText'>{$valiorToBe}</span>", $hint));
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? ($row->{$mvc->valiorFld} ?? null) : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span class='blueText'>{$valiorToBe}</span>", $hint, 'notice', true, array('aiHint' => 'Value date not set yet: today shown, recorded on posting')));
     }
 
 
