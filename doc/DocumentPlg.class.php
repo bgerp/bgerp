@@ -2673,6 +2673,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
+        $startDepth = countR(Mode::$stack);
         Mode::push('text', $mode);
         
         Mode::push('inlineDocument', true);
@@ -2691,7 +2692,8 @@ class doc_DocumentPlg extends core_Plugin
             // Временна промяна на текущия потребител на този, който е активирал документа
             $sudoUser = core_Users::sudo($userId);
         }
-        
+        $modeDepth = countR(Mode::$stack);
+
         // Ако възникне изключение
         try {
             // Подготвяме данните за единичния изглед
@@ -2703,9 +2705,19 @@ class doc_DocumentPlg extends core_Plugin
             $res = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
             
+            // Прекъснатото рендиране оставя push-овете си (напр. core_Lg::push) - иначе exitSudo маскира грешката
+            while (countR(Mode::$stack) > $modeDepth) {
+                Mode::pop();
+            }
+
             // Възстановяване на текущия потребител
             core_Users::exitSudo($sudoUser);
-            
+
+            // Връщаме и 'inlineDocument' и 'text'
+            while (countR(Mode::$stack) > $startDepth) {
+                Mode::pop();
+            }
+
             reportException($e);
             
             expect(false, $e);
