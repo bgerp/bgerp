@@ -407,6 +407,7 @@ class plg_Search extends core_Plugin
                                 $prefixTerms[] = array(
                                     'fts' => "+{$w}{$wordEndQ}",
                                     'locate' => "LOCATE('{$wordBegin}{$w}', #{$field})",
+                                    'needle' => $wordBegin . $w,
                                     'len' => strlen($w),
                                 );
                             } else {
@@ -435,8 +436,13 @@ class plg_Search extends core_Plugin
                     return $b['len'] - $a['len'];
                 });
                 $first = self::getRarestPrefixTerm($query, $field, $prefixTerms);
-                $ftsTerms[] = $prefixTerms[$first]['fts'];
-                unset($prefixTerms[$first]);
+
+                // Масов водещ термин кара MATCH да прочете повече редове от обхвата на заявката -
+                // тогава и той е LOCATE, за да води индексът на обхвата
+                if (!self::isWiderThanScope($query, $field, $prefixTerms[$first]['needle'])) {
+                    $ftsTerms[] = $prefixTerms[$first]['fts'];
+                    unset($prefixTerms[$first]);
+                }
             }
             if ($ftsTerms) {
                 $query->where("MATCH(#{$field}) AGAINST('" . implode(' ', $ftsTerms) . "' IN BOOLEAN MODE)");
@@ -585,6 +591,81 @@ class plg_Search extends core_Plugin
         }
 
         return false;
+    }
+
+
+    /**
+     * Дали началото на дума се среща в повече редове от цялата таблица, отколкото чете заявката без търсенето
+     * ($query->searchScopeRows). FULLTEXT индексът чете всеки ред с думата, а оптимизаторът го оценява на един
+     * ред и винаги го избира. Срещанията се оценяват по извадка от случайни номера, пръснати по цялата таблица
+     *
+     * @param core_Query $query
+     * @param string     $field
+     * @param string     $needle Началото на думата, както е в LOCATE условието
+     * @param int        $sample Брой номера в извадката
+     *
+     * @return bool
+     */
+    protected static function isWiderThanScope($query, $field, $needle, $sample = 1000)
+    {
+        $scope = (int) ($query->searchScopeRows ?? 0);
+        $fieldRec = $query->fields[$field] ?? null;
+        if ($scope < 1 || !is_object($fieldRec)) {
+
+            return false;
+        }
+
+        // Полето може да е от друг модел - документите в нишките на папка
+        $kind = $fieldRec->kind ?? null;
+        if ($kind == 'EXT' && !empty($fieldRec->externalClass)) {
+            $mvc = cls::get($fieldRec->externalClass);
+            $name = $fieldRec->externalName ?? $field;
+        } elseif ($kind == 'FLD') {
+            $mvc = $query->mvc ?? null;
+            $name = $field;
+        } else {
+
+            return false;
+        }
+
+        if (!is_object($mvc) || empty($mvc->dbTableName) || !is_object($mvc->db ?? null)) {
+
+            return false;
+        }
+
+        // Направо по първичния ключ - плъгините на заявката са без значение за оценката
+        $table = $mvc->dbTableName;
+        $idColumn = str::phpToMysqlName('id');
+        $column = str::phpToMysqlName($name);
+        $estimate = function () use ($mvc, $table, $idColumn, $column, $needle, $sample) {
+            $db = $mvc->db;
+            $dbRes = $db->query("SELECT MAX(`{$idColumn}`) AS `maxId` FROM `{$table}`");
+            $row = $db->fetchArray($dbRes);
+            $db->freeResult($dbRes);
+            $maxId = (int) ($row['maxId'] ?? 0);
+            $count = min((int) $sample, $maxId);
+            if ($count < 1) {
+
+                return 0;
+            }
+
+            // Случаен номер от всеки дял - на равни стъпки извадката би уцелила само дупките
+            // при номера през едно (auto_increment_increment)
+            $ids = array();
+            for ($i = 0; $i < $count; $i++) {
+                $ids[] = mt_rand(intdiv($i * $maxId, $count) + 1, intdiv(($i + 1) * $maxId, $count));
+            }
+            $dbRes = $db->query("SELECT COUNT(*) AS `cnt` FROM `{$table}` WHERE `{$idColumn}` IN (" . implode(',', $ids)
+                . ") AND LOCATE('" . $db->escape($needle) . "', `{$column}`)");
+            $row = $db->fetchArray($dbRes);
+            $db->freeResult($dbRes);
+
+            // Всеки номер от извадката представя $maxId / $count номера от таблицата
+            return (int) ($row['cnt'] ?? 0) * $maxId / $count;
+        };
+        $matches = (!empty($query->onReplica) && ($mvc instanceof core_Manager)) ? $mvc->callOnReplica($estimate) : $estimate();
+
+        return $matches > $scope;
     }
 
 

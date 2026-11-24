@@ -118,6 +118,13 @@ class core_Query extends core_FieldSet
      * Оригинални текстови условия, използвани за ограничаване на претърсвания набор
      */
     public $searchConditions = array();
+
+
+    /**
+     * Брой редове, които заявката чете без условията за търсене (напр. документите в папка).
+     * По-масова от тях дума не се търси с FULLTEXT - виж plg_Search::isWiderThanScope()
+     */
+    public $searchScopeRows;
     
     
     /**

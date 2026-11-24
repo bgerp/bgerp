@@ -902,6 +902,12 @@ class doc_Threads extends core_Manager
                     $allThreadsCnt = doc_Folders::fetchField($filter->folderId, 'allThreadsCnt');
                     if ($allThreadsCnt > 5000) {
                         $query->dontUseFts = false;
+
+                        // Масова дума се среща в повече документи от цялата база, отколкото има в папката - по броя им
+                        // plg_Search тръгва тогава от папката, а не от FULLTEXT (bags: 445 хил. реда вместо 74 хил., 5.5 s)
+                        $cQuery = doc_Containers::getQuery();
+                        $cQuery->onReplica = !empty($query->onReplica);
+                        $query->searchScopeRows = $cQuery->count(array("#folderId = '[#1#]'", $filter->folderId));
                     }
                 }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
