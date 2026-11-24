@@ -491,7 +491,7 @@ class sales_TransportValues extends core_Manager
             $hintAttr = array('isHtml' => true);
             
             // Обяснението идва от калкулатора - ескейпва се, защото хинтът е HTML
-            $canSeeExplain = !empty($explain) && haveRole('admin,tcost,sales');
+            $canSeeExplain = !empty($explain) && haveRole('admin,ceo,tcost');
             if ($canSeeExplain){
                 $escaped = str_replace('|', '&#124;', core_Type::escape(ltrim($explain, ', ')));
                 $hint .= "<br><small>{$escaped}</small>";
