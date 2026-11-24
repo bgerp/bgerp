@@ -245,6 +245,9 @@ class core_Manager extends core_Mvc
                         core_Cache::set($this->title, 'Report_Replica', $error, 10);
                         // todo: да праща signal msg на админа
                     }
+                    if (strpos($error, '1040:') === 0 && Mode::is('stopOnReplicaOverload')) {
+                        throw new RuntimeException('Search replica is busy (1040: Too many connections). Try again later.', 1040);
+                    }
                 } else {
                     if (!isset($this->db->__origDbName)) {
                         $this->db->__origDbName = $this->db->dbName;
