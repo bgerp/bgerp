@@ -157,7 +157,8 @@ class cat_ProductTplCache extends core_Master
      */
     public static function getDocumentCacheDate($masterRec)
     {
-        if (($masterRec->state ?? null) == 'draft') {
+        // Черновите и заявките винаги показват текущото описание
+        if (in_array($masterRec->state ?? null, array('draft', 'pending'))) {
 
             return null;
         }
