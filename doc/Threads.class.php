@@ -292,6 +292,12 @@ class doc_Threads extends core_Manager
      */
     public static function getLinkForObject($objId)
     {
+        // Запис в лога без нишка - както при другите модели, само името на класа
+        if (!$objId) {
+
+            return parent::getLinkForObject($objId);
+        }
+
         if (doc_Threads::haveRightFor('single', $objId)) {
             $fistContainerId = self::fetchField($objId, 'firstContainerId');
             

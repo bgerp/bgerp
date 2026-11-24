@@ -1584,7 +1584,7 @@ class planning_Tasks extends core_Master
         $defaultTasks = $rec->_orderTemplates ?? array();
         $defaultTask = $defaultTasks[$rec->systemId ?? ''] ?? null;
         if ($originRec && isset($originId) && ($rec->state ?? null) !== 'rejected') {
-            $mvc->positionNewTask($rec, $defaultTasks);
+            $mvc->positionTask($rec, $defaultTasks);
         }
 
         if (!empty($rec->assetId) && in_array($rec->state ?? null, array('active', 'pending', 'wakeup', 'stopped'))) {
@@ -4340,20 +4340,12 @@ JS
      */
     protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
+        if (!$res) return;
         $rec = $mvc->fetchRec($id);
-        if (isset($rec->saoOrder)) {
-            $mvc->updateJobOrder($rec->originId, function ($tasks) use ($rec) {
-                if (!isset($tasks[$rec->id])) return null;
-                unset($tasks[$rec->id]);
-                $ids = array_keys($tasks);
-                array_splice($ids, max(0, (int)$rec->saoOrder - 1), 0, array($rec->id));
-                return $ids;
-            });
-        } else {
-            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
-            if ($job) $mvc->positionNewTask($rec, cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1));
-        }
-        $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
+        if (empty($rec->originId)) return;
+        $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
+        $templates = $job ? cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1) : array();
+        $mvc->positionTask($rec, $templates, true);
     }
 
 
@@ -6158,15 +6150,31 @@ JS
     }
 
 
-    /** Единичното добавяне, клонирането и груповото създаване ползват едни и същи съседи. */
-    private function positionNewTask($rec, $templates)
+    /** Единично и групово добавяне, клониране и възстановяване в същото задание. */
+    private function positionTask($rec, $templates, $restoring = false)
     {
-        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates) {
+        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates, $restoring) {
+            if (!isset($tasks[$rec->id])) return null;
             $rec->canStore = $tasks[$rec->id]->canStore ?? null;
+            $task = $restoring ? $tasks[$rec->id] : $rec;
             unset($tasks[$rec->id]);
-            return planning_TaskOrder::insert($tasks, $rec, $templates, $conditions);
+            $withdrawnPrevious = null;
+            if ($restoring) {
+                $withdrawnPrevious = array();
+                if ($tasks && !isset($tasks[$task->previousTask ?? null])) {
+                    $query = static::getQuery();
+                    $links = $query->fetchAll(array("#originId = '[#1#]' AND #state = 'rejected' AND #previousTask IS NOT NULL", $rec->originId), 'id,previousTask');
+                    $withdrawnPrevious = array_column($links, 'previousTask', 'id');
+                }
+            }
+            $oldMode = $task->jobOrderMode ?? null;
+            $order = planning_TaskOrder::insert($tasks, $task, $templates, $conditions, $withdrawnPrevious);
+            if (($task->jobOrderMode ?? null) !== $oldMode) expect($this->save_($task, 'jobOrderMode'));
+
+            return $order;
         });
-        $rec->saoOrder = array_search($rec->id, $result['order']) + 1;
+        $offset = array_search($rec->id, $result['order']);
+        if ($offset !== false) $rec->saoOrder = $offset + 1;
     }
 
 

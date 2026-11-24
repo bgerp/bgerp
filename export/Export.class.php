@@ -288,16 +288,23 @@ class export_Export extends core_Mvc
 
         $this->invoke('BeforeExternalExport', array($clsInst, $mRec));
         
-        $su = null;
+        $su = $modeDepth = null;
         try {
             if (!empty($action->createdBy)) {
                 $su = core_Users::sudo($action->createdBy);
             }
+            $modeDepth = countR(Mode::$stack);
 
             Mode::set('exporting', true);
             $exporter = cls::getInterface('export_ExportTypeIntf', $typeClsInst);
             $fileHnd = $exporter->makeExport($form, $clsId, $mRec);
         } finally {
+            // Прекъснатият експорт оставя push-овете си (напр. Mode 'text') - иначе exitSudo маскира грешката
+            if (isset($modeDepth)) {
+                while (countR(Mode::$stack) > $modeDepth) {
+                    Mode::pop();
+                }
+            }
             if (isset($su)) {
                 core_Users::exitSudo($su);
             }

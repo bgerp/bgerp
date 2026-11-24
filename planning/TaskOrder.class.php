@@ -80,15 +80,22 @@ class planning_TaskOrder
 
 
     /**
-     * Вмъква само новия ред. Предходните етапи уточняват мястото в допустимия от рецептата интервал.
+     * Вмъква операция според рецептата и технологичните предходни.
+     * При възстановяване ползва ръчните връзки на оттеглените операции от заданието
+     * и актуализира режима auto/recipe на подадения запис според текущата рецепта.
      */
-    public static function insert($tasks, $task, $templates, $conditions)
+    public static function insert($tasks, $task, $templates, $conditions, $withdrawnPrevious = null)
     {
         $id = $task->id ?? PHP_INT_MAX;
-        // Виртуалният ред получава последен избор измежду повтарящите се етапи.
-        $matches = self::matchRecipe($templates, $tasks + array(PHP_INT_MAX => $task));
+        // Новият ред избира последен при еднакви етапи. Възстановеният запазва реда си на създаване.
+        $matchId = isset($withdrawnPrevious) ? $id : PHP_INT_MAX;
+        $matches = self::matchRecipe($templates, $tasks + array($matchId => $task));
         $positions = array_flip(array_keys($templates));
-        $position = isset($matches[PHP_INT_MAX]) ? $positions[$matches[PHP_INT_MAX]] : null;
+        $position = isset($matches[$matchId]) ? $positions[$matches[$matchId]] : null;
+        if (isset($withdrawnPrevious) && ($task->state ?? null) !== 'closed'
+            && in_array($task->jobOrderMode ?? null, array('auto', 'recipe'), true)) {
+            $task->jobOrderMode = isset($position) ? 'recipe' : 'auto';
+        }
         $previous = $next = $after = $before = null;
         list($afterStep, $beforeStep) = self::stepNeighbours($tasks, $task->productId ?? null, $conditions);
         $offset = 0;
@@ -118,11 +125,24 @@ class planning_TaskOrder
         }
 
         $ids = array_keys($tasks);
-        if (isset($task->previousTask, $tasks[$task->previousTask])) $at = array_search($task->previousTask, $ids) + 1;
-        array_splice($ids, $at, 0, array($id));
+        $manualAt = null;
+        $previousId = $task->previousTask ?? null;
+        if (isset($withdrawnPrevious)) {
+            $previousId = self::skipWithdrawn($previousId, $withdrawnPrevious);
+            if (!isset($tasks[$previousId])) {
+                foreach ($ids as $offset => $otherId) {
+                    if (self::skipWithdrawn($tasks[$otherId]->previousTask ?? null, $withdrawnPrevious) == $id) {
+                        $manualAt = $offset;
+                        break;
+                    }
+                }
+            }
+        }
+        if (isset($tasks[$previousId])) $manualAt = array_search($previousId, $ids) + 1;
+        array_splice($ids, $manualAt ?? $at, 0, array($id));
 
         // В смесено задание се запазва относителният ред на заварените операции.
-        $keepOrder = self::isFixed($task);
+        $keepOrder = self::isFixed($task) || isset($withdrawnPrevious, $manualAt);
         $rows = array();
         foreach ($ids as $offset => $taskId) {
             $row = clone ($taskId == $id ? $task : $tasks[$taskId]);
@@ -135,6 +155,19 @@ class planning_TaskOrder
         $order = ($keepOrder || isset($finals[$id])) ? array_keys($regular) : self::orderByPredecessors($regular, $conditions);
 
         return array_merge($order, array_keys($finals));
+    }
+
+
+    /** Следва само изрично зададените предходни. Старите данни могат да съдържат цикъл. */
+    private static function skipWithdrawn($id, $withdrawnPrevious)
+    {
+        $seen = array();
+        while (isset($withdrawnPrevious[$id]) && !isset($seen[$id])) {
+            $seen[$id] = true;
+            $id = $withdrawnPrevious[$id];
+        }
+
+        return $id;
     }
 
 
