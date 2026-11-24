@@ -2659,6 +2659,56 @@ async function copyRichtextCode(button) {
 }
 
 /**
+ * Копира в клипборда текста, който връща URL-то
+ * Обещанието се подава на ClipboardItem, за да не се загуби жестът на потребителя, докато чака отговора
+ */
+function copyUrlTextToClipboard(url, okText, errText) {
+    var notify = function (ok) {
+        render_showToast({timeOut: 0, text: ok ? okText : errText, isSticky: false, stayTime: 3000, type: ok ? 'notice' : 'error'});
+    };
+
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        var blob = fetch(url, {credentials: 'same-origin'}).then(function (response) {
+            if (!response.ok) {
+                throw new Error(response.status);
+            }
+
+            return response.blob();
+        }).then(function (data) {
+            return new Blob([data], {type: 'text/plain'});
+        });
+        navigator.clipboard.write([new ClipboardItem({'text/plain': blob})]).then(function () {
+            notify(true);
+        }, function () {
+            notify(false);
+        });
+
+        return;
+    }
+
+    // Без Clipboard API (напр. по HTTP) - синхронна заявка, за да е копирането още в клика
+    var copied = false;
+    try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, false);
+        xhr.send();
+        if (xhr.status == 200) {
+            var field = document.createElement('textarea');
+            field.value = xhr.responseText;
+            field.readOnly = true;
+            field.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+            document.body.appendChild(field);
+            field.select();
+            copied = document.execCommand('copy');
+            field.remove();
+        }
+    } catch (error) {
+        copied = false;
+    }
+    notify(copied);
+}
+
+/**
  * Записва избрания текст в сесията и текущото време
  *
  * @param string handle - Манипулатора на докуемента
