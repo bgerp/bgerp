@@ -1198,17 +1198,19 @@ class planning_Tasks extends core_Master
             $wasteRows = '';
             $wasteCaption = tr('Отпадък');
             foreach ($wasteArr as $key => $wasteRow) {
+                $wasteProductLink = $wasteRow->productLink ?? '';
+                $wasteQuantity = $wasteRow->quantityVerbal ?? '';
                 if ($key === 'total') {
-                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    $wasteCaption = "{$wasteProductLink}: {$wasteQuantity}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteProductLink}</td><td class='nowrap'><b>{$wasteQuantity}</b></td></tr>";
             }
             $wasteStart = $row->wasteStart ?? 'n/a';
             $wastePercent = $row->wastePercent ?? 'n/a';
             $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
-            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<div style='display:{$display}' class='docHeaderVal'><table class='taskWasteProducts'>
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table></div>");
         }
 
         $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
@@ -1253,6 +1255,16 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Антетката следва общото ограничение за ширината на секциите.
+     */
+    protected static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res->prepend("<div class='scrolling-holder'>");
+        $res->append('</div>');
+    }
+
+
+    /**
      * След подготовка на антетката
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
@@ -1262,7 +1274,7 @@ class planning_Tasks extends core_Master
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
 
         if ($isNarrow) {
-            $res = new ET("<table class='subInfo'>");
+            $res = new ET("<table class='subInfo taskHeaderSections'>");
             foreach ((array)$headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
@@ -1283,10 +1295,10 @@ class planning_Tasks extends core_Master
             $wasteValue = $waste['val'] ?? '';
             $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
                 <div class='taskWasteDivider'></div>
-                <table style='width:100%;'><tr>
-                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
-                    <td style='vertical-align:top;'>{$wasteValue}</td>
-                </tr></table>
+                <div class='taskWasteSummary'>
+                    <div class='nowrap'>{$wasteName}</div>
+                    <div class='taskWasteItems'>{$wasteValue}</div>
+                </div>
                 </td></tr>"));
         }
 
