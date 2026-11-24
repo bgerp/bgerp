@@ -13,7 +13,9 @@ function expect($condition) { if (!$condition) throw new RuntimeException('Не�
 function countR($value) { return is_countable($value) ? count($value) : 0; }
 function toUrl($url, $type = null) { return '/type_Key2/getOptions/'; }
 class core_BaseClass extends stdClass {}
-class core_Master extends core_BaseClass {
+class core_Mvc extends core_BaseClass {}
+class core_Manager extends core_Mvc {}
+class core_Master extends core_Manager {
     public static function getQuery() { return new SourceFilterQuery(SourceFilterFixture::$rows[get_called_class()] ?? array(), get_called_class()); }
     public static function __callStatic($method, $args) {
         $class = get_called_class();
@@ -30,11 +32,14 @@ class Request {
 }
 class Mode {
     public static $values = array();
-    public static function is($name) { return false; }
+    public static function is($name) { return !empty(self::$values[$name]); }
     public static function get($name) { return self::$values[$name] ?? false; }
     public static function set($name, $value) { self::$values[$name] = $value; }
 }
-class core_Users { public static function getCurrent() { return 6; } }
+class core_Users {
+    public static $current = 6;
+    public static function getCurrent() { return self::$current; }
+}
 class core_Packs { public static function isInstalled($package) { return true; } }
 class core_Crypt {
     const EF_CRYPT_CODE = 'fixture';
@@ -53,8 +58,11 @@ class select2_Adapter {
 class core_Settings {
     public static $values = array();
     public static $writes = array();
-    public static function fetchKeyNoMerge($key, $userId) { return self::$values; }
-    public static function setValues($key, $values, $userId) { self::$values = $values; self::$writes[] = $values; }
+    public static function fetchKeyNoMerge($key, $userId) { return self::$values[$userId][$key] ?? array(); }
+    public static function setValues($key, $values, $userId, $merge = false) {
+        self::$values[$userId][$key] = $merge ? $values + self::fetchKeyNoMerge($key, $userId) : $values;
+        self::$writes[] = $values;
+    }
 }
 class doc_Folders { public static function getOptionsByCoverInterface() { return array(); } }
 class planning_AssetResources { public static function getUsedAssetsInTasks($folders) { return array(); } }
@@ -67,6 +75,7 @@ class core_Type {
         preg_match('/^[^(]+\((.*)\)$/', $description, $matches);
         $type = strpos($description, 'key2(') === 0 ? new SourceFilterKey2() : new stdClass();
         $type->params = arr::make($matches[1] ?? '', true);
+        if (strpos($description, 'enum(') === 0) $type->options = $type->params;
         return $type;
     }
 }
@@ -81,6 +90,7 @@ class_alias('core_Array', 'arr');
 require_once dirname(__DIR__, 2) . '/core/FieldSet.class.php';
 require_once dirname(__DIR__, 2) . '/type/Key2.class.php';
 require_once dirname(__DIR__, 2) . '/deals/DealBase.class.php';
+require_once dirname(__DIR__) . '/ListFilter.class.php';
 require_once dirname(__DIR__) . '/Jobs.class.php';
 require_once dirname(__DIR__) . '/Tasks.class.php';
 
@@ -128,6 +138,10 @@ class SourceFilterForm extends core_FieldSet {
     public function setOptions($field, $options) { $this->fieldOptions[$field] = $options; }
     public function setDefault($field, $value) { $this->rec->{$field} = $this->rec->{$field} ?? $value; }
     public function gotErrors() { return count($this->errors) > 0; }
+    public function isSubmitted() {
+        $cmd = Request::get('Cmd');
+        return isset($cmd['default']) && !isset($cmd['refresh']) && !$this->gotErrors();
+    }
 }
 class SourceFilterQuery extends stdClass {
     public $search = '';
@@ -208,12 +222,21 @@ function sourceFilterCheck($condition, $message) {
     echo 'OK ' . ++$checks . ': ' . $message . PHP_EOL;
 }
 function sourceFilterList($class, $filter, &$form = null) {
+    $mvc = new $class();
+    $res = null;
+    $before = new ReflectionMethod($class, 'on_BeforeAction');
+    $before->setAccessible(true);
+    $before->invokeArgs(null, array($mvc, &$res, 'list'));
     $form = new SourceFilterForm((object) $filter);
     $form->FLD('type', 'varchar');
     $form->FLD('selectPeriod', 'varchar');
     $form->FLD('filterDateField', 'varchar');
+    $form->FLD('from', 'date');
+    $form->FLD('to', 'date');
     $form->FLD('productId', 'int');
     $form->FNC('search', 'varchar');
+    $form->showFields = 'search,selectPeriod,from,to,filterDateField';
+    $form->input(null, 'silent');
     if ($class == 'planning_Jobs') {
         $form->FLD('saleId', 'key', 'input=hidden');
         $form->FLD('purchaseId', 'key', 'input=hidden');
@@ -221,7 +244,7 @@ function sourceFilterList($class, $filter, &$form = null) {
     $data = (object) array('listFilter' => $form, 'query' => $class::getQuery(), 'listFields' => array());
     $method = new ReflectionMethod($class, 'on_AfterPrepareListFilter');
     $method->setAccessible(true);
-    $method->invoke(null, new $class(), $data);
+    $method->invoke(null, $mvc, $data);
     return $data->query ?? null;
 }
 
@@ -291,42 +314,35 @@ sourceFilterCheck(planning_Jobs::getListSourceOptions(array('mvc' => 'purchase_P
 SourceFilterFixture::$rows['planning_Jobs'] = $savedJobs;
 sourceFilterCheck(count(sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'))->fetchAll()) === count(SourceFilterFixture::$rows['planning_Tasks']), 'Празните договорни филтри запазват всички операции');
 
-$restore = new ReflectionMethod('planning_Tasks', 'restorePersistentListFilter');
-$restore->setAccessible(true);
 foreach (array('saleId', 'purchaseId') as $field) {
     Request::$values = Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 6, 'search' => 'needle');
-    $restore->invoke(null);
+    core_Settings::$values[6]['planningTasksListFilter'] = array($field => 6, 'search' => 'needle');
     $restoredForm = null;
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
     sourceFilterCheck(!$restoredForm->gotErrors(), $field . ': стар запомнен договор без задание не причинява грешка във формата');
-    sourceFilterCheck(Request::get($field) === '' && core_Settings::$values[$field] === '', $field . ': невалидният запомнен избор се изчиства и от настройките');
-    sourceFilterCheck((core_Settings::$values['search'] ?? null) === 'needle', $field . ': останалите запомнени филтри се запазват');
+    sourceFilterCheck(Request::get($field) === '' && core_Settings::$values[6]['planningTasksListFilter'][$field] === '', $field . ': невалидният запомнен избор се изчиства и от настройките');
+    sourceFilterCheck((core_Settings::$values[6]['planningTasksListFilter']['search'] ?? null) === 'needle', $field . ': останалите запомнени филтри се запазват');
 
     Request::$values = Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 1);
-    $restore->invoke(null);
+    core_Settings::$values[6]['planningTasksListFilter'] = array($field => 1);
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
     sourceFilterCheck(!$restoredForm->gotErrors() && Request::get($field) === 1 && !core_Settings::$writes, $field . ': валидният запомнен договор в чернова се запазва');
 
     Request::$values = array('Cmd' => array('refresh' => 1));
     Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 5);
-    $restore->invoke(null);
+    core_Settings::$values[6]['planningTasksListFilter'] = array($field => 5);
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
     sourceFilterCheck(!$restoredForm->gotErrors() && Request::get($field) === '' && Request::get('Cmd') === array('default' => 1), $field . ': рефрешът изчиства запомнения оттеглен договор преди въвеждането');
 
     Request::$values = array($field => '');
     Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 6);
-    $restore->invoke(null);
+    core_Settings::$values[6]['planningTasksListFilter'] = array($field => 6);
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
     sourceFilterCheck(!$restoredForm->gotErrors() && Request::get($field) === '', $field . ': празен избор не се замества със стария договор');
 
     Request::$values = array($field => 6);
     Mode::$values = core_Settings::$writes = array();
-    core_Settings::$values = array($field => 1);
-    $restore->invoke(null);
+    core_Settings::$values[6]['planningTasksListFilter'] = array($field => 1);
     sourceFilterList('planning_Tasks', array('state' => 'all', 'isFinalSelect' => 'all'), $restoredForm);
     sourceFilterCheck(($restoredForm->errors[$field] ?? null) === 'Несъществуващ обект' && Request::get($field) === 6 && !core_Settings::$writes, $field . ': изрично невалиден избор остава грешка и не отменя филтъра мълчаливо');
 }
@@ -334,7 +350,6 @@ foreach (array('saleId', 'purchaseId') as $field) {
 Request::$values = Mode::$values = core_Settings::$values = array();
 foreach (array('planning_Jobs', 'planning_Tasks') as $class) {
     SourceFilterFixture::$reads = select2_Adapter::$calls = array();
-    $restore->invoke(null);
     $emptyForm = null;
     sourceFilterList($class, array('state' => 'all', 'isFinalSelect' => 'all'), $emptyForm);
     foreach (array('saleId', 'purchaseId') as $field) {
@@ -413,4 +428,95 @@ $query = sourceFilterList('planning_Jobs', array('type' => 'manifacture', 'view'
 sourceFilterCheck(($jobsForm->rec->view ?? null) === 'all' && count($query->fetchAll()) === 18, 'Задания: изрично избраното Всички има предимство пред дефолта');
 $query = sourceFilterList('planning_Jobs', array('type' => 'manifacture', 'view' => 'active'));
 sourceFilterCheck(array_keys($query->fetchAll()) === array(2002, 2102), 'Задания: единичното състояние продължава да филтрира самостоятелно');
+
+Request::$values = array('Cmd' => array('default' => 1), 'view' => 'all');
+sourceFilterList('planning_Jobs', array('type' => 'manifacture'));
+Request::$values = Mode::$values = array();
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture'), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'all' && count($query->fetchAll()) === 18, 'Задания: Всички се възстановява при нова сесия без параметри на филтъра');
+
+Request::$values = array('Cmd' => array('default' => 1), 'view' => 'stopped', 'ajax_mode' => 1);
+sourceFilterList('planning_Jobs', array('type' => 'manifacture'));
+Request::$values = array('Cmd' => array('refresh' => 1));
+sourceFilterList('planning_Jobs', array('type' => 'manifacture'), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'all', 'Задания: след фоново обновяване на стар таб рефрешът възстановява последния избор');
+
+Request::$values = array('Cmd' => array('default' => 1), 'view' => 'active');
+sourceFilterList('planning_Jobs', array('type' => 'manifacture'));
+Request::$values = Mode::$values = array();
+$query = sourceFilterList('planning_Jobs', array('type' => 'manifacture'), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'active' && array_keys($query->fetchAll()) === array(2002, 2102), 'Задания: следващият изрично приложен избор заменя Всички и филтрира редовете');
+
+SourceFilterFixture::$rows['planning_Jobs'] = $savedJobs;
+$legacyTasks = array('state' => 'draftAndPending', 'isFinalSelect' => 'yes', 'search' => 'етап');
+core_Settings::$values[6] = array('planningJobsListView' => array('view' => 'all'), 'planningTasksListFilter' => $legacyTasks);
+Request::$values = Mode::$values = core_Settings::$writes = array();
+sourceFilterList('planning_Jobs', array(), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'all' && !core_Settings::$writes, 'Задания: старият запис само със Състояние се използва без презаписване');
+
+$jobChoices = array('search' => 'артикул', 'selectPeriod' => 'select', 'from' => '2026-10-01', 'to' => '2026-10-31',
+    'filterDateField' => 'createdOn', 'saleId' => '1', 'purchaseId' => '', 'view' => 'all');
+Request::$values = $jobChoices + array('Cmd' => array('default' => 1), 'type' => 'manifacture', 'productId' => 101);
+sourceFilterList('planning_Jobs', array());
+sourceFilterCheck(core_Settings::$values[6]['planningJobsListView'] == $jobChoices, 'Задания: записват се точно общите полета, включително границите на периода');
+sourceFilterCheck(core_Settings::$values[6]['planningTasksListFilter'] === $legacyTasks, 'Задания: изборът не променя старите настройки на Операции');
+
+Request::$values = array('Cmd' => array('refresh' => 1));
+Mode::$values = array();
+$query = sourceFilterList('planning_Jobs', array(), $jobsForm);
+sourceFilterCheck((array) $jobsForm->rec == $jobChoices && array_keys($query->fetchAll()) === array(11, 16),
+    'Задания: при нов вход с refresh целият избран филтър се възстановява и ограничава заявката по продажба');
+
+foreach (array(array(), array('Cmd' => array('default' => 1, 'refresh' => 1))) as $request) {
+    Request::$values = $request + array('view' => 'draft', 'purchaseId' => '1');
+    Mode::$values = core_Settings::$writes = array();
+    $query = sourceFilterList('planning_Jobs', array(), $jobsForm);
+    sourceFilterCheck(array_keys($query->fetchAll()) === array(21) && !core_Settings::$writes && !$jobsForm->isSubmitted(),
+        'Задания: пряката връзка към черновите по покупка филтрира само текущия лист, включително след вход');
+}
+
+Request::$values = $jobChoices + array('Cmd' => array('default' => 1));
+sourceFilterList('planning_Jobs', array());
+sourceFilterCheck(!core_Settings::$writes, 'Задания: повторното прилагане на същия избор не презаписва настройките');
+
+Request::$values = Mode::$values = array();
+sourceFilterList('planning_Tasks', array(), $tasksForm);
+sourceFilterCheck(($tasksForm->rec->state ?? null) === 'draftAndPending' && ($tasksForm->rec->isFinalSelect ?? null) === 'yes' &&
+    ($tasksForm->rec->search ?? null) === 'етап' && empty($tasksForm->rec->saleId), 'Операции: след нов вход се използват собствените стари настройки');
+
+Request::$values = array('Cmd' => array('default' => 1), 'purchaseId' => 1, 'search' => '');
+$query = sourceFilterList('planning_Jobs', array());
+sourceFilterCheck(array_keys($query->fetchAll()) === array(21, 26) && empty(core_Settings::$values[6]['planningJobsListView']['saleId']),
+    'Задания: изричната покупка замества запомнената продажба');
+Request::$values = Mode::$values = array();
+sourceFilterList('planning_Jobs', array(), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->search ?? null) === '' && ($jobsForm->rec->purchaseId ?? null) == 1, 'Задания: изчистеното търсене и новата покупка се помнят');
+
+Request::$values = array('Cmd' => array('default' => 1), 'Rejected' => 1, 'search' => 'проверка');
+sourceFilterList('planning_Jobs', array());
+sourceFilterCheck(core_Settings::$values[6]['planningJobsListView']['view'] === 'all', 'Задания: филтрирането в кошчето запазва състоянието за основния лист');
+
+foreach (array('planning_Jobs', 'planning_Tasks') as $class) {
+    $key = $class::LIST_FILTER_KEY;
+    core_Settings::$values[6][$key]['saleId'] = 5;
+    foreach (array('ajax_mode', 'preserveUserChoices') as $guard) {
+        Request::$values = array('Cmd' => array('default' => 1), 'search' => 'временен');
+        Mode::$values = core_Settings::$writes = array();
+        if ($guard === 'ajax_mode') Request::$values['ajax_mode'] = 1;
+        else Mode::set('preserveUserChoices', true);
+        sourceFilterList($class, array(), $form);
+        sourceFilterCheck(empty($form->rec->saleId) && !core_Settings::$writes,
+            $class . ': при ' . $guard . ' оттегленият договор отпада от текущия филтър без запис в настройките');
+    }
+    Request::$values = array('Cmd' => array('default' => 1), 'saleId' => 6);
+    Mode::$values = core_Settings::$writes = array();
+    sourceFilterList($class, array(), $form);
+    sourceFilterCheck(isset($form->errors['saleId']) && !core_Settings::$writes,
+        $class . ': изпратената форма с недопустима продажба не става последен избор');
+}
+
+core_Users::$current = 7;
+Request::$values = Mode::$values = array();
+sourceFilterList('planning_Jobs', array(), $jobsForm);
+sourceFilterCheck(($jobsForm->rec->view ?? null) === 'activeAndWakeupAndStopped' && empty($jobsForm->rec->purchaseId), 'Задания: друг потребител получава началните стойности');
 echo $checks . ' проверки преминаха успешно.' . PHP_EOL;

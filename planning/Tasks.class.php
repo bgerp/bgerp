@@ -17,6 +17,9 @@
  */
 class planning_Tasks extends core_Master
 {
+    const LIST_FILTER_KEY = 'planningTasksListFilter';
+    const LIST_FILTER_SPECIFIC_FIELDS = 'folders,productId,assetId,state,isFinalSelect,prevProgress';
+
     /**
      * Дали може да бъде само в началото на нишка
      */
@@ -2381,121 +2384,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Полета от листовия филтър, чиито последни стойности се пазят за потребителя
-     *
-     * @return array
-     */
-    protected static function getPersistentListFilterFields()
-    {
-        return arr::make(
-            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect,prevProgress',
-            true
-        );
-    }
-
-
-    /**
-     * Възстановява постоянните потребителски настройки още преди подготовката на листа
-     *
-     * Това трябва да стане преди събитията BeforePrepareListFilter на плъгините,
-     * защото някои от тях ограничават заявката според текущите стойности в Request.
-     */
-    protected static function restorePersistentListFilter()
-    {
-        if (Mode::is('isReorder')) {
-            return;
-        }
-
-        $savedValues = core_Settings::fetchKeyNoMerge(
-            'planningTasksListFilter',
-            core_Users::getCurrent()
-        );
-        $restoreValues = array();
-        $hasExplicitValues = false;
-        $savedValuesChanged = false;
-
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            if (Request::get($fieldName, false) !== null) {
-                $hasExplicitValues = true;
-                continue;
-            }
-
-            if (array_key_exists($fieldName, $savedValues)) {
-                $value = $savedValues[$fieldName];
-                if (!empty($value) && in_array($fieldName, array('saleId', 'purchaseId'))) {
-                    // Старите настройки може да сочат договор, който вече няма задания.
-                    list($sourceClass) = planning_Jobs::getSourceInfo((object) array($fieldName => $value));
-                    if (!countR(planning_Jobs::getListSourceOptions(array('mvc' => $sourceClass), 1, '', $value))) {
-                        $savedValues[$fieldName] = $value = '';
-                        $savedValuesChanged = true;
-                    }
-                }
-                $restoreValues[$fieldName] = $value;
-            }
-        }
-
-        if ($savedValuesChanged) {
-            core_Settings::setValues('planningTasksListFilter', $savedValues, core_Users::getCurrent());
-        }
-
-        if (countR($restoreValues)) {
-            Request::push($restoreValues);
-        }
-
-        // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
-        // от core_Users::forceLogin() самостоятелно или заедно с Cmd[default]. Тогава формата
-        // показва стойностите, но refresh-командата не прилага целия листов филтър.
-        // При обикновено зареждане го третираме като нормално изпращане на филтъра.
-        $cmd = Request::get('Cmd', false);
-        $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
-            is_array($cmd) && isset($cmd['refresh']) &&
-            !array_diff_key($cmd, array('default' => true, 'refresh' => true));
-
-        if (($hasExplicitValues || countR($restoreValues)) &&
-            ($cmd === null || $isFullPageRefresh)) {
-            Request::push(array('Cmd' => array('default' => 1)));
-        }
-
-        Mode::set('planningTasksListFilterHasExplicitValues', $hasExplicitValues);
-    }
-
-
-    /**
-     * Записва последните изрично подадени настройки на листовия филтър
-     *
-     * @param stdClass $data
-     */
-    protected static function savePersistentListFilter($data)
-    {
-        if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
-            !empty($data->masterMvc) ||
-            $data->listFilter->gotErrors() ||
-            Mode::is('isReorder')) {
-            return;
-        }
-
-        core_Settings::setValues(
-            'planningTasksListFilter',
-            self::getPersistentListFilterValues($data->listFilter->rec),
-            core_Users::getCurrent()
-        );
-    }
-
-
-    /**
-     * Стойности за повторно подаване във формата
-     */
-    private static function getPersistentListFilterValues($rec)
-    {
-        $values = array();
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            $values[$fieldName] = $rec->{$fieldName} ?? '';
-        }
-        return $values;
-    }
-
-
-    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -2673,13 +2561,9 @@ class planning_Tasks extends core_Master
             unset($data->query->fields['dueDate']);
         }
 
-        // При AJAX обновяване филтърът не се записва - старият таб не бива да презаписва по-нов избор
-        if (!Request::get('ajax_mode')) {
-            self::savePersistentListFilter($data);
-        }
-
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
-            $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
+            planning_ListFilter::save($mvc, $data);
+            $mvc->refreshRowsListFilterValues = planning_ListFilter::getValues($mvc, $listFilter->rec);
         }
 
         if(Mode::get('isReorder')){
@@ -2927,8 +2811,14 @@ JS
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
                 unset($mvc->_plugins['planning_Wrapper']);
-            } else {
-                self::restorePersistentListFilter();
+            } elseif (planning_ListFilter::restore($mvc)) {
+                // Полетата на Операции с input() изискват команда и при отваряне на листа след нов вход.
+                $cmd = Request::get('Cmd', false);
+                $fullPageRefresh = !Request::get('ajax_mode', 'int') && is_array($cmd) && isset($cmd['refresh']) &&
+                    !array_diff_key($cmd, array('default' => true, 'refresh' => true));
+                if ($cmd === null || $fullPageRefresh) {
+                    Request::push(array('Cmd' => array('default' => 1)));
+                }
             }
         }
     }
