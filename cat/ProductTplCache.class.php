@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -145,6 +145,25 @@ class cat_ProductTplCache extends core_Master
         }
         
         $data->query->orderBy('id', "DESC");
+    }
+    
+    
+    /**
+     * Към коя дата да се показва кешираният изглед на артикулите в документа
+     *
+     * @param stdClass $masterRec - запис на документа
+     *
+     * @return datetime|null
+     */
+    public static function getDocumentCacheDate($masterRec)
+    {
+        if (($masterRec->state ?? null) == 'draft') {
+
+            return null;
+        }
+
+        // modifiedOn се сменя и при докосване на активен документ (връзки, контиране по сделката)
+        return !empty($masterRec->activatedOn) ? $masterRec->activatedOn : ($masterRec->modifiedOn ?? null);
     }
     
     

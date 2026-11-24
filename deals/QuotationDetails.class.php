@@ -681,7 +681,7 @@ class deals_QuotationDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
 
         core_Lg::push($masterRec->tplLang);
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $date = cat_ProductTplCache::getDocumentCacheDate($masterRec);
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         foreach ($rows as $id => &$row) {
