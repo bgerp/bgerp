@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -326,7 +326,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $tplLang = $data->masterData->rec->tplLang ?? null;
         core_Lg::push($tplLang);
         
-        $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        $date = cat_ProductTplCache::getDocumentCacheDate($data->masterData->rec);
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
