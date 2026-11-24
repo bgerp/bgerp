@@ -177,8 +177,10 @@ class log_Mysql extends core_Manager {
         $res = '';
 
         foreach($stack as $s) {
-           if($s['file'] == $fileCoreDb || $s['file'] == $fileCoreQuery || $s['file'] == $fileLogMysql) continue;
-            $res .=  $s['file'] . '|' . $s['line'] . ',';             
+            // Рамките от вградени функции (напр. callback на array_filter) нямат файл
+            $file = $s['file'] ?? '';
+            if($file === '' || $file == $fileCoreDb || $file == $fileCoreQuery || $file == $fileLogMysql) continue;
+            $res .=  $file . '|' . ($s['line'] ?? '') . ',';
         }
 
         $res = substr($res, 0, 128);
