@@ -880,6 +880,27 @@ class eshop_Settings extends core_Master
         
         return $options;
     }
+
+    
+    /**
+     * Връща методите на плащане за домейна с имената им за онлайн магазина
+     *
+     * @param mixed    $class
+     * @param int|NULL $domainId
+     *
+     * @return array $options
+     */
+    public static function getEshopPaymentMethodOptions($class, $domainId = null)
+    {
+        $settings = self::getSettings($class, $domainId);
+
+        $options = array();
+        foreach (keylist::toArray($settings->payments ?? '') as $paymentId) {
+            $options[$paymentId] = cond_PaymentMethods::getEshopName($paymentId);
+        }
+
+        return $options;
+    }
     
     
     /**

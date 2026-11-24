@@ -284,8 +284,14 @@ function reportException($e, $update = null, $supressShowing = true)
     if (($e instanceof core_exception_Break) || ($e instanceof core_exception_Expect)) {
         $dump = $e->getDump();
         $errType = $e->getType();
+
+        // Някои изключения пазят диагностика в типа - показва се в дъмпа, а не в заглавието
+        if (!is_scalar($errType)) {
+            $dump = isset($dump) ? array($dump, $errType) : $errType;
+            $errType = 'Изключение';
+        }
     }
-    
+
     $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
     
     $type = null;

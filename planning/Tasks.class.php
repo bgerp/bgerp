@@ -400,7 +400,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
-        $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран)', 'caption=Подредба в заданието,input=none,column=none');
+        $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран,fixedFinal=Фиксирана финална извън рецепта)', 'caption=Подредба в заданието,input=none,column=none');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
@@ -510,7 +510,8 @@ class planning_Tasks extends core_Master
             $tpl->append($assetTpl, 'ASSET_PARAMS');
             Mode::pop('text');
         }
-        $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+        $tpl->append('no-border taskHeaderInfo', 'LETTER_HEAD_TABLE_CLASS');
+        $tpl->push('planning/tpl/TaskHeader.css', 'CSS');
 
         // Субпродуктите са в клетката с информацията, а не в отделен блок
         $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
@@ -703,6 +704,10 @@ class planning_Tasks extends core_Master
                 }
             }
 
+            $actualStart = $rec->actualStart ?? null;
+            $actualStartDate = $actualStart ? dt::mysql2verbal($actualStart, 'd.m.Y H:i:s (l)', null, false, false) : 'n/a';
+            $row->actualStartHint = ht::escapeAttr(tr('Фактическо / Реално начало') . ': ' . $actualStartDate);
+
             $eFields = static::getExpectedDeviations($rec, true);
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
@@ -792,9 +797,6 @@ class planning_Tasks extends core_Master
 
             if (isset($rec->wasteProductId)) {
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
-                $row->wasteStart = $row->wasteStart ?? 'n/a';
-                $row->wastePercent = $row->wastePercent ?? 'n/a';
-                $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
 
             if (!empty($rec->employees)) {
@@ -1186,7 +1188,6 @@ class planning_Tasks extends core_Master
             }
         }
 
-        // Отпадъкът е до теглото, с което се сравнява процентът му
         // След активиране избраният отпадък вече е в планираните артикули
         $showWasteProduct = isset($rec->wasteProductId) && !in_array($rec->state, array('active', 'wakeup', 'stopped', 'closed'));
         if (!$showWasteProduct) {
@@ -1201,20 +1202,25 @@ class planning_Tasks extends core_Master
                     $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}:</td><td>{$wasteRow->quantityVerbal}</td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
             }
+            $wasteStart = $row->wasteStart ?? 'n/a';
+            $wastePercent = $row->wastePercent ?? 'n/a';
+            $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
             $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td style='font-weight:normal'>|Артикул|*:</td><td>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+        }
+
+        $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
+        if (!empty($row->printCount)) {
+            $labelPrintRow = "<tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#],&nbsp;&nbsp;<span class='nowrap'><span style='font-weight:normal'>|Шаблон|*:</span> [#labelTemplate#]</span></td></tr>";
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
-                <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
-                <!--ET_BEGIN printCount-->
-                <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
-                <!--ET_END printCount-->
+                {$labelPrintRow}
                 </table>"));
 
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
@@ -1251,10 +1257,14 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
-        if (Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
+        $waste = $headerArr['waste'] ?? null;
+        unset($headerArr['waste']);
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
+
+        if ($isNarrow) {
             $res = new ET("<table class='subInfo'>");
             foreach ((array)$headerArr as $value) {
-                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
+                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
                 $res->append('<tr>');
                 $res->append($name);
@@ -1262,6 +1272,25 @@ class planning_Tasks extends core_Master
                 $res->append($val);
                 $res->append('</tr>');
             }
+        } elseif (isset($waste)) {
+            // Отпадъкът не участва в разпределянето на ширината на горните колони.
+            $res = $mvc->prepareHeaderLines($headerArr);
+        }
+
+        if (isset($waste)) {
+            $colspan = $isNarrow ? 1 : countR($headerArr);
+            $wasteName = $waste['name'] ?? '';
+            $wasteValue = $waste['val'] ?? '';
+            $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
+                <div class='taskWasteDivider'></div>
+                <table style='width:100%;'><tr>
+                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
+                    <td style='vertical-align:top;'>{$wasteValue}</td>
+                </tr></table>
+                </td></tr>"));
+        }
+
+        if ($isNarrow) {
             $res->append("</table>");
         }
     }
@@ -1555,7 +1584,7 @@ class planning_Tasks extends core_Master
         $defaultTasks = $rec->_orderTemplates ?? array();
         $defaultTask = $defaultTasks[$rec->systemId ?? ''] ?? null;
         if ($originRec && isset($originId) && ($rec->state ?? null) !== 'rejected') {
-            $mvc->positionNewTask($rec, $defaultTasks);
+            $mvc->positionTask($rec, $defaultTasks);
         }
 
         if (!empty($rec->assetId) && in_array($rec->state ?? null, array('active', 'pending', 'wakeup', 'stopped'))) {
@@ -4311,20 +4340,12 @@ JS
      */
     protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
+        if (!$res) return;
         $rec = $mvc->fetchRec($id);
-        if (isset($rec->saoOrder)) {
-            $mvc->updateJobOrder($rec->originId, function ($tasks) use ($rec) {
-                if (!isset($tasks[$rec->id])) return null;
-                unset($tasks[$rec->id]);
-                $ids = array_keys($tasks);
-                array_splice($ids, max(0, (int)$rec->saoOrder - 1), 0, array($rec->id));
-                return $ids;
-            });
-        } else {
-            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
-            if ($job) $mvc->positionNewTask($rec, cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1));
-        }
-        $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
+        if (empty($rec->originId)) return;
+        $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
+        $templates = $job ? cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1) : array();
+        $mvc->positionTask($rec, $templates, true);
     }
 
 
@@ -5652,8 +5673,22 @@ JS
             }
         }
         if (isset($fields['state']) && ($rec->state ?? null) === 'closed') {
-            $rec->jobOrderMode = 'fixed';
+            if (!empty($rec->id)) {
+                $originId = $rec->originId ?? $mvc->fetchField($rec->id, 'originId');
+                if ($originId) $rec->_closeOrderLock = self::lockJobOrder($originId);
+            }
+            $source = empty($rec->id) ? $rec : $mvc->fetch($rec->id, 'isFinal,jobOrderMode', false);
+            $rec->jobOrderMode = planning_TaskOrder::isFinalOutsideRecipe($source) ? 'fixedFinal' : 'fixed';
             $fields['jobOrderMode'] = 'jobOrderMode';
+        }
+    }
+
+
+    protected static function on_AfterUpdate($mvc, $rec)
+    {
+        if (isset($rec->_closeOrderLock)) {
+            core_Locks::release($rec->_closeOrderLock);
+            unset($rec->_closeOrderLock);
         }
     }
 
@@ -5911,9 +5946,9 @@ JS
     {
         $debug = array();
         $result = $this->updateJobOrder($containerId, function ($tasks, $conditions) use (&$debug, $changedSteps, $sync) {
-            $order = planning_TaskOrder::order($tasks, $conditions, $debug, $changedSteps);
+            $order = planning_TaskOrder::order($tasks, $conditions, $debug, $changedSteps, $finalsChanged);
             // Кронът проверява резултата и с непланируемите съседи, докато държи заключването.
-            if (!$sync && !planning_TaskOrder::improvesOrder($tasks, $order, $conditions)) return null;
+            if (!$sync && !$finalsChanged && !planning_TaskOrder::improvesOrder($tasks, $order, $conditions)) return null;
 
             return $order;
         }, $sync);
@@ -5929,7 +5964,8 @@ JS
         $query = static::getQuery();
         $query->where(array("#originId = '[#1#]' AND #state != 'rejected'", $originId));
         $query->orderBy('saoOrder,id', 'ASC');
-        $query->show('id,saoOrder,systemId,productId,subTitle,previousTask,state,isFinal,jobOrderMode');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->show('id,saoOrder,systemId,clonedFromId,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
 
         return $query->fetchAll();
     }
@@ -5955,6 +5991,34 @@ JS
             $originId = (int)$originId;
             $mvc->db->query("UPDATE `{$mvc->dbTableName}` SET `{$field}` = 'fixed' WHERE `{$origin}` = {$originId} AND (`{$field}` IS NULL OR `{$field}` != 'fixed')");
             $mvc->dbTableUpdated();
+        } finally {
+            core_Locks::release($key);
+        }
+    }
+
+
+    /** Класифицира само старите финални с нееднозначен режим, под същото заключване като ръчното подреждане. */
+    public static function backfillFixedFinalOrder($originId)
+    {
+        $key = self::lockJobOrder($originId);
+        try {
+            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $originId), '*', false);
+            if (!$job || ($job->state ?? null) === 'closed' || (($job->state ?? null) === 'rejected' && ($job->brState ?? null) === 'closed')) return;
+            $query = static::getQuery();
+            $query->where(array("#originId = '[#1#]' AND #isFinal = 'yes' AND #jobOrderMode = 'fixed'", $originId));
+            // Предишно приключване е замразило и операциите, които тогава са били оттеглени.
+            foreach ($job->history ?? array() as $event) {
+                if (($event['engaction'] ?? null) === 'closed' && isset($event['date'])) {
+                    $query->where(array("#createdOn > '[#1#]'", $event['date']));
+                }
+            }
+            $query->show('id,productId,subTitle,systemId');
+            $rows = $query->fetchAll();
+            if (!$rows) return;
+            $templates = cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1);
+            $updates = array_diff_key($rows, planning_TaskOrder::matchRecipe($templates, $rows));
+            foreach ($updates as $row) $row->jobOrderMode = 'fixedFinal';
+            if ($updates) expect(static::saveArray($updates, 'id,jobOrderMode'));
         } finally {
             core_Locks::release($key);
         }
@@ -6051,15 +6115,23 @@ JS
                             return null;
                         }
                     }
-                    $sRec = (object)array('id' => $id, 'previousTask' => $previous, 'jobOrderMode' => 'fixed');
-                    expect($this->save_($sRec, 'previousTask,jobOrderMode'));
-                    $tasks[$id]->previousTask = $previous;
-                    $tasks[$id]->jobOrderMode = 'fixed';
                     $sorted = array();
                     foreach ($ids as $i => $taskId) {
                         $sorted[$taskId] = clone $tasks[$taskId];
                         $sorted[$taskId]->saoOrder = $i + 1;
                     }
+                    if (isset($previous) && ($sorted[$previous]->isFinal ?? null) === 'yes') {
+                        $finals = planning_TaskOrder::getFinalOrder($sorted, $conditions);
+                        if (planning_TaskOrder::conflictsWithFinalOrder($finals, $id, $previous)) {
+                            $error = 'Избраната предходна операция противоречи на реда на финалните етапи';
+                            return null;
+                        }
+                    }
+                    $mode = planning_TaskOrder::isFinalOutsideRecipe($sorted[$id]) ? 'fixedFinal' : 'fixed';
+                    $sRec = (object)array('id' => $id, 'previousTask' => $previous, 'jobOrderMode' => $mode);
+                    expect($this->save_($sRec, 'previousTask,jobOrderMode'));
+                    $sorted[$id]->previousTask = $previous;
+                    $sorted[$id]->jobOrderMode = $mode;
                     return planning_TaskOrder::order($sorted, $conditions);
                 });
                 if ($error) {
@@ -6078,14 +6150,31 @@ JS
     }
 
 
-    /** Единичното добавяне, клонирането и груповото създаване ползват едни и същи съседи. */
-    private function positionNewTask($rec, $templates)
+    /** Единично и групово добавяне, клониране и възстановяване в същото задание. */
+    private function positionTask($rec, $templates, $restoring = false)
     {
-        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates) {
+        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates, $restoring) {
+            if (!isset($tasks[$rec->id])) return null;
+            $rec->canStore = $tasks[$rec->id]->canStore ?? null;
+            $task = $restoring ? $tasks[$rec->id] : $rec;
             unset($tasks[$rec->id]);
-            return planning_TaskOrder::insert($tasks, $rec, $templates, $conditions);
+            $withdrawnPrevious = null;
+            if ($restoring) {
+                $withdrawnPrevious = array();
+                if ($tasks && !isset($tasks[$task->previousTask ?? null])) {
+                    $query = static::getQuery();
+                    $links = $query->fetchAll(array("#originId = '[#1#]' AND #state = 'rejected' AND #previousTask IS NOT NULL", $rec->originId), 'id,previousTask');
+                    $withdrawnPrevious = array_column($links, 'previousTask', 'id');
+                }
+            }
+            $oldMode = $task->jobOrderMode ?? null;
+            $order = planning_TaskOrder::insert($tasks, $task, $templates, $conditions, $withdrawnPrevious);
+            if (($task->jobOrderMode ?? null) !== $oldMode) expect($this->save_($task, 'jobOrderMode'));
+
+            return $order;
         });
-        $rec->saoOrder = array_search($rec->id, $result['order']) + 1;
+        $offset = array_search($rec->id, $result['order']);
+        if ($offset !== false) $rec->saoOrder = $offset + 1;
     }
 
 
@@ -6094,7 +6183,7 @@ JS
     {
         $mvc = cls::get(get_called_class());
         $query = $mvc->getQuery();
-        $query->where(array("#productId = '[#1#]' AND #state NOT IN ('closed','rejected') AND #jobOrderMode = 'auto'", $stepId));
+        $query->where(array("#productId = '[#1#]' AND #state != 'rejected' AND ((#jobOrderMode = 'auto' AND #state != 'closed') OR #jobOrderMode = 'fixedFinal')", $stepId));
         $query->groupBy('originId');
         $query->show('originId');
         while ($row = $query->fetch()) {

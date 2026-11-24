@@ -491,6 +491,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::forceBackfillUsedInTask2628',
         'migrate::normalizeHrCodes2639',
         'migrate::backfillTaskOrder2647',
+        'migrate::backfillFixedFinalOrder2648',
     );
 
 
@@ -633,6 +634,21 @@ class planning_Setup extends core_ProtoSetup
     public function forceBackfillUsedInTask2628()
     {
         core_CallOnTime::setCall('planning_AssetResources', 'BackfillUsedInTask', null, dt::addSecs(120));
+    }
+
+
+    /** Различава заварените фиксирани финални от финалните с рецептурно място. */
+    public function backfillFixedFinalOrder2648()
+    {
+        $query = planning_Tasks::getQuery();
+        $query->EXT('jobState', 'planning_Jobs', 'externalName=state,remoteKey=containerId,externalFieldName=originId');
+        $query->where("#isFinal = 'yes' AND #jobOrderMode = 'fixed' AND #jobState != 'closed'");
+        $query->groupBy('originId');
+        $query->show('originId');
+        while ($row = $query->fetch()) {
+            planning_Tasks::backfillFixedFinalOrder($row->originId ?? null);
+            core_App::setTimeLimit(120);
+        }
     }
 
 

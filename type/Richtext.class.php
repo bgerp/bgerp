@@ -207,6 +207,10 @@ class type_Richtext extends type_Blob
         // При рендиране за LLM - ричтекстът с таговете, за да чете модела формата, в който пише.
         // Резултатът отива в HTML, който после се обръща в текст, затова се ескейпва
         if (Mode::is('renderForLlm')) {
+            // Старият вграден HTML е предимно маркировка - моделът получава само текста му
+            $value = preg_replace_callback("/\[html](.*?)\[\/html\]/is", function ($match) {
+                return html2text_Converter::toRichText($match[1]);
+            }, $value);
             $this->invoke('AfterGetRichtextForAI', array(&$value));
 
             return htmlspecialchars(str_replace(array("\r\n", "\r"), "\n", $value), ENT_QUOTES, 'UTF-8');

@@ -145,6 +145,7 @@ class cond_PaymentMethods extends embed_Manager
     {
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
         $this->FLD('name', 'varchar', 'caption=Наименование');
+        $this->FLD('eshopName', 'varchar', 'caption=Наименование в е-магазина');
         $orderHint = 'От 0 до 99: в началото. Без номер: по средата. От 100 нагоре: в края. Във всяка група по-малките номера са по-напред.';
         $this->FLD('listOrder', 'int(min=0,max=2147483647)', 'caption=Подреждане,unit=(място в списъка при показване)', array(
             'hint' => $orderHint,
@@ -272,6 +273,21 @@ class cond_PaymentMethods extends embed_Manager
 
             if((!empty($rec->discountPeriod) && empty($rec->discountPercent)) || (empty($rec->discountPeriod) && !empty($rec->discountPercent))){
                 $form->setError('discountPeriod,discountPercent', 'Трябва и двете полета за отстъпка при предсрочно плащане да са попълнени');
+            }
+
+            // Името за е-магазина не може да съвпада с име или име за е-магазина на друг метод
+            if (!empty($rec->eshopName)) {
+                $duplicates = $mvc->getDuplicateNames($rec, array("LOWER(#eshopName) = LOWER('[#1#]') OR LOWER(#name) = LOWER('[#1#]')", $rec->eshopName));
+                if (countR($duplicates)) {
+                    $form->setError('eshopName', 'Името за е-магазина съвпада с друг метод|*: ' . implode(', ', $duplicates) . '|*!');
+                }
+            }
+
+            if (!empty($rec->name)) {
+                $duplicates = $mvc->getDuplicateNames($rec, array("LOWER(#eshopName) = LOWER('[#1#]')", $rec->name));
+                if (countR($duplicates)) {
+                    $form->setError('name', 'Наименованието съвпада с името за е-магазина на друг метод|*: ' . implode(', ', $duplicates) . '|*!');
+                }
             }
         }
     }
@@ -670,5 +686,53 @@ class cond_PaymentMethods extends embed_Manager
     public static function addToCartView($id, $cartRec, $cartRow, &$tpl)
     {
         
+    }
+
+
+    /**
+     * Имената на другите методи, отговарящи на условието
+     *
+     * @param stdClass $rec  - редактиран метод
+     * @param array    $cond - условие за търсене
+     *
+     * @return array
+     */
+    private function getDuplicateNames($rec, $cond)
+    {
+        $res = array();
+        $query = $this->getQuery();
+        $query->where($cond);
+        if (isset($rec->id)) {
+            $query->where(array("#id != [#1#]", $rec->id));
+        }
+        while ($mRec = $query->fetch()) {
+            $res[] = $this->getVerbal($mRec, 'name');
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Наименованието на метода за показване в онлайн магазина
+     *
+     * @param int|stdClass $id - ид или запис на метода
+     *
+     * @return string
+     */
+    public static function getEshopName($id)
+    {
+        $rec = static::fetchRec($id);
+        if (!empty($rec->eshopName)) {
+
+            return tr(static::getVerbal($rec, 'eshopName'));
+        }
+
+        if (!empty($rec->name)) {
+
+            return tr(static::getVerbal($rec, 'name'));
+        }
+
+        return static::getVerbal($rec, 'title');
     }
 }

@@ -25,6 +25,11 @@ class core_Mvc
 class core_FieldSet {}
 class core_App { public static $error = ''; public static function isReplicationOK() { return self::$error; } }
 class core_Cache { public static function get($type, $key) { return true; } }
+class Mode
+{
+    public static $stopOnOverload = false;
+    public static function is($name) { return $name === 'stopOnReplicaOverload' && self::$stopOnOverload; }
+}
 class cls
 {
     public static $db;
@@ -106,6 +111,17 @@ try {
 check($query->selectOnReplica() === 'replica' && (array) cls::$db === $primary, 'A failed callback releases the primary-only scope');
 core_App::$error = 'Replica is unavailable';
 check($query->selectOnReplica() === 'primary', 'Failed replica health check preserves the primary route');
+core_App::$error = '1040:Too many connections';
+check($query->selectOnReplica() === 'primary', 'Ordinary callers retain the primary fallback on overload');
+Mode::$stopOnOverload = true;
+try {
+    $manager->callOnReplica(function () { throw new LogicException('Overloaded replica query ran on primary'); });
+    check(false, 'Replica overload must interrupt this read');
+} catch (RuntimeException $e) {
+    check($e->getCode() === 1040 && (array) cls::$db === $primary, 'Overload preserves the primary connection and returns 1040');
+}
+core_App::$error = 'Replica is unavailable';
+check($query->selectOnReplica() === 'primary', 'Other health errors preserve the existing fallback');
 check(strpos(implode('\n', Debug::$logs), 'forceReplica() END status=unavailable') !== false, 'Unavailable replica outcome must be logged');
 foreach (array('not-configured', 'disabled', 'selected') as $status) {
     check(strpos(implode('\n', Debug::$logs), 'forceReplica() END status=' . $status) !== false, 'Missing routing outcome: ' . $status);

@@ -25,9 +25,9 @@ function operation($id, $product, $mode = 'recipe', $key = null, $subtitle = '')
     return (object)array('id' => $id, 'productId' => $product, 'jobOrderMode' => $mode, 'systemId' => $key, 'subTitle' => $subtitle, 'saoOrder' => $id);
 }
 
-function added($job, $row, $recipe, $conditions = array())
+function added($job, $row, $recipe, $conditions = array(), $withdrawnPrevious = null)
 {
-    $order = planning_TaskOrder::insert($job, $row, $recipe, $conditions);
+    $order = planning_TaskOrder::insert($job, $row, $recipe, $conditions, $withdrawnPrevious);
     $job[$row->id] = $row;
     $res = array();
     foreach ($order as $index => $id) {
@@ -85,4 +85,139 @@ $clones[5]->systemId = 0;
 $clones[9]->subTitle = '';
 checkOrder(planning_TaskOrder::existingByTemplate($twice, $clones), array(0 => array(5 => 5), 1 => array(9 => 9)), 'Плюсът използва идентично съответствие');
 checkOrder(planning_TaskOrder::matchRecipe(array((object)array('productId' => 1)), $clones), array(), 'Генериран шаблон без рецепта');
-echo "OK: recipe stages, mixed cloning, manual order and changing stage dependencies\n";
+
+$firstFinal = operation(40, 40, 'auto');
+$firstFinal->isFinal = 'yes';
+$storedFinal = operation(50, 50, 'auto');
+$storedFinal->isFinal = $storedFinal->canStore = 'yes';
+$regular = operation(60, 60, 'auto');
+$rows = added(array(), $storedFinal, array());
+$rows = added($rows, $firstFinal, array());
+$rows = added($rows, $regular, array());
+checkOrder(array_keys($rows), array(60, 40, 50), 'Първо финална без предходни, после друга финална и междинна');
+checkOrder(array_keys(added(array(60 => $regular), $firstFinal, array())), array(60, 40), 'Финална, въведена след междинната');
+$needsStored = array(40 => array(50 => 50), 60 => array(40 => 40));
+checkOrder(planning_TaskOrder::order($rows, $needsStored), array(60, 50, 40), 'Междинните са преди финалните, а вътре в групата Предходни е преди Складируем');
+$otherStored = clone $storedFinal;
+$otherStored->id = $otherStored->productId = 51;
+$rows = array(51 => $otherStored) + $rows;
+checkOrder(planning_TaskOrder::order($rows, $needsStored), array(60, 50, 40, 51), 'Независимият складируем остава последен');
+$cycle = array(40 => array(50 => 50), 50 => array(40 => 40), 51 => array(50 => 50));
+$order = planning_TaskOrder::order($rows, $cycle);
+checkOrder($order, array(60, 40, 50, 51), 'Цикъл между финални запазва изпълнимата зависимост към трети етап');
+$sorted = array();
+foreach ($order as $position => $id) {
+    $sorted[$id] = clone $rows[$id];
+    $sorted[$id]->saoOrder = $position + 1;
+}
+checkOrder(planning_TaskOrder::order($sorted, $cycle), $order, 'Следващото подреждане дава същия резултат');
+$regular->jobOrderMode = 'fixed';
+$regular->previousTask = 40;
+checkOrder(array_keys(added(array(40 => $firstFinal), $regular, array())), array(60, 40), 'Заварена несъвместима ръчна връзка не изтегля финалната напред');
+foreach (array(array('clonedFromId', 70), array('systemId', 0), array('jobOrderMode', 'recipe'), array('jobOrderMode', 'fixed')) as list($field, $value)) {
+    $protected = clone $firstFinal;
+    $protected->{$field} = $value;
+    $rows = array(40 => $protected, 60 => $regular);
+    checkOrder(planning_TaskOrder::order($rows, array()), array(40, 60), 'Предишният ред се пази при ' . $field);
+    checkOrder(array_keys(added(array(40 => $protected), $regular, array())), array(40, 60), 'Единично добавяне към задание с ' . $field);
+}
+$stockClone = clone $storedFinal;
+$stockClone->clonedFromId = 80;
+$regular = operation(60, 60, 'auto');
+$regular->clonedFromId = 81;
+$clonedJob = array(50 => $stockClone, 60 => $regular);
+checkOrder(array_keys(added($clonedJob, $firstFinal, array())), array(60, 40, 50), 'Ръчна финална към клонирано задание подрежда и складируемата финална');
+$clonedJob = array(60 => $regular, 61 => operation(61, 61, 'auto'));
+checkOrder(array_keys(added($clonedJob, $firstFinal, array(), array(40 => array(60 => 60), 60 => array(61 => 61)))), array(60, 61, 40), 'Ръчна финална пази реда на заварените междинни');
+$freeFinal = clone $firstFinal;
+$recipeFinal = operation(10, 10, 'recipe', 0);
+$recipeFinal->isFinal = 'yes';
+$recipeMiddle = operation(20, 20, 'recipe', 1);
+$recipe = array((object)array('_dId' => 110, 'productId' => 10), (object)array('_dId' => 120, 'productId' => 20));
+$mixedJob = added(array(10 => $recipeFinal, 20 => $recipeMiddle), $freeFinal, $recipe, array(40 => array(10 => 10)));
+checkOrder(array_keys($mixedJob), array(10, 20, 40), 'Наличието на рецепта запазва само определените от нея места');
+$mixedJob = added($mixedJob, operation(70, 70, 'auto'), $recipe);
+checkOrder(array_keys($mixedJob), array(10, 20, 70, 40), 'Междинна след финалната запазва реда от рецептата и финалната група');
+$lateClone = operation(71, 71, 'auto');
+$lateClone->clonedFromId = 91;
+$mixedJob = added($mixedJob, $lateClone, $recipe);
+checkOrder(array_keys($mixedJob), array(10, 20, 70, 71, 40), 'По-късно клонирана междинна също влиза пред ръчната финална');
+$recipe[] = (object)array('_dId' => 130, 'productId' => 30);
+$mixedJob = added($mixedJob, operation(72, 30, 'recipe', 2), $recipe);
+checkOrder(array_keys($mixedJob), array(10, 20, 72, 70, 71, 40), 'Нов рецептурен етап заема мястото си пред ръчната финална');
+$older = clone $firstFinal;
+$older->id = 35;
+$newer = clone $firstFinal;
+$newer->id = 41;
+$sameStage = array(41 => $newer, 40 => $firstFinal, 35 => $older, 60 => $regular);
+checkOrder(planning_TaskOrder::order($sameStage, array()), array(60, 35, 40, 41), 'Еднакви финални се връщат по ред на добавяне след разместване');
+$previewFinal = clone $firstFinal;
+$previewFinal->id = -1;
+checkOrder(array_keys(added($sameStage, $previewFinal, array())), array(60, 35, 40, 41, -1), 'В прегледа новата финална е най-новата при равни условия');
+$sameStage[40]->isFinal = 'no';
+checkOrder(planning_TaskOrder::order($sameStage, array()), array(40, 60, 35, 41), 'Бивш финален етап не участва в крайния ред');
+$firstFinal->isFinal = 'yes';
+$firstFinal->jobOrderMode = 'fixedFinal';
+$firstFinal->state = 'closed';
+checkOrder(array_keys(added(array(40 => $firstFinal), operation(90, 90, 'auto'), array())), array(90, 40), 'Приключена ръчна финална запазва мястото си в края при следващо добавяне');
+$firstFinal->state = 'wakeup';
+checkOrder(planning_TaskOrder::isFixed($firstFinal), true, 'Приключената финална остава фиксирана и след събуждане');
+$firstFinal->jobOrderMode = 'recipe';
+$finalFirstRecipe = array((object)array('_dId' => 110, 'productId' => 40), (object)array('_dId' => 120, 'productId' => 60));
+$rows = added(array(40 => $firstFinal), operation(60, 60, 'recipe', 1), $finalFirstRecipe);
+checkOrder(array_keys($rows), array(40, 60), 'Рецепта, която изрично започва с финален етап');
+
+// Възстановяването чете ръчните връзки в същото задание, включително през оттеглени операции.
+$job = array(4 => operation(4, 4, 'fixed'), 1 => operation(1, 1, 'fixed'), 5 => operation(5, 5, 'fixed'));
+$restored = operation(3, 3, 'fixed');
+$restored->saoOrder = 2;
+$restored->previousTask = 2;
+$withdrawn = array(2 => 8, 8 => 1, 7 => 6, 6 => 3);
+$job[5]->previousTask = 7;
+checkOrder(array_keys(added($job, $restored, array(), array(), $withdrawn)), array(4, 1, 3, 5), 'След най-близката налична ръчна предходна');
+checkOrder($restored->previousTask, 2, 'Оттеглената ръчна предходна остава записана');
+$job = array(5 => $job[5], 4 => $job[4], 1 => $job[1]);
+$restored->previousTask = 9;
+$job[4]->previousTask = 3;
+checkOrder(array_keys(added($job, $restored, array(), array(), $withdrawn)), array(3, 5, 4, 1), 'Преди първата от наличните ръчни следващи в разместения списък');
+$restored->previousTask = 1;
+checkOrder(array_keys(added($job, $restored, array(), array(), $withdrawn)), array(5, 4, 1, 3), 'Наличната ръчна предходна има предимство пред следващите');
+$restored->previousTask = 8;
+$job = array(4 => operation(4, 4, 'fixed'), 1 => operation(1, 1, 'fixed'));
+checkOrder(array_keys(added($job, $restored, array(), array(), array(8 => 2, 2 => 8))), array(4, 1, 3), 'Цикъл от оттеглени връзки оставя свободния ред в края');
+
+$job = array(91 => operation(91, 91, 'fixed'));
+$withoutConditions = $job;
+foreach (array(92, 93, 94) as $id) {
+    $row = operation($id, $id, 'fixed');
+    $row->saoOrder = 2;
+    $job = added($job, $row, array(), array(91 => array(92 => 92)), array());
+    $withoutConditions = added($withoutConditions, $row, array(), array(), array());
+}
+checkOrder(array_keys($job), array(92, 91, 93, 94), 'Job30 с три запомнени позиции №2 и технологична зависимост 92 преди 91');
+checkOrder(array_keys($withoutConditions), array(91, 92, 93, 94), 'При три еднакви стари номера без зависимости важи редът на възстановяване');
+
+// По-стар клониран ред без подзаглавие получава същото съответствие като в списъка от плюса.
+$repeatedRecipe = array((object)array('_dId' => 20, 'productId' => 7), (object)array('_dId' => 21, 'productId' => 9), (object)array('_dId' => 22, 'productId' => 7));
+$job = array(20 => operation(20, 9, 'recipe', 1), 30 => operation(30, 7));
+$older = operation(10, 7);
+$older->clonedFromId = 6;
+checkOrder(array_keys(added($job, $older, $repeatedRecipe, array(), array())), array(10, 20, 30), 'Възстановяване на по-стария от два еднакви рецептурни реда');
+
+$regular = operation(60, 60, 'auto');
+$regular->previousTask = 40;
+$job = array(60 => $regular, 50 => $storedFinal);
+checkOrder(array_keys(added($job, $freeFinal, array(), array(), array())), array(60, 40, 50), 'Възстановената ръчна финална остава във финалната група');
+
+$final = operation(40, 40, 'auto');
+$final->isFinal = 'yes';
+$later = array(60 => operation(60, 60, 'recipe', 1));
+$rows = added($later, $final, $finalFirstRecipe, array(), array());
+checkOrder(array_keys($rows), array(40, 60), 'Финалната вече има място в рецептата при възстановяването');
+checkOrder($rows[40]->jobOrderMode, 'recipe', 'Рецептурното място се пази при следващо планиране');
+$rows = added($later, $rows[40], array(), array(), array());
+checkOrder(array_keys($rows), array(60, 40), 'Отпаднала от рецептата ръчна финална се връща накрая');
+checkOrder($rows[40]->jobOrderMode, 'auto', 'Отпадналият етап отново е свободен');
+$final->jobOrderMode = 'fixedFinal';
+checkOrder(added($later, $final, $finalFirstRecipe, array(), array())[40]->jobOrderMode, 'fixedFinal', 'Ръчно фиксираният режим се запазва при възстановяване');
+echo "OK: recipe stages, mixed cloning, manual final stages, changing stage dependencies and restoring operations\n";

@@ -252,7 +252,16 @@ class bank_SpendingDocuments extends bank_Document
                     $infoSuffix = '';
                 }
 
-                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId ?? null, true) . $infoSuffix, $icon, false);
+                // За LLM: подсказката се губи, а показаната сума е намалената, не записаната
+                $percentForLlm = round($rec->earlyPaymentPercent * 100, 2) . '%';
+                $isPlanned = in_array($rec->state ?? null, array('draft', 'pending'));
+                $getAiHint = function ($fullAmount, $currencyId) use ($percentForLlm, $isPlanned, $rec) {
+                    $fullAmountForLlm = round($fullAmount, 2) . (!empty($currencyId) ? ' ' . currency_Currencies::getCodeById($currencyId) : '');
+
+                    return $isPlanned ? "Full amount {$fullAmountForLlm}; this is it after {$percentForLlm} early payment discount, only if paid by {$rec->earlyPaymentUntil}" : "Full amount {$fullAmountForLlm}, less {$percentForLlm} early payment discount";
+                };
+
+                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId ?? null, true) . $infoSuffix, $icon, false, array('aiHint' => $getAiHint($rec->amount, $rec->currencyId ?? null)));
                 if(in_array($rec->state ?? null, array('draft', 'pending')) && isset($fields['-list'])){
                     $row->amount = ht::createElement('div', array('class' => 'amountBadge'), $row->amount, true);
                 }
@@ -261,7 +270,7 @@ class bank_SpendingDocuments extends bank_Document
                     if(!empty($row->amountDeal)){
                         $amountDealWithoutDiscount = round($rec->amountDeal * (1 - $rec->earlyPaymentPercent), 2);
                         $amountDealWithoutDiscountVerbal = $mvc->getFieldType('amountDeal')->toVerbal($amountDealWithoutDiscount);
-                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . $infoSuffix, 'noicon');
+                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . $infoSuffix, 'noicon', true, array('aiHint' => $getAiHint($rec->amountDeal, $rec->dealCurrencyId ?? null)));
                     }
                 }
             }

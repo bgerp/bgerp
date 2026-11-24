@@ -9,7 +9,7 @@
  * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -252,7 +252,7 @@ class bgfisc_plg_Sales extends core_Plugin
                     $res = new core_ET('');
                     $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Отпечатва се фискален бон ...<br> Моля, изчакайте!</h3></div></body>');
                     
-                    $js = $obj->js;
+                    $js = $obj->js ?? '';
                     if (isset($obj->redirect)) {
                         $js = "document.location = '{$obj->redirect}';";
                     }

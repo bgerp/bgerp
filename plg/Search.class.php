@@ -429,8 +429,8 @@ class plg_Search extends core_Plugin
 
             // В общ boolean MATCH MyISAM търси по индекса само последния prefix термин, а другите проверява ред по ред.
             // Затова фразите и целите думи остават в MATCH (или най-дългият prefix, ако няма такива), а другите
-            // prefix термини са LOCATE - еквивалентно на +w*, защото ключовите думи започват с интервал
-            if ($prefixTerms && !$ftsTerms) {
+            // prefix термини се проверяват в текста. В папка така се намират и думи над ft_max_word_len.
+            if ($prefixTerms && !$ftsTerms && empty($query->searchPrefixesInScope)) {
                 usort($prefixTerms, function ($a, $b) {
                     return $b['len'] - $a['len'];
                 });
@@ -453,6 +453,66 @@ class plg_Search extends core_Plugin
         foreach (array_slice($query->where, $firstCondition) as $condition) {
             $query->searchConditions[$condition] = $condition;
         }
+    }
+
+
+    /**
+     * На голяма MyISAM таблица проверяваме само дали съществува следващо FULLTEXT попадение след лимита.
+     */
+    protected static function fullTextFitsLimit($query, $condition, $limit)
+    {
+        if (!preg_match("/^MATCH\\(#(\\w+)\\) AGAINST\\('(.*)' IN BOOLEAN MODE\\)$/s", $condition, $match)) {
+            return false;
+        }
+        $mvc = $query->mvc;
+        $field = $match[1];
+        if (($query->fields[$field]->kind ?? null) !== 'FLD' || empty($mvc->dbTableName) || empty($mvc->db)
+            || !empty($query->indexes[$mvc->dbTableName])) {
+            return false;
+        }
+        foreach ((array) ($mvc->dbIndexes ?? array()) as $index) {
+            if (($index->type ?? null) !== 'FULLTEXT' || array_values(arr::make($index->fields ?? null)) !== array($field)) {
+                continue;
+            }
+            if (!self::isBigTable($query)) {
+                return false;
+            }
+
+            $check = function () use ($mvc, $field, $match, $limit) {
+                $db = $mvc->db;
+                $table = $mvc->dbTableName;
+                if (core_Query::getTableEngine($db, $table) !== 'MYISAM') {
+                    return false;
+                }
+
+                // Само избор на план. Папката, правата и текущите резултати не се кешират.
+                $key = md5(serialize(array($db->dbHost ?? '', $db->dbName ?? '', $db->dbUser ?? '', $table, $field, $match[2], (int) $limit)));
+                $cached = core_Manager::callWithoutReplica(function () use ($key) {
+                    return core_Cache::get('searchFtLimit', $key);
+                });
+                if (is_int($cached)) {
+                    return (bool) $cached;
+                }
+
+                $column = str::phpToMysqlName($field);
+                $against = $db->escape($match[2]);
+                $sql = "SELECT 1 FROM `{$table}` WHERE MATCH(`{$column}`) AGAINST('{$against}' IN BOOLEAN MODE)";
+                $result = $db->query($sql . ' LIMIT ' . (int) $limit . ',1');
+                $overflow = $db->fetchArray($result);
+                $db->freeResult($result);
+
+                $fits = !$overflow;
+                core_Manager::callWithoutReplica(function () use ($key, $fits) {
+                    core_Cache::set('searchFtLimit', $key, (int) $fits, 7 * 24 * 60);
+                });
+
+                return $fits;
+            };
+
+            return $mvc instanceof core_Manager ? $mvc->callOnReplica($check) : $check();
+        }
+
+        return false;
     }
 
 
@@ -487,7 +547,7 @@ class plg_Search extends core_Plugin
 
     /**
      * Evaluate text using primary-key lookups within a small, complete set of documents.
-     * Returns false without changing the query when its scope is too large or unsupported.
+     * Returns false without changing the query for unsupported scopes, large scopes or selective FULLTEXT searches.
      */
     public static function restrictToScope($query, $idField = 'id', $limit = 5000)
     {
@@ -505,6 +565,11 @@ class plg_Search extends core_Plugin
             if (!in_array($condition, $query->where, true)) {
                 return false;
             }
+        }
+
+        // Без MATCH индексите на папката и нишката вече ограничават търсенето.
+        if (!empty($query->searchPrefixesInScope) && !preg_grep('/^MATCH\(/', $query->searchConditions)) {
+            return false;
         }
 
         $probe = clone $query;
@@ -532,6 +597,12 @@ class plg_Search extends core_Plugin
         $clauses = $probe->getWhereAndHaving();
         if (!empty($clauses->h)) {
             return false;
+        }
+
+        foreach ($query->searchConditions as $condition) {
+            if (self::fullTextFitsLimit($query, $condition, $limit)) {
+                return false;
+            }
         }
 
         $ids = array();

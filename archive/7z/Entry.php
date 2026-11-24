@@ -48,6 +48,10 @@ class Archive_7z_Entry
      * @var string
      */
     public $block;
+    /**
+     * @var string
+     */
+    public $folder;
 
     /**
      * @var Archive_7z
@@ -126,6 +130,10 @@ class Archive_7z_Entry
         case 'Block':
             $this->block = $value;
             break;
+
+        case 'Folder':
+            $this->folder = $value;
+            break;
         }
     }
 
@@ -135,7 +143,12 @@ class Archive_7z_Entry
      */
     public function isDirectory()
     {
-        return ($this->attributes[0] === 'D');
+        // tar и някои zip са без атрибути - тогава от реда "Folder"
+        if (isset($this->folder) && $this->folder !== '') {
+            return ($this->folder === '+');
+        }
+
+        return (substr((string) $this->attributes, 0, 1) === 'D');
     }
 
 

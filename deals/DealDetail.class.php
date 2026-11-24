@@ -476,7 +476,7 @@ abstract class deals_DealDetail extends doc_Detail
         if ($tplLang) {
             core_Lg::push($tplLang);
         }
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $date = cat_ProductTplCache::getDocumentCacheDate($masterRec);
 
         foreach ($rows as $id => &$row) {
             $rec = $recs[$id];

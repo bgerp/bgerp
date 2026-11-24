@@ -279,7 +279,25 @@ class planning_TaskConstraints extends core_Master
             $folderLocations[$folderId] = $folderLocations[$folderId] ?? '-';
         }
 
-        // Извличане на всички етапи, които са посочени като предишни
+        // Всички текущи ПО към заданието за посочените етапи
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending') OR (#isFinal = 'yes' AND #state != 'rejected' AND #jobOrderMode IN ('auto', 'fixedFinal'))");
+        if (countR($jobIds)) {
+            $tQuery->in('originId', $jobIds);
+        } else {
+            $tQuery->where("1=2");
+        }
+        $tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId,jobOrderMode,previousTask,isFinal,canStore,systemId,clonedFromId,state');
+        $additionalFolderIds = array();
+        while ($tRec = $tQuery->fetch()) {
+            $tasksByJobs[$tRec->originId][$tRec->id] = $tRec;
+            if (($tRec->isFinal ?? null) === 'yes') $stepIds[$tRec->productId] = $tRec->productId;
+            if (!isset($folderLocations[$tRec->folderId])) {
+                $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
+            }
+        }
+
         $cQuery = planning_StepConditions::getQuery();
         if (countR($stepIds)) {
             $cQuery->in("stepId", $stepIds);
@@ -289,23 +307,6 @@ class planning_TaskConstraints extends core_Master
         $cQuery->show('stepId,prevStepId,delay,intersect');
         while ($cRec = $cQuery->fetch()) {
             $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec;
-        }
-
-        // Всички текущи ПО към заданието за посочените етапи
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
-        if (countR($jobIds)) {
-            $tQuery->in('originId', $jobIds);
-        } else {
-            $tQuery->where("1=2");
-        }
-        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId,jobOrderMode,previousTask,isFinal');
-        $additionalFolderIds = array();
-        while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = $tRec;
-            if (!isset($folderLocations[$tRec->folderId])) {
-                $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
-            }
         }
 
         foreach ($tasks as $task) {
@@ -319,10 +320,18 @@ class planning_TaskConstraints extends core_Master
                 'jobOrderMode' => $task->jobOrderMode ?? ($tasksByJobs[$originId][$id]->jobOrderMode ?? null),
                 'previousTask' => property_exists($task, 'previousTask') ? $task->previousTask : ($tasksByJobs[$originId][$id]->previousTask ?? null),
                 'isFinal' => $task->isFinal ?? ($tasksByJobs[$originId][$id]->isFinal ?? null),
+                'canStore' => $task->canStore ?? ($tasksByJobs[$originId][$id]->canStore ?? null),
+                'systemId' => $task->systemId ?? ($tasksByJobs[$originId][$id]->systemId ?? null),
+                'clonedFromId' => $task->clonedFromId ?? ($tasksByJobs[$originId][$id]->clonedFromId ?? null),
+                'state' => $task->state ?? ($tasksByJobs[$originId][$id]->state ?? null),
+                '_requested' => true,
             );
+            foreach ($task->_previewJobOrder ?? array() as $previewId => $position) {
+                if (isset($tasksByJobs[$originId][$previewId])) $tasksByJobs[$originId][$previewId]->saoOrder = $position + 1;
+            }
         }
 
-        $fixedJobOrder = array();
+        $fixedJobOrder = $finalPositions = $changedFinals = array();
         // Редът в заданието е технологичен ред, а не само ред за визуализация.
         foreach ($tasksByJobs as $originId => &$tasksInJob) {
             uasort($tasksInJob, function($a, $b) {
@@ -333,8 +342,23 @@ class planning_TaskConstraints extends core_Master
                 return ($a->saoOrder < $b->saoOrder) ? -1 : 1;
             });
 
+            $finals = $finalPositions[$originId] = planning_TaskOrder::getFinalOrder($tasksInJob, $prevSteps);
+            if ($finals && array_slice(array_keys($tasksInJob), -count($finals)) !== array_keys($finals)) {
+                foreach (array_keys($finals) as $id) {
+                    $row = $tasksInJob[$id];
+                    unset($tasksInJob[$id]);
+                    $tasksInJob[$id] = $row;
+                }
+                $changedFinals[$originId] = $originId;
+            }
+
             $previousTaskId = null;
-            foreach ($tasksInJob as $taskInJob) {
+            foreach ($tasksInJob as $id => $taskInJob) {
+                // Черновите и приключените участват в реда, но не стават времеви зависимости.
+                if (empty($taskInJob->_requested) && !in_array($taskInJob->state ?? null, array('active', 'stopped', 'wakeup', 'pending'), true)) {
+                    unset($tasksInJob[$id]);
+                    continue;
+                }
                 if (!isset($fixedJobOrder[$originId]) && planning_TaskOrder::isFixed($taskInJob)) $fixedJobOrder[$originId] = true;
                 if (isset($previousTaskId)) {
                     $previousTaskByJobOrder[$originId][$taskInJob->id] = $previousTaskId;
@@ -374,14 +398,17 @@ class planning_TaskConstraints extends core_Master
             // При приключена/оттеглена предходна се продължава назад по реда на
             // заданието до най-близката планируема операция.
             $prevTaskIds = array();
-            $hasPlanableManualPrevious = isset($taskRec->previousTask) && isset($tasksByJobs[$taskRec->originId][$taskRec->previousTask]);
+            $originId = $taskRec->originId;
+            $finals = $finalPositions[$originId] ?? array();
+            $manualPrevious = $taskRec->previousTask ?? null;
+            $hasPlanableManualPrevious = isset($tasksByJobs[$originId][$manualPrevious])
+                && !planning_TaskOrder::conflictsWithFinalOrder($finals, $taskRec->id, $manualPrevious);
             if ($hasPlanableManualPrevious) {
                 $prevTaskProductId = $tasksByJobs[$taskRec->originId][$taskRec->previousTask]->productId;
                 $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
             } else {
                 $prevStepsArr = $prevSteps[$taskRec->productId] ?? array();
                 if ($prevStepsArr) {
-                    $originId = $taskRec->originId;
                     $fixedOrder = isset($fixedJobOrder[$originId]);
                     $later = false;
                     foreach ($tasksByJobs[$originId] ?? array() as $previousTask) {
@@ -391,6 +418,8 @@ class planning_TaskConstraints extends core_Master
                             continue;
                         }
                         if (!isset($prevStepsArr[$previousTask->productId])) continue;
+                        // След записания ред обратна връзка от финален етап би затворила цикъл в плановите времена.
+                        if ($later && planning_TaskOrder::conflictsWithFinalOrder($finals, $taskRec->id, $previousTask->id)) continue;
                         if ($later && is_array($reorderJobs) && ($taskRec->jobOrderMode ?? null) === 'auto') $reorderJobs[$originId] = $originId;
                         if (!$later || !$fixedOrder) $prevTaskIds[$previousTask->id] = $prevStepsArr[$previousTask->productId];
                     }
@@ -429,10 +458,11 @@ class planning_TaskConstraints extends core_Master
 
         // Само при действително поправима обратна зависимост кронът записва подредба.
         foreach ($reorderJobs ?? array() as $originId) {
-            $rows = $tasksByJobs[$originId];
-            $order = planning_TaskOrder::order($rows, $prevSteps);
+            $rows = array_diff_key($tasksByJobs[$originId], $finalPositions[$originId]);
+            $order = planning_TaskOrder::orderByPredecessors($rows, $prevSteps);
             if (!planning_TaskOrder::improvesOrder($rows, $order, $prevSteps)) unset($reorderJobs[$originId]);
         }
+        if (is_array($reorderJobs)) $reorderJobs += $changedFinals;
 
         return $res;
     }

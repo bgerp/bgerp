@@ -10,7 +10,8 @@
     border: 1px solid #cbd0d6;
     border-radius: 6px;
     background: #fff;
-    color: var(--theme-color, #536273);
+    color: #536273;
+    color: color-mix(in srgb, var(--theme-color, #536273) 20%, #536273 80%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
     cursor: pointer;
     z-index: 1001;
