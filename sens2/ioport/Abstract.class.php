@@ -152,11 +152,12 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
                 foreach ($periods->param as $i => $param) {
                     list($name, ) = explode(' ', $param ?? '');
                     if (($p->lName ?? null) == $name) {
+                        // Стойностите са текст като '5 min' - минутите са числото в началото
                         if (!empty($periods->readPeriod[$i])) {
-                            $p->readPeriod = floor($periods->readPeriod[$i]) * 60;
+                            $p->readPeriod = floor((float) $periods->readPeriod[$i]) * 60;
                         }
                         if (!empty($periods->logPeriod[$i])) {
-                            $p->logPeriod = floor($periods->logPeriod[$i]) * 60;
+                            $p->logPeriod = floor((float) $periods->logPeriod[$i]) * 60;
                         }
                     }
                 }
