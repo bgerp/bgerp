@@ -17,6 +17,9 @@
  */
 class planning_Tasks extends core_Master
 {
+    const LIST_FILTER_KEY = 'planningTasksListFilter';
+    const LIST_FILTER_SPECIFIC_FIELDS = 'folders,productId,assetId,state,isFinalSelect,prevProgress';
+
     /**
      * Дали може да бъде само в началото на нишка
      */
@@ -1198,17 +1201,19 @@ class planning_Tasks extends core_Master
             $wasteRows = '';
             $wasteCaption = tr('Отпадък');
             foreach ($wasteArr as $key => $wasteRow) {
+                $wasteProductLink = $wasteRow->productLink ?? '';
+                $wasteQuantity = $wasteRow->quantityVerbal ?? '';
                 if ($key === 'total') {
-                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    $wasteCaption = "{$wasteProductLink}: {$wasteQuantity}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteProductLink}</td><td class='nowrap'><b>{$wasteQuantity}</b></td></tr>";
             }
             $wasteStart = $row->wasteStart ?? 'n/a';
             $wastePercent = $row->wastePercent ?? 'n/a';
             $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
-            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<div style='display:{$display}' class='docHeaderVal'><table class='taskWasteProducts'>
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table></div>");
         }
 
         $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
@@ -1253,6 +1258,16 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Антетката следва общото ограничение за ширината на секциите.
+     */
+    protected static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res->prepend("<div class='scrolling-holder'>");
+        $res->append('</div>');
+    }
+
+
+    /**
      * След подготовка на антетката
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
@@ -1262,7 +1277,7 @@ class planning_Tasks extends core_Master
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
 
         if ($isNarrow) {
-            $res = new ET("<table class='subInfo'>");
+            $res = new ET("<table class='subInfo taskHeaderSections'>");
             foreach ((array)$headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
@@ -1283,10 +1298,10 @@ class planning_Tasks extends core_Master
             $wasteValue = $waste['val'] ?? '';
             $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
                 <div class='taskWasteDivider'></div>
-                <table style='width:100%;'><tr>
-                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
-                    <td style='vertical-align:top;'>{$wasteValue}</td>
-                </tr></table>
+                <div class='taskWasteSummary'>
+                    <div class='nowrap'>{$wasteName}</div>
+                    <div class='taskWasteItems'>{$wasteValue}</div>
+                </div>
                 </td></tr>"));
         }
 
@@ -2369,121 +2384,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Полета от листовия филтър, чиито последни стойности се пазят за потребителя
-     *
-     * @return array
-     */
-    protected static function getPersistentListFilterFields()
-    {
-        return arr::make(
-            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect,prevProgress',
-            true
-        );
-    }
-
-
-    /**
-     * Възстановява постоянните потребителски настройки още преди подготовката на листа
-     *
-     * Това трябва да стане преди събитията BeforePrepareListFilter на плъгините,
-     * защото някои от тях ограничават заявката според текущите стойности в Request.
-     */
-    protected static function restorePersistentListFilter()
-    {
-        if (Mode::is('isReorder')) {
-            return;
-        }
-
-        $savedValues = core_Settings::fetchKeyNoMerge(
-            'planningTasksListFilter',
-            core_Users::getCurrent()
-        );
-        $restoreValues = array();
-        $hasExplicitValues = false;
-        $savedValuesChanged = false;
-
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            if (Request::get($fieldName, false) !== null) {
-                $hasExplicitValues = true;
-                continue;
-            }
-
-            if (array_key_exists($fieldName, $savedValues)) {
-                $value = $savedValues[$fieldName];
-                if (!empty($value) && in_array($fieldName, array('saleId', 'purchaseId'))) {
-                    // Старите настройки може да сочат договор, който вече няма задания.
-                    list($sourceClass) = planning_Jobs::getSourceInfo((object) array($fieldName => $value));
-                    if (!countR(planning_Jobs::getListSourceOptions(array('mvc' => $sourceClass), 1, '', $value))) {
-                        $savedValues[$fieldName] = $value = '';
-                        $savedValuesChanged = true;
-                    }
-                }
-                $restoreValues[$fieldName] = $value;
-            }
-        }
-
-        if ($savedValuesChanged) {
-            core_Settings::setValues('planningTasksListFilter', $savedValues, core_Users::getCurrent());
-        }
-
-        if (countR($restoreValues)) {
-            Request::push($restoreValues);
-        }
-
-        // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
-        // от core_Users::forceLogin() самостоятелно или заедно с Cmd[default]. Тогава формата
-        // показва стойностите, но refresh-командата не прилага целия листов филтър.
-        // При обикновено зареждане го третираме като нормално изпращане на филтъра.
-        $cmd = Request::get('Cmd', false);
-        $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
-            is_array($cmd) && isset($cmd['refresh']) &&
-            !array_diff_key($cmd, array('default' => true, 'refresh' => true));
-
-        if (($hasExplicitValues || countR($restoreValues)) &&
-            ($cmd === null || $isFullPageRefresh)) {
-            Request::push(array('Cmd' => array('default' => 1)));
-        }
-
-        Mode::set('planningTasksListFilterHasExplicitValues', $hasExplicitValues);
-    }
-
-
-    /**
-     * Записва последните изрично подадени настройки на листовия филтър
-     *
-     * @param stdClass $data
-     */
-    protected static function savePersistentListFilter($data)
-    {
-        if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
-            !empty($data->masterMvc) ||
-            $data->listFilter->gotErrors() ||
-            Mode::is('isReorder')) {
-            return;
-        }
-
-        core_Settings::setValues(
-            'planningTasksListFilter',
-            self::getPersistentListFilterValues($data->listFilter->rec),
-            core_Users::getCurrent()
-        );
-    }
-
-
-    /**
-     * Стойности за повторно подаване във формата
-     */
-    private static function getPersistentListFilterValues($rec)
-    {
-        $values = array();
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            $values[$fieldName] = $rec->{$fieldName} ?? '';
-        }
-        return $values;
-    }
-
-
-    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -2661,13 +2561,9 @@ class planning_Tasks extends core_Master
             unset($data->query->fields['dueDate']);
         }
 
-        // При AJAX обновяване филтърът не се записва - старият таб не бива да презаписва по-нов избор
-        if (!Request::get('ajax_mode')) {
-            self::savePersistentListFilter($data);
-        }
-
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
-            $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
+            planning_ListFilter::save($mvc, $data);
+            $mvc->refreshRowsListFilterValues = planning_ListFilter::getValues($mvc, $listFilter->rec);
         }
 
         if(Mode::get('isReorder')){
@@ -2915,8 +2811,14 @@ JS
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
                 unset($mvc->_plugins['planning_Wrapper']);
-            } else {
-                self::restorePersistentListFilter();
+            } elseif (planning_ListFilter::restore($mvc)) {
+                // Полетата на Операции с input() изискват команда и при отваряне на листа след нов вход.
+                $cmd = Request::get('Cmd', false);
+                $fullPageRefresh = !Request::get('ajax_mode', 'int') && is_array($cmd) && isset($cmd['refresh']) &&
+                    !array_diff_key($cmd, array('default' => true, 'refresh' => true));
+                if ($cmd === null || $fullPageRefresh) {
+                    Request::push(array('Cmd' => array('default' => 1)));
+                }
             }
         }
     }
