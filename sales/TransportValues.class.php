@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -491,13 +491,15 @@ class sales_TransportValues extends core_Manager
             $hintAttr = array('isHtml' => true);
             
             // Обяснението идва от калкулатора - ескейпва се, защото хинтът е HTML
-            if (!empty($explain) && haveRole('admin,tcost')){
-                $explain = str_replace('|', '&#124;', core_Type::escape(ltrim($explain, ', ')));
-                $hint .= "<br><small>{$explain}</small>";
+            $canSeeExplain = !empty($explain) && haveRole('admin,ceo,tcost');
+            if ($canSeeExplain){
+                $escaped = str_replace('|', '&#124;', core_Type::escape(ltrim($explain, ', ')));
+                $hint .= "<br><small>{$escaped}</small>";
                 
                 // Балончето по подразбиране е на един ред - дългото обяснение се пренася
                 $hintAttr['style'] = 'white-space: normal; width: 280px;';
             }
+            $hintAttr['aiHint'] = self::getFeeAiHint($amountFee, $currencyId, $explain, $canSeeExplain);
 
             return ht::createHint($amountRow, $hint, 'notice', false, $hintAttr);
         }
@@ -506,6 +508,40 @@ class sales_TransportValues extends core_Manager
     }
     
     
+    /**
+     * Бележка за LLM за скрития транспорт на реда и теглата, по които е взета тарифата
+     *
+     * @param string      $amountFee - вербалната сума на транспорта
+     * @param string      $currencyId - валута
+     * @param string|null $explain    - обяснение от калкулатора
+     * @param bool        $withTariff - дали потребителят вижда и самата тарифа
+     *
+     * @return string
+     */
+    private static function getFeeAiHint($amountFee, $currencyId, $explain, $withTariff = false)
+    {
+        $note = 'Hidden transport ' . strip_tags((string) $amountFee) . " {$currencyId}";
+        $explain = (string) $explain;
+        if (!preg_match("/(?<!_)VOL_WT = '([\d.]+)'/", $explain, $m)) {
+
+            return $note;
+        }
+
+        $note .= ", rate for the row's volumetric weight {$m[1]} kg";
+
+        // По-голямо общо тегло дава по-ниска тарифа на кг - идва от обобщеното количество или очакваното тегло на клиента
+        if (preg_match("/TOTAL_VOL_WT = '([\d.]+)'/", $explain, $t) && $t[1] > $m[1]) {
+            $note .= " within a shipment of {$t[1]} kg (aggregate quantity of the product or the customer's expected weight)";
+        }
+
+        if ($withTariff) {
+            $note .= '; tariff: ' . str_replace(array('[', ']'), array('(', ')'), trim($explain, ', '));
+        }
+
+        return $note;
+    }
+
+
     /**
      * Сумата на видимия транспорт в документа
      *
@@ -699,6 +735,12 @@ class sales_TransportValues extends core_Manager
             return doc_plg_LlmExportable::systemNote('Transport, internal: the expected transport cannot be calculated, some products have no transport weight');
         }
 
+        // Редовете на един артикул в оферта са алтернативни тиражи - сборовете по документа не важат
+        if ($mvc instanceof sales_Quotations && self::hasAlternativeQuantities($rec->id)) {
+
+            return doc_plg_LlmExportable::systemNote("Transport, internal: rows of one product are alternative quantities, each a separate shipment; its hidden transport is noted on the row. Never sum their weights or transport: the document's expected and not-charged transport do not apply");
+        }
+
         // Липсваща зона се вижда от грешката в условията на документа
         $hidden = self::calcInDocument($mvc, $rec->id);
         if (empty($expected) && empty($hidden) && empty($visible)) return null;
@@ -723,6 +765,31 @@ class sales_TransportValues extends core_Manager
     }
 
     
+    /**
+     * Има ли офертата задължителни редове с един и същ артикул (алтернативни количества)
+     *
+     * @param int $quotationId - ид на оферта
+     *
+     * @return bool
+     */
+    private static function hasAlternativeQuantities($quotationId)
+    {
+        $query = sales_QuotationsDetails::getQuery();
+        $query->where(array("#quotationId = [#1#] AND #optional = 'no'", $quotationId));
+        $query->show('productId');
+        $seen = array();
+        while ($dRec = $query->fetch()) {
+            if (isset($seen[$dRec->productId])) {
+
+                return true;
+            }
+            $seen[$dRec->productId] = true;
+        }
+
+        return false;
+    }
+
+
     /**
      * Връща вербалното показване на транспортните цени
      *
