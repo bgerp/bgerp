@@ -761,7 +761,12 @@ abstract class deals_InvoiceMaster extends core_Master
                     // Закръгляне, за да се хванат и остатъци от изваждане на дробни к-ва
                     if (round($det->quantity ?? 0, 5) == 0) continue;
 
-                    if($SourceRec->currencyId == 'BGN'){
+                    if($SourceRec->currencyId == 'BGN' && ($rec->type ?? null) == 'dc_note' && !empty($det->quantityInPack)){
+
+                        // Превалутира се цената на опаковка, както при сравнението с оригиналната ф-ра
+                        $packPrice = deals_Helper::getSmartBaseCurrency($det->price * $det->quantityInPack, $SourceRec->{$Source->valiorFld}, $rec->date);
+                        $det->price = $packPrice / $det->quantityInPack;
+                    } elseif($SourceRec->currencyId == 'BGN'){
                         $det->price = deals_Helper::getSmartBaseCurrency($det->price, $SourceRec->{$Source->valiorFld}, $rec->date);
                     } else {
                         $det->price = ($det->price / $det->rate) * $rec->rate;

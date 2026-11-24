@@ -1198,17 +1198,19 @@ class planning_Tasks extends core_Master
             $wasteRows = '';
             $wasteCaption = tr('Отпадък');
             foreach ($wasteArr as $key => $wasteRow) {
+                $wasteProductLink = $wasteRow->productLink ?? '';
+                $wasteQuantity = $wasteRow->quantityVerbal ?? '';
                 if ($key === 'total') {
-                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    $wasteCaption = "{$wasteProductLink}: {$wasteQuantity}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteProductLink}</td><td class='nowrap'><b>{$wasteQuantity}</b></td></tr>";
             }
             $wasteStart = $row->wasteStart ?? 'n/a';
             $wastePercent = $row->wastePercent ?? 'n/a';
             $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
-            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<div style='display:{$display}' class='docHeaderVal'><table class='taskWasteProducts'>
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table></div>");
         }
 
         $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
@@ -1253,6 +1255,16 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Антетката следва общото ограничение за ширината на секциите.
+     */
+    protected static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res->prepend("<div class='scrolling-holder'>");
+        $res->append('</div>');
+    }
+
+
+    /**
      * След подготовка на антетката
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
@@ -1262,7 +1274,7 @@ class planning_Tasks extends core_Master
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
 
         if ($isNarrow) {
-            $res = new ET("<table class='subInfo'>");
+            $res = new ET("<table class='subInfo taskHeaderSections'>");
             foreach ((array)$headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
@@ -1283,10 +1295,10 @@ class planning_Tasks extends core_Master
             $wasteValue = $waste['val'] ?? '';
             $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
                 <div class='taskWasteDivider'></div>
-                <table style='width:100%;'><tr>
-                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
-                    <td style='vertical-align:top;'>{$wasteValue}</td>
-                </tr></table>
+                <div class='taskWasteSummary'>
+                    <div class='nowrap'>{$wasteName}</div>
+                    <div class='taskWasteItems'>{$wasteValue}</div>
+                </div>
                 </td></tr>"));
         }
 
@@ -1584,7 +1596,7 @@ class planning_Tasks extends core_Master
         $defaultTasks = $rec->_orderTemplates ?? array();
         $defaultTask = $defaultTasks[$rec->systemId ?? ''] ?? null;
         if ($originRec && isset($originId) && ($rec->state ?? null) !== 'rejected') {
-            $mvc->positionNewTask($rec, $defaultTasks);
+            $mvc->positionTask($rec, $defaultTasks);
         }
 
         if (!empty($rec->assetId) && in_array($rec->state ?? null, array('active', 'pending', 'wakeup', 'stopped'))) {
@@ -4340,20 +4352,12 @@ JS
      */
     protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
+        if (!$res) return;
         $rec = $mvc->fetchRec($id);
-        if (isset($rec->saoOrder)) {
-            $mvc->updateJobOrder($rec->originId, function ($tasks) use ($rec) {
-                if (!isset($tasks[$rec->id])) return null;
-                unset($tasks[$rec->id]);
-                $ids = array_keys($tasks);
-                array_splice($ids, max(0, (int)$rec->saoOrder - 1), 0, array($rec->id));
-                return $ids;
-            });
-        } else {
-            $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
-            if ($job) $mvc->positionNewTask($rec, cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1));
-        }
-        $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
+        if (empty($rec->originId)) return;
+        $job = planning_Jobs::fetch(array("#containerId = '[#1#]'", $rec->originId));
+        $templates = $job ? cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1) : array();
+        $mvc->positionTask($rec, $templates, true);
     }
 
 
@@ -6158,15 +6162,31 @@ JS
     }
 
 
-    /** Единичното добавяне, клонирането и груповото създаване ползват едни и същи съседи. */
-    private function positionNewTask($rec, $templates)
+    /** Единично и групово добавяне, клониране и възстановяване в същото задание. */
+    private function positionTask($rec, $templates, $restoring = false)
     {
-        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates) {
+        $result = $this->updateJobOrder($rec->originId, function ($tasks, $conditions) use ($rec, $templates, $restoring) {
+            if (!isset($tasks[$rec->id])) return null;
             $rec->canStore = $tasks[$rec->id]->canStore ?? null;
+            $task = $restoring ? $tasks[$rec->id] : $rec;
             unset($tasks[$rec->id]);
-            return planning_TaskOrder::insert($tasks, $rec, $templates, $conditions);
+            $withdrawnPrevious = null;
+            if ($restoring) {
+                $withdrawnPrevious = array();
+                if ($tasks && !isset($tasks[$task->previousTask ?? null])) {
+                    $query = static::getQuery();
+                    $links = $query->fetchAll(array("#originId = '[#1#]' AND #state = 'rejected' AND #previousTask IS NOT NULL", $rec->originId), 'id,previousTask');
+                    $withdrawnPrevious = array_column($links, 'previousTask', 'id');
+                }
+            }
+            $oldMode = $task->jobOrderMode ?? null;
+            $order = planning_TaskOrder::insert($tasks, $task, $templates, $conditions, $withdrawnPrevious);
+            if (($task->jobOrderMode ?? null) !== $oldMode) expect($this->save_($task, 'jobOrderMode'));
+
+            return $order;
         });
-        $rec->saoOrder = array_search($rec->id, $result['order']) + 1;
+        $offset = array_search($rec->id, $result['order']);
+        if ($offset !== false) $rec->saoOrder = $offset + 1;
     }
 
 

@@ -141,8 +141,6 @@ class cal_TaskConditions extends core_Detail
             $query->notIn('id', self::getInheritors($data->form->rec->baseId, 'dependId'));
         }
         
-        $query->where($notAllowedCond);
-        
         $query->where("#state != 'rejected'");
         
         $query->orderBy('#modifiedOn', 'DESC');

@@ -990,7 +990,7 @@ class cat_Products extends embed_Manager
         
         // Обединяваме групите с избраните от потребителя
         if (!empty($rec->Groups)) {
-            $rec->groupsInput = type_Keylist::merge($rec->groupsInput, $rec->Groups);
+            $rec->groupsInput = type_Keylist::merge($rec->groupsInput ?? null, $rec->Groups);
         }
         
         $nMetaArr = array();
@@ -1032,6 +1032,7 @@ class cat_Products extends embed_Manager
         // Обединяваме свойствата с избраните от потребителя
         if (!empty($rec->Meta)) {
             $fMetaArr = type_Set::toArray($rec->Meta);
+            $rec->meta = $rec->meta ?? '';
             $rec->meta .= $rec->meta ? ',' : '';
             $rec->meta .= $rec->Meta;
             

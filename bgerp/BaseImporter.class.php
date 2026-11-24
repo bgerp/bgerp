@@ -155,7 +155,7 @@ class bgerp_BaseImporter extends core_Manager
                             $exRec = $this->mvc->fetch($rec->id, '*', false);
                             $addFields = $this->mvc->getDriverFields($Driver);
                             foreach ($addFields as $key => $driverField) {
-                                $rec->{$key} = $exRec->{$key};
+                                $rec->{$key} = $exRec->{$key} ?? null;
                             }
                         }
                     }

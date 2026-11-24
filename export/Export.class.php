@@ -204,15 +204,7 @@ class export_Export extends core_Mvc
                 $intfCls->addActionBtn($form, $eRes);
             }
 
-            if (!empty($intfArr) && $eRes) {
-                if ((strlen($eRes) == FILEMAN_HANDLER_LEN) || !defined('FILEMAN_HANDLER_LEN')) {
-                    if ($fRec = fileman::fetchByFh($eRes)) {
-                        if (!empty($dRec->containerId) && !empty($fRec->id)) {
-                            doc_Linked::add($dRec->containerId, $fRec->id, 'doc', 'file', tr('Експортиране'));
-                        }
-                    }
-                }
-            }
+            static::linkExportedFile($dRec, $eRes);
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title= ' . tr('Прекратяване на действията'));
@@ -231,8 +223,33 @@ class export_Export extends core_Mvc
         
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Прикача експортирания файл към документа, ако има действия с експортирани файлове
+     *
+     * @param stdClass    $dRec - запис на документа
+     * @param string|null $eRes - резултат от makeExport()
+     */
+    public static function linkExportedFile($dRec, $eRes)
+    {
+        if (empty($eRes) || !is_string($eRes) || !countR(core_Classes::getOptionsByInterface('export_FileActionIntf'))) {
+
+            return;
+        }
+
+        if (defined('FILEMAN_HANDLER_LEN') && strlen($eRes) != FILEMAN_HANDLER_LEN) {
+
+            return;
+        }
+
+        $fRec = fileman::fetchByFh($eRes);
+        if (!empty($dRec->containerId) && !empty($fRec->id)) {
+            doc_Linked::add($dRec->containerId, $fRec->id, 'doc', 'file', tr('Експортиране'));
+        }
+    }
+
+
     /**
      * Помощен екшън за ескпорт със съответния интерфейс
      */
@@ -271,16 +288,23 @@ class export_Export extends core_Mvc
 
         $this->invoke('BeforeExternalExport', array($clsInst, $mRec));
         
-        $su = null;
+        $su = $modeDepth = null;
         try {
             if (!empty($action->createdBy)) {
                 $su = core_Users::sudo($action->createdBy);
             }
+            $modeDepth = countR(Mode::$stack);
 
             Mode::set('exporting', true);
             $exporter = cls::getInterface('export_ExportTypeIntf', $typeClsInst);
             $fileHnd = $exporter->makeExport($form, $clsId, $mRec);
         } finally {
+            // Прекъснатият експорт оставя push-овете си (напр. Mode 'text') - иначе exitSudo маскира грешката
+            if (isset($modeDepth)) {
+                while (countR(Mode::$stack) > $modeDepth) {
+                    Mode::pop();
+                }
+            }
             if (isset($su)) {
                 core_Users::exitSudo($su);
             }
