@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -237,6 +237,25 @@ class doc_Prototypes extends core_Manager
         // След като се създаде шаблон, оригиналния документ минава в състояние шаблон
         $nRec = (object) array('id' => $rec->docId, 'state' => 'template');
         cls::get($rec->classId)->save_($nRec, 'state');
+    }
+    
+    
+    /**
+     * След редакция през формата: в историята на документа
+     */
+    protected static function on_AfterUpdate($mvc, $rec, $fields = null)
+    {
+        // Само при запис на правата, не при смяната на състоянието от sync()
+        $fields = arr::make($fields, true);
+        if (!isset($fields['sharedFolders']) && !isset($fields['sharedWithRoles']) && !isset($fields['sharedWithUsers'])) {
+
+            return;
+        }
+        $classId = $rec->classId ?? $mvc->fetchField($rec->id, 'classId');
+        $docId = $rec->docId ?? $mvc->fetchField($rec->id, 'docId');
+        if (!empty($classId) && !empty($docId)) {
+            cls::get($classId)->logWrite('Редактиране на правата на шаблона', $docId);
+        }
     }
     
     

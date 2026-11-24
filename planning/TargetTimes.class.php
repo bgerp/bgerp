@@ -254,6 +254,7 @@ class planning_TargetTimes extends core_BaseClass
             if (empty($rec->id) && $job) {
                 $templates = cat_Products::getDefaultProductionTasks($job, $job->quantity ?? 1);
                 $task->jobOrderMode = planning_TaskOrder::matchRecipe($templates, array($task)) ? 'recipe' : 'auto';
+                if (($task->isFinal ?? null) === 'yes') $task->canStore = cat_Products::fetchField($task->productId ?? null, 'canStore');
                 $jobTasks = planning_Tasks::getJobOrderTasks($task->originId);
                 $steps = arr::extractValuesFromArray($jobTasks + array($id => $task), 'productId');
                 $conditions = planning_StepConditions::getConditionalArr($steps);

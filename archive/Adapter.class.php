@@ -241,6 +241,16 @@ class archive_Adapter
             throw new ErrorException('Не може да се извлече файла от архива', $e->getCode());
         }
         
+        // Име в друга кодировка 7z може да запише под друго име; в новата директория е само този файл
+        if (!is_file($path)) {
+            $files = core_Os::listFiles($this->dir);
+            if (countR($files['files']) == 1) {
+                $path = reset($files['files']);
+            }
+        }
+
+        $fh = null;
+
         // Ако е файл
         if (is_file($path)) {
             

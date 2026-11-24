@@ -121,18 +121,20 @@ class planning_TaskOrder
         if (isset($task->previousTask, $tasks[$task->previousTask])) $at = array_search($task->previousTask, $ids) + 1;
         array_splice($ids, $at, 0, array($id));
 
-        // В смесено задание добавянето мести само новия ред.
-        if (self::isFixed($task)) return $ids;
-        foreach ($tasks as $other) {
-            if (self::isFixed($other)) return $ids;
-        }
+        // В смесено задание се запазва относителният ред на заварените операции.
+        $keepOrder = self::isFixed($task);
         $rows = array();
         foreach ($ids as $offset => $taskId) {
             $row = clone ($taskId == $id ? $task : $tasks[$taskId]);
             $row->saoOrder = $offset + 1;
             $rows[$taskId] = $row;
+            if (self::isFixed($row)) $keepOrder = true;
         }
-        return self::order($rows, $conditions);
+        $finals = self::getFinalOrder($rows, $conditions);
+        $regular = array_diff_key($rows, $finals);
+        $order = ($keepOrder || isset($finals[$id])) ? array_keys($regular) : self::orderByPredecessors($regular, $conditions);
+
+        return array_merge($order, array_keys($finals));
     }
 
 
@@ -152,7 +154,112 @@ class planning_TaskOrder
     /**
      * Запазва реда на фиксираните операции. Свободните следват своите технологични предходници.
      */
-    public static function order($tasks, $conditions, &$debug = null, $changedSteps = array())
+    public static function order($tasks, $conditions, &$debug = null, $changedSteps = array(), &$finalsChanged = null)
+    {
+        $finals = self::getFinalOrder($tasks, $conditions);
+        $finalsChanged = $finals && array_slice(array_keys($tasks), -count($finals)) !== array_keys($finals);
+        $regular = array_diff_key($tasks, $finals);
+        $sortRegular = !$changedSteps;
+        if ($changedSteps) {
+            foreach ($regular as $row) {
+                if (!self::isFixed($row) && in_array($row->productId ?? null, $changedSteps)) {
+                    $sortRegular = true;
+                    break;
+                }
+            }
+        }
+        $order = $sortRegular ? self::orderByPredecessors($regular, $conditions, $debug, $changedSteps) : array_keys($regular);
+        if (is_array($debug)) {
+            foreach ($finals as $id => $position) {
+                $debug[$id] = array('isFinal' => 'yes', 'finalPosition' => count($order) + $position + 1);
+            }
+        }
+
+        return array_merge($order, array_keys($finals));
+    }
+
+
+    /**
+     * Ръчна финална извън рецептата събира накрая финалните без рецептурно място.
+     * Ключовете са ид-та, стойностите са позициите им във финалната група.
+     */
+    public static function getFinalOrder($tasks, $conditions)
+    {
+        $finals = array();
+        $hasManualFinal = false;
+        foreach ($tasks as $id => $row) {
+            if (!self::isFinalOutsideRecipe($row) || ($row->state ?? null) === 'rejected') continue;
+            $finals[$id] = $row;
+            // Нулата също е валиден ред от шаблона.
+            if (!isset($row->systemId) && empty($row->clonedFromId)) $hasManualFinal = true;
+        }
+        if (!$hasManualFinal || count($tasks) < 2) return array();
+        if (count($finals) == 1) return array_flip(array_keys($finals));
+        // Ид на операцията следва реда на добавяне. Виртуалният ред в прегледа е най-новият.
+        uksort($finals, function ($a, $b) {
+            return ($a < 0 ? PHP_INT_MAX : $a) <=> ($b < 0 ? PHP_INT_MAX : $b);
+        });
+        $nonStorable = $storable = array();
+        foreach ($finals as $id => $row) {
+            if (($row->canStore ?? null) === 'yes') {
+                $storable[$id] = $row->productId ?? null;
+            } else {
+                $nonStorable[$id] = $row->productId ?? null;
+            }
+        }
+        $finals = $nonStorable + $storable;
+
+        // Транзитивните предходни запазват и веригите през трети финален етап.
+        $before = array();
+        foreach ($finals as $id => $step) {
+            $before[$id] = array();
+            foreach ($finals as $other => $otherStep) {
+                if ($step != $otherStep && isset($conditions[$step][$otherStep])) $before[$id][$other] = true;
+            }
+        }
+        if (!array_filter($before)) return array_flip(array_keys($finals));
+        foreach ($finals as $via => $step) {
+            foreach ($finals as $id => $otherStep) {
+                if (isset($before[$id][$via])) $before[$id] += $before[$via];
+            }
+        }
+        $required = $before;
+        $neededByNonStorable = array();
+        foreach ($before as $id => $predecessors) {
+            foreach ($predecessors as $previous => $unused) {
+                // Взаимно зависимите етапи се решават по складируемост и ред на добавяне.
+                if (isset($before[$previous][$id])) unset($required[$id][$previous]);
+            }
+            if (array_key_exists($id, $nonStorable)) $neededByNonStorable += $required[$id];
+        }
+        $pending = $nonStorable + array_intersect_key($storable, $neededByNonStorable) + $storable;
+        $order = array();
+        while ($pending) {
+            foreach ($pending as $id => $step) {
+                if (array_intersect_key($required[$id], $pending)) continue;
+                $order[$id] = count($order);
+                unset($pending[$id]);
+                break;
+            }
+        }
+        return $order;
+    }
+
+
+    public static function isFinalOutsideRecipe($task)
+    {
+        return ($task->isFinal ?? null) === 'yes' && in_array($task->jobOrderMode ?? null, array('auto', 'fixedFinal'), true);
+    }
+
+
+    /** Недопустима предходна операция в задание с ръчно добавени финални етапи. */
+    public static function conflictsWithFinalOrder($finals, $id, $previous)
+    {
+        return isset($finals[$previous]) && (!isset($finals[$id]) || $finals[$previous] >= $finals[$id]);
+    }
+
+
+    public static function orderByPredecessors($tasks, $conditions, &$debug = null, $changedSteps = array())
     {
         foreach ($changedSteps as $step) {
             $moving = array_filter($tasks, function ($row) use ($step, $tasks) {
@@ -249,6 +356,6 @@ class planning_TaskOrder
 
     public static function isFixed($task)
     {
-        return in_array($task->jobOrderMode ?? null, array('recipe', 'fixed'), true) || ($task->state ?? null) === 'closed';
+        return in_array($task->jobOrderMode ?? null, array('recipe', 'fixed', 'fixedFinal'), true) || ($task->state ?? null) === 'closed';
     }
 }

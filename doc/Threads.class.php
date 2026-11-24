@@ -2324,9 +2324,6 @@ class doc_Threads extends core_Manager
             // Count containers, rather than threads, after the final active/rejected filters.
             if (!empty($data->listFilter->rec->folderId) && !empty($data->listFilter->rec->search)) {
                 plg_Search::restrictToScope($data->query, 'searchContainerId');
-                if (!Request::get('Rejected') && !empty($data->rejQuery)) {
-                    plg_Search::restrictToScope($data->rejQuery, 'searchContainerId');
-                }
             }
         }
     }
@@ -2352,6 +2349,9 @@ class doc_Threads extends core_Manager
                 // Може да се добавя нов документ, само ако папката не е затворена
                 if (doc_Folders::haveRightFor('newdoc', $data->folderId)) {
                     $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon' => 'img/16/star_2.png', 'title' => 'Създаване на нова тема в папката'));
+                }
+                if (!empty($data->listFilter->rec->folderId) && !empty($data->listFilter->rec->search) && !empty($data->rejQuery)) {
+                    plg_Search::restrictToScope($data->rejQuery, 'searchContainerId');
                 }
                 self::addBinBtnToToolbar($data);
                 

@@ -825,8 +825,19 @@ class fileman_Files extends core_Master
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
         
-        $fileCmd = $conf->FILEMAN_FILE_COMMAND;
-        
+        $fileCmd = $conf->FILEMAN_FILE_COMMAND ?? '';
+
+        // Windows installations can use PHP's bundled libmagic if the configured utility is absent.
+        if (core_Os::isWindows() && function_exists('mime_content_type')) {
+            $exe = trim($fileCmd, '" ');
+            if (preg_match('~^[A-Za-z]:[/\\\\]~', $exe) && !is_file($exe)) {
+                $mime = mime_content_type($path);
+                if ($mime !== false) {
+                    return $mime;
+                }
+            }
+        }
+
         $fileCmd = escapeshellcmd($fileCmd);
         
         // Изпълняваме командата

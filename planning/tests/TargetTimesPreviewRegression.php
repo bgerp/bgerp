@@ -155,6 +155,46 @@ $reorderJobs = array();
 $constraints = planning_TaskConstraints::calculateTaskConstraints($rows, $reorderJobs);
 check(!$reorderJobs && isset($constraints['prev|1|2']), 'A compatible mixed job uses its stored order and keeps the technological wait');
 
+// Реалното изчисление на ограниченията и времената при финална преди по-късно добавена междинна.
+$rows = array(1 => task(1), 2 => task(2, 3600, null, 2), 3 => task(3, 3600, null, 3));
+foreach ($rows as $id => $row) {
+    $row->originId = 100;
+    $row->folderId = 1;
+    $row->offsetAfter = 0;
+    $row->saoOrder = $id;
+    $row->jobOrderMode = 'auto';
+}
+$rows[1]->isFinal = $rows[1]->canStore = $rows[3]->isFinal = 'yes';
+$rows[2]->previousTask = 1;
+$rows[1]->clonedFromId = 88;
+planning_Tasks::$records = $rows;
+planning_StepConditions::$rows = array(
+    (object)array('stepId' => 2, 'prevStepId' => 1, 'delay' => 0, 'intersect' => 'no'),
+    (object)array('stepId' => 1, 'prevStepId' => 3, 'delay' => 900, 'intersect' => 'yes'),
+);
+$reorderJobs = $previous = array();
+$constraints = planning_TaskConstraints::calculateTaskConstraints($rows, $reorderJobs);
+check(isset($reorderJobs[100]) && !isset($constraints['prev|2|1']), 'Cron repairs a misplaced manual final group and drops the contradictory previous');
+foreach ($constraints as $constraint) $previous[$constraint->taskId][$constraint->previousTaskId] = $constraint;
+check(isset($previous[3][2]) && ($previous[1][3]->waitingTime ?? null) === 900, 'The storable final retains its allowed overlap and wait');
+foreach (array(2, 3, 1) as $position => $id) $rows[$id]->saoOrder = $position + 1;
+$plan = graph($rows, array(), $previous);
+startAt($plan, 2, '08:00:00');
+check($plan[3]->expectedTimeStart === $plan[2]->expectedTimeEnd, 'The non-storable final follows the intermediate');
+check($plan[1]->expectedTimeStart === dt::addSecs(900, $plan[3]->expectedTimeStart), 'The compatible overlap keeps the 15-minute wait');
+foreach ($rows as $id => $row) {
+    check($plan[$id]->expectedTimeEnd > $plan[$id]->expectedTimeStart && $plan[$id]->expectedTimeEnd < planning_TaskConstraints::NOT_FOUND_DATE,
+        'Positive calculated duration for Opr' . $id);
+}
+$reorderJobs = array();
+planning_TaskConstraints::calculateTaskConstraints($rows, $reorderJobs);
+check(!$reorderJobs, 'A second scheduler pass leaves the manual finals at the end');
+$rows[3]->state = 'draft';
+$reorderJobs = array();
+$constraints = planning_TaskConstraints::calculateTaskConstraints(array(1 => $rows[1], 2 => $rows[2]), $reorderJobs);
+check(!$reorderJobs && isset($constraints['prev|1|2']) && !isset($constraints['prev|1|3']) && !isset($constraints['prev|2|1']),
+    'A draft manual final establishes the group but is not a timing dependency');
+
 planning_StepConditions::$rows = array();
 
 clockContext();

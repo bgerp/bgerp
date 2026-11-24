@@ -363,7 +363,7 @@ class rack_plg_Shipments extends core_Plugin
             $documentRow = $mvc->recToVerbal($rec, $singleFields);
             Mode::pop('text');
 
-            $delivery = !empty($documentRow->deliveryTo) ? $documentRow->deliveryTo : $documentRow->inlineContragentAddress;
+            $delivery = !empty($documentRow->deliveryTo) ? $documentRow->deliveryTo : ($documentRow->inlineContragentAddress ?? '');
             $res->append($delivery, 'deliveryTo');
             if(!empty($documentRow->logisticInfo)){
                 $res->append($documentRow->logisticInfo, 'logisticInfo');
