@@ -697,16 +697,26 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $fileName = "N18_{$settings->n18ShopNumber}_" . dt::mysql2verbal($periodRec->end, 'Y_m') . '.xml';
         $xml = $doc->saveXML();
 
-        // При обновяване файлът за същия магазин и месец се подменя, вместо да се създава нов със суфикс
-        $oldFh = is_object($rec->data ?? null) ? ($rec->data->n18FileHnd ?? null) : null;
-        $oldName = !empty($oldFh) ? (string) fileman_Files::fetchByFh($oldFh, 'name') : '';
-        if ($oldName !== '' && preg_match('/^' . preg_quote(substr($fileName, 0, -4), '/') . '(_\d+)?\.xml$/', $oldName)) {
-            fileman::addVersionStr($oldFh, $xml);
-
-            return $oldFh;
+        // Всяка справка има един XML файл: обновяването го подменя, дори след грешка или смяна на месеца
+        $key = !empty($rec->id) ? "eshopn18_N18Audit_xml_{$rec->id}" : null;
+        $fh = $key ? core_Permanent::get($key) : null;
+        if (empty($fh) && is_object($rec->data ?? null)) {
+            $fh = $rec->data->n18FileHnd ?? null;
+        }
+        $oldName = !empty($fh) ? (string) fileman_Files::fetchByFh($fh, 'name') : '';
+        if ($oldName !== '') {
+            if (!preg_match('/^' . preg_quote(substr($fileName, 0, -4), '/') . '(_\d+)?\.xml$/', $oldName)) {
+                fileman::rename($fh, $fileName);
+            }
+            fileman::addVersionStr($fh, $xml);
+        } else {
+            $fh = fileman::absorbStr($xml, 'exportFiles', $fileName);
+        }
+        if ($key) {
+            core_Permanent::set($key, $fh, core_Permanent::FOREVER_VALUE);
         }
 
-        return fileman::absorbStr($xml, 'exportFiles', $fileName);
+        return $fh;
     }
 
 
