@@ -544,7 +544,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
         //bp($rec, $masterRec, deals_Helper::getSmartBaseCurrency($rec->price, null, null));
 
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $date = cat_ProductTplCache::getDocumentCacheDate($masterRec);
         $modeLg = Mode::get('tplManagerLg');
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
 

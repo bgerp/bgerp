@@ -10,7 +10,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -130,7 +130,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $tplLang = $data->masterData->rec->tplLang ?? null;
-        $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        $date = cat_ProductTplCache::getDocumentCacheDate($data->masterData->rec);
         $tplLang = $data->masterData->rec->tplLang ?? null;
         
         if (countR($data->rows)) {
