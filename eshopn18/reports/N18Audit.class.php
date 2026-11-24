@@ -695,8 +695,18 @@ class eshopn18_reports_N18Audit extends frame2_driver_TableData
         $doc->encoding = 'windows-1251';
 
         $fileName = "N18_{$settings->n18ShopNumber}_" . dt::mysql2verbal($periodRec->end, 'Y_m') . '.xml';
+        $xml = $doc->saveXML();
 
-        return fileman::absorbStr($doc->saveXML(), 'exportFiles', $fileName);
+        // При обновяване файлът за същия магазин и месец се подменя, вместо да се създава нов със суфикс
+        $oldFh = is_object($rec->data ?? null) ? ($rec->data->n18FileHnd ?? null) : null;
+        $oldName = !empty($oldFh) ? (string) fileman_Files::fetchByFh($oldFh, 'name') : '';
+        if ($oldName !== '' && preg_match('/^' . preg_quote(substr($fileName, 0, -4), '/') . '(_\d+)?\.xml$/', $oldName)) {
+            fileman::addVersionStr($oldFh, $xml);
+
+            return $oldFh;
+        }
+
+        return fileman::absorbStr($xml, 'exportFiles', $fileName);
     }
 
 
