@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -472,7 +472,7 @@ class doc_RichTextPlg extends core_Plugin
 
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
-        $res = $match['begin'] . "[#{$place}#]";
+        $res = "[#{$place}#]";
 
         return  $res;
     }
