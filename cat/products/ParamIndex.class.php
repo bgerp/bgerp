@@ -466,8 +466,11 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
                 $baseQuery->in('productId', array_keys($fresh));
             }
 
-            // Ключовете и числата се избират като в cat_products_ParamFilter::getValueCondition()
+            // Ключовете и числата се избират като във филтъра (@see cat_products_ParamFilter::getExactValueConds())
             $Index = cls::get('cat_products_ParamIndex');
+            $col = function ($name) {
+                return "#{$name}";
+            };
             $conds = $verbals = array();
             foreach (cat_products_ParamFilter::getValues($baseQuery, $params) as $paramId => $paramValues) {
                 $Driver = cat_Params::getDriver($params[$paramId]);
@@ -479,20 +482,14 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
                     if (!isset($verbal)) continue;
 
                     if (isset($vRec->valueKey)) {
-                        $keys[] = "'" . $Index->db->escape($vRec->valueKey) . "'";
+                        $keys[] = $vRec->valueKey;
                         $verbals[$paramId]["k{$vRec->valueKey}"] = $verbal;
                     } else {
-                        $nums[] = "'" . $Index->db->escape($vRec->valueNum) . "'";
+                        $nums[] = $vRec->valueNum;
                         $verbals[$paramId]["n{$vRec->valueNum}"] = $verbal;
                     }
                 }
-                $valueConds = array();
-                if (countR($keys)) {
-                    $valueConds[] = '#valueKey IN (' . implode(',', $keys) . ')';
-                }
-                if (countR($nums)) {
-                    $valueConds[] = '(#valueKey IS NULL AND CAST(#valueNum AS CHAR) IN (' . implode(',', $nums) . '))';
-                }
+                $valueConds = cat_products_ParamFilter::getExactValueConds($keys, $nums, $col, $Index->db);
                 if (countR($valueConds)) {
                     $conds[] = '(#paramId = ' . (int) $paramId . ' AND (' . implode(' OR ', $valueConds) . '))';
                 }
