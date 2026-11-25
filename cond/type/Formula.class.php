@@ -314,7 +314,8 @@ class cond_type_Formula extends cond_type_Text
 
         // В LLM експорта подсказката се губи, затова формулата се дава като бележка
         if ($calced === cat_BomDetails::CALC_ERROR && Mode::is('text', 'plain') && Mode::is('renderForLlm')) {
-            $verbal .= ' ' . doc_plg_LlmExportable::systemNote('Formula cannot be calculated: ' . str::limitLen(trim(preg_replace('/\s+/u', ' ', (string) $value)), 300));
+            $formula = str::limitLen(trim(preg_replace('/\s+/u', ' ', (string) $value)), 300);
+            $verbal .= ' ' . doc_plg_LlmExportable::systemNote('Formula cannot be calculated: <code>' . type_Varchar::escape($formula) . '</code>');
         }
 
         if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
