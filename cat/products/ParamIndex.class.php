@@ -381,6 +381,244 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
 
 
     /**
+     * Артикули, в които някой от параметрите има търсената стойност (без значение от регистъра)
+     *
+     * Чете се от индекса. Кандидатите без актуален индекс и неиндексираните параметри се проверяват с getParams()
+     *
+     * @param array      $paramIds   - параметри
+     * @param string     $value      - търсена стойност
+     * @param string     $match      - contains (съдържа) или exact (точно)
+     * @param array|null $productIds - кандидати, null за всички индексирани артикули
+     *
+     * @return array ['products' => [ид на артикул => [ид на параметър => стойност]], 'notIndexed' => [ид на параметър], 'pending' => брой]
+     */
+    public static function searchProducts($paramIds, $value, $match = 'contains', $productIds = null)
+    {
+        // Четат се последно изчислените стойности - без преизчисляване и запис на артикулите
+        Mode::push('doNotCalculate', true);
+        try {
+
+            return self::doSearchProducts($paramIds, $value, $match, $productIds);
+        } finally {
+            Mode::pop('doNotCalculate');
+        }
+    }
+
+
+    /**
+     * Търсенето на артикули по стойност на параметри (@see searchProducts)
+     *
+     * @param array      $paramIds
+     * @param string     $value
+     * @param string     $match
+     * @param array|null $productIds
+     *
+     * @return array
+     */
+    protected static function doSearchProducts($paramIds, $value, $match, $productIds)
+    {
+        $res = array('products' => array(), 'notIndexed' => array(), 'pending' => 0);
+        $needle = mb_strtolower(trim((string) $value));
+        $paramIds = array_unique(arr::makeIds($paramIds));
+        if (!strlen($needle) || !countR($paramIds)) {
+
+            return $res;
+        }
+        $match = ($match == 'exact') ? 'exact' : 'contains';
+
+        $filterable = self::getFilterableParams();
+        $indexed = array_values(array_filter($paramIds, function ($paramId) use ($filterable) { return isset($filterable[$paramId]); }));
+        $res['notIndexed'] = array_values(array_diff($paramIds, $indexed));
+
+        // Кандидатите без актуален индекс се проверяват изцяло, а останалите - само за неиндексираните параметри
+        $direct = $fresh = array();
+        if (isset($productIds)) {
+            $productIds = array_unique(arr::makeIds($productIds));
+            if (!countR($productIds)) {
+
+                return $res;
+            }
+            $sQuery = cat_products_ParamIndexState::getQuery();
+            $sQuery->in('productId', $productIds);
+            $sQuery->where("#status = 'ok' AND #indexedOn IS NOT NULL");
+            $sQuery->show('productId');
+            while ($sRec = $sQuery->fetch()) {
+                $fresh[$sRec->productId] = true;
+            }
+            foreach ($productIds as $productId) {
+                if (!isset($fresh[$productId])) {
+                    $direct[$productId] = $paramIds;
+                } elseif (countR($res['notIndexed'])) {
+                    $direct[$productId] = $res['notIndexed'];
+                }
+            }
+            $res['pending'] = countR($productIds) - countR($fresh);
+        } else {
+            $res['pending'] = cat_products_ParamIndexState::count("#status != 'ok'");
+        }
+
+        // Както във филтъра: различните стойности от индекса, сравнени в PHP, а артикулите - по точните стойности
+        if (countR($indexed) && (!isset($productIds) || countR($fresh))) {
+            $params = array_intersect_key($filterable, array_flip($indexed));
+            $baseQuery = cat_products_ParamFilter::getIndexQuery(cat_products_ParamFilter::getLang());
+            if (isset($productIds)) {
+                $baseQuery->in('productId', array_keys($fresh));
+            }
+
+            // Ключовете и числата се избират като в cat_products_ParamFilter::getValueCondition()
+            $Index = cls::get('cat_products_ParamIndex');
+            $conds = $verbals = array();
+            foreach (cat_products_ParamFilter::getValues($baseQuery, $params) as $paramId => $paramValues) {
+                $Driver = cat_Params::getDriver($params[$paramId]);
+                $keys = $nums = array();
+                foreach ($paramValues as $vRec) {
+                    if (!isset($vRec->valueKey) && !isset($vRec->valueNum)) continue;
+
+                    $verbal = self::matchIndexRow($params[$paramId], $Driver, $vRec->productId, $vRec, $needle, $match);
+                    if (!isset($verbal)) continue;
+
+                    if (isset($vRec->valueKey)) {
+                        $keys[] = "'" . $Index->db->escape($vRec->valueKey) . "'";
+                        $verbals[$paramId]["k{$vRec->valueKey}"] = $verbal;
+                    } else {
+                        $nums[] = "'" . $Index->db->escape($vRec->valueNum) . "'";
+                        $verbals[$paramId]["n{$vRec->valueNum}"] = $verbal;
+                    }
+                }
+                $valueConds = array();
+                if (countR($keys)) {
+                    $valueConds[] = '#valueKey IN (' . implode(',', $keys) . ')';
+                }
+                if (countR($nums)) {
+                    $valueConds[] = '(#valueKey IS NULL AND CAST(#valueNum AS CHAR) IN (' . implode(',', $nums) . '))';
+                }
+                if (countR($valueConds)) {
+                    $conds[] = '(#paramId = ' . (int) $paramId . ' AND (' . implode(' OR ', $valueConds) . '))';
+                }
+            }
+
+            if (countR($conds)) {
+                $query = clone $baseQuery;
+                $query->where(implode(' OR ', $conds));
+                $query->show('productId,paramId,valueKey,valueNumText');
+                while ($iRec = $query->fetch()) {
+                    $key = isset($iRec->valueKey) ? "k{$iRec->valueKey}" : "n{$iRec->valueNumText}";
+                    $res['products'][$iRec->productId][$iRec->paramId] = $verbals[$iRec->paramId][$key] ?? ($iRec->valueKey ?? $iRec->valueNumText);
+                }
+            }
+        }
+
+        foreach ($direct as $productId => $params) {
+            foreach (self::matchProductParams($productId, $params, $needle, $match) as $paramId => $verbal) {
+                $res['products'][$productId][$paramId] = $verbal;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Кои от параметрите на артикула имат търсената стойност - според getParams()
+     *
+     * Стойността се разбива на редовете, които драйверът дава за индекса, за да се сравнява като в него
+     *
+     * @param int    $productId
+     * @param array  $paramIds
+     * @param string $needle    - търсената стойност с малки букви
+     * @param string $match     - contains или exact
+     *
+     * @return array - ид на параметър => стойност
+     */
+    protected static function matchProductParams($productId, $paramIds, $needle, $match)
+    {
+        $res = array();
+        $params = cat_Products::getParams($productId);
+        if (!is_array($params)) {
+
+            return $res;
+        }
+
+        $productClassId = cat_Products::getClassId();
+        $langs = array(cat_products_ParamFilter::getLang());
+        foreach ($paramIds as $paramId) {
+            $value = $params[$paramId] ?? null;
+            if (!isset($value) || is_array($value) || is_object($value)) continue;
+
+            $pRec = cat_Params::fetch($paramId);
+            $Driver = is_object($pRec) ? cat_Params::getDriver($pRec) : null;
+            $rows = ($Driver && cls::existsMethod($Driver, 'getIndexValues')) ? $Driver->getIndexValues($pRec, $productClassId, $productId, $value, $langs) : array();
+
+            // Типовете без индекс (многоредов текст, формула) се сравняват по цялата стойност
+            if (!countR($rows)) {
+                $rows = array((object) array('valueKey' => (string) $value, 'valueVerbal' => null, 'valueNum' => null));
+            }
+            foreach ($rows as $iRec) {
+                $verbal = self::matchIndexRow($pRec, $Driver, $productId, $iRec, $needle, $match);
+                if (isset($verbal)) {
+                    $res[$paramId] = $verbal;
+                    break;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Изписването на стойност от индекса, ако съвпада с търсената
+     *
+     * @param stdClass|null                 $pRec      - параметърът
+     * @param cond_type_abstract_Proto|null $Driver    - драйверът му
+     * @param int                           $productId
+     * @param stdClass                      $iRec      - ред от индекса
+     * @param string                        $needle    - търсената стойност с малки букви
+     * @param string                        $match     - contains или exact
+     *
+     * @return string|null
+     */
+    protected static function matchIndexRow($pRec, $Driver, $productId, $iRec, $needle, $match)
+    {
+        Mode::push('text', 'plain');
+        try {
+            $verbal = $Driver ? $Driver->getIndexVerbal($pRec, cat_Products::getClassId(), $productId, $iRec) : ($iRec->valueKey ?? $iRec->valueNum);
+        } finally {
+            Mode::pop('text');
+        }
+        $verbal = trim(html_entity_decode(strip_tags((string) $verbal), ENT_QUOTES, 'UTF-8'));
+
+        // Числото (и датата като timestamp) се сравнява по изписването си, а артикулът - и без кода си: [123] Име
+        $texts = isset($iRec->valueKey) ? array($verbal, $iRec->valueKey, preg_replace('/^\[[^\]]*\]\s*/u', '', $verbal)) : array($verbal);
+
+        return self::matchesValue($needle, $match, $texts) ? $verbal : null;
+    }
+
+
+    /**
+     * Дали някой от текстовете съдържа или е равен на търсената стойност, без значение от регистъра
+     *
+     * @param string $needle - с малки букви
+     * @param string $match  - contains или exact
+     * @param array  $texts
+     *
+     * @return bool
+     */
+    protected static function matchesValue($needle, $match, $texts)
+    {
+        foreach ($texts as $text) {
+            $text = mb_strtolower(trim((string) $text));
+            if ($match == 'exact' ? ($text === $needle) : (mb_strpos($text, $needle) !== false)) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
      * Прави филтрируеми параметрите, които се показват в е-магазина
      *
      * @return void
