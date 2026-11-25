@@ -620,3 +620,29 @@
 @keyframes funny-nose-drops { to { opacity:0; transform:translateY(7px) scale(.4); } }
 
 .funny-blackcat[data-weather-act="nose-splash"]::after { left:49%; top:40%; }
+
+/* Brief poses on the actors keep the application surface available for input. */
+.funny-visitor[data-scene-step="pounce"] > svg:not(.funny-sun-shadow) { animation: funny-shadow-pounce .4s ease-out; }
+.funny-visitor[data-scene-step="pounce"]::after { content:''; position:absolute; top:76%; left:34%; width:9px; height:6px; border-radius:50%; background:#ad815e; box-shadow:13px 0 currentColor; color:#ad815e; }
+.funny-blackcat[data-scene-step="pounce"]::after { background:#514857; color:#514857; }
+.funny-visitor[data-scene-step="look-down"] > svg:first-child { transform:translateY(3px) rotate(10deg); }
+.funny-visitor[data-scene-step="look-up"] > svg:first-child { transform:translateY(-3px) rotate(-13deg); }
+@keyframes funny-shadow-pounce { 25% { transform:scale(1.1,.87); } 65% { transform:translateY(-9px) rotate(-6deg); } }
+.funny-sailing-silk { height:1px; background:#dde7ec; box-shadow:0 1px 1px #8094a599; transform-origin:left; }
+.funny-spiders[data-scene-step="sail"] > svg { transform:rotate(-12deg); }
+.funny-spiders[data-scene-step="grip"] > svg { transform:scale(1.15,.8); }
+.funny-zombie[data-scene-step] { --funny-zombie-shoe:0; }
+.funny-zombie[data-scene-step=""] { --funny-zombie-shoe:1; }
+.funny-zombie[data-scene-step="sock-step"] > svg:first-child { animation:funny-shoe-hop .38s ease-in-out infinite; }
+.funny-zombie[data-scene-step="notice-shoe"] > svg:first-child { transform:rotate(12deg); }
+@keyframes funny-shoe-hop { 50% { transform:translateY(-4px) rotate(-5deg); } }
+.funny-lost-shoe { width:13px; height:6px; margin:-4px 0 0 -6px; border-radius:4px 7px 3px 3px; background:#47434e; border-bottom:2px solid #746778; }
+.funny-shoe-ripple i { width:14px; height:5px; border:1px solid #69a9c7; border-radius:50%; animation:funny-shoe-ripple .75s ease-out both; }
+@keyframes funny-shoe-ripple { from { transform:translate(-50%,-50%) scale(.4); } to { transform:translate(-50%,-50%) scale(2.1); opacity:0; } }
+.funny-visitor[data-weather-act="fog-vanish"] > svg { opacity:.06; transition:opacity .34s; }
+.funny-visitor[data-weather-act="fog-vanish"][data-scene-step="peek"] > svg { opacity:.96; transform:rotate(-12deg); }
+.funny-visitor[data-weather-act="fog-search"] > svg { animation:funny-fog-search .95s ease-in-out infinite alternate; }
+@keyframes funny-fog-search { from { transform:rotate(-8deg); } to { transform:rotate(9deg); } }
+.funny-snowmaiden[data-scene-step^="tap-"]::after { content:''; position:absolute; top:55%; left:50%; width:var(--funny-wand-length); height:2px; background:#9a7551; border-radius:2px; transform-origin:left; transform:rotate(var(--funny-wand-angle)); }
+.funny-butterfly[data-scene-step="carry-pollen"]::after, .funny-butterfly[data-scene-step="deliver"]::after { content:''; position:absolute; top:70%; left:47%; width:3px; height:3px; border-radius:50%; background:#ecb22f; box-shadow:3px 2px #ffd65c,-3px 1px #e7aa29; }
+.funny-spring-flower[data-pollinated="true"] i { scale:1.45; transition:scale .45s; box-shadow:-5px 0 #e795c9,5px 0 #e795c9,0 -5px #e795c9,0 5px #e795c9; }

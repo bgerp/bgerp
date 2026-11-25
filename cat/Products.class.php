@@ -2817,6 +2817,15 @@ class cat_Products extends embed_Manager
                 $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
 
+            // Линкът се губи в LLM експорта, а хендлърът може да се цитира
+            if (Mode::is('renderForLlm') && !core_Users::isContractor()) {
+                foreach (array('clonedFromId', 'proto') as $fld) {
+                    if (isset($rec->{$fld})) {
+                        $row->{$fld} .= ' #' . $mvc->getHandle($rec->{$fld});
+                    }
+                }
+            }
+
             if (!Mode::isReadOnly()) {
                 if ($mvc->haveRightFor('edit', $rec)) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');

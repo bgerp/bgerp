@@ -123,7 +123,9 @@
     <circle cx="49" cy="32" r="8" fill="#f8f1d8"/><circle cx="73" cy="34" r="7" fill="#f8f1d8"/>
     <circle cx="51" cy="33" r="3" fill="#47434e"/><circle cx="71" cy="35" r="3" fill="#47434e"/>
     <path d="M51 46l21-1m-15-4v8m8-8v7" stroke="#60724f" stroke-width="2"/>
-    <path d="M38 89h11m26 2h11" stroke="#47434e" stroke-width="8" stroke-linecap="round"/>
+    <path d="M76 91h9" stroke="#e9d7ab" stroke-width="7" stroke-linecap="round"/>
+    <path d="M75 91h11" stroke="#47434e" stroke-width="8" stroke-linecap="round" opacity="var(--funny-zombie-shoe,1)"/>
+    <path d="M38 89h11" stroke="#47434e" stroke-width="8" stroke-linecap="round"/>
   </symbol>
   <symbol id="sleigh" viewBox="0 0 120 100">
     <path d="M15 76h83q17 0 17-13M26 68l-4 8m64-8 4 8" fill="none" stroke="#c49645" stroke-width="4" stroke-linecap="round"/>

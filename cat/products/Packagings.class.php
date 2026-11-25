@@ -684,12 +684,18 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth') as $sizeFld) {
-            if ($rec->{$sizeFld} == 0) {
+            if (!property_exists($row, $sizeFld) && !isset($fields['dimension'])) {
+                continue;
+            }
+            if (($rec->{$sizeFld} ?? 0) == 0) {
                 $row->{$sizeFld} = '-';
+            } elseif (!isset($row->{$sizeFld})) {
+                $row->{$sizeFld} = $mvc->getVerbal($rec, $sizeFld);
             }
         }
 
-        if ($rec->sizeWidth || $rec->sizeHeight || $rec->sizeDepth) {
+        if (isset($row->sizeWidth, $row->sizeHeight, $row->sizeDepth)
+            && (!empty($rec->sizeWidth) || !empty($rec->sizeHeight) || !empty($rec->sizeDepth))) {
             $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
         }
 
@@ -699,16 +705,19 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        try {
-            if ($netWeight = cat_Products::convertToUom($rec->productId, 'kg')) {
-                $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
-                $row->weight = "<span class='quiet'>" . tr('Нето') . ': </span>' . $netWeight . '<br>';
+        if (isset($fields['weight']) || property_exists($row, 'tareWeight')) {
+            try {
+                if ($netWeight = cat_Products::convertToUom($rec->productId, 'kg')) {
+                    $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
+                    $row->weight = "<span class='quiet'>" . tr('Нето') . ': </span>' . $netWeight . '<br>';
+                }
+            } catch (ErrorException $e) {
             }
-        } catch (ErrorException $e) {
-        }
 
-        if (!empty($rec->tareWeight)) {
-            $row->weight = ($row->weight ?? '') . "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
+            if (!empty($rec->tareWeight)) {
+                $tareWeight = $row->tareWeight ?? $mvc->getVerbal($rec, 'tareWeight');
+                $row->weight = ($row->weight ?? '') . "<span class='quiet'>" . tr('Тара') . ': </span>' . $tareWeight;
+            }
         }
 
         if ($rec->isBase == 'yes') {
