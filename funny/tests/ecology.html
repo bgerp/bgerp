@@ -2,7 +2,7 @@
 <html lang="bg">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Funny - време и малки приключения</title>
-<link rel="stylesheet" href="../css/funny.css">
+<link rel="stylesheet" href="../css/funny.css"><link rel="stylesheet" href="../css/weather.css">
 <style>
 body { margin:24px; color:#334155; background:#eef3f7; font:15px/1.5 sans-serif; min-height:140vh; }
 h1 { margin:0; font-size:23px; } p { max-width:850px; } button,select,input { padding:7px; margin:3px; }
@@ -14,44 +14,60 @@ h1 { margin:0; font-size:23px; } p { max-width:850px; } button,select,input { pa
 @media(max-width:700px) { #launch { left:40%; top:70vh; width:120px; } }
 </style>
 <h1>Време и малки приключения</h1>
-<label>Сцена <select id="scenario"><option value="ice">Мечка върху тънък лед</option><option value="drink">Елен пие вода</option><option value="frozen">Елен пред лед</option><option value="hunt">Нощен лов на комар</option><option value="drip">Коте и капка</option><option value="hat">Спасена шапка</option><option value="wind">Муха на завет</option></select></label>
+<label>Сцена <select id="scenario"><option value="ice">Мечка върху тънък лед</option><option value="drink">Елен пие вода</option><option value="frozen">Елен пред лед</option><option value="hunt">Нощен лов на комар</option><option value="drip">Коте и капка</option><option value="hat">Спасена шапка</option><option value="wind">Муха на завет</option><option value="shadow">Коте и сянка на щъркел</option><option value="silk">Паяк по вятъра</option><option value="shoe">Зомби с мокра обувка</option><option value="fog">Призрак в мъглата</option><option value="chime">Музика от висулки</option><option value="pollen">Пеперуда с прашец</option></select></label>
 <button id="calm">Спри порива</button><button id="cool">Охлади снежния човек</button><button id="test">Кликове: 0</button><input aria-label="Проверка на писането" placeholder="Пиши тук">
-<p>Двоен клик в рамката извиква реалните герои. Натрупванията и падащата капка тук са тестови; ловът използва тестов нощен час. За връщане на шапката натисни "Охлади снежния човек" преди двойния клик - охлаждането изчаква спасяването ѝ. Escape прекъсва всичко.</p>
+<p>Двоен клик в рамката извиква реалните герои. Водата и висулките са тестови. Ловът на комари е вечер, а цветята и сянката са в пролетна сутрин. За връщане на шапката натисни "Охлади снежния човек" преди двойния клик - охлаждането изчаква спасяването ѝ. Escape прекъсва всичко.</p>
 <iframe title="Друг екран за проверка на фокус" src="focus.html" style="width:300px;height:34px;border:0;display:block"></iframe>
 <output id="status">Наблюдавани сцени: изчакване</output><div id="launch" aria-label="Празно място за двоен клик"></div>
 <script src="../js/scene.js"></script><script src="../js/funny.js"></script>
 <script>
 // Only the fixture controls deposits and the night clock; production owns actors and scene cleanup.
-var params=new URLSearchParams(location.search),kind=params.get('scene')||'ice',seed=Number(params.get('seed'))||({ice:10967,hunt:14,wind:997,hat:27}[kind]||4);
+var params=new URLSearchParams(location.search),kind=params.get('scene')||'ice',seed=Number(params.get('seed'))||({ice:10967,hunt:14,wind:997,hat:27,shadow:997,silk:997,shoe:997,fog:997,chime:997}[kind]||4);
 Math.random=function(){return ((seed=seed*16807%2147483647)-1)/2147483646;};
-var ActualDate=Date;window.Date=class extends ActualDate { constructor(...args){super(...args);if(!args.length&&kind==='hunt')this.setHours(22);} };
+var ActualDate=Date;window.Date=class extends ActualDate { constructor(...args){super(...args);if(!args.length){if(kind==='hunt')this.setHours(22);if(kind==='shadow'||kind==='pollen'){this.setMonth(3,13);this.setHours(9,0);}}} };
 var select=document.getElementById('scenario');select.value=kind;select.addEventListener('change',function(){location.search=new URLSearchParams({scene:select.value});});
-var choices={ice:['polarbear','penguin'],drink:['deer'],frozen:['deer'],hunt:['bat','mosquito'],drip:['cat'],hat:['snowman','elf'],wind:['fly']}[kind];
-var weather={ice:'snow',drink:'rain',frozen:'snow',hunt:'moon',drip:'rain',hat:'clouds',wind:'wind'}[kind],wind={x:1,y:0,speed:kind==='wind'?30:8},valid=true,water=null,drop=null;
-var forecast={temperature:['ice','frozen'].includes(kind)?-5:22,expires:Date.now()+86400000};
+var choices={ice:['polarbear','penguin'],drink:['deer'],frozen:['deer'],hunt:['bat','mosquito'],drip:['cat'],hat:['snowman','elf'],wind:['fly'],shadow:['cat','stork'],silk:['spiders'],shoe:['zombie'],fog:['ghost','wolf'],chime:['snowmaiden'],pollen:['butterfly']}[kind];
+var weather={ice:'snow',drink:'rain',frozen:'snow',hunt:'moon',drip:'rain',hat:'clouds',wind:'wind',shadow:'sun',silk:'wind',shoe:'rain',fog:'fog',chime:'snow',pollen:'sun'}[kind],wind={x:1,y:0,speed:kind==='wind'?30:kind==='silk'?17:8},valid=true,water=null,drop=null;
+var forecast={temperature:['ice','frozen','chime'].includes(kind)?-5:22,expires:Date.now()+86400000};
 function prop(id,x,y){var el=document.createElement('div');el.id=id;el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);return el;}
-window.funnyWeather={current:function(){return weather;},trigger:function(){},trace:function(){},wind:function(){return wind;},surfaceNear:function(x,y,type){
-    if(!valid||!(['ice','frozen'].includes(kind)&&['ice','frost'].includes(type)||kind==='drink'&&type==='water'))return null;
+window.funnyWeather={visible:function(){return valid;},iciclesNear:function(x,y){
+    if(kind!=='chime')return null;
+    if(!water){
+        var bank=prop('blockPortal_edge',x-40,y-22),ice=document.createElement('div');
+        bank.style.width='90px';ice.className='funny-weather-icicles';ice.style.height='18px';bank.appendChild(ice);
+        ['short','long','tip'].forEach(function(size){var blade=document.createElement('div');blade.className='funny-weather-icicle-'+size;ice.appendChild(blade);});
+        var r=ice.getBoundingClientRect();water={x:r.left+r.width*.26,y:r.bottom,tips:[0,1].map(function(i){var t=ice.children[i].getBoundingClientRect();return {x:t.left+t.width/2,y:t.bottom};}),valid:function(){return valid;},
+            tap:function(i){ice.children[i].setAttribute('data-ringing','true');},release:function(){for(var blade of ice.children)blade.removeAttribute('data-ringing');}};
+    }
+    return water;
+},current:function(){return weather;},trigger:function(){},trace:function(){},wind:function(){return wind;},surfaceNear:function(x,y,type){
+    if(!valid||!(['ice','frozen'].includes(kind)&&['ice','frost'].includes(type)||['drink','shoe'].includes(kind)&&type==='water'))return null;
     if(!water){var node=prop('pool',x-45,y);node.style.height='7px';water={x:x,y:y,valid:function(){return valid;},drink:function(){node.style.height='4px';return true;},crack:function(){node.style.background='repeating-linear-gradient(25deg,#d9edf5 0 9px,#7496af 10px 11px)';return true;}};}
     return water;
 },dripNear:function(x,y){
     if(kind!=='drip'||drop)return null;var node=prop('pool',x+20,y);node.style.width='5px';node.style.height='8px';node.style.background='#5aabdb';var until=performance.now()+1200;
     return drop={valid:function(){return valid&&performance.now()<until;},reserve:function(){return true;},position:function(){return {x:x+20,y:y};},catch:function(){node.remove();valid=false;return true;},release:function(){node.remove();}};
 }};
-funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:'no',spriteUrl:'../img/characters.svg',forecast:forecast});
+funnyEffects.init({mode:'selected',characters:choices,trigger:'manual',sound:kind==='chime'?'yes':'no',spriteUrl:'../img/characters.svg',forecast:forecast});
 document.getElementById('calm').addEventListener('click',function(){wind.speed=8;weather='clouds';});
 var coolQueued=false;
 document.getElementById('cool').addEventListener('click',function(){coolQueued=true;this.textContent='Охлаждането е подготвено';if(document.querySelector('.funny-snow-hat[data-saved="true"]')){forecast.temperature=-5;weather='snow';}});
 var clicks=0;document.getElementById('test').addEventListener('click',function(){this.textContent='Кликове: '+(++clicks);});
-var seen={},edge=false,names={'ice-wary':'Мечката към леда','ice-retreat':'Ледът се пука - отстъпление',slide:'Пингвинът се пързаля',drink:'Еленът към водата',drinking:'Пиене','hoof-tap':'Почукване по леда','ice-refusal':'Отказ от замръзналата вода','night-hunt':'Прилепът ловува','night-prey':'Комарът бяга','drip-watch':'Следене на капка','nose-splash':'Пръски по носа','save-hat':'Елфът прибира шапката','carrying-hat':'Носи шапката на сухо','return-hat':'Снежният човек си прибира шапката',headwind:'Борба с порива','insect-sheltered':'Почивка на завет'};
+var seen={},edge=false,names={pounce:'Скок върху сянката','look-down':'Поглежда под лапите','look-up':'Поглежда към щъркела',sail:'По нишката',land:'На отсрещния ръб',reel:'Прибира нишката',grip:'Вкопчва се','sock-step':'Стъпка по чорап','notice-shoe':'Забелязва обувката','fetch-shoe':'Връща се за нея','fog-search':'Вълкът се оглежда',peek:'Духът наднича','tap-short':'Къса висулка','tap-long':'Дълга висулка','carry-pollen':'Прашец по крачетата',deliver:'Към втория цвят','flower-open':'Цветът се отваря','ice-wary':'Мечката към леда','ice-retreat':'Ледът се пука - отстъпление',slide:'Пингвинът се пързаля',drink:'Еленът към водата',drinking:'Пиене','hoof-tap':'Почукване по леда','ice-refusal':'Отказ от замръзналата вода','night-hunt':'Прилепът ловува','night-prey':'Комарът бяга','drip-watch':'Следене на капка','nose-splash':'Пръски по носа','save-hat':'Елфът прибира шапката','carrying-hat':'Носи шапката на сухо','return-hat':'Снежният човек си прибира шапката',headwind:'Борба с порива','insect-sheltered':'Почивка на завет'};
 new MutationObserver(function(records){
     records.forEach(function(r){var value=r.target.getAttribute(r.attributeName);if(names[value])seen[value]=true;});
     if(document.querySelector('.funny-caught-insect'))seen.caught=true;
     if(document.querySelector('.funny-snow-hat[data-saved="true"]')){seen.saved=true;if(coolQueued){forecast.temperature=-5;weather='snow';}}
     var status='Наблюдавани сцени: '+Object.keys(seen).map(function(n){return names[n]||(n==='caught'?'Комарът е уловен':'Шапката е на сухо');}).join(' / ');
     if(document.getElementById('status').textContent!==status)document.getElementById('status').textContent=status;
+    if(kind==='silk'&&!edge&&document.querySelector('.funny-spiders')){
+        edge=true;setTimeout(function(){var spider=document.querySelector('.funny-spiders');if(!spider)return;
+            var r=spider.getBoundingClientRect(),left=Math.min(innerWidth-210,Math.max(0,r.left-20)),top=r.bottom+12;
+            [0,117].forEach(function(dx,i){var b=prop('blockPortal_silk'+i,left+dx,top);b.style.cssText+=';position:fixed;width:70px;height:22px;border:1px solid #8ba3b5;background:white;border-radius:5px';});
+        },1750);
+    }
     var actor=document.querySelector(kind==='hat'?'.funny-snow-hat':'.funny-fly');
     if(['hat','wind'].includes(kind)&&actor&&!edge){edge=true;setTimeout(function(){var r=actor.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;var block=prop('blockPortal_edge',x-(kind==='hat'?120:195),y+(kind==='hat'?50:-15));block.style.width=(kind==='hat'?240:160)+'px';block.style.height=(kind==='hat'?20:30)+'px';},kind==='hat'?0:1400);}
-}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-weather-act','data-saved','class'],childList:true});
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-scene-step','data-weather-act','data-saved','class'],childList:true});
 </script>
 </html>

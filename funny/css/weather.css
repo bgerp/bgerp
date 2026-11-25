@@ -25,7 +25,13 @@
 .funny-weather-footprints { position: absolute; width: 4px; height: 7px; border-radius: 50%; background: #7f9cb0a6; box-shadow: 6px 2px #7f9cb0a6; transform: rotate(-15deg); animation: funny-weather-trace 3.2s linear forwards; }
 .funny-weather-splash { position: absolute; width: 12px; height: 5px; margin: -3px 0 0 -6px; border: 1px solid #63a8c6; border-radius: 50%; animation: funny-weather-splash .85s ease-out forwards; }
 .funny-weather-ripple { position: absolute; width: 15px; height: 4px; margin: -2px 0 0 -7px; border: 1px solid #529ec3; border-radius: 50%; animation: funny-weather-splash .9s ease-out forwards; }
-.funny-weather-icicles { position: absolute; top: 70%; left: 10%; width: min(70%,100px); height: 0; background: linear-gradient(90deg,#b6d6e7,#faffff 40%,#a0c6df); clip-path: polygon(0 0,10% 0,5% 80%,0 0,40% 0,48% 100%,56% 0,85% 0,92% 70%,100% 0); transition: height 1s linear; }
+.funny-weather-icicles { position: absolute; top: 70%; left: 10%; width: min(70%,100px); height: 0; transition: height 1s linear; }
+.funny-weather-icicles > * { position: absolute; top: 0; background: linear-gradient(90deg,#b6d6e7,#faffff 40%,#91b7d1); clip-path: polygon(0 0,100% 0,50% 100%); transform-origin: 50% 0; }
+.funny-weather-icicle-short { left: 0; width: 10%; height: 80%; }
+.funny-weather-icicle-long { left: 40%; width: 16%; height: 100%; }
+.funny-weather-icicle-tip { right: 0; width: 15%; height: 70%; }
+.funny-weather-icicles > [data-ringing="true"] { animation: funny-ice-ring .35s ease-out; }
+@keyframes funny-ice-ring { 20% { transform: rotate(14deg); } 55% { transform: rotate(-10deg); } 80% { transform: rotate(5deg); } }
 .funny-weather-wind-piece.funny-weather-resting { animation-name: funny-weather-resting-gust; }
 .funny-weather-resting .funny-weather-leaf { animation: funny-weather-resting-leaf var(--gust-duration) ease-in-out forwards; }
 @keyframes funny-weather-resting-gust { 0% { transform: translate(0,0); opacity: 0; } 8%,85% { opacity: .7; } 35%,65% { transform: translate(var(--rest-x),var(--rest-y)); } 100% { transform: translate(var(--travel),var(--lift)); opacity: 0; } }

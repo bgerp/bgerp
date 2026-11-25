@@ -3132,3 +3132,88 @@ check('ecology: a cooled snowman retrieves its saved hat if still nearby',()=>{
     forecast.temperature=-5;config.weather='snow';const snowman=waitWeatherAct(e,'return-hat',10000);e.tick(4000);
     assert(!e.document.body.children.includes(hat));assert(!snowman.style['--funny-snow-hat-opacity']);
 });
+/** Drive the public spawn gesture using the same cached-weather contract as the page. */
+function edgeFixture(kind,seed=4,sound='no') {
+    const choices={cat:['cat','stork'],fog:['ghost','wolf'],shoe:['zombie'],chime:['snowmaiden'],pollen:['butterfly']};
+    const config={seed,width:1400,height:1000,weather:{cat:'sun',shoe:'rain',fog:'fog',chime:'snow',pollen:'sun'}[kind],date:'2026-04-13T09:00:00'};
+    const e=environment({mode:'selected',trigger:'manual',characters:choices[kind],forecast:{temperature:kind==='chime'?-4:16,expires:Infinity},sound},config);
+    let valid=true,taps=[],released=0;
+    const api=e.window.funnyWeather;
+    api.visible=()=>valid;
+    api.surfaceNear=(x,y,type)=>kind==='shoe'&&type==='water'&&valid?{x,y,valid:()=>valid}:null;
+    api.iciclesNear=(x,y)=>kind==='chime'&&valid?{x,y,tips:[{x:x-10,y:y-2},{x:x+10,y:y+2}],valid:()=>valid,tap:i=>taps.push(i),release:()=>released++}:null;
+    e.click();
+    return {e,config,taps,invalidate(){valid=false;},releases:()=>released};
+}
+
+/** A pose must have been reached through the normal per-frame controller. */
+function waitPose(e, step, duration=15000) {
+    for (let at=0; at<duration; at+=32) {
+        e.tick(32);
+        const actor=e.visitors().find(v=>v.attrs['data-scene-step']===step);
+        if (actor) return actor;
+    }
+    assert.fail('Missing pose '+step);
+}
+check('edge scenes: a cat pounces at the existing stork shadow and looks down then up',()=>{
+    const {e}=edgeFixture('cat',997),cat=waitPose(e,'look-up');
+    assert.deepEqual(cat.history.filter(([k,v])=>k==='data-scene-step'&&v).map(p=>p[1]),['pounce','look-down','look-up']);
+    const stork=e.visitors().find(v=>v.className.includes('funny-stork'));
+    assert(stork.children.some(n=>n.attrs.class==='funny-sun-shadow'));
+    const night=edgeFixture('cat',997);night.config.date='2026-04-13T22:00:00';
+    assert(watchVisitors(night.e,8000).every(v=>v.attrs['data-weather-act']!=='shadow-hunt'&&!v.history.some(([k,x])=>x==='pounce')));
+});
+check('edge scenes: a spider crosses downwind, reels in a gust and releases a disconnected anchor',()=>{
+    for (const end of ['land','grip','removed']) {
+        const wind={x:1,y:0,speed:17};
+        const {e,v}=wovenFixture({sound:'no'},{seed:997,weather:'wind',wind,width:1400,height:1000});
+        waitPose(e,'sail');const start=e.center(v);
+        if(end==='grip') { wind.speed=38;waitPose(e,'grip');assert(v.history.some(([k,x])=>x==='reel')); }
+        if(end==='land') {waitPose(e,'land');assert(e.center(v).x>start.x+30);}
+        if(end==='removed') e.block.isConnected=false;
+        e.tick(1000);
+        assert(!v.attrs['data-weather-act']);assert(!e.document.body.children.some(n=>n.className.includes('funny-sailing-silk')));
+    }
+});
+check('edge scenes: a zombie leaves its shoe in water and retrieves it before the ripple disappears',()=>{
+    const {e}=edgeFixture('shoe',997),v=waitPose(e,'sock-step');
+    const shoe=e.document.body.children.find(n=>n.className.includes('funny-lost-shoe'));assert(shoe);
+    const start=e.center(v);waitPose(e,'notice-shoe');assert(Math.abs(e.center(v).x-start.x)>25);
+    waitPose(e,'fetch-shoe');e.tick(550);assert(!e.document.body.children.includes(shoe));assert(!v.attrs['data-weather-act']);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-shoe-ripple')));
+    const dry=edgeFixture('shoe',997);dry.invalidate();assert(watchVisitors(dry.e,7000).every(v=>!v.history.some(([k,x])=>x==='lost-shoe')));
+});
+check('edge scenes: the pursued ghost peeks behind the wolf in fog and triggers one normal retreat',()=>{
+    const {e}=edgeFixture('fog',997);
+    const ghost=waitWeatherAct(e,'fog-vanish'),wolf=e.visitors().find(v=>v.className.includes('funny-wolf'));
+    const start=e.center(ghost),origin=e.center(wolf);assert.equal(wolf.attrs['data-weather-act'],'fog-search');
+    assert.equal(waitPose(e,'peek'),ghost);const finish=e.center(ghost);
+    assert((start.x-origin.x)*(finish.x-origin.x)+(start.y-origin.y)*(finish.y-origin.y)<0);
+    e.tick(2300);assert(wolf.history.some(([k,x])=>x==='retreating'));assert.equal(ghost.history.filter(([k,x])=>x==='peek').length,1);
+    const clear=edgeFixture('fog',997);clear.invalidate();assert(watchVisitors(clear.e,7000).every(v=>!v.history.some(([k,x])=>x==='fog-search')));
+});
+check('edge scenes: the snow maiden taps short then long with one optional descending chime',()=>{
+    for(const sound of ['yes','no','scary']) {
+        const {e,taps,releases}=edgeFixture('chime',997,sound);waitWeatherAct(e,'ice-music');
+        const before=e.sounds.length;waitPose(e,'tap-long');assert.deepEqual(taps,[0,1]);e.tick(600);assert.equal(releases(),1);
+        const notes=e.sounds.slice(before).filter(s=>s.frequency===988||s.frequency===740);
+        assert.deepEqual(notes.map(s=>s.frequency),sound==='no'?[]:[988,740]);
+        if(notes.length)assert(Math.abs(notes[1].start-notes[0].start-.35)<.001);
+    }
+});
+check('edge scenes: spring pollen opens a different existing flower and both keep their deadlines',()=>{
+    const {e}=edgeFixture('pollen',4);waitPose(e,'carry-pollen');
+    const first=e.document.body.children.find(n=>n.className.includes('funny-spring-flower'));assert(first);
+    waitPose(e,'flower-open');const opened=e.document.body.children.find(n=>n.attrs['data-pollinated']==='true');
+    assert(opened);assert.notEqual(first,opened);assert(!first.attrs['data-pollinated']);e.tick(10000);
+    assert(!e.document.body.children.includes(opened));assert(!e.document.body.children.includes(first));
+});
+check('edge scenes: interrupted scenes release both actors, their poses, props and future cues',()=>{
+    for (const [kind,phase] of [['cat','pounce'],['fog','peek'],['shoe','sock-step'],['chime','tap-short'],['pollen','carry-pollen']]) {
+        const {e,taps}=edgeFixture(kind,kind==='pollen'?4:997);const v=waitPose(e,phase);
+        e.document.focused=false;e.window.emit('blur');e.tick(600);
+        assert(!v.attrs['data-weather-act']);assert(!v.attrs['data-scene-step']);assert.equal(e.raf.size,0);
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-lost-shoe')));
+        if (kind==='chime') assert.deepEqual(taps,[0]);
+    }
+});
