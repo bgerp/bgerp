@@ -48,6 +48,15 @@ class cond_type_Formula extends cond_type_Text
 
 
     /**
+     * Изчиства изчислените параметри; вика се при промяна на параметър
+     */
+    public static function clearCache()
+    {
+        static::$cache = array();
+    }
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
