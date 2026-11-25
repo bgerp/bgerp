@@ -381,24 +381,25 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
 
 
     /**
-     * Артикули, в които някой от параметрите има търсената стойност (без значение от регистъра)
+     * Артикули, в които някой от параметрите има търсената стойност
      *
      * Чете се от индекса. Кандидатите без актуален индекс и неиндексираните параметри се проверяват с getParams()
      *
      * @param array      $paramIds   - параметри
-     * @param string     $value      - търсена стойност
-     * @param string     $match      - contains (съдържа) или exact (точно)
+     * @param string     $value      - търсена стойност (текстът - без значение от регистъра)
+     * @param string     $match      - contains, exact, gt, gte, lt, lte, between (число или дата) или any (попълнен)
      * @param array|null $productIds - кандидати, null за всички индексирани артикули
+     * @param string     $valueTo    - горната граница при between
      *
      * @return array ['products' => [ид на артикул => [ид на параметър => стойност]], 'notIndexed' => [ид на параметър], 'pending' => брой]
      */
-    public static function searchProducts($paramIds, $value, $match = 'contains', $productIds = null)
+    public static function searchProducts($paramIds, $value, $match = 'contains', $productIds = null, $valueTo = null)
     {
         // Четат се последно изчислените стойности - без преизчисляване и запис на артикулите
         Mode::push('doNotCalculate', true);
         try {
 
-            return self::doSearchProducts($paramIds, $value, $match, $productIds);
+            return self::doSearchProducts($paramIds, $value, $match, $productIds, $valueTo);
         } finally {
             Mode::pop('doNotCalculate');
         }
@@ -412,19 +413,19 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
      * @param string     $value
      * @param string     $match
      * @param array|null $productIds
+     * @param string     $valueTo
      *
      * @return array
      */
-    protected static function doSearchProducts($paramIds, $value, $match, $productIds)
+    protected static function doSearchProducts($paramIds, $value, $match, $productIds, $valueTo)
     {
         $res = array('products' => array(), 'notIndexed' => array(), 'pending' => 0);
-        $needle = mb_strtolower(trim((string) $value));
+        $cond = self::getSearchCondition($value, $match, $valueTo);
         $paramIds = array_unique(arr::makeIds($paramIds));
-        if (!strlen($needle) || !countR($paramIds)) {
+        if (!$cond || !countR($paramIds)) {
 
             return $res;
         }
-        $match = ($match == 'exact') ? 'exact' : 'contains';
 
         $filterable = self::getFilterableParams();
         $indexed = array_values(array_filter($paramIds, function ($paramId) use ($filterable) { return isset($filterable[$paramId]); }));
@@ -474,7 +475,7 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
                 foreach ($paramValues as $vRec) {
                     if (!isset($vRec->valueKey) && !isset($vRec->valueNum)) continue;
 
-                    $verbal = self::matchIndexRow($params[$paramId], $Driver, $vRec->productId, $vRec, $needle, $match);
+                    $verbal = self::matchIndexRow($params[$paramId], $Driver, $vRec->productId, $vRec, $cond);
                     if (!isset($verbal)) continue;
 
                     if (isset($vRec->valueKey)) {
@@ -509,7 +510,7 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
         }
 
         foreach ($direct as $productId => $params) {
-            foreach (self::matchProductParams($productId, $params, $needle, $match) as $paramId => $verbal) {
+            foreach (self::matchProductParams($productId, $params, $cond) as $paramId => $verbal) {
                 $res['products'][$productId][$paramId] = $verbal;
             }
         }
@@ -525,12 +526,11 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
      *
      * @param int    $productId
      * @param array  $paramIds
-     * @param string $needle    - търсената стойност с малки букви
-     * @param string $match     - contains или exact
+     * @param array  $cond      - @see getSearchCondition
      *
      * @return array - ид на параметър => стойност
      */
-    protected static function matchProductParams($productId, $paramIds, $needle, $match)
+    protected static function matchProductParams($productId, $paramIds, $cond)
     {
         $res = array();
         $params = cat_Products::getParams($productId);
@@ -554,7 +554,7 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
                 $rows = array((object) array('valueKey' => (string) $value, 'valueVerbal' => null, 'valueNum' => null));
             }
             foreach ($rows as $iRec) {
-                $verbal = self::matchIndexRow($pRec, $Driver, $productId, $iRec, $needle, $match);
+                $verbal = self::matchIndexRow($pRec, $Driver, $productId, $iRec, $cond);
                 if (isset($verbal)) {
                     $res[$paramId] = $verbal;
                     break;
@@ -567,18 +567,73 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
 
 
     /**
-     * Изписването на стойност от индекса, ако съвпада с търсената
+     * Условието на търсенето: текст с малки букви или числови граници (датата - като timestamp)
+     *
+     * @param string $value
+     * @param string $match
+     * @param string $valueTo
+     *
+     * @return array|null - match, needle, from, to; null при невалидна стойност
+     */
+    public static function getSearchCondition($value, $match, $valueTo = null)
+    {
+        $value = trim((string) $value);
+        switch ($match) {
+            case 'any':
+
+                return array('match' => 'any');
+            case 'gt':
+            case 'gte':
+            case 'lt':
+            case 'lte':
+            case 'between':
+                $from = self::toSearchNumber($value);
+                $to = ($match == 'between') ? self::toSearchNumber($valueTo) : null;
+                if (!isset($from) || ($match == 'between' && !isset($to))) {
+
+                    return null;
+                }
+
+                return array('match' => $match, 'from' => $from, 'to' => $to);
+            default:
+
+                return strlen($value) ? array('match' => ($match == 'exact') ? 'exact' : 'contains', 'needle' => mb_strtolower($value)) : null;
+        }
+    }
+
+
+    /**
+     * Число от търсената стойност: с точка или запетая, а дата - като timestamp, както я пази индексът
+     *
+     * @param mixed $value
+     *
+     * @return float|null
+     */
+    protected static function toSearchNumber($value)
+    {
+        $value = str_replace(',', '.', trim((string) $value));
+        if (is_numeric($value)) {
+
+            return (float) $value;
+        }
+        $time = strlen($value) ? strtotime($value) : false;
+
+        return ($time === false) ? null : (float) $time;
+    }
+
+
+    /**
+     * Изписването на стойност от индекса, ако отговаря на условието
      *
      * @param stdClass|null                 $pRec      - параметърът
      * @param cond_type_abstract_Proto|null $Driver    - драйверът му
      * @param int                           $productId
      * @param stdClass                      $iRec      - ред от индекса
-     * @param string                        $needle    - търсената стойност с малки букви
-     * @param string                        $match     - contains или exact
+     * @param array                         $cond      - @see getSearchCondition
      *
      * @return string|null
      */
-    protected static function matchIndexRow($pRec, $Driver, $productId, $iRec, $needle, $match)
+    protected static function matchIndexRow($pRec, $Driver, $productId, $iRec, $cond)
     {
         Mode::push('text', 'plain');
         try {
@@ -588,10 +643,32 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
         }
         $verbal = trim(html_entity_decode(strip_tags((string) $verbal), ENT_QUOTES, 'UTF-8'));
 
-        // Числото (и датата като timestamp) се сравнява по изписването си, а артикулът - и без кода си: [123] Име
+        if ($cond['match'] == 'any') {
+
+            return strlen($verbal) ? $verbal : (string) ($iRec->valueKey ?? $iRec->valueNum);
+        }
+
+        // Числата се сравняват по стойността, текстът без значение от регистъра
+        if (isset($cond['from'])) {
+            $num = $iRec->valueNum ?? null;
+            if (!isset($num) && is_numeric(str_replace(',', '.', (string) ($iRec->valueKey ?? '')))) {
+                $num = str_replace(',', '.', $iRec->valueKey);
+            }
+            if (!isset($num)) {
+
+                return null;
+            }
+            $num = (float) $num;
+            $ok = array('gt' => $num > $cond['from'], 'gte' => $num >= $cond['from'], 'lt' => $num < $cond['from'], 'lte' => $num <= $cond['from'],
+                'between' => $num >= $cond['from'] && $num <= ($cond['to'] ?? $cond['from']));
+
+            return $ok[$cond['match']] ? $verbal : null;
+        }
+
+        // Артикулът като стойност се изписва с кода си: [123] Име
         $texts = isset($iRec->valueKey) ? array($verbal, $iRec->valueKey, preg_replace('/^\[[^\]]*\]\s*/u', '', $verbal)) : array($verbal);
 
-        return self::matchesValue($needle, $match, $texts) ? $verbal : null;
+        return self::matchesValue($cond['needle'], $cond['match'], $texts) ? $verbal : null;
     }
 
 
