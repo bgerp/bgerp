@@ -650,4 +650,16 @@ check('ecology: cats borrow real runoff drops once without extending their deadl
     assert(!e.layer().children.includes(node));e.document.emit('pointermove');assert.equal(w.dripNear(point.x,point.y,160),null);
 });
 
+
+check('icicle music needs two grown icicles on one visible bank and releases them on layout changes',()=>{
+    const e=environment({icon:'snow',temperature:-5,standalone:false}),api=e.window.funnyWeather;
+    assert.equal(api.iciclesNear(260,300,180),null);api.trigger('manual');e.tick(600);
+    assert.equal(api.iciclesNear(260,300,180),null);e.tick(100000);
+    const bank=e.layer().children.find(n=>n.children.some(c=>c.className==='funny-weather-icicles'));
+    const ice=bank.children.find(n=>n.className==='funny-weather-icicles');
+    const pair=api.iciclesNear(260,300,180);assert(pair&&pair.valid());assert.equal(api.iciclesNear(1100,850,40),null);
+    pair.tap(0);assert.equal(ice.children[0].attrs['data-ringing'],'true');assert(!ice.children[1].attrs['data-ringing']);
+    pair.tap(1);assert.equal(ice.children[1].attrs['data-ringing'],'true');pair.release();assert(!ice.children[0].attrs['data-ringing']);
+    e.setBlocks([]);e.tick(1200);assert(!pair.valid());pair.tap(0);assert(!ice.children[0].attrs['data-ringing']);
+});
 console.log(checks+' weather behavior checks passed');

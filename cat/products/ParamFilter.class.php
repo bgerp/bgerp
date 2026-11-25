@@ -12,7 +12,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -294,9 +294,9 @@ class cat_products_ParamFilter
             if ($range) {
                 $valueConds[] = self::getRangeSql($col('valueNum'), $range[0], $range[1]);
             } elseif (isset($rec->valueKey)) {
-                $keys[] = "'" . $Index->db->escape($rec->valueKey) . "'";
+                $keys[] = $rec->valueKey;
             } elseif (is_object($rec)) {
-                $nums[] = "'" . $Index->db->escape($rec->valueNum) . "'";
+                $nums[] = $rec->valueNum;
             }
         }
 
@@ -306,15 +306,39 @@ class cat_products_ParamFilter
             return '1 = 0';
         }
 
-        if (countR($keys)) {
-            $valueConds[] = $col('valueKey') . ' IN (' . implode(',', $keys) . ')';
-        }
-        if (countR($nums)) {
-            $valueConds[] = 'CAST(' . $col('valueNum') . ' AS CHAR) IN (' . implode(',', $nums) . ')';
-        }
+        $valueConds = array_merge($valueConds, self::getExactValueConds($keys, $nums, $col, $Index->db));
 
         return "#productId IN (SELECT {$col('productId')} FROM `{$Index->dbTableName}` WHERE {$col('paramId')} = " . (int) $paramId
             . " AND {$col('lg')} IN ('', '" . $Index->db->escape($lg) . "') AND (" . implode(' OR ', $valueConds) . '))';
+    }
+
+
+    /**
+     * Условия за точните стойности, които се обединяват с OR: ключовете и числата - по текста си от базата,
+     * както ги групира getValues()
+     *
+     * @param array    $keys - стойности на valueKey
+     * @param array    $nums - стойности на valueNum
+     * @param callable $col  - име на поле => колоната в заявката
+     * @param core_Db  $db
+     *
+     * @return array
+     */
+    public static function getExactValueConds($keys, $nums, $col, $db)
+    {
+        $quote = function ($value) use ($db) {
+            return "'" . $db->escape($value) . "'";
+        };
+
+        $conds = array();
+        if (countR($keys)) {
+            $conds[] = $col('valueKey') . ' IN (' . implode(',', array_map($quote, $keys)) . ')';
+        }
+        if (countR($nums)) {
+            $conds[] = 'CAST(' . $col('valueNum') . ' AS CHAR) IN (' . implode(',', array_map($quote, $nums)) . ')';
+        }
+
+        return $conds;
     }
 
 

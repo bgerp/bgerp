@@ -130,13 +130,13 @@ class unipi_Neuron extends sens2_ProtoDriver
 
         $ports = $this->discovery();
         
-        $nameArr = array();
         $inPorts = array();
+        $res = array();
         $controllerId = $this->driverRec->id;
         $pQuery = sens2_IOPorts::getQuery();
         
         foreach ($ports as $p) {
-            if (!$inputs[$p->name]) {
+            if (empty($inputs[$p->name ?? ''])) {
                 continue;
             }
             $inPorts[$p->slot][$p->portIdent][] = $p->lName;
@@ -149,7 +149,7 @@ class unipi_Neuron extends sens2_ProtoDriver
         }
 
         while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
-            $nameArr = $inPorts[$pRec->slot]["{$pRec->portIdent}"];
+            $nameArr = $inPorts[$pRec->slot ?? ''][$pRec->portIdent ?? ''] ?? array();
             
             if (!$nameArr) {
                 continue;

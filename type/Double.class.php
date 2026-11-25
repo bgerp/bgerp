@@ -177,6 +177,25 @@ class type_Double extends core_Type
     
     
     /**
+     * Дробният знак и разделителят на хилядите за текущия потребител
+     *
+     * @return array - [дробен знак, разделител на хилядите]
+     */
+    public static function getNumberSeparators()
+    {
+        // Четенето на настройките е скъпо, а числата се форматират стотици пъти на страница
+        static $separators = array();
+        $userId = (string) core_Users::getCurrent();
+        if (!isset($separators[$userId])) {
+            $conf = core_Packs::getConfig('core');
+            $separators[$userId] = array(html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
+        }
+
+        return $separators[$userId];
+    }
+
+
+    /**
      * Форматира числото в удобна за четене форма
      */
     public function toVerbal($value)
@@ -186,10 +205,10 @@ class type_Double extends core_Type
             return;
         }
 
-        $conf = core_Packs::getConfig('core');
+        list($confDecPoint, $confThousandsSep) = self::getNumberSeparators();
         
-        $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
-        $thousandsSep = Mode::is('forSearch') ? '' : (isset($this->params['thousandsSep']) ?  $this->params['thousandsSep'] : html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
+        $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : $confDecPoint;
+        $thousandsSep = Mode::is('forSearch') ? '' : (isset($this->params['thousandsSep']) ?  $this->params['thousandsSep'] : $confThousandsSep);
         $decimals = isset($this->params['decimals']) ? $this->params['decimals'] : EF_NUMBER_DECIMALS;
 
         // Ограничаване на максиомалния брой знаци след десетичната точка

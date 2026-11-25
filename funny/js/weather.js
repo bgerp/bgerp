@@ -21,6 +21,7 @@
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
         surfaceNear: function () { return null; },
+        iciclesNear: function () { return null; },
         dripNear: function () { return null; },
         heat: function () {},
         visible: function () { return false; },
@@ -261,7 +262,10 @@
                     bank.node.style.width = (bank.right - bank.left) + 'px';
                     if (weather.indexOf('snow') >= 0 && typeof options.temperature === 'number' && options.temperature < 0 &&
                         bank.amount > 0.8 && bank.right - bank.left >= 40 && iceCount < (gentle ? 3 : 6)) {
-                        if (!bank.ice) bank.ice = element('icicles', bank.node);
+                        if (!bank.ice) {
+                            bank.ice = element('icicles', bank.node);
+                            ['short','long','tip'].forEach(function (size) { element('icicle-' + size, bank.ice); });
+                        }
                         bank.ice.style.height = Math.min(24, bank.amount * 2) * strength + 'px'; iceCount++;
                     } else if (bank.ice) { bank.ice.remove(); bank.ice = null; }
                     return bank;
@@ -552,6 +556,31 @@
                     bank.node.style.height = bank.amount+'px';
                     if (bank.ice && bank.amount < 0.8) { bank.ice.remove(); bank.ice = null; }
                 });
+            };
+            /** Two icicles on the same snowy edge can ring separately while that edge is visible. */
+            window.funnyWeather.iciclesNear = function (x, y, radius) {
+                if (!window.funnyWeather.visible()) return null;
+                var nearest = radius, pair = null;
+                banks.forEach(function (bank) {
+                    if (!bank.ice || parseFloat(bank.ice.style.height) < 3) return;
+                    var ice = bank.ice, a = ice.children[0], b = ice.children[1];
+                    var first = a.getBoundingClientRect(), second = b.getBoundingClientRect();
+                    var px = (first.left + first.right + second.left + second.right) / 4;
+                    var py = (first.bottom + second.bottom) / 2, distance = Math.hypot(px - x, py - y);
+                    if (distance >= nearest || !first.width || !second.height) return;
+                    nearest = distance;
+                    var left = bank.left, right = bank.right, top = bank.top;
+                    function valid() {
+                        return window.funnyWeather.visible() && banks.indexOf(bank) >= 0 && bank.ice === ice &&
+                            bank.target.isConnected && bank.left === left && bank.right === right && bank.top === top;
+                    }
+                    pair = {x:px,y:py,tips:[{x:(first.left+first.right)/2,y:first.bottom},{x:(second.left+second.right)/2,y:second.bottom}],valid:valid,tap:function (index) {
+                        if (valid()) (index ? b : a).setAttribute('data-ringing','true');
+                    },release:function () {
+                        a.setAttribute('data-ringing',''); b.setAttribute('data-ringing','');
+                    }};
+                });
+                return pair;
             };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {

@@ -396,6 +396,10 @@ class sales_Quotations extends deals_QuotationMaster
                         $row->btnTransport = $link->getContent();
                     }
                 }
+            } else {
+
+                // Кешираният сбор от алтернативни тиражи не се показва
+                unset($row->expectedTransportCost);
             }
             
             if (isset($rec->deliveryTermId)) {
@@ -481,6 +485,9 @@ class sales_Quotations extends deals_QuotationMaster
      */
     private function getExpectedTransportCost($rec)
     {
+        // Алтернативните тиражи са отделни доставки - сборът им не е очакван транспорт
+        if (!is_array($this->getItems($rec->id, true, true))) return 0;
+
         if(isset($rec->expectedTransportCost)) return $rec->expectedTransportCost;
         
         $expectedTransport = 0;

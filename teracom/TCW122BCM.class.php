@@ -129,17 +129,11 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             return self::setErrors($inputs, "Грешка при парсиране на XML от {$config->ip}:{$config->port}");
         }
         
-        // Извличаме състоянията на входовете от парсирания XML
-        foreach ($this->inputs as $name => $details) {
-            if ($inputs[$name]) {
-                $res[$name] = $result[$details['xmlPath']];
-            }
-        }
-        
-        // Извличаме състоянията на изходите от парсирания XML
-        foreach ($this->outputs as $name => $details) {
-            if ($inputs[$name]) {
-                $res[$name] = $result[$details['xmlPath']];
+        // Извличаме състоянията на заявените портове от парсирания XML
+        $res = array();
+        foreach (array_merge($this->inputs, $this->outputs) as $name => $details) {
+            if (!empty($inputs[$name])) {
+                $res[$name] = $result[$details['xmlPath']] ?? '';
             }
         }
         
