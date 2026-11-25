@@ -11,6 +11,18 @@
 class jsonld_plg_EshopProducts extends core_Plugin
 {
     /**
+     * Публичните параметри за хита - едни и същи за всички варианти
+     */
+    protected static $publicParams;
+
+
+    /**
+     * Записите на показваните параметри за хита
+     */
+    protected static $paramRecs = array();
+
+
+    /**
      * Добавя интерфейса за JSON-LD доставчик
      */
     public static function on_AfterDescription(core_Mvc $mvc)
@@ -425,10 +437,12 @@ class jsonld_plg_EshopProducts extends core_Plugin
             return array();
         }
 
-        $publicParams = cat_Params::getPublic();
+        if (!isset(self::$publicParams)) {
+            self::$publicParams = cat_Params::getPublic();
+        }
         $selectedParams = array_intersect_key(
             $selectedParams,
-            $publicParams
+            self::$publicParams
         );
 
         if (!countR($selectedParams)) {
@@ -454,10 +468,13 @@ class jsonld_plg_EshopProducts extends core_Plugin
                 continue;
             }
 
-            $paramRec = cat_Params::fetch(
-                $paramId,
-                'name,suffix,driverClass'
-            );
+            if (!array_key_exists($paramId, self::$paramRecs)) {
+                self::$paramRecs[$paramId] = cat_Params::fetch(
+                    $paramId,
+                    'name,suffix,driverClass'
+                );
+            }
+            $paramRec = self::$paramRecs[$paramId];
 
             if (!$paramRec || !self::isSafePublicParam($paramRec)) {
                 continue;

@@ -185,11 +185,10 @@ class type_Int extends core_Type
             return;
         }
         
-        $conf = core_Packs::getConfig('core');
-        
         if (strlen($value) > 4) {
-            $ts = Mode::is('forSearch') ? '' : $conf->EF_NUMBER_THOUSANDS_SEP;
-            $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($ts));
+            list($decPoint, $thousandsSep) = type_Double::getNumberSeparators();
+            $ts = Mode::is('forSearch') ? '' : $thousandsSep;
+            $value = number_format($value, 0, $decPoint, $ts);
             
             // Ако е сетнат флаг да няма интервали в номера да няма
             if (isset($this->params['noWhitespace'])) {

@@ -694,7 +694,8 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        if (isset($row->sizeWidth, $row->sizeHeight, $row->sizeDepth) && (!empty($rec->sizeWidth) || !empty($rec->sizeHeight) || !empty($rec->sizeDepth))) {
+        if (isset($row->sizeWidth, $row->sizeHeight, $row->sizeDepth)
+            && (!empty($rec->sizeWidth) || !empty($rec->sizeHeight) || !empty($rec->sizeDepth))) {
             $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
         }
 
