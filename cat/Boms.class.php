@@ -408,6 +408,9 @@ class cat_Boms extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
+        // Без артикул рецепта не се добавя (@see on_AfterGetRequiredRoles)
+        if (empty($rec->productId)) return;
+
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
         $form->setField('quantity', "unit={$shortUom}");
