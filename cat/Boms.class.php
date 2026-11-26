@@ -1288,6 +1288,25 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Параметрите за нова рецепта от документ-източник, като бутона в таба "Рецепти" на артикула
+     *
+     * @param int $containerId - контейнер на източника
+     *
+     * @return array|null - null, ако източникът не е артикул
+     */
+    public static function getAddParamsFromSource($containerId)
+    {
+        $Source = doc_Containers::getDocument($containerId);
+        if (!$Source->isInstanceOf('cat_Products')) {
+
+            return null;
+        }
+
+        return array('productId' => $Source->that, 'originId' => $containerId, 'type' => 'sales');
+    }
+
+
+    /**
      * Клонира и разпъва рецептата на един артикул към друг
      *
      * @param int $fromProductId
