@@ -2188,7 +2188,7 @@ class planning_Tasks extends core_Master
     /**
      * Подготвя задачите към заданията
      */
-    public function prepareTasks($data)
+    public function prepareTasks_($data)
     {
         if (($data->masterMvc ?? null) instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
             $data->hide = true;
@@ -2204,7 +2204,10 @@ class planning_Tasks extends core_Master
             $data->TabCaption = 'Операции';
         }
 
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        // Плъгин може да подаде свой пейджър (напр. при четене на документа от Аида)
+        if (!isset($data->pager)) {
+            $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        }
         $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
         $data->recs = $data->rows = array();
 
