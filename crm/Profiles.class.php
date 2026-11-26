@@ -1566,7 +1566,9 @@ class crm_Profiles extends core_Master
             return true;
         }
         
-        if (core_Users::fetch($userOrRole)->state == 'rejected') {
+        // Отрицателните стойности са роли/екипи, а не потребители
+        $userRec = ($userOrRole > 0) ? core_Users::fetch((int) $userOrRole) : null;
+        if (($userRec->state ?? null) == 'rejected') {
             
             return false;
         }
