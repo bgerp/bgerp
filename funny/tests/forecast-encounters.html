@@ -11,13 +11,22 @@ h1 { margin:0; font-size:21px; } select,button { font:inherit; } output { displa
 #blockPortal_anchor { position:fixed; width:145px; height:17px; border-radius:4px; background:#b0bfc8; box-shadow:inset 0 -3px #8c9eab; }
 #pool { position:fixed; width:60px; height:6px; border-radius:50%; background:#95cce4; pointer-events:none; }
 #flash { position:fixed; left:72%; top:12%; color:#b7902f; font:28px sans-serif; pointer-events:none; }
+.food,.web-bank,#autumn,#drop { position:fixed; }
+.food { font-size:14px; color:#966534; } .web-bank { width:78px; height:21px; background:#d0dce4; border-radius:4px; }
+#autumn { width:14px; height:10px; border-radius:90% 0 75%; background:#bb7934; pointer-events:none; }
+#drop { width:3px; height:6px; border-radius:50%; background:#689fbc; pointer-events:none; }
 </style>
 <h1>Срещи според времето</h1>
 <label>Сценка <select id="scene">
 <option value="march">Щъркел и мартеничка</option><option value="wolf">Вълк по вятъра</option>
 <option value="bath">Пиленца в локва</option><option value="echo">Прилеп в мъгла</option>
 <option value="carrot">Елен и морков</option><option value="spark">Гремлини при гръмотевица</option>
+<option value="crumb">Вещица и трохи</option><option value="light">Светулка над локва</option>
+<option value="catnap">Муха на котешки нос</option><option value="groove">Пързалка за пингвини</option>
+<option value="antler">Листо на рогата</option><option value="strand">Капка в паяжината</option>
+<option value="wing">Муха в паяжината</option>
 </select></label>
+<button id="replay">Отначало</button>
 <button id="reverse" hidden>Обърни вятъра</button><button id="thunder" hidden>Светкавица</button>
 <p id="help">Двоен клик в рамката извиква героите.</p>
 <output id="status">Изчакване</output>
@@ -28,27 +37,34 @@ h1 { margin:0; font-size:21px; } select,button { font:inherit; } output { displa
 const scenarios={
     march:{actors:['martenitsa','stork'],weather:'sun',seed:997},wolf:{actors:['wolf','bunny','chick'],weather:'rain',seed:11964},
     bath:{actors:['chick'],weather:'rain',seed:997},echo:{actors:['bat'],weather:'fog',seed:997},
-    carrot:{actors:['snowman','deer'],weather:'snow',seed:4},spark:{actors:['imp'],weather:'rain',seed:3964}
+    carrot:{actors:['snowman','deer'],weather:'snow',seed:4},spark:{actors:['imp'],weather:'rain',seed:3964},
+    crumb:{actors:['witch','muncher'],weather:'clouds',seed:7919},light:{actors:['firefly'],weather:'moon',seed:997},
+    catnap:{actors:['cat'],weather:'sun',seed:1994},groove:{actors:['penguin'],weather:'snow',seed:997},
+    antler:{actors:['deer'],weather:'wind',seed:997},strand:{actors:['spiders'],weather:'rain',seed:997},wing:{actors:['spiders'],weather:'clouds',seed:2991}
 };
 const params=new URLSearchParams(location.search),select=document.querySelector('#scene');
 const kind=Object.hasOwn(scenarios,params.get('scene'))?params.get('scene'):'march',config=scenarios[kind];
+document.querySelector('#replay').onclick=()=>location.reload();
 select.value=kind;select.onchange=()=>{location.search=new URLSearchParams({scene:select.value});};
 let seed=Number(params.get('seed'))||config.seed;
 Math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
-const ActualDate=Date;
-window.Date=class extends ActualDate { constructor(...args){super(...args);if(!args.length){this.setMonth(2,12);this.setHours(11,0,0,0);}} };
-const wind={x:1,y:0,speed:kind==='wolf'?18:7},launch=document.querySelector('#launch'),seen=new Set();
+const ActualDate=Date,month=({antler:9,crumb:9,light:6,catnap:6,groove:0,strand:8,wing:6})[kind]??2;
+window.Date=class extends ActualDate { constructor(...args){super(...args);if(!args.length){this.setMonth(month,12);this.setHours(kind==='light'?21:11,0,0,0);}} };
+const wind={x:1,y:0,speed:['wolf','antler','crumb'].includes(kind)?16:7},launch=document.querySelector('#launch'),seen=new Set();
 const names={'on-beak':'На човката',hanging:'На ръба','nose-up':'Подушва въздуха',upwind:'Срещу вятъра','circle-scent':'Обикаля','last-scent':'Последна следа','give-up':'Отказва се','dip-toe':'Пробва с краче','flap-once':'Първи плясък','flap-twice':'Втори плясък','bath-turn':'Пристъпва второто пиле','send-echo':'Две дъги','hear-echo':'Върнато ехо','clear-edge':'Заобиколи ръба','brush-carrot':'Снегът пада','try-carrot':'Втори опит','turn-head':'Скрит морков',discharge:'Искра'};
+Object.assign(names,{'signal-pool':'Два светлинни сигнала','broken-reflection':'Вълничка във водата','nap':'Котето дреме','twitch-ear':'Мухата кацна','paw-on-nose':'Лапа на носа','carve-groove':'Първа бразда','follow-groove':'Втори пингвин','leaf-snag':'Листо на рогата','shake-antlers':'Разклащане','test-strand':'Проба с краче','rush-strand':'Паякът хуква',back:'Трохи по обувките',away:'Трохите отлитат'});
 let since=Infinity,pool=null;
+
 /** Position a visible fixture prop in the same coordinates as the visitors. */
 function prop(id,x,y){const node=document.createElement('div');node.id=id;node.style.left=x+'px';node.style.top=y+'px';document.body.appendChild(node);return node;}
 window.funnyWeather={current:()=>config.weather,visible:()=>document.visibilityState==='visible'&&document.hasFocus(),wind:()=>wind,trigger(){},trace(){},sky:()=>null,
     surfaceNear(x,y,type,radius){
-        if(kind!=='bath'||type!=='water'||performance.now()-since<4600)return null;
-        if(!pool){const node=prop('pool',x-30,y);pool={x,y,left:x-30,right:x+30,valid:()=>node.isConnected};}
+        const snowy=kind==='groove',half=snowy?125:30;
+        if(!['bath','light','groove'].includes(kind)||type!==(snowy?'snow':'water')||(kind==='bath'&&performance.now()-since<4600))return null;
+        if(!pool){const node=prop('pool',x-half,y);node.style.width=half*2+'px';if(snowy)node.style.background='#dce8f0';pool={x,y,left:x-half,right:x+half,valid:()=>node.isConnected};}
         return Math.hypot(pool.x-x,pool.y-y)<=radius?pool:null;
     }};
-funnyEffects.init({mode:'selected',characters:config.actors,trigger:'manual',sound:kind==='spark'?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{expires:Infinity,temperature:kind==='carrot'?-5:12}});
+funnyEffects.init({mode:'selected',characters:config.actors,trigger:'manual',sound:kind==='spark'?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{expires:Infinity,temperature:['carrot','groove'].includes(kind)?-5:12}});
 /** Exercise the same visitor notification that a rendered forecast bolt delivers. */
 function flash(){
     if(document.querySelector('#flash'))return;
@@ -57,12 +73,12 @@ function flash(){
 }
 const thunder=document.querySelector('#thunder'),reverse=document.querySelector('#reverse');
 thunder.hidden=kind!=='spark';thunder.onclick=flash;
-reverse.hidden=kind!=='wolf';reverse.onclick=()=>{wind.x*=-1;reverse.textContent=wind.x===1?'Вятър надясно':'Вятър наляво';};
-if(['bath','spark'].includes(kind))document.querySelector('#help').textContent='Двоен клик в рамката извиква първия герой. В примера се повтаря автоматично за втория.';
+reverse.hidden=!['wolf','crumb','antler'].includes(kind);reverse.onclick=()=>{wind.x*=-1;reverse.textContent=wind.x===1?'Вятър надясно':'Вятър наляво';};
+if(['bath','spark','groove'].includes(kind))document.querySelector('#help').textContent='Двоен клик в рамката извиква първия герой. В примера се повтаря автоматично за втория.';
 launch.addEventListener('dblclick',event=>{
     if(!event.isTrusted)return;
     since=performance.now();
-    if(['spark','bath'].includes(kind)){
+    if(['spark','bath','groove'].includes(kind)){
         const x=event.clientX,y=event.clientY+(kind==='spark'?55:0);
         setTimeout(()=>{
             const target=document.elementFromPoint(x,y);
@@ -76,6 +92,75 @@ launch.addEventListener('dblclick',event=>{
         prop('blockPortal_anchor',Math.min(innerWidth-165,Math.max(15,r.left+r.width/2-70)),r.top+r.height/2+(kind==='march'?-65:72));
     },720);
 });
+/** Place the test food and web anchors near the real visitors once their portal has opened. */
+launch.addEventListener('dblclick',event=>{
+    if(!event.isTrusted)return;
+    if(kind==='crumb')setTimeout(()=>{
+        const witch=document.querySelector('.funny-witch');if(!witch||document.querySelector('.food'))return;
+        const r=witch.getBoundingClientRect();
+        for(let i=0;i<15;i++){
+            const food=document.createElement('span');food.textContent=['·','зрънце','º'][i%3];food.className='food';
+            food.style.left=r.left+(i%5)*14+'px';food.style.top=r.bottom-14+Math.floor(i/5)*16+'px';document.body.appendChild(food);
+        }
+    },1900);
+    if(['strand','wing'].includes(kind))setTimeout(()=>{
+        const spider=document.querySelector('.funny-spiders');if(!spider||document.querySelector('.web-bank'))return;
+        const r=spider.getBoundingClientRect(),x=Math.max(0,Math.min(innerWidth-230,r.left-15)),y=Math.min(innerHeight-30,r.bottom+9);
+        [0,122].forEach((dx,i)=>{const b=prop('blockPortal_web'+i,x+dx,y);b.className='web-bank';});
+    },1770);
+});
+let leafUsed=false,dropUsed=false;
+/** A test leaf travels into range and resumes from its last contact position. */
+window.funnyWeather.flyingLeafNear=(x,y,radius)=>{
+    if(kind!=='antler'||leafUsed)return null;
+    let leaf=document.querySelector('#autumn');
+    if(!leaf){leaf=prop('autumn',x-105*wind.x,y-7);leaf.animate([{translate:'0px'},{translate:210*wind.x+'px'}],{duration:3000,fill:'forwards'});return null;}
+    const r=leaf.getBoundingClientRect();if(Math.hypot(r.left+7-x,r.top+5-y)>radius)return null;
+    leafUsed=true;leaf.getAnimations().forEach(a=>a.cancel());
+    return {valid:()=>leaf.isConnected,move:(px,py)=>{leaf.style.left=px-7+'px';leaf.style.top=py-5+'px';},release:()=>{
+        leaf.animate([{translate:'0px',opacity:1},{translate:wind.x*110+'px 12px',opacity:0}],{duration:1400}).finished.then(()=>leaf.remove());
+    }};
+};
+/** A visible test drop falls through the actual strand woven between the demo blocks. */
+window.funnyWeather.dripNear=(x,y)=>{
+    if(kind!=='strand'||dropUsed)return null;
+    const node=prop('drop',x,y-35),at=performance.now();dropUsed=true;
+    node.animate([{translate:'0 0'},{translate:'0 70px'}],{duration:1000,fill:'forwards'});
+    return {valid:()=>node.isConnected&&performance.now()-at<1000,reserve:()=>true,position:()=>({x,y:y-35+(performance.now()-at)*.07}),catch:()=>{node.remove();return true;},release:()=>node.remove()};
+};
+/** Aim a repeatable blank-space gesture so the fly's ordinary landing ring passes the prop. */
+function summonFly(x,y) {
+    const random=Math.random,size=Math.min(innerWidth,innerHeight);
+    const directions=[{angle:0,dx:1,dy:0},{angle:.5,dx:-1,dy:0},{angle:.25,dx:0,dy:1},{angle:.75,dx:0,dy:-1}];
+    const launchBox=launch.getBoundingClientRect();
+    const spots=directions.map(d=>{
+        const radius=size*(.23+.11*d.angle),px=x-d.dx*radius,py=y-d.dy*radius;
+        return {...d,px,py,distance:Math.hypot(px-launchBox.left-launchBox.width/2,py-launchBox.top-launchBox.height/2)};
+    }).filter(p=>p.px>20&&p.px<innerWidth-20&&p.py>170&&p.py<innerHeight-20).sort((a,b)=>a.distance-b.distance);
+    if(!spots.length)return;
+    const p=spots[0],target=document.elementFromPoint(p.px,p.py);
+    if(!target)return;
+    config.actors.splice(0,1,'fly');
+    Math.random=()=>p.angle;
+    try {target.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:p.px,clientY:p.py}));}
+    finally {Math.random=random;}
+    if(kind==='catnap'){Math.random=()=>.24;setTimeout(()=>{Math.random=random;},1000);}
+}
+if(kind==='catnap')launch.addEventListener('dblclick',event=>{
+    if(!event.isTrusted)return;
+    setTimeout(()=>{const cat=document.querySelector('.funny-cat');if(!cat)return;
+        const r=cat.getBoundingClientRect();summonFly(r.left+r.width/2,r.top+r.height/2+(r.top>innerHeight/2?-90:90));
+    },950);
+});
+/** Summon a real fly only once the spider has spun its web. */
+if(kind==='wing'){
+    const watch=new MutationObserver(()=>{
+        const web=document.querySelector('.funny-spider-thread');if(!web)return;
+        watch.disconnect();
+        const r=web.getBoundingClientRect();summonFly((r.left+r.right)/2,(r.top+r.bottom)/2);
+    });
+    watch.observe(document.body,{childList:true});
+}
 new MutationObserver(records=>{
     for(const r of records){
         const pose=r.target.getAttribute(r.attributeName);
@@ -83,6 +168,6 @@ new MutationObserver(records=>{
         if(r.attributeName==='data-static'&&pose==='true')seen.add('Щръкнала козина');
     }
     if(seen.size)document.querySelector('#status').textContent=[...seen].join(' · ');
-}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-scene-step','data-static']});
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-scene-step','data-static','data-sweep-wind']});
 </script>
 </html>
