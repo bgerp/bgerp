@@ -262,19 +262,22 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $Params = cls::get('cat_products_Params');
         if(countR($syncedArr['insert'])){
             $Params->saveArray($syncedArr['insert']);
-            foreach ($syncedArr['insert'] as $iRec){
-                $res = cat_Params::onParamChanged($iRec->paramId, $iRec->classId, $iRec->productId, $iRec->paramValue, null);
-                if(!empty($res['msg'])){
-                    core_Statuses::newStatus($res['msg']);
-                }
-                if(!empty($res['error'])){
-                    core_Statuses::newStatus($res['error'], 'error');
-                }
-            }
         }
 
-        if(countR($syncedArr['update'])){ core_Statuses::newStatus('UPP', 'warning');
+        if(countR($syncedArr['update'])){
             $Params->saveArray($syncedArr['update'], 'id,paramValue');
+        }
+
+        // Както при редакция на един параметър: смененият материал се отразява в рецептите
+        foreach (array_merge($syncedArr['insert'], $syncedArr['update']) as $sRec){
+            $exValue = isset($sRec->id) ? ($exRecs[$sRec->id]->paramValue ?? null) : null;
+            $res = cat_Params::onParamChanged($sRec->paramId, $sRec->classId, $sRec->productId, $sRec->paramValue, $exValue);
+            if(!empty($res['msg'])){
+                core_Statuses::newStatus($res['msg']);
+            }
+            if(!empty($res['error'])){
+                core_Statuses::newStatus($res['error'], 'error');
+            }
         }
 
         if(countR($syncedArr['delete'])){
