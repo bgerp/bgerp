@@ -235,6 +235,7 @@ class cat_BomDetails extends doc_Detail
             $form->setReadOnly('productId');
         }
 
+        $rec->type = $rec->type ?? null;
         $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : (($rec->type == 'subProduct') ? 'Субпродукт' : 'Етап'));
         $parentIdCaption = ($rec->type == 'stage') ? 'Подетап на' : 'Етап';
         $form->setField('parentId', "caption={$parentIdCaption}");
@@ -1102,21 +1103,58 @@ class cat_BomDetails extends doc_Detail
     {
         $data->toolbar->removeBtn('btnAdd');
 
-        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'stage'))) {
-            $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/paste_plain.png');
+        foreach ($mvc->getAddRowTypes($data->masterId) as $type => $t) {
+            $data->toolbar->addBtn($t['title'], array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => $type), null, "title={$t['hint']},ef_icon={$t['icon']}");
+        }
+    }
+
+
+    /**
+     * Видовете редове, които потребителят може да добави към рецептата
+     *
+     * @param int $bomId
+     *
+     * @return array [type => ['title', 'hint', 'icon']]
+     */
+    private function getAddRowTypes($bomId)
+    {
+        $types = array(
+            'stage' => array('title' => 'Етап', 'hint' => 'Добавяне на етап', 'icon' => 'img/16/paste_plain.png'),
+            'input' => array('title' => 'Влагане', 'hint' => 'Добавяне на артикул за влагане', 'icon' => 'img/16/package.png'),
+            'pop' => array('title' => 'Отпадък', 'hint' => 'Добавяне на отпадък', 'icon' => 'img/16/recycle.png'),
+            'subProduct' => array('title' => 'Субпродукт', 'hint' => 'Добавяне на субпродукт', 'icon' => 'img/16/door_in.png'),
+        );
+        foreach ($types as $type => $t) {
+            $rightsRec = (object) array('bomId' => $bomId);
+
+            // Влагането се проверява без вид на реда, както бутона досега
+            if ($type != 'input') {
+                $rightsRec->type = $type;
+            }
+            if (!$this->haveRightFor('add', $rightsRec)) {
+                unset($types[$type]);
+            }
         }
 
-        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId))) {
-            $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'input'), null, 'title=Добавяне на артикул за влагане,ef_icon=img/16/package.png');
-        }
-        
-        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'pop'))) {
-            $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'pop'), null, 'title=Добавяне на отпадък,ef_icon=img/16/recycle.png');
+        return $types;
+    }
+
+
+    /**
+     * Вариантите за добавяне на ред, както бутоните над таблицата
+     *
+     * @param int $masterId
+     *
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array();
+        foreach ($this->getAddRowTypes($masterId) as $type => $t) {
+            $res[$type] = array('title' => $t['title'], 'params' => array('type' => $type));
         }
 
-        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'subProduct'))) {
-            $data->toolbar->addBtn('Субпродукт', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'subProduct'), null, 'title=Добавяне на субпродукт,ef_icon=img/16/door_in.png');
-        }
+        return $res;
     }
     
     
