@@ -263,7 +263,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,jobOrderMode,previousTask,saoOrder,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,jobOrderMode,cloneScope,previousTask,saoOrder,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
 
 
     /**
@@ -404,6 +404,7 @@ class planning_Tasks extends core_Master
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
         $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран,fixedFinal=Фиксирана финална извън рецепта)', 'caption=Подредба в заданието,input=none,column=none');
+        $this->FLD('cloneScope', 'enum(single=Поединично,group=В група)', 'caption=Начин на клониране,input=none,column=none,single=none');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
@@ -3240,7 +3241,7 @@ JS
         if ($type == 'clone' || $type == 'cloneAll') {
             $oldJobRec = isset($jobRec->oldJobId) ? planning_Jobs::fetch($jobRec->oldJobId) : $jobRec;
             $tasksToClone = array();
-            $count = $clonedConsumptionNotes = 0;
+            $clonedConsumptionNotes = 0;
             if($type == 'clone'){
                 expect($cloneId = Request::get('cloneId', 'int'));
                 planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
@@ -3260,31 +3261,39 @@ JS
             }
 
             $orderTemplates = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity ?? 1);
-            foreach ($tasksToClone as $taskRec){
-                $newTask = clone $taskRec;
-                plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+            $predecessors = planning_TaskOrder::getClonePredecessors($tasksToClone);
+            $cloneScope = count($tasksToClone) > 1 ? 'group' : 'single';
+            $copiesBySource = array();
+            try {
+                foreach ($predecessors as $sourceId => $previousId) {
+                    $taskRec = $tasksToClone[$sourceId];
+                    $newTask = clone $taskRec;
+                    plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
 
-                // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
-                $q = $oldJobRec->quantity / $jobRec->quantity;
-                $round = cat_UoM::fetchField($newTask->measureId, 'round');
-                $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
+                    // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
+                    $q = $oldJobRec->quantity / $jobRec->quantity;
+                    $round = cat_UoM::fetchField($newTask->measureId, 'round');
+                    $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
 
-                $newTask->_isClone = true;
-                $newTask->_orderJob = $jobRec;
-                $newTask->_orderTemplates = $orderTemplates;
-                $newTask->originId = $jobRec->containerId;
-                $newTask->state = 'draft';
-                $newTask->clonedFromId = $newTask->id;
-                unset($newTask->id);
-                unset($newTask->threadId);
-                unset($newTask->containerId);
-                unset($newTask->createdOn);
-                unset($newTask->createdBy);
-                unset($newTask->activatedOn);
-                unset($newTask->activatedBy);
-                unset($newTask->systemId);
+                    $newTask->cloneScope = $cloneScope;
+                    $newTask->_clonedPreviousTask = $copiesBySource[$previousId]->id ?? null;
+                    $newTask->_isClone = true;
+                    $newTask->_orderJob = $jobRec;
+                    $newTask->_orderTemplates = $orderTemplates;
+                    $newTask->originId = $jobRec->containerId;
+                    $newTask->state = 'draft';
+                    $newTask->clonedFromId = $newTask->id;
+                    unset($newTask->id);
+                    unset($newTask->threadId);
+                    unset($newTask->containerId);
+                    unset($newTask->createdOn);
+                    unset($newTask->createdBy);
+                    unset($newTask->activatedOn);
+                    unset($newTask->activatedBy);
+                    unset($newTask->systemId);
 
-                if ($this->save($newTask)) {
+                    $copiesBySource[$sourceId] = $newTask;
+                    if (!$this->save($newTask)) continue;
                     $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
                     $this->logWrite('Клониране от предходна операция', $newTask->id);
 
@@ -3297,34 +3306,41 @@ JS
                         $newParamRec->paramValue = cat_Params::getReplacementValueOnClone($newParamRec->paramId, 'planning_Tasks', $taskRec->id,$newParamRec->paramValue);
                         cat_products_Params::save($newParamRec);
                     }
-                }
-                $count++;
 
-                // Клониране и на протоколите за влагане
-                if($cloneCn){
-                    $Consumptions = cls::get('planning_ConsumptionNotes');
-                    $cQuery = $Consumptions->getQuery();
-                    $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
-                    while($consRec = $cQuery->fetch()){
-                        $newConsRec = clone $consRec;
-                        plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
-                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
+                    // Клониране и на протоколите за влагане
+                    if($cloneCn){
+                        $Consumptions = cls::get('planning_ConsumptionNotes');
+                        $cQuery = $Consumptions->getQuery();
+                        $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
+                        while($consRec = $cQuery->fetch()){
+                            $newConsRec = clone $consRec;
+                            plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
+                            unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
 
-                        $newConsRec->_isClone = true;
-                        $newConsRec->originId = $newTask->containerId;
-                        $newConsRec->state = 'draft';
-                        $newConsRec->threadId = $newTask->threadId;
-                        $newConsRec->folderId = $newTask->folderId;
-                        $newConsRec->clonedFromId = $consRec->id;
+                            $newConsRec->_isClone = true;
+                            $newConsRec->originId = $newTask->containerId;
+                            $newConsRec->state = 'draft';
+                            $newConsRec->threadId = $newTask->threadId;
+                            $newConsRec->folderId = $newTask->folderId;
+                            $newConsRec->clonedFromId = $consRec->id;
 
-                        if ($Consumptions->save($newConsRec)) {
-                            $clonedConsumptionNotes++;
-                            $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                            if ($Consumptions->save($newConsRec)) {
+                                $clonedConsumptionNotes++;
+                                $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                            }
                         }
                     }
                 }
+            } finally {
+                // При прекъсната група единственото записано копие се подрежда като единично.
+                $clonedIds = array_column($copiesBySource, 'id');
+                $count = count($clonedIds);
+                if ($cloneScope === 'group' && $count === 1) {
+                    $single = (object)array('id' => $clonedIds[0], 'cloneScope' => 'single');
+                    expect($this->save_($single, 'cloneScope'));
+                    $this->reorderTasksByJobIds[$jobRec->containerId] = $jobRec->containerId;
+                }
             }
-
             $msg = "Успешно клонирани операции|*: {$count}";
             if(!empty($clonedConsumptionNotes)){
                 $msg.= ", |Успешно клонирани протоколи за влагане|*: {$clonedConsumptionNotes}";
@@ -5568,6 +5584,10 @@ JS
             $match = planning_TaskOrder::matchRecipe($rec->_orderTemplates, array($rec));
             $rec->jobOrderMode = $match ? 'recipe' : 'auto';
             $fields['jobOrderMode'] = 'jobOrderMode';
+            if (!empty($rec->clonedFromId)) {
+                $rec->cloneScope = $rec->cloneScope ?? 'single';
+                $fields['cloneScope'] = 'cloneScope';
+            }
             // Преди INSERT, за да не вижда друга заявка все още непозициониран ред.
             if ($rec->_orderJob && ($rec->state ?? null) !== 'rejected') {
                 self::lockJobOrder($rec->originId);
@@ -5867,7 +5887,7 @@ JS
         $query->where(array("#originId = '[#1#]' AND #state != 'rejected'", $originId));
         $query->orderBy('saoOrder,id', 'ASC');
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $query->show('id,saoOrder,systemId,clonedFromId,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
+        $query->show('id,saoOrder,systemId,clonedFromId,cloneScope,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
 
         return $query->fetchAll();
     }
@@ -6071,7 +6091,11 @@ JS
             }
             $oldMode = $task->jobOrderMode ?? null;
             $order = planning_TaskOrder::insert($tasks, $task, $templates, $conditions, $withdrawnPrevious);
-            if (($task->jobOrderMode ?? null) !== $oldMode) expect($this->save_($task, 'jobOrderMode'));
+            if (isset($rec->_clonedPreviousTask, $task->previousTask)) {
+                expect($this->save_($task, 'previousTask,jobOrderMode'));
+            } elseif (($task->jobOrderMode ?? null) !== $oldMode) {
+                expect($this->save_($task, 'jobOrderMode'));
+            }
 
             return $order;
         });

@@ -288,7 +288,7 @@ class planning_TaskConstraints extends core_Master
             $tQuery->where("1=2");
         }
         $tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId,jobOrderMode,previousTask,isFinal,canStore,systemId,clonedFromId,state');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId,jobOrderMode,previousTask,isFinal,canStore,systemId,clonedFromId,cloneScope,state');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
             $tasksByJobs[$tRec->originId][$tRec->id] = $tRec;
@@ -323,6 +323,7 @@ class planning_TaskConstraints extends core_Master
                 'canStore' => $task->canStore ?? ($tasksByJobs[$originId][$id]->canStore ?? null),
                 'systemId' => $task->systemId ?? ($tasksByJobs[$originId][$id]->systemId ?? null),
                 'clonedFromId' => $task->clonedFromId ?? ($tasksByJobs[$originId][$id]->clonedFromId ?? null),
+                'cloneScope' => $task->cloneScope ?? ($tasksByJobs[$originId][$id]->cloneScope ?? null),
                 'state' => $task->state ?? ($tasksByJobs[$originId][$id]->state ?? null),
                 '_requested' => true,
             );

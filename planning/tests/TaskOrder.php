@@ -220,4 +220,58 @@ checkOrder(array_keys($rows), array(60, 40), 'Отпаднала от рецеп
 checkOrder($rows[40]->jobOrderMode, 'auto', 'Отпадналият етап отново е свободен');
 $final->jobOrderMode = 'fixedFinal';
 checkOrder(added($later, $final, $finalFirstRecipe, array(), array())[40]->jobOrderMode, 'fixedFinal', 'Ръчно фиксираният режим се запазва при възстановяване');
-echo "OK: recipe stages, mixed cloning, manual final stages, changing stage dependencies and restoring operations\n";
+
+// Две отделни клонирания на финална и междинна към задание без рецепта.
+$cloneFinal = operation(40, 40, 'auto');
+$cloneFinal->isFinal = 'yes';
+$cloneFinal->clonedFromId = 140;
+$cloneFinal->cloneScope = 'single';
+$cloneMiddle = operation(60, 60, 'auto');
+$cloneMiddle->clonedFromId = 160;
+$cloneMiddle->cloneScope = 'single';
+$rows = added(added(array(), $cloneFinal, array()), $cloneMiddle, array());
+checkOrder(array_keys($rows), array(60, 40), 'Клонирана поединично финална остава след по-късно клонираната междинна');
+checkOrder(planning_TaskOrder::order($rows, array()), array(60, 40), 'Планировчикът разпознава единично клонираната финална');
+$recipeFinal = clone $cloneFinal;
+$recipeFinal->jobOrderMode = 'recipe';
+$recipeMiddle = clone $cloneMiddle;
+$recipeMiddle->jobOrderMode = 'recipe';
+$rows = added(added(array(), $recipeMiddle, $finalFirstRecipe), $recipeFinal, $finalFirstRecipe);
+checkOrder(array_keys($rows), array(40, 60), 'Единично клонираната финална заема първо място, когато рецептата го задава');
+$cloneFinal->cloneScope = $cloneMiddle->cloneScope = 'group';
+checkOrder(array_keys(added(added(array(), $cloneFinal, array()), $cloneMiddle, array())), array(40, 60), 'При групово клониране двете операции запазват изходния си ред');
+
+// Източниците могат да пристигнат в обратен ред, от различни задания или с остаряла връзка.
+$source = array();
+foreach (array(4 => 3, 3 => 2, 1 => 9, 2 => 1, 5 => 1) as $id => $previous) {
+    $source[$id] = (object)array('originId' => $id == 5 ? 11 : 10, 'previousTask' => $previous);
+}
+checkOrder(planning_TaskOrder::getClonePredecessors($source), array(1 => null, 2 => 1, 3 => 2, 4 => 3, 5 => null), 'Само директните връзки в избраната група от същото задание');
+checkOrder(planning_TaskOrder::getClonePredecessors(array(3 => $source[3])), array(3 => null), 'Само една отметка в груповия избор');
+checkOrder(planning_TaskOrder::getClonePredecessors(array(1 => $source[1], 3 => $source[3])), array(1 => null, 3 => null), 'Пропусната операция не създава връзка между съседните копия');
+$source[1]->previousTask = 2;
+checkOrder(planning_TaskOrder::getClonePredecessors(array(1 => $source[1], 2 => $source[2])), array(2 => null, 1 => 2), 'Прекъсва цикъла при копиране на стара ръчна връзка');
+
+$cloneMiddle->_clonedPreviousTask = 40;
+$rows = added(array(40 => $cloneFinal), $cloneMiddle, array(), array(40 => array(60 => 60)));
+checkOrder(array_keys($rows), array(40, 60), 'Вътрешната изрична предходна има приоритет пред технологична зависимост');
+checkOrder($rows[60]->previousTask, 40, 'Предходната сочи новото копие');
+checkOrder(planning_TaskOrder::order($rows, array(40 => array(60 => 60))), array(40, 60), 'Планировчикът запазва пренесената ръчна връзка и при обратна технологична зависимост');
+$singleFinal = operation(70, 70, 'auto');
+$singleFinal->isFinal = 'yes';
+$singleFinal->clonedFromId = 77;
+$singleFinal->cloneScope = 'single';
+$withNewFinal = added($rows, $singleFinal, array());
+checkOrder(array_keys($withNewFinal), array(60, 40, 70), 'Допълнителна единична финална събира двете финални след междинната');
+checkOrder(planning_TaskOrder::order($withNewFinal, array()), array(60, 40, 70), 'Финалната група запазва реда си при следващо планиране');
+unset($cloneMiddle->previousTask);
+$reverseRecipe = array((object)array('_dId' => 12, 'productId' => 60), (object)array('_dId' => 11, 'productId' => 40));
+$cloneMiddle->jobOrderMode = $cloneFinal->jobOrderMode = 'recipe';
+$rows = added(array(40 => $cloneFinal), $cloneMiddle, $reverseRecipe);
+checkOrder(array_keys($rows), array(60, 40), 'Обратна наследена връзка отстъпва пред реда на целевата рецепта');
+checkOrder($rows[60]->previousTask ?? null, null, 'Планировчикът не получава обратна спрямо рецептата връзка');
+$threeStages = array((object)array('_dId' => 11, 'productId' => 40), (object)array('_dId' => 13, 'productId' => 50), (object)array('_dId' => 12, 'productId' => 60));
+$rows = added(array(40 => $cloneFinal, 50 => operation(50, 50)), $cloneMiddle, $threeStages);
+checkOrder(array_keys($rows), array(40, 50, 60), 'Съвместима наследена връзка допуска друг рецептурен етап между копията');
+checkOrder($rows[60]->previousTask, 40, 'Съвместимата връзка остава между точните копия');
+echo "OK: recipe stages, single and grouped clones, final stages, changing dependencies and restoring operations\n";
