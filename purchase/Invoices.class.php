@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -453,9 +453,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $row->bic = $Varchar->toVerbal($ownAcc->bic ?? '');
             }
             
-            if (isset($rec->journalDate) && $rec->journalDate != $rec->date) {
-                $msg = 'Датата на счетоводната операция е|*: ' . $mvc->getFieldType('date')->toVerbal($rec->journalDate);
-                $row->date = ht::createHint($row->date, $msg);
+            // За Аида сч. дата се показва и когато съвпада с датата
+            if (isset($rec->journalDate) && ($rec->journalDate != $rec->date || Mode::is('renderForLlm'))) {
+                $journalDateVerbal = $mvc->getFieldType('date')->toVerbal($rec->journalDate);
+                $msg = 'Датата на счетоводната операция е|*: ' . $journalDateVerbal;
+                $row->date = ht::createHint($row->date, $msg, 'notice', true, array('aiHint' => "Accounting date: {$journalDateVerbal}"));
             }
         }
     }

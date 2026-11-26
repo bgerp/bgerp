@@ -665,3 +665,29 @@
 .funny-imp[data-static="true"] { --funny-static-fur:1; }
 .funny-ear-spark i { width:12px; height:9px; margin:-4px 0 0 -6px; background:#e1aa42; clip-path:polygon(0 48%,45% 0,42% 40%,100% 10%,48% 100%,50% 55%); animation:funny-static-spark .26s ease-out both; }
 @keyframes funny-static-spark { 0% { transform:scale(.6); } 35% { opacity:1; transform:scale(1.2); } 100% { opacity:0; } }
+
+/* Short encounters animate existing visitors and the bounded, click-through trace layer. */
+.funny-witch[data-reaction="sweep"][data-sweep-wind="away"] > svg { animation-iteration-count:1; }
+.funny-swept-pile[data-sweep-wind="back"] i:nth-child(3n) { --sweep-x:-38px; --sweep-y:-12px; }
+.funny-swept-pile[data-sweep-wind] i { animation-name:funny-wind-sweep; }
+@keyframes funny-wind-sweep { from { transform:translate(var(--x),var(--y)); } 35%,50% { transform:translate(0,0); } 62% { transform:translate(-13px,-9px); } 83%,92% { opacity:.9; transform:translate(calc(var(--sweep-x) + var(--scatter)*.18),var(--sweep-y)); } to { opacity:0; transform:translate(var(--sweep-x),var(--sweep-y)); } }
+.funny-firefly[data-scene-step="signal-pool"] > svg:first-child, .funny-light-reflection svg { animation:funny-double-glow .57s ease-in-out 2; }
+@keyframes funny-double-glow { from,to { filter:brightness(.83); } 45% { filter:brightness(1.3) drop-shadow(0 0 5px #f5d95f); } }
+.funny-light-reflection { opacity:.55; }
+.funny-visitor[data-scene-step="nap"], .funny-visitor[data-scene-step="twitch-ear"] { --funny-cat-blink:.14; }
+.funny-visitor[data-scene-step="twitch-ear"] { --funny-ear-turn:-37deg; }
+.funny-visitor[data-scene-step="paw-on-nose"] { --funny-raised-paw:1; --funny-cat-blink:.3; }
+.funny-fly[data-weather-act="nose-fly"] { z-index:10001; }
+.funny-fly[data-weather-act="nose-fly"] > svg { scale:.44; }
+.funny-penguin[data-scene-step$="-groove"] > svg:first-child { rotate:var(--belly-turn,70deg); }
+.funny-snow-groove { position:fixed; z-index:9998; pointer-events:none; height:4px; border-radius:50%; border-top:1px solid #b2cede; background:linear-gradient(#7da4bc99,#e8f7ff); transform:scaleX(var(--groove-side)); transform-origin:left; animation:funny-fade-trace 8.5s ease-in forwards; }
+@keyframes funny-fade-trace { 0%,40% { opacity:.95; } 80% { opacity:.35; } to { opacity:0; } }
+.funny-deer[data-scene-step="leaf-snag"] > svg:first-child { rotate:-5deg; }
+.funny-deer[data-scene-step="shake-antlers"] > svg:first-child { animation:funny-antlers .36s ease-in-out 2; }
+@keyframes funny-antlers { 25% { rotate:7deg; } 75% { rotate:-7deg; } }
+.funny-spiders[data-scene-step="test-strand"] { --funny-test-leg:25deg; }
+.funny-spider-thread[data-signal] > svg { animation:funny-strand-pulse .24s ease-in-out 2; }
+.funny-spider-thread[data-signal="rush-strand"] > svg { --strand-shift:4px; animation-duration:.16s; animation-iteration-count:4; }
+@keyframes funny-strand-pulse { 25% { translate:0 var(--strand-shift,1px); } 75% { translate:0 calc(-1 * var(--strand-shift,1px)); } }
+.funny-last-crumbs { animation:funny-fade-trace 6.5s ease-in forwards; }
+.funny-last-crumbs::before { animation:funny-fade-trace 1.5s ease-in forwards; }

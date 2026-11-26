@@ -15,7 +15,7 @@ class cms_themes_compact_Theme extends cms_themes_cards_Theme
     public $oldClassName = 'cms_themes_b2b_Theme';
 
 
-    protected $desktopBannerSize = '1540×180';
+    protected $desktopBannerSize = '1880×220';
 
 
     protected $defaultColors = array(

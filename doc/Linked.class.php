@@ -1913,10 +1913,15 @@ class doc_Linked extends core_Manager
             // touchRec() е отложен и не сменя ключа при промени в една секунда.
             doc_DocumentCache::cacheInvalidation($containerId);
             $doc = doc_Containers::getDocument($containerId);
-            $doc->touchRec();
+
+            // Прикаченият при експорт файл не е промяна на документа
+            $notModified = Mode::is('exporting');
+            if (!$notModified) {
+                $doc->touchRec();
+            }
             $dRec = $doc->fetch();
             if ($dRec) {
-                plg_Search::forceUpdateKeywords($doc, $dRec);
+                plg_Search::forceUpdateKeywords($doc, $dRec, $notModified);
             }
         }
     }
