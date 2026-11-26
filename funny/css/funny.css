@@ -646,3 +646,22 @@
 .funny-snowmaiden[data-scene-step^="tap-"]::after { content:''; position:absolute; top:55%; left:50%; width:var(--funny-wand-length); height:2px; background:#9a7551; border-radius:2px; transform-origin:left; transform:rotate(var(--funny-wand-angle)); }
 .funny-butterfly[data-scene-step="carry-pollen"]::after, .funny-butterfly[data-scene-step="deliver"]::after { content:''; position:absolute; top:70%; left:47%; width:3px; height:3px; border-radius:50%; background:#ecb22f; box-shadow:3px 2px #ffd65c,-3px 1px #e7aa29; }
 .funny-spring-flower[data-pollinated="true"] i { scale:1.45; transition:scale .45s; box-shadow:-5px 0 #e795c9,5px 0 #e795c9,0 -5px #e795c9,0 5px #e795c9; }
+
+/* These poses act on the existing sprites; rings and echoes live in the click-through trace layer. */
+.funny-martenitsa[data-scene-step="on-beak"] > svg:first-child { transform:rotate(7deg); transform-origin:50% 10%; }
+.funny-wolf[data-scene-step="nose-up"] > svg:first-child { transform:rotate(-13deg); }
+.funny-wolf[data-scene-step="give-up"] > svg:first-child { animation:funny-sniff .45s ease-in-out; }
+.funny-chick[data-scene-step="dip-toe"] > svg:first-child { transform:rotate(-11deg) translateY(-2px); }
+.funny-chick[data-scene-step^="flap-"] > svg:first-child { transform:translateY(3px) scale(1.04,.94); }
+.funny-bath-ripple i { width:16px; height:5px; border:1px solid #539ac1; border-radius:50%; animation:funny-shoe-ripple .8s ease-out both; }
+.funny-echo-out i, .funny-echo-back i { width:19px; height:9px; margin-left:-10px; border-bottom:2px solid #7789a8; border-radius:50%; animation:funny-sonar .37s ease-out both; }
+.funny-echo-out i:nth-child(2) { animation-delay:.15s; }
+.funny-echo-back i { border-top:1px solid #8295ae; border-bottom:0; }
+@keyframes funny-sonar { from { opacity:.18; transform:scale(.4); } 35% { opacity:.85; } to { opacity:0; transform:translate(var(--x),var(--y)) scale(1.45); } }
+.funny-bat[data-scene-step="fold-left"] { --funny-left-wing:.35; }
+.funny-bat[data-scene-step="fold-right"] { --funny-right-wing:.35; }
+.funny-deer[data-weather-act="carrot-nudge"] > svg { transform:scaleX(var(--funny-deer-face,1)); }
+.funny-snowman[data-scene-step="turn-head"] { --funny-head-facing:-1; }
+.funny-imp[data-static="true"] { --funny-static-fur:1; }
+.funny-ear-spark i { width:12px; height:9px; margin:-4px 0 0 -6px; background:#e1aa42; clip-path:polygon(0 48%,45% 0,42% 40%,100% 10%,48% 100%,50% 55%); animation:funny-static-spark .26s ease-out both; }
+@keyframes funny-static-spark { 0% { transform:scale(.6); } 35% { opacity:1; transform:scale(1.2); } 100% { opacity:0; } }

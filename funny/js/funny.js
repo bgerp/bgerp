@@ -468,11 +468,12 @@
                     mouse: {notes: [1250, 1550], duration: 0.07, spacing: 0.11, pitch: 0.85, wave: 'sine', volume: 0.4},
                     penguin: {notes: [740, 520], duration: 0.10, spacing: 0.15, pitch: 1.1, wave: 'sine'},
                     sneeze: {notes: [210, 480], duration: 0.16, spacing: 0.14, pitch: 0.32, wave: 'triangle', voice: true, volume: 0.35},
+                    'static-click': {notes:[1300],duration:0.044,spacing:0,pitch:0.32,wave:'triangle',volume:0.27},
                     'ice-chime': {notes:[988,740], duration:0.17, spacing:0.35, pitch:1, wave:'sine', volume:0.38},
                     pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
-                if (options.sound === 'scary' && character !== 'pop' && character !== 'ice-chime') {
+                if (options.sound === 'scary' && character !== 'pop' && character !== 'ice-chime' && character !== 'static-click') {
                     sound = Object.assign({}, sound, {notes: sound.notes.map(function (note) { return note * 0.65; }),
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
@@ -590,6 +591,7 @@
 
             function removeVisitor(v, escaped, depart) {
                 endWeatherAct(v);
+                if (v.staticUntil) { v.staticUntil = 0; v.node.setAttribute('data-static',''); }
                 endPair(v);
                 marks.forEach(function (mark) { if (mark.reflectionActor === v && mark.reflection) { mark.reflection.remove(); mark.reflection = null; } });
                 restoreEaten(v);
@@ -1141,7 +1143,7 @@
                 if (act.kind === 'save-hat') act.mark.node.setAttribute('data-carried','');
                 if (act.kind === 'towel') v.node.style.removeProperty('--funny-towel-side');
                 if (act.kind === 'lantern') v.node.style.setProperty('--funny-lantern', '0');
-                if (act.kind === 'tassels') {
+                if (act.kind === 'hang-tassels' || act.kind === 'tassels') {
                     ['--funny-thread-stretch','--funny-pizho-x','--funny-penda-x','--funny-pizho-turn','--funny-penda-turn'].forEach(function (key) { v.node.style.removeProperty(key); });
                 }
                 if (act.kind === 'shade') v.node.setAttribute('data-shade', '');
@@ -1159,6 +1161,9 @@
                     v.node.style.removeProperty('--funny-wand-length'); v.node.style.removeProperty('--funny-wand-angle');
                     if (act.step === 'tap-short' && act.cancelChime) act.cancelChime();
                 }
+                if (act.kind === 'carrot-nudge') v.node.style.removeProperty('--funny-deer-face');
+                if (act.kind === 'bird-bath') v.node.style.removeProperty('--funny-chick-flap');
+                if (act.kind === 'ear-spark') { v.staticUntil = 0; v.node.setAttribute('data-static',''); }
                 if (act.step) v.node.setAttribute('data-scene-step', '');
                 if (act.boat) act.boat.release();
                 if (act.kind === 'shell' || act.kind === 'snail-nudge') v.node.setAttribute('data-shell', '');
@@ -1199,6 +1204,15 @@
                 if (v.outfit === 'glasses') {
                     v.glassesWet = clamp((v.glassesWet || 0) + delta * (/rain|fog/.test(weather) ? 0.2 : -0.5), 0, 1);
                     v.node.style.setProperty('--funny-lens-wet', v.glassesWet.toFixed(3));
+                }
+                if (v.character === 'snowman' && (sky.snow || v.noseSnow)) {
+                    var brushed = act && act.kind === 'carrot-nudge' && act.leader && act.leader.weatherAct && act.leader.weatherAct.step;
+                    var snow = sky.snow && !brushed ? Math.min(1,(v.noseSnow || 0)+delta/5) : 0;
+                    if (snow !== v.noseSnow) v.node.style.setProperty('--funny-carrot-snow',snow.toFixed(2));
+                    v.noseSnow = snow;
+                }
+                if (v.staticUntil && (now >= v.staticUntil || !visibleForecast() || !availableForEncounter(v,now))) {
+                    v.staticUntil = 0; v.node.setAttribute('data-static','');
                 }
                 if (sky.rain && (v.character === 'wolf' || v.character === 'butterfly')) v.rainExposure = (v.rainExposure || 0) + delta;
                 else v.rainExposure = 0;
@@ -1286,8 +1300,11 @@
                     if (!surface || segmentDistance(pointer.x, pointer.y, v.x, v.y, surface.x, surface.y - v.height / 2) < 130) return;
                     beginWeatherAct(v, 'gather', now, 4800, {surface:surface});
                 } else if (v.character === 'wolf' && v.lostPrey && !v.sated) {
-                    var track = scentNear(v, v.lostPrey, null, now);
-                    if (track) beginWeatherAct(v, 'scent', now, 5000, {mark:track,prey:v.lostPrey});
+                    var track = scentNear(v,v.lostPrey,null,now,wind.speed >= 12);
+                    if (wind.speed >= 12 && (track || visitors.indexOf(v.lostPrey) >= 0)) {
+                        var source = visitors.indexOf(v.lostPrey) >= 0 ? v.lostPrey : track.contact;
+                        beginWeatherAct(v,'wind-scent',now,5600,{track:track,origin:{x:source.x,y:source.y},motion:windScent});
+                    } else if (track) beginWeatherAct(v, 'scent', now, 5000, {mark:track,prey:v.lostPrey});
                     v.lostPrey = null;
                 } else if (v.character === 'spiders') {
                     var web = marks.filter(function (mark) { return mark.owner === v && mark.broken && !mark.repaired && !mark.ending && mark.expires > now + 2800 && distanceToMark(mark.contact, v.x, v.y) < 180; })[0];
@@ -1311,14 +1328,231 @@
                 return (hour<6 || hour>=18) && sky.temperature!==null && sky.temperature>10 && !sky.rain && !sky.snow && wind.speed<24;
             }
 
+            /** Nearby partners share the same deadline and release each other on interruption. */
+            function startForecastPair(v, other, kind, now, duration, props) {
+                var group = [v,other];
+                beginWeatherAct(v,kind,now,duration,Object.assign({group:group,other:other},props));
+                beginWeatherAct(other,kind,now,duration,{group:group,leader:v,motion:props.motion});
+            }
+
+            /** Decorations requiring visible fog or a thunder flash stop with the weather layer. */
+            function visibleForecast() {
+                return window.funnyWeather && window.funnyWeather.visible && window.funnyWeather.visible();
+            }
+
+            /** Borrow an existing edge, pool or companion after the usual foreground and crowd checks. */
+            function forecastEncounter(v, now, sky) {
+                var kind = v.character, other, edge;
+                if (kind === 'martenitsa' && new Date().getMonth() === 2 && sky.sun) {
+                    other = natureCompanions(v,['stork'],now,215,1)[0];
+                    if (!other) return false;
+                    edge = shadeSpot(v);
+                    if (!edge) return false;
+                    startForecastPair(v,other,'hang-tassels',now,6500,{surface:edge,motion:tasselFlight,valid:function () { return climate().sun; }});
+                } else if (kind === 'chick' && sky.rain && !sky.snow && wind.speed < 18 && now-v.born >= 2600) {
+                    var pool = wetSpot(v,now);
+                    if (!pool || !pool.valid() || !(pool.right-pool.left >= 36 || pool.mark) ||
+                        segmentDistance(pointer.x,pointer.y,v.x,v.y,pool.x,pool.y-v.height*0.43) < 140) return false;
+                    other = natureCompanions(v,['chick'],now,185,1)[0];
+                    var props = {surface:pool,mark:pool.mark,motion:birdBath,valid:function () { return climate().rain; }};
+                    if (pool.mark) pool.mark.reserved = true;
+                    if (other) startForecastPair(v,other,'bird-bath',now,4800,props);
+                    else beginWeatherAct(v,'bird-bath',now,4800,props);
+                } else if (kind === 'bat' && weather.indexOf('fog') >= 0 && visibleForecast()) {
+                    edge = shadeSpot(v,'top');
+                    if (!edge || v.y > edge.y+3) return false;
+                    var half = v.width/2+8;
+                    var sides = [edge.rect.left-half,edge.rect.right+half].sort(function (a,b) { return Math.abs(a-v.x)-Math.abs(b-v.x); });
+                    var opening = sides.find(function (x) {
+                        var hit = document.elementFromPoint && document.elementFromPoint(x,(edge.rect.top+edge.rect.bottom)/2);
+                        var obstacle = hit && hit.closest('button,input,select,textarea,[id^="blockPortal_"],.listTable');
+                        if (obstacle && !obstacle.contains(edge.node)) return false;
+                        return x > half && x < window.innerWidth-half && Math.abs(x-edge.x) < 200 &&
+                            segmentDistance(pointer.x,pointer.y,edge.x,edge.y,x,edge.y) > 140;
+                    });
+                    if (opening === undefined) return false;
+                    beginWeatherAct(v,'echo-turn',now,4800,{surface:edge,opening:opening,motion:batEcho,valid:function () { return weather.indexOf('fog') >= 0 && visibleForecast(); }});
+                } else if (kind === 'deer' && sky.snow) {
+                    other = natureCompanions(v,['snowman'],now,205,1)[0];
+                    if (!other || !(other.noseSnow > 0.22)) return false;
+                    startForecastPair(v,other,'carrot-nudge',now,5700,{motion:carrotNudge,valid:function () { return climate().snow; }});
+                } else if (kind === 'imp' && now < v.staticUntil) {
+                    other = natureCompanions(v,['imp'],now,145,1)[0];
+                    if (!other) return false;
+                    startForecastPair(v,other,'ear-spark',now,Math.min(2200,v.staticUntil-now),{motion:sparkMotion,sign:v.x < other.x ? 1 : -1,valid:visibleForecast});
+                } else return false;
+                return true;
+            }
+
+            /** A real stork carries the loop on its beak and hangs the two figures below a real edge. */
+            function tasselFlight(v, act, now) {
+                var ribbon = act.leader || v, host = ribbon.weatherAct;
+                if (!host) return {};
+                var bird = host.other, edge = host.surface, move;
+                var beakX = bird.width*0.45, beakY = -bird.height*0.23, loopY = -ribbon.height*0.40;
+                if (act.leader) {
+                    if (!host.step) return walkTo(bird,ribbon.x-beakX,ribbon.y+loopY-beakY,150) || {};
+                    if (host.step === 'on-beak') return walkTo(bird,edge.x-beakX,edge.rect.bottom-beakY,125) || {};
+                    return walkTo(bird,edge.x-beakX-18,edge.rect.bottom-beakY-15,70) || {};
+                }
+                if (!act.step) {
+                    move = walkTo(bird,v.x-beakX,v.y+loopY-beakY,150);
+                    if (move) return {};
+                    edgePose(v,act,'on-beak',now);
+                }
+                if (act.step === 'on-beak') {
+                    move = walkTo(bird,edge.x-beakX,edge.rect.bottom-beakY,125);
+                    v.x = bird.x+beakX; v.y = bird.y+beakY-loopY;
+                    if (move) return {};
+                    edgePose(v,act,'hanging',now);
+                }
+                v.x = edge.x; v.y = edge.rect.bottom-loopY;
+                var swing = Math.sin((now-act.since)/280)*Math.min(10,wind.speed*0.4);
+                v.node.style.setProperty('--funny-pizho-turn',(swing+wind.x*3)+'deg');
+                v.node.style.setProperty('--funny-penda-turn',(swing*0.75+wind.x*4)+'deg');
+                if (now-act.since > 1600) endWeatherAct(v);
+                return {};
+            }
+
+            /** Splash twice at the original waterline; a second chick waits for both ripples. */
+            function birdBath(v, act, now) {
+                var leader = act.leader;
+                if (leader) {
+                    var host = leader.weatherAct;
+                    if (!host || host.step !== 'bath-done') return {};
+                    var side = v.x < leader.x ? -1 : 1;
+                    if (!act.step) edgePose(v,act,'bath-turn',now);
+                    return walkTo(v,host.surface.x+side*(v.width+leader.width)*0.38,host.surface.y-v.height*0.44,70) || {};
+                }
+                var pool = act.surface, move = walkTo(v,pool.x,pool.y-v.height*0.44,95);
+                if (!act.step && move) return move;
+                if (!act.step) edgePose(v,act,'dip-toe',now);
+                var age = now-act.since;
+                if (act.step === 'dip-toe' && age >= 500 || act.step === 'flap-once' && age >= 410) {
+                    edgePose(v,act,act.step === 'dip-toe' ? 'flap-once' : 'flap-twice',now);
+                    interactionEffect('bath-ripple',pool.x,pool.y,[{x:pool.x,y:pool.y}],820);
+                    interactionEffect('shed-drops',pool.x,pool.y,[{x:pool.x-16,y:pool.y-15},{x:pool.x+19,y:pool.y-13}],550);
+                } else if (act.step === 'flap-twice' && age >= 400) edgePose(v,act,'bath-done',now);
+                else if (act.step === 'bath-done' && age >= 1100) endWeatherAct(v);
+                if (act.step === 'flap-once' || act.step === 'flap-twice') {
+                    var lift = Math.sin(Math.PI*clamp((now-act.since)/380,0,1));
+                    v.node.style.setProperty('--funny-chick-flap',(1-1.85*lift).toFixed(2));
+                }
+                return {};
+            }
+
+            /** Two outward arcs and a single reflected arc travel between the bat and the block. */
+            function batEcho(v, act, now) {
+                var edge = act.surface, move;
+                if (!act.step) {
+                    move = walkTo(v,edge.x,edge.y-22,95);
+                    if (move) return move;
+                    edgePose(v,act,'send-echo',now);
+                    interactionEffect('echo-out',v.x,v.y,[{x:edge.x,y:edge.rect.top},{x:edge.x,y:edge.rect.top}],600);
+                } else if (act.step === 'send-echo' && now-act.since >= 530) {
+                    edgePose(v,act,'hear-echo',now);
+                    interactionEffect('echo-back',edge.x,edge.rect.top,[{x:v.x,y:v.y}],370);
+                } else if (act.step === 'hear-echo' && now-act.since >= 350) {
+                    edgePose(v,act,act.opening < v.x ? 'fold-left' : 'fold-right',now);
+                } else if (act.step === 'fold-left' || act.step === 'fold-right') {
+                    move = walkTo(v,act.opening,edge.y-12,130);
+                    if (move) return move;
+                    edgePose(v,act,'clear-edge',now);
+                } else if (act.step === 'clear-edge') {
+                    move = walkTo(v,act.opening,Math.min(window.innerHeight-v.height,edge.rect.bottom+12),115);
+                    if (move) return move;
+                    endWeatherAct(v);
+                }
+                return {};
+            }
+
+            /** Align the deer's muzzle with the carrot, brush off its cap, then let the snowman turn away. */
+            function carrotNudge(v, act, now) {
+                if (act.leader) return {};
+                var man = act.other, x = man.x+man.width*0.14+v.width*0.40, y = man.y-man.height*0.10+v.height*0.16;
+                v.node.style.setProperty('--funny-deer-face','-1');
+                var move;
+                if (!act.step || act.step === 'try-carrot') {
+                    move = walkTo(v,x,y,100);
+                    if (move) return move;
+                    if (!act.step) {
+                        man.noseSnow = 0; man.node.style.setProperty('--funny-carrot-snow','0');
+                        edgePose(v,act,'brush-carrot',now);
+                        interactionEffect('cooling-flakes',x-v.width*0.4,y-v.height*0.16,[{x:x-v.width*0.4,y:y+10}],650);
+                    } else {
+                        edgePose(v,act,'miss-carrot',now);
+                        edgePose(man,man.weatherAct,'turn-head',now);
+                    }
+                } else if (act.step === 'brush-carrot' && now-act.since >= 300) {
+                    move = walkTo(v,x+22,y-4,75);
+                    if (move) return move;
+                    edgePose(v,act,'try-carrot',now);
+                } else if (act.step === 'miss-carrot' && now-act.since >= 850) endWeatherAct(v);
+                return {};
+            }
+
+            /** Only a recent rendered lightning flash can charge fur; both ears must meet for one click. */
+            function sparkMotion(v, act, now) {
+                var leader = act.leader || v, host = leader.weatherAct;
+                if (!host) return {};
+                var sign = host.sign, other = host.other;
+                if (host.step === 'discharge') {
+                    if (now-host.since > 380) { endWeatherAct(v); return {}; }
+                    return {dx:v === leader ? -sign : sign,dy:0,speed:55,cruise:true};
+                }
+                if (act.leader) return {};
+                var move = walkTo(v,other.x-sign*(v.width+other.width)*0.46,other.y+(v.height-other.height)*0.16,110);
+                if (move) return move;
+                edgePose(v,act,'discharge',now);
+                [v,other].forEach(function (actor) { actor.staticUntil = 0; actor.node.setAttribute('data-static',''); });
+                var x = (v.x+sign*v.width*0.46+other.x-sign*other.width*0.46)/2, y = other.y-other.height*0.16;
+                interactionEffect('ear-spark',x,y,[{x:x,y:y}],260);
+                if (!v.silent && !other.silent) playSound('static-click');
+                return {};
+            }
+
+            /** Read wind as the direction air travels: a source upwind sends scent towards the wolf. */
+            function windScent(v, act, now) {
+                var move;
+                if (!act.step) edgePose(v,act,'nose-up',now);
+                if (act.step === 'nose-up' && now-act.since >= 450) {
+                    var dot = (v.x-act.origin.x)*wind.x+(v.y-act.origin.y)*wind.y;
+                    act.x = v.x; act.y = v.y;
+                    act.away = Math.atan2(v.y-pointer.y,v.x-pointer.x);
+                    act.toX = clamp(v.x-wind.x*65,v.width,window.innerWidth-v.width);
+                    act.toY = clamp(v.y-wind.y*65,v.height,window.innerHeight-v.height);
+                    edgePose(v,act,dot > 0 ? 'upwind' : 'circle-scent',now);
+                } else if (act.step === 'upwind') {
+                    move = walkTo(v,act.toX,act.toY,75);
+                    if (move) return move;
+                    endWeatherAct(v);
+                } else if (act.step === 'circle-scent') {
+                    var t = Math.min(1,(now-act.since)/1150)*2*Math.PI;
+                    if (t < 2*Math.PI) {
+                        var outward = 12*(1-Math.cos(t)), sideways = 15*Math.sin(t);
+                        return walkTo(v,act.x+outward*Math.cos(act.away)-sideways*Math.sin(act.away),
+                            act.y+outward*Math.sin(act.away)+sideways*Math.cos(act.away),95) || {};
+                    }
+                    edgePose(v,act,'last-scent',now);
+                } else if (act.step === 'last-scent') {
+                    if (act.track && marks.indexOf(act.track) >= 0 && !act.track.ending) {
+                        move = walkTo(v,act.track.contact.x,act.track.contact.y-v.height*0.42,100);
+                        if (move) return move;
+                    }
+                    edgePose(v,act,'give-up',now);
+                } else if (act.step === 'give-up' && now-act.since > 500) endWeatherAct(v);
+                return {};
+            }
+
             /** Probe only nearby actors and real props. All stages use the ordinary animation clock. */
             function startEdgeScene(v, now, sky) {
                 if (now-v.born < 1800 || now < v.edgeProbeAt) return false;
                 var kind = v.character;
-                if (['cat','blackcat','spiders','zombie','snowmaiden','butterfly'].indexOf(kind) < 0) return false;
+                if (['cat','blackcat','spiders','zombie','snowmaiden','butterfly','martenitsa','chick','bat','deer','imp'].indexOf(kind) < 0) return false;
                 v.edgeProbeAt = now + 350;
                 if (kind === 'spiders') return startSilkRide(v, now);
                 if (!freeForWeather(v, now)) return false;
+                if (forecastEncounter(v,now,sky)) return true;
                 if ((kind === 'cat' || kind === 'blackcat') && sky.sun) {
                     var bird = visitors.find(function (other) {
                         return other.character === 'stork' && other.shadow && !other.perch && !other.pursuit &&
@@ -2128,7 +2362,7 @@
                 Array.prototype.slice.call(document.querySelectorAll('button,[id^="blockPortal_"],.listTable'), 0, 180).forEach(function (block) {
                     if (block.closest('.funny-eaten,.funny-controls,[aria-hidden="true"],details:not([open]),[hidden]')) return;
                     var r = block.getBoundingClientRect(), style = window.getComputedStyle(block);
-                    if (r.width < v.width + 20 || r.height < 8 || r.top < 0 || r.bottom + v.height > window.innerHeight || r.left < 0 || r.right > window.innerWidth ||
+                    if (r.width < v.width + 20 || r.height < 8 || r.top < 0 || r.bottom > window.innerHeight - (side === 'top' ? 0 : v.height) || r.left < 0 || r.right > window.innerWidth ||
                         style.visibility !== 'visible' || Number(style.opacity) === 0) return;
                     var x = clamp(v.x, r.left + v.width / 2, r.right - v.width / 2), y = r.bottom + v.height / 2 - 4;
                     if (side === 'top') y=r.top-v.height/2-5;
@@ -2136,17 +2370,18 @@
                         if (Math.abs(wind.x)>=Math.abs(wind.y)) { x=wind.x>0?r.right+v.width/2+6:r.left-v.width/2-6; y=(r.top+r.bottom)/2; }
                         else y=wind.y>0?r.bottom+v.height/2+6:r.top-v.height/2-6;
                     }
-                    if (side && (x<v.width || x>window.innerWidth-v.width || y<v.height || y>window.innerHeight-v.height)) return;
+                    var marginY = side === 'top' ? v.height/2 : v.height;
+                    if (side && (x<v.width || x>window.innerWidth-v.width || y<marginY || y>window.innerHeight-marginY)) return;
                     var distance = Math.hypot(x - v.x, y - v.y);
                     if (distance >= nearest || segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 140) return;
                     nearest = distance;
                     var checkAt = 0, valid = true;
-                    found = {x:x,y:y,valid:function () {
+                    found = {x:x,y:y,rect:r,node:block,valid:function () {
                         if (!block.isConnected || block.closest('details:not([open]),[hidden]')) return false;
                         if (performance.now() < checkAt) return valid;
                         checkAt = performance.now() + 500;
                         var rect = block.getBoundingClientRect(), current = window.getComputedStyle(block);
-                        valid = current.visibility === 'visible' && Number(current.opacity) > 0 && rect.bottom === r.bottom && rect.left === r.left && rect.right === r.right;
+                        valid = current.visibility === 'visible' && Number(current.opacity) > 0 && rect.top === r.top && rect.bottom === r.bottom && rect.left === r.left && rect.right === r.right;
                         return valid;
                     }};
                 });
@@ -2435,18 +2670,18 @@
             }
 
             /** Scent belongs to the lost prey, not to the wolf or an unrelated visitor. */
-            function scentNear(v, prey, previous, now) {
+            function scentNear(v, prey, previous, now, newest) {
                 return marks.filter(function (mark) {
                     return mark.owner === prey && (!previous || mark.born > previous.born) && !mark.ending && mark.expires > now + 300 &&
                         distanceToMark(mark.contact, v.x, v.y + v.height / 2) < 240 && segmentDistance(pointer.x, pointer.y, v.x, v.y, mark.contact.x, mark.contact.y) > 120;
-                }).sort(function (a, b) { return a.born - b.born; })[0];
+                }).sort(function (a, b) { return newest ? b.born-a.born : a.born-b.born; })[0];
             }
 
             /** All scene motion stays in the shared RAF; props never capture pointer or keyboard events. */
             function weatherMotion(v, now, delta) {
                 var act = v.weatherAct;
                 if (!act || /^(slide|brake)$/.test(act.kind) && v.pursuit) return false;
-                var nature = natureMotion(v, act, now, delta);
+                var nature = act.motion ? act.motion(v,act,now) : natureMotion(v, act, now, delta);
                 var dx = nature ? nature.dx || 0 : 0, dy = nature ? nature.dy || 0 : 0, speed = nature ? nature.speed || 0 : 0;
                 if (act.kind === 'slide' || act.kind === 'scatter') { dx = act.dx; dy = act.dy; speed = act.kind === 'slide' ? 190 : 245; }
                 if (act.kind === 'huddle') { dx = act.x + (act.slot - (act.group.length - 1) / 2) * 46 - v.x; dy = act.y + (act.slot % 2) * 7 - v.y; speed = 60; }
@@ -2700,6 +2935,7 @@
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
                             if (a.weatherAct && a.weatherAct.group && b.weatherAct && a.weatherAct.group === b.weatherAct.group) {
+                                if (/^(hang-tassels|carrot-nudge|ear-spark)$/.test(a.weatherAct.kind)) continue;
                                 if (a.weatherAct.kind === 'fog-search' || a.weatherAct.kind === 'fog-vanish') continue;
                                 if (/^(ferry|ferried)$/.test(a.weatherAct.kind) && (a.weatherAct.boarded || b.weatherAct.boarded)) continue;
                                 spacing = /^(night-hunt|night-prey)$/.test(a.weatherAct.kind) ? 20 : 44;
@@ -2789,7 +3025,7 @@
                 });
                 // Wolves hunt free visitors, but remember ghosts after the first close encounter.
                 visitors.forEach(function (wolf) {
-                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && /^(howl|wet-shake)$/.test(wolf.weatherAct.kind)) || !availableForEncounter(wolf, now)) return;
+                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && /^(howl|wet-shake|wind-scent)$/.test(wolf.weatherAct.kind)) || !availableForEncounter(wolf, now)) return;
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
@@ -3258,7 +3494,9 @@
                 var now = performance.now();
                 visitors.forEach(function (v) {
                     if (v.pursuit || v.fear || v.perch || v.reactionUntil || v.eating || !availableForEncounter(v, now)) return;
-                    react(v, Math.random() < 0.5 ? 'startled' : 'duck', now);
+                    if (v.character === 'imp' && visibleForecast() && !v.weatherDone && freeForWeather(v,now) && sceneAvailable(v,now)) {
+                        if (!v.staticUntil) { v.staticUntil = now+4200; v.node.setAttribute('data-static','true'); }
+                    } else if (!v.weatherAct) react(v, Math.random() < 0.5 ? 'startled' : 'duck', now);
                 });
             };
 
@@ -3664,7 +3902,7 @@
                     else if (!divert && !v.reactionUntil) {
                         idleMotion(v, now, delta, dx, dy, distance);
                     }
-                    if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil) {
+                    if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil && !(v.weatherAct && v.weatherAct.motion)) {
                         v.x += wind.x * wind.speed * 0.18 * delta;
                         v.y += wind.y * wind.speed * 0.18 * delta;
                     }
