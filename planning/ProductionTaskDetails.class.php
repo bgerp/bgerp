@@ -1635,9 +1635,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             $masterRec = $data->masterData->rec;
             $retUrl = array('doc_Containers', 'list', 'threadId' => $masterRec->threadId, '#' => "taskProgressTable{$masterRec->id}");
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Прогрес' : "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
-                $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => $retUrl), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
+            foreach ($mvc->getAddRowVariants($data->masterId) as $key => $v) {
+                $btnName = $v['title'];
+                if ($key == 'production' && !(empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId)) {
+                    $btnName = "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
+                }
+                $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId) + $v['params'] + array('ret_url' => $retUrl), false, "ef_icon = {$v['icon']},title={$v['hint']}");
+                if ($key != 'production') continue;
 
                 // Ако има субпродукти - добавят се бутони за тях
                 $subProducts = array_keys(planning_ProductionTaskProducts::getOptionsByType($data->masterId, 'production', 'subProducts'));
@@ -1654,27 +1658,57 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $data->toolbar->addBtn("Прогр. Субпродукти/Услуги", array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'inputType' => 'subProducts', 'ret_url' => $retUrl), false, "ef_icon = img/16/package.png,title=Добавяне на прогрес за субпродукт");
                 }
             }
+        }
+    }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials'))) {
-                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
-            }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services'))) {
-                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
-            }
-
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions'))) {
-                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
-            }
-
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
-                $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => $retUrl), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
-            }
-
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'scrap'))) {
-                $data->toolbar->addBtn('Бракуване', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'scrap', 'ret_url' => $retUrl), false, 'ef_icon = img/16/bin_closed.png,title=Бракуване на прогрес по операцията');
+    /**
+     * Видовете прогрес, които потребителят може да добави към операцията
+     *
+     * @param int $taskId
+     *
+     * @return array [key => ['title', 'params', 'icon', 'hint']]
+     */
+    private function getAddRowVariants($taskId)
+    {
+        $variants = array(
+            'production' => array('title' => 'Прогрес', 'params' => array('type' => 'production'), 'icon' => 'img/16/package.png', 'hint' => 'Добавяне на прогрес по операцията'),
+            'materials' => array('title' => 'Влагане: Материали', 'params' => array('type' => 'input', 'inputType' => 'materials'), 'icon' => 'img/16/wooden-box.png', 'hint' => 'Добавяне на вложен артикул'),
+            'services' => array('title' => 'Влагане: Услуги', 'params' => array('type' => 'input', 'inputType' => 'services'), 'icon' => 'img/16/wooden-box.png', 'hint' => 'Добавяне на вложен артикул'),
+            'actions' => array('title' => 'Влагане: Действия', 'params' => array('type' => 'input', 'inputType' => 'actions'), 'icon' => 'img/16/wooden-box.png', 'hint' => 'Добавяне на вложен артикул'),
+            'waste' => array('title' => 'Отпадък', 'params' => array('type' => 'waste'), 'icon' => 'img/16/recycle.png', 'hint' => 'Добавяне на отпаден артикул'),
+            'scrap' => array('title' => 'Бракуване', 'params' => array('type' => 'scrap'), 'icon' => 'img/16/bin_closed.png', 'hint' => 'Бракуване на прогрес по операцията'),
+        );
+        foreach ($variants as $key => $v) {
+            if (!$this->haveRightFor('add', (object) (array('taskId' => $taskId) + $v['params']))) {
+                unset($variants[$key]);
             }
         }
+
+        return $variants;
+    }
+
+
+    /**
+     * Вариантите за добавяне на прогрес, както бутоните над таблицата
+     *
+     * @param int $masterId
+     *
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array();
+        foreach ($this->getAddRowVariants($masterId) as $key => $v) {
+            $res[$key] = array('title' => $v['title'], 'params' => $v['params']);
+
+            // Субпродуктът е същият прогрес с inputType: отделен вариант би бил двусмислен
+            if ($key == 'production' && countR(planning_ProductionTaskProducts::getOptionsByType($masterId, 'production', 'subProducts'))) {
+                $res[$key]['title'] .= ' (за субпродукт: inputType=subProducts и productId)';
+            }
+        }
+
+        return $res;
     }
     
     
@@ -1898,7 +1932,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Титлата на таба в браузъра - артикула от заданието и номера на операцията
         if (isset($rec->taskId)) {
-            $jobProductId = planning_Jobs::fetchField("#containerId = {$data->masterRec->originId}", 'productId');
+            $masterRec = $data->masterRec ?? null;
+            $originId = is_object($masterRec) ? ($masterRec->originId ?? null) : planning_Tasks::fetchField($rec->taskId, 'originId');
+            $jobProductId = planning_Jobs::fetchField(array("#containerId = '[#1#]'", $originId), 'productId');
             $data->pageTitle = cat_Products::getTitleById($jobProductId, false) . ' - #' . planning_Tasks::getHandle($rec->taskId);
         }
     }
