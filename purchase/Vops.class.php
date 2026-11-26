@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -228,13 +228,14 @@ class purchase_Vops extends core_Manager
     
     
     /**
-     * Пренасочва URL за връщане след запис към сингъл изгледа
+     * Пренасочва към печат след запис
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        // Ако има форма, и тя е събмитната и действието е 'запис'
-        if ($data->form->isSubmitted() && !empty($data->form->rec->id) && ($data->form->cmd ?? null) == 'save') {
-            $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'Printing' => 'yes'));
+        $form = $data->form ?? null;
+        $id = $form->rec->id ?? null;
+        if ($form instanceof core_Form && $form->isSubmitted() && !empty($id) && ($form->cmd ?? null) == 'save') {
+            $data->retUrl = toUrl(array($mvc, 'print', $id, 'Printing' => 'yes'));
         }
     }
 }

@@ -1592,7 +1592,7 @@ class cat_products_Packagings extends core_Detail
         // Връща се намереното тегло
         $volume = $brutoVolume * $quantity;
 
-        return round($volume, 3);
+        return round($volume, 6);
     }
 
 

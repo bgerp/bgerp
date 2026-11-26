@@ -166,6 +166,19 @@ body.commerce-theme.bordeaux-theme .bordeaux-skip-link {
     border: 2px solid var(--c-accent);
 }
 body.commerce-theme.bordeaux-theme .bordeaux-skip-link:focus { top: 12px; }
+body.commerce-theme.bordeaux-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow > .centerContent {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+body.commerce-theme.bordeaux-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow :is(.cms-menu-tools a, .commerce-primary-menu > summary, .commerce-languages > summary) {
+    min-height: 2.25rem;
+    padding: 0.35em 0.55em;
+    font-size: 0.8125rem;
+    box-sizing: border-box;
+}
+body.commerce-theme.bordeaux-theme:is(.narrow, .commerce-compact) #cmsMenu a.commerce-cart-link {
+    padding: 0.35em 0.55em !important;
+}
 @media (max-width: 900px) {
     body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) { min-height: 160px; padding: 24px; }
     body.commerce-theme.bordeaux-theme header .narrowCenter:has(.commerce-default-banner) :is(.app-name, .app-subtitle) { max-width: 100%; }

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="bg">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funny — срещи според времето</title>
+<link rel="stylesheet" href="../css/funny.css">
+<style>
+body { margin:20px; background:#f2f5f7; color:#293948; font:16px/1.5 system-ui,sans-serif; }
+h1 { margin:0; font-size:21px; } select,button { font:inherit; } output { display:block; }
+#launch { position:fixed; left:min(45vw,425px); top:min(55vh,360px); width:146px; padding:22px 0; text-align:center; border:2px dashed #8498a7; border-radius:7px; user-select:none; }
+#launch::before { content:'Двоен клик тук'; pointer-events:none; }
+#blockPortal_anchor { position:fixed; width:145px; height:17px; border-radius:4px; background:#b0bfc8; box-shadow:inset 0 -3px #8c9eab; }
+#pool { position:fixed; width:60px; height:6px; border-radius:50%; background:#95cce4; pointer-events:none; }
+#flash { position:fixed; left:72%; top:12%; color:#b7902f; font:28px sans-serif; pointer-events:none; }
+</style>
+<h1>Срещи според времето</h1>
+<label>Сценка <select id="scene">
+<option value="march">Щъркел и мартеничка</option><option value="wolf">Вълк по вятъра</option>
+<option value="bath">Пиленца в локва</option><option value="echo">Прилеп в мъгла</option>
+<option value="carrot">Елен и морков</option><option value="spark">Гремлини при гръмотевица</option>
+</select></label>
+<button id="reverse" hidden>Обърни вятъра</button><button id="thunder" hidden>Светкавица</button>
+<p id="help">Двоен клик в рамката извиква героите.</p>
+<output id="status">Изчакване</output>
+<div id="launch" aria-label="Празно място за двоен клик"></div>
+<script src="../js/scene.js"></script><script src="../js/funny.js"></script>
+<script>
+/** Only the forecast, clock and test scenery are simulated. Actors use the normal page handlers. */
+const scenarios={
+    march:{actors:['martenitsa','stork'],weather:'sun',seed:997},wolf:{actors:['wolf','bunny','chick'],weather:'rain',seed:11964},
+    bath:{actors:['chick'],weather:'rain',seed:997},echo:{actors:['bat'],weather:'fog',seed:997},
+    carrot:{actors:['snowman','deer'],weather:'snow',seed:4},spark:{actors:['imp'],weather:'rain',seed:3964}
+};
+const params=new URLSearchParams(location.search),select=document.querySelector('#scene');
+const kind=Object.hasOwn(scenarios,params.get('scene'))?params.get('scene'):'march',config=scenarios[kind];
+select.value=kind;select.onchange=()=>{location.search=new URLSearchParams({scene:select.value});};
+let seed=Number(params.get('seed'))||config.seed;
+Math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
+const ActualDate=Date;
+window.Date=class extends ActualDate { constructor(...args){super(...args);if(!args.length){this.setMonth(2,12);this.setHours(11,0,0,0);}} };
+const wind={x:1,y:0,speed:kind==='wolf'?18:7},launch=document.querySelector('#launch'),seen=new Set();
+const names={'on-beak':'На човката',hanging:'На ръба','nose-up':'Подушва въздуха',upwind:'Срещу вятъра','circle-scent':'Обикаля','last-scent':'Последна следа','give-up':'Отказва се','dip-toe':'Пробва с краче','flap-once':'Първи плясък','flap-twice':'Втори плясък','bath-turn':'Пристъпва второто пиле','send-echo':'Две дъги','hear-echo':'Върнато ехо','clear-edge':'Заобиколи ръба','brush-carrot':'Снегът пада','try-carrot':'Втори опит','turn-head':'Скрит морков',discharge:'Искра'};
+let since=Infinity,pool=null;
+/** Position a visible fixture prop in the same coordinates as the visitors. */
+function prop(id,x,y){const node=document.createElement('div');node.id=id;node.style.left=x+'px';node.style.top=y+'px';document.body.appendChild(node);return node;}
+window.funnyWeather={current:()=>config.weather,visible:()=>document.visibilityState==='visible'&&document.hasFocus(),wind:()=>wind,trigger(){},trace(){},sky:()=>null,
+    surfaceNear(x,y,type,radius){
+        if(kind!=='bath'||type!=='water'||performance.now()-since<4600)return null;
+        if(!pool){const node=prop('pool',x-30,y);pool={x,y,left:x-30,right:x+30,valid:()=>node.isConnected};}
+        return Math.hypot(pool.x-x,pool.y-y)<=radius?pool:null;
+    }};
+funnyEffects.init({mode:'selected',characters:config.actors,trigger:'manual',sound:kind==='spark'?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{expires:Infinity,temperature:kind==='carrot'?-5:12}});
+/** Exercise the same visitor notification that a rendered forecast bolt delivers. */
+function flash(){
+    if(document.querySelector('#flash'))return;
+    const bolt=prop('flash',innerWidth*.72,innerHeight*.12);bolt.textContent='ϟ';
+    funnyEffects.lightning();setTimeout(()=>bolt.remove(),350);
+}
+const thunder=document.querySelector('#thunder'),reverse=document.querySelector('#reverse');
+thunder.hidden=kind!=='spark';thunder.onclick=flash;
+reverse.hidden=kind!=='wolf';reverse.onclick=()=>{wind.x*=-1;reverse.textContent=wind.x===1?'Вятър надясно':'Вятър наляво';};
+if(['bath','spark'].includes(kind))document.querySelector('#help').textContent='Двоен клик в рамката извиква първия герой. В примера се повтаря автоматично за втория.';
+launch.addEventListener('dblclick',event=>{
+    if(!event.isTrusted)return;
+    since=performance.now();
+    if(['spark','bath'].includes(kind)){
+        const x=event.clientX,y=event.clientY+(kind==='spark'?55:0);
+        setTimeout(()=>{
+            const target=document.elementFromPoint(x,y);
+            if(target)target.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:x,clientY:y}));
+        },720);
+        if(kind==='spark')setTimeout(flash,3600);
+    }
+    if(['march','echo'].includes(kind)&&!document.querySelector('#blockPortal_anchor'))setTimeout(()=>{
+        const actor=document.querySelector('.funny-visitor');if(!actor)return;
+        const r=actor.getBoundingClientRect();
+        prop('blockPortal_anchor',Math.min(innerWidth-165,Math.max(15,r.left+r.width/2-70)),r.top+r.height/2+(kind==='march'?-65:72));
+    },720);
+});
+new MutationObserver(records=>{
+    for(const r of records){
+        const pose=r.target.getAttribute(r.attributeName);
+        if(names[pose])seen.add(names[pose]);
+        if(r.attributeName==='data-static'&&pose==='true')seen.add('Щръкнала козина');
+    }
+    if(seen.size)document.querySelector('#status').textContent=[...seen].join(' · ');
+}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-scene-step','data-static']});
+</script>
+</html>
