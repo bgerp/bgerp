@@ -149,7 +149,7 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(225deg, #888 50%, transparent 50%) top right / 6px 6px no-repeat;
-    cursor: help;
+    cursor: auto;
 }
 
 .deal-documents tr.deal-documents-unposted td,

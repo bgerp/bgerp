@@ -1825,7 +1825,8 @@ abstract class deals_Helper
         if (!isset($value)) return;
         
         $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
-        $value = round($value, 3);
+        // Обемът е в m³: 6 знака пазят и обеми под литър
+        $value = round($value, ($type == 'volume') ? 6 : 3);
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);

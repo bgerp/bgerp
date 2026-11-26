@@ -408,6 +408,9 @@ class cat_Boms extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
+        // Без артикул рецепта не се добавя (@see on_AfterGetRequiredRoles)
+        if (empty($rec->productId)) return;
+
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
         $form->setField('quantity', "unit={$shortUom}");
@@ -1287,6 +1290,25 @@ class cat_Boms extends core_Master
     }
     
     
+    /**
+     * Параметрите за нова рецепта от документ-източник, като бутона в таба "Рецепти" на артикула
+     *
+     * @param int $containerId - контейнер на източника
+     *
+     * @return array|null - null, ако източникът не е артикул
+     */
+    public static function getAddParamsFromSource($containerId)
+    {
+        $Source = doc_Containers::getDocument($containerId);
+        if (!$Source->isInstanceOf('cat_Products')) {
+
+            return null;
+        }
+
+        return array('productId' => $Source->that, 'originId' => $containerId, 'type' => 'sales');
+    }
+
+
     /**
      * Клонира и разпъва рецептата на един артикул към друг
      *

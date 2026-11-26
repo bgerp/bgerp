@@ -86,3 +86,5 @@
 
 .funny-weather-ice-crack { width: 70px; height: 16px; margin: -6px -35px; pointer-events: none; background: linear-gradient(24deg,transparent 47%,#648baf 49% 51%,transparent 53%),linear-gradient(-29deg,transparent 46%,#bce2f4 48% 52%,transparent 54%); clip-path: polygon(0 40%,25% 25%,45% 45%,60% 0,70% 45%,100% 35%,75% 70%,60% 100%,45% 65%,20% 85%); animation: funny-ice-crack 2.6s ease-out both; }
 @keyframes funny-ice-crack { 0% { opacity: 0; transform: scaleX(.2); } 15%,65% { opacity: .85; transform: scaleX(1); } 100% { opacity: 0; } }
+.funny-weather-wind-piece.funny-weather-snagged { opacity:.9; transform:none; }
+.funny-weather-snagged .funny-weather-leaf { animation-play-state:paused; }

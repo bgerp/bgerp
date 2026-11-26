@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -637,23 +637,55 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         // Документа не може да се създава  в нова нишка, ако е възоснова на друг
         $data->toolbar->removeBtn('btnAdd');
-        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-            if (cat_Products::getByProperty('canManifacture', null, 1)) {
-                $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
+        foreach ($mvc->getAddRowTypes($data->masterId) as $type => $t) {
+            $data->toolbar->addBtn($t['title'], array($mvc, 'add', 'taskId' => $data->masterId, 'type' => $type, 'ret_url' => true), false, "ef_icon = {$t['icon']},title={$t['hint']}");
+        }
+    }
+
+
+    /**
+     * Видовете артикули, които потребителят може да добави към операцията
+     *
+     * @param int $taskId
+     *
+     * @return array [type => ['title', 'hint', 'icon']]
+     */
+    private function getAddRowTypes($taskId)
+    {
+        $types = array(
+            'production' => array('title' => 'За произвеждане', 'hint' => 'Добавяне на производим артикул', 'icon' => 'img/16/package.png', 'properties' => 'canManifacture'),
+            'input' => array('title' => 'За влагане', 'hint' => 'Добавяне на вложим артикул', 'icon' => 'img/16/wooden-box.png', 'properties' => 'canConvert'),
+            'waste' => array('title' => 'За отпадък', 'hint' => 'Добавяне на отпаден артикул', 'icon' => 'img/16/recycle.png', 'properties' => 'canStore,canConvert', 'groups' => 'waste'),
+        );
+        foreach ($types as $type => $t) {
+            $groups = isset($t['groups']) ? cat_Groups::getKeylistBySysIds($t['groups']) : null;
+
+            // Без подходящ артикул в каталога бутонът не се показва
+            if (!$this->haveRightFor('add', (object) array('taskId' => $taskId, 'type' => $type))
+                || !cat_Products::getByProperty($t['properties'], null, 1, $groups)) {
+                unset($types[$type]);
             }
         }
 
-        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
-            if (cat_Products::getByProperty('canConvert', null, 1)) {
-                $data->toolbar->addBtn('За влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
-            }
+        return $types;
+    }
+
+
+    /**
+     * Вариантите за добавяне на артикул, както бутоните над таблицата
+     *
+     * @param int $masterId
+     *
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array();
+        foreach ($this->getAddRowTypes($masterId) as $type => $t) {
+            $res[$type] = array('title' => $t['title'], 'params' => array('type' => $type));
         }
 
-        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
-            if (cat_Products::getByProperty('canStore,canConvert', null, 1, cat_Groups::getKeylistBySysIds('waste'))) {
-                $data->toolbar->addBtn('За отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
-            }
-        }
+        return $res;
     }
     
     

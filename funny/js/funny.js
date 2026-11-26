@@ -468,11 +468,12 @@
                     mouse: {notes: [1250, 1550], duration: 0.07, spacing: 0.11, pitch: 0.85, wave: 'sine', volume: 0.4},
                     penguin: {notes: [740, 520], duration: 0.10, spacing: 0.15, pitch: 1.1, wave: 'sine'},
                     sneeze: {notes: [210, 480], duration: 0.16, spacing: 0.14, pitch: 0.32, wave: 'triangle', voice: true, volume: 0.35},
+                    'static-click': {notes:[1300],duration:0.044,spacing:0,pitch:0.32,wave:'triangle',volume:0.27},
                     'ice-chime': {notes:[988,740], duration:0.17, spacing:0.35, pitch:1, wave:'sine', volume:0.38},
                     pop: {notes: [380], duration: 0.09, spacing: 0, pitch: 0.25, wave: 'triangle'}
                 };
                 var sound = sounds[character];
-                if (options.sound === 'scary' && character !== 'pop' && character !== 'ice-chime') {
+                if (options.sound === 'scary' && character !== 'pop' && character !== 'ice-chime' && character !== 'static-click') {
                     sound = Object.assign({}, sound, {notes: sound.notes.map(function (note) { return note * 0.65; }),
                         wave: 'sawtooth', pitch: 0.35, vibrato: true, low: true, voice: false});
                 }
@@ -590,9 +591,10 @@
 
             function removeVisitor(v, escaped, depart) {
                 endWeatherAct(v);
+                if (v.staticUntil) { v.staticUntil = 0; v.node.setAttribute('data-static',''); }
                 endPair(v);
                 marks.forEach(function (mark) { if (mark.reflectionActor === v && mark.reflection) { mark.reflection.remove(); mark.reflection = null; } });
-                restoreEaten(v);
+                restoreEaten(v,escaped);
                 releaseSeeds(v);
                 releaseThread(v);
                 if (escaped && active() && caughtCount > 0) { escapedCount++; updateStats(); }
@@ -920,8 +922,10 @@
                     if (mark.cover && (wind.speed >= 24 || !mark.cover.valid())) { mark.cover.release(); mark.cover = null; mark.node.setAttribute('data-uncovered', 'true'); }
                     if (c.kind === 'hole') mark.node.setAttribute('data-rain-roof', mark.cover && climate().rain ? 'true' : '');
                     if (c.kind==='snow-hat' && mark.edge && !mark.edge.valid()) { removeMark(mark); return; }
+                    if (c.kind === 'snow-groove' && (!mark.surface.valid() || !climate().snow)) { removeMark(mark); return; }
                     if (c.kind !== 'puddle') return;
                     var actor = visitors.filter(function (v) { return !v.launched && !v.leaving && ghostKinds.indexOf(v.character) < 0 && v.character !== 'vampire' && Math.hypot(v.x - c.x, v.y + v.height / 2 - c.y) < 70; })[0];
+                    if (actor && actor.weatherAct && actor.weatherAct.kind === 'pool-light' && actor.weatherAct.surface.mark === mark) actor = null;
                     if (mark.reflection && (!actor || mark.reflected !== actor.character)) { mark.reflection.remove(); mark.reflection = null; }
                     if (actor && !mark.reflection) {
                         var reflection = sprite(actor.character); reflection.setAttribute('class', 'funny-reflection');
@@ -1141,7 +1145,7 @@
                 if (act.kind === 'save-hat') act.mark.node.setAttribute('data-carried','');
                 if (act.kind === 'towel') v.node.style.removeProperty('--funny-towel-side');
                 if (act.kind === 'lantern') v.node.style.setProperty('--funny-lantern', '0');
-                if (act.kind === 'tassels') {
+                if (act.kind === 'hang-tassels' || act.kind === 'tassels') {
                     ['--funny-thread-stretch','--funny-pizho-x','--funny-penda-x','--funny-pizho-turn','--funny-penda-turn'].forEach(function (key) { v.node.style.removeProperty(key); });
                 }
                 if (act.kind === 'shade') v.node.setAttribute('data-shade', '');
@@ -1154,11 +1158,20 @@
                     if (act.kind === 'hat' && marks.indexOf(act.mark) >= 0) removeMark(act.mark);
                     if (act.kind === 'mend' && !act.mark.ending) act.mark.node.setAttribute('data-web-repair', act.mark.repaired ? 'done' : 'broken');
                 }
+                if (act.leaf) act.leaf.release();
+                if (act.kind === 'snow-run') v.node.style.removeProperty('--belly-turn');
+                if (act.kind === 'web-signal') {
+                    if (act.drop) act.drop.release();
+                    if (act.mark) act.mark.node.setAttribute('data-signal','');
+                }
                 if (act.chimes) {
                     act.chimes.release();
                     v.node.style.removeProperty('--funny-wand-length'); v.node.style.removeProperty('--funny-wand-angle');
                     if (act.step === 'tap-short' && act.cancelChime) act.cancelChime();
                 }
+                if (act.kind === 'carrot-nudge') v.node.style.removeProperty('--funny-deer-face');
+                if (act.kind === 'bird-bath') v.node.style.removeProperty('--funny-chick-flap');
+                if (act.kind === 'ear-spark') { v.staticUntil = 0; v.node.setAttribute('data-static',''); }
                 if (act.step) v.node.setAttribute('data-scene-step', '');
                 if (act.boat) act.boat.release();
                 if (act.kind === 'shell' || act.kind === 'snail-nudge') v.node.setAttribute('data-shell', '');
@@ -1199,6 +1212,15 @@
                 if (v.outfit === 'glasses') {
                     v.glassesWet = clamp((v.glassesWet || 0) + delta * (/rain|fog/.test(weather) ? 0.2 : -0.5), 0, 1);
                     v.node.style.setProperty('--funny-lens-wet', v.glassesWet.toFixed(3));
+                }
+                if (v.character === 'snowman' && (sky.snow || v.noseSnow)) {
+                    var brushed = act && act.kind === 'carrot-nudge' && act.leader && act.leader.weatherAct && act.leader.weatherAct.step;
+                    var snow = sky.snow && !brushed ? Math.min(1,(v.noseSnow || 0)+delta/5) : 0;
+                    if (snow !== v.noseSnow) v.node.style.setProperty('--funny-carrot-snow',snow.toFixed(2));
+                    v.noseSnow = snow;
+                }
+                if (v.staticUntil && (now >= v.staticUntil || !visibleForecast() || !availableForEncounter(v,now))) {
+                    v.staticUntil = 0; v.node.setAttribute('data-static','');
                 }
                 if (sky.rain && (v.character === 'wolf' || v.character === 'butterfly')) v.rainExposure = (v.rainExposure || 0) + delta;
                 else v.rainExposure = 0;
@@ -1286,8 +1308,11 @@
                     if (!surface || segmentDistance(pointer.x, pointer.y, v.x, v.y, surface.x, surface.y - v.height / 2) < 130) return;
                     beginWeatherAct(v, 'gather', now, 4800, {surface:surface});
                 } else if (v.character === 'wolf' && v.lostPrey && !v.sated) {
-                    var track = scentNear(v, v.lostPrey, null, now);
-                    if (track) beginWeatherAct(v, 'scent', now, 5000, {mark:track,prey:v.lostPrey});
+                    var track = scentNear(v,v.lostPrey,null,now,wind.speed >= 12);
+                    if (wind.speed >= 12 && (track || visitors.indexOf(v.lostPrey) >= 0)) {
+                        var source = visitors.indexOf(v.lostPrey) >= 0 ? v.lostPrey : track.contact;
+                        beginWeatherAct(v,'wind-scent',now,5600,{track:track,origin:{x:source.x,y:source.y},motion:windScent});
+                    } else if (track) beginWeatherAct(v, 'scent', now, 5000, {mark:track,prey:v.lostPrey});
                     v.lostPrey = null;
                 } else if (v.character === 'spiders') {
                     var web = marks.filter(function (mark) { return mark.owner === v && mark.broken && !mark.repaired && !mark.ending && mark.expires > now + 2800 && distanceToMark(mark.contact, v.x, v.y) < 180; })[0];
@@ -1311,14 +1336,451 @@
                 return (hour<6 || hour>=18) && sky.temperature!==null && sky.temperature>10 && !sky.rain && !sky.snow && wind.speed<24;
             }
 
+            /** Nearby partners share the same deadline and release each other on interruption. */
+            function startForecastPair(v, other, kind, now, duration, props) {
+                var group = [v,other];
+                beginWeatherAct(v,kind,now,duration,Object.assign({group:group,other:other},props));
+                beginWeatherAct(other,kind,now,duration,{group:group,leader:v,motion:props.motion});
+            }
+
+            /** Decorations requiring visible fog or a thunder flash stop with the weather layer. */
+            function visibleForecast() {
+                return window.funnyWeather && window.funnyWeather.visible && window.funnyWeather.visible();
+            }
+
+            /** Borrow an existing edge, pool or companion after the usual foreground and crowd checks. */
+            function forecastEncounter(v, now, sky) {
+                var kind = v.character, other, edge;
+                if (kind === 'martenitsa' && new Date().getMonth() === 2 && sky.sun) {
+                    other = natureCompanions(v,['stork'],now,215,1)[0];
+                    if (!other) return false;
+                    edge = shadeSpot(v);
+                    if (!edge) return false;
+                    startForecastPair(v,other,'hang-tassels',now,6500,{surface:edge,motion:tasselFlight,valid:function () { return climate().sun; }});
+                } else if (kind === 'chick' && sky.rain && !sky.snow && wind.speed < 18 && now-v.born >= 2600) {
+                    var pool = wetSpot(v,now);
+                    if (!pool || !pool.valid() || !(pool.right-pool.left >= 36 || pool.mark) ||
+                        segmentDistance(pointer.x,pointer.y,v.x,v.y,pool.x,pool.y-v.height*0.43) < 140) return false;
+                    other = natureCompanions(v,['chick'],now,185,1)[0];
+                    var props = {surface:pool,mark:pool.mark,motion:birdBath,valid:function () { return climate().rain; }};
+                    if (pool.mark) pool.mark.reserved = true;
+                    if (other) startForecastPair(v,other,'bird-bath',now,4800,props);
+                    else beginWeatherAct(v,'bird-bath',now,4800,props);
+                } else if (kind === 'bat' && weather.indexOf('fog') >= 0 && visibleForecast()) {
+                    edge = shadeSpot(v,'top');
+                    if (!edge || v.y > edge.y+3) return false;
+                    var half = v.width/2+8;
+                    var sides = [edge.rect.left-half,edge.rect.right+half].sort(function (a,b) { return Math.abs(a-v.x)-Math.abs(b-v.x); });
+                    var opening = sides.find(function (x) {
+                        var hit = document.elementFromPoint && document.elementFromPoint(x,(edge.rect.top+edge.rect.bottom)/2);
+                        var obstacle = hit && hit.closest('button,input,select,textarea,[id^="blockPortal_"],.listTable');
+                        if (obstacle && !obstacle.contains(edge.node)) return false;
+                        return x > half && x < window.innerWidth-half && Math.abs(x-edge.x) < 200 &&
+                            segmentDistance(pointer.x,pointer.y,edge.x,edge.y,x,edge.y) > 140;
+                    });
+                    if (opening === undefined) return false;
+                    beginWeatherAct(v,'echo-turn',now,4800,{surface:edge,opening:opening,motion:batEcho,valid:function () { return weather.indexOf('fog') >= 0 && visibleForecast(); }});
+                } else if (kind === 'deer' && sky.snow) {
+                    other = natureCompanions(v,['snowman'],now,205,1)[0];
+                    if (!other || !(other.noseSnow > 0.22)) return false;
+                    startForecastPair(v,other,'carrot-nudge',now,5700,{motion:carrotNudge,valid:function () { return climate().snow; }});
+                } else if (kind === 'imp' && now < v.staticUntil) {
+                    other = natureCompanions(v,['imp'],now,145,1)[0];
+                    if (!other) return false;
+                    startForecastPair(v,other,'ear-spark',now,Math.min(2200,v.staticUntil-now),{motion:sparkMotion,sign:v.x < other.x ? 1 : -1,valid:visibleForecast});
+                } else return false;
+                return true;
+            }
+
+            /** Walk within broom reach before gathering, then hold still as the wind returns the crumbs. */
+            function broomCrumbs(v,act,now) {
+                var move=walkTo(v,act.crumbs.x+v.width*.38,act.crumbs.y-v.height*.32,100);
+                if (move && Math.hypot(move.dx,move.dy)>32) return move;
+                endWeatherAct(v);
+                if (sweepDebris(v,now,true)) rememberTrick(v);
+                return {};
+            }
+
+            /** Calm local nights let a firefly see its own light on existing water. */
+            function quietNight() {
+                var hour = new Date().getHours(), saved=options.forecast;
+                return (hour >= 18 || hour < 6) && wind.speed < 12 && !(saved && saved.expires>Date.now() && /^thunder/.test(saved.icon));
+            }
+
+            /** Blink twice in sync with the reflected sprite, then touch the original waterline. */
+            function poolLight(v, act, now) {
+                var pool = act.surface, move;
+                if (!act.step) {
+                    move = walkTo(v,pool.x,pool.y-v.height*.55,98);
+                    if (move) return move;
+                    var image = document.createElement('div');
+                    image.className = 'funny-pool-reflection funny-light-reflection';
+                    image.style.left = pool.x+'px'; image.style.top = pool.y+'px'; image.appendChild(sprite(v.character));
+                    act.prop = addMark(image,act.until-now,{kind:'reflection',x:pool.x,y:pool.y});
+                    act.prop.reserved = true;
+                    edgePose(v,act,'signal-pool',now);
+                }
+                if (act.step === 'signal-pool') {
+                    if (now-act.since >= 1180) edgePose(v,act,'touch-pool',now);
+                } else if (act.step === 'touch-pool') {
+                    move = walkTo(v,pool.x,pool.y-v.height*.20,50);
+                    if (move) return move;
+                    if (marks.indexOf(act.prop)>=0) removeMark(act.prop);
+                    act.prop = null;
+                    interactionEffect('bath-ripple',pool.x,pool.y,[{x:pool.x,y:pool.y}],820);
+                    edgePose(v,act,'broken-reflection',now);
+                } else if (now-act.since >= 620) endWeatherAct(v);
+                return {};
+            }
+
+            /** A sunny cat dozes while the ordinary fly lands, tickles one ear and takes off before the paw. */
+            function noseFly(v, act, now) {
+                var cat = act.leader || v, host = cat.weatherAct;
+                if (!host) return {};
+                var fly = host.other, ginger = cat.character === 'cat';
+                var x = cat.x-(ginger ? .085 : 0)*cat.width, y = cat.y-(ginger ? .02 : .06)*cat.height;
+                if (act.leader) {
+                    if (!host.step || host.step === 'nap' || host.step === 'twitch-ear') return walkTo(v,x,y-v.height*.04,155) || {};
+                    return walkTo(v,host.escapeX,host.escapeY,190) || {};
+                }
+                if (!act.step) edgePose(v,act,'nap',now);
+                if (act.step === 'nap' && now-act.since>360 && Math.hypot(fly.x-x,fly.y+fly.height*.04-y)<6) {
+                    edgePose(v,act,'twitch-ear',now);
+                } else if (act.step === 'twitch-ear' && now-act.since>500) {
+                    var away = Math.atan2(y-pointer.y,x-pointer.x);
+                    act.escapeX = clamp(x+Math.cos(away)*90,fly.width,window.innerWidth-fly.width);
+                    act.escapeY = clamp(y+Math.sin(away)*90,fly.height,window.innerHeight-fly.height);
+                    edgePose(v,act,'fly-away',now);
+                } else if (act.step === 'fly-away' && now-act.since>230) edgePose(v,act,'paw-on-nose',now);
+                else if (act.step === 'paw-on-nose' && now-act.since>800) {
+                    cat.chaseAfter = now+1500;
+                    endWeatherAct(v);
+                }
+                return {};
+            }
+
+            /** Borrow the actual airborne leaf and release it from the same antler into the current wind. */
+            function antlerLeaf(v,act,now) {
+                if (!act.step) edgePose(v,act,'leaf-snag',now);
+                var tilt = act.step === 'shake-antlers' ? Math.sin((now-act.since)/58)*5 : 0;
+                act.leaf.move(v.x+v.width*.2+tilt,v.y-v.height*.33);
+                if (act.step === 'leaf-snag' && now-act.since>500) edgePose(v,act,'shake-antlers',now);
+                else if (act.step === 'shake-antlers' && now-act.since>650) endWeatherAct(v);
+                return {};
+            }
+
+            /** Find a sufficiently long snowy ledge, or follow the first bird's real unfinished groove. */
+            function startSnowRun(v,now) {
+                var trail = marks.find(function (m) {
+                    return m.contact && m.contact.kind==='snow-groove' && m.ready && !m.followed && m.expires-now>2200 && m.surface.valid() &&
+                        Math.hypot(v.x-m.contact.x,v.y+v.height*.32-m.contact.y)<150;
+                });
+                var api = window.funnyWeather;
+                var bank = trail ? trail.surface : api && api.surfaceNear && api.surfaceNear(v.x,v.y+v.height*.38,'snow',85);
+                if (!bank || !bank.valid() || !(bank.right-bank.left>=100)) return false;
+                var start = trail ? trail.contact.x : clamp(bank.x,bank.left+10,bank.right-10);
+                var sign = trail ? trail.sign : (bank.right-start>=start-bank.left ? 1 : -1);
+                var length = trail ? trail.length+18 : Math.min(85,(sign>0 ? bank.right-start : start-bank.left)-28);
+                var y = bank.y-v.height*.32;
+                if (length<40 || segmentDistance(pointer.x,pointer.y,v.x,v.y,start,y)<140 ||
+                    segmentDistance(pointer.x,pointer.y,start,y,start+sign*(length+(trail?0:18)),y)<140) return false;
+                if (trail) trail.followed = true;
+                beginWeatherAct(v,'snow-run',now,4800,{surface:bank,motion:snowRun,trail:trail,follower:!!trail,x:start,y:y,sign:sign,length:length,
+                    valid:function () { return climate().snow && (!trail || marks.indexOf(trail)>=0); }});
+                return true;
+            }
+
+            /** Lengthen the visible groove only up to the belly, then let fresh snow cover it. */
+            function snowRun(v,act,now) {
+                var move;
+                if (!act.step) {
+                    move = walkTo(v,act.x,act.y,108);
+                    if (move) return move;
+                    if (!act.trail) {
+                        var node = document.createElement('div'); node.className = 'funny-snow-groove';
+                        node.style.left = act.x+'px'; node.style.top = act.surface.y+'px';
+                        node.style.setProperty('--groove-side',String(act.sign));
+                        act.trail = addMark(node,8500,{kind:'snow-groove',x:act.x,y:act.surface.y});
+                        act.trail.surface=act.surface; act.trail.sign=act.sign; act.trail.length=act.length;
+                    }
+                    v.node.style.setProperty('--belly-turn',(act.sign*70)+'deg');
+                    edgePose(v,act,act.follower?'follow-groove':'carve-groove',now);
+                }
+                if (marks.indexOf(act.trail)<0) { endWeatherAct(v); return {}; }
+                var distance = Math.min(act.length,Math.abs(v.x-act.x));
+                act.trail.node.style.width = Math.max(act.follower ? act.trail.length : 0,distance)+'px';
+                move = walkTo(v,act.x+act.sign*act.length,act.y,act.follower?145:110);
+                if (move) return move;
+                act.trail.node.style.width=act.length+'px'; act.trail.ready=true;
+                endWeatherAct(v);
+                return {};
+            }
+
+            /** Detect a wingtip or a falling runoff drop touching one of this spider's woven strands. */
+            function startWebSignal(v,now,sky) {
+                if (v.fear || v.pair || v.pursuit || v.reactionUntil || wind.speed>=24) return false;
+                var web = marks.find(function (m) { return m.owner===v && m.woven && !m.ending && !m.broken && !m.reserved && m.expires-now>2000; });
+                if (!web || distanceToMark(web.contact,v.x,v.y)>225) return false;
+                var c=web.contact, dx=c.toX-c.x, dy=c.toY-c.y, hit, drop;
+                var fly=visitors.find(function (f) { return f.character==='fly' && !f.weatherAct && !f.weatherDone &&
+                    freeForWeather(f,now) && sceneAvailable(f,now) && distanceToMark(c,f.x,f.y)<115; });
+                if (fly) {
+                    var t=clamp(((fly.x-c.x)*dx+(fly.y-c.y)*dy)/(dx*dx+dy*dy),0,1);
+                    hit={x:c.x+t*dx,y:c.y+t*dy};
+                } else if (sky.rain && window.funnyWeather && window.funnyWeather.dripNear) {
+                    drop=window.funnyWeather.dripNear((c.x+c.toX)/2,(c.y+c.toY)/2,95);
+                    if (!drop || !drop.valid()) return false;
+                    var p=drop.position();
+                    if (p.x<Math.min(c.x,c.toX)-3 || p.x>Math.max(c.x,c.toX)+3) return false;
+                    hit={x:p.x,y:Math.abs(dx)<1 ? Math.min(c.y,c.toY) : c.y+clamp((p.x-c.x)/dx,0,1)*dy};
+                    if (p.y>hit.y+4 || hit.y-p.y>65) return false;
+                } else return false;
+                if (segmentDistance(pointer.x,pointer.y,v.x,v.y,hit.x,hit.y)<135 || (drop && !drop.reserve())) return false;
+                if (v.perch) { takeOff(v,now); v.fleeUntil=0; }
+                web.reserved=true;
+                var checkAt=0, anchored=true;
+                var props={mark:web,drop:drop,hit:hit,motion:webSignal,valid:function () {
+                    var at=performance.now();
+                    if (at>=checkAt) { checkAt=at+300; anchored=webAnchorsStable(c); }
+                    return marks.indexOf(web)>=0 && !web.broken && !web.ending && anchored &&
+                        (!drop || climate().rain);
+                }};
+                if (fly) startForecastPair(v,fly,'web-signal',now,3200,props);
+                else beginWeatherAct(v,'web-signal',now,3300,props);
+                return true;
+            }
+
+            /** A drop earns a small pluck. A fly shakes the whole strand and flees as the spider rushes in. */
+            function webSignal(v,act,now) {
+                if (act.leader) {
+                    var host=act.leader.weatherAct;
+                    if (!host) return {};
+                    if (!host.step) return walkTo(v,host.hit.x,host.hit.y,135) || {};
+                    if (now-host.since<240) return {};
+                    return walkTo(v,host.escapeX,host.escapeY,195) || {};
+                }
+                if (!act.step) {
+                    if (act.drop) {
+                        if (!act.drop.valid()) { endWeatherAct(v); return {}; }
+                        if (act.drop.position().y<act.hit.y-3) return {};
+                        if (!act.drop.catch()) { endWeatherAct(v); return {}; }
+                    } else {
+                        if (distanceToMark(act.mark.contact,act.other.x,act.other.y)>act.other.width*.40) return {};
+                        var angle=Math.atan2(act.other.y-pointer.y,act.other.x-pointer.x);
+                        act.escapeX=clamp(act.other.x+Math.cos(angle)*95,v.width,window.innerWidth-v.width);
+                        act.escapeY=clamp(act.other.y+Math.sin(angle)*95,v.height,window.innerHeight-v.height);
+                    }
+                    var signal=act.drop?'test-strand':'rush-strand';
+                    act.mark.node.setAttribute('data-signal',signal);
+                    edgePose(v,act,act.drop?'rain-on-web':signal,now);
+                }
+                if (act.step === 'rain-on-web') {
+                    var reach=walkTo(v,act.hit.x+v.width*.19,act.hit.y+v.height*.04,100);
+                    if (reach) return reach;
+                    edgePose(v,act,'test-strand',now);
+                }
+                if (!act.drop) {
+                    var move=walkTo(v,act.hit.x,act.hit.y,175);
+                    if (move) return move;
+                }
+                if (now-act.since>(act.drop?650:850)) endWeatherAct(v);
+                return {};
+            }
+
+            /** A real stork carries the loop on its beak and hangs the two figures below a real edge. */
+            function tasselFlight(v, act, now) {
+                var ribbon = act.leader || v, host = ribbon.weatherAct;
+                if (!host) return {};
+                var bird = host.other, edge = host.surface, move;
+                var beakX = bird.width*0.45, beakY = -bird.height*0.23, loopY = -ribbon.height*0.40;
+                if (act.leader) {
+                    if (!host.step) return walkTo(bird,ribbon.x-beakX,ribbon.y+loopY-beakY,150) || {};
+                    if (host.step === 'on-beak') return walkTo(bird,edge.x-beakX,edge.rect.bottom-beakY,125) || {};
+                    return walkTo(bird,edge.x-beakX-18,edge.rect.bottom-beakY-15,70) || {};
+                }
+                if (!act.step) {
+                    move = walkTo(bird,v.x-beakX,v.y+loopY-beakY,150);
+                    if (move) return {};
+                    edgePose(v,act,'on-beak',now);
+                }
+                if (act.step === 'on-beak') {
+                    move = walkTo(bird,edge.x-beakX,edge.rect.bottom-beakY,125);
+                    v.x = bird.x+beakX; v.y = bird.y+beakY-loopY;
+                    if (move) return {};
+                    edgePose(v,act,'hanging',now);
+                }
+                v.x = edge.x; v.y = edge.rect.bottom-loopY;
+                var swing = Math.sin((now-act.since)/280)*Math.min(10,wind.speed*0.4);
+                v.node.style.setProperty('--funny-pizho-turn',(swing+wind.x*3)+'deg');
+                v.node.style.setProperty('--funny-penda-turn',(swing*0.75+wind.x*4)+'deg');
+                if (now-act.since > 1600) endWeatherAct(v);
+                return {};
+            }
+
+            /** Splash twice at the original waterline; a second chick waits for both ripples. */
+            function birdBath(v, act, now) {
+                var leader = act.leader;
+                if (leader) {
+                    var host = leader.weatherAct;
+                    if (!host || host.step !== 'bath-done') return {};
+                    var side = v.x < leader.x ? -1 : 1;
+                    if (!act.step) edgePose(v,act,'bath-turn',now);
+                    return walkTo(v,host.surface.x+side*(v.width+leader.width)*0.38,host.surface.y-v.height*0.44,70) || {};
+                }
+                var pool = act.surface, move = walkTo(v,pool.x,pool.y-v.height*0.44,95);
+                if (!act.step && move) return move;
+                if (!act.step) edgePose(v,act,'dip-toe',now);
+                var age = now-act.since;
+                if (act.step === 'dip-toe' && age >= 500 || act.step === 'flap-once' && age >= 410) {
+                    edgePose(v,act,act.step === 'dip-toe' ? 'flap-once' : 'flap-twice',now);
+                    interactionEffect('bath-ripple',pool.x,pool.y,[{x:pool.x,y:pool.y}],820);
+                    interactionEffect('shed-drops',pool.x,pool.y,[{x:pool.x-16,y:pool.y-15},{x:pool.x+19,y:pool.y-13}],550);
+                } else if (act.step === 'flap-twice' && age >= 400) edgePose(v,act,'bath-done',now);
+                else if (act.step === 'bath-done' && age >= 1100) endWeatherAct(v);
+                if (act.step === 'flap-once' || act.step === 'flap-twice') {
+                    var lift = Math.sin(Math.PI*clamp((now-act.since)/380,0,1));
+                    v.node.style.setProperty('--funny-chick-flap',(1-1.85*lift).toFixed(2));
+                }
+                return {};
+            }
+
+            /** Two outward arcs and a single reflected arc travel between the bat and the block. */
+            function batEcho(v, act, now) {
+                var edge = act.surface, move;
+                if (!act.step) {
+                    move = walkTo(v,edge.x,edge.y-22,95);
+                    if (move) return move;
+                    edgePose(v,act,'send-echo',now);
+                    interactionEffect('echo-out',v.x,v.y,[{x:edge.x,y:edge.rect.top},{x:edge.x,y:edge.rect.top}],600);
+                } else if (act.step === 'send-echo' && now-act.since >= 530) {
+                    edgePose(v,act,'hear-echo',now);
+                    interactionEffect('echo-back',edge.x,edge.rect.top,[{x:v.x,y:v.y}],370);
+                } else if (act.step === 'hear-echo' && now-act.since >= 350) {
+                    edgePose(v,act,act.opening < v.x ? 'fold-left' : 'fold-right',now);
+                } else if (act.step === 'fold-left' || act.step === 'fold-right') {
+                    move = walkTo(v,act.opening,edge.y-12,130);
+                    if (move) return move;
+                    edgePose(v,act,'clear-edge',now);
+                } else if (act.step === 'clear-edge') {
+                    move = walkTo(v,act.opening,Math.min(window.innerHeight-v.height,edge.rect.bottom+12),115);
+                    if (move) return move;
+                    endWeatherAct(v);
+                }
+                return {};
+            }
+
+            /** Align the deer's muzzle with the carrot, brush off its cap, then let the snowman turn away. */
+            function carrotNudge(v, act, now) {
+                if (act.leader) return {};
+                var man = act.other, x = man.x+man.width*0.14+v.width*0.40, y = man.y-man.height*0.10+v.height*0.16;
+                v.node.style.setProperty('--funny-deer-face','-1');
+                var move;
+                if (!act.step || act.step === 'try-carrot') {
+                    move = walkTo(v,x,y,100);
+                    if (move) return move;
+                    if (!act.step) {
+                        man.noseSnow = 0; man.node.style.setProperty('--funny-carrot-snow','0');
+                        edgePose(v,act,'brush-carrot',now);
+                        interactionEffect('cooling-flakes',x-v.width*0.4,y-v.height*0.16,[{x:x-v.width*0.4,y:y+10}],650);
+                    } else {
+                        edgePose(v,act,'miss-carrot',now);
+                        edgePose(man,man.weatherAct,'turn-head',now);
+                    }
+                } else if (act.step === 'brush-carrot' && now-act.since >= 300) {
+                    move = walkTo(v,x+22,y-4,75);
+                    if (move) return move;
+                    edgePose(v,act,'try-carrot',now);
+                } else if (act.step === 'miss-carrot' && now-act.since >= 850) endWeatherAct(v);
+                return {};
+            }
+
+            /** Only a recent rendered lightning flash can charge fur; both ears must meet for one click. */
+            function sparkMotion(v, act, now) {
+                var leader = act.leader || v, host = leader.weatherAct;
+                if (!host) return {};
+                var sign = host.sign, other = host.other;
+                if (host.step === 'discharge') {
+                    if (now-host.since > 380) { endWeatherAct(v); return {}; }
+                    return {dx:v === leader ? -sign : sign,dy:0,speed:55,cruise:true};
+                }
+                if (act.leader) return {};
+                var move = walkTo(v,other.x-sign*(v.width+other.width)*0.46,other.y+(v.height-other.height)*0.16,110);
+                if (move) return move;
+                edgePose(v,act,'discharge',now);
+                [v,other].forEach(function (actor) { actor.staticUntil = 0; actor.node.setAttribute('data-static',''); });
+                var x = (v.x+sign*v.width*0.46+other.x-sign*other.width*0.46)/2, y = other.y-other.height*0.16;
+                interactionEffect('ear-spark',x,y,[{x:x,y:y}],260);
+                if (!v.silent && !other.silent) playSound('static-click');
+                return {};
+            }
+
+            /** Read wind as the direction air travels: a source upwind sends scent towards the wolf. */
+            function windScent(v, act, now) {
+                var move;
+                if (!act.step) edgePose(v,act,'nose-up',now);
+                if (act.step === 'nose-up' && now-act.since >= 450) {
+                    var dot = (v.x-act.origin.x)*wind.x+(v.y-act.origin.y)*wind.y;
+                    act.x = v.x; act.y = v.y;
+                    act.away = Math.atan2(v.y-pointer.y,v.x-pointer.x);
+                    act.toX = clamp(v.x-wind.x*65,v.width,window.innerWidth-v.width);
+                    act.toY = clamp(v.y-wind.y*65,v.height,window.innerHeight-v.height);
+                    edgePose(v,act,dot > 0 ? 'upwind' : 'circle-scent',now);
+                } else if (act.step === 'upwind') {
+                    move = walkTo(v,act.toX,act.toY,75);
+                    if (move) return move;
+                    endWeatherAct(v);
+                } else if (act.step === 'circle-scent') {
+                    var t = Math.min(1,(now-act.since)/1150)*2*Math.PI;
+                    if (t < 2*Math.PI) {
+                        var outward = 12*(1-Math.cos(t)), sideways = 15*Math.sin(t);
+                        return walkTo(v,act.x+outward*Math.cos(act.away)-sideways*Math.sin(act.away),
+                            act.y+outward*Math.sin(act.away)+sideways*Math.cos(act.away),95) || {};
+                    }
+                    edgePose(v,act,'last-scent',now);
+                } else if (act.step === 'last-scent') {
+                    if (act.track && marks.indexOf(act.track) >= 0 && !act.track.ending) {
+                        move = walkTo(v,act.track.contact.x,act.track.contact.y-v.height*0.42,100);
+                        if (move) return move;
+                    }
+                    edgePose(v,act,'give-up',now);
+                } else if (act.step === 'give-up' && now-act.since > 500) endWeatherAct(v);
+                return {};
+            }
+
             /** Probe only nearby actors and real props. All stages use the ordinary animation clock. */
             function startEdgeScene(v, now, sky) {
                 if (now-v.born < 1800 || now < v.edgeProbeAt) return false;
                 var kind = v.character;
-                if (['cat','blackcat','spiders','zombie','snowmaiden','butterfly'].indexOf(kind) < 0) return false;
+                if (['cat','blackcat','spiders','zombie','snowmaiden','butterfly','martenitsa','chick','bat','deer','imp','firefly','penguin','witch'].indexOf(kind) < 0) return false;
                 v.edgeProbeAt = now + 350;
-                if (kind === 'spiders') return startSilkRide(v, now);
+                if (kind === 'spiders') return startWebSignal(v,now,sky) || startSilkRide(v, now);
                 if (!freeForWeather(v, now)) return false;
+                if (forecastEncounter(v,now,sky)) return true;
+                if (kind === 'witch' && !v.trickDone && wind.speed>=8) {
+                    var crumbs=nearbyDebris(v,190,true).find(function (item) {
+                        return segmentDistance(pointer.x,pointer.y,v.x,v.y,item.x+v.width*.38,item.y-v.height*.32)>135;
+                    });
+                    if (crumbs) {
+                        beginWeatherAct(v,'broom-crumbs',now,4800,{crumbs:crumbs,motion:broomCrumbs});
+                        return true;
+                    }
+                }
+                if (kind === 'deer' && wind.speed >= 10) {
+                    var api = window.funnyWeather, leaf = api && api.flyingLeafNear && api.flyingLeafNear(v.x+v.width*.2,v.y-v.height*.33,22);
+                    if (leaf) {
+                        beginWeatherAct(v,'antler-leaf',now,2100,{leaf:leaf,valid:leaf.valid,motion:antlerLeaf});
+                        return true;
+                    }
+                }
+                if (kind === 'penguin' && sky.snow && wind.speed < 24) return startSnowRun(v,now);
+                if (kind === 'firefly' && quietNight()) {
+                    var water = wetSpot(v,now);
+                    if (water && water.valid() && segmentDistance(pointer.x,pointer.y,v.x,v.y,water.x,water.y)>135) {
+                        if (water.mark) water.mark.reserved = true;
+                        beginWeatherAct(v,'pool-light',now,4600,{surface:water,mark:water.mark,motion:poolLight,valid:quietNight});
+                        return true;
+                    }
+                }
                 if ((kind === 'cat' || kind === 'blackcat') && sky.sun) {
                     var bird = visitors.find(function (other) {
                         return other.character === 'stork' && other.shadow && !other.perch && !other.pursuit &&
@@ -1482,15 +1944,20 @@
                 return {};
             }
 
+            /** A spun thread belongs to the two visible edges at their original coordinates. */
+            function webAnchorsStable(gap) {
+                return [[gap.source,gap.sourceRect],[gap.target,gap.targetRect]].every(function (anchor) {
+                    var r=anchor[0].getBoundingClientRect(), old=anchor[1];
+                    return anchor[0].isConnected && Math.abs(r.left-old.left)+Math.abs(r.top-old.top)+Math.abs(r.width-old.width)+Math.abs(r.height-old.height)<4;
+                });
+            }
+
             /** Follow the thread between stable anchors. A gust winds the loose end back to the spider. */
             function silkMotion(v, act, now) {
                 var gap = act.gap;
                 if (!(now < act.checkAt)) {
                     act.checkAt = now+300;
-                    if (![[gap.source,gap.sourceRect],[gap.target,gap.targetRect]].every(function (anchor) {
-                        var r = anchor[0].getBoundingClientRect(), old = anchor[1];
-                        return anchor[0].isConnected && Math.abs(r.left-old.left)+Math.abs(r.top-old.top)+Math.abs(r.width-old.width)+Math.abs(r.height-old.height) < 4;
-                    }) || wind.speed < 12) { endWeatherAct(v); return {}; }
+                    if (!webAnchorsStable(gap) || wind.speed < 12) { endWeatherAct(v); return {}; }
                 }
                 var gust = wind.speed >= 32 || (gap.toX-gap.x)*wind.x+(gap.toY-gap.y)*wind.y < 0;
                 var returning = act.step === 'reel' || act.step === 'grip';
@@ -2128,7 +2595,7 @@
                 Array.prototype.slice.call(document.querySelectorAll('button,[id^="blockPortal_"],.listTable'), 0, 180).forEach(function (block) {
                     if (block.closest('.funny-eaten,.funny-controls,[aria-hidden="true"],details:not([open]),[hidden]')) return;
                     var r = block.getBoundingClientRect(), style = window.getComputedStyle(block);
-                    if (r.width < v.width + 20 || r.height < 8 || r.top < 0 || r.bottom + v.height > window.innerHeight || r.left < 0 || r.right > window.innerWidth ||
+                    if (r.width < v.width + 20 || r.height < 8 || r.top < 0 || r.bottom > window.innerHeight - (side === 'top' ? 0 : v.height) || r.left < 0 || r.right > window.innerWidth ||
                         style.visibility !== 'visible' || Number(style.opacity) === 0) return;
                     var x = clamp(v.x, r.left + v.width / 2, r.right - v.width / 2), y = r.bottom + v.height / 2 - 4;
                     if (side === 'top') y=r.top-v.height/2-5;
@@ -2136,17 +2603,18 @@
                         if (Math.abs(wind.x)>=Math.abs(wind.y)) { x=wind.x>0?r.right+v.width/2+6:r.left-v.width/2-6; y=(r.top+r.bottom)/2; }
                         else y=wind.y>0?r.bottom+v.height/2+6:r.top-v.height/2-6;
                     }
-                    if (side && (x<v.width || x>window.innerWidth-v.width || y<v.height || y>window.innerHeight-v.height)) return;
+                    var marginY = side === 'top' ? v.height/2 : v.height;
+                    if (side && (x<v.width || x>window.innerWidth-v.width || y<marginY || y>window.innerHeight-marginY)) return;
                     var distance = Math.hypot(x - v.x, y - v.y);
                     if (distance >= nearest || segmentDistance(pointer.x, pointer.y, v.x, v.y, x, y) < 140) return;
                     nearest = distance;
                     var checkAt = 0, valid = true;
-                    found = {x:x,y:y,valid:function () {
+                    found = {x:x,y:y,rect:r,node:block,valid:function () {
                         if (!block.isConnected || block.closest('details:not([open]),[hidden]')) return false;
                         if (performance.now() < checkAt) return valid;
                         checkAt = performance.now() + 500;
                         var rect = block.getBoundingClientRect(), current = window.getComputedStyle(block);
-                        valid = current.visibility === 'visible' && Number(current.opacity) > 0 && rect.bottom === r.bottom && rect.left === r.left && rect.right === r.right;
+                        valid = current.visibility === 'visible' && Number(current.opacity) > 0 && rect.top === r.top && rect.bottom === r.bottom && rect.left === r.left && rect.right === r.right;
                         return valid;
                     }};
                 });
@@ -2435,18 +2903,18 @@
             }
 
             /** Scent belongs to the lost prey, not to the wolf or an unrelated visitor. */
-            function scentNear(v, prey, previous, now) {
+            function scentNear(v, prey, previous, now, newest) {
                 return marks.filter(function (mark) {
                     return mark.owner === prey && (!previous || mark.born > previous.born) && !mark.ending && mark.expires > now + 300 &&
                         distanceToMark(mark.contact, v.x, v.y + v.height / 2) < 240 && segmentDistance(pointer.x, pointer.y, v.x, v.y, mark.contact.x, mark.contact.y) > 120;
-                }).sort(function (a, b) { return a.born - b.born; })[0];
+                }).sort(function (a, b) { return newest ? b.born-a.born : a.born-b.born; })[0];
             }
 
             /** All scene motion stays in the shared RAF; props never capture pointer or keyboard events. */
             function weatherMotion(v, now, delta) {
                 var act = v.weatherAct;
                 if (!act || /^(slide|brake)$/.test(act.kind) && v.pursuit) return false;
-                var nature = natureMotion(v, act, now, delta);
+                var nature = act.motion ? act.motion(v,act,now) : natureMotion(v, act, now, delta);
                 var dx = nature ? nature.dx || 0 : 0, dy = nature ? nature.dy || 0 : 0, speed = nature ? nature.speed || 0 : 0;
                 if (act.kind === 'slide' || act.kind === 'scatter') { dx = act.dx; dy = act.dy; speed = act.kind === 'slide' ? 190 : 245; }
                 if (act.kind === 'huddle') { dx = act.x + (act.slot - (act.group.length - 1) / 2) * 46 - v.x; dy = act.y + (act.slot % 2) * 7 - v.y; speed = 60; }
@@ -2700,6 +3168,7 @@
                             var dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
                             var spacing = (a.width + b.width) / 2 + 8;
                             if (a.weatherAct && a.weatherAct.group && b.weatherAct && a.weatherAct.group === b.weatherAct.group) {
+                                if (/^(hang-tassels|carrot-nudge|ear-spark|nose-fly|web-signal)$/.test(a.weatherAct.kind)) continue;
                                 if (a.weatherAct.kind === 'fog-search' || a.weatherAct.kind === 'fog-vanish') continue;
                                 if (/^(ferry|ferried)$/.test(a.weatherAct.kind) && (a.weatherAct.boarded || b.weatherAct.boarded)) continue;
                                 spacing = /^(night-hunt|night-prey)$/.test(a.weatherAct.kind) ? 20 : 44;
@@ -2789,7 +3258,7 @@
                 });
                 // Wolves hunt free visitors, but remember ghosts after the first close encounter.
                 visitors.forEach(function (wolf) {
-                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && /^(howl|wet-shake)$/.test(wolf.weatherAct.kind)) || !availableForEncounter(wolf, now)) return;
+                    if (wolf.character !== 'wolf' || wolf.sated || wolf.fear || wolf.pursuit || now < wolf.chaseAfter || wolf.reactionUntil || (wolf.weatherAct && /^(howl|wet-shake|wind-scent)$/.test(wolf.weatherAct.kind)) || !availableForEncounter(wolf, now)) return;
                     var prey = null, nearest = Infinity;
                     visitors.forEach(function (v) {
                         var distance = Math.hypot(wolf.x - v.x, wolf.y - v.y);
@@ -2806,7 +3275,7 @@
                 visitors.forEach(function (hunter) {
                     var choices = pursuitPartners[hunter.character];
                     if (!choices || hunter.pursuit || now < hunter.chaseAfter || hunter.reactionUntil || hunter.pair || !availableForEncounter(hunter, now)) return;
-                    if (hunter.weatherAct && /^(boat-watch|sneeze|windbreak)$/.test(hunter.weatherAct.kind)) return;
+                    if (hunter.weatherAct && /^(boat-watch|sneeze|windbreak|nose-fly)$/.test(hunter.weatherAct.kind)) return;
                     if ((hunter.character === 'cat' || hunter.character === 'blackcat') && !hunter.weatherAct && !hunter.weatherDone) {
                         var passenger = visitors.filter(function (v) { return v.weatherAct && v.weatherAct.kind === 'boat' && v.weatherAct.boarded && Math.hypot(v.x - hunter.x, v.y - hunter.y) < 240; })[0];
                         if (passenger) { beginWeatherAct(hunter, 'boat-watch', now, Math.min(3000, passenger.weatherAct.until - now), {leader:passenger,turn:passenger.weatherAct.turn}); return; }
@@ -2816,6 +3285,13 @@
                             Math.hypot(hunter.x - v.x, hunter.y - v.y) < 240 && segmentDistance(pointer.x, pointer.y, hunter.x, hunter.y, v.x, v.y) > 100;
                     })[0];
                     if (!prey) return;
+                    if (prey.character === 'fly' && (hunter.character === 'cat' || hunter.character === 'blackcat') &&
+                        !hunter.weatherDone && !prey.weatherDone && !hunter.weatherAct && !prey.weatherAct &&
+                        climate().sun && wind.speed < 15 && sceneAvailable(hunter,now) && sceneAvailable(prey,now) &&
+                        freeForWeather(hunter,now) && freeForWeather(prey,now) && Math.random() < 0.45) {
+                        startForecastPair(hunter,prey,'nose-fly',now,5200,{motion:noseFly,valid:function () { return climate().sun; }});
+                        return;
+                    }
                     [hunter, prey].forEach(function (actor) { takeOff(actor, now); actor.fleeUntil = 0; actor.perchAfter = now + 4000; });
                     var mouseHunt = prey.character === 'mouse';
                     hunter.pursuit = {other:prey,started:now,until:now + (mouseHunt ? 6000 : 2400),chasing:true,hunt:mouseHunt,mouseHunt:mouseHunt};
@@ -3118,29 +3594,43 @@
                     particle.style.setProperty('--scatter', (i % 2 ? -1 : 1) * (12 + i * 3) + 'px');
                     node.appendChild(particle);
                 });
-                addMark(node, lifetime, {kind:kind,x:x,y:y});
+                return addMark(node, lifetime, {kind:kind,x:x,y:y});
             }
 
-            /** Sweep only our dust and loose crumbs; tooth marks and underlying application content remain. */
-            function sweepDebris(v) {
+            /** Only actual meal remnants and our loose dust are eligible for the witch's broom. */
+            function nearbyDebris(v,range,foodOnly) {
                 var x = v.x - v.width * 0.38, y = v.y + v.height * 0.32, debris = [];
                 marks.forEach(function (mark) {
-                    if (mark.contact && mark.contact.kind === 'dust' && !mark.ending) debris.push({x:mark.contact.x,y:mark.contact.y,clear:function () { removeMark(mark); }});
+                    if (!foodOnly && mark.contact && mark.contact.kind === 'dust' && !mark.ending) debris.push({x:mark.contact.x,y:mark.contact.y,clear:function () { removeMark(mark); }});
                 });
                 bursts.forEach(function (effect) {
-                    if (effect.kind === 'crumb') debris.push({x:effect.x,y:effect.y,clear:function () { removeBurst(effect); }});
+                    if (effect.kind === 'crumb') debris.push({food:true,x:effect.x,y:effect.y,clear:function () { removeBurst(effect); }});
                 });
-                visitors.forEach(function (actor) {
-                    actor.mealMarks.forEach(function (node) {
-                        if (node.getAttribute('data-swept')) return;
-                        debris.push({x:parseFloat(node.style.left),y:parseFloat(node.style.top),clear:function () { node.setAttribute('data-swept', 'true'); }});
-                    });
-                });
-                debris = debris.filter(function (item) { return Math.hypot(item.x - x, item.y - y) < 85; }).slice(0, gentle ? 2 : 3);
+                function biteCrumbs(node) {
+                    if (!node.getAttribute('data-swept')) debris.push({food:true,x:parseFloat(node.style.left),y:parseFloat(node.style.top),clear:function () { node.setAttribute('data-swept','true'); }});
+                }
+                visitors.forEach(function (actor) { actor.mealMarks.forEach(biteCrumbs); });
+                restorations.forEach(function (effect) { if (effect.remove) biteCrumbs(effect.node); });
+                return debris.filter(function (item) { return Math.hypot(item.x-x,item.y-y)<range; });
+            }
+
+            /** Touch only the crumbs within broom reach, leaving the original tooth marks in place. */
+            function sweepDebris(v,now,foodOnly) {
+                var x=v.x-v.width*.38, y=v.y+v.height*.32, debris=nearbyDebris(v,85,foodOnly).slice(0,gentle?2:3);
                 if (!debris.length) return false;
                 var points = [];
                 debris.forEach(function (item) { item.clear(); points.push({x:item.x,y:item.y}, {x:item.x + 7,y:item.y + 4}); });
-                interactionEffect('swept-pile', x, y, points, 2800);
+                var pile = interactionEffect('swept-pile', x, y, points, 2800);
+                if (wind.speed >= 8 && debris.some(function (item) { return item.food; })) {
+                    // Broom bristles point left. A gust from that side brings the crumbs back to the boots.
+                    var back = wind.x > 0.35, reach = Math.min(105,wind.speed*4);
+                    v.node.setAttribute('data-sweep-wind',back ? 'back' : 'away');
+                    pile.node.setAttribute('data-sweep-wind',back ? 'back' : 'away');
+                    pile.node.style.setProperty('--sweep-x',(back ? v.x-x : wind.x*reach)+'px');
+                    pile.node.style.setProperty('--sweep-y',(back ? v.y+v.height*.40-y : wind.y*reach-8)+'px');
+                }
+                react(v,'sweep',now);
+                if (pile.node.getAttribute('data-sweep-wind')==='back') v.reactionUntil=now+2400;
                 return true;
             }
 
@@ -3153,8 +3643,7 @@
                 if (startPairOrLeaf(v, now)) { rememberTrick(v); return true; }
                 var cat = v.character === 'cat' || v.character === 'blackcat', kind = cat ? 'gift' : 'seeds';
                 if (v.character === 'witch') {
-                    if (!sweepDebris(v)) return false;
-                    react(v, 'sweep', now);
+                    if (!sweepDebris(v,now,false)) return false;
                 } else if (cat || v.character === 'chick') {
                     var mark = marks.filter(function (item) {
                         return item.contact && item.contact.kind === kind && !item.ending && !item.nudged && !item.reserved &&
@@ -3258,7 +3747,9 @@
                 var now = performance.now();
                 visitors.forEach(function (v) {
                     if (v.pursuit || v.fear || v.perch || v.reactionUntil || v.eating || !availableForEncounter(v, now)) return;
-                    react(v, Math.random() < 0.5 ? 'startled' : 'duck', now);
+                    if (v.character === 'imp' && visibleForecast() && !v.weatherDone && freeForWeather(v,now) && sceneAvailable(v,now)) {
+                        if (!v.staticUntil) { v.staticUntil = now+4200; v.node.setAttribute('data-static','true'); }
+                    } else if (!v.weatherAct) react(v, Math.random() < 0.5 ? 'startled' : 'duck', now);
                 });
             };
 
@@ -3370,7 +3861,7 @@
                 // Keep interactive props longer than expendable footprints, within the same total cap.
                 var limit = clamp(Math.floor(window.innerWidth * window.innerHeight / 33000 * (scene ? scene.quality() : 1)), 6, gentle ? 12 : 24);
                 if (marks.length >= limit) removeMark(marks.filter(function (mark) {
-                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'hole', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains', 'snow-hat'].indexOf(mark.contact.kind) < 0);
+                    return !mark.reserved && (!mark.contact || ['web', 'gift', 'hole', 'puddle', 'swept-pile', 'cooling-flakes', 'meal-remains', 'snow-hat', 'snow-groove'].indexOf(mark.contact.kind) < 0);
                 })[0] || marks[0]);
                 node.setAttribute('aria-hidden', 'true');
                 document.body.appendChild(node);
@@ -3571,6 +4062,7 @@
                 if (v.reaction === 'umbrella' && (v.outfit !== 'umbrella' || wind.speed < 20)) v.reactionUntil = now;
                 if (v.peckTarget && (marks.indexOf(v.peckTarget) < 0 || v.peckTarget.ending)) v.reactionUntil = now;
                 if (v.reactionUntil && now >= v.reactionUntil) {
+                    if (v.reaction === 'sweep') v.node.setAttribute('data-sweep-wind','');
                     var startled = v.reaction === 'paw' && availableForEncounter(v, now, 65);
                     var seed = v.peckTarget;
                     var peck = v.reaction === 'forage' && availableForEncounter(v, now, 65) && marks.indexOf(seed) >= 0 && !seed.ending && distanceToMark(seed.contact, v.x, v.y + v.height / 2) < 40;
@@ -3664,7 +4156,7 @@
                     else if (!divert && !v.reactionUntil) {
                         idleMotion(v, now, delta, dx, dy, distance);
                     }
-                    if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil) {
+                    if (!v.exiting && !v.leaving && elapsed < v.lifetime && now >= v.fleeUntil && !(v.weatherAct && v.weatherAct.motion)) {
                         v.x += wind.x * wind.speed * 0.18 * delta;
                         v.y += wind.y * wind.speed * 0.18 * delta;
                     }
@@ -3755,7 +4247,7 @@
             }
 
             /** Return the original appearance gently; inactive pages restore immediately. */
-            function restoreEaten(v) {
+            function restoreEaten(v, keepLastCrumbs) {
                 (v.eaten || []).forEach(function (el) {
                     restorations.filter(function (effect) { return effect.node === el; }).forEach(finishRestore);
                     if (active()) {
@@ -3765,10 +4257,12 @@
                     }
                     el.classList.remove('funny-eaten');
                 });
+                var last = keepLastCrumbs && v.mealMarks[v.mealMarks.length-1];
                 v.mealMarks.forEach(function (node) {
                     if (active()) {
-                        node.classList.add('funny-meal-mark-restoring');
-                        var effect = {node:node, remove:true, timer:window.setTimeout(function () { finishRestore(effect); }, 1500)};
+                        var loose = node===last && !node.getAttribute('data-swept');
+                        node.classList.add(loose?'funny-last-crumbs':'funny-meal-mark-restoring');
+                        var effect = {node:node, remove:true, timer:window.setTimeout(function () { finishRestore(effect); }, loose?6500:1500)};
                         restorations.push(effect);
                     } else node.remove();
                 });
