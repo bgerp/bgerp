@@ -47,11 +47,28 @@ body.commerce-theme.b2b-theme .externalPage > header .narrowCenter {
     max-width: var(--commerce-page-width);
     margin: 0 auto;
 }
+body.commerce-theme.b2b-theme .externalPage > header .headerImg:not(.commerce-default-banner) {
+    height: auto !important;
+    object-fit: contain;
+}
+body.commerce-theme.b2b-theme .externalPage > header .fadein:has(.headerImg) {
+    height: auto !important;
+}
+@media (max-width: 800px) {
+    body.commerce-theme.b2b-theme:is(.commerce-blog, .commerce-forum) .externalPage > header .narrowCenter {
+        width: calc(100% - 32px);
+    }
+}
+@media (max-width: 760px) {
+    body.commerce-theme.b2b-theme.eshop-public .externalPage > header .narrowCenter {
+        width: calc(100% - 24px);
+    }
+}
 body.commerce-theme.b2b-theme:is(.narrow, .commerce-compact) .externalPage > header {
     width: 100%;
 }
 body.commerce-theme.b2b-theme:is(.narrow, .commerce-compact) .externalPage > header .narrowCenter {
-    width: calc(100% - 1.5rem);
+    width: calc(100% - 1.5rem) !important;
 }
 body.commerce-theme.b2b-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
     min-height: 180px;
