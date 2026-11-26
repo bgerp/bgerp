@@ -430,6 +430,13 @@ class cat_BomDetails extends doc_Detail
 
         // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
         if (is_array($params)) {
+
+            // Отрицателната стойност е в скоби, иначе "#a# - #b#" става "70--5"
+            foreach ($params as $key => $value) {
+                if (is_numeric($value) && $value < 0) {
+                    $params[$key] = "({$value})";
+                }
+            }
             $expr = str_replace('1/$T*', '_TEMP_', $expr);
             $expr = str_replace('$T', '$Trr', $expr);
             $expr = str_replace('_TEMP_', '1/$T*', $expr);
