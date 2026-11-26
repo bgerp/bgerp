@@ -126,6 +126,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Настройки и филтри->Артикули,placeholderType=all,silent,after=resultsOn,single=none,class=w100');
 
+        $fieldset->FLD('operationColumns', 'enum(both=Операция и Етап,operation=Само Операция,stage=Само Етап)', 'caption=Настройки и филтри->Колони,after=productId,single=none');
+        $fieldset->FLD('showSale', 'enum(no=Не,yes=Да)', 'caption=Настройки и филтри->Показване на продажба,after=operationColumns,single=none');
+
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
 
@@ -146,9 +149,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $form->setDefault('typeOfReport', 'short');
         $form->setDefault('resultsOn', 'users');
+        $form->setDefault('operationColumns', 'both');
+        $form->setDefault('showSale', 'no');
         $form->input('typeOfReport');
         if (($rec->typeOfReport ?? 'short') == 'short') {
             $form->setField('resultsOn', 'input=none');
+            $form->setField('operationColumns', 'input=none');
+            $form->setField('showSale', 'input=none');
         }
 
         //Зарежда полето артикули
@@ -608,6 +615,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         $canSeeIndTime = planning_Setup::canSeeIndTime();
 
+        if (($rec->typeOfReport ?? 'short') == 'full' && ($rec->showSale ?? 'no') == 'yes') {
+            $fld->FLD('sale', 'varchar', 'caption=Продажба');
+        }
+
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
@@ -687,6 +698,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
            // $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
         }
 
+        // Еднакъв избор на колоните за екрана и експорта; старите справки показват и двете.
+        if (($rec->operationColumns ?? 'both') == 'operation') {
+            unset($fld->fields['productId']);
+        } elseif (($rec->operationColumns ?? 'both') == 'stage') {
+            unset($fld->fields['taskId']);
+        }
+
         return $fld;
     }
 
@@ -734,6 +752,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
             if ($Job) {
                 $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
             }
+        }
+
+        if ($saleId = self::getSaleId($rec, $dRec)) {
+            $row->sale = ht::createLink(sales_Sales::getHandle($saleId), sales_Sales::getUrlWithAccess($saleId));
         }
 
         if ($dRec->taskId){
@@ -961,6 +983,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        if ($saleId = self::getSaleId($rec, $dRec)) {
+            $res->sale = sales_Sales::getHandle($saleId);
+        }
+
         if (!empty($dRec->originId)) {
             $Job = doc_Containers::getDocument($dRec->originId);
             $handle = $Job ? $Job->getHandle() : null;
@@ -996,6 +1022,19 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $res->labelMeasure = (($dRec->type ?? null) == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure ?? null);
         $res->labelQuantity = $dRec->labelQuantity ?? 0;
+    }
+
+
+    /**
+     * Продажбата на заданието, включително за вече изчислени справки.
+     */
+    private static function getSaleId($rec, $dRec)
+    {
+        if (($rec->typeOfReport ?? 'short') != 'full' || ($rec->showSale ?? 'no') != 'yes' || !empty($dRec->total) || empty($dRec->originId)) {
+            return null;
+        }
+
+        return planning_Jobs::fetchField(array('#containerId = [#1#]', $dRec->originId), 'saleId');
     }
 
 
