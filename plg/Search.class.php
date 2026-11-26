@@ -1137,8 +1137,9 @@ class plg_Search extends core_Plugin
      *
      * @param mixed $mvc
      * @param mixed $rec
+     * @param bool|null $notModified - без промяна на датата на модифициране на контейнера
      */
-    public static function forceUpdateKeywords($mvc, $rec)
+    public static function forceUpdateKeywords($mvc, $rec, $notModified = null)
     {
         $mvc = cls::get($mvc);
         $rec = $mvc->fetchRec($rec);
@@ -1155,7 +1156,7 @@ class plg_Search extends core_Plugin
 
         $containerId = $rec->containerId ?? ($fRec->containerId ?? null);
         if (!empty($containerId)) {
-            doc_Containers::update_($containerId);
+            doc_Containers::update_($containerId, true, $notModified);
         }
     }
 }
