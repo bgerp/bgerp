@@ -35,7 +35,7 @@ class mejs_Adapter
      *
      * @param mixed  $source   - Стринг или масив от файлове за плейване
      * @param array  $params   - Параметри
-     * @param string $fileType - Типа на сорса - handler, url, path
+     * @param string $fileType - Типа на сорса - handler, url, path или stream (адрес и MIME)
      *
      * @return core_Et $mTpl - Шаблон, който трябва да се добави към родителския шаблон
      */
@@ -51,7 +51,7 @@ class mejs_Adapter
      * @param mixed  $source   - Стринг или масив от файлове за плейване
      * @param string $type     - Типа на документа - video или audio
      * @param array  $params   - Параметри
-     * @param string $fileType - Типа на сорса - handler, url, path или stream (видео)
+     * @param string $fileType - Типа на сорса - handler, url, path или stream (адрес и MIME)
      *
      * @return core_Et $mTpl - Шаблон, който трябва да се добави към родителския шаблон
      */
@@ -61,7 +61,7 @@ class mejs_Adapter
         expect(($type == 'video' || $type == 'audio'));
         
         // Очакваме типа на файла да е в позволените
-        expect(in_array($fileType, array('url', 'path', 'handler')) || ($type === 'video' && $fileType === 'stream'));
+        expect(in_array($fileType, array('url', 'path', 'handler', 'stream')));
         
         // Ако не е масив
         if (!is_array($source)) {

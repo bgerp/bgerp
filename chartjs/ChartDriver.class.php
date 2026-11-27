@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   chartjs
  *
- * @author    Mustafov1 <mmustafov3@icloud.com>
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
@@ -145,18 +145,47 @@ class chartjs_ChartDriver extends core_BaseClass
                 $rec->{$field} = $value;
             }
         } catch (InvalidArgumentException $e) {
-            $form->setError('chartType,chartTitle,chartData', $e->getMessage());
+            // Проверките са в този ред, затова грешката отива на полето, което я е причинило.
+            $field = !in_array($rec->chartType ?? null, array('line', 'bar', 'pie'), true) ? 'chartType'
+                : (self::validText($rec->chartTitle ?? null) ? 'chartData' : 'chartTitle');
+            $form->setError($field, $e->getMessage());
         }
     }
 
 
     public static function render($rec, $maxWidth = 1200, $absolute = false)
     {
+        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
+            return htmlspecialchars($rec->chartTitle ?? '', ENT_QUOTES, 'UTF-8');
+        }
+
+        return self::renderChart($rec);
+    }
+
+
+    /** HTML за Chrome със същия canvas и локални ресурси като интерактивния изглед. */
+    public static function getSnapshotHtml($rec)
+    {
+        $chart = self::renderChart($rec);
+        if (!$chart instanceof core_ET) throw new UnexpectedValueException('The stored chart type or data is invalid.');
+        $scripts = array_merge(array('jquery/' . jquery_Setup::get('VERSION') . '/jquery.min.js'), $chart->getArray('JS'));
+        $html = '<!doctype html><meta charset="utf-8"><style>body{margin:0;font:16px sans-serif}main{padding:8px}</style>';
+        foreach ($chart->getArray('CSS') as $css) {
+            $html .= '<style>' . getFileContent($css) . '</style>';
+        }
+        foreach ($scripts as $js) {
+            $html .= '<script src="data:text/javascript;base64,' . base64_encode(getFileContent($js)) . '"></script>';
+        }
+
+        return $html . '<main>' . $chart->getContent() . '</main><script>prepareChart(false);
+            if (document.querySelector("canvas").bgerpChart) document.querySelector("main").id = "chartReady";</script>';
+    }
+
+
+    private static function renderChart($rec)
+    {
         $type = $rec->chartType ?? null;
         $title = htmlspecialchars($rec->chartTitle ?? '', ENT_QUOTES, 'UTF-8');
-        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
-            return $title;
-        }
         $data = json_decode($rec->chartData ?? '', false, 8);
         if (!$data instanceof stdClass || !in_array($type, array('line', 'bar', 'pie'), true)) {
             return '';
