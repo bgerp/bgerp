@@ -1110,6 +1110,9 @@ class planning_Jobs extends core_Master
     {
         $tpl = parent::renderSingle_($data);
         $tpl->push('planning/tpl/styles.css', 'CSS');
+        $tpl->push('planning/js/JobHeader.js', 'JS');
+        jquery_Jquery::run($tpl, 'render_alignJobHeaderFields();');
+        jquery_Jquery::runAfterAjax($tpl, 'alignJobHeaderFields');
         
         // Рендираме историята на действията със заданието
         if (!empty($data->row->history) && is_array($data->row->history)) {

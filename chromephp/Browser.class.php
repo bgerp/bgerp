@@ -21,7 +21,7 @@ defIfNot('CHROMEPHP_TEMP_DIR', EF_TEMP_PATH . '/chromephp');
  *
  * @title    Chrome PHP конвертиране
  */
-class chromephp_Browser
+class chromephp_Browser extends core_BaseClass
 {
 
     /**
@@ -46,8 +46,13 @@ class chromephp_Browser
     {
         expect($this->isEnabled());
 
-        // Зареждаме опаковката
-        $wrapperTpl = cls::get('page_Print');
+        // Без window.print() от обвивката - Chrome отказва PDF, докато страницата се печата
+        Mode::push('runPrinting', false);
+        try {
+            $wrapperTpl = cls::get('page_Print');
+        } finally {
+            Mode::pop('runPrinting');
+        }
 
         // Обхождаме масива с JS файловете
         foreach ((array) ($jsArr['JS'] ?? array()) as $js) {
@@ -74,31 +79,65 @@ class chromephp_Browser
         // Трети параметър трябва да е TRUE, за да се вземе и CSS
         $html = $wrapperTpl->getContent(null, 'CONTENT', true);
 
-        $browserFactory = new BrowserFactory(self::getBinPath() ?: null);
-        $browserFactory->addOptions([
-            'ignoreCertificateErrors' => true,
-            'enableImages' => true,
-            // Под натоварване новият таб и печатът отговарят по-бавно от стандартните 5 секунди
-            'sendSyncDefaultTimeout' => self::getResponseTimeout(),
-            // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
-            // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
-            'customFlags' => ['--remote-allow-origins=*'],
-        ]);
-
-        try {
-            $browser = $browserFactory->createBrowser();
-        } catch (\RuntimeException $e) {
-            // Chrome sandbox-а изисква user namespaces, които често са забранени за www-data
-            $browserFactory->addOptions(['noSandbox' => true]);
-            $browser = $browserFactory->createBrowser();
-        }
-
+        $browser = self::startBrowser(self::getResponseTimeout());
         try {
             $pdf = $this->renderPdf($browser, $html);
 
             return fileman::absorbStr($pdf, $bucketName, $fileName);
         } finally {
             $browser->close();
+        }
+    }
+
+
+    /** Използва същия браузър и резервен режим при експорт и при ръчната проба. */
+    private static function startBrowser($timeout, $startupTimeout = 30, &$seconds = null)
+    {
+        $browserFactory = new BrowserFactory(self::getBinPath() ?: null);
+        $browserFactory->addOptions([
+            'ignoreCertificateErrors' => true,
+            'enableImages' => true,
+            // Под натоварване новият таб и печатът отговарят по-бавно от стандартните 5 секунди
+            'sendSyncDefaultTimeout' => $timeout,
+            'startupTimeout' => $startupTimeout,
+            // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
+            // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
+            'customFlags' => ['--remote-allow-origins=*'],
+        ]);
+
+        return self::measureStep('createBrowser', $timeout, function () use ($browserFactory) {
+            try {
+                return $browserFactory->createBrowser();
+            } catch (\RuntimeException $e) {
+                // Chrome sandbox-а изисква user namespaces, които често са забранени за www-data
+                $browserFactory->addOptions(['noSandbox' => true]);
+
+                return $browserFactory->createBrowser();
+            }
+        }, $seconds);
+    }
+
+
+    /** Времето е достъпно и за администратор без включен debug режим. */
+    private static function measureStep($name, $responseTimeout, $operation, &$seconds = null)
+    {
+        $timer = 'CHROMEPHP_' . $name;
+        core_Debug::startTimer($timer);
+        $start = hrtime(true);
+        try {
+            return $operation();
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $errorClass = get_class($e);
+            throw $e;
+        } finally {
+            $seconds = round((hrtime(true) - $start) / 1e9, 2);
+            core_Debug::stopTimer($timer);
+            if (isset($errorClass)) {
+                log_System::add(__CLASS__, sprintf('%s: %.2f s, responseTimeout=%d ms, %s, %s',
+                    $name, $seconds, $responseTimeout, chromephp_Setup::getRuntimeInfo(), $errorClass), null, 'warning');
+            }
         }
     }
 
@@ -115,7 +154,7 @@ class chromephp_Browser
     {
         // Подава се изрично, защото не всички версии на chrome-php ползват общата настройка
         $timeout = self::getResponseTimeout();
-        $page = $browser->createPage();
+        $page = self::measureStep('createPage', $timeout, array($browser, 'createPage'));
 
         // A4 размери и използваема ширина при зададените по-долу PDF полета
         $paperWidth = 8.27;
@@ -287,6 +326,49 @@ class chromephp_Browser
     }
 
 
+    /** Проверява празен таб със записаните настройки в средата на уеб потребителя. */
+    public function act_CheckBrowser()
+    {
+        requireRole('admin');
+        expect(Request::isConfirmed());
+
+        $result = array('time' => dt::now(), 'runtime' => chromephp_Setup::getRuntimeInfo());
+        $step = 'chrome-php';
+        try {
+            if (!$this->isEnabled()) {
+                throw new RuntimeException('Липсва избраната библиотека или изпълнимият файл на Chrome.');
+            }
+            // Кратка проба независимо от по-дългия лимит за печат на истински документ.
+            $timeout = 5000;
+            $step = 'createBrowser';
+            $browser = self::startBrowser($timeout, 5, $result['startup']);
+            $step = 'Browser.getVersion';
+            $version = $browser->getConnection()->sendMessageSync(new Message($step), $timeout);
+            $result['product'] = $version['result']['product'] ?? '';
+            $step = 'createPage';
+            self::measureStep($step, $timeout, array($browser, 'createPage'), $result['page']);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $result['error'] = $step . ': ' . mb_substr($e->getMessage(), 0, 500);
+        } finally {
+            if (isset($browser)) {
+                try {
+                    $browser->close();
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
+                } catch (Throwable $e) {
+                    $result['error'] = trim(($result['error'] ?? '') . ' close: ' . mb_substr($e->getMessage(), 0, 500));
+                }
+            }
+        }
+
+        Mode::setPermanent('chromephpLastProbe', $result);
+
+        return new Redirect(array('core_Packs', 'config', 'pack' => 'chromephp'));
+    }
+
+
     /**
      * Връща пътя до работещ изпълним файл на Chrome или FALSE, ако няма такъв
      *
@@ -305,20 +387,32 @@ class chromephp_Browser
 
         // Зададеният в конфигурацията бинарник
         $confPath = trim((string) chromephp_Setup::get('BIN_PATH'));
-        if (strlen($confPath) && is_executable($confPath)) {
+        if (is_file($confPath) && is_executable($confPath)) {
 
             return $binPath = $confPath;
         }
 
-        // Системно инсталиран Chrome/Chromium
-        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
-            $found = trim((string) shell_exec("command -v {$bin} 2>/dev/null"));
-            if (strlen($found)) {
+        $paths = self::getSystemBinPaths();
 
-                return $binPath = $found;
+        return $binPath = reset($paths);
+    }
+
+
+    /** Открива изпълнимите файлове в PATH без стартиране на процеси. */
+    public static function getSystemBinPaths()
+    {
+        $paths = array();
+        $directories = explode(PATH_SEPARATOR, (string) getenv('PATH'));
+        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
+            foreach ($directories as $directory) {
+                $path = $directory . '/' . $bin;
+                if ($directory !== '' && is_file($path) && is_executable($path)) {
+                    $paths[$path] = $path;
+                    break;
+                }
             }
         }
 
-        return $binPath;
+        return $paths;
     }
 }

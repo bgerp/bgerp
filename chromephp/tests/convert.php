@@ -33,6 +33,18 @@ class core_ProtoSetup
     public static function get($name) { return self::$settings[$name] ?? constant('CHROMEPHP_' . $name); }
 }
 core_ProtoSetup::$settings = array('VERSION' => $argv[4], 'BIN_PATH' => $argv[3]);
+require_once dirname(__DIR__, 2) . '/core/BaseClass.class.php';
+class Mode
+{
+    public static $stack = array();
+    public static function push($name, $value) { self::$stack[] = $name; }
+    public static function pop($name) { expect(array_pop(self::$stack) === $name); }
+}
+class log_System
+{
+    public static $warnings = array();
+    public static function add($class, $message, $id, $type) { self::$warnings[] = array($class, $message, $type); }
+}
 class core_Composer
 {
     /** Намира общия Composer autoload в тестовата среда. */
@@ -130,4 +142,27 @@ if (!isset($argv[5])) {
     expect(!$failing->browser->getConnection()->isConnected(), 'Browser remained connected after error');
     expect(!is_file(EF_TEMP_PATH . '/failure.pdf'), 'Partial PDF saved');
     echo "Error cleanup and omitted JS: OK\n";
+
+    class chromephp_tests_PageTimeout extends chromephp_Browser
+    {
+        public function check($browser) { return $this->renderPdf($browser, ''); }
+    }
+    $timeout = new HeadlessChromium\Exception\OperationTimedOut('Synthetic empty tab timeout');
+    $browser = new class($timeout) {
+        private $timeout;
+        public function __construct($timeout) { $this->timeout = $timeout; }
+        public function createPage() { throw $this->timeout; }
+    };
+    core_ProtoSetup::$settings['RESPONSE_TIMEOUT'] = 120;
+    try {
+        (new chromephp_tests_PageTimeout())->check($browser);
+        throw new RuntimeException('Missing empty tab timeout');
+    } catch (HeadlessChromium\Exception\OperationTimedOut $e) {
+        expect($e === $timeout && !core_Debug::$timers, 'Timeout replaced or timer left running');
+    }
+    $warning = end(log_System::$warnings);
+    expect($warning[0] === 'chromephp_Browser' && $warning[2] === 'warning');
+    expect(strpos($warning[1], 'createPage') !== false && strpos($warning[1], 'responseTimeout=120000 ms') !== false);
+    expect(strpos($warning[1], $argv[3]) !== false && strpos($warning[1], 'chrome-php/chrome ') !== false);
+    echo "Empty tab timeout diagnostics: OK\n";
 }
