@@ -14,12 +14,20 @@
  * @license   GPL 3
  *
  */
-class mejs_AudioDriver extends core_BaseClass
+class mejs_AudioDriver extends mejs_MediaDriver
 {
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_LibraryIntf';
+
+    protected const FORMATS = array(
+        'mp3' => array('mp3', array(), array('mp3')),
+        'ogg' => array('ogg', array(), array('vorbis', 'opus')),
+        'wav' => array('wav', array(), array('pcm_s16le', 'pcm_u8', 'pcm_s24le', 'pcm_f32le')),
+    );
+
+    protected const SCOPED_FIELDS = 'source1,title';
     
     
     /**
@@ -61,16 +69,24 @@ class mejs_AudioDriver extends core_BaseClass
         $width = '100%';
         $height = '100%';
                 
-        $source = array();
-        if($rec->source1) {
-            $source[$rec->source1] = $rec->source1;
-        }
-        if($rec->source2) {
-            $source[$rec->source2] = $rec->source2;
+        $scoped = cms_Library::hasAccessContext($rec);
+        if ($scoped) {
+            $source = self::getStreamSources($rec, $absolute);
+            if (!$source) return '';
+            $title = htmlspecialchars($rec->title ?? '', ENT_QUOTES, 'UTF-8');
+        } else {
+            $source = array();
+            if (!empty($rec->source1)) {
+                $source[$rec->source1] = $rec->source1;
+            }
+            if (!empty($rec->source2)) {
+                $source[$rec->source2] = $rec->source2;
+            }
+            $title = $rec->title ?? null;
         }
  
         // Шаблона за видеото
-        $tpl = mejs_Adapter::createAudio($source, array('width' => $width, 'height' => $height, 'title' => $rec->title));
+        $tpl = mejs_Adapter::createAudio($source, array('width' => $width, 'height' => $height, 'title' => $title), $scoped ? 'stream' : 'handler');
 
         
         return $tpl;

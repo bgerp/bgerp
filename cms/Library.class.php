@@ -125,6 +125,19 @@ class cms_Library extends embed_Manager
     }
 
 
+    /** Пълният запис включва файлови хендлъри, затова ги проверяваме и за публичните обекти. */
+    public static function getVisibleEmbedded($tag)
+    {
+        if (!is_string($tag)) return null;
+        $code = preg_replace('/^\[elm=([^\]]+)\]$/iD', '$1', $tag);
+        $rec = self::findEmbedded($code);
+
+        if (!self::getDriverForViewer($rec, true, true)) return null;
+
+        return self::getEmbedTag($rec) === '[elm=' . $code . ']' ? $rec : null;
+    }
+
+
     /** Допуска до рамката само реален драйвер от регистъра на библиотеката. */
     private static function isRegisteredMediaDriver($rec)
     {
@@ -358,7 +371,7 @@ class cms_Library extends embed_Manager
 
 
     /** За рамката получаваме само метаданни; съдържанието се чете след проверката на източника. */
-    private static function getDriverForViewer(&$rec, $inFrame = false)
+    private static function getDriverForViewer(&$rec, $inFrame = false, $checkPublicFiles = false)
     {
         if (!$rec) return null;
         $rec = self::fetchRec($rec);
@@ -366,8 +379,14 @@ class cms_Library extends embed_Manager
         $scoped = self::hasAccessContext($rec);
         if ($scoped && !self::canViewAccessContext($rec)) return null;
         if ($scoped || $inFrame) {
-            if (!empty($rec->id)) $rec = self::fetch($rec->id);
-            if (!$rec || !self::isRegisteredMediaDriver($rec) || ($scoped && self::getDriverFileErrors($rec))) return null;
+            if (!empty($rec->id)) {
+                $meta = $rec;
+                $rec = self::fetch($rec->id, '*', !$checkPublicFiles);
+                if ($checkPublicFiles && (($rec->accessClassId ?? null) !== ($meta->accessClassId ?? null)
+                    || ($rec->accessObjectId ?? null) !== ($meta->accessObjectId ?? null)
+                    || ($rec->driverClass ?? null) !== ($meta->driverClass ?? null))) return null;
+            }
+            if (!$rec || !self::isRegisteredMediaDriver($rec) || (($scoped || $checkPublicFiles) && self::getDriverFileErrors($rec))) return null;
         }
 
         return self::getDriver($rec);

@@ -193,10 +193,16 @@ class core_Composer extends core_Mvc
             }
         }
 
-        $lines = self::run("--apcu-autoloader require {$pack} {$version}");
-        
+        $command = "--apcu-autoloader require {$pack} {$version}";
+        $lines = self::run($command);
+
+        // Заключена зависимост на самия пакет спира смяната на версията му - обновяват се само неговите зависимости
+        if ($lines === false && strpos(self::$error ?? '', '--with-all-dependencies') !== false) {
+            $lines = self::run($command . ' --update-with-dependencies');
+        }
+
         if ($lines === false) {
-            
+
             return "<li class='debug-error'>" . self::$error . '</li>';
         } else {
             core_Cache::remove('COMPOSER', 'INSTALLED-PACKS');

@@ -5,7 +5,7 @@
  *
  * @category  bgerp
  * @package   chartjs
- * @author    Mustafov1 <mmustafov3@icloud.com>
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
  * @copyright 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -58,5 +58,23 @@ foreach ($invalid as $i => $fixture) {
         continue;
     }
     throw new RuntimeException("Приети са невалидни данни във вариант {$i}.");
+}
+
+// Грешката от формата се показва само на полето, което я е причинило.
+$handler = new ReflectionMethod('chartjs_ChartDriver', 'on_AfterInputEditForm');
+$handler->setAccessible(true);
+$json = json_encode($data);
+foreach (array('chartType' => array('scatter', 'Тест', $json), 'chartTitle' => array('bar', ' ', $json),
+    'chartData' => array('bar', 'Тест', '{"labels":["А"],"values":{"С":[1,2]}}')) as $expected => $input) {
+    $form = new class {
+        public $rec, $errors = array();
+        public function isSubmitted() { return true; }
+        public function setError($field, $message) { $this->errors[$field] = $message; }
+    };
+    $form->rec = (object) array('chartType' => $input[0], 'chartTitle' => $input[1], 'chartData' => $input[2]);
+    $handler->invokeArgs(null, array(null, null, &$form));
+    if (array_keys($form->errors) !== array($expected)) {
+        throw new RuntimeException("Грешката за {$expected} е отбелязана на: " . implode(', ', array_keys($form->errors)));
+    }
 }
 echo "OK\n";
