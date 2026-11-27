@@ -1437,6 +1437,119 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Папката по подразбиране за нова операция по задание: центъра на заданието, иначе неговата папка
+     *
+     * @param stdClass $jobRec
+     *
+     * @return int
+     */
+    public static function getDefaultFolderIdForJob($jobRec)
+    {
+        $folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : $jobRec->folderId;
+        if (!self::canAddToFolder($folderId)) {
+            $folderId = planning_Centers::getUndefinedFolderId();
+        }
+
+        return $folderId;
+    }
+
+
+    /**
+     * Шаблонните операции за артикула на заданието - общи за страницата "Операция" и за Аида
+     *
+     * @param stdClass $jobRec
+     *
+     * @return array [systemId => (object) [task, folderId, existing (видимите вече създадени), canAdd]]
+     */
+    public static function getJobTemplateOptions($jobRec)
+    {
+        $res = array();
+        $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+        if (!countR($defaultTasks)) {
+
+            return $res;
+        }
+
+        $defaultFolderId = self::getDefaultFolderIdForJob($jobRec);
+        $existingByTemplate = planning_TaskOrder::existingByTemplate($defaultTasks, self::getJobOrderTasks($jobRec->containerId));
+        foreach ($defaultTasks as $sysId => $defTask) {
+            $folderId = isset($defTask->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $defaultFolderId;
+            $existing = array();
+            foreach ($existingByTemplate[$sysId] ?? array() as $taskId) {
+                if (self::haveRightFor('single', $taskId)) {
+                    $existing[$taskId] = $taskId;
+                }
+            }
+            $canAdd = self::haveRightFor('add', (object) array('originId' => $jobRec->containerId, 'productId' => $defTask->productId, 'folderId' => $folderId));
+            $res[$sysId] = (object) array('task' => $defTask, 'folderId' => $folderId, 'existing' => $existing, 'canAdd' => $canAdd);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Центровете за нова операция по заданието - общи за страницата "Операция" и за Аида
+     *
+     * @param stdClass $jobRec
+     *
+     * @return array [folderId => (object) [hasSteps, canAdd]]
+     */
+    public static function getJobCenterOptions($jobRec)
+    {
+        $res = array();
+        foreach (planning_Centers::getCentersForTasks($jobRec->id) as $folderId => $name) {
+            $canAdd = self::haveRightFor('add', (object) array('originId' => $jobRec->containerId, 'folderId' => $folderId));
+            $res[$folderId] = (object) array('hasSteps' => (bool) planning_Steps::getCountByCenterFolderId($folderId), 'canAdd' => $canAdd);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Вариантите за нова операция от задание, като страницата на бутона "Операция":
+     * шаблонните операции за артикула и нова операция във всеки център с етапи
+     *
+     * @param int $containerId - контейнер на източника
+     *
+     * @return array|null - [['title' => ..., 'params' => [...], 'warning' => ...]], null ако източникът не е задание
+     */
+    public static function getAddVariantsFromSource($containerId)
+    {
+        $Source = doc_Containers::getDocument($containerId);
+        if (!$Source->isInstanceOf('planning_Jobs')) {
+
+            return null;
+        }
+
+        $jobRec = $Source->fetch();
+        $res = array();
+        foreach (self::getJobTemplateOptions($jobRec) as $sysId => $option) {
+            if (!$option->canAdd) continue;
+
+            $defTask = $option->task;
+            $title = tr('Шаблонна операция') . ': ' . $defTask->title . (!empty($defTask->subTitle) ? " ({$defTask->subTitle})" : '');
+            $variant = array('title' => $title, 'params' => array('folderId' => $option->folderId, 'originId' => $containerId, 'title' => $defTask->title, 'systemId' => $sysId));
+            if ($option->existing) {
+                $handles = array_map(function ($taskId) { return '#' . self::getHandle($taskId); }, $option->existing);
+                $variant['warning'] = tr('Вече е създадена') . ': ' . implode(', ', $handles);
+            }
+            $res[] = $variant;
+        }
+
+        foreach (self::getJobCenterOptions($jobRec) as $folderId => $option) {
+            if (!$option->hasSteps || !$option->canAdd) continue;
+
+            $title = tr('Нова операция в') . ' ' . doc_Folders::getTitleById($folderId, false);
+            $res[] = array('title' => $title, 'params' => array('originId' => $containerId, 'folderId' => $folderId));
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *

@@ -2067,19 +2067,15 @@ class planning_Jobs extends core_Master
         expect($originId = Request::get('originId', 'int'));
         planning_Tasks::requireRightFor('add', (object) array('originId' => $originId));
         $jobRec = doc_Containers::getDocument($originId)->fetch();
-        $folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : $jobRec->folderId;
-        if(!planning_Tasks::canAddToFolder($folderId)){
-            $folderId = planning_Centers::getUndefinedFolderId();
-        }
 
         $form = cls::get('core_Form');
         $form->title = 'Създаване на производствени операция към|* <b>' . self::getHyperlink($jobRec->id, true) . '</b>';
         $form->info = getTplFromFile('planning/tpl/SelectTaskInJobForm.shtml');
         $options = array();
 
-        $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+        $templateOptions = planning_Tasks::getJobTemplateOptions($jobRec);
 
-        if(countR($defaultTasks)){
+        if(countR($templateOptions)){
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
             $createAllUrl = array();
             if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'))){
@@ -2092,9 +2088,9 @@ class planning_Jobs extends core_Master
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
-            $existingByTemplate = planning_TaskOrder::existingByTemplate($defaultTasks, planning_Tasks::getJobOrderTasks($jobRec->containerId));
             // Показване на наличните дефолтни операции
-            foreach ($defaultTasks as $sysId => $defTask){
+            foreach ($templateOptions as $sysId => $templateOption){
+                $defTask = $templateOption->task;
                 $title = $defTask->title;
                 if(!empty($defTask->subTitle)){
                     $title .= " <i>{$defTask->subTitle}</i>";
@@ -2102,10 +2098,8 @@ class planning_Jobs extends core_Master
 
                 $warning = false;
                 $exLinkArray = array();
-                foreach ($existingByTemplate[$sysId] ?? array() as $taskId) {
-                    if (planning_Tasks::haveRightFor('single', $taskId)) {
-                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($taskId), false, "title=Към операция|* #" . planning_Tasks::getHandle($taskId));
-                    }
+                foreach ($templateOption->existing as $taskId) {
+                    $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($taskId), false, "title=Към операция|* #" . planning_Tasks::getHandle($taskId));
                 }
                 if(countR($exLinkArray)){
                     $oldTitleContent = implode('', $exLinkArray);
@@ -2113,10 +2107,9 @@ class planning_Jobs extends core_Master
                     $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
                 }
 
-                $folderId = isset($defTask->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $folderId;
                 $urlAdd = array();
-                if(planning_Tasks::haveRightFor('add', (object)array('originId' => $jobRec->containerId, 'productId' => $defTask->productId, 'folderId' => $folderId))){
-                    $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
+                if($templateOption->canAdd){
+                    $urlAdd = array('planning_Tasks', 'add', 'folderId' => $templateOption->folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
                 }
 
                 $urlLinkBtn = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
@@ -2197,7 +2190,7 @@ class planning_Jobs extends core_Master
 
         // Създаване на нови ПО към наличните департаменти за избор
         $readyOptions = countR($options);
-        $departments = planning_Centers::getCentersForTasks($jobRec->id);
+        $departments = planning_Tasks::getJobCenterOptions($jobRec);
         $caption = tr('Нова операция в център на дейност');
         if($readyOptions){
             $caption .= "&nbsp; <a id= 'btnShowTasks' href=\"javascript:toggleDisplayByClass('btnShowTasks', 'newTaskBtn')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Списък за избор на Център на дейност за създаване на нова Операция') . "\"</a>";
@@ -2205,14 +2198,13 @@ class planning_Jobs extends core_Master
         $options[] = (object)array('DEFAULT_TASK_CAPTION' => $caption, 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
 
         if(countR($departments)){
-            foreach ($departments as $depFolderId => $dName) {
+            foreach ($departments as $depFolderId => $centerOption) {
+                if(!$centerOption->hasSteps) continue;
+
                 $urlNewTask = array();
-                if(planning_Tasks::haveRightFor('add', (object)array('originId' => $jobRec->containerId, 'folderId' => $depFolderId))){
+                if($centerOption->canAdd){
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
-
-                $productionStepCount = planning_Steps::getCountByCenterFolderId($depFolderId);
-                if(!$productionStepCount) continue;
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
