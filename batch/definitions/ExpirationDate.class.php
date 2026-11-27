@@ -78,6 +78,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      */
     public static function displayExpiryDate($date, $format, $time)
     {
+        // За Аида изтичането се показва като системна бележка, иначе се губи с оцветяването
         if ((Mode::isReadOnly() || Mode::is('text', 'plain')) && !Mode::is('renderForLlm')) {
             
             return cls::get('type_Html')->toVerbal($date);
@@ -92,7 +93,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         
         // Ако партидата е изтекла оцветяваме я в червено
         if (strtotime($mysqlValue) < $currentTime) { 
-            $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning', true, array('aiHint' => 'Batch expired'));
+        $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning', true, array('aiHint' => 'Batch expired'));
             $value = new core_ET("<span class='red'>[#value#]</span>");
             $value->replace($valueHint, 'value');
         } else {
