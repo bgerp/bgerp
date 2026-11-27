@@ -36,6 +36,16 @@ class batch_tests_definitions_ExpirationDate extends unit_Class
                 foreach ($expected as $date => $text) {
                     ut::expectEqual(strip_tags($Driver->displayExpiryDate($date, 'Y-m-d', $lifetime)), $text);
                 }
+                $notes = new ArrayObject();
+                Mode::push('llmHintNotes', $notes);
+                try {
+                    foreach (array_keys($expected) as $date) {
+                        ut::expectEqual(strip_tags($Driver->displayExpiryDate($date, 'Y-m-d', $lifetime)), $date);
+                    }
+                    ut::expectEqual($notes->getArrayCopy() === array('Batch expired', 'Batch expires soon'), true);
+                } finally {
+                    Mode::pop('llmHintNotes');
+                }
             } finally {
                 Mode::pop('renderForLlm');
             }

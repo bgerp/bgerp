@@ -1182,7 +1182,7 @@ class core_Html
      *                             o bool         useCache    - ajax заявката да се прави само първия път
      *                             o string       holderClass - допълнителен клас на обвивката
      *                             o string       arrowClass  - клас на стрелката, по подразбиране 'anchor-arrow'
-     *                             o string       aiHint      - кратък текст на английски, който в LLM експорта замества хинта с [!bgERP: текст]
+     *                             o string       aiHint      - бележка на английски; в LLM експорта се добавя към llmHintNotes (ArrayObject), ако е зададен, иначе се изписва като [!bgERP: текст]
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
@@ -1202,10 +1202,15 @@ class core_Html
         $aiHint = $hintAttr['aiHint'] ?? null;
         unset($hintAttr['isHtml'], $hintAttr['iconAttr'], $hintAttr['url'], $hintAttr['urlIdParam'], $hintAttr['useHover'], $hintAttr['useCache'], $hintAttr['holderClass'], $hintAttr['arrowClass'], $hintAttr['aiHint']);
 
-        // В LLM експорта хинтът се губи при strip_tags, затова се изписва като системна бележка
+        // При структуриран отговор бележката се събира отделно, а при текстов експорт се изписва до стойността.
         if (Mode::is('renderForLlm') && !empty($aiHint)) {
             $res = new core_ET($body);
-            $res->append(' ' . doc_plg_LlmExportable::systemNote($aiHint));
+            $notes = Mode::get('llmHintNotes');
+            if ($notes instanceof ArrayObject) {
+                $notes[] = trim((string) $aiHint);
+            } else {
+                $res->append(' ' . doc_plg_LlmExportable::systemNote($aiHint));
+            }
 
             return $res;
         }
