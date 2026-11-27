@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -78,7 +78,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      */
     public static function displayExpiryDate($date, $format, $time)
     {
-        if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
+        if ((Mode::isReadOnly() || Mode::is('text', 'plain')) && !Mode::is('renderForLlm')) {
             
             return cls::get('type_Html')->toVerbal($date);
         }
@@ -92,7 +92,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         
         // Ако партидата е изтекла оцветяваме я в червено
         if (strtotime($mysqlValue) < $currentTime) { 
-        $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning');
+            $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning', true, array('aiHint' => 'Batch expired'));
             $value = new core_ET("<span class='red'>[#value#]</span>");
             $value->replace($valueHint, 'value');
         } else {
@@ -116,7 +116,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
                     $percentToCompare = 1 - $confPercent;
                     
                     if ($percent >= $percentToCompare) {
-                        $valueHint = ht::createHint($value, 'Партидата изтича скоро', 'warning');
+                        $valueHint = ht::createHint($value, 'Партидата изтича скоро', 'warning', true, array('aiHint' => 'Batch expires soon'));
                         $value = new core_ET("<span style='color:orange'>[#value#]</span>");
                         $value->replace($valueHint, 'value');
                     }
