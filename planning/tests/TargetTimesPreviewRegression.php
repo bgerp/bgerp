@@ -197,6 +197,28 @@ check(!$reorderJobs && isset($constraints['prev|1|2']) && !isset($constraints['p
 
 planning_StepConditions::$rows = array();
 
+// Планировчикът чете начина на клониране и за заявки, заредени само с полетата за времената.
+$rows = array(1 => $rows[1], 2 => $rows[2]);
+$rows[1]->cloneScope = $rows[2]->cloneScope = 'single';
+$rows[1]->saoOrder = 1;
+$rows[2]->saoOrder = 2;
+$rows[2]->clonedFromId = 89;
+unset($rows[2]->previousTask);
+planning_Tasks::$records = $rows;
+$requested = array_map(function ($row) {
+    $copy = clone $row;
+    unset($copy->cloneScope);
+    return $copy;
+}, $rows);
+$reorderJobs = array();
+$constraints = planning_TaskConstraints::calculateTaskConstraints($requested, $reorderJobs);
+check(isset($reorderJobs[100], $constraints['prev|1|2']) && !isset($constraints['prev|2|1']), 'Two single clones put the intermediate before the final when scheduling');
+$rows[2]->saoOrder = 1;
+$rows[1]->saoOrder = 2;
+$plan = graph($rows, array(), array(1 => array(2 => $constraints['prev|1|2'])));
+check($plan[2]->expectedTimeEnd === $plan[1]->expectedTimeStart && $plan[1]->expectedTimeEnd > $plan[1]->expectedTimeStart
+    && $plan[1]->expectedTimeEnd < planning_TaskConstraints::NOT_FOUND_DATE, 'Both single clones receive a finite schedule in job order');
+
 clockContext();
 $preview = clockPreview();
 dt::$now = '2026-10-08 08:00:01';

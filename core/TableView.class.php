@@ -21,6 +21,12 @@ class core_TableView extends core_BaseClass
      * ET шаблон за таблицата
      */
     public $tpl;
+
+
+    /**
+     * Име на колона => поле от реда с текст за подсказката на клетката.
+     */
+    public $cellHintFields = array();
     
     
     /**
@@ -221,6 +227,7 @@ class core_TableView extends core_BaseClass
                 if(isset($this->mvc->fields[$place])) {
                     $fieldObj = $this->mvc->fields[$place];
                 }
+                $hintAttr = isset($this->cellHintFields[$place]) ? "[#TD_HINT:{$place}#]" : '';
                 if ($colHeaders[0][0] != '@' && !isset($fieldObj->singleRow)) {
                     
                     // Задаваме класа на колоната
@@ -295,6 +302,7 @@ class core_TableView extends core_BaseClass
                     }
                     
                     // Шаблон за реда
+                    $attr .= $hintAttr;
                     
                     if (!empty($this->mvc->fields[$place]->smartCenter)) {
                         static $dataCol = 0;
@@ -313,8 +321,8 @@ class core_TableView extends core_BaseClass
                     }
                     
                     // Допълнителни цели редове, ако колоната няма заглавие
-                    $addRows .= "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
-                    $addRowArr[$place] = "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRowArr[$place] = "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\"{$hintAttr}>[#{$place}#]</td></tr>\n";
+                    $addRows .= $addRowArr[$place];
                 }
             }
         }
@@ -430,6 +438,12 @@ class core_TableView extends core_BaseClass
                     }
                     
                     $rowTpl->replace($value, $name);
+                }
+
+                foreach ($this->cellHintFields as $column => $hintField) {
+                    $hint = $r[$hintField] ?? null;
+                    $titleAttr = is_scalar($hint) && (string) $hint !== '' ? ' title="' . ht::escapeAttr($hint) . '"' : '';
+                    $rowTpl->replace($titleAttr, "TD_HINT:{$column}", false, false);
                 }
 
                 if (!empty($r['TBODY_ROW_ATTR']) && is_array($r['TBODY_ROW_ATTR'])) {

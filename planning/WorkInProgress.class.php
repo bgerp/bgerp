@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -448,7 +448,8 @@ class planning_WorkInProgress extends core_Manager
 
                 $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                 $round = cat_Uom::fetchField($measureId, 'round');
-                $Double = core_Type::getByName("double(decimals={$round})");
+                // Мярка без зададена точност не трябва да подава празен брой знаци
+                $Double = core_Type::getByName(is_numeric($round) ? "double(decimals={$round})" : 'double(smartRound)');
                 foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld){
                     $row->{$fld} = $Double->toVerbal($pRec->{$fld});
                     $row->{$fld} = ht::styleNumber($row->{$fld}, $pRec->{$fld});
