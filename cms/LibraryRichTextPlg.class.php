@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2026 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -65,6 +65,7 @@ class cms_LibraryRichTextPlg extends core_Plugin
             // Дори при споделен кеш тук остава само адресът. Проверката е при всяко зареждане.
             $tpl = ht::createElement('iframe', array(
                 'src' => toUrl(array('cms_Library', 'embedded', 'elm' => $title)),
+                'data-elm-tag' => $match[0],
                 'title' => tr('Мултимедиен обект||Multimedia object'),
                 'style' => 'display:block;width:100%;max-width:700px;height:340px;border:0',
                 'allowfullscreen' => 'allowfullscreen',

@@ -6,7 +6,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Mustafa Mustafov <mmustafov084@gmail.com>
- * @copyright 2026 Experta OOD
+ * @copyright 2026 Experta EOOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -84,7 +84,15 @@ class ET
     public function append($value, $place) {}
     public function push($value, $place) { $this->headers[] = $value; }
 }
-class ht { public static function createElement($tag, $attr, $body) { return '<iframe src="' . $attr['src'] . '"></iframe>'; } }
+class ht
+{
+    public static $attributes;
+    /** Capture the frame attributes alongside the synthetic markup. */
+    public static function createElement($tag, $attr, $body) {
+        self::$attributes = $attr;
+        return '<iframe src="' . $attr['src'] . '"></iframe>';
+    }
+}
 class MediaRichtext
 {
     public $params = array(), $_htmlBoard = array();
@@ -169,7 +177,8 @@ check($library->act_Embedded()->media === 'Недостъпен обект', 'Un
 $private->denyDriverAccess = true;
 check($library->getRequiredRoles_($action, $partial) === 'no_one', 'A partial record still invokes the driver permission hook');
 $richtext->params['libraryMediaFrames'] = true;
-$html = cms_Library::getEmbedTag($public);
+$html = '[ELM=public-Ab23]';
 $plugin->on_AfterCatchRichElements($richtext, $html);
 check(strpos($richtext->_htmlBoard['fixture'], '<iframe') === 0, 'Every registered driver can load ET resources in chat');
+check((ht::$attributes['data-elm-tag'] ?? null) === '[ELM=public-Ab23]', 'The frame preserves the exact source tag for copying');
 echo "OK: library drivers, public media, cached tags, file and source permissions.\n";
