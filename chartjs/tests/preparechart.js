@@ -36,6 +36,9 @@ for (const version of ['2.3.0', '4.6.1']) {
     const bar = nodes[1].bgerpChart.config;
     check(JSON.stringify(bar.data.datasets.map(d => d.data)) === JSON.stringify(Object.values(baseData.values)), 'Exact numeric/string/null values');
     check(version === '2.3.0' ? !!bar.options.scales.xAxes : !!bar.options.scales.x && !bar.options.scales.xAxes, 'Axes schema');
+    check(version === '2.3.0' ? bar.options.scales.yAxes[0].ticks.beginAtZero === true : bar.options.scales.y.beginAtZero === true, 'Bars are measured from zero');
+    const lineScales = nodes[2].bgerpChart.config.options.scales;
+    check(!lineScales.y && !lineScales.yAxes, 'Line charts keep the automatic value axis');
     if (version === '4.6.1') check(nodes[2].bgerpChart.config.data.datasets[0].fill && nodes[2].bgerpChart.config.data.datasets[0].tension === 0.4, 'Legacy line appearance');
     const first = nodes[0].bgerpChart;
     context.render_prepareChart(); context.prepareChart();

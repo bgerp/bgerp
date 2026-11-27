@@ -1,10 +1,10 @@
 <?php
 /**
- * Проверява защитените видеоизточници, HTTP диапазоните и кодеците.
+ * Проверява защитените аудио- и видеоизточници, HTTP диапазоните и кодеците.
  *
  * @category  bgerp
  * @package   mejs
- * @author    Mustafov1 <mmustafov3@icloud.com>
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
  * @copyright 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -26,27 +26,33 @@ class cms_Library
     public static function hasAccessContext($rec) { return !empty($rec->accessObjectId); }
     public static function canViewAccessContext($rec) { return self::$canView; }
     public static function getEmbeddedFileError($fh) { return $fh === 'Hidden' ? 'denied' : null; }
+    public static function getDriver($rec) { return class_exists($rec->driverClass, false) ? new $rec->driverClass() : false; }
 }
-class core_Classes
-{
-    public static function getName($id) { return $id; }
-}
+class plain_Driver {}
 class fileman_Files
 {
     public static $path;
 
     public static function fetchByFh($fh, $field = null)
     {
-        return $field === 'path' ? self::$path : (object) array('name' => $fh === 'Invalid' ? 'clip.txt' : 'clip.mp4', 'dataId' => 42);
+        $names = array('Invalid' => 'clip.txt', 'Audio' => 'clip.mp3', 'Wave' => 'clip.wav');
+
+        return $field === 'path' ? self::$path : (object) array('name' => $names[$fh] ?? 'clip.mp4', 'dataId' => 42);
     }
 
-    public static function getType($name) { return $name === 'clip.mp4' ? 'video/mp4' : 'audio/x-wav'; }
+    public static function getType($name)
+    {
+        $types = array('mp4' => 'video/mp4', 'mp3' => 'audio/mpeg', 'wav' => 'audio/x-wav');
+
+        return $types[self::getExt($name)] ?? null;
+    }
     public static function getExt($name) { return pathinfo($name, PATHINFO_EXTENSION); }
 }
 class mejs_Adapter
 {
     public static $sources;
     public static function createVideo($sources, $params, $mode) { self::$sources = $sources; return array($mode, $params); }
+    public static function createAudio($sources, $params, $mode = 'handler') { self::$sources = $sources; return array($mode, $params); }
 }
 class MediaForm
 {
@@ -64,7 +70,7 @@ function check($condition, $message)
     if (!$condition) throw new RuntimeException($message);
 }
 
-foreach (array('VideoDriver', 'Stream') as $class) {
+foreach (array('MediaDriver', 'VideoDriver', 'AudioDriver', 'Stream') as $class) {
     require dirname(__DIR__) . '/' . $class . '.class.php';
 }
 
@@ -101,8 +107,30 @@ foreach (array('Hidden', 'Invalid') as $invalid) {
     $form->rec->source2 = $invalid;
     check($getSource->invoke(null, 7, 2) === null && $driver->render($form->rec) === '', 'Invalid or inaccessible alternate file');
 }
+// Всеки драйвер подава само собствените си формати, а без договора няма поток.
 $form->rec->driverClass = 'mejs_AudioDriver';
-check($getSource->invoke(null, 7, 1) === null, 'Audio is outside the protected video endpoint');
+check($getSource->invoke(null, 7, 1) === null, 'Audio driver rejects a video file');
+unset($form->rec->source2);
+$form->rec->source1 = 'Audio';
+$form->rec->title = '<Audio>';
+check($getSource->invoke(null, 7, 1) === array('dataId' => 42, 'mime' => 'audio/mpeg'), 'Audio driver serves its own formats');
+$audio = new mejs_AudioDriver();
+$form->mandatory = array();
+$audio->on_AfterPrepareEditForm($audio, null, $data);
+check($form->mandatory === array('source1', 'title'), 'Required scoped audio fields');
+list($mode, $params) = $audio->render($form->rec);
+check($mode === 'stream' && $params['title'] === '&lt;Audio&gt;', 'Protected audio player and text title');
+check(reset(mejs_Adapter::$sources) === array('url' => '/mejs_Stream/play/7/1', 'type' => 'audio/mpeg'), 'Protected audio URL and MIME');
+cms_Library::$canView = false;
+check($getSource->invoke(null, 7, 1) === null && $audio->render($form->rec) === '', 'Revocation blocks audio source and player');
+cms_Library::$canView = true;
+unset($form->rec->accessObjectId);
+check($audio->render($form->rec) === array('handler', array('width' => '100%', 'height' => '100%', 'title' => '<Audio>')), 'Original public audio player');
+check(mejs_Adapter::$sources === array('Audio' => 'Audio'), 'Original public audio file');
+$form->rec->accessObjectId = 1;
+$form->rec->driverClass = 'plain_Driver';
+check($getSource->invoke(null, 7, 1) === null, 'Drivers without the stream contract have no stream');
+$form->rec->source1 = 'Video';
 $form->rec->driverClass = 'mejs_VideoDriver';
 unset($form->rec->accessObjectId);
 check($getSource->invoke(null, 7, 1) === null, 'Public files keep their original download route');
@@ -138,10 +166,24 @@ try {
                 $error = $form->errors['source1'] ?? '';
                 check($allowed ? $error === '' : strpos($error, 'видеокодек') !== false, 'MP4 codec validation: ' . $error);
             }
+            // Видеофайлът все още е на диска: аудиодрайверът го отхвърля като WAV.
+            $form->rec->source1 = 'Wave';
+            $form->errors = array();
+            $audio->on_AfterInputEditForm($audio, null, $form);
+            check(($form->errors['source1'] ?? '') !== '', 'Mismatched audio content cannot be saved');
+            foreach (array('pcm_s16le' => true, 'pcm_mulaw' => false) as $codec => $allowed) {
+                exec('ffmpeg -nostdin -v error -y -f lavfi -i anullsrc=r=8000:cl=mono -t 0.1 -c:a ' . $codec . ' -f wav '
+                    . escapeshellarg(fileman_Files::$path), $ignored, $status);
+                check($status === 0, 'Encode audio fixture');
+                $form->errors = array();
+                $audio->on_AfterInputEditForm($audio, null, $form);
+                $error = $form->errors['source1'] ?? '';
+                check($allowed ? $error === '' : strpos($error, 'аудиокодек') !== false, 'WAV codec validation: ' . $error);
+            }
         }
     }
 } finally {
     unlink(fileman_Files::$path);
 }
 
-echo "Video library file checks passed\n";
+echo "Media library file checks passed\n";

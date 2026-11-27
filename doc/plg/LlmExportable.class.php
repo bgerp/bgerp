@@ -385,7 +385,8 @@ class doc_plg_LlmExportable extends core_Plugin
                     $isHeaderRow = true;
                     foreach ($visibleCells as $cell) {
                         $t = trim(preg_replace('/\s+/', ' ', self::llmNodeText($cell)));
-                        if ($t === '' || strlen($t) > 30 || !self::llmCellIsSimpleCaption($cell)) {
+                        // Етикетите нямат цифри - ред като "партида | 0.6 хил. бр." е данни, не заглавия
+                        if ($t === '' || strlen($t) > 30 || preg_match('/\d/u', $t) || !self::llmCellIsSimpleCaption($cell)) {
                             $isHeaderRow = false;
                             break;
                         }

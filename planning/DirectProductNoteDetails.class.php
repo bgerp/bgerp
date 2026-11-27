@@ -655,6 +655,27 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Вариантите за добавяне на ред, както бутоните в протокола
+     *
+     * @param int $masterId
+     *
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $res = array();
+        $types = array('input' => 'Влагане', 'allocated' => 'Разходи', 'subProduct' => 'Субпродукт', 'pop' => 'Отпадък');
+        foreach ($types as $type => $title) {
+            if ($this->haveRightFor('add', (object) array('noteId' => $masterId, 'type' => $type))) {
+                $res[$type] = array('title' => $title, 'params' => array('type' => $type));
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
