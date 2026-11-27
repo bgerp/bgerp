@@ -585,13 +585,16 @@
             };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
-                if (!layer || !active() || ['snow','frost','ice','water'].indexOf(kind) < 0) return null;
+                if (!layer || !active() || ['snow','frost','ice','water','dry'].indexOf(kind) < 0) return null;
                 if ((kind === 'frost' || kind === 'ice') && !(typeof options.temperature === 'number' && options.temperature < 0 && elapsed >= 6000)) return null;
-                if (kind === 'snow' && weather.indexOf('snow') < 0) return null;
+                if ((kind === 'snow' || kind === 'dry') && weather.indexOf('snow') < 0) return null;
                 if (kind === 'water' && (weather.indexOf('rain') < 0 || weather.indexOf('snow') >= 0 || options.temperature < 0)) return null;
                 var best = null, nearest = radius;
+                function matchesDeposit(bank) {
+                    return kind === 'frost' || (kind === 'dry' ? bank.amount < 0.25 : bank.amount >= 0.25);
+                }
                 banks.forEach(function (bank) {
-                    if (kind !== 'frost' && bank.amount < 0.25) return;
+                    if (!matchesDeposit(bank)) return;
                     var px = Math.max(bank.left + 4, Math.min(bank.right - 4, x)), distance = Math.hypot(px - x, bank.top - y);
                     if (distance < nearest) { nearest = distance; best = {bank:bank,x:px,y:bank.top}; }
                 });
@@ -599,7 +602,7 @@
                 var bank = best.bank, left = bank.left, right = bank.right, top = bank.top, consumed = false, cracked = false;
                 function valid() {
                     return !!layer && active() && banks.indexOf(bank) >= 0 && bank.target.isConnected &&
-                        bank.left === left && bank.right === right && bank.top === top && (kind === 'frost' || bank.amount >= 0.25);
+                        bank.left === left && bank.right === right && bank.top === top && matchesDeposit(bank);
                 }
                 return {x:best.x,y:best.y,left:bank.left,right:bank.right,valid:valid,step:function (x) {
                     if (kind !== 'snow' || !valid() || x < bank.left || x > bank.right) return false;

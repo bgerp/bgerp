@@ -691,3 +691,32 @@
 @keyframes funny-strand-pulse { 25% { translate:0 var(--strand-shift,1px); } 75% { translate:0 calc(-1 * var(--strand-shift,1px)); } }
 .funny-last-crumbs { animation:funny-fade-trace 6.5s ease-in forwards; }
 .funny-last-crumbs::before { animation:funny-fade-trace 1.5s ease-in forwards; }
+
+/* Winter encounters use the existing foreground layer and leave page input alone. */
+.funny-winter-mark { position:fixed; z-index:9998; pointer-events:none; user-select:none; }
+.funny-winter-mark svg { width:100%; height:100%; display:block; }
+.funny-frost-drawing { width:38px; height:32px; transform:translate(-50%,-50%); }
+.funny-frost-drawing[data-filled="true"] { animation:funny-refrost 5.7s ease-in forwards; }
+.funny-frost-drawing svg + svg { position:absolute; inset:0; animation:funny-fill-star 3s ease-in both; }
+@keyframes funny-fill-star { from { opacity:0; } to { opacity:.84; } }
+@keyframes funny-refrost { 0%,20% { opacity:1; } 85%,100% { opacity:0; } }
+.funny-angel-print { width:57px; height:32px; transform:translate(-50%,-50%); animation:funny-refrost 7.8s ease-in forwards; }
+.funny-penguin[data-scene-step="angel-wings"] > svg { rotate:-68deg; scale:1 .88; transition:rotate .32s,scale .32s; }
+.funny-penguin[data-scene-step="stand-up"] > svg { rotate:0deg; transition:rotate .32s; }
+.funny-mouse[data-scene-step="under-snow"] > svg, .funny-mouse[data-scene-step="tail-at-hole"] > svg, .funny-mouse[data-snow-tail="true"] > svg { opacity:0 !important; }
+.funny-mouse[data-scene-step="under-snow"]::after { content:''; position:absolute; width:30px; height:11px; left:50%; top:calc(50% + var(--mound-y,0px)); translate:-50% -50%; border-radius:55% 72% 26% 30%; background:linear-gradient(#fff,#d7ebf4 65%,#abc9d8); box-shadow:0 2px 2px #668a9c66; animation:funny-mound .29s ease-in-out infinite alternate; }
+@keyframes funny-mound { to { scale:.91 1.18; } }
+.funny-mouse[data-scene-step="tail-at-hole"]::after { content:''; position:absolute; width:17px; height:9px; top:49%; left:36%; border:2px solid #ca939b; border-top:0; border-right:0; border-radius:0 0 0 90%; rotate:-14deg; }
+.funny-visitor[data-scene-step="miss-mound"] { --funny-raised-paw:1; }
+.funny-visitor[data-scene-step="miss-mound"] > svg { animation:funny-paw-dip .55s ease-in-out; }
+@keyframes funny-paw-dip { 45% { translate:0 6px; rotate:-9deg; } }
+.funny-gift-ribbon { width:var(--ribbon-width,17px); height:9px; border:3px solid #bc354e; border-top-color:transparent; border-radius:45%; transform:scaleX(var(--ribbon-flip,1)); transform-origin:0 50%; filter:drop-shadow(0 1px #f7c777); }
+.funny-imp[data-scene-step="ribbon-ears"]::after { content:''; position:absolute; inset:16% 10% auto; height:17%; border:3px solid #bd3651; border-top-color:transparent; border-radius:22% 55% 45% 55%; rotate:-6deg; box-shadow:inset 0 -1px #ffda82; }
+.funny-sleigh[data-scene-step="swing-bell"]::after { content:''; position:absolute; left:79%; top:54%; width:11px; height:11px; background:linear-gradient(95deg,#bc842b,#ffe199,#bb7c23); border-radius:60% 60% 18% 18%; border-bottom:2px solid #885c25; box-shadow:0 3px 0 -2px #926020; transform-origin:50% -3px; animation:funny-fog-bell .35s ease-in-out alternate 4; }
+@keyframes funny-fog-bell { from { rotate:-32deg; } to { rotate:32deg; } }
+.funny-deer[data-scene-step="listen-bell"] > svg { opacity:.65; transition:opacity .35s; }
+.funny-wet-boot { width:8px; height:4px; border-radius:65% 40% 40% 60%; background:rgba(65,113,149,var(--wet-ink,.7)); rotate:-18deg; animation:funny-refrost 3.3s forwards; }
+.funny-elf[data-scene-step="tap-boots"] { animation:funny-tap-boots .29s steps(2) 2; }
+@keyframes funny-tap-boots { 50% { --boot-tap:11px; translate:0 -3px; } }
+.funny-boot-snow { width:9px; height:6px; border-radius:65%; background:#f0f9ff; box-shadow:inset 0 -2px #acc8db; animation:funny-boot-fall .8s ease-in forwards; }
+@keyframes funny-boot-fall { 0% { translate:0 -8px; } 60% { translate:6px 4px; } 100% { translate:9px 4px; opacity:0; } }

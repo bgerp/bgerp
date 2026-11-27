@@ -679,4 +679,14 @@ check('a real airborne autumn leaf can snag once and resume downwind from the an
         e.tick(2500);assert(!e.layer().children.includes(piece));
     }
 });
+
+check('winter boots: a dry bank becomes unavailable when snow accumulates on its edge',()=>{
+    const e=environment({icon:'snow',temperature:-4,standalone:false}),w=e.window.funnyWeather;
+    w.trigger('manual');
+    const dry=w.surfaceNear(100,100,'dry',45);assert(dry && dry.valid());
+    assert.equal(w.surfaceNear(100,100,'snow',45),null);
+    e.tick(30000);assert(!dry.valid());assert.equal(w.surfaceNear(100,100,'dry',45),null);
+    const snow=w.surfaceNear(100,100,'snow',45);assert(snow && snow.valid());
+    e.document.emit('pointermove',{clientX:50,clientY:50});assert(!snow.valid());
+});
 console.log(checks+' weather behavior checks passed');

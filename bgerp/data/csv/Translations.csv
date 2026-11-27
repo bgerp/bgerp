@@ -4153,6 +4153,9 @@ en,Ролите са подменени при потребителите,Roles 
 en,Подмяна,Replace
 en,Подмяна на ролите,Replace the roles
 en,Очаква се текст,Text expected
+en,Очаква се списък с оператори,A list of operators is expected
+en,Невалидна стойност за оператор,Invalid operator value
+en,Няма оператор за лице с ID,No operator for person with ID
 en,Очаква се дата,Date expected
 en,Некоректна стойност,Invalid value
 en,Срок на годност,Shelf life

@@ -25,6 +25,9 @@ h1 { margin:0; font-size:21px; } select,button { font:inherit; } output { displa
 <option value="catnap">Муха на котешки нос</option><option value="groove">Пързалка за пингвини</option>
 <option value="antler">Листо на рогата</option><option value="strand">Капка в паяжината</option>
 <option value="wing">Муха в паяжината</option>
+<option value="tunnel">Мишка под снега</option><option value="star">Звезда в скрежа</option>
+<option value="bell">Шейна в мъглата</option><option value="angel">Снежен ангел</option>
+<option value="boots">Мокри ботуши</option><option value="ribbon">Панделката от подаръка</option>
 </select></label>
 <button id="replay">Отначало</button>
 <button id="reverse" hidden>Обърни вятъра</button><button id="thunder" hidden>Светкавица</button>
@@ -35,6 +38,9 @@ h1 { margin:0; font-size:21px; } select,button { font:inherit; } output { displa
 <script>
 /** Only the forecast, clock and test scenery are simulated. Actors use the normal page handlers. */
 const scenarios={
+    tunnel:{actors:['mouse'],weather:'snow',seed:997},star:{actors:['snowmaiden'],weather:'cold',seed:997},
+    bell:{actors:['deer'],weather:'fog',seed:997},angel:{actors:['penguin'],weather:'snow',seed:997},
+    boots:{actors:['elf'],weather:'snow',seed:997},ribbon:{actors:[],weather:'clouds',seed:403},
     march:{actors:['martenitsa','stork'],weather:'sun',seed:997},wolf:{actors:['wolf','bunny','chick'],weather:'rain',seed:11964},
     bath:{actors:['chick'],weather:'rain',seed:997},echo:{actors:['bat'],weather:'fog',seed:997},
     carrot:{actors:['snowman','deer'],weather:'snow',seed:4},spark:{actors:['imp'],weather:'rain',seed:3964},
@@ -45,7 +51,7 @@ const scenarios={
 const params=new URLSearchParams(location.search),select=document.querySelector('#scene');
 const kind=Object.hasOwn(scenarios,params.get('scene'))?params.get('scene'):'march',config=scenarios[kind];
 document.querySelector('#replay').onclick=()=>location.reload();
-select.value=kind;select.onchange=()=>{location.search=new URLSearchParams({scene:select.value});};
+select.value=kind;select.onchange=()=>{if(select.value==='ribbon')location.href='present.html';else location.search=new URLSearchParams({scene:select.value});};
 let seed=Number(params.get('seed'))||config.seed;
 Math.random=()=>((seed=seed*16807%2147483647)-1)/2147483646;
 const ActualDate=Date,month=({antler:9,crumb:9,light:6,catnap:6,groove:0,strand:8,wing:6})[kind]??2;
@@ -53,18 +59,38 @@ window.Date=class extends ActualDate { constructor(...args){super(...args);if(!a
 const wind={x:1,y:0,speed:['wolf','antler','crumb'].includes(kind)?16:7},launch=document.querySelector('#launch'),seen=new Set();
 const names={'on-beak':'На човката',hanging:'На ръба','nose-up':'Подушва въздуха',upwind:'Срещу вятъра','circle-scent':'Обикаля','last-scent':'Последна следа','give-up':'Отказва се','dip-toe':'Пробва с краче','flap-once':'Първи плясък','flap-twice':'Втори плясък','bath-turn':'Пристъпва второто пиле','send-echo':'Две дъги','hear-echo':'Върнато ехо','clear-edge':'Заобиколи ръба','brush-carrot':'Снегът пада','try-carrot':'Втори опит','turn-head':'Скрит морков',discharge:'Искра'};
 Object.assign(names,{'signal-pool':'Два светлинни сигнала','broken-reflection':'Вълничка във водата','nap':'Котето дреме','twitch-ear':'Мухата кацна','paw-on-nose':'Лапа на носа','carve-groove':'Първа бразда','follow-groove':'Втори пингвин','leaf-snag':'Листо на рогата','shake-antlers':'Разклащане','test-strand':'Проба с краче','rush-strand':'Паякът хуква',back:'Трохи по обувките',away:'Трохите отлитат'});
-let since=Infinity,pool=null;
+Object.assign(names,{'under-snow':'Мишката е под снега','miss-mound':'Котето тупна след нея','tail-at-hole':'Опашка до дупката',
+    'trace-star':'Снежанка рисува','admire-star':'Звездата е нарисувана','swing-bell':'Звънчето се люлее','fog-peek':'Еленът намери шейната','angel-wings':'Два маха с криле',
+    'stand-up':'Отпечатък в снега','wet-boots':'Мокри стъпки','tap-boots':'Елфът тупва ботушите'});
+let since=Infinity,pool=null,dry=null;
+if(kind==='ribbon')location.replace('present.html');
 
 /** Position a visible fixture prop in the same coordinates as the visitors. */
 function prop(id,x,y){const node=document.createElement('div');node.id=id;node.style.left=x+'px';node.style.top=y+'px';document.body.appendChild(node);return node;}
 window.funnyWeather={current:()=>config.weather,visible:()=>document.visibilityState==='visible'&&document.hasFocus(),wind:()=>wind,trigger(){},trace(){},sky:()=>null,
     surfaceNear(x,y,type,radius){
+        if(['star','boots','angel','tunnel'].includes(kind)){
+            if(kind==='boots' && type==='dry' && pool){
+                if(!dry){const side=pool.x+145<innerWidth?1:-1,dx=pool.x+side*72,dy=pool.y+19,n=prop('dry',dx-40,dy);
+                    n.style.cssText+=';position:fixed;width:80px;height:10px;background:#b7a487;border-radius:4px';
+                    dry={x:dx,y:dy,left:dx-40,right:dx+40,valid:()=>n.isConnected};}
+                return dry;
+            }
+            if(type!==(kind==='star'?'frost':'snow'))return null;
+            if(kind==='tunnel'&&!document.querySelector('.funny-mouse-hole'))return null;
+            if(!pool){let px=x,py=y;
+                if(kind==='tunnel'){const r=document.querySelector('.funny-mouse-hole').getBoundingClientRect();px=r.left+r.width/2;py=r.top+r.height/2;}
+                const half=kind==='tunnel'?190:kind==='boots'?40:105,n=prop('pool',px-half,py);n.style.width=half*2+'px';
+                n.style.height=kind==='star'?'22px':'9px';n.style.background='linear-gradient(#fff,#c0d8e7)';n.style.borderRadius='5px';
+                pool={x:px,y:py,left:px-half,right:px+half,valid:()=>n.isConnected};}
+            return Math.abs(y-pool.y)<radius&&x>=pool.left-radius&&x<=pool.right+radius?pool:null;
+        }
         const snowy=kind==='groove',half=snowy?125:30;
         if(!['bath','light','groove'].includes(kind)||type!==(snowy?'snow':'water')||(kind==='bath'&&performance.now()-since<4600))return null;
         if(!pool){const node=prop('pool',x-half,y);node.style.width=half*2+'px';if(snowy)node.style.background='#dce8f0';pool={x,y,left:x-half,right:x+half,valid:()=>node.isConnected};}
         return Math.hypot(pool.x-x,pool.y-y)<=radius?pool:null;
     }};
-funnyEffects.init({mode:'selected',characters:config.actors,trigger:'manual',sound:kind==='spark'?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{expires:Infinity,temperature:['carrot','groove'].includes(kind)?-5:12}});
+funnyEffects.init({mode:'selected',characters:config.actors,trigger:'manual',sound:['bell','spark'].includes(kind)?'yes':'no',spriteUrl:'../img/characters.svg',forecast:{expires:Infinity,temperature:['carrot','groove','star','boots','tunnel','angel'].includes(kind)?-5:12}});
 /** Exercise the same visitor notification that a rendered forecast bolt delivers. */
 function flash(){
     if(document.querySelector('#flash'))return;
@@ -129,27 +155,42 @@ window.funnyWeather.dripNear=(x,y)=>{
     return {valid:()=>node.isConnected&&performance.now()-at<1000,reserve:()=>true,position:()=>({x,y:y-35+(performance.now()-at)*.07}),catch:()=>{node.remove();return true;},release:()=>node.remove()};
 };
 /** Aim a repeatable blank-space gesture so the fly's ordinary landing ring passes the prop. */
-function summonFly(x,y) {
+function summonAt(x,y,character='fly',hole=null) {
     const random=Math.random,size=Math.min(innerWidth,innerHeight);
     const directions=[{angle:0,dx:1,dy:0},{angle:.5,dx:-1,dy:0},{angle:.25,dx:0,dy:1},{angle:.75,dx:0,dy:-1}];
     const launchBox=launch.getBoundingClientRect();
     const spots=directions.map(d=>{
         const radius=size*(.23+.11*d.angle),px=x-d.dx*radius,py=y-d.dy*radius;
         return {...d,px,py,distance:Math.hypot(px-launchBox.left-launchBox.width/2,py-launchBox.top-launchBox.height/2)};
-    }).filter(p=>p.px>20&&p.px<innerWidth-20&&p.py>170&&p.py<innerHeight-20).sort((a,b)=>a.distance-b.distance);
+    }).filter(p=>p.px>20&&p.px<innerWidth-20&&p.py>(hole?40:170)&&p.py<innerHeight-20);
+    if(hole)spots.sort((a,b)=>Math.hypot(b.px-hole.x,b.py-hole.y)-Math.hypot(a.px-hole.x,a.py-hole.y));
+    else spots.sort((a,b)=>a.distance-b.distance);
     if(!spots.length)return;
     const p=spots[0],target=document.elementFromPoint(p.px,p.py);
     if(!target)return;
-    config.actors.splice(0,1,'fly');
+    config.actors.splice(0,config.actors.length,character);
     Math.random=()=>p.angle;
     try {target.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:p.px,clientY:p.py}));}
     finally {Math.random=random;}
     if(kind==='catnap'){Math.random=()=>.24;setTimeout(()=>{Math.random=random;},1000);}
 }
+if(kind==='bell')launch.addEventListener('dblclick',event=>{
+    if(event.isTrusted)setTimeout(()=>{const deer=document.querySelector('.funny-deer');if(!deer)return;
+        const r=deer.getBoundingClientRect();summonAt(r.left+r.width/2+(r.left>innerWidth/2?-110:110),r.top+r.height/2,'sleigh');},850);
+});
+if(kind==='tunnel'){
+    document.querySelector('#help').textContent='Двоен клик извиква първата мишка. Когато тя издълбае дупка, ще дойдат втора мишка и коте.';
+    const holes=new MutationObserver(()=>{
+        const hole=document.querySelector('.funny-mouse-hole');if(!hole)return;
+        holes.disconnect();
+        const x=parseFloat(hole.style.left),y=parseFloat(hole.style.top),side=x>innerWidth/2?-1:1;
+        summonAt(x+side*45,y+(y>innerHeight/2?-85:85),'cat',{x,y});setTimeout(()=>summonAt(x+side*145,y,'mouse',{x,y}),100);
+    });holes.observe(document.body,{childList:true});
+}
 if(kind==='catnap')launch.addEventListener('dblclick',event=>{
     if(!event.isTrusted)return;
     setTimeout(()=>{const cat=document.querySelector('.funny-cat');if(!cat)return;
-        const r=cat.getBoundingClientRect();summonFly(r.left+r.width/2,r.top+r.height/2+(r.top>innerHeight/2?-90:90));
+        const r=cat.getBoundingClientRect();summonAt(r.left+r.width/2,r.top+r.height/2+(r.top>innerHeight/2?-90:90));
     },950);
 });
 /** Summon a real fly only once the spider has spun its web. */
@@ -157,7 +198,7 @@ if(kind==='wing'){
     const watch=new MutationObserver(()=>{
         const web=document.querySelector('.funny-spider-thread');if(!web)return;
         watch.disconnect();
-        const r=web.getBoundingClientRect();summonFly((r.left+r.right)/2,(r.top+r.bottom)/2);
+        const r=web.getBoundingClientRect();summonAt((r.left+r.right)/2,(r.top+r.bottom)/2);
     });
     watch.observe(document.body,{childList:true});
 }

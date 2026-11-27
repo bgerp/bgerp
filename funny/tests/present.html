@@ -20,6 +20,7 @@
 <button id="place" type="button">Постави контроли под подаръка</button>
 <button id="remove" type="button">Прибери контролите</button>
 <output id="status">Изчакване на подарък</output>
+<output id="ribbon"></output>
 <output id="roster">Герои: 0</output>
 <div id="launch"></div>
 <div id="probe" hidden>
@@ -43,6 +44,16 @@
         setTimeout(function () { Math.random = nativeRandom; }, 0);
     });
     funnyEffects.init({mode:'auto',trigger:'manual',frequency:'normal',sound:'yes',spriteUrl:'../img/characters.svg?preview=' + NativeDate.now()});
+    // Retain the last visible stage so short poses can be verified after the box closes.
+    const ribbonStatus = document.getElementById('ribbon');
+    new MutationObserver(records => {
+        if (!ribbonStatus.textContent && document.querySelector('.funny-gift-ribbon')) ribbonStatus.textContent='Панделката остана от смачканата кутия';
+        for (const record of records) {
+            const pose=record.target.getAttribute && record.target.getAttribute('data-scene-step');
+            if (pose==='pull-ribbon') ribbonStatus.textContent='Гремлинът дърпа панделката';
+            if (pose==='ribbon-ears') ribbonStatus.textContent='Панделката се уви около ушите';
+        }
+    }).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-scene-step']});
     var clicks = 0, links = 0, probe = document.getElementById('probe'), giftStatus = document.getElementById('status');
     document.getElementById('test-button').addEventListener('click', function () { this.textContent = 'Кликове: ' + (++clicks); });
     document.getElementById('test-link').addEventListener('click', function () { this.textContent = 'Линкът работи: ' + (++links); });

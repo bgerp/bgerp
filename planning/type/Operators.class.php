@@ -27,7 +27,8 @@ class planning_type_Operators extends type_Keylist
 
 
     /**
-     * Конвертира стойността от вербална към (int)
+     * Преобразува операторски кодове в keylist от лица. Структурираният вход
+     * ['operatorRefs' => [...]] приема и ID-та, които трябва да имат оператор.
      *
      * @param mixed $value
      * @see core_Type::fromVerbal_()
@@ -35,6 +36,13 @@ class planning_type_Operators extends type_Keylist
      */
     public function fromVerbal_($value)
     {
+        if (is_array($value) && array_key_exists('operatorRefs', $value)) {
+            $value = $this->codesFromReferences($value['operatorRefs']);
+            if ($value === false) {
+                return false;
+            }
+        }
+
         if(!empty($value)){
             if(is_array($value)){
                 $value = implode(',', $value);
@@ -54,6 +62,42 @@ class planning_type_Operators extends type_Keylist
         }
 
         return $value;
+    }
+
+
+    /**
+     * Преобразува подадените ID-та на лица в операторски кодове за обичайната проверка на формата.
+     * Списъкът може да съдържа и текстови кодове. При липсващ оператор отказва целия списък.
+     *
+     * @param array $refs
+     * @return string|false
+     */
+    protected function codesFromReferences($refs)
+    {
+        if (!is_array($refs)) {
+            $this->error = 'Очаква се списък с оператори';
+            return false;
+        }
+        $codes = array();
+        foreach ($refs as $ref) {
+            if (!is_int($ref) && !is_string($ref)) {
+                $this->error = 'Невалидна стойност за оператор';
+                return false;
+            }
+            if (is_int($ref) || ctype_digit(trim($ref))) {
+                $personId = trim((string) $ref);
+                $code = planning_Hr::fetchField(array("#personId = '[#1#]'", $personId), 'code');
+                if ($code === null || $code === false || $code === '') {
+                    $this->error = 'Няма оператор за лице с ID|* ' . $personId;
+                    return false;
+                }
+                $codes[] = $code;
+            } else {
+                $codes[] = trim($ref);
+            }
+        }
+
+        return implode(',', $codes);
     }
 
 

@@ -1,5 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg">
   <symbol id="accessory-shadow" viewBox="0 0 120 100"><ellipse cx="60" cy="96" rx="32" ry="4" fill="#405064"/></symbol>
+  <symbol id="frost-drawing" viewBox="0 0 120 100">
+    <defs><mask id="funny-star-cut"><rect width="120" height="100" fill="white"/>
+      <path d="M60 13L82 80 24.8 38.6h70.4L38 80z" fill="none" stroke="black" stroke-width="8" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" style="stroke-dashoffset:var(--star-dash,1)"/>
+    </mask></defs>
+    <path d="M3 52Q3 10 40 12q31-23 61 0 27 26 12 55-9 28-46 23Q8 105 3 52" fill="#d3e9f3" opacity=".84" mask="url(#funny-star-cut)"/>
+    <path d="M60 13L82 80 24.8 38.6h70.4L38 80z" fill="none" stroke="#7698aa" stroke-opacity=".6" stroke-width="2.5" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" style="stroke-dashoffset:var(--star-dash,1)"/>
+  </symbol>
+  <symbol id="refrost-stroke" viewBox="0 0 120 100">
+    <path d="M60 13L82 80 24.8 38.6h70.4L38 80z" fill="none" stroke="#d3e9f3" stroke-width="8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="angel-print" viewBox="0 0 120 100">
+    <g fill="#bad3e3" stroke="#96b5c7" stroke-width="2">
+      <path d="M54 57Q36 16 9 29q2 25 34 41-21-2-24 9 24 10 39-7m9-15q18-41 45-28-2 25-34 41 21-2 24 9-24 10-39-7"/>
+      <ellipse cx="60" cy="58" rx="13" ry="23"/><circle cx="60" cy="32" r="10"/>
+    </g>
+  </symbol>
   <symbol id="mouse" viewBox="0 0 120 100">
     <path d="M30 69Q-2 49 10 32q12-13 19-3" fill="none" stroke="#c9a7a5" stroke-width="4" stroke-linecap="round"/>
     <ellipse cx="53" cy="63" rx="30" ry="22" fill="#9da5b0" stroke="#707d8c" stroke-width="2"/>
@@ -23,7 +39,10 @@
     <path d="M26 88v4m6-4v4m35-4v4m6-4v4" stroke="#8ca6b6" stroke-width="2"/>
   </symbol>
   <symbol id="penguin" viewBox="0 0 120 100">
-    <path d="M40 48Q14 54 24 75l20-11m36-16q26 6 16 27L76 64" fill="#35465d" stroke="#203247" stroke-width="2"/>
+    <g fill="#35465d" stroke="#203247" stroke-width="2">
+      <path d="M40 48Q14 54 24 75l20-11" style="transform-origin:40px 49px;transform:rotate(var(--flipper-turn,0deg))"/>
+      <path d="M80 48q26 6 16 27L76 64" style="transform-origin:80px 49px;transform:rotate(calc(0deg - var(--flipper-turn,0deg)))"/>
+    </g>
     <ellipse cx="45" cy="90" rx="16" ry="6" fill="#efad4b"/><ellipse cx="77" cy="90" rx="16" ry="6" fill="#efad4b"/>
     <path d="M32 61V35q0-25 28-25t28 25v26q0 29-28 29T32 61" fill="#35465d" stroke="#203247" stroke-width="2"/>
     <path d="M42 35q0-16 18-6 18-10 18 6v12q8 11 7 22-1 17-25 17S36 79 35 68q-1-11 7-21z" fill="#f4fafc"/>
@@ -139,7 +158,10 @@
   </symbol>
   <symbol id="elf-body" viewBox="0 0 120 100">
     <path d="M49 70l-4 18m24-18 5 18" stroke="#e4bd77" stroke-width="9"/>
-    <path d="M44 86l-12 6 17 1m25-7 14 6-18 1" fill="#467c67" stroke="#467c67" stroke-width="5" stroke-linejoin="round"/>
+    <g fill="#467c67" stroke="#467c67" stroke-width="5" stroke-linejoin="round">
+      <path d="M44 86l-12 6 17 1" style="transform:translateX(var(--boot-tap,0px))"/>
+      <path d="M74 86l14 6-18 1" style="transform:translateX(calc(0px - var(--boot-tap,0px)))"/>
+    </g>
     <path d="M42 48L26 61m52-13 15 13" stroke="#edc2a0" stroke-width="9" stroke-linecap="round"/>
     <path d="M44 45h31l9 28H35z" fill="#579b7e"/>
     <path d="M39 65h40" stroke="#725540" stroke-width="5"/><rect x="55" y="61" width="10" height="8" rx="1" fill="#e7c666"/>
@@ -159,7 +181,8 @@
   <symbol id="snowmaiden" viewBox="0 0 120 100">
     <path d="M46 83v10h-8m36-10v10h8" fill="none" stroke="#507393" stroke-width="8" stroke-linecap="round"/>
     <path d="M43 44L29 62m48-18 14 18" fill="none" stroke="#75bce2" stroke-width="11" stroke-linecap="round"/>
-    <path d="M29 59l-4 6m66-6 4 6" stroke="#eaf6ff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M29 59l-4 6" stroke="#eaf6ff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M91 59l4 6" stroke="#eaf6ff" stroke-width="9" stroke-linecap="round" style="transform:translate(var(--finger-x,0px),var(--finger-y,0px))"/>
     <path d="M44 43h32l12 43q-28 9-56 0z" fill="#7ebde1" stroke="#4e8db4" stroke-width="2"/>
     <path d="M60 46v40m-24-3q24 9 48 0" fill="none" stroke="#f2f9ff" stroke-width="7" stroke-linecap="round"/>
     <path d="M45 40q-5 14-3 25m33-25q5 14 3 25" fill="none" stroke="#d9ac60" stroke-width="8" stroke-linecap="round"/>
@@ -182,7 +205,7 @@
     <path d="M85 51l4-20" stroke="#b38460" stroke-width="16" stroke-linecap="round"/>
     <path d="M81 22L71 8m5 7-11 1m24 8 5-17m-1 8 10-5" stroke="#76553f" stroke-width="4" fill="none" stroke-linecap="round"/>
     <ellipse cx="90" cy="31" rx="16" ry="13" fill="#c79b72"/>
-    <path d="M79 27Q58 14 68 35" fill="#b38460"/>
+    <path d="M79 27Q58 14 68 35" fill="#b38460" style="transform-origin:79px 27px;transform:rotate(var(--bell-ear,0deg))"/>
     <ellipse cx="101" cy="37" rx="11" ry="7" fill="#e1ba90"/><circle cx="109" cy="34" r="5" fill="#d9505b"/>
     <circle cx="92" cy="27" r="3" fill="#473d40"/>
     <path d="M79 45l17 5" stroke="#c94f59" stroke-width="7"/><circle cx="90" cy="52" r="4" fill="#f3d184"/>

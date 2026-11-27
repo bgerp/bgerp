@@ -3404,3 +3404,82 @@ check('small encounters: only the final unswept bite leaves loose crumbs after a
     const loose=e.document.body.children.filter(n=>n.className.includes('funny-last-crumbs'));assert.equal(loose.length,1);
     e.tick(2000);assert(e.document.body.children.includes(loose[0]));e.tick(4600);assert(!e.document.body.children.includes(loose[0]));
 });
+
+/** A visible winter bank and the normal summon handler, with detachable snow and dry edges. */
+function winterFixture(kind, options={}) {
+    const cast={star:['snowmaiden'],angel:['penguin'],boots:['elf'],bell:['deer','sleigh']};
+    const config={seed:kind==='bell'?4:997,width:1400,height:1000,weather:kind==='star'?'cold':kind==='bell'?'fog':'snow',...options};
+    const e=environment({mode:'selected',characters:cast[kind],trigger:'manual',sound:options.sound || 'no',forecast:{expires:Infinity,temperature:-5}},config);
+    let valid=true,bank,dry;
+    e.window.funnyWeather.visible=()=>valid;
+    e.window.funnyWeather.surfaceNear=(x,y,type)=>{
+        if(!valid || options.bare)return null;
+        if(type===(kind==='star'?'frost':'snow'))return bank||={x,y,left:x-90,right:x+90,valid:()=>valid};
+        if(kind==='boots' && type==='dry' && !options.noDry)return dry||={x:x+80,y:y+10,left:x+60,right:x+160,valid:()=>valid};
+        return null;
+    };
+    e.click();
+    return {e,invalidate(){valid=false;}};
+}
+check('winter visits: a lone penguin sweeps twice and leaves a print on real snow',()=>{
+    const {e}=winterFixture('angel'),p=waitPose(e,'angel-wings');
+    e.tick(340);assert(parseFloat(p.style['--flipper-turn'])>25);e.tick(450);assert(parseFloat(p.style['--flipper-turn'])<4);
+    e.tick(370);assert(parseFloat(p.style['--flipper-turn'])>25);waitPose(e,'stand-up');
+    const mark=e.document.body.children.find(n=>n.className.includes('angel-print'));assert(mark);e.tick(8400);assert(!e.document.body.children.includes(mark));
+});
+check('winter visits: mitten draws a star through real frost and refills after the last stroke',()=>{
+    const {e}=winterFixture('star');waitPose(e,'trace-star');e.tick(600);
+    const mark=e.document.body.children.find(n=>n.className.includes('frost-drawing'));assert(mark);
+    assert(parseFloat(mark.style['--star-dash'])>0 && parseFloat(mark.style['--star-dash'])<1);e.tick(1100);
+    assert.equal(mark.attrs['data-filled'],'true');assert.equal(mark.children.length,2);
+});
+check('winter visits: boots leave three diminishing prints only on a dry edge after crossing snow',()=>{
+    const {e}=winterFixture('boots');waitPose(e,'tap-boots');
+    const prints=e.document.body.children.filter(n=>n.className.includes('funny-wet-boot'));assert.equal(prints.length,3);
+    assert.deepEqual(prints.map(n=>Number(n.style['--wet-ink']).toFixed(2)),['0.85','0.59','0.33']);
+    e.tick(750);assert(e.document.body.children.some(n=>n.className.includes('boot-snow')));
+    assert(watchVisitors(winterFixture('boots',{noDry:true}).e,6500).every(v=>!v.history.some(([,x])=>x==='wet-boots')));
+});
+check('winter visits: absent or lost weather releases the print, the frost drawing and unfinished steps',()=>{
+    for(const [kind,step] of [['angel','angel-wings'],['star','trace-star'],['boots','wet-boots']]){
+        const {e,invalidate}=winterFixture(kind),v=waitPose(e,step);
+        invalidate();e.tick(1000);assert(!v.attrs['data-weather-act']);assert(!e.document.body.children.some(n=>n.className.includes('funny-winter-mark')));
+        assert(watchVisitors(winterFixture(kind,{bare:true}).e,6000).every(v=>!v.history.some(([,p])=>p===step)));
+    }
+});
+check('winter visits: a silent or audible sleigh swings its bell and the deer finds it in fog',()=>{
+    for(const sound of ['no','yes']){
+        const {e}=winterFixture('bell',{sound}),sled=waitPose(e,'swing-bell');
+        const deer=waitPose(e,'fog-peek');assert.notEqual(sled,deer);
+        const highNotes=e.sounds.filter(n=>n.frequency===2093);
+        assert.equal(highNotes.length,sound==='yes'?1:0);
+        e.window.emit('blur');assert(!sled.attrs['data-weather-act']&&!deer.attrs['data-weather-act']);
+    }
+});
+check('winter visits: only a fully opened box leaves one ribbon which reaches one pair of ears',()=>{
+    const {e,present}=presentFixture({width:1400,height:1000}),p=e.center(present);
+    const ribbons=()=>e.document.body.children.filter(n=>n.className.includes('funny-gift-ribbon'));
+    e.click({clientX:p.x,clientY:p.y});e.document.emit('pointermove',e.event({clientX:5,clientY:5}));
+    let opened=e.document.body.children.find(n=>n.className.includes('funny-present-open'));assert(opened);
+    while(e.document.body.children.includes(opened) && e.now()<24000) {assert.equal(ribbons().length,0);e.tick(32);}
+    assert.equal(ribbons().length,1);waitPose(e,'pull-ribbon');waitPose(e,'ribbon-ears');e.tick(1450);assert.equal(ribbons().length,0);
+    const other=presentFixture();other.e.tick(40000);assert(!other.e.document.body.children.some(n=>n.className.includes('funny-gift-ribbon')));
+});
+check('winter visits: a mouse tunnels on a continuous bank and a cat strikes the vacated spot',()=>{
+    let roll=null,seed=997;const choices=['mouse'];
+    const e=environment({mode:'selected',characters:choices,trigger:'manual',sound:'no',forecast:{temperature:-5,expires:Infinity}},
+        {width:1280,height:720,weather:'snow',random:()=>roll??((seed=seed*16807%2147483647)-1)/2147483646});
+    e.window.funnyWeather.visible=()=>true;
+    e.click();let hole;
+    for(let t=0;t<48000&&!hole;t+=50){e.tick(50);hole=e.document.body.children.find(n=>n.className==='funny-mouse-hole');}
+    assert(hole);const x=parseFloat(hole.style.left),y=parseFloat(hole.style.top),side=x<640?1:-1;
+    const bank={x,y,left:x-190,right:x+190,valid:()=>true};
+    e.window.funnyWeather.surfaceNear=(px,py,type,radius)=>type==='snow' && Math.abs(y-py)<radius?bank:null;
+    // Put both launches on the far side of the bank so neither pointer crosses the entrance.
+    roll=side>0?.5:0;const offset=side*720*(.23+.11*roll);
+    choices[0]='cat';e.click({clientX:x+side*45+offset,clientY:y-85});e.tick(100);
+    choices[0]='mouse';e.click({clientX:x+side*145+offset,clientY:y});roll=null;
+    const mouse=waitPose(e,'under-snow');waitPose(e,'miss-mound');waitPose(e,'tail-at-hole');e.tick(550);
+    assert(mouse.className.includes('funny-burrowing'));assert(!mouse.attrs['data-swallowed']);
+    assert.equal(hole.createdAt,e.document.body.children.find(n=>n.className==='funny-mouse-hole').createdAt);
+});
