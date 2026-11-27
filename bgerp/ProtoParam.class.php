@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -147,7 +147,20 @@ abstract class bgerp_ProtoParam extends embed_Manager
      */
     public static function fetchIdBySysId($sysId)
     {
-        return static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
+        // Ид-тата по sysId не се сменят - помнят се за хита, понеже драйверите ги търсят при всяко четене на параметрите
+        static $ids = array();
+        $key = get_called_class() . '|' . $sysId;
+        if (!empty($ids[$key])) {
+
+            return $ids[$key];
+        }
+
+        $id = static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
+        if (!empty($id)) {
+            $ids[$key] = $id;
+        }
+
+        return $id;
     }
     
     

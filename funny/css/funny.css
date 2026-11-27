@@ -620,3 +620,74 @@
 @keyframes funny-nose-drops { to { opacity:0; transform:translateY(7px) scale(.4); } }
 
 .funny-blackcat[data-weather-act="nose-splash"]::after { left:49%; top:40%; }
+
+/* Brief poses on the actors keep the application surface available for input. */
+.funny-visitor[data-scene-step="pounce"] > svg:not(.funny-sun-shadow) { animation: funny-shadow-pounce .4s ease-out; }
+.funny-visitor[data-scene-step="pounce"]::after { content:''; position:absolute; top:76%; left:34%; width:9px; height:6px; border-radius:50%; background:#ad815e; box-shadow:13px 0 currentColor; color:#ad815e; }
+.funny-blackcat[data-scene-step="pounce"]::after { background:#514857; color:#514857; }
+.funny-visitor[data-scene-step="look-down"] > svg:first-child { transform:translateY(3px) rotate(10deg); }
+.funny-visitor[data-scene-step="look-up"] > svg:first-child { transform:translateY(-3px) rotate(-13deg); }
+@keyframes funny-shadow-pounce { 25% { transform:scale(1.1,.87); } 65% { transform:translateY(-9px) rotate(-6deg); } }
+.funny-sailing-silk { height:1px; background:#dde7ec; box-shadow:0 1px 1px #8094a599; transform-origin:left; }
+.funny-spiders[data-scene-step="sail"] > svg { transform:rotate(-12deg); }
+.funny-spiders[data-scene-step="grip"] > svg { transform:scale(1.15,.8); }
+.funny-zombie[data-scene-step] { --funny-zombie-shoe:0; }
+.funny-zombie[data-scene-step=""] { --funny-zombie-shoe:1; }
+.funny-zombie[data-scene-step="sock-step"] > svg:first-child { animation:funny-shoe-hop .38s ease-in-out infinite; }
+.funny-zombie[data-scene-step="notice-shoe"] > svg:first-child { transform:rotate(12deg); }
+@keyframes funny-shoe-hop { 50% { transform:translateY(-4px) rotate(-5deg); } }
+.funny-lost-shoe { width:13px; height:6px; margin:-4px 0 0 -6px; border-radius:4px 7px 3px 3px; background:#47434e; border-bottom:2px solid #746778; }
+.funny-shoe-ripple i { width:14px; height:5px; border:1px solid #69a9c7; border-radius:50%; animation:funny-shoe-ripple .75s ease-out both; }
+@keyframes funny-shoe-ripple { from { transform:translate(-50%,-50%) scale(.4); } to { transform:translate(-50%,-50%) scale(2.1); opacity:0; } }
+.funny-visitor[data-weather-act="fog-vanish"] > svg { opacity:.06; transition:opacity .34s; }
+.funny-visitor[data-weather-act="fog-vanish"][data-scene-step="peek"] > svg { opacity:.96; transform:rotate(-12deg); }
+.funny-visitor[data-weather-act="fog-search"] > svg { animation:funny-fog-search .95s ease-in-out infinite alternate; }
+@keyframes funny-fog-search { from { transform:rotate(-8deg); } to { transform:rotate(9deg); } }
+.funny-snowmaiden[data-scene-step^="tap-"]::after { content:''; position:absolute; top:55%; left:50%; width:var(--funny-wand-length); height:2px; background:#9a7551; border-radius:2px; transform-origin:left; transform:rotate(var(--funny-wand-angle)); }
+.funny-butterfly[data-scene-step="carry-pollen"]::after, .funny-butterfly[data-scene-step="deliver"]::after { content:''; position:absolute; top:70%; left:47%; width:3px; height:3px; border-radius:50%; background:#ecb22f; box-shadow:3px 2px #ffd65c,-3px 1px #e7aa29; }
+.funny-spring-flower[data-pollinated="true"] i { scale:1.45; transition:scale .45s; box-shadow:-5px 0 #e795c9,5px 0 #e795c9,0 -5px #e795c9,0 5px #e795c9; }
+
+/* These poses act on the existing sprites; rings and echoes live in the click-through trace layer. */
+.funny-martenitsa[data-scene-step="on-beak"] > svg:first-child { transform:rotate(7deg); transform-origin:50% 10%; }
+.funny-wolf[data-scene-step="nose-up"] > svg:first-child { transform:rotate(-13deg); }
+.funny-wolf[data-scene-step="give-up"] > svg:first-child { animation:funny-sniff .45s ease-in-out; }
+.funny-chick[data-scene-step="dip-toe"] > svg:first-child { transform:rotate(-11deg) translateY(-2px); }
+.funny-chick[data-scene-step^="flap-"] > svg:first-child { transform:translateY(3px) scale(1.04,.94); }
+.funny-bath-ripple i { width:16px; height:5px; border:1px solid #539ac1; border-radius:50%; animation:funny-shoe-ripple .8s ease-out both; }
+.funny-echo-out i, .funny-echo-back i { width:19px; height:9px; margin-left:-10px; border-bottom:2px solid #7789a8; border-radius:50%; animation:funny-sonar .37s ease-out both; }
+.funny-echo-out i:nth-child(2) { animation-delay:.15s; }
+.funny-echo-back i { border-top:1px solid #8295ae; border-bottom:0; }
+@keyframes funny-sonar { from { opacity:.18; transform:scale(.4); } 35% { opacity:.85; } to { opacity:0; transform:translate(var(--x),var(--y)) scale(1.45); } }
+.funny-bat[data-scene-step="fold-left"] { --funny-left-wing:.35; }
+.funny-bat[data-scene-step="fold-right"] { --funny-right-wing:.35; }
+.funny-deer[data-weather-act="carrot-nudge"] > svg { transform:scaleX(var(--funny-deer-face,1)); }
+.funny-snowman[data-scene-step="turn-head"] { --funny-head-facing:-1; }
+.funny-imp[data-static="true"] { --funny-static-fur:1; }
+.funny-ear-spark i { width:12px; height:9px; margin:-4px 0 0 -6px; background:#e1aa42; clip-path:polygon(0 48%,45% 0,42% 40%,100% 10%,48% 100%,50% 55%); animation:funny-static-spark .26s ease-out both; }
+@keyframes funny-static-spark { 0% { transform:scale(.6); } 35% { opacity:1; transform:scale(1.2); } 100% { opacity:0; } }
+
+/* Short encounters animate existing visitors and the bounded, click-through trace layer. */
+.funny-witch[data-reaction="sweep"][data-sweep-wind="away"] > svg { animation-iteration-count:1; }
+.funny-swept-pile[data-sweep-wind="back"] i:nth-child(3n) { --sweep-x:-38px; --sweep-y:-12px; }
+.funny-swept-pile[data-sweep-wind] i { animation-name:funny-wind-sweep; }
+@keyframes funny-wind-sweep { from { transform:translate(var(--x),var(--y)); } 35%,50% { transform:translate(0,0); } 62% { transform:translate(-13px,-9px); } 83%,92% { opacity:.9; transform:translate(calc(var(--sweep-x) + var(--scatter)*.18),var(--sweep-y)); } to { opacity:0; transform:translate(var(--sweep-x),var(--sweep-y)); } }
+.funny-firefly[data-scene-step="signal-pool"] > svg:first-child, .funny-light-reflection svg { animation:funny-double-glow .57s ease-in-out 2; }
+@keyframes funny-double-glow { from,to { filter:brightness(.83); } 45% { filter:brightness(1.3) drop-shadow(0 0 5px #f5d95f); } }
+.funny-light-reflection { opacity:.55; }
+.funny-visitor[data-scene-step="nap"], .funny-visitor[data-scene-step="twitch-ear"] { --funny-cat-blink:.14; }
+.funny-visitor[data-scene-step="twitch-ear"] { --funny-ear-turn:-37deg; }
+.funny-visitor[data-scene-step="paw-on-nose"] { --funny-raised-paw:1; --funny-cat-blink:.3; }
+.funny-fly[data-weather-act="nose-fly"] { z-index:10001; }
+.funny-fly[data-weather-act="nose-fly"] > svg { scale:.44; }
+.funny-penguin[data-scene-step$="-groove"] > svg:first-child { rotate:var(--belly-turn,70deg); }
+.funny-snow-groove { position:fixed; z-index:9998; pointer-events:none; height:4px; border-radius:50%; border-top:1px solid #b2cede; background:linear-gradient(#7da4bc99,#e8f7ff); transform:scaleX(var(--groove-side)); transform-origin:left; animation:funny-fade-trace 8.5s ease-in forwards; }
+@keyframes funny-fade-trace { 0%,40% { opacity:.95; } 80% { opacity:.35; } to { opacity:0; } }
+.funny-deer[data-scene-step="leaf-snag"] > svg:first-child { rotate:-5deg; }
+.funny-deer[data-scene-step="shake-antlers"] > svg:first-child { animation:funny-antlers .36s ease-in-out 2; }
+@keyframes funny-antlers { 25% { rotate:7deg; } 75% { rotate:-7deg; } }
+.funny-spiders[data-scene-step="test-strand"] { --funny-test-leg:25deg; }
+.funny-spider-thread[data-signal] > svg { animation:funny-strand-pulse .24s ease-in-out 2; }
+.funny-spider-thread[data-signal="rush-strand"] > svg { --strand-shift:4px; animation-duration:.16s; animation-iteration-count:4; }
+@keyframes funny-strand-pulse { 25% { translate:0 var(--strand-shift,1px); } 75% { translate:0 calc(-1 * var(--strand-shift,1px)); } }
+.funny-last-crumbs { animation:funny-fade-trace 6.5s ease-in forwards; }
+.funny-last-crumbs::before { animation:funny-fade-trace 1.5s ease-in forwards; }

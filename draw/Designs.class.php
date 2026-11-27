@@ -86,6 +86,10 @@ class draw_Designs extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,draw';
+
+    public $canExport = 'ceo,admin,draw';
+
+    public $canImport = 'drawMaster,ceo,admin';
     
     
     /**
@@ -137,6 +141,67 @@ class draw_Designs extends core_Master
         $this->FLD('script', 'text(rows=20)', 'caption=Скрипт');
 
         $this->setDbUnique('name');
+    }
+
+
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if ($mvc->haveRightFor('export')) {
+            $data->toolbar->addBtn('Експорт', array($mvc, 'export'), 'ef_icon=img/16/export.png,title=Сваляне на всички скриптове като JSON');
+        }
+        if ($mvc->haveRightFor('import')) {
+            $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'ret_url' => true), 'ef_icon=img/16/import.png,title=Зареждане на скриптове от JSON');
+        }
+    }
+
+
+    public function act_Export()
+    {
+        $this->requireRightFor('export');
+        $json = draw_ScriptArchive::export($this);
+        $this->logRead('Експорт на скриптове');
+
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="draw-scripts-' . date('Y-m-d') . '.json"');
+        header('Cache-Control: no-store');
+        echo $json;
+        shutdown();
+    }
+
+
+    public function act_Import()
+    {
+        $this->requireRightFor('import');
+        $retUrl = getRetUrl() ?: array($this, 'list');
+        $form = cls::get('core_Form');
+        $form->title = 'Импорт на скриптове';
+        $form->FLD('archive', 'fileman_FileType(bucket=import)', 'caption=JSON файл,mandatory');
+        $form->FLD('existing', 'enum(skip=Пропускане,update=Обновяване на кода и поредния номер)', 'caption=При съвпадение по име,mandatory');
+        $form->setDefault('existing', 'skip');
+        $form->info = tr('Новите скриптове се добавят със състоянието от файла. При обновяване се запазват местното състояние и историята. Оттеглените местни скриптове се пропускат.');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $file = fileman_Files::fetchByFh($form->rec->archive);
+            if (empty($file->dataId) || !fileman_Files::haveRightFor('single', $file)) {
+                $form->setError('archive', 'Файлът е недостъпен');
+            } else {
+                try {
+                    $rows = draw_ScriptArchive::decode(fileman_Files::getContent($file->fileHnd));
+                    $counts = draw_ScriptArchive::import($this, $rows, $form->rec->existing === 'update');
+                    $msg = "|Добавени|*: {$counts['added']}, |обновени|*: {$counts['updated']}, |пропуснати|*: {$counts['skipped']}";
+
+                    return new Redirect($retUrl, $msg);
+                } catch (InvalidArgumentException $e) {
+                    $form->setError('archive', $e->getMessage());
+                }
+            }
+        }
+
+        $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon=img/16/import.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon=img/16/close-red.png');
+
+        return $this->renderWrapping($form->renderHtml());
     }
     
     

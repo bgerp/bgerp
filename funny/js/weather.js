@@ -21,6 +21,7 @@
         trigger: function () {},
         wind: function () { return {x:0,y:0,speed:0}; },
         surfaceNear: function () { return null; },
+        iciclesNear: function () { return null; },
         dripNear: function () { return null; },
         heat: function () {},
         visible: function () { return false; },
@@ -194,9 +195,10 @@
                         shape.style.setProperty('--turn-to', (40 + Math.random() * 160) + 'deg');
                         shape.style.animationDelay = -Math.random() * 4 + 's';
                         shape.style.animationDirection = Math.random() < 0.5 ? 'alternate' : 'alternate-reverse';
+                        var item = details[details.length-1];
+                        if (season === 'leaf') item.airborneFrom = time+delay;
                         if (season === 'leaf' && i === 0 && restingEdges.length) {
                             var edge = restingEdges[Math.floor(Math.random() * restingEdges.length)];
-                            var item = details[details.length - 1];
                             item.rest = {x:(edge.left + edge.right) / 2,y:edge.top - 13,from:time + delay + duration * 0.35,to:time + delay + duration * 0.65};
                             piece.classList.add('funny-weather-resting');
                             piece.style.setProperty('--rest-x', (edge.left + (edge.right - edge.left) / 2 - x) + 'px');
@@ -261,7 +263,10 @@
                     bank.node.style.width = (bank.right - bank.left) + 'px';
                     if (weather.indexOf('snow') >= 0 && typeof options.temperature === 'number' && options.temperature < 0 &&
                         bank.amount > 0.8 && bank.right - bank.left >= 40 && iceCount < (gentle ? 3 : 6)) {
-                        if (!bank.ice) bank.ice = element('icicles', bank.node);
+                        if (!bank.ice) {
+                            bank.ice = element('icicles', bank.node);
+                            ['short','long','tip'].forEach(function (size) { element('icicle-' + size, bank.ice); });
+                        }
                         bank.ice.style.height = Math.min(24, bank.amount * 2) * strength + 'px'; iceCount++;
                     } else if (bank.ice) { bank.ice.remove(); bank.ice = null; }
                     return bank;
@@ -553,6 +558,31 @@
                     if (bank.ice && bank.amount < 0.8) { bank.ice.remove(); bank.ice = null; }
                 });
             };
+            /** Two icicles on the same snowy edge can ring separately while that edge is visible. */
+            window.funnyWeather.iciclesNear = function (x, y, radius) {
+                if (!window.funnyWeather.visible()) return null;
+                var nearest = radius, pair = null;
+                banks.forEach(function (bank) {
+                    if (!bank.ice || parseFloat(bank.ice.style.height) < 3) return;
+                    var ice = bank.ice, a = ice.children[0], b = ice.children[1];
+                    var first = a.getBoundingClientRect(), second = b.getBoundingClientRect();
+                    var px = (first.left + first.right + second.left + second.right) / 4;
+                    var py = (first.bottom + second.bottom) / 2, distance = Math.hypot(px - x, py - y);
+                    if (distance >= nearest || !first.width || !second.height) return;
+                    nearest = distance;
+                    var left = bank.left, right = bank.right, top = bank.top;
+                    function valid() {
+                        return window.funnyWeather.visible() && banks.indexOf(bank) >= 0 && bank.ice === ice &&
+                            bank.target.isConnected && bank.left === left && bank.right === right && bank.top === top;
+                    }
+                    pair = {x:px,y:py,tips:[{x:(first.left+first.right)/2,y:first.bottom},{x:(second.left+second.right)/2,y:second.bottom}],valid:valid,tap:function (index) {
+                        if (valid()) (index ? b : a).setAttribute('data-ringing','true');
+                    },release:function () {
+                        a.setAttribute('data-ringing',''); b.setAttribute('data-ringing','');
+                    }};
+                });
+                return pair;
+            };
             /** Actors use accumulated, visible deposits; collecting never changes the underlying element. */
             window.funnyWeather.surfaceNear = function (x, y, kind, radius) {
                 if (!layer || !active() || ['snow','frost','ice','water'].indexOf(kind) < 0) return null;
@@ -602,6 +632,36 @@
                     position:function () { return {x:item.drip.x,y:item.drip.y+item.drip.fall*Math.pow(Math.min(1,(performance.now()-item.drip.born)/1200),2)}; },
                     catch:function () { if (!borrowed || !valid()) return false; item.node.remove(); details.splice(details.indexOf(item),1); return true; },
                     release:function () { item.borrowed=borrowed=false; }};
+            };
+            /** Lend an airborne autumn leaf at its rendered position and resume its flight from the antlers. */
+            window.funnyWeather.flyingLeafNear = function (x,y,radius) {
+                if (!layer || !active() || wind.speed < 10) return null;
+                var now=performance.now();
+                var item=details.find(function (d) {
+                    if (d.airborneFrom===undefined || now<d.airborneFrom+300 || d.until-now<1900 || d.borrowed || d.kicked ||
+                        (d.rest && now>=d.rest.from && now<d.rest.to)) return false;
+                    var r=d.node.children[0].getBoundingClientRect();
+                    return Math.hypot((r.left+r.right)/2-x,(r.top+r.bottom)/2-y)<=radius;
+                });
+                if (!item) return null;
+                var node=item.node;
+                item.borrowed=true;
+                node.style.animation='none'; node.classList.add('funny-weather-snagged');
+                function valid() { return !!layer && active() && item.borrowed && details.indexOf(item)>=0 && performance.now()<item.until; }
+                function move(px,py) {
+                    if (!valid()) return false;
+                    node.style.left=(px-6)+'px'; node.style.top=(py-8)+'px'; return true;
+                }
+                move(x,y);
+                return {valid:valid,move:move,release:function () {
+                    if (!item.borrowed) return;
+                    item.borrowed=false; item.kicked=true; node.classList.remove('funny-weather-snagged','funny-weather-resting');
+                    var life=Math.min(1900,Math.max(0,item.until-performance.now()));
+                    node.style.animation='';
+                    node.style.animationDelay='0ms'; node.style.setProperty('--gust-duration',life+'ms');
+                    node.style.setProperty('--travel',wind.x*(60+wind.speed*3)+'px'); node.style.setProperty('--lift',(wind.y*75+12)+'px');
+                    node.classList.add('funny-weather-kicked'); item.until=performance.now()+life;
+                }};
             };
             /** Resting leaves allow one paw kick or one boat ride without adding timers. */
             window.funnyWeather.leafNear = function (x, y) {

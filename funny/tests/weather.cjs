@@ -650,4 +650,33 @@ check('ecology: cats borrow real runoff drops once without extending their deadl
     assert(!e.layer().children.includes(node));e.document.emit('pointermove');assert.equal(w.dripNear(point.x,point.y,160),null);
 });
 
+
+check('icicle music needs two grown icicles on one visible bank and releases them on layout changes',()=>{
+    const e=environment({icon:'snow',temperature:-5,standalone:false}),api=e.window.funnyWeather;
+    assert.equal(api.iciclesNear(260,300,180),null);api.trigger('manual');e.tick(600);
+    assert.equal(api.iciclesNear(260,300,180),null);e.tick(100000);
+    const bank=e.layer().children.find(n=>n.children.some(c=>c.className==='funny-weather-icicles'));
+    const ice=bank.children.find(n=>n.className==='funny-weather-icicles');
+    const pair=api.iciclesNear(260,300,180);assert(pair&&pair.valid());assert.equal(api.iciclesNear(1100,850,40),null);
+    pair.tap(0);assert.equal(ice.children[0].attrs['data-ringing'],'true');assert(!ice.children[1].attrs['data-ringing']);
+    pair.tap(1);assert.equal(ice.children[1].attrs['data-ringing'],'true');pair.release();assert(!ice.children[0].attrs['data-ringing']);
+    e.setBlocks([]);e.tick(1200);assert(!pair.valid());pair.tap(0);assert(!ice.children[0].attrs['data-ringing']);
+});
+check('a real airborne autumn leaf can snag once and resume downwind from the antler',()=>{
+    for(const [bearing,sign] of [[90,-1],[270,1]]) {
+        const e=environment({icon:'wind',wind:20,windDirection:bearing,date:'2026-10-12T12:00:00',standalone:false});
+        const weather=e.window.funnyWeather;weather.trigger('manual');let piece,leaf;
+        for(let elapsed=0;elapsed<50000&&!leaf;elapsed+=100){
+            e.tick(100);piece=e.layer().children.find(n=>n.children[0]?.className==='funny-weather-leaf'&&!n.className.includes('funny-weather-resting'));
+            if(!piece)continue;
+            piece.children[0].rect={left:315,top:210,right:329,bottom:220,width:14,height:10};
+            assert.equal(weather.flyingLeafNear(60,80,20),null);leaf=weather.flyingLeafNear(322,215,20);
+        }
+        assert(leaf&&leaf.valid());assert.equal(weather.flyingLeafNear(322,215,20),null);
+        assert(leaf.move(330,218));leaf.release();assert(!leaf.valid());assert(!leaf.move(90,80));
+        assert.equal(piece.style.left,'324px');assert.equal(piece.style.top,'210px');
+        assert.equal(Math.sign(parseFloat(piece.style['--travel'])),sign);assert(piece.className.includes('funny-weather-kicked'));
+        e.tick(2500);assert(!e.layer().children.includes(piece));
+    }
+});
 console.log(checks+' weather behavior checks passed');

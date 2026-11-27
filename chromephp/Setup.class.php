@@ -26,6 +26,12 @@ defIfNot('CHROMEPHP_LOAD_TIMEOUT', 20);
 
 
 /**
+ * Колко секунди се чака отговор от Chrome (нов таб, печат на PDF)
+ */
+defIfNot('CHROMEPHP_RESPONSE_TIMEOUT', 30);
+
+
+/**
  *
  *
  * @package   chromephp
@@ -61,6 +67,7 @@ class chromephp_Setup extends core_ProtoSetup
         'CHROMEPHP_SHOW_PAGE_NUMBERS' => array('enum(no=Не,yes=Да)', 'caption=Дали да се показват броя на страниците->Избор'),
         'CHROMEPHP_BIN_PATH' => array('varchar', 'caption=Път до изпълнимия файл на Chrome->Път'),
         'CHROMEPHP_LOAD_TIMEOUT' => array('int(min=1,max=120)', 'caption=Изчакване на ресурсите на страницата преди печат->Секунди'),
+        'CHROMEPHP_RESPONSE_TIMEOUT' => array('int(min=5,max=300)', 'caption=Изчакване на отговор от Chrome->Секунди'),
     );
 
 

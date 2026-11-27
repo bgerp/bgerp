@@ -75,6 +75,7 @@ class deals_DocumentSummary
         }
 
         $totals = array('delivered' => 0, 'settled' => 0, 'invoiced' => 0);
+        $hasPostedInvoices = false;
         foreach ($rows as &$row) {
             $docThread = $row['threadId'];
             $row['otherThread'] = $docThread != $threadId;
@@ -90,6 +91,7 @@ class deals_DocumentSummary
                 $Doc = $row['mvc'];
                 $row['nonCash'] = !($Doc instanceof cash_Document || $Doc instanceof bank_Document || $Doc instanceof deals_DealMaster);
             }
+            if (isset($row['invoiced']) && empty($row['unpostedState'])) $hasPostedInvoices = true;
             foreach ($totals as $field => $total) {
                 if (!isset($row[$field])) continue;
                 $row[$field] = round($row[$field], 2);
@@ -103,13 +105,40 @@ class deals_DocumentSummary
                 <=> array($b['date'] ?? '9999-12-31', $b['createdOn'] ?? '9999-12-31 23:59:59', $b['containerId'] ?? $b['id']);
         });
         $rows = self::groupInvoiceNotes($rows);
+        $rows = self::prepareRunningBalances($rows, $isSale);
 
         $incoming = $totals[$isSale ? 'settled' : 'delivered'];
         $outgoing = $totals[$isSale ? 'delivered' : 'settled'];
         $balance = round($incoming - $outgoing, 2);
 
         return array('rows' => $rows, 'totals' => $totals, 'balance' => $balance, 'currency' => $currency, 'partial' => $partial, 'isSale' => $isSale,
-            'dealContainerId' => $rec->containerId ?? null);
+            'dealContainerId' => $rec->containerId ?? null, 'makeInvoice' => $rec->makeInvoice ?? 'yes', 'hasPostedInvoices' => $hasPostedInvoices);
+    }
+
+
+    /**
+     * Фактурите, известията, черновите и заявките запазват достигнатото салдо.
+     */
+    private static function prepareRunningBalances($rows, $isSale)
+    {
+        $balance = 0;
+        $previousBalance = null;
+        foreach ($rows as &$row) {
+            if (empty($row['unpostedState'])) {
+                $change = ($row['settled'] ?? 0) - ($row['delivered'] ?? 0);
+                $balance = round($balance + ($isSale ? $change : -$change), 2);
+            }
+            $row['runningBalance'] = $balance;
+            $row['runningBalanceRepeated'] = $previousBalance !== null && $balance == $previousBalance;
+            foreach (array_keys($row['invoiceNotes'] ?? array()) as $noteIndex) {
+                $row['invoiceNotes'][$noteIndex]['runningBalance'] = $balance;
+                $row['invoiceNotes'][$noteIndex]['runningBalanceRepeated'] = true;
+            }
+            $previousBalance = $balance;
+        }
+        unset($row);
+
+        return $rows;
     }
 
 
@@ -523,6 +552,11 @@ class deals_DocumentSummary
         if (!empty($document['nonCash'])) {
             $cells['settled'] = ht::createElement('small', array('class' => 'quiet'), tr('непарично')) . ' ' . $cells['settled'];
         }
+        $balance = $document['runningBalance'];
+        $balanceClass = $balance > 0 ? 'deal-documents-incoming' : ($balance < 0 ? 'deal-documents-outgoing' : 'deal-documents-neutral');
+        $balanceClass .= ' deal-documents-running-value';
+        if (!empty($document['runningBalanceRepeated'])) $balanceClass .= ' deal-documents-running-repeated';
+        $cells['runningBalance'] = ht::createElement('span', array('class' => trim($balanceClass)), $amountType->toVerbal($balance));
 
         return $cells;
     }
@@ -586,19 +620,28 @@ class deals_DocumentSummary
         }
 
         foreach ($summary['totals'] as $field => $total) {
-            $tpl->replace(self::formatAmount($total, $amountType), "{$field}Total");
+            $value = self::formatAmount($total, $amountType);
+            if ($field === 'invoiced') {
+                if (($summary['makeInvoice'] ?? 'yes') === 'no' && empty($summary['hasPostedInvoices'])) {
+                    $value = tr('не');
+                } elseif (round($total - $summary['totals']['delivered'], 2) != 0 && round($total - $summary['totals']['settled'], 2) != 0) {
+                    $value = ht::createElement('span', array('class' => 'deal-documents-invoice-mismatch'), $value);
+                }
+            }
+            $tpl->replace($value, "{$field}Total");
         }
         $balance = $summary['balance'];
         $isSale = !empty($summary['isSale']);
         $delivered = tr('доставено');
         $settled = tr('платено');
-        $balanceClass = $balance > 0 ? 'deal-documents-incoming' : ($balance < 0 ? 'deal-documents-outgoing' : '');
+        $balanceClass = $balance > 0 ? 'deal-documents-incoming' : ($balance < 0 ? 'deal-documents-outgoing' : 'deal-documents-neutral');
         $tpl->replace($amountType->toVerbal($balance), 'balance');
         $tpl->replace($balanceClass, 'balanceClass');
         $tpl->replace($isSale ? $settled : $delivered, 'incomingLabel');
         $tpl->replace($isSale ? $delivered : $settled, 'outgoingLabel');
         $tpl->replace($isSale ? 'deal-documents-sale' : 'deal-documents-purchase', 'directionClass');
         $tpl->replace($currency, 'currency');
+        $tpl->replace($dateType->toVerbal(dt::today()), 'today');
         if (!empty($summary['rows'])) $tpl->removeBlock('NO_DOCUMENTS');
         if (!$summary['partial']) $tpl->removeBlock('PARTIAL');
 

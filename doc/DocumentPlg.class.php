@@ -2110,19 +2110,25 @@ class doc_DocumentPlg extends core_Plugin
             
             $lHash = Request::get('linkedHashKey');
             if ($lHash) {
-                $data->form->setDefault('linkedHashKey', $lHash);
-                
                 $lRec = core_Permanent::get($lHash);
-                
-                $fType = $lRec->outType;
-                
-                $oDocId = $lRec->outVal;
-                
-                if ($fType == 'doc') {
+                $outType = $lRec->outType ?? null;
+                $outVal = $lRec->outVal ?? null;
+
+                if ($outType == 'doc' && $outVal) {
+                    $oDocId = $outVal;
                     Request::push(array('foreignId' => $oDocId));
-                } elseif ($fType == 'file') {
-                    $fRec = fileman::fetch($lRec->outVal);
-                    Request::push(array('fh' => $fRec->fileHnd));
+                } elseif ($outType == 'file' && $outVal) {
+                    $fRec = fileman::fetch($outVal);
+                    $fh = $fRec->fileHnd ?? null;
+                    if ($fh) {
+                        $fType = 'file';
+                        $oDocId = $outVal;
+                        Request::push(array('fh' => $fh));
+                    }
+                }
+
+                if ($oDocId) {
+                    $data->form->setDefault('linkedHashKey', $lHash);
                 }
             }
         }

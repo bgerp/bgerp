@@ -16,6 +16,11 @@
  */
 class planning_Jobs extends core_Master
 {
+    // Досегашните настройки съдържат само полето view под този ключ.
+    const LIST_FILTER_KEY = 'planningJobsListView';
+    const LIST_FILTER_SPECIFIC_FIELDS = 'view';
+    const LIST_VIEW_TYPE = 'enum(activeAndWakeupAndStopped=Активни+Събудени+Спрени,all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)';
+
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -946,7 +951,7 @@ class planning_Jobs extends core_Master
 
         if (!Request::get('Rejected', 'int')) {
             $listFilter = $data->listFilter ?? null;
-            $listFilter->FNC('view', 'enum(activeAndWakeupAndStopped=Активни+Събудени+Спрени,all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Състояние,input,silent,formOrder=0.5');
+            $listFilter->FNC('view', self::LIST_VIEW_TYPE, 'caption=Състояние,input,silent,formOrder=0.5');
             $listFilter->input('view', 'silent');
             $listFilter->setDefault('view', 'activeAndWakeupAndStopped');
             $listFilter->showFields .= ',view';
@@ -962,8 +967,7 @@ class planning_Jobs extends core_Master
         $listFilter->setField('filterDateField', 'caption=Период на||Period of');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
         self::prepareListSourceFilter($data->listFilter ?? null, 'contragentFolderId');
-        $data->listFilter->input('contragentFolderId', 'silent');
-        $data->listFilter->input();
+        $listFilter->input('contragentFolderId,saleId,purchaseId', 'silent');
         $data->listFilter->showFields .= ',contragentFolderId';
 
         if ($filter = $data->listFilter->rec) {
@@ -1080,6 +1084,9 @@ class planning_Jobs extends core_Master
                         break;
                 }
             }
+        }
+        if ($listFilter->isSubmitted()) {
+            planning_ListFilter::save($mvc, $data);
         }
     }
 
@@ -1316,9 +1323,16 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->title = (!empty($fields['-single'])) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
-        // Балонче за вида на заданието - със стила на рецептите (@see cat_Boms)
-        $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+        if (!empty($fields['-deal'])) {
+            $jobId = $rec->id ?? null;
+            $type = mb_strtoupper($row->type ?? tr('Производство'), 'UTF-8');
+            $row->titleHint = tr("|Задание за|* {$type} № {$jobId}");
+            $badge = cat_Boms::renderTypeBadge(mb_substr($type, 0, 1, 'UTF-8'), $mvc, $rec);
+            $row->title = $badge . ' ' . $mvc->getLink($jobId, false, array('title' => "|*{$row->titleHint}"));
+        } else {
+            $row->title = !empty($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
+            $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+        }
 
         if ($rec->type == 'disassembly') {
             unset($row->allowSecondMeasure);
@@ -3398,6 +3412,7 @@ class planning_Jobs extends core_Master
     public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
     {
         if ($action != 'list' && $action != 'default') return;
+        planning_ListFilter::restore($mvc);
         $subMenu = (self::getListType() == 'disassembly') ? "Разпад" : "Производство";
         $mvc->currentTab = "Задания->{$subMenu}";
         Mode::set('pageMenu', 'Задания');

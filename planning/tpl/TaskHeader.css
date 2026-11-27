@@ -6,21 +6,80 @@
  */
 
 .antetka:has(> .taskHeaderInfo) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     padding-top: 4px;
     padding-bottom: 4px;
+    padding-right: 2px;
 }
 
 .taskHeaderInfo,
-.taskHeaderInfo table {
+.taskHeaderSections {
+    table-layout: fixed;
+}
+
+.taskHeaderSections {
+    width: 100%;
+}
+
+.taskHeaderInfo > tbody > tr > .aleft,
+.taskHeaderSections > tbody > tr > .nowrap {
+    text-decoration: underline;
+}
+
+.taskHeaderInfo > tbody > tr > td:has(#btnShowHeaderInfo) {
+    width: 16px;
+}
+
+.taskHeaderInfo,
+.taskHeaderInfo table,
+.taskHeaderSections,
+.taskHeaderSections table {
     line-height: 1.35;
 }
 
-.taskHeaderInfo td {
+.taskHeaderInfo td,
+.taskHeaderSections td {
     padding-top: 0.5px;
     padding-bottom: 0.5px;
 }
 
-.taskHeaderInfo .taskWasteDivider {
+.taskHeaderInfo table.docHeaderVal > tbody > tr > td + td,
+.taskHeaderSections table.docHeaderVal > tbody > tr > td + td {
+    padding-left: 3px;
+}
+
+.taskHeaderInfo .taskWasteDivider,
+.taskHeaderSections .taskWasteDivider {
     border-top: 1px solid #ccc;
     margin: 6px 5px 4px;
+}
+
+.taskWasteSummary {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 15px;
+    align-items: start;
+}
+
+.taskWasteProducts {
+    width: auto;
+    max-width: 100%;
+    border-collapse: collapse;
+}
+
+.taskWasteProducts td {
+    vertical-align: top;
+}
+
+.taskWasteProducts td:first-child,
+.taskWasteProducts td:first-child a {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.taskWasteProducts td:last-child:not([colspan]) {
+    padding-left: 10px;
+    padding-right: 0;
 }

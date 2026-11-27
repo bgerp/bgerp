@@ -16,11 +16,12 @@
         <thead>
             <tr>
                 <th>|Вальор|*</th>
-                <th>|Документ|*</th>
+                <th>|Документ|*<span class="deal-documents-currency"> / |Валута|*: <b>[#currency#]</b></span></th>
                 <th>|Номер|*</th>
-                <th>|Доставено|*, [#currency#]</th>
-                <th>|Платено|*, [#currency#]</th>
-                <th>|Фактурир.|*, [#currency#]</th>
+                <th>|Доставено|*</th>
+                <th>|Платено|*</th>
+                <th class="deal-documents-balance-total">|Салдо|*</th>
+                <th>|Фактурир.|*</th>
             </tr>
         </thead>
         <tbody>
@@ -31,24 +32,25 @@
                 <td class="centered nowrap">[#handle#]</td>
                 <td class="aright nowrap deal-documents-delivered">[#delivered#]</td>
                 <td class="aright nowrap deal-documents-settled">[#settled#]</td>
+                <td class="aright nowrap deal-documents-running-balance">[#runningBalance#]</td>
                 <td class="aright nowrap deal-documents-invoiced [#invoiceHintClass#]">[#invoiced#]</td>
             </tr>
             <!--ET_END DOCUMENT_ROW-->
             <!--ET_BEGIN NO_DOCUMENTS-->
-            <tr><td colspan="6" class="aleft quiet">|Няма документи за показване|*.</td></tr>
+            <tr><td colspan="7" class="aleft quiet">|Няма документи за показване|*.</td></tr>
             <!--ET_END NO_DOCUMENTS-->
         </tbody>
         <tfoot>
             <tr>
-                <td class="aright">|Салдо|*</td>
-                <td class="aleft nowrap">
-                    <span class="[#balanceClass#]">[#balance#] [#currency#]</span>
-                    <span class="deal-documents-balance-legend">(<span class="deal-documents-incoming">[#incomingLabel#]</span> - <span class="deal-documents-outgoing">[#outgoingLabel#]</span>)</span>
+                <td class="centered nowrap deal-documents-today">[#today#]</td>
+                <td class="centered nowrap">
+                    <span class="deal-documents-balance-legend"><span class="deal-documents-incoming">[#incomingLabel#]</span> - <span class="deal-documents-outgoing">[#outgoingLabel#]</span> = <span class="deal-documents-balance-label [#balanceClass#]">|салдо|*</span></span>
                 </td>
                 <td class="aright">|Общо|*</td>
-                <td class="aright nowrap deal-documents-delivered">[#deliveredTotal#]</td>
-                <td class="aright nowrap deal-documents-settled">[#settledTotal#]</td>
-                <td class="aright nowrap deal-documents-invoiced">[#invoicedTotal#]</td>
+                <td class="centered nowrap deal-documents-delivered">[#deliveredTotal#]</td>
+                <td class="centered nowrap deal-documents-settled">[#settledTotal#]</td>
+                <td class="centered nowrap deal-documents-balance-total"><span class="[#balanceClass#]">[#balance#]</span></td>
+                <td class="centered nowrap deal-documents-invoiced">[#invoicedTotal#]</td>
             </tr>
         </tfoot>
     </table>

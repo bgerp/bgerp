@@ -2333,6 +2333,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $fields = cls::get('planning_Jobs')->selectFields();
         $fields['-list'] = true;
+        $fields['-deal'] = true;
 
         $data->jobs = array();
         while ($jRec = $jQuery->fetch()) {
@@ -2359,9 +2360,16 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function renderJobsInfo(&$tpl, $data)
     {
-        $table = cls::get('core_TableView', array('mvc' => cls::get('planning_Jobs')));
+        // Полетата на мениджъра са споделени, а тези заглавия важат само в договора.
+        $jobsMvc = clone cls::get('planning_Jobs');
+        foreach (arr::make('packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено') as $name => $hint) {
+            $field = clone $jobsMvc->getField($name);
+            $field->thAttr = array('title' => $hint) + arr::make($field->thAttr ?? null);
+            $jobsMvc->fields[$name] = $field;
+        }
 
-        $jobsTable = $table->get($data->jobs, 'title=Задание,type=Вид,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
+        $table = cls::get('core_TableView', array('mvc' => $jobsMvc, 'cellHintFields' => array('title' => 'titleHint')));
+        $jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=План,quantityFromTasks=Произв.,quantityProduced=В склад,packagingId=Мярка');
         $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
         $jobTpl->replace($jobsTable, 'table');
         $tpl->replace($jobTpl, 'JOB_INFO');

@@ -263,7 +263,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         if ($volume) {
             $volume *= $quantity;
             
-            return round($volume/1000, 3);
+            return round($volume / 1000, 6);
         }
     }
     

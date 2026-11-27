@@ -3132,3 +3132,275 @@ check('ecology: a cooled snowman retrieves its saved hat if still nearby',()=>{
     forecast.temperature=-5;config.weather='snow';const snowman=waitWeatherAct(e,'return-hat',10000);e.tick(4000);
     assert(!e.document.body.children.includes(hat));assert(!snowman.style['--funny-snow-hat-opacity']);
 });
+/** Drive the public spawn gesture using the same cached-weather contract as the page. */
+function edgeFixture(kind,seed=4,sound='no') {
+    const choices={cat:['cat','stork'],fog:['ghost','wolf'],shoe:['zombie'],chime:['snowmaiden'],pollen:['butterfly']};
+    const config={seed,width:1400,height:1000,weather:{cat:'sun',shoe:'rain',fog:'fog',chime:'snow',pollen:'sun'}[kind],date:'2026-04-13T09:00:00'};
+    const e=environment({mode:'selected',trigger:'manual',characters:choices[kind],forecast:{temperature:kind==='chime'?-4:16,expires:Infinity},sound},config);
+    let valid=true,taps=[],released=0;
+    const api=e.window.funnyWeather;
+    api.visible=()=>valid;
+    api.surfaceNear=(x,y,type)=>kind==='shoe'&&type==='water'&&valid?{x,y,valid:()=>valid}:null;
+    api.iciclesNear=(x,y)=>kind==='chime'&&valid?{x,y,tips:[{x:x-10,y:y-2},{x:x+10,y:y+2}],valid:()=>valid,tap:i=>taps.push(i),release:()=>released++}:null;
+    e.click();
+    return {e,config,taps,invalidate(){valid=false;},releases:()=>released};
+}
+
+/** A pose must have been reached through the normal per-frame controller. */
+function waitPose(e, step, duration=15000) {
+    for (let at=0; at<duration; at+=32) {
+        e.tick(32);
+        const actor=e.visitors().find(v=>v.attrs['data-scene-step']===step);
+        if (actor) return actor;
+    }
+    assert.fail('Missing pose '+step);
+}
+check('edge scenes: a cat pounces at the existing stork shadow and looks down then up',()=>{
+    const {e}=edgeFixture('cat',997),cat=waitPose(e,'look-up');
+    assert.deepEqual(cat.history.filter(([k,v])=>k==='data-scene-step'&&v).map(p=>p[1]),['pounce','look-down','look-up']);
+    const stork=e.visitors().find(v=>v.className.includes('funny-stork'));
+    assert(stork.children.some(n=>n.attrs.class==='funny-sun-shadow'));
+    const night=edgeFixture('cat',997);night.config.date='2026-04-13T22:00:00';
+    assert(watchVisitors(night.e,8000).every(v=>v.attrs['data-weather-act']!=='shadow-hunt'&&!v.history.some(([k,x])=>x==='pounce')));
+});
+check('edge scenes: a spider crosses downwind, reels in a gust and releases a disconnected anchor',()=>{
+    for (const end of ['land','grip','removed']) {
+        const wind={x:1,y:0,speed:17};
+        const {e,v}=wovenFixture({sound:'no'},{seed:997,weather:'wind',wind,width:1400,height:1000});
+        waitPose(e,'sail');const start=e.center(v);
+        if(end==='grip') { wind.speed=38;waitPose(e,'grip');assert(v.history.some(([k,x])=>x==='reel')); }
+        if(end==='land') {waitPose(e,'land');assert(e.center(v).x>start.x+30);}
+        if(end==='removed') e.block.isConnected=false;
+        e.tick(1000);
+        assert(!v.attrs['data-weather-act']);assert(!e.document.body.children.some(n=>n.className.includes('funny-sailing-silk')));
+    }
+});
+check('edge scenes: a zombie leaves its shoe in water and retrieves it before the ripple disappears',()=>{
+    const {e}=edgeFixture('shoe',997),v=waitPose(e,'sock-step');
+    const shoe=e.document.body.children.find(n=>n.className.includes('funny-lost-shoe'));assert(shoe);
+    const start=e.center(v);waitPose(e,'notice-shoe');assert(Math.abs(e.center(v).x-start.x)>25);
+    waitPose(e,'fetch-shoe');e.tick(550);assert(!e.document.body.children.includes(shoe));assert(!v.attrs['data-weather-act']);
+    assert(e.document.body.children.some(n=>n.className.includes('funny-shoe-ripple')));
+    const dry=edgeFixture('shoe',997);dry.invalidate();assert(watchVisitors(dry.e,7000).every(v=>!v.history.some(([k,x])=>x==='lost-shoe')));
+});
+check('edge scenes: the pursued ghost peeks behind the wolf in fog and triggers one normal retreat',()=>{
+    const {e}=edgeFixture('fog',997);
+    const ghost=waitWeatherAct(e,'fog-vanish'),wolf=e.visitors().find(v=>v.className.includes('funny-wolf'));
+    const start=e.center(ghost),origin=e.center(wolf);assert.equal(wolf.attrs['data-weather-act'],'fog-search');
+    assert.equal(waitPose(e,'peek'),ghost);const finish=e.center(ghost);
+    assert((start.x-origin.x)*(finish.x-origin.x)+(start.y-origin.y)*(finish.y-origin.y)<0);
+    e.tick(2300);assert(wolf.history.some(([k,x])=>x==='retreating'));assert.equal(ghost.history.filter(([k,x])=>x==='peek').length,1);
+    const clear=edgeFixture('fog',997);clear.invalidate();assert(watchVisitors(clear.e,7000).every(v=>!v.history.some(([k,x])=>x==='fog-search')));
+});
+check('edge scenes: the snow maiden taps short then long with one optional descending chime',()=>{
+    for(const sound of ['yes','no','scary']) {
+        const {e,taps,releases}=edgeFixture('chime',997,sound);waitWeatherAct(e,'ice-music');
+        const before=e.sounds.length;waitPose(e,'tap-long');assert.deepEqual(taps,[0,1]);e.tick(600);assert.equal(releases(),1);
+        const notes=e.sounds.slice(before).filter(s=>s.frequency===988||s.frequency===740);
+        assert.deepEqual(notes.map(s=>s.frequency),sound==='no'?[]:[988,740]);
+        if(notes.length)assert(Math.abs(notes[1].start-notes[0].start-.35)<.001);
+    }
+});
+check('edge scenes: spring pollen opens a different existing flower and both keep their deadlines',()=>{
+    const {e}=edgeFixture('pollen',4);waitPose(e,'carry-pollen');
+    const first=e.document.body.children.find(n=>n.className.includes('funny-spring-flower'));assert(first);
+    waitPose(e,'flower-open');const opened=e.document.body.children.find(n=>n.attrs['data-pollinated']==='true');
+    assert(opened);assert.notEqual(first,opened);assert(!first.attrs['data-pollinated']);e.tick(10000);
+    assert(!e.document.body.children.includes(opened));assert(!e.document.body.children.includes(first));
+});
+check('edge scenes: interrupted scenes release both actors, their poses, props and future cues',()=>{
+    for (const [kind,phase] of [['cat','pounce'],['fog','peek'],['shoe','sock-step'],['chime','tap-short'],['pollen','carry-pollen']]) {
+        const {e,taps}=edgeFixture(kind,kind==='pollen'?4:997);const v=waitPose(e,phase);
+        e.document.focused=false;e.window.emit('blur');e.tick(600);
+        assert(!v.attrs['data-weather-act']);assert(!v.attrs['data-scene-step']);assert.equal(e.raf.size,0);
+        assert(!e.document.body.children.some(n=>n.className.includes('funny-lost-shoe')));
+        if (kind==='chime') assert.deepEqual(taps,[0]);
+    }
+});
+/** Spawn through the real blank-space gesture and supply a fixed forecast and visible test geometry. */
+function forecastFixture(kind, seed=997, overrides={}) {
+    const settings={march:['martenitsa','stork'],bath:['chick'],echo:['bat'],carrot:['snowman','deer'],spark:['imp']};
+    const config={seed,width:1400,height:1000,weather:{march:'sun',bath:'rain',echo:'fog',carrot:'snow',spark:'rain'}[kind],wind:{x:1,y:0,speed:7},date:'2026-03-12T11:00:00',...overrides};
+    const e=environment({mode:'selected',trigger:'manual',characters:settings[kind],forecast:{expires:Infinity,temperature:kind==='carrot'?-5:12},sound:overrides.sound||'yes'},config);
+    const api=e.window.funnyWeather; let visible=true, pool;
+    api.visible=()=>visible;
+    api.surfaceNear=(x,y,type)=>kind==='bath'&&type==='water'&&visible&&e.now()>4600?(pool||={x,y,left:x-30,right:x+30,valid:()=>visible}):null;
+    e.click();e.tick(720);
+    if((kind==='bath'||kind==='spark')&&overrides.companion!==false) e.click();
+    if(kind==='march'||kind==='echo') {
+        const p=e.center(e.visitors()[0]),left=Math.max(15,Math.min(config.width-175,p.x-70));
+        const top=kind==='march'?p.y-65:p.y+72;
+        e.block.rect={left,right:left+145,top,bottom:top+17,width:145,height:17};config.blocks=[e.block];
+    }
+    if(kind==='spark'){e.tick(1600);if(overrides.flash!==false)e.window.funnyEffects.lightning();}
+    return {e,config,invalidate(){visible=false;e.block.isConnected=false;}};
+}
+
+check('forecast encounters: March stork carries the actual tassels and hangs them on an existing edge',()=>{
+    const {e,invalidate}=forecastFixture('march');
+    const ribbon=waitPose(e,'on-beak'),bird=e.visitors().find(n=>n.className.includes('funny-stork'));
+    e.tick(64);const r=e.center(ribbon),b=e.center(bird);
+    assert(Math.abs(r.x-b.x-parseFloat(bird.style.width)*.45)<8);
+    assert.equal(waitPose(e,'hanging'),ribbon);assert(Math.abs(e.center(ribbon).y-parseFloat(ribbon.style.height)*.4-e.block.rect.bottom)<6);
+    invalidate();e.tick(64);assert(!ribbon.attrs['data-weather-act']);assert(!bird.attrs['data-weather-act']);
+    for(const change of [{date:'2026-04-12T11:00:00'},{weather:'clouds'},{blocks:[]}]) {
+        const trial=forecastFixture('march',997,change);
+        if(change.blocks) trial.config.blocks=[];
+        assert(watchVisitors(trial.e,8000).every(n=>!n.history.some(([k,x])=>x==='on-beak')));
+    }
+});
+check('forecast encounters: two bat arcs return from real foggy geometry and only the inside wing folds',()=>{
+    const {e}=forecastFixture('echo'),v=waitPose(e,'send-echo');
+    const pulse=e.document.body.children.find(n=>n.className.includes('funny-echo-out'));assert.equal(pulse.children.length,2);
+    waitPose(e,'hear-echo');const echo=e.document.body.children.find(n=>n.className.includes('funny-echo-back'));assert.equal(echo.children.length,1);
+    assert.equal(Number.parseFloat(echo.style.top),e.block.rect.top);
+    waitPose(e,'clear-edge');assert(v.history.some(([k,x])=>/^fold-(left|right)$/.test(x)));
+    assert(e.center(v).x<e.block.rect.left||e.center(v).x>e.block.rect.right);
+    const lower=forecastFixture('echo');lower.e.window.innerHeight=lower.e.block.rect.bottom+9;
+    waitPose(lower.e,'clear-edge');
+    const narrow=forecastFixture('echo'),wall={closest:()=>({contains:()=>false})};
+    narrow.e.document.elementFromPoint=x=>x<narrow.e.block.rect.left?wall:null;
+    const around=waitPose(narrow.e,'clear-edge');assert(narrow.e.center(around).x>narrow.e.block.rect.right);
+    const absent=forecastFixture('echo');absent.invalidate();assert(watchVisitors(absent.e,7000).every(n=>!n.history.some(([k,x])=>x==='send-echo')));
+});
+check('forecast encounters: the chick tests real water, flaps twice and its neighbour waits',()=>{
+    const {e,invalidate}=forecastFixture('bath');
+    const first=waitPose(e,'dip-toe'),second=e.visitors().find(n=>n!==first),before=e.center(second);
+    for (const pose of ['flap-once','flap-twice']) {
+        waitPose(e,pose); e.tick(160); assert(Number(first.style['--funny-chick-flap'])<0);
+        e.tick(190); assert(Number(first.style['--funny-chick-flap'])>.4);
+    }
+    assert(!second.attrs['data-scene-step']);assert(Math.hypot(e.center(second).x-before.x,e.center(second).y-before.y)<8);
+    assert.equal(e.document.body.children.filter(n=>n.className.includes('funny-bath-ripple')).length,2);
+    assert.equal(waitPose(e,'bath-turn'),second);e.tick(350);assert(Math.abs(e.center(second).x-before.x)+Math.abs(e.center(second).y-before.y)>5);
+    invalidate();e.tick(32);assert(!first.attrs['data-weather-act']&&!second.attrs['data-weather-act']);
+    const dry=forecastFixture('bath');dry.invalidate();assert(watchVisitors(dry.e,7500).every(n=>!n.history.some(([k,x])=>x==='dip-toe')));
+});
+check('forecast encounters: snow slowly caps the carrot, deer uncovers it then the snowman turns',()=>{
+    const {e}=forecastFixture('carrot',4);const deer=waitWeatherAct(e,'carrot-nudge'),man=e.visitors().find(n=>n.className.includes('funny-snowman'));
+    assert(Number(man.style['--funny-carrot-snow'])>.2);waitPose(e,'brush-carrot');assert.equal(Number(man.style['--funny-carrot-snow']),0);
+    waitPose(e,'try-carrot');waitPose(e,'turn-head');assert(e.visitors().some(n=>n.attrs['data-scene-step']==='miss-carrot'));
+    e.tick(1100);assert(!deer.attrs['data-weather-act']&&!man.attrs['data-weather-act']);assert(Number(man.style['--funny-carrot-snow'])<.2);
+    const clear=forecastFixture('carrot',4,{weather:'clouds'});assert(watchVisitors(clear.e,7000).every(n=>!n.history.some(([k,x])=>x==='carrot-nudge')));
+});
+check('forecast encounters: only charged gremlins in ear contact produce one optional short click',()=>{
+    const {e}=forecastFixture('spark',3964);waitWeatherAct(e,'ear-spark');const actors=e.visitors(),before=e.sounds.length;
+    waitPose(e,'discharge');const a=e.center(actors[0]),b=e.center(actors[1]);assert(Math.hypot(a.x-b.x,a.y-b.y)<(parseFloat(actors[0].style.width)+parseFloat(actors[1].style.width))*.5+5);
+    assert(actors.every(n=>!n.attrs['data-static']));assert.equal(e.document.body.children.filter(n=>n.className.includes('funny-ear-spark')).length,1);
+    assert.equal(e.sounds.slice(before).filter(s=>s.frequency===1300&&s.time-s.start<.06).length,1);e.tick(400);
+    assert(Math.hypot(e.center(actors[0]).x-e.center(actors[1]).x,e.center(actors[0]).y-e.center(actors[1]).y)>Math.hypot(a.x-b.x,a.y-b.y)+10);
+    const lone=forecastFixture('spark',997,{companion:false});assert.equal(lone.e.visitors().length,1);
+    lone.e.tick(4800);assert(lone.e.visitors().every(n=>!n.attrs['data-static']));assert(!lone.e.sounds.some(s=>s.frequency===1300&&s.time-s.start<.06));
+    const dry=forecastFixture('spark',3964,{flash:false});assert(watchVisitors(dry.e,6000).every(n=>!n.history.some(([k,x])=>x==='discharge')));
+    const quiet=forecastFixture('spark',3964,{sound:'no'});waitPose(quiet.e,'discharge');assert.equal(quiet.e.sounds.length,0);
+});
+check('forecast encounters: a wolf samples the wind after losing prey and moves upwind or searches the last scent',()=>{
+    for(const dir of [-1,1]) {
+        const {e,config}=weatherActorFixture('scent',11964);config.wind.x=dir;config.wind.speed=18;
+        let wolf;
+        for(let i=0;i<480&&!wolf;i++){e.tick(50);wolf=e.visitors().find(n=>n.attrs['data-scene-step']==='nose-up');}
+        assert(wolf);waitPose(e,dir>0?'upwind':'circle-scent');const start=e.center(wolf);e.tick(300);
+        if(dir>0) assert(e.center(wolf).x<start.x-12);
+        else {waitPose(e,'last-scent');waitPose(e,'give-up');}
+    }
+});
+check('forecast encounters: focus loss clears paired actors and suppresses a later discharge or splash',()=>{
+    for(const [kind,seed,phase] of [['march',997,'on-beak'],['bath',997,'dip-toe'],['echo',997,'send-echo'],['carrot',4,'brush-carrot']]){
+        const {e}=forecastFixture(kind,seed),actor=waitPose(e,phase);e.window.emit('blur');e.tick(500);
+        assert(!actor.attrs['data-weather-act']&&!actor.attrs['data-scene-step']);assert.equal(e.raf.size,0);
+    }
+    const {e}=forecastFixture('spark',3964),before=e.sounds.length;e.window.emit('blur');e.window.funnyEffects.lightning();e.tick(5000);
+    assert.equal(e.sounds.length,before);assert.equal(e.raf.size,0);
+});
+
+/** Supply a bounded visible deposit and exercise the ordinary pointer gesture and animation clock. */
+function smallEncounter(kind, options={}) {
+    const snow=kind==='snow', light=kind==='light', cat=kind==='cat';
+    const e=environment({mode:'selected',trigger:'manual',characters:snow?['penguin']:light?['firefly']:cat?['cat','fly']:['deer'],sound:'no',
+        forecast:{temperature:snow?-5:18,expires:Infinity}}, {width:1400,height:1000,seed:cat?2991:997,weather:snow?'snow':light?'moon':cat?'sun':'wind',
+        wind:{x:1,y:0,speed:kind==='deer'?18:6},date:light?'2026-10-10T21:00:00':'2026-10-10T12:00:00',...options});
+    let bank, available=true, releases=0, points=[];
+    e.window.funnyWeather.surfaceNear=(x,y,type,radius)=>{
+        if(!available || type!==(snow?'snow':'water'))return null;
+        bank||={x,y,left:x-120,right:x+120,valid:()=>available};
+        return Math.hypot(x-bank.x,y-bank.y)<=radius?bank:null;
+    };
+    e.window.funnyWeather.flyingLeafNear=()=>available?{valid:()=>available,move:(x,y)=>points.push([x,y]),release:()=>{releases++;available=false;}}:null;
+    e.click();if(snow){e.tick(720);e.click();}
+    return {e,points,bank:()=>bank,releases:()=>releases,remove:()=>{available=false;}};
+}
+check('small encounters: wind blows only real swept meal crumbs away or back to the boots',()=>{
+    for(const direction of [-1,1]){
+        const {e}=friendlyFixture(['witch','muncher'],'sweep',{}, {meals:true,weather:'clouds',wind:{x:direction,y:0,speed:12}});
+        const pile=e.document.body.children.find(n=>n.className.includes('funny-swept-pile'));
+        assert.equal(pile.attrs['data-sweep-wind'],direction===1?'back':'away');
+        assert.equal(Math.sign(parseFloat(pile.style['--sweep-x'])),direction);
+    }
+});
+check('small encounters: calm night light mirrors the firefly before one ripple, missing water cancels',()=>{
+    const {e}=smallEncounter('light');const fly=waitPose(e,'signal-pool');
+    const mirror=e.document.body.children.find(n=>n.className.includes('funny-light-reflection'));
+    assert(mirror.firstChild.firstChild.attrs.href.endsWith('#firefly'));waitPose(e,'broken-reflection');
+    assert(!e.document.body.children.includes(mirror));assert(e.document.body.children.some(n=>n.className.includes('funny-bath-ripple')));assert.equal(e.visitors()[0],fly);
+    for(const options of [{date:'2026-10-10T12:00:00'},{wind:{x:1,y:0,speed:22}},{}]){
+        const t=smallEncounter('light',options);if(!Object.keys(options).length)t.remove();
+        assert(watchVisitors(t.e,6500).every(n=>!n.history.some(([k,x])=>x==='signal-pool')));
+    }
+});
+check('small encounters: a tickled cat swats its own nose after the actual fly has taken off',()=>{
+    const {e}=smallEncounter('cat');const cat=waitPose(e,'twitch-ear'),fly=e.visitors().find(v=>v.className.includes('funny-fly'));
+    const at=e.center(fly);assert(Math.hypot(at.x-e.center(cat).x,at.y-e.center(cat).y)<16);
+    waitPose(e,'paw-on-nose');assert(Math.hypot(e.center(fly).x-at.x,e.center(fly).y-at.y)>20);
+    assert(!fly.attrs['data-swallowed']);assert.equal(e.sounds.length,0);
+});
+check('small encounters: penguins share one groove, the follower goes farther and real snow covers it',()=>{
+    const {e}=smallEncounter('snow');const first=waitPose(e,'carve-groove');e.tick(240);
+    const groove=e.document.body.children.find(n=>n.className==='funny-snow-groove'),start=parseFloat(groove.style.width);
+    assert(start>0);e.tick(750);const carved=parseFloat(groove.style.width);assert(carved>start);
+    const second=waitPose(e,'follow-groove');assert.notEqual(first,second);e.tick(1100);assert(parseFloat(groove.style.width)>carved+12);
+    assert.equal(e.document.body.children.filter(n=>n.className==='funny-snow-groove').length,1);
+    e.tick(8500);assert(!e.document.body.children.includes(groove));
+    const dry=smallEncounter('snow');dry.remove();assert(watchVisitors(dry.e,6000).every(n=>!n.history.some(([k,x])=>x==='carve-groove')));
+});
+check('small encounters: a flying leaf stays on the antler and releases once on shake or blur',()=>{
+    for(const interrupted of [true,false]){
+        const t=smallEncounter('deer');const deer=waitPose(t.e,'leaf-snag');t.e.tick(160);
+        assert(Math.abs(t.points.at(-1)[0]-t.e.center(deer).x-parseFloat(deer.style.width)*.2)<5);
+        if(interrupted)t.e.window.emit('blur');else waitPose(t.e,'shake-antlers');
+        t.e.tick(1000);assert.equal(t.releases(),1);assert(!deer.attrs['data-scene-step']);
+    }
+});
+check('small encounters: the owner plucks its strand only after the real drop intersects it',()=>{
+    const {e,web,x,y}=wovenFixture({sound:'no'},{seed:997,weather:'rain',wind:{x:0,y:0,speed:4},width:1400,height:1000});
+    let caught=0,released=0,contactY=y-18;
+    e.window.funnyWeather.dripNear=()=>({valid:()=>!caught,reserve:()=>true,position:()=>({x,y:contactY}),catch:()=>++caught,release:()=>released++});
+    waitWeatherAct(e,'web-signal',6000);assert(!web.attrs['data-signal']);contactY=y+3;
+    waitPose(e,'test-strand');assert.equal(web.attrs['data-signal'],'test-strand');assert.equal(caught,1);
+    e.tick(850);assert.equal(released,1);assert(!web.attrs['data-signal']);
+});
+check('small encounters: a real fly grazes the woven strand, the owner rushes in and the fly escapes',()=>{
+    const characters=['spiders'];
+    const {e,web,x,y}=wovenFixture({characters,sound:'no'},{seed:2991,weather:'clouds',width:1400,height:1000});
+    characters[0]='fly';e.document.querySelectorAll=()=>[];e.click({clientX:x+180,clientY:y+45});
+    waitPose(e,'rush-strand');assert.equal(web.attrs['data-signal'],'rush-strand');
+    const fly=e.visitors().find(n=>n.className.includes('funny-fly')),contact=e.center(fly);e.tick(580);
+    assert(Math.hypot(e.center(fly).x-contact.x,e.center(fly).y-contact.y)>24);
+    e.window.emit('blur');e.tick(500);assert(!web.attrs['data-signal']);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+});
+check('small encounters: blur releases borrowed water, snow, actors and pending poses',()=>{
+    for(const [kind,phase] of [['light','signal-pool'],['cat','twitch-ear'],['snow','carve-groove']]){
+        const {e}=smallEncounter(kind);waitPose(e,phase);
+        e.document.focused=false;e.window.emit('blur');e.tick(600);
+        assert.equal(e.visitors().length,0);assert.equal(e.raf.size,0);assert.equal(e.timers.size,0);
+        assert(!e.document.body.children.some(n=>/funny-light-reflection|funny-snow-groove/.test(n.className)));
+    }
+});
+check('small encounters: only the final unswept bite leaves loose crumbs after a natural departure',()=>{
+    const e=environment({mode:'selected',characters:['muncher'],trigger:'manual',sound:'no'},{meals:true});
+    e.click();e.tick(650);const p=e.center(e.visitors()[0]);
+    e.block.rect={left:p.x-10,right:p.x+10,top:p.y-10,bottom:p.y+10,width:20,height:20};
+    e.tick(1600);assert(e.block.className.includes('funny-eaten'));
+    e.tick(80000,80000);assert.equal(e.visitors().length,0);assert(!e.block.className.includes('funny-eaten'));
+    const loose=e.document.body.children.filter(n=>n.className.includes('funny-last-crumbs'));assert.equal(loose.length,1);
+    e.tick(2000);assert(e.document.body.children.includes(loose[0]));e.tick(4600);assert(!e.document.body.children.includes(loose[0]));
+});

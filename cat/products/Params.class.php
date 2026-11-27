@@ -538,8 +538,9 @@ class cat_products_Params extends cat_products_ProtoParams
             cat_products_ParamIndex::markDirty($rec->productId);
         }
 
-        // Параметрите може да се ползват във формули на рецепти
+        // Параметрите може да се ползват във формули на рецепти и на други параметри
         cat_Boms::clearProductParamsCache();
+        cond_type_Formula::clearCache();
     }
     
     
@@ -549,6 +550,7 @@ class cat_products_Params extends cat_products_ProtoParams
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         cat_Boms::clearProductParamsCache();
+        cond_type_Formula::clearCache();
 
         $productClassId = cat_Products::getClassId();
         foreach ($query->getDeletedRecs() as $rec) {

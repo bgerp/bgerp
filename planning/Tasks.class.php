@@ -17,6 +17,9 @@
  */
 class planning_Tasks extends core_Master
 {
+    const LIST_FILTER_KEY = 'planningTasksListFilter';
+    const LIST_FILTER_SPECIFIC_FIELDS = 'folders,productId,assetId,state,isFinalSelect,prevProgress';
+
     /**
      * Дали може да бъде само в началото на нишка
      */
@@ -260,7 +263,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,jobOrderMode,previousTask,saoOrder,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,jobOrderMode,cloneScope,previousTask,saoOrder,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
 
 
     /**
@@ -401,6 +404,7 @@ class planning_Tasks extends core_Master
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
         $this->FLD('jobOrderMode', 'enum(auto=По предходни етапи,recipe=По рецепта,fixed=Фиксиран,fixedFinal=Фиксирана финална извън рецепта)', 'caption=Подредба в заданието,input=none,column=none');
+        $this->FLD('cloneScope', 'enum(single=Поединично,group=В група)', 'caption=Начин на клониране,input=none,column=none,single=none');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
@@ -1198,17 +1202,19 @@ class planning_Tasks extends core_Master
             $wasteRows = '';
             $wasteCaption = tr('Отпадък');
             foreach ($wasteArr as $key => $wasteRow) {
+                $wasteProductLink = $wasteRow->productLink ?? '';
+                $wasteQuantity = $wasteRow->quantityVerbal ?? '';
                 if ($key === 'total') {
-                    $wasteCaption = "{$wasteRow->productLink}: {$wasteRow->quantityVerbal}";
+                    $wasteCaption = "{$wasteProductLink}: {$wasteQuantity}";
                     continue;
                 }
-                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteRow->productLink}</td><td class='nowrap' style='padding-left:10px;'><b>{$wasteRow->quantityVerbal}</b></td></tr>";
+                $wasteRows .= "<tr><td style='font-weight:normal'>{$wasteProductLink}</td><td class='nowrap'><b>{$wasteQuantity}</b></td></tr>";
             }
             $wasteStart = $row->wasteStart ?? 'n/a';
             $wastePercent = $row->wastePercent ?? 'n/a';
             $wasteCaption = ht::createHint($wasteCaption, "Начален|*: {$wasteStart}, |Допустим|*: {$wastePercent}");
-            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
-                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table>");
+            $resArr['waste'] = array('name' => $wasteCaption, 'val' => tr("|*<div style='display:{$display}' class='docHeaderVal'><table class='taskWasteProducts'>
+                <!--ET_BEGIN wasteProductId--><tr><td colspan='2'>[#wasteProductId#]</td></tr><!--ET_END wasteProductId-->") . $wasteRows . "</table></div>");
         }
 
         $labelPrintRow = "<tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>";
@@ -1253,6 +1259,16 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Антетката следва общото ограничение за ширината на секциите.
+     */
+    protected static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res->prepend("<div class='scrolling-holder'>");
+        $res->append('</div>');
+    }
+
+
+    /**
      * След подготовка на антетката
      */
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
@@ -1262,7 +1278,7 @@ class planning_Tasks extends core_Master
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
 
         if ($isNarrow) {
-            $res = new ET("<table class='subInfo'>");
+            $res = new ET("<table class='subInfo taskHeaderSections'>");
             foreach ((array)$headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 7px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
@@ -1283,10 +1299,10 @@ class planning_Tasks extends core_Master
             $wasteValue = $waste['val'] ?? '';
             $res->append(new ET("<tr><td colspan='{$colspan}' style='padding:0;'>
                 <div class='taskWasteDivider'></div>
-                <table style='width:100%;'><tr>
-                    <td class='nowrap' style='width:1%;vertical-align:top;padding-right:15px;'>{$wasteName}</td>
-                    <td style='vertical-align:top;'>{$wasteValue}</td>
-                </tr></table>
+                <div class='taskWasteSummary'>
+                    <div class='nowrap'>{$wasteName}</div>
+                    <div class='taskWasteItems'>{$wasteValue}</div>
+                </div>
                 </td></tr>"));
         }
 
@@ -2172,7 +2188,7 @@ class planning_Tasks extends core_Master
     /**
      * Подготвя задачите към заданията
      */
-    public function prepareTasks($data)
+    public function prepareTasks_($data)
     {
         if (($data->masterMvc ?? null) instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
             $data->hide = true;
@@ -2188,7 +2204,10 @@ class planning_Tasks extends core_Master
             $data->TabCaption = 'Операции';
         }
 
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        // Плъгин може да подаде свой пейджър (напр. при четене на документа от Аида)
+        if (!isset($data->pager)) {
+            $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        }
         $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
         $data->recs = $data->rows = array();
 
@@ -2365,121 +2384,6 @@ class planning_Tasks extends core_Master
  
         // Връщаме шаблона
         return $tpl;
-    }
-
-
-    /**
-     * Полета от листовия филтър, чиито последни стойности се пазят за потребителя
-     *
-     * @return array
-     */
-    protected static function getPersistentListFilterFields()
-    {
-        return arr::make(
-            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect,prevProgress',
-            true
-        );
-    }
-
-
-    /**
-     * Възстановява постоянните потребителски настройки още преди подготовката на листа
-     *
-     * Това трябва да стане преди събитията BeforePrepareListFilter на плъгините,
-     * защото някои от тях ограничават заявката според текущите стойности в Request.
-     */
-    protected static function restorePersistentListFilter()
-    {
-        if (Mode::is('isReorder')) {
-            return;
-        }
-
-        $savedValues = core_Settings::fetchKeyNoMerge(
-            'planningTasksListFilter',
-            core_Users::getCurrent()
-        );
-        $restoreValues = array();
-        $hasExplicitValues = false;
-        $savedValuesChanged = false;
-
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            if (Request::get($fieldName, false) !== null) {
-                $hasExplicitValues = true;
-                continue;
-            }
-
-            if (array_key_exists($fieldName, $savedValues)) {
-                $value = $savedValues[$fieldName];
-                if (!empty($value) && in_array($fieldName, array('saleId', 'purchaseId'))) {
-                    // Старите настройки може да сочат договор, който вече няма задания.
-                    list($sourceClass) = planning_Jobs::getSourceInfo((object) array($fieldName => $value));
-                    if (!countR(planning_Jobs::getListSourceOptions(array('mvc' => $sourceClass), 1, '', $value))) {
-                        $savedValues[$fieldName] = $value = '';
-                        $savedValuesChanged = true;
-                    }
-                }
-                $restoreValues[$fieldName] = $value;
-            }
-        }
-
-        if ($savedValuesChanged) {
-            core_Settings::setValues('planningTasksListFilter', $savedValues, core_Users::getCurrent());
-        }
-
-        if (countR($restoreValues)) {
-            Request::push($restoreValues);
-        }
-
-        // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
-        // от core_Users::forceLogin() самостоятелно или заедно с Cmd[default]. Тогава формата
-        // показва стойностите, но refresh-командата не прилага целия листов филтър.
-        // При обикновено зареждане го третираме като нормално изпращане на филтъра.
-        $cmd = Request::get('Cmd', false);
-        $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
-            is_array($cmd) && isset($cmd['refresh']) &&
-            !array_diff_key($cmd, array('default' => true, 'refresh' => true));
-
-        if (($hasExplicitValues || countR($restoreValues)) &&
-            ($cmd === null || $isFullPageRefresh)) {
-            Request::push(array('Cmd' => array('default' => 1)));
-        }
-
-        Mode::set('planningTasksListFilterHasExplicitValues', $hasExplicitValues);
-    }
-
-
-    /**
-     * Записва последните изрично подадени настройки на листовия филтър
-     *
-     * @param stdClass $data
-     */
-    protected static function savePersistentListFilter($data)
-    {
-        if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
-            !empty($data->masterMvc) ||
-            $data->listFilter->gotErrors() ||
-            Mode::is('isReorder')) {
-            return;
-        }
-
-        core_Settings::setValues(
-            'planningTasksListFilter',
-            self::getPersistentListFilterValues($data->listFilter->rec),
-            core_Users::getCurrent()
-        );
-    }
-
-
-    /**
-     * Стойности за повторно подаване във формата
-     */
-    private static function getPersistentListFilterValues($rec)
-    {
-        $values = array();
-        foreach (self::getPersistentListFilterFields() as $fieldName) {
-            $values[$fieldName] = $rec->{$fieldName} ?? '';
-        }
-        return $values;
     }
 
 
@@ -2661,13 +2565,9 @@ class planning_Tasks extends core_Master
             unset($data->query->fields['dueDate']);
         }
 
-        // При AJAX обновяване филтърът не се записва - старият таб не бива да презаписва по-нов избор
-        if (!Request::get('ajax_mode')) {
-            self::savePersistentListFilter($data);
-        }
-
         if (!Mode::is('isReorder') && empty($data->masterMvc)) {
-            $mvc->refreshRowsListFilterValues = self::getPersistentListFilterValues($data->listFilter->rec);
+            planning_ListFilter::save($mvc, $data);
+            $mvc->refreshRowsListFilterValues = planning_ListFilter::getValues($mvc, $listFilter->rec);
         }
 
         if(Mode::get('isReorder')){
@@ -2915,8 +2815,14 @@ JS
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
                 unset($mvc->_plugins['planning_Wrapper']);
-            } else {
-                self::restorePersistentListFilter();
+            } elseif (planning_ListFilter::restore($mvc)) {
+                // Полетата на Операции с input() изискват команда и при отваряне на листа след нов вход.
+                $cmd = Request::get('Cmd', false);
+                $fullPageRefresh = !Request::get('ajax_mode', 'int') && is_array($cmd) && isset($cmd['refresh']) &&
+                    !array_diff_key($cmd, array('default' => true, 'refresh' => true));
+                if ($cmd === null || $fullPageRefresh) {
+                    Request::push(array('Cmd' => array('default' => 1)));
+                }
             }
         }
     }
@@ -3338,7 +3244,7 @@ JS
         if ($type == 'clone' || $type == 'cloneAll') {
             $oldJobRec = isset($jobRec->oldJobId) ? planning_Jobs::fetch($jobRec->oldJobId) : $jobRec;
             $tasksToClone = array();
-            $count = $clonedConsumptionNotes = 0;
+            $clonedConsumptionNotes = 0;
             if($type == 'clone'){
                 expect($cloneId = Request::get('cloneId', 'int'));
                 planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
@@ -3358,31 +3264,39 @@ JS
             }
 
             $orderTemplates = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity ?? 1);
-            foreach ($tasksToClone as $taskRec){
-                $newTask = clone $taskRec;
-                plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+            $predecessors = planning_TaskOrder::getClonePredecessors($tasksToClone);
+            $cloneScope = count($tasksToClone) > 1 ? 'group' : 'single';
+            $copiesBySource = array();
+            try {
+                foreach ($predecessors as $sourceId => $previousId) {
+                    $taskRec = $tasksToClone[$sourceId];
+                    $newTask = clone $taskRec;
+                    plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
 
-                // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
-                $q = $oldJobRec->quantity / $jobRec->quantity;
-                $round = cat_UoM::fetchField($newTask->measureId, 'round');
-                $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
+                    // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
+                    $q = $oldJobRec->quantity / $jobRec->quantity;
+                    $round = cat_UoM::fetchField($newTask->measureId, 'round');
+                    $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
 
-                $newTask->_isClone = true;
-                $newTask->_orderJob = $jobRec;
-                $newTask->_orderTemplates = $orderTemplates;
-                $newTask->originId = $jobRec->containerId;
-                $newTask->state = 'draft';
-                $newTask->clonedFromId = $newTask->id;
-                unset($newTask->id);
-                unset($newTask->threadId);
-                unset($newTask->containerId);
-                unset($newTask->createdOn);
-                unset($newTask->createdBy);
-                unset($newTask->activatedOn);
-                unset($newTask->activatedBy);
-                unset($newTask->systemId);
+                    $newTask->cloneScope = $cloneScope;
+                    $newTask->_clonedPreviousTask = $copiesBySource[$previousId]->id ?? null;
+                    $newTask->_isClone = true;
+                    $newTask->_orderJob = $jobRec;
+                    $newTask->_orderTemplates = $orderTemplates;
+                    $newTask->originId = $jobRec->containerId;
+                    $newTask->state = 'draft';
+                    $newTask->clonedFromId = $newTask->id;
+                    unset($newTask->id);
+                    unset($newTask->threadId);
+                    unset($newTask->containerId);
+                    unset($newTask->createdOn);
+                    unset($newTask->createdBy);
+                    unset($newTask->activatedOn);
+                    unset($newTask->activatedBy);
+                    unset($newTask->systemId);
 
-                if ($this->save($newTask)) {
+                    $copiesBySource[$sourceId] = $newTask;
+                    if (!$this->save($newTask)) continue;
                     $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
                     $this->logWrite('Клониране от предходна операция', $newTask->id);
 
@@ -3395,34 +3309,41 @@ JS
                         $newParamRec->paramValue = cat_Params::getReplacementValueOnClone($newParamRec->paramId, 'planning_Tasks', $taskRec->id,$newParamRec->paramValue);
                         cat_products_Params::save($newParamRec);
                     }
-                }
-                $count++;
 
-                // Клониране и на протоколите за влагане
-                if($cloneCn){
-                    $Consumptions = cls::get('planning_ConsumptionNotes');
-                    $cQuery = $Consumptions->getQuery();
-                    $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
-                    while($consRec = $cQuery->fetch()){
-                        $newConsRec = clone $consRec;
-                        plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
-                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
+                    // Клониране и на протоколите за влагане
+                    if($cloneCn){
+                        $Consumptions = cls::get('planning_ConsumptionNotes');
+                        $cQuery = $Consumptions->getQuery();
+                        $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
+                        while($consRec = $cQuery->fetch()){
+                            $newConsRec = clone $consRec;
+                            plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
+                            unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
 
-                        $newConsRec->_isClone = true;
-                        $newConsRec->originId = $newTask->containerId;
-                        $newConsRec->state = 'draft';
-                        $newConsRec->threadId = $newTask->threadId;
-                        $newConsRec->folderId = $newTask->folderId;
-                        $newConsRec->clonedFromId = $consRec->id;
+                            $newConsRec->_isClone = true;
+                            $newConsRec->originId = $newTask->containerId;
+                            $newConsRec->state = 'draft';
+                            $newConsRec->threadId = $newTask->threadId;
+                            $newConsRec->folderId = $newTask->folderId;
+                            $newConsRec->clonedFromId = $consRec->id;
 
-                        if ($Consumptions->save($newConsRec)) {
-                            $clonedConsumptionNotes++;
-                            $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                            if ($Consumptions->save($newConsRec)) {
+                                $clonedConsumptionNotes++;
+                                $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                            }
                         }
                     }
                 }
+            } finally {
+                // При прекъсната група единственото записано копие се подрежда като единично.
+                $clonedIds = array_column($copiesBySource, 'id');
+                $count = count($clonedIds);
+                if ($cloneScope === 'group' && $count === 1) {
+                    $single = (object)array('id' => $clonedIds[0], 'cloneScope' => 'single');
+                    expect($this->save_($single, 'cloneScope'));
+                    $this->reorderTasksByJobIds[$jobRec->containerId] = $jobRec->containerId;
+                }
             }
-
             $msg = "Успешно клонирани операции|*: {$count}";
             if(!empty($clonedConsumptionNotes)){
                 $msg.= ", |Успешно клонирани протоколи за влагане|*: {$clonedConsumptionNotes}";
@@ -5666,6 +5587,10 @@ JS
             $match = planning_TaskOrder::matchRecipe($rec->_orderTemplates, array($rec));
             $rec->jobOrderMode = $match ? 'recipe' : 'auto';
             $fields['jobOrderMode'] = 'jobOrderMode';
+            if (!empty($rec->clonedFromId)) {
+                $rec->cloneScope = $rec->cloneScope ?? 'single';
+                $fields['cloneScope'] = 'cloneScope';
+            }
             // Преди INSERT, за да не вижда друга заявка все още непозициониран ред.
             if ($rec->_orderJob && ($rec->state ?? null) !== 'rejected') {
                 self::lockJobOrder($rec->originId);
@@ -5965,7 +5890,7 @@ JS
         $query->where(array("#originId = '[#1#]' AND #state != 'rejected'", $originId));
         $query->orderBy('saoOrder,id', 'ASC');
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $query->show('id,saoOrder,systemId,clonedFromId,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
+        $query->show('id,saoOrder,systemId,clonedFromId,cloneScope,productId,subTitle,previousTask,state,isFinal,canStore,jobOrderMode');
 
         return $query->fetchAll();
     }
@@ -6169,7 +6094,11 @@ JS
             }
             $oldMode = $task->jobOrderMode ?? null;
             $order = planning_TaskOrder::insert($tasks, $task, $templates, $conditions, $withdrawnPrevious);
-            if (($task->jobOrderMode ?? null) !== $oldMode) expect($this->save_($task, 'jobOrderMode'));
+            if (isset($rec->_clonedPreviousTask, $task->previousTask)) {
+                expect($this->save_($task, 'previousTask,jobOrderMode'));
+            } elseif (($task->jobOrderMode ?? null) !== $oldMode) {
+                expect($this->save_($task, 'jobOrderMode'));
+            }
 
             return $order;
         });
