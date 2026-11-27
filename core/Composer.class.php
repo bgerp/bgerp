@@ -196,9 +196,9 @@ class core_Composer extends core_Mvc
         $command = "--apcu-autoloader require {$pack} {$version}";
         $lines = self::run($command);
 
-        // Заключена зависимост на самия пакет спира смяната на версията му - обновяват се само неговите зависимости
+        // При конфликт със заключена зависимост запазваме съвместимите версии от composer.lock.
         if ($lines === false && strpos(self::$error ?? '', '--with-all-dependencies') !== false) {
-            $lines = self::run($command . ' --update-with-dependencies');
+            $lines = self::run($command . ' --update-with-dependencies --minimal-changes');
         }
 
         if ($lines === false) {
