@@ -10,7 +10,9 @@ body.commerce-theme.bordeaux-theme.eshop-public .eshop-product-list {
     box-shadow: none;
 }
 
-body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-media { height: 260px; padding: 24px; background: #fff; border-radius: 0; }
+body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-media { height: auto; padding:0; background: #fff; border-radius: 0; margin-bottom: 0}
+body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-media .eshopLink { height: auto; }
+body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-media img { height: auto; max-height: none; }
 body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-content { padding: 24px; background: var(--c-surface-3); }
 body.commerce-theme.bordeaux-theme.eshop-public .eshop-product-list-name { font: 400 1.375rem/1.3 Georgia, 'Times New Roman', serif; }
 body.commerce-theme.bordeaux-theme.eshop-public .eshop-card-price { color: var(--c-accent-dark); }
