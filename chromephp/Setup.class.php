@@ -86,6 +86,27 @@ class chromephp_Setup extends core_ProtoSetup
             return;
         }
 
+        $runtime = self::getRuntimeInfo();
+        $info = '<div>' . ht::escapeAttr($runtime) . '</div>';
+        $probe = Mode::get('chromephpLastProbe');
+        if (($probe['runtime'] ?? null) === $runtime) {
+            $info .= '<div>' . tr('Последна проба с празен таб||Last empty tab check') . ' (' . ht::escapeAttr($probe['time'] ?? '') . ')';
+            if (!empty($probe['product'])) {
+                $info .= ' · ' . ht::escapeAttr($probe['product']);
+            }
+            foreach (array('startup' => 'Старт', 'page' => 'Празен таб||Empty tab') as $key => $caption) {
+                if (isset($probe[$key])) {
+                    $info .= ' · ' . tr($caption) . ' ' . ht::escapeAttr($probe[$key]) . ' ' . tr('сек.');
+                }
+            }
+            $info .= empty($probe['error']) ? ' · ' . tr('Успешна||Passed') : '<br><span class="red">' . ht::escapeAttr($probe['error']) . '</span>';
+            $info .= '</div>';
+        }
+        $configForm->setInfoBeforeField('CHROMEPHP_VERSION', $info);
+        $configForm->toolbar->addBtn('Проба с празен таб||Test empty tab',
+            array('chromephp_Browser', 'checkBrowser', 'Cf' => Request::getSessHash('checkBrowser')),
+            'ef_icon=img/16/cog.png,target=_blank,title=Проверка със записаните настройки и лимит 5 секунди за команда');
+
         $options = $this->getAvailableBinPaths();
         if (countR($options)) {
             $configForm->setOptions('CHROMEPHP_BIN_PATH', $options);
@@ -109,16 +130,11 @@ class chromephp_Setup extends core_ProtoSetup
         $paths = array();
 
         $current = trim((string) chromephp_Setup::get('BIN_PATH'));
-        if (strlen($current) && is_executable($current)) {
+        if (is_file($current) && is_executable($current)) {
             $paths[$current] = $current;
         }
 
-        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
-            $found = trim((string) shell_exec("command -v {$bin} 2>/dev/null"));
-            if (strlen($found) && is_executable($found)) {
-                $paths[$found] = $found;
-            }
-        }
+        $paths += chromephp_Browser::getSystemBinPaths();
 
         // Дефинира EF_VENDOR_PATH, ако core_Composer още не е зареждан
         cls::load('core_Composer');
@@ -151,13 +167,42 @@ class chromephp_Setup extends core_ProtoSetup
     }
 
 
-    /** Проверява избраната версия в общия vendor, без изтегляне. */
+    /** Проверява избраната версия в общия vendor без изпълнение на Composer. */
     public static function isLibraryInstalled()
     {
-        $version = self::get('VERSION');
         $factory = dirname(core_Composer::getAutoloadPath()) . '/chrome-php/chrome/src/BrowserFactory.php';
+        if (!is_readable($factory)) {
+            return false;
+        }
+        $installed = self::getLibraryVersion();
+        $version = self::get('VERSION');
 
-        return is_readable($factory) && core_Composer::isInstalled('chrome-php/chrome', $version === 'shared' ? null : $version, true);
+        return $installed !== null && ($version === 'shared' || version_compare(ltrim($installed, 'v'), $version, '=='));
+    }
+
+
+    /** Чете локалните метаданни на Composer 2 или Composer 1 без CLI и autoload. */
+    private static function getLibraryVersion()
+    {
+        $dir = dirname(core_Composer::getAutoloadPath()) . '/composer';
+        if (is_readable($dir . '/installed.json')) {
+            $data = json_decode((string) file_get_contents($dir . '/installed.json'), true);
+            foreach ((array) ($data['packages'] ?? $data) as $package) {
+                if (($package['name'] ?? '') === 'chrome-php/chrome') {
+                    return $package['version'] ?? null;
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    /** Данни за активната инсталация, достъпни и при неуспешен старт на Chrome. */
+    public static function getRuntimeInfo()
+    {
+        return 'PHP ' . PHP_VERSION . ' · chrome-php/chrome ' . (self::getLibraryVersion() ?? '?')
+            . ' · ' . (chromephp_Browser::getBinPath() ?: '?');
     }
 
 
@@ -198,19 +243,17 @@ class chromephp_Setup extends core_ProtoSetup
     {
         // Ако вече е зададен работещ бинарник - нищо не правим
         $binPath = trim((string) chromephp_Setup::get('BIN_PATH'));
-        if (strlen($binPath) && is_executable($binPath)) {
+        if (is_file($binPath) && is_executable($binPath)) {
 
             return "<li><strong>Chrome</strong>: използва се `{$binPath}`</li>";
         }
 
         // Търсим системно инсталиран Chrome/Chromium
-        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
-            $found = trim((string) shell_exec("command -v {$bin} 2>/dev/null"));
-            if (strlen($found)) {
-                core_Packs::setConfig('chromephp', array('CHROMEPHP_BIN_PATH' => $found));
+        $paths = chromephp_Browser::getSystemBinPaths();
+        if ($found = reset($paths)) {
+            core_Packs::setConfig('chromephp', array('CHROMEPHP_BIN_PATH' => $found));
 
-                return "<li class='debug-new'><strong>Chrome</strong>: намерен е системен бинарник `{$found}`</li>";
-            }
+            return "<li class='debug-new'><strong>Chrome</strong>: намерен е системен бинарник `{$found}`</li>";
         }
 
         if (PHP_OS_FAMILY != 'Linux' || php_uname('m') != 'x86_64') {

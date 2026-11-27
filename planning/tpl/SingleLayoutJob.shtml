@@ -104,21 +104,8 @@
         </tr>
         <tr>
             <td>
-                <table>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Вид|*:</td>
-                        <td>[#type#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Падеж|*:</td>
-                        <td>[#dueDate#]</td>
-                    </tr>
-                    <!--ET_BEGIN expectedDueDate-->
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Очакван падеж|*:</td>
-                        <td>[#expectedDueDate#]</td>
-                    </tr>
-                    <!--ET_END expectedDueDate-->
+                [#/planning/tpl/JobHeaderFields.shtml#]
+                <table class="jobHeaderDetails">
                     <!--ET_BEGIN storeId-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Произвеждане в|*:</td>
@@ -131,24 +118,6 @@
                         <td>[#inputStores#]</td>
                     </tr>
                     <!--ET_END inputStores-->
-                    <!--ET_BEGIN tolerance-->
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Толеранс|*:</td>
-                        <td>[#tolerance#]</td>
-                    </tr>
-                    <!--ET_END tolerance-->
-                    <!--ET_BEGIN brutoWeight-->
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Бруто|*:</td>
-                        <td>[#brutoWeight#]</td>
-                    </tr>
-                    <!--ET_END brutoWeight-->
-                    <!--ET_BEGIN weight-->
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Ед. тегло|*:</td>
-                        <td>[#weight#]</td>
-                    </tr>
-                    <!--ET_END weight-->
                     <!--ET_BEGIN department-->
                     <tr style='padding-bottom:80px;padding-top:80px'>
                         <td class='quiet' style='text-align: left'>|Ц-р на дейност|*:</td>

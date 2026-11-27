@@ -16,6 +16,40 @@
 .document .jobTable .quiet {
   padding-right: 5px; }
 
+.document .jobHeaderColumns {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px; }
+
+.document .jobHeaderColumns > div {
+  flex: 1 1 0;
+  position: relative; }
+
+.document .jobHeaderColumns.jobHeaderPaired > div + div > table {
+  margin-left: var(--jobHeaderSecondaryOffset, 0px); }
+
+.document .jobHeaderColumns.jobHeaderPaired > div + div::before {
+  content: "";
+  position: absolute;
+  left: var(--jobHeaderDividerOffset, -5px);
+  top: 0.25em;
+  bottom: 0.25em;
+  border-left: 1px solid #cccccc; }
+
+.document .jobHeaderColumns td {
+  white-space: nowrap; }
+
+.document .jobHeaderDetails > tbody > tr > td:first-child {
+  white-space: nowrap; }
+
+.document .jobHeaderColumns > div > table > tbody > tr > td:first-child,
+.document .jobHeaderDetails > tbody > tr > td:first-child {
+  box-sizing: border-box; }
+
+.document .jobHeaderColumns td,
+.document .jobHeaderDetails > tbody > tr > td {
+  text-align: left; }
+
 .product-title {
   font-weight: bold; }
 
