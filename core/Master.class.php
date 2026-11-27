@@ -497,6 +497,9 @@ class core_Master extends core_Manager
                 $llmSelect = $llmTabs->select ?? null;
                 if (isset($llmSelect) && array_key_exists($llmSelect, $tabTop->getTabs())) {
                     $selectedTop = $llmSelect;
+                } elseif ($llmTabs && !array_key_exists((string) $selectedTop, $tabTop->getTabs())) {
+                    // Поисканият от Аида таб е долен - горе остава първият
+                    $selectedTop = null;
                 }
                 if (!$selectedTop) {
                     $selectedTop = $tabTop->getFirstTab();

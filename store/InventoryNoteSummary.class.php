@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -415,6 +415,8 @@ class store_InventoryNoteSummary extends doc_Detail
             if (isset($rec)) {
                 $row->delta = static::renderDeltaCell($rec);
                 $deltaId = $rec->id ?? $id;
+                // Ключът на партиден ред съдържа името на артикула - апостроф в него чупи атрибута
+                $deltaId = ht::escapeAttr($deltaId);
                 $row->delta = "<div id='delta{$deltaId}'>{$row->delta}</div>";
             }
             

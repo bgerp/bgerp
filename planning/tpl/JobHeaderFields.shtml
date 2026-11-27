@@ -1,0 +1,51 @@
+<!--
+    Основни данни за заданието в две адаптивни колони.
+    @package planning
+    @author Stefan Arsov <stefan.arsof@gmail.com> with Codex
+    @copyright 2026 Experta EOOD
+    @license GPL 3
+-->
+<div class="jobHeaderColumns">
+    <div>
+        <table>
+            <!--ET_BEGIN type-->
+            <tr>
+                <td class="quiet">|Вид|*:</td>
+                <td>[#type#]</td>
+            </tr>
+            <!--ET_END type-->
+            <tr>
+                <td class="quiet">|Падеж|*:</td>
+                <td>[#dueDate#]</td>
+            </tr>
+            <!--ET_BEGIN expectedDueDate-->
+            <tr>
+                <td class="quiet">|Очакван падеж|*:</td>
+                <td>[#expectedDueDate#]</td>
+            </tr>
+            <!--ET_END expectedDueDate-->
+        </table>
+    </div>
+    <div>
+        <table>
+            <!--ET_BEGIN tolerance-->
+            <tr>
+                <td class="quiet">|Толеранс|*:</td>
+                <td>[#tolerance#]</td>
+            </tr>
+            <!--ET_END tolerance-->
+            <!--ET_BEGIN brutoWeight-->
+            <tr>
+                <td class="quiet">|Бруто|*:</td>
+                <td>[#brutoWeight#]</td>
+            </tr>
+            <!--ET_END brutoWeight-->
+            <!--ET_BEGIN weight-->
+            <tr>
+                <td class="quiet">|Ед. тегло|*:</td>
+                <td>[#weight#]</td>
+            </tr>
+            <!--ET_END weight-->
+        </table>
+    </div>
+</div>
