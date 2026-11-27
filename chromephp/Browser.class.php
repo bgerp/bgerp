@@ -46,8 +46,13 @@ class chromephp_Browser
     {
         expect($this->isEnabled());
 
-        // Зареждаме опаковката
-        $wrapperTpl = cls::get('page_Print');
+        // Без window.print() от обвивката - Chrome отказва PDF, докато страницата се печата
+        Mode::push('runPrinting', false);
+        try {
+            $wrapperTpl = cls::get('page_Print');
+        } finally {
+            Mode::pop('runPrinting');
+        }
 
         // Обхождаме масива с JS файловете
         foreach ((array) ($jsArr['JS'] ?? array()) as $js) {
