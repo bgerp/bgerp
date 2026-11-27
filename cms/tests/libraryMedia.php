@@ -5,7 +5,7 @@
  *
  * @category  bgerp
  * @package   cms
- * @author    Mustafov1 <mmustafov3@icloud.com>
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
  * @copyright 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -24,8 +24,8 @@ class cls
 }
 class FixtureSource
 {
-    public static $viewer = 1, $exists = true, $enabled = true;
-    public function haveRightFor($action, $rec, $userId = null) { return $action === 'single' && ($userId ?? self::$viewer) === 1; }
+    public static $viewer = 1, $exists = true, $enabled = true, $shared = array();
+    public function haveRightFor($action, $rec, $userId = null) { return $action === 'single' && in_array($userId ?? self::$viewer, array_merge(array(1), self::$shared), true); }
 }
 class SourceQuery
 {
@@ -109,12 +109,20 @@ $action = 'single';
 $partial = (object) array('id' => 2);
 foreach (array(1, 2, 1) as $viewer) {
     FixtureSource::$viewer = $viewer;
+    $visible = cms_Library::getVisibleEmbedded(cms_Library::getEmbedTag($private));
+    check($viewer === 1 ? $visible === $private : $visible === null, 'Tag lookup shares the viewer check and returns all fields');
     $result = $library->act_Embedded();
     check($result->media === ($viewer === 1 ? $private->data : 'Недостъпен обект'), 'Frame must recheck every viewer');
     check(in_array('Cache-Control: private, no-store', $result->headers, true), 'Frame response is private');
     check($library->getRequiredRoles_($action, $partial) === ($viewer === 1 ? 'cms' : 'no_one'), 'Record permission on a partial record');
     check(cms_Library::render($private->id, 700) === ($viewer === 1 ? $private->data : ''), 'Direct render by record id checks the viewer');
 }
+FixtureSource::$viewer = 2;
+FixtureSource::$shared = array(2);
+check(cms_Library::getVisibleEmbedded(Request::$code) === $private, 'A shared viewer can read the native record');
+FixtureSource::$shared = array();
+check(cms_Library::getVisibleEmbedded(Request::$code) === null, 'Removing sharing denies the same tag');
+FixtureSource::$viewer = 1;
 $private->accessClassId = null;
 check($library->act_Embedded()->media === 'Недостъпен обект', 'Unmigrated source stays private');
 $private->accessClassId = 3;
@@ -127,6 +135,10 @@ FixtureSource::$enabled = false;
 check($library->act_Embedded()->media === 'Недостъпен обект', 'Missing access provider must deny private media');
 Request::$code = 'public-Ab23';
 check($library->act_Embedded()->media === $public->data, 'Unscoped media stays public');
+$public->driverClass = 6;
+check(cms_Library::getVisibleEmbedded(Request::$code) === $public, 'Public driver outside the conversation list can be read by code');
+check(cms_Library::getVisibleEmbedded('missing-tag') === null, 'Unknown tag has no visible record');
+$public->driverClass = 5;
 Request::$code = 'public-missing';
 check($library->act_Embedded()->media === 'Недостъпен обект', 'Incorrect tag does not open the public frame');
 
@@ -141,6 +153,10 @@ foreach (array('source' => 'VideoFile', 'images' => '|3|', 'body' => '[file=Vide
         check(cms_Library::render($partial, 700) === ($viewer === 1 ? $private->data : ''), 'File access for direct render');
         check($library->act_Embedded()->media === ($viewer === 1 ? $private->data : 'Недостъпен обект'), 'File access for frame');
         check($library->getRequiredRoles_($action, $partial) === ($viewer === 1 ? 'cms' : 'no_one'), 'File access for edit');
+        check((cms_Library::getVisibleEmbedded(Request::$code) !== null) === ($viewer === 1), 'File access also guards full record reads');
+        $public->{$field} = $value;
+        check((cms_Library::getVisibleEmbedded(cms_Library::getEmbedTag($public)) !== null) === ($viewer === 1), 'File handles of public objects require file access');
+        unset($public->{$field});
         check(cms_Library::render($public, 700) === $public->data, 'Unscoped preview is preserved');
     }
     unset($private->{$field});

@@ -118,6 +118,26 @@ class chromephp_Browser extends core_BaseClass
     }
 
 
+    /** Снимка на готов HTML елемент в екранен режим. Селекторът е на извикващия драйвер. */
+    public function capturePng($html, $selector, $path)
+    {
+        $browser = self::startBrowser(self::getResponseTimeout());
+        try {
+            $page = $browser->createPage();
+            $page->setViewport(720, 720)->await();
+            $page->setHtml($html, max(1, (int) chromephp_Setup::get('LOAD_TIMEOUT')) * 1000);
+            $node = $page->dom()->querySelector($selector);
+            $clip = $node ? $node->getClip() : null;
+            if (!$clip || !$clip->getWidth() || !$clip->getHeight()) {
+                throw new UnexpectedValueException('The rendered element is missing or has no visible area.');
+            }
+            $page->screenshot(array('format' => 'png', 'clip' => $clip))->saveToFile($path);
+        } finally {
+            $browser->close();
+        }
+    }
+
+
     /** Времето е достъпно и за администратор без включен debug режим. */
     private static function measureStep($name, $responseTimeout, $operation, &$seconds = null)
     {

@@ -80,8 +80,14 @@ class eshop_Products extends core_Master
      * Кой има право да го изтрие?
      */
     public $canDelete = 'eshop,ceo';
-    
-    
+
+
+    /**
+     * Кой има право да изтрива създадените от системата?
+     */
+    public $canDeletesysdata = 'eshop,ceo';
+
+
     /**
      * Работен кеш?
      */

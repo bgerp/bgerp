@@ -75,6 +75,11 @@ function prepareChart(animation) {
                     animation: {duration: animationDuration}
                 }
             };
+            // Височината на стълба е сравнима само спрямо нулата, иначе най-малката стойност изчезва.
+            if (charType == 'bar') {
+                if (modern) config.options.scales.y = {beginAtZero: true};
+                else config.options.scales.yAxes = [{ticks: {beginAtZero: true}}];
+            }
         }
         if (!config) return;
         if (modern) config.options.aspectRatio = 700 / 570;

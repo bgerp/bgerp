@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta EOOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,6 @@ class planning_type_Operators extends type_Keylist
     {
         if(!empty($value)){
             if(is_array($value)){
-                wp($this, $value);
                 $value = implode(',', $value);
             }
             // Опит за парсиране на на стойноста към кейлист

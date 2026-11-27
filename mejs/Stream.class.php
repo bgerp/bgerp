@@ -2,7 +2,7 @@
 
 
 /**
- * Подава избрана писта на библиотечния плеър със същия контекст на достъп.
+ * Подава избран файл на библиотечен обект със същия контекст на достъп.
  *
  * @category  bgerp
  * @package   mejs
@@ -71,18 +71,22 @@ class mejs_Stream extends core_Mvc
     }
 
 
-    /** Пътят и MIME идват само от записания файл на избрания драйвер. */
+    /**
+     * Пътят и MIME идват само от записания файл на избрания драйвер.
+     * Всеки библиотечен драйвер с getStreamSource($rec, $slot) подава файловете си оттук.
+     */
     private static function getSource($id, $slot)
     {
         $id = (int) $id;
         $slot = (int) $slot;
-        if ($id < 1 || !in_array($slot, array(1, 2), true)) return null;
+        if ($id < 1 || $slot < 1) return null;
         $rec = cms_Library::fetch($id, '*', false);
         if (!$rec || !cms_Library::hasAccessContext($rec) || !cms_Library::canViewAccessContext($rec)) return null;
-        $driver = !empty($rec->driverClass) ? core_Classes::getName($rec->driverClass) : null;
-        if ($driver !== 'mejs_VideoDriver') return null;
+        $driver = cms_Library::getDriver($rec);
+        if (!$driver || !method_exists($driver, 'getStreamSource')) return null;
+        $source = $driver->getStreamSource($rec, $slot);
 
-        return mejs_VideoDriver::getProtectedSource($rec->{'source' . $slot} ?? null);
+        return is_array($source) && !empty($source['dataId']) && !empty($source['mime']) ? $source : null;
     }
 
 

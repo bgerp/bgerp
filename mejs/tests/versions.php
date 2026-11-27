@@ -72,6 +72,9 @@ $stream = array('url' => '/protected/1', 'type' => 'video/mp4');
 $protected = mejs_Adapter::createVideo(array($stream), array('title' => '0'), 'stream');
 check($protected->parts['MEDIA_TITLE'] === '0', 'Scoped video title');
 check($protected->parts['SOURCE'][0] === array('source', array('src' => $stream['url'], 'type' => $stream['type'])), 'Typed video source');
+$sound = array('url' => '/protected/2', 'type' => 'audio/mpeg');
+$protected = mejs_Adapter::createAudio(array($sound), array(), 'stream');
+check($protected->parts['SOURCE'][0] === array('source', array('src' => $sound['url'], 'type' => $sound['type'])), 'Typed audio source');
 foreach (array('2.11.0.0','2.20.0','4.2.9','7.1.0') as $version) {
     $params = array('startVolume'=>0,'loop'=>true,'pauseOtherPlayers'=>false,'features'=>array('playpause'));
     $actual = json_decode(mejs_Adapter::prepareParams($params), true);
