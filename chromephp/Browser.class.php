@@ -102,7 +102,8 @@ class chromephp_Browser extends core_BaseClass
             'startupTimeout' => $startupTimeout,
             // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
             // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
-            'customFlags' => ['--remote-allow-origins=*'],
+            // Без JIT: услугата на Apache в Ubuntu 26.04 е с MemoryDenyWriteExecute и табът иначе не отговаря
+            'customFlags' => ['--remote-allow-origins=*', '--js-flags=--jitless'],
         ]);
 
         return self::measureStep('createBrowser', $timeout, function () use ($browserFactory) {
