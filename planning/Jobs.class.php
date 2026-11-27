@@ -1326,7 +1326,7 @@ class planning_Jobs extends core_Master
         if (!empty($fields['-deal'])) {
             $jobId = $rec->id ?? null;
             $type = mb_strtoupper($row->type ?? tr('Производство'), 'UTF-8');
-            $row->titleHint = sprintf(tr('Задание за %s № %d||%s job No. %d'), $type, $jobId);
+            $row->titleHint = tr("|Задание за|* {$type} № {$jobId}");
             $badge = cat_Boms::renderTypeBadge(mb_substr($type, 0, 1, 'UTF-8'), $mvc, $rec);
             $row->title = $badge . ' ' . $mvc->getLink($jobId, false, array('title' => "|*{$row->titleHint}"));
         } else {
