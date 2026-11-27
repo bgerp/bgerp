@@ -78,8 +78,8 @@ class chromephp_Browser
         $browserFactory->addOptions([
             'ignoreCertificateErrors' => true,
             'enableImages' => true,
-            // Под натоварване новият таб отговаря по-бавно от стандартните 5 секунди
-            'sendSyncDefaultTimeout' => 30000,
+            // Под натоварване новият таб и печатът отговарят по-бавно от стандартните 5 секунди
+            'sendSyncDefaultTimeout' => self::getResponseTimeout(),
             // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
             // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
             'customFlags' => ['--remote-allow-origins=*'],
@@ -103,9 +103,18 @@ class chromephp_Browser
     }
 
 
+    /** Милисекунди за изчакване на отговор от Chrome. */
+    protected static function getResponseTimeout()
+    {
+        return max(5, (int) chromephp_Setup::get('RESPONSE_TIMEOUT')) * 1000;
+    }
+
+
     /** Генерира PDF със съществуващите правила за A4 и широки справки. */
     protected function renderPdf($browser, $html)
     {
+        // Подава се изрично, защото не всички версии на chrome-php ползват общата настройка
+        $timeout = self::getResponseTimeout();
         $page = $browser->createPage();
 
         // A4 размери и използваема ширина при зададените по-долу PDF полета
@@ -117,10 +126,10 @@ class chromephp_Browser
         $portraitHeight = (int) round(($paperHeight - 2 * $verticalMargin) * 96);
         $landscapeWidth = (int) round(($paperHeight - 2 * $horizontalMargin) * 96);
         $landscapeHeight = (int) round(($paperWidth - 2 * $verticalMargin) * 96);
-        $page->setViewport($portraitWidth, $portraitHeight)->await();
+        $page->setViewport($portraitWidth, $portraitHeight)->await($timeout);
         $page->getSession()->sendMessage(
             new Message('Emulation.setEmulatedMedia', array('media' => 'print'))
-        )->waitForResponse();
+        )->waitForResponse($timeout);
 
         // Съдържанието е заредено, а таймаутът е от бавен ресурс (картинка, скрипт) - печата се каквото е заредено
         try {
@@ -142,7 +151,7 @@ class chromephp_Browser
 
                 return maxColumns;
             })()"
-        )->getReturnValue();
+        )->getReturnValue($timeout);
         $useWideReportLayout = $reportColumnCount > 6;
 
         if ($useWideReportLayout) {
@@ -176,14 +185,14 @@ class chromephp_Browser
                     table.style.setProperty(\"table-layout\", \"auto\", \"important\");
                     table.style.setProperty(\"margin-left\", \"0\", \"important\");
                 });"
-            )->waitForResponse();
+            )->waitForResponse($timeout);
         } else {
             // Стандартни A4 полета и оригинална ширина за малките справки
             $horizontalMargin = 0.4;
             $verticalMargin = 0.4;
             $portraitWidth = (int) round(($paperWidth - 2 * $horizontalMargin) * 96);
             $portraitHeight = (int) round(($paperHeight - 2 * $verticalMargin) * 96);
-            $page->setViewport($portraitWidth, $portraitHeight)->await();
+            $page->setViewport($portraitWidth, $portraitHeight)->await($timeout);
         }
 
         $optArr = array();
@@ -209,7 +218,7 @@ class chromephp_Browser
 
                 return maxWidth;
             })()";
-            $reportTableWidth = (float) $page->evaluate($reportTableWidthScript)->getReturnValue();
+            $reportTableWidth = (float) $page->evaluate($reportTableWidthScript)->getReturnValue($timeout);
 
             if ($reportTableWidth > $portraitWidth) {
                 $portraitScale = $portraitWidth / $reportTableWidth;
@@ -218,8 +227,8 @@ class chromephp_Browser
                     $optArr["scale"] = round(0.98 * $portraitScale, 3);
                 } else {
                     $optArr["landscape"] = true;
-                    $page->setViewport($landscapeWidth, $landscapeHeight)->await();
-                    $reportTableWidth = (float) $page->evaluate($reportTableWidthScript)->getReturnValue();
+                    $page->setViewport($landscapeWidth, $landscapeHeight)->await($timeout);
+                    $reportTableWidth = (float) $page->evaluate($reportTableWidthScript)->getReturnValue($timeout);
                     $landscapeScale = min(1, 0.99 * $landscapeWidth / $reportTableWidth);
                     $optArr["scale"] = round(max(0.1, $landscapeScale), 3);
                 }
@@ -235,7 +244,7 @@ class chromephp_Browser
                 const height = Math.max(body.scrollHeight, body.getBoundingClientRect().bottom);
                 return Math.min(1, 0.97 * {$portraitWidth} / width, 0.97 * {$portraitHeight} / height);
             })()"
-        )->getReturnValue();
+        )->getReturnValue($timeout);
         if ($cmrScale > 0 && $cmrScale < 1) {
             $optArr['scale'] = max(0.1, floor($cmrScale * 1000) / 1000);
         }
@@ -247,7 +256,7 @@ class chromephp_Browser
         }
         core_Debug::startTimer('CHROMEPHP_CONVERT_TO_PDF');
         try {
-            return base64_decode($page->pdf($optArr)->getBase64());
+            return base64_decode($page->pdf($optArr)->getBase64($timeout));
         } finally {
             core_Debug::stopTimer('CHROMEPHP_CONVERT_TO_PDF');
         }

@@ -1323,9 +1323,16 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->title = (!empty($fields['-single'])) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
-        // Балонче за вида на заданието - със стила на рецептите (@see cat_Boms)
-        $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+        if (!empty($fields['-deal'])) {
+            $jobId = $rec->id ?? null;
+            $type = mb_strtoupper($row->type ?? tr('Производство'), 'UTF-8');
+            $row->titleHint = tr("|Задание за|* {$type} № {$jobId}");
+            $badge = cat_Boms::renderTypeBadge(mb_substr($type, 0, 1, 'UTF-8'), $mvc, $rec);
+            $row->title = $badge . ' ' . $mvc->getLink($jobId, false, array('title' => "|*{$row->titleHint}"));
+        } else {
+            $row->title = !empty($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
+            $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+        }
 
         if ($rec->type == 'disassembly') {
             unset($row->allowSecondMeasure);

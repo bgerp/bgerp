@@ -79,6 +79,27 @@ class planning_TaskOrder
     }
 
 
+    /** Избраните оригинали в ред, в който всяка вътрешна предходна вече има ново копие. */
+    public static function getClonePredecessors($sources)
+    {
+        $dependencies = array();
+        foreach ($sources as $id => $source) {
+            $previous = $source->previousTask ?? null;
+            $sameJob = isset($source->originId, $sources[$previous]->originId) && $source->originId == $sources[$previous]->originId;
+            $dependencies[$id] = $sameJob && $previous != $id ? array($previous) : array();
+        }
+
+        $result = array();
+        foreach (planning_GraphSort::topologicalSort($dependencies) as $id) {
+            $previous = $dependencies[$id][0] ?? null;
+            // Самовръзки и цикли от стари задания не се пренасят в новото.
+            $result[$id] = isset($previous) && array_key_exists($previous, $result) ? $previous : null;
+        }
+
+        return $result;
+    }
+
+
     /**
      * Вмъква операция според рецептата и технологичните предходни.
      * При възстановяване ползва ръчните връзки на оттеглените операции от заданието
@@ -125,6 +146,7 @@ class planning_TaskOrder
         }
 
         $ids = array_keys($tasks);
+        $finals = self::getFinalOrder($tasks + array($id => $task), $conditions);
         $manualAt = null;
         $previousId = $task->previousTask ?? null;
         if (isset($withdrawnPrevious)) {
@@ -139,6 +161,21 @@ class planning_TaskOrder
             }
         }
         if (isset($tasks[$previousId])) $manualAt = array_search($previousId, $ids) + 1;
+
+        // Наследената предходна е условие за ред, не изисква копията да са съседни.
+        $clonedPrevious = $task->_clonedPreviousTask ?? null;
+        if (isset($tasks[$clonedPrevious]) && !self::conflictsWithFinalOrder($finals, $id, $clonedPrevious)) {
+            $afterClone = array_search($clonedPrevious, $ids) + 1;
+            $gap = isset($position) && $afterClone > $at ? array_slice($tasks, $at, $afterClone - $at, true) : array();
+            $previousStage = $matches[$clonedPrevious] ?? null;
+            if ((!isset($position, $previousStage) || $positions[$previousStage] <= $position) && !array_intersect_key($gap, $matches)) {
+                $task->previousTask = $clonedPrevious;
+                if (($task->jobOrderMode ?? null) === 'auto') {
+                    $task->jobOrderMode = self::isFinalOutsideRecipe($task) ? 'fixedFinal' : 'fixed';
+                }
+                $manualAt = max($at, $afterClone);
+            }
+        }
         array_splice($ids, $manualAt ?? $at, 0, array($id));
 
         // В смесено задание се запазва относителният ред на заварените операции.
@@ -150,7 +187,6 @@ class planning_TaskOrder
             $rows[$taskId] = $row;
             if (self::isFixed($row)) $keepOrder = true;
         }
-        $finals = self::getFinalOrder($rows, $conditions);
         $regular = array_diff_key($rows, $finals);
         $order = ($keepOrder || isset($finals[$id])) ? array_keys($regular) : self::orderByPredecessors($regular, $conditions);
 
@@ -213,7 +249,7 @@ class planning_TaskOrder
 
 
     /**
-     * Ръчна финална извън рецептата събира накрая финалните без рецептурно място.
+     * Ръчна или единично клонирана финална събира накрая финалните без рецептурно място.
      * Ключовете са ид-та, стойностите са позициите им във финалната група.
      */
     public static function getFinalOrder($tasks, $conditions)
@@ -224,7 +260,7 @@ class planning_TaskOrder
             if (!self::isFinalOutsideRecipe($row) || ($row->state ?? null) === 'rejected') continue;
             $finals[$id] = $row;
             // Нулата също е валиден ред от шаблона.
-            if (!isset($row->systemId) && empty($row->clonedFromId)) $hasManualFinal = true;
+            if (!isset($row->systemId) && (empty($row->clonedFromId) || ($row->cloneScope ?? null) === 'single')) $hasManualFinal = true;
         }
         if (!$hasManualFinal || count($tasks) < 2) return array();
         if (count($finals) == 1) return array_flip(array_keys($finals));
